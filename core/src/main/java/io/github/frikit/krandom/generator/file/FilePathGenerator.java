@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.file;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Locale;
 import java.util.Objects;
 
@@ -16,17 +15,19 @@ import java.util.Objects;
  */
 public final class FilePathGenerator implements Generator<String> {
 
-    private final DirPathGenerator       dirPathGenerator;
-    private final FileNameGenerator      fileNameGenerator;
+    private final DirPathGenerator dirPathGenerator;
+    private final FileNameGenerator fileNameGenerator;
     private final FileExtensionGenerator fileExtensionGenerator;
-    private final Locale                 locale;
+    private final Locale locale;
 
     public FilePathGenerator() {
         this(GeneratorConfig.defaults());
     }
 
     public FilePathGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     public FilePathGenerator(GeneratorConfig config) {

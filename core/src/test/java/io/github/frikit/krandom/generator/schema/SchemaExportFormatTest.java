@@ -5,19 +5,18 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.StringReader;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import javax.xml.parsers.DocumentBuilderFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.StringReader;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Exported documents must stay valid for their format's parsers, whatever text the fields hold.
@@ -37,9 +36,8 @@ class SchemaExportFormatTest {
         String name = "bad name \"q\" & 's'\n\t\r";
         String xml = schemaOf(name, value).toXml(1);
 
-        Document document = DocumentBuilderFactory.newInstance()
-                                                  .newDocumentBuilder()
-                                                  .parse(new InputSource(new StringReader(xml)));
+        Document document =
+                DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new InputSource(new StringReader(xml)));
         Element field = (Element) document.getElementsByTagName("field").item(0);
         assertEquals(name, field.getAttribute("name"));
         assertEquals("a�b�c��d�e�f😀g\r\n\t\"'&<>h�", field.getTextContent());

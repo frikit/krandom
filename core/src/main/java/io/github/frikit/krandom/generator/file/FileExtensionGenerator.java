@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.file;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -18,11 +16,10 @@ import java.util.Random;
  */
 public final class FileExtensionGenerator implements Generator<String> {
 
-    private static final List<String> DEFAULT_EXTENSIONS = List.of(
-        "gif", "jpg", "jpeg", "png", "svg", "pdf", "json", "xml", "txt", "csv", "zip"
-    );
+    private static final List<String> DEFAULT_EXTENSIONS =
+            List.of("gif", "jpg", "jpeg", "png", "svg", "pdf", "json", "xml", "txt", "csv", "zip");
 
-    private final Random       random;
+    private final Random random;
     private final List<String> extensions;
 
     public FileExtensionGenerator() {

@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -18,17 +16,19 @@ import java.util.Random;
  */
 public final class UsernameGenerator implements Generator<String> {
 
-    private final GeneratorConfig    config;
-    private final Random             random;
+    private final GeneratorConfig config;
+    private final Random random;
     private final FirstNameGenerator firstNameGenerator;
-    private final LastNameGenerator  lastNameGenerator;
+    private final LastNameGenerator lastNameGenerator;
 
     public UsernameGenerator() {
         this(GeneratorConfig.defaults());
     }
 
     public UsernameGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     public UsernameGenerator(GeneratorConfig config) {

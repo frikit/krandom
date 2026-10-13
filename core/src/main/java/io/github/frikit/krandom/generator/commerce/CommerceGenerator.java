@@ -10,7 +10,6 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.identifier.EanGenerator;
 import io.github.frikit.krandom.generator.identifier.IsbnGenerator;
 import io.github.frikit.krandom.generator.identifier.UpcGenerator;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -28,22 +27,24 @@ import java.util.Random;
 public final class CommerceGenerator implements Generator<String> {
 
     private static final CommerceDataProvider DEFAULT_PROVIDER =
-        new BuiltInCommerceDataProvider(Locale.ROOT, "default");
+            new BuiltInCommerceDataProvider(Locale.ROOT, "default");
 
-    private final Locale        locale;
-    private final Random        random;
+    private final Locale locale;
+    private final Random random;
     private final CommerceDataProvider vocabulary;
-    private final UpcGenerator  upcGenerator;
+    private final UpcGenerator upcGenerator;
     private final IsbnGenerator isbn10Generator;
     private final IsbnGenerator isbn13Generator;
-    private final EanGenerator  eanGenerator;
+    private final EanGenerator eanGenerator;
 
     public CommerceGenerator() {
         this(GeneratorConfig.defaults());
     }
 
     public CommerceGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     public CommerceGenerator(GeneratorConfig config) {
@@ -67,20 +68,22 @@ public final class CommerceGenerator implements Generator<String> {
         String adjective = generateAdjective();
         String material = generateMaterial();
         String product = generateProduct();
-        return vocabulary.getProductNameFormat()
-                         .replace("{adjective}", adjective)
-                         .replace("{material}", material)
-                         .replace("{product}", product);
+        return vocabulary
+                .getProductNameFormat()
+                .replace("{adjective}", adjective)
+                .replace("{material}", material)
+                .replace("{product}", product);
     }
 
     public String generateProductDescription() {
         String adjective = generateAdjective();
         String product = generateProduct();
         String color = generateColor();
-        return vocabulary.getProductDescriptionFormat()
-                         .replace("{adjective}", adjective)
-                         .replace("{product}", product)
-                         .replace("{color}", color);
+        return vocabulary
+                .getProductDescriptionFormat()
+                .replace("{adjective}", adjective)
+                .replace("{product}", product)
+                .replace("{color}", color);
     }
 
     public String generateDepartment() {
@@ -177,13 +180,12 @@ public final class CommerceGenerator implements Generator<String> {
      */
     public ProductInfo generateProductInfo() {
         return new ProductInfo(
-            generateProductName(),
-            generateProductDescription(),
-            generateCategory(),
-            generateMaterial(),
-            generateUpc(),
-            generateIsbn13()
-        );
+                generateProductName(),
+                generateProductDescription(),
+                generateCategory(),
+                generateMaterial(),
+                generateUpc(),
+                generateIsbn13());
     }
 
     public BigDecimal generatePrice() {

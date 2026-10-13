@@ -8,6 +8,11 @@ package io.github.frikit.krandom.benchmarks;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.ObjectGenerator;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.instancio.Instancio;
 import org.jeasy.random.EasyRandom;
 import org.jeasy.random.EasyRandomParameters;
@@ -21,12 +26,6 @@ import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * Bulk generation split into structural and semantic fixture workloads.
@@ -53,38 +52,36 @@ public class CompetitorBulkBenchmark {
 
     @State(Scope.Thread)
     public static class KrandomState {
-        public final ObjectGenerator<BenchmarkFixtures.ComparableUser> structuralGenerator =
-            new ObjectGenerator<>(BenchmarkFixtures.ComparableUser.class,
-                                  GeneratorConfig.builder()
-                                                 .locale(Locale.US)
-                                                 .seed(7L)
-                                                 .objectMaxDepth(2)
-                                                 .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                 .build());
+        public final ObjectGenerator<BenchmarkFixtures.ComparableUser> structuralGenerator = new ObjectGenerator<>(
+                BenchmarkFixtures.ComparableUser.class,
+                GeneratorConfig.builder()
+                        .locale(Locale.US)
+                        .seed(7L)
+                        .objectMaxDepth(2)
+                        .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                        .build());
 
-        public final ObjectGenerator<BenchmarkFixtures.ComparableUser> semanticGenerator =
-            new ObjectGenerator<>(BenchmarkFixtures.ComparableUser.class,
-                                  GeneratorConfig.builder()
-                                                 .locale(Locale.US)
-                                                 .seed(7L)
-                                                 .objectMaxDepth(2)
-                                                 .build());
+        public final ObjectGenerator<BenchmarkFixtures.ComparableUser> semanticGenerator = new ObjectGenerator<>(
+                BenchmarkFixtures.ComparableUser.class,
+                GeneratorConfig.builder()
+                        .locale(Locale.US)
+                        .seed(7L)
+                        .objectMaxDepth(2)
+                        .build());
     }
 
     // ── DataFaker state ──────────────────────────────────────────────────────
 
     @State(Scope.Thread)
     public static class DataFakerState {
-        public final net.datafaker.Faker faker = new net.datafaker.Faker(
-            Locale.US, new java.util.Random(7L));
+        public final net.datafaker.Faker faker = new net.datafaker.Faker(Locale.US, new java.util.Random(7L));
     }
 
     // ── EasyRandom state ─────────────────────────────────────────────────────
 
     @State(Scope.Thread)
     public static class EasyRandomState {
-        public final EasyRandom easyRandom = new EasyRandom(
-            new EasyRandomParameters().seed(7L));
+        public final EasyRandom easyRandom = new EasyRandom(new EasyRandomParameters().seed(7L));
     }
 
     // ── Benchmarks ───────────────────────────────────────────────────────────
@@ -117,14 +114,15 @@ public class CompetitorBulkBenchmark {
 
     @Benchmark
     public List<BenchmarkFixtures.ComparableUser> easyRandomBulk(EasyRandomState state, BatchParams params) {
-        return state.easyRandom.objects(BenchmarkFixtures.ComparableUser.class, params.batchSize)
-                               .collect(Collectors.toList());
+        return state.easyRandom
+                .objects(BenchmarkFixtures.ComparableUser.class, params.batchSize)
+                .collect(Collectors.toList());
     }
 
     @Benchmark
     public List<BenchmarkFixtures.ComparableUser> instancioBulk(BatchParams params) {
         return Instancio.ofList(BenchmarkFixtures.ComparableUser.class)
-                        .size(params.batchSize)
-                        .create();
+                .size(params.batchSize)
+                .create();
     }
 }

@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.games.dice;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +38,7 @@ import java.util.Random;
 public final class DiceGenerator implements Generator<Integer> {
 
     private final DiceType type;
-    private final Random   random;
+    private final Random random;
 
     /**
      * Creates a die generator using {@link GeneratorConfig#defaults()}.

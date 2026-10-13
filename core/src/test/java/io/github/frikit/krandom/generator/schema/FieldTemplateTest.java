@@ -5,21 +5,20 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.text.WordGenerator;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Field templates")
 class FieldTemplateTest {
@@ -28,7 +27,8 @@ class FieldTemplateTest {
     @DisplayName("string templates resolve registry tokens and literal placeholders")
     void stringTemplatesResolveRegistryTokensAndLiteralPlaceholders() {
         Field field = baseField();
-        SchemaValueProvider provider = field.template("ORD-## for {{custom.customer.alias}} ref {{custom.order_id}} code ??");
+        SchemaValueProvider provider =
+                field.template("ORD-## for {{custom.customer.alias}} ref {{custom.order_id}} code ??");
 
         String value = (String) provider.generate(context(7));
 
@@ -45,8 +45,10 @@ class FieldTemplateTest {
         shell.put("customer", "{{custom.customer}}");
         shell.put("meta", "{{custom.meta}}");
         shell.put("label", "ORD-##");
-        shell.put("items", List.of("{{custom.customer}}", "{{custom.order_id}}", Map.of("word", "{{text.word.provider}}")));
-        shell.put("codes", new Object[]{ "{{custom.order_id}}", "SKU-##" });
+        shell.put(
+                "items",
+                List.of("{{custom.customer}}", "{{custom.order_id}}", Map.of("word", "{{text.word.provider}}")));
+        shell.put("codes", new Object[] {"{{custom.order_id}}", "SKU-##"});
 
         Object generated = field.template(shell).generate(context(4));
 
@@ -70,9 +72,8 @@ class FieldTemplateTest {
 
         assertEquals("object", field.template(shell).jsonSchema().get("type"));
         @SuppressWarnings("unchecked")
-        Map<String, Object> properties = (Map<String, Object>) field.template(Map.of("email", "{{person.email}}"))
-                                                                      .jsonSchema()
-                                                                      .get("properties");
+        Map<String, Object> properties = (Map<String, Object>)
+                field.template(Map.of("email", "{{person.email}}")).jsonSchema().get("properties");
         assertEquals("email", ((Map<?, ?>) properties.get("email")).get("format"));
     }
 
@@ -86,11 +87,12 @@ class FieldTemplateTest {
         shell.put("missing", null);
         shell.put("items", new java.util.ArrayList<>(java.util.Arrays.asList(null, 3, "{{custom.order_id}}")));
         shell.put("emptyItems", List.of());
-        shell.put("nullArray", new Object[]{ null, null });
+        shell.put("nullArray", new Object[] {null, null});
         shell.put("ignoredNonStringKey", Map.of(1, "value"));
 
         @SuppressWarnings("unchecked")
-        Map<String, Object> generated = (Map<String, Object>) field.template(shell).generate(context(2));
+        Map<String, Object> generated =
+                (Map<String, Object>) field.template(shell).generate(context(2));
 
         assertEquals(7, generated.get("plainNumber"));
         assertEquals(true, generated.get("plainBoolean"));
@@ -99,11 +101,12 @@ class FieldTemplateTest {
         assertEquals(List.of(), generated.get("emptyItems"));
 
         @SuppressWarnings("unchecked")
-        Map<String, Object> shellSchemaProperties = (Map<String, Object>) field.template(shell)
-                                                                               .jsonSchema()
-                                                                               .get("properties");
-        assertEquals("null", ((Map<?, ?>) ((Map<?, ?>) shellSchemaProperties.get("emptyItems")).get("items")).get("type"));
-        assertEquals("null", ((Map<?, ?>) ((Map<?, ?>) shellSchemaProperties.get("nullArray")).get("items")).get("type"));
+        Map<String, Object> shellSchemaProperties =
+                (Map<String, Object>) field.template(shell).jsonSchema().get("properties");
+        assertEquals(
+                "null", ((Map<?, ?>) ((Map<?, ?>) shellSchemaProperties.get("emptyItems")).get("items")).get("type"));
+        assertEquals(
+                "null", ((Map<?, ?>) ((Map<?, ?>) shellSchemaProperties.get("nullArray")).get("items")).get("type"));
         assertTrue(((Map<?, ?>) shellSchemaProperties.get("ignoredNonStringKey")).containsKey("properties"));
     }
 
@@ -124,13 +127,14 @@ class FieldTemplateTest {
     void templateResolutionFailsForUnknownTokens() {
         Field field = baseField();
 
-        IllegalArgumentException stringEx = assertThrows(IllegalArgumentException.class,
-                                                         () -> field.template("{{missing.token}}").generate(context(0)));
+        IllegalArgumentException stringEx = assertThrows(
+                IllegalArgumentException.class,
+                () -> field.template("{{missing.token}}").generate(context(0)));
         assertTrue(stringEx.getMessage().contains("Unknown field reference"));
 
-        IllegalArgumentException payloadEx = assertThrows(IllegalArgumentException.class,
-                                                          () -> field.template(Map.of("id", "{{missing.token}}"))
-                                                                      .generate(context(0)));
+        IllegalArgumentException payloadEx = assertThrows(
+                IllegalArgumentException.class,
+                () -> field.template(Map.of("id", "{{missing.token}}")).generate(context(0)));
         assertTrue(payloadEx.getMessage().contains("Unknown field reference"));
     }
 
@@ -145,16 +149,18 @@ class FieldTemplateTest {
 
     private static Field baseField() {
         return new Field(GeneratorConfig.builder().locale(Locale.US).seed(42L).build())
-            .register("custom.customer", ctx -> "Ada")
-            .register("custom.order_id", ctx -> 1000 + ctx.recordIndex())
-            .register("custom.meta", ctx -> Map.of("tier", "gold"))
-            .registerAlias("custom.customer.alias", "custom.customer")
-            .registerProvider("text.word.provider", WordGenerator::new, WordGenerator.class, WordGenerator::generateWord)
-            .registerProvider("custom.counter.provider",
-                              CountingProvider::new,
-                              CountingProvider.class,
-                              CountingProvider::next,
-                              Map.of("type", "string"));
+                .register("custom.customer", ctx -> "Ada")
+                .register("custom.order_id", ctx -> 1000 + ctx.recordIndex())
+                .register("custom.meta", ctx -> Map.of("tier", "gold"))
+                .registerAlias("custom.customer.alias", "custom.customer")
+                .registerProvider(
+                        "text.word.provider", WordGenerator::new, WordGenerator.class, WordGenerator::generateWord)
+                .registerProvider(
+                        "custom.counter.provider",
+                        CountingProvider::new,
+                        CountingProvider.class,
+                        CountingProvider::next,
+                        Map.of("type", "string"));
     }
 
     private static SchemaContext context(int recordIndex) {
@@ -165,8 +171,7 @@ class FieldTemplateTest {
 
         private int next;
 
-        private CountingProvider(GeneratorConfig config) {
-        }
+        private CountingProvider(GeneratorConfig config) {}
 
         private String next() {
             return "value-" + next++;

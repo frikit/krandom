@@ -5,16 +5,15 @@
  */
 package io.github.frikit.krandom.generator.file;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("File support generators")
 class FileSupportGeneratorsTest {
@@ -33,23 +32,30 @@ class FileSupportGeneratorsTest {
         assertTrue(path.contains("/"));
         assertEquals(Locale.GERMANY, gen.getLocale());
         assertEquals(
-            new DirPathGenerator(GeneratorConfig.builder().seed(42L).locale(Locale.US).build()).generate(),
-            new DirPathGenerator(GeneratorConfig.builder().seed(42L).locale(Locale.US).build()).generate()
-        );
+                new DirPathGenerator(GeneratorConfig.builder()
+                                .seed(42L)
+                                .locale(Locale.US)
+                                .build())
+                        .generate(),
+                new DirPathGenerator(GeneratorConfig.builder()
+                                .seed(42L)
+                                .locale(Locale.US)
+                                .build())
+                        .generate());
         assertThrows(NullPointerException.class, () -> new DirPathGenerator((Locale) null));
         assertThrows(NullPointerException.class, () -> new DirPathGenerator((GeneratorConfig) null));
     }
 
     @Test
     void dirPathLocaleBranches() {
-        assertPathLooksValid(new DirPathGenerator(Locale.GERMANY).generate());      // de
-        assertPathLooksValid(new DirPathGenerator(Locale.FRANCE).generate());       // fr
+        assertPathLooksValid(new DirPathGenerator(Locale.GERMANY).generate()); // de
+        assertPathLooksValid(new DirPathGenerator(Locale.FRANCE).generate()); // fr
         assertPathLooksValid(new DirPathGenerator(Locale.of("es", "ES")).generate()); // es
-        assertPathLooksValid(new DirPathGenerator(Locale.ITALY).generate());        // it
+        assertPathLooksValid(new DirPathGenerator(Locale.ITALY).generate()); // it
         assertPathLooksValid(new DirPathGenerator(Locale.of("pt", "BR")).generate()); // pt
-        assertPathLooksValid(new DirPathGenerator(Locale.JAPAN).generate());        // ja
-        assertPathLooksValid(new DirPathGenerator(Locale.CHINA).generate());        // zh
-        assertPathLooksValid(new DirPathGenerator(Locale.US).generate());           // default
+        assertPathLooksValid(new DirPathGenerator(Locale.JAPAN).generate()); // ja
+        assertPathLooksValid(new DirPathGenerator(Locale.CHINA).generate()); // zh
+        assertPathLooksValid(new DirPathGenerator(Locale.US).generate()); // default
     }
 
     @Test
@@ -73,15 +79,15 @@ class FileSupportGeneratorsTest {
         String mime = gen.generate();
         assertTrue(mime.matches("[a-z]+/[a-z0-9.+-]+"));
         assertEquals(
-            new MimeTypeGenerator(GeneratorConfig.builder().seed(11L).build()).generate(),
-            new MimeTypeGenerator(GeneratorConfig.builder().seed(11L).build()).generate()
-        );
+                new MimeTypeGenerator(GeneratorConfig.builder().seed(11L).build()).generate(),
+                new MimeTypeGenerator(GeneratorConfig.builder().seed(11L).build()).generate());
         assertThrows(NullPointerException.class, () -> new MimeTypeGenerator(null));
     }
 
     @Test
     void semverGenerator() {
-        SemverGenerator gen = new SemverGenerator(GeneratorConfig.builder().seed(99L).build());
+        SemverGenerator gen =
+                new SemverGenerator(GeneratorConfig.builder().seed(99L).build());
         assertTrue(gen.generate().matches("\\d+\\.\\d+\\.\\d+"));
         assertTrue(gen.generateStable().matches("\\d+\\.\\d+\\.\\d+"));
         assertTrue(gen.generatePrerelease().matches("\\d+\\.\\d+\\.\\d+-(alpha|beta|rc)\\.\\d+"));

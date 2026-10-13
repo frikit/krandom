@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
@@ -88,16 +86,16 @@ import java.util.Random;
  */
 public final class CardExpirationGenerator implements Generator<String> {
 
-    private static final DateTimeFormatter MM_YY_FORMATTER      = DateTimeFormatter.ofPattern("MM/yy");
-    private static final DateTimeFormatter YY_MM_FORMATTER      = DateTimeFormatter.ofPattern("yy/MM");
-    private static final DateTimeFormatter MONTH_FORMATTER      = DateTimeFormatter.ofPattern("MM");
+    private static final DateTimeFormatter MM_YY_FORMATTER = DateTimeFormatter.ofPattern("MM/yy");
+    private static final DateTimeFormatter YY_MM_FORMATTER = DateTimeFormatter.ofPattern("yy/MM");
+    private static final DateTimeFormatter MONTH_FORMATTER = DateTimeFormatter.ofPattern("MM");
     private static final DateTimeFormatter YEAR_SHORT_FORMATTER = DateTimeFormatter.ofPattern("yy");
-    private static final DateTimeFormatter YEAR_FULL_FORMATTER  = DateTimeFormatter.ofPattern("yyyy");
+    private static final DateTimeFormatter YEAR_FULL_FORMATTER = DateTimeFormatter.ofPattern("yyyy");
 
     private final GeneratorConfig config;
-    private final Random          random;
-    private final DateRange       dateRange;
-    private final Clock           clock;
+    private final Random random;
+    private final DateRange dateRange;
+    private final Clock clock;
 
     /**
      * Creates a generator that produces future-only expiration dates with default configuration.

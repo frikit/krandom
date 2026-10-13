@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -35,8 +34,8 @@ import java.util.Random;
  */
 public final class IbanGenerator implements Generator<String> {
 
-    private final Random              random;
-    private final IbanCountryFormat   format;
+    private final Random random;
+    private final IbanCountryFormat format;
     private final BankingSafetyPolicy bankingSafetyPolicy;
 
     /**
@@ -73,9 +72,7 @@ public final class IbanGenerator implements Generator<String> {
         int remainder = 0;
         for (int i = 0; i < rearranged.length(); i++) {
             char ch = rearranged.charAt(i);
-            remainder = ch <= '9'
-                        ? (remainder * 10 + ch - '0') % 97
-                        : (remainder * 100 + ch - 'A' + 10) % 97;
+            remainder = ch <= '9' ? (remainder * 10 + ch - '0') % 97 : (remainder * 100 + ch - 'A' + 10) % 97;
         }
         return 98 - remainder;
     }

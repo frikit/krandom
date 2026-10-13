@@ -5,35 +5,22 @@
  */
 package io.github.frikit.krandom.generator.locale;
 
-import org.jspecify.annotations.Nullable;
-
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.location.CityDataProvider;
-import io.github.frikit.krandom.generator.location.CityDataRegistry;
 import io.github.frikit.krandom.generator.location.CountryDataProvider;
-import io.github.frikit.krandom.generator.location.CountryDataRegistry;
 import io.github.frikit.krandom.generator.location.StateDataProvider;
-import io.github.frikit.krandom.generator.location.StateDataRegistry;
 import io.github.frikit.krandom.generator.location.StreetAddressDataProvider;
-import io.github.frikit.krandom.generator.location.StreetAddressDataRegistry;
 import io.github.frikit.krandom.generator.user.FirstNameDataProvider;
-import io.github.frikit.krandom.generator.user.FirstNameDataRegistry;
 import io.github.frikit.krandom.generator.user.GenderDataProvider;
-import io.github.frikit.krandom.generator.user.GenderDataRegistry;
 import io.github.frikit.krandom.generator.user.LastNameDataProvider;
-import io.github.frikit.krandom.generator.user.LastNameDataRegistry;
 import io.github.frikit.krandom.generator.user.ProfessionDataProvider;
-import io.github.frikit.krandom.generator.user.ProfessionDataRegistry;
 import io.github.frikit.krandom.generator.user.SuffixDataProvider;
-import io.github.frikit.krandom.generator.user.SuffixDataRegistry;
 import io.github.frikit.krandom.generator.user.TitleDataProvider;
-import io.github.frikit.krandom.generator.user.TitleDataRegistry;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
-import io.github.frikit.krandom.generator.user.nationalid.NationalIdRegistry;
-
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Immutable application-level locale pack for registering multiple locale datasets in one step.
@@ -58,7 +45,7 @@ import java.util.Objects;
  */
 public final class LocaleDataBundle {
 
-    private final Locale           locale;
+    private final Locale locale;
     private final String @Nullable [] maleFirstNames;
     private final String @Nullable [] femaleFirstNames;
     private final String @Nullable [] lastNames;
@@ -152,7 +139,6 @@ public final class LocaleDataBundle {
         }
         return builder;
     }
-
 
     private boolean hasFirstNames() {
         return maleFirstNames != null;

@@ -6,12 +6,10 @@
 package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Global registry mapping locales to {@link SuffixDataProvider} instances.
@@ -30,8 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class SuffixDataRegistry {
 
-    private static final ConcurrentHashMap<String, SuffixDataProvider> REGISTRY =
-        new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, SuffixDataProvider> REGISTRY = new ConcurrentHashMap<>();
 
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
@@ -39,8 +36,7 @@ public final class SuffixDataRegistry {
         }
     }
 
-    private SuffixDataRegistry() {
-    }
+    private SuffixDataRegistry() {}
 
     /**
      * Returns {@code true} if the registry contains an entry for the given locale.
@@ -84,8 +80,6 @@ public final class SuffixDataRegistry {
         String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
         REGISTRY.put(lang + "_" + country, provider);
-            REGISTRY.putIfAbsent(lang, provider);
+        REGISTRY.putIfAbsent(lang, provider);
     }
-
-
 }

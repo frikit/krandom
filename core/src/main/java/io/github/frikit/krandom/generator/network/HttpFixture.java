@@ -20,15 +20,16 @@ import java.util.Objects;
  * @param userAgent          request user agent
  * @param responseBody       response body compatible with {@code contentType}
  */
-public record HttpFixture(String method,
-                          String version,
-                          HttpStatus status,
-                          String requestHeaderName,
-                          String responseHeaderName,
-                          String contentType,
-                          String contentEncoding,
-                          String userAgent,
-                          String responseBody) {
+public record HttpFixture(
+        String method,
+        String version,
+        HttpStatus status,
+        String requestHeaderName,
+        String responseHeaderName,
+        String contentType,
+        String contentEncoding,
+        String userAgent,
+        String responseBody) {
 
     /**
      * Validates that every fixture component is usable text.

@@ -5,18 +5,17 @@
  */
 package io.github.frikit.krandom.generator.finance;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-
-import java.util.Locale;
-import java.util.Random;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Locale;
+import java.util.Random;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 @DisplayName("IBAN country formats")
 class IbanCountryFormatTest {
@@ -103,8 +102,8 @@ class IbanCountryFormatTest {
     @DisplayName("a rejected payload is redrawn")
     void rejectedPayloadIsRedrawn() {
         Random scripted = new ScriptedRandom(
-            0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0,   // rejected: check digit would be 10
-            8, 6, 0, 1, 1, 1, 1, 7, 9, 4, 0);  // accepted: 8601111794 + 7
+                0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, // rejected: check digit would be 10
+                8, 6, 0, 1, 1, 1, 1, 7, 9, 4, 0); // accepted: 8601111794 + 7
 
         assertEquals("86011117947", IbanCountryFormat.NO.randomBban(scripted));
     }

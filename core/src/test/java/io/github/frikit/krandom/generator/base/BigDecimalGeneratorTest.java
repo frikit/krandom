@@ -5,24 +5,22 @@
  */
 package io.github.frikit.krandom.generator.base;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-import java.math.BigDecimal;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.math.BigDecimal;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
 @DisplayName("BigDecimalGenerator")
 class BigDecimalGeneratorTest {
 
     private static final int SAMPLES = 50;
-
 
     @Nested
     @DisplayName("Default construction")
@@ -49,12 +47,10 @@ class BigDecimalGeneratorTest {
             BigDecimal hi = new BigDecimal("1000000");
             for (int i = 0; i < SAMPLES; i++) {
                 BigDecimal v = new BigDecimalGenerator().generate();
-                assertTrue(v.compareTo(lo) >= 0 && v.compareTo(hi) <= 0,
-                           "Expected [0, 1000000], got: " + v);
+                assertTrue(v.compareTo(lo) >= 0 && v.compareTo(hi) <= 0, "Expected [0, 1000000], got: " + v);
             }
         }
     }
-
 
     @Nested
     @DisplayName("Custom range")
@@ -68,8 +64,7 @@ class BigDecimalGeneratorTest {
             BigDecimalGenerator gen = new BigDecimalGenerator(lo, hi);
             for (int i = 0; i < SAMPLES; i++) {
                 BigDecimal v = gen.generate();
-                assertTrue(v.compareTo(lo) >= 0 && v.compareTo(hi) <= 0,
-                           "Expected [0.01, 9.99], got: " + v);
+                assertTrue(v.compareTo(lo) >= 0 && v.compareTo(hi) <= 0, "Expected [0.01, 9.99], got: " + v);
             }
         }
 
@@ -82,8 +77,7 @@ class BigDecimalGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 BigDecimal v = gen.generate();
                 assertEquals(4, v.scale(), "Expected scale 4");
-                assertTrue(v.compareTo(lo) >= 0 && v.compareTo(hi) <= 0,
-                           "Expected [0, 100], got: " + v);
+                assertTrue(v.compareTo(lo) >= 0 && v.compareTo(hi) <= 0, "Expected [0, 100], got: " + v);
             }
         }
 
@@ -99,7 +93,6 @@ class BigDecimalGeneratorTest {
             }
         }
     }
-
 
     @Nested
     @DisplayName("Generators factory")
@@ -122,7 +115,6 @@ class BigDecimalGeneratorTest {
         }
     }
 
-
     @Nested
     @DisplayName("Validation")
     class ValidationTest {
@@ -131,30 +123,31 @@ class BigDecimalGeneratorTest {
         @DisplayName("min >= max throws IllegalArgumentException")
         void minGteMaxThrows() {
             BigDecimal v = new BigDecimal("5");
-            assertThrows(IllegalArgumentException.class,
-                         () -> new BigDecimalGenerator(v, v));
+            assertThrows(IllegalArgumentException.class, () -> new BigDecimalGenerator(v, v));
         }
 
         @Test
         @DisplayName("negative scale throws IllegalArgumentException")
         void negativeScaleThrows() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> new BigDecimalGenerator(BigDecimal.ZERO, BigDecimal.TEN, -1));
+            assertThrows(
+                    IllegalArgumentException.class, () -> new BigDecimalGenerator(BigDecimal.ZERO, BigDecimal.TEN, -1));
         }
 
         @Test
         @DisplayName("bound that overflows long when scaled throws IllegalArgumentException")
         void scaledBoundOverflowThrows() {
             // 1e30 scaled by 10^0 exceeds Long.MAX_VALUE — previously narrowed silently via longValue().
-            assertThrows(IllegalArgumentException.class,
-                         () -> new BigDecimalGenerator(BigDecimal.ZERO, new BigDecimal("1E30"), 0));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> new BigDecimalGenerator(BigDecimal.ZERO, new BigDecimal("1E30"), 0));
         }
 
         @Test
         @DisplayName("max scaled to Long.MAX_VALUE throws (no room for exclusive bound)")
         void exclusiveBoundOverflowThrows() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> new BigDecimalGenerator(BigDecimal.ZERO, new BigDecimal(Long.MAX_VALUE), 0));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> new BigDecimalGenerator(BigDecimal.ZERO, new BigDecimal(Long.MAX_VALUE), 0));
         }
     }
 

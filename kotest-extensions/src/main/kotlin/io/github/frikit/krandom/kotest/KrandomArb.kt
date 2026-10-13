@@ -5,13 +5,13 @@
  */
 package io.github.frikit.krandom.kotest
 
+import io.github.frikit.krandom.generator.GenerationRecipe
 import io.github.frikit.krandom.generator.Generator
 import io.github.frikit.krandom.generator.GeneratorConfig
-import io.github.frikit.krandom.generator.GenerationRecipe
-import io.github.frikit.krandom.generator.`object`.ObjectGenerator
 import io.github.frikit.krandom.generator.base.DoubleGenerator
 import io.github.frikit.krandom.generator.base.IntGenerator
 import io.github.frikit.krandom.generator.base.LongGenerator
+import io.github.frikit.krandom.generator.`object`.ObjectGenerator
 import io.github.frikit.krandom.generator.selection.PickGenerator
 import io.kotest.property.Arb
 import io.kotest.property.PropTestConfig
@@ -37,20 +37,20 @@ import kotlin.math.nextDown
  */
 fun <T> krandomArb(
     config: GeneratorConfig,
-    factory: (GeneratorConfig) -> Generator<T>
-): Arb<T> = arbitrary { randomSource ->
-    factory(config.forKotestSample(randomSource)).generate()
-}
+    factory: (GeneratorConfig) -> Generator<T>,
+): Arb<T> =
+    arbitrary { randomSource ->
+        factory(config.forKotestSample(randomSource)).generate()
+    }
 
 /**
  * Creates a replay-safe Kotest [Arb] for objects by deriving a fresh kRandom configuration from
  * every host [RandomSource] draw, parented by the seed of [config] (`0` when unseeded).
  */
-inline fun <reified T : Any> krandomReplayObjectArb(
-    config: GeneratorConfig = GeneratorConfig.defaults()
-): Arb<T> = arbitrary { randomSource ->
-    ObjectGenerator(T::class.java, config.forKotestSample(randomSource)).generate()
-}
+inline fun <reified T : Any> krandomReplayObjectArb(config: GeneratorConfig = GeneratorConfig.defaults()): Arb<T> =
+    arbitrary { randomSource ->
+        ObjectGenerator(T::class.java, config.forKotestSample(randomSource)).generate()
+    }
 
 /**
  * Creates a shrinking-aware Kotest [Arb] of ints in kRandom's half-open range [[min], [max]).
@@ -61,7 +61,10 @@ inline fun <reified T : Any> krandomReplayObjectArb(
  *
  * @throws IllegalArgumentException when [min] is not less than [max]
  */
-fun krandomIntArb(min: Int, max: Int): Arb<Int> {
+fun krandomIntArb(
+    min: Int,
+    max: Int,
+): Arb<Int> {
     require(min < max) { "min must be less than max, got: min=$min, max=$max" }
     val lo = min
     val hi = max - 1
@@ -80,7 +83,10 @@ fun krandomIntArb(min: Int, max: Int): Arb<Int> {
  *
  * @throws IllegalArgumentException when [min] is not less than [max]
  */
-fun krandomLongArb(min: Long, max: Long): Arb<Long> {
+fun krandomLongArb(
+    min: Long,
+    max: Long,
+): Arb<Long> {
     require(min < max) { "min must be less than max, got: min=$min, max=$max" }
     val lo = min
     val hi = max - 1
@@ -100,16 +106,21 @@ fun krandomLongArb(min: Long, max: Long): Arb<Long> {
  *
  * @throws IllegalArgumentException when [min] is not less than [max]
  */
-fun krandomDoubleArb(min: Double, max: Double): Arb<Double> {
+fun krandomDoubleArb(
+    min: Double,
+    max: Double,
+): Arb<Double> {
     require(min < max) { "min must be less than max, got: min=$min, max=$max" }
     val lo = min
     val hiExclusive = max
-    val edges = listOf(lo, hiExclusive.nextDown(), -1.0, 0.0, 1.0)
-        .filter { it >= lo && it < hiExclusive }
-        .distinct()
-    val shrinker = Shrinker<Double> { value ->
-        DoubleShrinker.shrink(value).filter { it >= lo && it < hiExclusive }
-    }
+    val edges =
+        listOf(lo, hiExclusive.nextDown(), -1.0, 0.0, 1.0)
+            .filter { it >= lo && it < hiExclusive }
+            .distinct()
+    val shrinker =
+        Shrinker<Double> { value ->
+            DoubleShrinker.shrink(value).filter { it >= lo && it < hiExclusive }
+        }
     return arbitrary(edges, shrinker) { randomSource ->
         DoubleGenerator(min, max, kotestChildConfig(randomSource)).generate()
     }
@@ -161,7 +172,7 @@ fun krandomKotestRecipe(config: GeneratorConfig = GeneratorConfig.defaults()): S
 suspend fun <A> checkAllWithRecipe(
     config: GeneratorConfig,
     arb: Arb<A>,
-    property: suspend (A) -> Unit
+    property: suspend (A) -> Unit,
 ) {
     try {
         io.kotest.property.checkAll(arb) { value -> property(value) }
@@ -171,7 +182,7 @@ suspend fun <A> checkAllWithRecipe(
                 "\n\nkRandom recipe (configuration portion; combine with the Kotest seed above; clock read " +
                 "when the failure was reported unless the configuration was snapshotted before sampling):\n" +
                 krandomKotestRecipe(config),
-            failure
+            failure,
         )
     }
 }
@@ -201,7 +212,7 @@ suspend fun <A> checkAllWithRecipe(
     config: GeneratorConfig,
     arbFactory: (GeneratorConfig) -> Arb<A>,
     propTestConfig: PropTestConfig = PropTestConfig(),
-    property: suspend (A) -> Unit
+    property: suspend (A) -> Unit,
 ) {
     val session = config.snapshotClock()
     val recipe = krandomKotestRecipe(session)
@@ -212,12 +223,14 @@ suspend fun <A> checkAllWithRecipe(
             (failure.message ?: "Property failed") +
                 "\n\nkRandom recipe (configuration portion with the clock snapshotted before sampling; " +
                 "combine with the Kotest seed above):\n" + recipe,
-            failure
+            failure,
         )
     }
 }
 
-private class PickShrinker<T>(private val source: List<T>) : Shrinker<T> {
+private class PickShrinker<T>(
+    private val source: List<T>,
+) : Shrinker<T> {
     override fun shrink(value: T): List<T> {
         val index = source.indexOf(value)
         if (index <= 0) {
@@ -233,10 +246,11 @@ private class PickShrinker<T>(private val source: List<T>) : Shrinker<T> {
 internal fun GeneratorConfig.forKotestSample(randomSource: RandomSource): GeneratorConfig {
     val recipe = kotestPortableRecipe()
     val hostDraw = randomSource.random.nextLong()
-    val childSeed = GenerationRecipe.deriveChildSeed(
-        recipe.seed,
-        "kotest|source=${randomSource.seed}|draw=$hostDraw"
-    )
+    val childSeed =
+        GenerationRecipe.deriveChildSeed(
+            recipe.seed,
+            "kotest|source=${randomSource.seed}|draw=$hostDraw",
+        )
     return toBuilder().seed(childSeed).build()
 }
 
@@ -246,15 +260,16 @@ internal fun GeneratorConfig.forKotestSample(randomSource: RandomSource): Genera
  */
 private fun GeneratorConfig.kotestPortableRecipe(): GenerationRecipe {
     val parentSeed = if (seed.isPresent) seed.asLong else 0L
-    val portable = try {
-        toBuilder().seed(parentSeed).build()
-    } catch (exception: IllegalStateException) {
-        throw IllegalArgumentException(
-            "Kotest integration requires a seed-owned GeneratorConfig; caller-owned, secure, " +
-                "factory-backed, and custom-registry random sources are not replayable",
-            exception
-        )
-    }
+    val portable =
+        try {
+            toBuilder().seed(parentSeed).build()
+        } catch (exception: IllegalStateException) {
+            throw IllegalArgumentException(
+                "Kotest integration requires a seed-owned GeneratorConfig; caller-owned, secure, " +
+                    "factory-backed, and custom-registry random sources are not replayable",
+                exception,
+            )
+        }
     return portable.generationRecipe.orElseThrow {
         IllegalArgumentException("Kotest integration requires a portable seed-owned GeneratorConfig")
     }
@@ -262,9 +277,10 @@ private fun GeneratorConfig.kotestPortableRecipe(): GenerationRecipe {
 
 private fun kotestChildConfig(randomSource: RandomSource): GeneratorConfig {
     val hostDraw = randomSource.random.nextLong()
-    val childSeed = GenerationRecipe.deriveChildSeed(
-        0L,
-        "kotest|source=${randomSource.seed}|draw=$hostDraw"
-    )
+    val childSeed =
+        GenerationRecipe.deriveChildSeed(
+            0L,
+            "kotest|source=${randomSource.seed}|draw=$hostDraw",
+        )
     return GeneratorConfig.builder().seed(childSeed).build()
 }

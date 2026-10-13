@@ -10,18 +10,21 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 /** Selects the random-stream model used for one object-generation session. */
 final class ObjectFieldStreamPlanner {
 
-    private ObjectFieldStreamPlanner() {
-    }
+    private ObjectFieldStreamPlanner() {}
 
-    static boolean usesNamedChildStreams(GeneratorConfig config, @org.jspecify.annotations.Nullable Long generationSeed) {
+    static boolean usesNamedChildStreams(
+            GeneratorConfig config, @org.jspecify.annotations.Nullable Long generationSeed) {
         return usesNamedChildStreams(
-            config.getObjectFieldStreamPolicy(), generationSeed, config.getGenerationRecipe().isPresent());
+                config.getObjectFieldStreamPolicy(),
+                generationSeed,
+                config.getGenerationRecipe().isPresent());
     }
 
     /** Resolvers pass the recipe presence computed once per configuration. */
-    static boolean usesNamedChildStreams(ObjectFieldStreamPolicy policy,
-                                         @org.jspecify.annotations.Nullable Long generationSeed,
-                                         boolean portableRecipe) {
+    static boolean usesNamedChildStreams(
+            ObjectFieldStreamPolicy policy,
+            @org.jspecify.annotations.Nullable Long generationSeed,
+            boolean portableRecipe) {
         return generationSeed != null && (policy == ObjectFieldStreamPolicy.INDEPENDENT || portableRecipe);
     }
 }

@@ -5,9 +5,8 @@
  */
 package io.github.frikit.krandom.generator;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Preserves a source generator's explicit {@link Seedable} contract across a decorator.

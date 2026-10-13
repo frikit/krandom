@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.commerce;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import io.github.frikit.krandom.generator.user.LocaleTextResourceLoader;
-
 import java.util.List;
 import java.util.Locale;
 
@@ -34,10 +33,13 @@ final class BuiltInCommerceDataProvider implements CommerceDataProvider {
 
     BuiltInCommerceDataProvider(Locale locale, String resourcePrefix) {
         this.locale = locale;
-        this.adjectives = List.of(LocaleTextResourceLoader.load("krandom/commerce/adjectives/" + resourcePrefix + ".txt"));
-        this.materials = List.of(LocaleTextResourceLoader.load("krandom/commerce/materials/" + resourcePrefix + ".txt"));
+        this.adjectives =
+                List.of(LocaleTextResourceLoader.load("krandom/commerce/adjectives/" + resourcePrefix + ".txt"));
+        this.materials =
+                List.of(LocaleTextResourceLoader.load("krandom/commerce/materials/" + resourcePrefix + ".txt"));
         this.products = List.of(LocaleTextResourceLoader.load("krandom/commerce/products/" + resourcePrefix + ".txt"));
-        this.departments = List.of(LocaleTextResourceLoader.load("krandom/commerce/departments/" + resourcePrefix + ".txt"));
+        this.departments =
+                List.of(LocaleTextResourceLoader.load("krandom/commerce/departments/" + resourcePrefix + ".txt"));
         this.colors = List.of(LocaleTextResourceLoader.load("krandom/commerce/colors/" + resourcePrefix + ".txt"));
         String[] formats = LocaleTextResourceLoader.load("krandom/commerce/formats/" + resourcePrefix + ".txt");
         this.productNameFormat = formats[0];

@@ -6,9 +6,8 @@
 package io.github.frikit.krandom.generator.datetime;
 
 import io.github.frikit.krandom.generator.Generator;
-import io.github.frikit.krandom.generator.Seedable;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
+import io.github.frikit.krandom.generator.Seedable;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -48,7 +47,7 @@ public final class InstantGenerator implements Generator<Instant>, Seedable {
     private static final int MIN_YEAR = 1970;
     private static final int MAX_YEAR = 2100;
 
-    private final Random    random;
+    private final Random random;
     private final @org.jspecify.annotations.Nullable LocalDate rangeMin;
     private final @org.jspecify.annotations.Nullable LocalDate rangeMax;
 

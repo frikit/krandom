@@ -7,13 +7,12 @@ package io.github.frikit.krandom.generator.selection;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Generates a variable-length list by choosing among one or more source generators.
@@ -23,10 +22,10 @@ import java.util.Random;
 public final class SequenceGenerator<T extends @Nullable Object> implements Generator<List<@Nullable T>> {
 
     private final List<Generator<? extends T>> sources;
-    private final int                          minLength;
-    private final int                          maxLength;
-    private final double                       nullProbability;
-    private final Random                       random;
+    private final int minLength;
+    private final int maxLength;
+    private final double nullProbability;
+    private final Random random;
 
     /**
      * Creates a generator with the default configuration and no null elements.
@@ -48,11 +47,12 @@ public final class SequenceGenerator<T extends @Nullable Object> implements Gene
      * @param maxLength inclusive maximum generated length
      * @param nullProbability chance of generating a null element in {@code [0,1]}
      */
-    public SequenceGenerator(GeneratorConfig config,
-                             List<? extends Generator<? extends T>> sources,
-                             int minLength,
-                             int maxLength,
-                             double nullProbability) {
+    public SequenceGenerator(
+            GeneratorConfig config,
+            List<? extends Generator<? extends T>> sources,
+            int minLength,
+            int maxLength,
+            double nullProbability) {
         this.random = Objects.requireNonNull(config, "config must not be null").createRandom();
         Objects.requireNonNull(sources, "sources must not be null");
         if (sources.isEmpty()) {
@@ -82,7 +82,10 @@ public final class SequenceGenerator<T extends @Nullable Object> implements Gene
         int length = minLength + random.nextInt(maxLength - minLength + 1);
         List<@Nullable T> values = new ArrayList<>(length);
         for (int i = 0; i < length; i++) {
-            values.add(random.nextDouble() < nullProbability ? null : sources.get(random.nextInt(sources.size())).generate());
+            values.add(
+                    random.nextDouble() < nullProbability
+                            ? null
+                            : sources.get(random.nextInt(sources.size())).generate());
         }
         return Collections.unmodifiableList(values);
     }

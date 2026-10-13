@@ -5,41 +5,40 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
 import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 @DisplayName("ObjectGenerationFailurePolicy")
 class ObjectGenerationFailurePolicyTest {
 
     private static final GenerationFailureContext CONTEXT = new GenerationFailureContext(
-        GenerationFailureCategory.ASSIGNMENT,
-        GenerationOperation.ASSIGN,
-        "Order.customer",
-        ObjectGenerationFailurePolicyTest.class,
-        String.class.getName(),
-        2,
-        -1);
+            GenerationFailureCategory.ASSIGNMENT,
+            GenerationOperation.ASSIGN,
+            "Order.customer",
+            ObjectGenerationFailurePolicyTest.class,
+            String.class.getName(),
+            2,
+            -1);
 
     @Test
     @DisplayName("strict policy throws the exact contextual failure")
@@ -48,11 +47,13 @@ class ObjectGenerationFailurePolicyTest {
         List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
 
         ObjectGenerationException thrown = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerationFailurePolicy(false, diagnostics::add).handle(failure, "fallback"));
+                ObjectGenerationException.class,
+                () -> new ObjectGenerationFailurePolicy(false, diagnostics::add).handle(failure, "fallback"));
 
         assertSame(failure, thrown);
-        assertEquals(List.of(CONTEXT), diagnostics.stream().map(GenerationFailureDiagnostic::context).toList());
+        assertEquals(
+                List.of(CONTEXT),
+                diagnostics.stream().map(GenerationFailureDiagnostic::context).toList());
     }
 
     @Test
@@ -99,7 +100,7 @@ class ObjectGenerationFailurePolicyTest {
         List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
 
         new ObjectGenerationFailurePolicy(true, diagnostics::add, Optional.of("safe-recipe"))
-            .handle(failure(), "fallback");
+                .handle(failure(), "fallback");
 
         assertEquals(Optional.of("safe-recipe"), diagnostics.getFirst().replayIdentity());
     }
@@ -110,34 +111,37 @@ class ObjectGenerationFailurePolicyTest {
         ObjectGenerationException failure = new ObjectGenerationException("legacy");
 
         assertThrows(
-            IllegalArgumentException.class,
-            () -> new ObjectGenerationFailurePolicy(true).handle(failure, "fallback"));
+                IllegalArgumentException.class,
+                () -> new ObjectGenerationFailurePolicy(true).handle(failure, "fallback"));
     }
 
     @Test
     @DisplayName("listener failure cannot replace strict or lenient generation behavior")
     void listenerFailureDoesNotReplaceGenerationBehavior() {
         ObjectGenerationException strictFailure = failure();
-        ObjectGenerationFailurePolicy strict = new ObjectGenerationFailurePolicy(
-            false, diagnostic -> { throw new IllegalStateException("personal-looking-value"); });
+        ObjectGenerationFailurePolicy strict = new ObjectGenerationFailurePolicy(false, diagnostic -> {
+            throw new IllegalStateException("personal-looking-value");
+        });
         assertSame(
-            strictFailure,
-            assertThrows(ObjectGenerationException.class, () -> strict.handle(strictFailure, "fallback")));
+                strictFailure,
+                assertThrows(ObjectGenerationException.class, () -> strict.handle(strictFailure, "fallback")));
 
-        ObjectGenerationFailurePolicy lenient = new ObjectGenerationFailurePolicy(
-            true, diagnostic -> { throw new IllegalStateException("personal-looking-value"); });
+        ObjectGenerationFailurePolicy lenient = new ObjectGenerationFailurePolicy(true, diagnostic -> {
+            throw new IllegalStateException("personal-looking-value");
+        });
         assertEquals("fallback", lenient.handle(failure(), "fallback"));
     }
 
     @Test
     @DisplayName("diagnostic rejects null structural fields")
     void diagnosticRejectsNullFields() {
-        assertThrows(NullPointerException.class,
-                     () -> new GenerationFailureDiagnostic(null, "cause", java.util.Optional.empty()));
-        assertThrows(NullPointerException.class,
-                     () -> new GenerationFailureDiagnostic(CONTEXT, null, java.util.Optional.empty()));
-        assertThrows(NullPointerException.class,
-                     () -> new GenerationFailureDiagnostic(CONTEXT, "cause", null));
+        assertThrows(
+                NullPointerException.class,
+                () -> new GenerationFailureDiagnostic(null, "cause", java.util.Optional.empty()));
+        assertThrows(
+                NullPointerException.class,
+                () -> new GenerationFailureDiagnostic(CONTEXT, null, java.util.Optional.empty()));
+        assertThrows(NullPointerException.class, () -> new GenerationFailureDiagnostic(CONTEXT, "cause", null));
     }
 
     @Test
@@ -145,15 +149,16 @@ class ObjectGenerationFailurePolicyTest {
     void configuredListenerObservesResolverFailure() {
         List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .generationFailureListener(diagnostics::add)
-                                                .build();
+                .generationFailureListener(diagnostics::add)
+                .build();
 
         assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(UnsupportedHolder.class, config).generate());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(UnsupportedHolder.class, config).generate());
 
         GenerationFailureDiagnostic diagnostic = diagnostics.getFirst();
-        assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, diagnostic.context().category());
+        assertEquals(
+                GenerationFailureCategory.UNSUPPORTED_TYPE, diagnostic.context().category());
         assertEquals("UnsupportedHolder.task", diagnostic.context().path());
         assertEquals(UnsupportedOperationException.class.getName(), diagnostic.causeType());
     }
@@ -163,13 +168,13 @@ class ObjectGenerationFailurePolicyTest {
     void seededResolverFailureCarriesSafeReplayRecipe() {
         List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .seed("do-not-log-this-text")
-                                                .generationFailureListener(diagnostics::add)
-                                                .build();
+                .seed("do-not-log-this-text")
+                .generationFailureListener(diagnostics::add)
+                .build();
 
         assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(UnsupportedHolder.class, config).generate());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(UnsupportedHolder.class, config).generate());
 
         String recipe = diagnostics.getFirst().replayIdentity().orElseThrow();
         assertTrue(recipe.contains("format=krandom-recipe"));
@@ -181,13 +186,10 @@ class ObjectGenerationFailurePolicyTest {
     void configuredListenerObservesAssignmentFailure() {
         List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectIgnoreErrors(true)
-                                                .objectOverride(
-                                                    AssignmentHolder.class,
-                                                    "value",
-                                                    () -> "personal-looking-value")
-                                                .generationFailureListener(diagnostics::add)
-                                                .build();
+                .objectIgnoreErrors(true)
+                .objectOverride(AssignmentHolder.class, "value", () -> "personal-looking-value")
+                .generationFailureListener(diagnostics::add)
+                .build();
 
         AssignmentHolder holder = new ObjectGenerator<>(AssignmentHolder.class, config).generate();
 
@@ -200,9 +202,7 @@ class ObjectGenerationFailurePolicyTest {
 
     private static ObjectGenerationException failure() {
         return new ObjectGenerationException(
-            "personal-looking-value",
-            CONTEXT,
-            new IllegalStateException("personal-looking-value"));
+                "personal-looking-value", CONTEXT, new IllegalStateException("personal-looking-value"));
     }
 
     static class UnsupportedHolder {

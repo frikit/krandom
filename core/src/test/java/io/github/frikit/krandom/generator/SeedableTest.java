@@ -5,15 +5,15 @@
  */
 package io.github.frikit.krandom.generator;
 
-import io.github.frikit.krandom.generator.base.IntGenerator;
-import io.github.frikit.krandom.generator.base.LongGenerator;
+import static org.junit.jupiter.api.Assertions.*;
+
 import io.github.frikit.krandom.generator.base.DoubleGenerator;
 import io.github.frikit.krandom.generator.base.FloatGenerator;
+import io.github.frikit.krandom.generator.base.IntGenerator;
+import io.github.frikit.krandom.generator.base.LongGenerator;
 import io.github.frikit.krandom.generator.base.StringGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class SeedableTest {
 
@@ -71,21 +71,23 @@ class SeedableTest {
     @DisplayName("date and time generators reseed through the typed Seedable contract")
     void dateTimeGeneratorsReseedThroughTypedContract() {
         java.util.List<Seedable> seedables = java.util.List.of(
-            new io.github.frikit.krandom.generator.datetime.DateGenerator(),
-            new io.github.frikit.krandom.generator.datetime.LocalDateTimeGenerator(),
-            new io.github.frikit.krandom.generator.datetime.InstantGenerator(),
-            new io.github.frikit.krandom.generator.datetime.ZonedDateTimeGenerator(),
-            new io.github.frikit.krandom.generator.datetime.UtilDateGenerator(),
-            new io.github.frikit.krandom.generator.datetime.SqlDateGenerator(),
-            new io.github.frikit.krandom.generator.datetime.SqlTimestampGenerator());
+                new io.github.frikit.krandom.generator.datetime.DateGenerator(),
+                new io.github.frikit.krandom.generator.datetime.LocalDateTimeGenerator(),
+                new io.github.frikit.krandom.generator.datetime.InstantGenerator(),
+                new io.github.frikit.krandom.generator.datetime.ZonedDateTimeGenerator(),
+                new io.github.frikit.krandom.generator.datetime.UtilDateGenerator(),
+                new io.github.frikit.krandom.generator.datetime.SqlDateGenerator(),
+                new io.github.frikit.krandom.generator.datetime.SqlTimestampGenerator());
 
         for (Seedable seedable : seedables) {
             Generator<?> generator = (Generator<?>) seedable;
             seedable.reseed(24680L);
             Object first = generator.generate();
             seedable.reseed(24680L);
-            assertEquals(first, generator.generate(),
-                seedable.getClass().getSimpleName() + " must replay after typed reseed");
+            assertEquals(
+                    first,
+                    generator.generate(),
+                    seedable.getClass().getSimpleName() + " must replay after typed reseed");
         }
     }
 
@@ -108,12 +110,15 @@ class SeedableTest {
     @Test
     @DisplayName("independently constructed generators with the same seed produce identical sequences")
     void sameSeedSameSequenceAcrossInstances() {
-        assertEquals(new IntGenerator(1, 1000, seeded(42L)).generateList(25),
-                     new IntGenerator(1, 1000, seeded(42L)).generateList(25));
-        assertEquals(new LongGenerator(1L, 1_000_000L, seeded(7L)).generateList(25),
-                     new LongGenerator(1L, 1_000_000L, seeded(7L)).generateList(25));
-        assertEquals(new DoubleGenerator(0.0, 1.0, seeded(99L)).generateList(25),
-                     new DoubleGenerator(0.0, 1.0, seeded(99L)).generateList(25));
+        assertEquals(
+                new IntGenerator(1, 1000, seeded(42L)).generateList(25),
+                new IntGenerator(1, 1000, seeded(42L)).generateList(25));
+        assertEquals(
+                new LongGenerator(1L, 1_000_000L, seeded(7L)).generateList(25),
+                new LongGenerator(1L, 1_000_000L, seeded(7L)).generateList(25));
+        assertEquals(
+                new DoubleGenerator(0.0, 1.0, seeded(99L)).generateList(25),
+                new DoubleGenerator(0.0, 1.0, seeded(99L)).generateList(25));
     }
 
     @Test

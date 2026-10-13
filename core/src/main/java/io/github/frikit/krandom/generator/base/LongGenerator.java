@@ -56,6 +56,6 @@ public final class LongGenerator extends AbstractBoundedGenerator<Long> {
     @Override
     public Long generate(Long min, Long max) {
         validate(min, max);
-                return random.nextLong(min, max);
+        return random.nextLong(min, max);
     }
 }

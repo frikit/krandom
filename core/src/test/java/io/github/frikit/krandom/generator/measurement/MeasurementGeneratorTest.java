@@ -5,24 +5,20 @@
  */
 package io.github.frikit.krandom.generator.measurement;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("MeasurementGenerator")
 class MeasurementGeneratorTest {
@@ -30,12 +26,32 @@ class MeasurementGeneratorTest {
     private static final Locale RU = Locale.of("ru", "RU");
 
     private static final Set<String> EN = Set.of(
-        "Meter", "Kilometer", "Centimeter", "Millimeter", "Gram", "Kilogram",
-        "Liter", "Milliliter", "Second", "Minute", "Hour", "Celsius");
+            "Meter",
+            "Kilometer",
+            "Centimeter",
+            "Millimeter",
+            "Gram",
+            "Kilogram",
+            "Liter",
+            "Milliliter",
+            "Second",
+            "Minute",
+            "Hour",
+            "Celsius");
 
     private static final Set<String> RU_UNITS = Set.of(
-        "Метр", "Километр", "Сантиметр", "Миллиметр", "Грамм", "Килограмм",
-        "Литр", "Миллилитр", "Секунда", "Минута", "Час", "Цельсий");
+            "Метр",
+            "Километр",
+            "Сантиметр",
+            "Миллиметр",
+            "Грамм",
+            "Килограмм",
+            "Литр",
+            "Миллилитр",
+            "Секунда",
+            "Минута",
+            "Час",
+            "Цельсий");
 
     @RepeatedTest(200)
     @DisplayName("default generate() returns a valid English unit")
@@ -46,7 +62,8 @@ class MeasurementGeneratorTest {
     @Test
     @DisplayName("default generate() can surface every unit over many draws")
     void generateCoversAll() {
-        MeasurementGenerator gen = new MeasurementGenerator(GeneratorConfig.builder().seed(5L).build());
+        MeasurementGenerator gen =
+                new MeasurementGenerator(GeneratorConfig.builder().seed(5L).build());
         Set<String> seen = new HashSet<>();
         for (int i = 0; i < 2000; i++) {
             seen.add(gen.generate());
@@ -72,8 +89,10 @@ class MeasurementGeneratorTest {
     @Test
     @DisplayName("same seed is reproducible")
     void reproducible() {
-        List<String> a = new MeasurementGenerator(GeneratorConfig.builder().seed(8L).build()).generateList(30);
-        List<String> b = new MeasurementGenerator(GeneratorConfig.builder().seed(8L).build()).generateList(30);
+        List<String> a =
+                new MeasurementGenerator(GeneratorConfig.builder().seed(8L).build()).generateList(30);
+        List<String> b =
+                new MeasurementGenerator(GeneratorConfig.builder().seed(8L).build()).generateList(30);
         assertEquals(a, b);
     }
 
@@ -86,8 +105,7 @@ class MeasurementGeneratorTest {
 
     @Nested
     @DisplayName("MeasurementDataRegistry")
-    class Registry {
-    }
+    class Registry {}
 
     @Nested
     @DisplayName("Generators facade")
@@ -99,7 +117,8 @@ class MeasurementGeneratorTest {
             assertTrue(EN.contains(Generators.ofMeasurement().generate()));
             assertTrue(RU_UNITS.contains(Generators.ofMeasurement(RU).generate()));
             assertTrue(EN.contains(
-                Generators.ofMeasurement(GeneratorConfig.builder().seed(1L).build()).generate()));
+                    Generators.ofMeasurement(GeneratorConfig.builder().seed(1L).build())
+                            .generate()));
         }
     }
 }

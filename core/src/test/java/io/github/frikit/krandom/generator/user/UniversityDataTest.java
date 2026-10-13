@@ -5,10 +5,10 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("UniversityData")
 class UniversityDataTest {
@@ -16,15 +16,20 @@ class UniversityDataTest {
     @Test
     @DisplayName("requires every university field to be non-blank")
     void requiresEveryUniversityFieldToBeNonBlank() {
-        assertThrows(NullPointerException.class,
-                     () -> new UniversityData(null, "BSc", "School", "University", "Northbridge"));
-        assertThrows(IllegalArgumentException.class,
-                     () -> new UniversityData("Northbridge", " ", "School", "University", "Northbridge"));
-        assertThrows(IllegalArgumentException.class,
-                     () -> new UniversityData("Northbridge", "BSc", "", "University", "Northbridge"));
-        assertThrows(IllegalArgumentException.class,
-                     () -> new UniversityData("Northbridge", "BSc", "School", "\t", "Northbridge"));
-        assertThrows(IllegalArgumentException.class,
-                     () -> new UniversityData("Northbridge", "BSc", "School", "University", "\n"));
+        assertThrows(
+                NullPointerException.class,
+                () -> new UniversityData(null, "BSc", "School", "University", "Northbridge"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new UniversityData("Northbridge", " ", "School", "University", "Northbridge"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new UniversityData("Northbridge", "BSc", "", "University", "Northbridge"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new UniversityData("Northbridge", "BSc", "School", "\t", "Northbridge"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new UniversityData("Northbridge", "BSc", "School", "University", "\n"));
     }
 }

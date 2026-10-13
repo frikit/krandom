@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.text;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -20,8 +18,8 @@ import java.util.Random;
  */
 public final class SentenceGenerator implements Generator<String> {
 
-    private final Locale        locale;
-    private final Random        random;
+    private final Locale locale;
+    private final Random random;
     private final WordGenerator wordGenerator;
 
     /**
@@ -106,8 +104,8 @@ public final class SentenceGenerator implements Generator<String> {
             throw new IllegalArgumentException("minSentences must be positive, got: " + minSentences);
         }
         if (maxSentences < minSentences) {
-            throw new IllegalArgumentException("maxSentences must be >= minSentences, got: "
-                                               + maxSentences + " < " + minSentences);
+            throw new IllegalArgumentException(
+                    "maxSentences must be >= minSentences, got: " + maxSentences + " < " + minSentences);
         }
         int count = minSentences + random.nextInt(maxSentences - minSentences + 1);
         return generateSentences(count);

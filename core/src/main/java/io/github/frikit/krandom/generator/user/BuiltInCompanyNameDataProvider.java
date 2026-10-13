@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.util.List;
 import java.util.Locale;
 
@@ -31,9 +30,11 @@ final class BuiltInCompanyNameDataProvider implements CompanyNameDataProvider {
 
     BuiltInCompanyNameDataProvider(Locale locale, String resourcePrefix) {
         this.locale = locale;
-        this.prefixes = List.of(LocaleTextResourceLoader.load("krandom/company_names/prefixes/" + resourcePrefix + ".txt"));
+        this.prefixes =
+                List.of(LocaleTextResourceLoader.load("krandom/company_names/prefixes/" + resourcePrefix + ".txt"));
         this.nouns = List.of(LocaleTextResourceLoader.load("krandom/company_names/nouns/" + resourcePrefix + ".txt"));
-        this.suffixes = List.of(LocaleTextResourceLoader.load("krandom/company_names/suffixes/" + resourcePrefix + ".txt"));
+        this.suffixes =
+                List.of(LocaleTextResourceLoader.load("krandom/company_names/suffixes/" + resourcePrefix + ".txt"));
         String[] formats = LocaleTextResourceLoader.load("krandom/company_names/formats/" + resourcePrefix + ".txt");
         this.nameFormat = formats[0];
         this.legalNameFormat = formats[1];

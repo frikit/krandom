@@ -5,24 +5,23 @@
  */
 package io.github.frikit.krandom.generator;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.algorithms.FibonacciGenerator;
 import io.github.frikit.krandom.generator.algorithms.LuhnGenerator;
 import io.github.frikit.krandom.generator.games.coin.CoinGenerator;
 import io.github.frikit.krandom.generator.games.coin.CoinResult;
 import io.github.frikit.krandom.generator.games.dice.DiceGenerator;
 import io.github.frikit.krandom.generator.games.dice.DiceType;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 /**
  * Generators that previously owned a hard-wired {@code new Random()} must honour the
@@ -52,8 +51,9 @@ class SeedingConsistencyTest {
         @DisplayName("uses the caller-owned random source of the configuration")
         void usesCallerOwnedRandom() {
             Random expected = new Random(5L);
-            List<CoinResult> flips = new CoinGenerator(GeneratorConfig.builder().random(new Random(5L)).build())
-                .flip(32);
+            List<CoinResult> flips = new CoinGenerator(
+                            GeneratorConfig.builder().random(new Random(5L)).build())
+                    .flip(32);
             for (CoinResult flip : flips) {
                 assertEquals(expected.nextBoolean() ? CoinResult.HEAD : CoinResult.TAIL, flip);
             }
@@ -68,7 +68,9 @@ class SeedingConsistencyTest {
         @Test
         @DisplayName("facade overload honours the configuration")
         void facade() {
-            assertEquals(new CoinGenerator(seeded(3L)).flip(20), Generators.ofCoin(seeded(3L)).flip(20));
+            assertEquals(
+                    new CoinGenerator(seeded(3L)).flip(20),
+                    Generators.ofCoin(seeded(3L)).flip(20));
         }
     }
 
@@ -90,8 +92,9 @@ class SeedingConsistencyTest {
         @Test
         @DisplayName("different seeds diverge")
         void differentSeedsDiverge() {
-            assertNotEquals(new DiceGenerator(DiceType.D20, seeded(1L)).generateList(30),
-                            new DiceGenerator(DiceType.D20, seeded(2L)).generateList(30));
+            assertNotEquals(
+                    new DiceGenerator(DiceType.D20, seeded(1L)).generateList(30),
+                    new DiceGenerator(DiceType.D20, seeded(2L)).generateList(30));
         }
 
         @Test
@@ -104,8 +107,9 @@ class SeedingConsistencyTest {
         @Test
         @DisplayName("facade overload honours the configuration")
         void facade() {
-            assertEquals(new DiceGenerator(DiceType.D8, seeded(4L)).generateList(25),
-                         Generators.ofDice(DiceType.D8, seeded(4L)).generateList(25));
+            assertEquals(
+                    new DiceGenerator(DiceType.D8, seeded(4L)).generateList(25),
+                    Generators.ofDice(DiceType.D8, seeded(4L)).generateList(25));
         }
     }
 
@@ -133,7 +137,9 @@ class SeedingConsistencyTest {
         @Test
         @DisplayName("facade overload honours the configuration")
         void facade() {
-            assertEquals(new LuhnGenerator(seeded(6L)).generateList(10), Generators.ofLuhn(seeded(6L)).generateList(10));
+            assertEquals(
+                    new LuhnGenerator(seeded(6L)).generateList(10),
+                    Generators.ofLuhn(seeded(6L)).generateList(10));
         }
 
         private boolean luhnValid(String number) {

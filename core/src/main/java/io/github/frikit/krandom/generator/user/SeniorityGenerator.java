@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -23,7 +22,7 @@ import java.util.Random;
 public final class SeniorityGenerator implements Generator<String> {
 
     private static final SeniorityDataProvider DEFAULT_PROVIDER =
-        new BuiltInSeniorityDataProvider(Locale.ROOT, "default");
+            new BuiltInSeniorityDataProvider(Locale.ROOT, "default");
 
     private final List<String> seniorities;
     private final Random random;
@@ -41,7 +40,9 @@ public final class SeniorityGenerator implements Generator<String> {
      * @param locale locale whose seniority labels to use; must not be {@code null}
      */
     public SeniorityGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**

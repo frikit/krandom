@@ -15,9 +15,8 @@ import java.util.Optional;
  * @param causeType      fully qualified cause class name, never the cause message
  * @param replayIdentity optional replay-recipe identity; empty until a recipe is available
  */
-public record GenerationFailureDiagnostic(GenerationFailureContext context,
-                                          String causeType,
-                                          Optional<String> replayIdentity) {
+public record GenerationFailureDiagnostic(
+        GenerationFailureContext context, String causeType, Optional<String> replayIdentity) {
 
     public GenerationFailureDiagnostic {
         Objects.requireNonNull(context, "context must not be null");

@@ -5,20 +5,19 @@
  */
 package io.github.frikit.krandom.generator.identifier;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
 
 class HashGeneratorTest {
 

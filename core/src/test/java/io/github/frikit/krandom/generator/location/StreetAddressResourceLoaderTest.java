@@ -5,12 +5,12 @@
  */
 package io.github.frikit.krandom.generator.location;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("StreetAddressResourceLoader")
 class StreetAddressResourceLoaderTest {
@@ -30,10 +30,8 @@ class StreetAddressResourceLoaderTest {
     @DisplayName("load throws when resource does not exist")
     void loadMissingResourceThrows() {
         IllegalStateException ex = assertThrows(
-            IllegalStateException.class,
-            () -> StreetAddressResourceLoader.load("krandom/streets/does_not_exist.txt")
-        );
+                IllegalStateException.class,
+                () -> StreetAddressResourceLoader.load("krandom/streets/does_not_exist.txt"));
         assertTrue(ex.getMessage().contains("not found"));
     }
 }
-

@@ -5,6 +5,4 @@
  */
 package io.github.frikit.krandom.generator.core.model;
 
-public class BaseJavaClass {
-
-}
+public class BaseJavaClass {}

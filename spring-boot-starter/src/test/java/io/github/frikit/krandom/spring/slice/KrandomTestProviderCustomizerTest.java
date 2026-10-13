@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.spring.slice;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.provider.ProviderHub;
 import io.github.frikit.krandom.spring.KrandomProviderCustomizer;
@@ -14,8 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @KrandomTest
 @DisplayName("@KrandomTest with a provider customizer on a cached context")

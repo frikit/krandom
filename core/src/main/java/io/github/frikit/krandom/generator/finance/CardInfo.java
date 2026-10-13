@@ -21,12 +21,7 @@ import java.util.Objects;
  *   System.out.println("Expires: " + info.expirationDate()); // "12/28"
  * }</pre>
  */
-public record CardInfo(
-    String cardNumber,
-    CardType cardType,
-    String cvv,
-    String expirationDate
-) {
+public record CardInfo(String cardNumber, CardType cardType, String cvv, String expirationDate) {
 
     /**
      * Creates a new CardInfo instance.

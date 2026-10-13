@@ -15,16 +15,15 @@ package io.github.frikit.krandom.generator.core.model;
  */
 public class Person extends BaseJavaClass {
 
-    private String  firstName;
-    private String  lastName;
-    private int     age;
-    private double  salary;
+    private String firstName;
+    private String lastName;
+    private int age;
+    private double salary;
     private boolean active;
-    private Status  status;
+    private Status status;
     private Address address;
 
-    public Person() {
-    }
+    public Person() {}
 
     public String getFirstName() {
         return firstName;

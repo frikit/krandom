@@ -5,11 +5,11 @@
  */
 package io.github.frikit.krandom.benchmarks;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Expanded generation benchmark")
 class ExpandedGenerationBenchmarkTest {

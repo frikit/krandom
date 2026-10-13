@@ -5,11 +5,9 @@
  */
 package io.github.frikit.krandom.generator.location;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -31,9 +29,9 @@ import java.util.Random;
 public final class StateGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
-    private final Random          random;
-    private final String[]        states;
-    private final String[]        abbreviations;
+    private final Random random;
+    private final String[] states;
+    private final String[] abbreviations;
 
     /**
      * Creates a generator using default configuration ({@link Locale#US}).
@@ -56,9 +54,8 @@ public final class StateGenerator implements Generator<String> {
 
         Locale locale = config.getLocale();
         if (!registryContext.isStateRegistered(locale)) {
-            throw new UnsupportedOperationException(
-                "Locale " + locale + " is not supported. Registered locales: " +
-                registryContext.stateRegisteredKeys());
+            throw new UnsupportedOperationException("Locale " + locale + " is not supported. Registered locales: "
+                    + registryContext.stateRegisteredKeys());
         }
 
         this.random = config.createRandom();
@@ -99,8 +96,10 @@ public final class StateGenerator implements Generator<String> {
     public String generate(boolean useAbbreviation) {
         int index = random.nextInt(states.length);
 
-        if (useAbbreviation && abbreviations.length > 0 &&
-            index < abbreviations.length && !abbreviations[index].isEmpty()) {
+        if (useAbbreviation
+                && abbreviations.length > 0
+                && index < abbreviations.length
+                && !abbreviations[index].isEmpty()) {
             return abbreviations[index];
         }
 

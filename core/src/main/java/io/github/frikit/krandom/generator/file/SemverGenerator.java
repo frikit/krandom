@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.file;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
 
@@ -17,7 +15,7 @@ import java.util.Random;
  */
 public final class SemverGenerator implements Generator<String> {
 
-    private static final String[] PRE_RELEASES = { "alpha", "beta", "rc" };
+    private static final String[] PRE_RELEASES = {"alpha", "beta", "rc"};
 
     private final Random random;
 

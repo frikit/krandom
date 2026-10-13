@@ -5,12 +5,14 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -18,11 +20,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Schema")
 class SchemaTest {
@@ -30,8 +29,10 @@ class SchemaTest {
     @Test
     @DisplayName("generate and batch generation are deterministic when seeded")
     void deterministicBatch() {
-        Field fieldA = new Field(GeneratorConfig.builder().locale(Locale.US).seed(42L).build());
-        Field fieldB = new Field(GeneratorConfig.builder().locale(Locale.US).seed(42L).build());
+        Field fieldA =
+                new Field(GeneratorConfig.builder().locale(Locale.US).seed(42L).build());
+        Field fieldB =
+                new Field(GeneratorConfig.builder().locale(Locale.US).seed(42L).build());
         Map<String, SchemaValueProvider> fieldsA = new LinkedHashMap<>();
         fieldsA.put("name", fieldA.bind("person.full_name"));
         fieldsA.put("email", fieldA.bind("person.email"));
@@ -43,8 +44,10 @@ class SchemaTest {
         fieldsB.put("price", fieldB.bind("finance.price"));
         fieldsB.put("tags", fieldB.list("text.word", 2, 4));
 
-        Schema a = new Schema(GeneratorConfig.builder().locale(Locale.US).seed(500L).build(), fieldsA);
-        Schema b = new Schema(GeneratorConfig.builder().locale(Locale.US).seed(500L).build(), fieldsB);
+        Schema a = new Schema(
+                GeneratorConfig.builder().locale(Locale.US).seed(500L).build(), fieldsA);
+        Schema b = new Schema(
+                GeneratorConfig.builder().locale(Locale.US).seed(500L).build(), fieldsB);
 
         assertEquals(a.generate(), b.generate());
         assertEquals(a.generateBatch(5), b.generateBatch(5));
@@ -53,9 +56,7 @@ class SchemaTest {
     @Test
     @DisplayName("record index increments across generate and loop")
     void recordIndex() {
-        Map<String, SchemaValueProvider> fields = Map.of(
-            "index", ctx -> ctx.recordIndex()
-        );
+        Map<String, SchemaValueProvider> fields = Map.of("index", ctx -> ctx.recordIndex());
         Schema schema = new Schema(fields);
         assertEquals(0, schema.generate().get("index"));
         assertEquals(1, schema.generate().get("index"));
@@ -120,7 +121,8 @@ class SchemaTest {
         Schema schema = new Schema(valid);
         assertEquals(Locale.US, schema.getLocale());
         assertEquals(1, schema.getFields().size());
-        assertThrows(UnsupportedOperationException.class, () -> schema.getFields().put("y", ctx -> 2));
+        assertThrows(
+                UnsupportedOperationException.class, () -> schema.getFields().put("y", ctx -> 2));
         assertThrows(IllegalArgumentException.class, () -> schema.generateBatch(-1));
         assertEquals(List.of(), schema.generateBatch(0));
     }
@@ -133,15 +135,21 @@ class SchemaTest {
         fields.put("age", SchemaValueProvider.withSample(ctx -> 42, 42));
         fields.put("active", SchemaValueProvider.withSample(ctx -> true, true));
         fields.put("tags", SchemaValueProvider.withSample(ctx -> List.of("a", "b"), List.of("a", "b")));
-        fields.put("meta", SchemaValueProvider.withSample(ctx -> Map.of("score", 9.5, "vip", false),
-                                                          Map.of("score", 9.5, "vip", false)));
+        fields.put(
+                "meta",
+                SchemaValueProvider.withSample(
+                        ctx -> Map.of("score", 9.5, "vip", false), Map.of("score", 9.5, "vip", false)));
         fields.put("missing", SchemaValueProvider.withSample(ctx -> null, null));
         fields.put("byteValue", SchemaValueProvider.withSample(ctx -> (byte) 7, (byte) 7));
         fields.put("shortValue", SchemaValueProvider.withSample(ctx -> (short) 8, (short) 8));
         fields.put("longValue", SchemaValueProvider.withSample(ctx -> 9L, 9L));
-        fields.put("bigIntValue", SchemaValueProvider.withSample(ctx -> BigInteger.valueOf(10), BigInteger.valueOf(10)));
-        fields.put("nullItems", SchemaValueProvider.withSample(ctx -> Arrays.asList(null, null), Arrays.asList(null, null)));
-        fields.put("mapWithNonStringKey", SchemaValueProvider.withSample(ctx -> Map.of(1, "value"), Map.of(1, "value")));
+        fields.put(
+                "bigIntValue", SchemaValueProvider.withSample(ctx -> BigInteger.valueOf(10), BigInteger.valueOf(10)));
+        fields.put(
+                "nullItems",
+                SchemaValueProvider.withSample(ctx -> Arrays.asList(null, null), Arrays.asList(null, null)));
+        fields.put(
+                "mapWithNonStringKey", SchemaValueProvider.withSample(ctx -> Map.of(1, "value"), Map.of(1, "value")));
         fields.put("customObject", SchemaValueProvider.withSample(ctx -> new Object(), new Object()));
 
         Schema schema = new Schema(fields);
@@ -219,13 +227,16 @@ class SchemaTest {
     @DisplayName("records serialize as structured objects across schema exporters")
     void recordsSerializeAsStructuredObjects() {
         Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
-        fields.put("customer", SchemaValueProvider.withSample(
-            ctx -> new CustomerRecord("Ada", new AddressRecord("London", 7)),
-            new CustomerRecord("Ada", new AddressRecord("London", 7))));
+        fields.put(
+                "customer",
+                SchemaValueProvider.withSample(
+                        ctx -> new CustomerRecord("Ada", new AddressRecord("London", 7)),
+                        new CustomerRecord("Ada", new AddressRecord("London", 7))));
         Schema schema = new Schema(fields);
 
         String jsonl = schema.toJsonLines(1);
-        assertTrue(jsonl.contains("\"customer\":{\"name\":\"Ada\",\"address\":{\"city\":\"London\",\"houseNumber\":7}}"));
+        assertTrue(
+                jsonl.contains("\"customer\":{\"name\":\"Ada\",\"address\":{\"city\":\"London\",\"houseNumber\":7}}"));
 
         String csv = schema.toCsv(1);
         assertTrue(csv.contains("\"{"));
@@ -253,7 +264,8 @@ class SchemaTest {
     @Test
     @DisplayName("composite provider field bindings export structured schema rows")
     void compositeProviderFieldBindingsExportStructuredRows() {
-        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
         Field field = new Field(config);
         Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
         fields.put("order", field.bind("commerce.order_info"));
@@ -281,7 +293,8 @@ class SchemaTest {
     @Test
     @DisplayName("toJsonSchema is side-effect free for built-in field bindings")
     void toJsonSchemaDoesNotAdvanceBuiltInFieldProviders() {
-        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
         Field fieldA = new Field(config);
         Field fieldB = new Field(config);
         Map<String, SchemaValueProvider> fieldsA = new LinkedHashMap<>();
@@ -321,9 +334,7 @@ class SchemaTest {
     @Test
     @DisplayName("toJsonSchema returns immutable root and properties maps")
     void toJsonSchemaReturnsImmutableRootAndPropertiesMaps() {
-        Schema schema = new Schema(Map.of(
-            "name", SchemaValueProvider.withSample(ctx -> "alice", "alice")
-        ));
+        Schema schema = new Schema(Map.of("name", SchemaValueProvider.withSample(ctx -> "alice", "alice")));
 
         Map<String, Object> jsonSchema = schema.toJsonSchema();
 
@@ -364,11 +375,7 @@ class SchemaTest {
         assertTrue(exception.getCause() instanceof IllegalStateException);
     }
 
-    private record CustomerRecord(String name, AddressRecord address) {
+    private record CustomerRecord(String name, AddressRecord address) {}
 
-    }
-
-    private record AddressRecord(String city, int houseNumber) {
-
-    }
+    private record AddressRecord(String city, int houseNumber) {}
 }

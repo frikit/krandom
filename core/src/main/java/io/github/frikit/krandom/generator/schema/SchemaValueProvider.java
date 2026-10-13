@@ -46,8 +46,8 @@ public interface SchemaValueProvider {
      */
     static SchemaValueProvider withJsonSchema(SchemaValueProvider provider, Map<String, ?> jsonSchema) {
         Objects.requireNonNull(provider, "provider must not be null");
-        Map<String, Object> schema = JsonSchemaSupport.copyJsonSchema(
-            Objects.requireNonNull(jsonSchema, "jsonSchema must not be null"));
+        Map<String, Object> schema =
+                JsonSchemaSupport.copyJsonSchema(Objects.requireNonNull(jsonSchema, "jsonSchema must not be null"));
         return new SchemaValueProvider() {
 
             @Override

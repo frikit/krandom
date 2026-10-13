@@ -5,8 +5,11 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -15,12 +18,8 @@ import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.List;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ResolvedType")
 class ResolvedTypeTest {
@@ -62,19 +61,22 @@ class ResolvedTypeTest {
     @Test
     @DisplayName("uses effective upper and lower wildcard bounds")
     void usesWildcardBounds() throws Exception {
-        ResolvedType upper = ResolvedType.resolve(field("upper").getGenericType()).argument(0);
+        ResolvedType upper =
+                ResolvedType.resolve(field("upper").getGenericType()).argument(0);
         assertEquals(ResolvedType.Kind.WILDCARD, upper.kind());
         assertEquals(Number.class, upper.rawClass());
         assertEquals(Number.class, upper.effectiveType().rawClass());
         assertTrue(upper.isResolved());
 
-        ResolvedType lower = ResolvedType.resolve(field("lower").getGenericType()).argument(0);
+        ResolvedType lower =
+                ResolvedType.resolve(field("lower").getGenericType()).argument(0);
         assertEquals(ResolvedType.Kind.WILDCARD, lower.kind());
         assertEquals(Integer.class, lower.rawClass());
         assertEquals(Integer.class, lower.effectiveType().rawClass());
         assertTrue(lower.isResolved());
 
-        ResolvedType unbounded = ResolvedType.resolve(field("unbounded").getGenericType()).argument(0);
+        ResolvedType unbounded =
+                ResolvedType.resolve(field("unbounded").getGenericType()).argument(0);
         assertEquals(ResolvedType.Kind.WILDCARD, unbounded.kind());
         assertNull(unbounded.rawClass());
         assertFalse(unbounded.isResolved());
@@ -102,7 +104,8 @@ class ResolvedTypeTest {
         ResolvedType selfBound = ResolvedType.resolve(boundedVariable, Map.of(boundedVariable, boundedVariable));
         assertEquals(CharSequence.class, selfBound.rawClass());
 
-        TypeVariable<Class<Intersection>> intersectionVariable = Intersection.class.getTypeParameters()[0];
+        TypeVariable<Class<Intersection>> intersectionVariable =
+                Intersection.class.getTypeParameters()[0];
         ResolvedType intersection = ResolvedType.resolve(intersectionVariable);
         assertFalse(intersection.isResolved());
         assertTrue(intersection.unresolvedReason().contains("multiple type-variable bounds"));
@@ -113,16 +116,20 @@ class ResolvedTypeTest {
     void derivesHierarchyBindings() throws Exception {
         TypeVariable<Class<GenericBase>> baseVariable = GenericBase.class.getTypeParameters()[0];
         Map<TypeVariable<?>, Type> stringBindings = ResolvedType.bindingsFor(StringChild.class);
-        assertEquals(String.class, ResolvedType.resolve(baseVariable, stringBindings).rawClass());
+        assertEquals(
+                String.class, ResolvedType.resolve(baseVariable, stringBindings).rawClass());
 
         Map<TypeVariable<?>, Type> nestedBindings = ResolvedType.bindingsFor(IntegerChild.class);
         ResolvedType nested = ResolvedType.resolve(baseVariable, nestedBindings);
         assertEquals(List.class, nested.rawClass());
         assertEquals(Integer.class, nested.argument(0).rawClass());
 
-        TypeVariable<Class<GenericContract>> contractVariable = GenericContract.class.getTypeParameters()[0];
+        TypeVariable<Class<GenericContract>> contractVariable =
+                GenericContract.class.getTypeParameters()[0];
         Map<TypeVariable<?>, Type> interfaceBindings = ResolvedType.bindingsFor(StringContract.class);
-        assertEquals(String.class, ResolvedType.resolve(contractVariable, interfaceBindings).rawClass());
+        assertEquals(
+                String.class,
+                ResolvedType.resolve(contractVariable, interfaceBindings).rawClass());
 
         assertTrue(ResolvedType.bindingsFor(Object.class).isEmpty());
     }
@@ -136,14 +143,14 @@ class ResolvedTypeTest {
         assertEquals(CharSequence.class, array.componentType().rawClass());
         assertTrue(array.isResolved());
 
-        ResolvedType unresolvedArray = ResolvedType.resolve(
-            Unbounded.class.getDeclaredField("values").getGenericType());
+        ResolvedType unresolvedArray =
+                ResolvedType.resolve(Unbounded.class.getDeclaredField("values").getGenericType());
         assertNull(unresolvedArray.rawClass());
         assertFalse(unresolvedArray.isResolved());
         assertTrue(unresolvedArray.unresolvedReason().contains("generic array component"));
 
         ResolvedType ambiguousArray = ResolvedType.resolve(
-            AmbiguousArray.class.getDeclaredField("values").getGenericType());
+                AmbiguousArray.class.getDeclaredField("values").getGenericType());
         assertEquals(List[].class, ambiguousArray.rawClass());
         assertFalse(ambiguousArray.componentType().isResolved());
         assertFalse(ambiguousArray.isResolved());
@@ -177,7 +184,7 @@ class ResolvedTypeTest {
         ParameterizedType withoutRawClass = new ParameterizedType() {
             @Override
             public Type[] getActualTypeArguments() {
-                return new Type[]{ String.class };
+                return new Type[] {String.class};
             }
 
             @Override
@@ -227,32 +234,24 @@ class ResolvedTypeTest {
         T[] values;
     }
 
-    private static final class Intersection<T extends CharSequence & Comparable<T>> {
-    }
+    private static final class Intersection<T extends CharSequence & Comparable<T>> {}
 
     private static final class AmbiguousArray<T extends List<?>> {
 
         T[] values;
     }
 
-    private static class GenericBase<T> {
-    }
+    private static class GenericBase<T> {}
 
-    private static class GenericMiddle<U> extends GenericBase<List<U>> {
-    }
+    private static class GenericMiddle<U> extends GenericBase<List<U>> {}
 
-    private static final class StringChild extends GenericBase<String> {
-    }
+    private static final class StringChild extends GenericBase<String> {}
 
-    private static final class IntegerChild extends GenericMiddle<Integer> {
-    }
+    private static final class IntegerChild extends GenericMiddle<Integer> {}
 
-    private interface GenericContract<T> {
-    }
+    private interface GenericContract<T> {}
 
-    private static final class StringContract implements GenericContract<String> {
-    }
+    private static final class StringContract implements GenericContract<String> {}
 
-    private static final class Recursive<T extends Comparable<T>> {
-    }
+    private static final class Recursive<T extends Comparable<T>> {}
 }

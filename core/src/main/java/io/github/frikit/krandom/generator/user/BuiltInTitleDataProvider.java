@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.util.Locale;
 
 /**
@@ -16,7 +15,7 @@ import java.util.Locale;
  */
 final class BuiltInTitleDataProvider implements TitleDataProvider {
 
-    private final Locale   locale;
+    private final Locale locale;
     private final String[] titles;
 
     BuiltInTitleDataProvider(SupportedLocale supportedLocale) {

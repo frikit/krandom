@@ -5,23 +5,6 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
-import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
-import io.github.frikit.krandom.generator.failure.GenerationOperation;
-import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.stream.Stream;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -29,16 +12,34 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
 @DisplayName("ObjectGenerator — EnumSet and EnumMap members")
 class ObjectGeneratorEnumCollectionTest {
 
-    enum Color { RED, GREEN, BLUE }
-
-    record EnumSetRecord(EnumSet<Color> colors) {
+    enum Color {
+        RED,
+        GREEN,
+        BLUE
     }
 
-    record EnumMapRecord(EnumMap<Color, Integer> byColor) {
-    }
+    record EnumSetRecord(EnumSet<Color> colors) {}
+
+    record EnumMapRecord(EnumMap<Color, Integer> byColor) {}
 
     static class EnumCollectionsHolder {
 
@@ -61,10 +62,10 @@ class ObjectGeneratorEnumCollectionTest {
 
     private static GeneratorConfig config(long seed, List<GenerationFailureDiagnostic> diagnostics) {
         return GeneratorConfig.builder()
-                              .seed(seed)
-                              .collectionSize(1, 3)
-                              .generationFailureListener(diagnostics::add)
-                              .build();
+                .seed(seed)
+                .collectionSize(1, 3)
+                .generationFailureListener(diagnostics::add)
+                .build();
     }
 
     @Test
@@ -92,7 +93,7 @@ class ObjectGeneratorEnumCollectionTest {
         List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
 
         EnumCollectionsHolder holder =
-            new ObjectGenerator<>(EnumCollectionsHolder.class, config(7L, diagnostics)).generate();
+                new ObjectGenerator<>(EnumCollectionsHolder.class, config(7L, diagnostics)).generate();
 
         assertNotNull(holder.colors);
         assertFalse(holder.colors.isEmpty());
@@ -108,9 +109,9 @@ class ObjectGeneratorEnumCollectionTest {
         List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
 
         EnumCollectionsHolder first =
-            new ObjectGenerator<>(EnumCollectionsHolder.class, config(99L, diagnostics)).generate();
+                new ObjectGenerator<>(EnumCollectionsHolder.class, config(99L, diagnostics)).generate();
         EnumCollectionsHolder second =
-            new ObjectGenerator<>(EnumCollectionsHolder.class, config(99L, diagnostics)).generate();
+                new ObjectGenerator<>(EnumCollectionsHolder.class, config(99L, diagnostics)).generate();
 
         assertEquals(first.colors, second.colors);
         assertEquals(first.labels, second.labels);
@@ -125,14 +126,13 @@ class ObjectGeneratorEnumCollectionTest {
     @ParameterizedTest(name = "{2}")
     @MethodSource("wildcardHolders")
     @DisplayName("a raw enum bound is a contextual failure in strict mode")
-    void wildcardEnumBoundFailsContextually(String strictPath,
-                                             GenerationFailureCategory strictCategory,
-                                             Class<?> holderType) {
+    void wildcardEnumBoundFailsContextually(
+            String strictPath, GenerationFailureCategory strictCategory, Class<?> holderType) {
         List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
 
         ObjectGenerationException error = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(holderType, config(1L, diagnostics)).generate());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(holderType, config(1L, diagnostics)).generate());
 
         var context = error.getContext().orElseThrow();
         assertEquals(strictCategory, context.category());
@@ -143,15 +143,14 @@ class ObjectGeneratorEnumCollectionTest {
     @ParameterizedTest(name = "{2}")
     @MethodSource("wildcardHolders")
     @DisplayName("a raw enum bound resolves to null and reports a construction failure in lenient mode")
-    void wildcardEnumBoundIsNullWhenLenient(String strictPath,
-                                             GenerationFailureCategory strictCategory,
-                                             Class<?> holderType) throws Exception {
+    void wildcardEnumBoundIsNullWhenLenient(
+            String strictPath, GenerationFailureCategory strictCategory, Class<?> holderType) throws Exception {
         List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .seed(1L)
-                                                .objectIgnoreErrors(true)
-                                                .generationFailureListener(diagnostics::add)
-                                                .build();
+                .seed(1L)
+                .objectIgnoreErrors(true)
+                .generationFailureListener(diagnostics::add)
+                .build();
 
         Object holder = new ObjectGenerator<>(holderType, config).generate();
         var field = holderType.getDeclaredField("values");
@@ -167,11 +166,13 @@ class ObjectGeneratorEnumCollectionTest {
 
     private static Stream<Arguments> wildcardHolders() {
         return Stream.of(
-            Arguments.of("WildcardEnumMapHolder.values",
-                         GenerationFailureCategory.CONSTRUCTION,
-                         WildcardEnumMapHolder.class),
-            Arguments.of("WildcardEnumSetHolder.values[]",
-                         GenerationFailureCategory.UNSUPPORTED_TYPE,
-                         WildcardEnumSetHolder.class));
+                Arguments.of(
+                        "WildcardEnumMapHolder.values",
+                        GenerationFailureCategory.CONSTRUCTION,
+                        WildcardEnumMapHolder.class),
+                Arguments.of(
+                        "WildcardEnumSetHolder.values[]",
+                        GenerationFailureCategory.UNSUPPORTED_TYPE,
+                        WildcardEnumSetHolder.class));
     }
 }

@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.file;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -23,10 +22,10 @@ import java.util.Random;
 public final class DirPathGenerator implements Generator<String> {
 
     private static final DirectoryNameDataProvider DEFAULT_PROVIDER =
-        new BuiltInDirectoryNameDataProvider(Locale.ROOT, "default");
+            new BuiltInDirectoryNameDataProvider(Locale.ROOT, "default");
 
-    private final Locale       locale;
-    private final Random       random;
+    private final Locale locale;
+    private final Random random;
     private final List<String> directoryNames;
 
     public DirPathGenerator() {
@@ -34,7 +33,9 @@ public final class DirPathGenerator implements Generator<String> {
     }
 
     public DirPathGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     public DirPathGenerator(GeneratorConfig config) {

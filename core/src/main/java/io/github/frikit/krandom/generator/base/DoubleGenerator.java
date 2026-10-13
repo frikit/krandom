@@ -5,12 +5,10 @@
  */
 package io.github.frikit.krandom.generator.base;
 
-import org.jspecify.annotations.Nullable;
-
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Generates random {@link Double} values.
@@ -105,8 +103,7 @@ public final class DoubleGenerator extends AbstractBoundedGenerator<Double> {
      */
     public DoubleGenerator withPrecision(int decimals) {
         if (decimals < 0 || decimals > 15) {
-            throw new IllegalArgumentException(
-                "Precision must be between 0 and 15, got: " + decimals);
+            throw new IllegalArgumentException("Precision must be between 0 and 15, got: " + decimals);
         }
         if (seed == null && config != null) {
             return new DoubleGenerator(getMin(), getMax(), config, decimals);
@@ -156,10 +153,11 @@ public final class DoubleGenerator extends AbstractBoundedGenerator<Double> {
 
     private void requireRepresentableValue(double min, double max) {
         int scale = java.util.Objects.requireNonNull(precision, "precision");
-        double smallest = BigDecimal.valueOf(min).setScale(scale, RoundingMode.CEILING).doubleValue();
+        double smallest =
+                BigDecimal.valueOf(min).setScale(scale, RoundingMode.CEILING).doubleValue();
         if (smallest >= max) {
-            throw new IllegalArgumentException("Range [" + min + ", " + max + ") contains no value with "
-                                               + precision + " decimal places");
+            throw new IllegalArgumentException(
+                    "Range [" + min + ", " + max + ") contains no value with " + precision + " decimal places");
         }
     }
 }

@@ -14,8 +14,6 @@ import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.RecordComponent;
 import java.math.BigDecimal;
@@ -41,6 +39,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Applies lightweight sibling-field coherence after structural value generation.
@@ -54,23 +53,23 @@ final class SemanticCoherenceAdjuster {
     private final SemanticFieldRegistry semanticRegistry;
     private final @Nullable Long generationSeed;
     private final int depth;
-    private       @Nullable AddressInfo addressInfo;
-    private       boolean     addressInfoResolved;
+    private @Nullable AddressInfo addressInfo;
+    private boolean addressInfoResolved;
 
     SemanticCoherenceAdjuster(ObjectGeneratorConfig config, UniqueFieldTracker uniqueFieldTracker) {
         this(config, uniqueFieldTracker, null, 0);
     }
 
-    SemanticCoherenceAdjuster(ObjectGeneratorConfig config,
-                              UniqueFieldTracker uniqueFieldTracker,
-                              @Nullable Long generationSeed) {
+    SemanticCoherenceAdjuster(
+            ObjectGeneratorConfig config, UniqueFieldTracker uniqueFieldTracker, @Nullable Long generationSeed) {
         this(config, uniqueFieldTracker, generationSeed, 0);
     }
 
-    SemanticCoherenceAdjuster(ObjectGeneratorConfig config,
-                              UniqueFieldTracker uniqueFieldTracker,
-                              @Nullable Long generationSeed,
-                              int depth) {
+    SemanticCoherenceAdjuster(
+            ObjectGeneratorConfig config,
+            UniqueFieldTracker uniqueFieldTracker,
+            @Nullable Long generationSeed,
+            int depth) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.uniqueFieldTracker = Objects.requireNonNull(uniqueFieldTracker, "uniqueFieldTracker must not be null");
         this.semanticRegistry = config.getSemanticRegistry();
@@ -92,20 +91,18 @@ final class SemanticCoherenceAdjuster {
             }
             field.setAccessible(true);
             slots.add(new ReflectionSlot(
-                ownerType,
-                field,
-                instance,
-                config.isIgnoreErrors(),
-                depth,
-                config.getGeneratorConfig().getGenerationFailureListener()));
+                    ownerType,
+                    field,
+                    instance,
+                    config.isIgnoreErrors(),
+                    depth,
+                    config.getGeneratorConfig().getGenerationFailureListener()));
         }
         apply(slots, allowOverwriteExisting);
     }
 
-    void adjustRecordArguments(Class<?> ownerType,
-                               RecordComponent[] components,
-                               Field[] backingFields,
-                               @Nullable Object[] args) {
+    void adjustRecordArguments(
+            Class<?> ownerType, RecordComponent[] components, Field[] backingFields, @Nullable Object[] args) {
         Objects.requireNonNull(ownerType, "ownerType must not be null");
         Objects.requireNonNull(components, "components must not be null");
         Objects.requireNonNull(backingFields, "backingFields must not be null");
@@ -168,26 +165,21 @@ final class SemanticCoherenceAdjuster {
             return;
         }
 
-        assignAddressField(slotsBySemanticKey.get("streetaddress"),
-                           "streetaddress",
-                           coherentAddress.street(),
-                           allowOverwriteExisting);
+        assignAddressField(
+                slotsBySemanticKey.get("streetaddress"),
+                "streetaddress",
+                coherentAddress.street(),
+                allowOverwriteExisting);
         assignAddressField(slotsBySemanticKey.get("city"), "city", coherentAddress.city(), allowOverwriteExisting);
         assignAddressField(slotsBySemanticKey.get("state"), "state", coherentAddress.state(), allowOverwriteExisting);
-        assignAddressField(slotsBySemanticKey.get("postalcode"),
-                           "postalcode",
-                           coherentAddress.zip(),
-                           allowOverwriteExisting);
-        assignAddressField(slotsBySemanticKey.get("country"),
-                           "country",
-                           coherentAddress.country(),
-                           allowOverwriteExisting);
+        assignAddressField(
+                slotsBySemanticKey.get("postalcode"), "postalcode", coherentAddress.zip(), allowOverwriteExisting);
+        assignAddressField(
+                slotsBySemanticKey.get("country"), "country", coherentAddress.country(), allowOverwriteExisting);
     }
 
-    private void assignAddressField(@Nullable Slot slot,
-                                    String semanticKey,
-                                    String value,
-                                    boolean allowOverwriteExisting) {
+    private void assignAddressField(
+            @Nullable Slot slot, String semanticKey, String value, boolean allowOverwriteExisting) {
         if (slot == null || slot.rawType() != String.class || !canAssign(slot, allowOverwriteExisting)) {
             return;
         }
@@ -208,7 +200,8 @@ final class SemanticCoherenceAdjuster {
         }
         GeneratorConfig addressConfig = config.getGeneratorConfig();
         if (generationSeed != null) {
-            addressConfig = addressConfig.toBuilder().seed(generationSeed.longValue()).build();
+            addressConfig =
+                    addressConfig.toBuilder().seed(generationSeed.longValue()).build();
         }
         addressInfo = new AddressInfoGenerator(addressConfig).generate();
         return addressInfo;
@@ -261,9 +254,8 @@ final class SemanticCoherenceAdjuster {
         fullNameSlot.setValue(applyUniqueness(fullNameSlot, "fullname", firstName + " " + lastName));
     }
 
-    private void harmonizeEmail(Map<String, Slot> slotsBySemanticKey,
-                                @Nullable String resolvedDomain,
-                                boolean allowOverwriteExisting) {
+    private void harmonizeEmail(
+            Map<String, Slot> slotsBySemanticKey, @Nullable String resolvedDomain, boolean allowOverwriteExisting) {
         Slot emailSlot = slotsBySemanticKey.get("email");
         if (emailSlot == null || !canAssign(emailSlot, allowOverwriteExisting)) {
             return;
@@ -288,9 +280,8 @@ final class SemanticCoherenceAdjuster {
         emailSlot.setValue(applyUniqueness(emailSlot, "email", localPart + "@" + domain));
     }
 
-    private void harmonizeCompanyEmail(Map<String, Slot> slotsBySemanticKey,
-                                       @Nullable String resolvedDomain,
-                                       boolean allowOverwriteExisting) {
+    private void harmonizeCompanyEmail(
+            Map<String, Slot> slotsBySemanticKey, @Nullable String resolvedDomain, boolean allowOverwriteExisting) {
         Slot companyEmailSlot = slotsBySemanticKey.get("companyemail");
         if (companyEmailSlot == null || !canAssign(companyEmailSlot, allowOverwriteExisting)) {
             return;
@@ -330,9 +321,8 @@ final class SemanticCoherenceAdjuster {
         urlSlot.setValue(applyUniqueness(urlSlot, "url", "https://www." + domain));
     }
 
-    private void harmonizeCompanyUrl(Map<String, Slot> slotsBySemanticKey,
-                                     @Nullable String resolvedDomain,
-                                     boolean allowOverwriteExisting) {
+    private void harmonizeCompanyUrl(
+            Map<String, Slot> slotsBySemanticKey, @Nullable String resolvedDomain, boolean allowOverwriteExisting) {
         Slot companyUrlSlot = slotsBySemanticKey.get("companyurl");
         if (companyUrlSlot == null || !canAssign(companyUrlSlot, allowOverwriteExisting)) {
             return;
@@ -515,16 +505,17 @@ final class SemanticCoherenceAdjuster {
     }
 
     private boolean isProtected(Slot slot) {
-        if (config.getContextualFieldOverride(slot.ownerType(), slot.fieldName()).isPresent()
-            || config.getFieldOverride(slot.ownerType(), slot.fieldName()).isPresent()
-            || config.getContextualTypeOverride(slot.rawType()).isPresent()
-            || config.getTypeOverride(slot.rawType()).isPresent()) {
+        if (config.getContextualFieldOverride(slot.ownerType(), slot.fieldName())
+                        .isPresent()
+                || config.getFieldOverride(slot.ownerType(), slot.fieldName()).isPresent()
+                || config.getContextualTypeOverride(slot.rawType()).isPresent()
+                || config.getTypeOverride(slot.rawType()).isPresent()) {
             return true;
         }
 
         Field field = slot.annotatedElement();
         if (config.getContextualFieldPredicateOverride(field).isPresent()
-            || config.getFieldPredicateOverride(field).isPresent()) {
+                || config.getFieldPredicateOverride(field).isPresent()) {
             return true;
         }
 
@@ -546,8 +537,10 @@ final class SemanticCoherenceAdjuster {
 
         AtomicInteger attempt = new AtomicInteger();
         String normalizedFieldName = FieldGeneratorResolver.normalizeSemanticFieldName(semanticKey);
-        return uniqueFieldTracker.nextUnique(normalizedFieldName, () -> uniquifyString(candidate, attempt.getAndIncrement()),
-                                             config.getUniquenessMaxAttempts());
+        return uniqueFieldTracker.nextUnique(
+                normalizedFieldName,
+                () -> uniquifyString(candidate, attempt.getAndIncrement()),
+                config.getUniquenessMaxAttempts());
     }
 
     boolean isUniqueField(String fieldName, String semanticKey) {
@@ -776,7 +769,8 @@ final class SemanticCoherenceAdjuster {
     private @Nullable String localeCurrentCountry() {
         Locale locale = config.getGeneratorConfig().getLocale();
         boolean localeHasNoCountry = locale.getCountry().isBlank();
-        boolean localeRegistered = config.getGeneratorConfig().getRegistryContext().isCountryRegistered(locale);
+        boolean localeRegistered =
+                config.getGeneratorConfig().getRegistryContext().isCountryRegistered(locale);
         if (localeHasNoCountry | !localeRegistered) {
             return null;
         }
@@ -807,7 +801,7 @@ final class SemanticCoherenceAdjuster {
         }
         normalized = normalized.toUpperCase(Locale.ROOT);
         io.github.frikit.krandom.generator.finance.Currency libraryCurrency =
-            io.github.frikit.krandom.generator.finance.Currency.fromCode(normalized);
+                io.github.frikit.krandom.generator.finance.Currency.fromCode(normalized);
         if (libraryCurrency != null) {
             return libraryCurrency.getCode();
         }
@@ -850,9 +844,8 @@ final class SemanticCoherenceAdjuster {
         return null;
     }
 
-    static @Nullable BigDecimal assignMoney(@Nullable Slot slot,
-                                            @Nullable BigDecimal value,
-                                            @Nullable String currencyCode) {
+    static @Nullable BigDecimal assignMoney(
+            @Nullable Slot slot, @Nullable BigDecimal value, @Nullable String currencyCode) {
         if (slot == null || value == null) {
             return value;
         }
@@ -933,7 +926,8 @@ final class SemanticCoherenceAdjuster {
         if (Set.of("active", "enabled", "open").contains(normalized)) {
             return Boolean.TRUE;
         }
-        if (Set.of("inactive", "disabled", "closed", "suspended", "archived", "deleted").contains(normalized)) {
+        if (Set.of("inactive", "disabled", "closed", "suspended", "archived", "deleted")
+                .contains(normalized)) {
             return Boolean.FALSE;
         }
         return null;
@@ -957,7 +951,8 @@ final class SemanticCoherenceAdjuster {
         if (matches.isEmpty()) {
             return null;
         }
-        matches.sort(Comparator.comparing(value -> FieldGeneratorResolver.normalizeSemanticFieldName(value.toString())));
+        matches.sort(
+                Comparator.comparing(value -> FieldGeneratorResolver.normalizeSemanticFieldName(value.toString())));
         return matches.getFirst();
     }
 
@@ -1023,20 +1018,17 @@ final class SemanticCoherenceAdjuster {
             this(ownerType, field, instance, ignoreErrors, 0);
         }
 
-        ReflectionSlot(Class<?> ownerType,
-                               Field field,
-                               Object instance,
-                               boolean ignoreErrors,
-                               int depth) {
+        ReflectionSlot(Class<?> ownerType, Field field, Object instance, boolean ignoreErrors, int depth) {
             this(ownerType, field, instance, ignoreErrors, depth, diagnostic -> {});
         }
 
-        ReflectionSlot(Class<?> ownerType,
-                               Field field,
-                               Object instance,
-                               boolean ignoreErrors,
-                               int depth,
-                               GenerationFailureListener listener) {
+        ReflectionSlot(
+                Class<?> ownerType,
+                Field field,
+                Object instance,
+                boolean ignoreErrors,
+                int depth,
+                GenerationFailureListener listener) {
             this.ownerType = ownerType;
             this.field = field;
             this.instance = instance;
@@ -1069,15 +1061,15 @@ final class SemanticCoherenceAdjuster {
             try {
                 return field.get(instance);
             } catch (IllegalAccessException e) {
-                GenerationFailureContext context = failureContext(
-                    GenerationFailureCategory.REFLECTION, GenerationOperation.READ);
+                GenerationFailureContext context =
+                        failureContext(GenerationFailureCategory.REFLECTION, GenerationOperation.READ);
                 return failurePolicy.handle(
-                    new ObjectGenerationException(
-                        "Could not read semantic field at '" + context.path() + "' (declared type "
-                        + context.declaredType() + ", depth " + depth + ")",
-                        context,
-                        e),
-                    null);
+                        new ObjectGenerationException(
+                                "Could not read semantic field at '" + context.path() + "' (declared type "
+                                        + context.declaredType() + ", depth " + depth + ")",
+                                context,
+                                e),
+                        null);
             }
         }
 
@@ -1086,30 +1078,29 @@ final class SemanticCoherenceAdjuster {
             try {
                 field.set(instance, value);
             } catch (IllegalAccessException | IllegalArgumentException e) {
-                GenerationFailureContext context = failureContext(
-                    GenerationFailureCategory.ASSIGNMENT, GenerationOperation.ALIGN_SEMANTICS);
+                GenerationFailureContext context =
+                        failureContext(GenerationFailureCategory.ASSIGNMENT, GenerationOperation.ALIGN_SEMANTICS);
                 failurePolicy.handle(
-                    new ObjectGenerationException(
-                        "Could not align semantic field at '" + context.path() + "' (declared type "
-                        + context.declaredType() + ", depth " + depth + ")",
-                        context,
-                        e),
-                    null);
+                        new ObjectGenerationException(
+                                "Could not align semantic field at '" + context.path() + "' (declared type "
+                                        + context.declaredType() + ", depth " + depth + ")",
+                                context,
+                                e),
+                        null);
             }
         }
 
-        private GenerationFailureContext failureContext(GenerationFailureCategory category,
-                                                        GenerationOperation operation) {
+        private GenerationFailureContext failureContext(
+                GenerationFailureCategory category, GenerationOperation operation) {
             return new GenerationFailureContext(
-                category,
-                operation,
-                ownerType.getSimpleName() + "." + field.getName(),
-                ownerType,
-                field.getGenericType().getTypeName(),
-                depth,
-                -1);
+                    category,
+                    operation,
+                    ownerType.getSimpleName() + "." + field.getName(),
+                    ownerType,
+                    field.getGenericType().getTypeName(),
+                    depth,
+                    -1);
         }
-
     }
 
     private static final class RecordSlot implements Slot {
@@ -1120,11 +1111,8 @@ final class SemanticCoherenceAdjuster {
         private final @Nullable Object[] args;
         private final int index;
 
-        private RecordSlot(Class<?> ownerType,
-                           RecordComponent component,
-                           Field backingField,
-                           @Nullable Object[] args,
-                           int index) {
+        private RecordSlot(
+                Class<?> ownerType, RecordComponent component, Field backingField, @Nullable Object[] args, int index) {
             this.ownerType = ownerType;
             this.component = component;
             this.backingField = backingField;

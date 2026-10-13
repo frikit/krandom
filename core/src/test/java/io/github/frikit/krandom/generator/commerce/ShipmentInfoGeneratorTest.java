@@ -5,21 +5,20 @@
  */
 package io.github.frikit.krandom.generator.commerce;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.math.BigDecimal;
-import java.lang.reflect.Method;
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ShipmentInfoGenerator")
 class ShipmentInfoGeneratorTest {
@@ -53,10 +52,8 @@ class ShipmentInfoGeneratorTest {
     @Test
     @DisplayName("seeded generation is reproducible")
     void seededGeneration() {
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.CANADA)
-                                                .seed(42L)
-                                                .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.CANADA).seed(42L).build();
 
         ShipmentInfoGenerator one = new ShipmentInfoGenerator(config);
         ShipmentInfoGenerator two = new ShipmentInfoGenerator(config);
@@ -68,7 +65,7 @@ class ShipmentInfoGeneratorTest {
     @DisplayName("status coverage reaches delivered and undelivered branches")
     void statusCoverage() {
         ShipmentInfoGenerator generator = new ShipmentInfoGenerator(
-            GeneratorConfig.builder().locale(Locale.US).seed(7L).build());
+                GeneratorConfig.builder().locale(Locale.US).seed(7L).build());
         boolean sawDelivered = false;
         boolean sawUndelivered = false;
 

@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -112,8 +111,7 @@ public final class PrimeGenerator extends AbstractBoundedGenerator<Integer> {
 
     private void validatePrimes() {
         if (primes.isEmpty()) {
-            throw new IllegalStateException(
-                "No prime numbers exist in range [" + getMin() + ", " + getMax() + ")");
+            throw new IllegalStateException("No prime numbers exist in range [" + getMin() + ", " + getMax() + ")");
         }
     }
 

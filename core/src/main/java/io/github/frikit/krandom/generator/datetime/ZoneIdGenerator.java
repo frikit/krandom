@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.datetime;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Seedable;
-
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
@@ -20,7 +19,7 @@ import java.util.Random;
 public final class ZoneIdGenerator implements Generator<ZoneId>, Seedable {
 
     private static final List<String> ZONE_IDS =
-        List.copyOf(ZoneId.getAvailableZoneIds().stream().sorted().toList());
+            List.copyOf(ZoneId.getAvailableZoneIds().stream().sorted().toList());
 
     private final Random random;
 

@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.object;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -67,10 +66,9 @@ public final class ObjectModel<T> {
         Objects.requireNonNull(other, "other must not be null");
         if (type != other.type) {
             throw new IllegalArgumentException(
-                "Cannot compose model for " + type.getName() + " with model for " + other.type.getName());
+                    "Cannot compose model for " + type.getName() + " with model for " + other.type.getName());
         }
-        List<Consumer<ObjectFaker<T>>> combined =
-            new ArrayList<>(configurations.size() + other.configurations.size());
+        List<Consumer<ObjectFaker<T>>> combined = new ArrayList<>(configurations.size() + other.configurations.size());
         combined.addAll(configurations);
         combined.addAll(other.configurations);
         return new ObjectModel<>(type, combined);

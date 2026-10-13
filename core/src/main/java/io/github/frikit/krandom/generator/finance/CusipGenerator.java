@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Objects;
 import java.util.Random;
 
@@ -20,7 +19,6 @@ public final class CusipGenerator implements Generator<String> {
 
     private final Random random;
     private final SecuritiesIdentifierSafetyPolicy safetyPolicy;
-
 
     /**
      * Creates a generator from explicit configuration.

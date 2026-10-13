@@ -22,6 +22,7 @@ import io.github.frikit.krandom.generator.finance.BankTypeDataProvider;
 import io.github.frikit.krandom.generator.finance.BankTypeDataRegistry;
 import io.github.frikit.krandom.generator.finance.FinancialTermDataProvider;
 import io.github.frikit.krandom.generator.finance.FinancialTermDataRegistry;
+import io.github.frikit.krandom.generator.locale.LocaleDataBundle;
 import io.github.frikit.krandom.generator.location.CityDataProvider;
 import io.github.frikit.krandom.generator.location.CityDataRegistry;
 import io.github.frikit.krandom.generator.location.CountryDataProvider;
@@ -30,11 +31,14 @@ import io.github.frikit.krandom.generator.location.StateDataProvider;
 import io.github.frikit.krandom.generator.location.StateDataRegistry;
 import io.github.frikit.krandom.generator.location.StreetAddressDataProvider;
 import io.github.frikit.krandom.generator.location.StreetAddressDataRegistry;
-import io.github.frikit.krandom.generator.locale.LocaleDataBundle;
 import io.github.frikit.krandom.generator.measurement.MeasurementDataProvider;
 import io.github.frikit.krandom.generator.measurement.MeasurementDataRegistry;
 import io.github.frikit.krandom.generator.text.TextWordDataProvider;
 import io.github.frikit.krandom.generator.text.TextWordDataRegistry;
+import io.github.frikit.krandom.generator.user.BloodTypeDataProvider;
+import io.github.frikit.krandom.generator.user.BloodTypeDataRegistry;
+import io.github.frikit.krandom.generator.user.ChineseZodiacDataProvider;
+import io.github.frikit.krandom.generator.user.ChineseZodiacDataRegistry;
 import io.github.frikit.krandom.generator.user.CompanyBuzzwordDataProvider;
 import io.github.frikit.krandom.generator.user.CompanyBuzzwordDataRegistry;
 import io.github.frikit.krandom.generator.user.CompanyCatchPhraseDataProvider;
@@ -47,10 +51,6 @@ import io.github.frikit.krandom.generator.user.FirstNameDataProvider;
 import io.github.frikit.krandom.generator.user.FirstNameDataRegistry;
 import io.github.frikit.krandom.generator.user.GenderDataProvider;
 import io.github.frikit.krandom.generator.user.GenderDataRegistry;
-import io.github.frikit.krandom.generator.user.BloodTypeDataProvider;
-import io.github.frikit.krandom.generator.user.BloodTypeDataRegistry;
-import io.github.frikit.krandom.generator.user.ChineseZodiacDataProvider;
-import io.github.frikit.krandom.generator.user.ChineseZodiacDataRegistry;
 import io.github.frikit.krandom.generator.user.HobbyDataProvider;
 import io.github.frikit.krandom.generator.user.HobbyDataRegistry;
 import io.github.frikit.krandom.generator.user.IndustryDataProvider;
@@ -85,8 +85,6 @@ import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdRegistry;
 import io.github.frikit.krandom.generator.weather.WeatherDataProvider;
 import io.github.frikit.krandom.generator.weather.WeatherDataRegistry;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -96,6 +94,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Immutable, config-scoped registry view for locale data providers.
@@ -117,29 +116,29 @@ public final class DataRegistryContext {
 
     private final boolean useGlobalFallback;
 
-    private final Map<String, FirstNameDataProvider>     firstNames;
-    private final Map<String, LastNameDataProvider>      lastNames;
-    private final Map<String, GenderDataProvider>        genders;
-    private final Map<String, TitleDataProvider>         titles;
-    private final Map<String, SuffixDataProvider>        suffixes;
-    private final Map<String, ProfessionDataProvider>    professions;
-    private final Map<String, CityDataProvider>          cities;
-    private final Map<String, StateDataProvider>         states;
-    private final Map<String, CountryDataProvider>       countries;
+    private final Map<String, FirstNameDataProvider> firstNames;
+    private final Map<String, LastNameDataProvider> lastNames;
+    private final Map<String, GenderDataProvider> genders;
+    private final Map<String, TitleDataProvider> titles;
+    private final Map<String, SuffixDataProvider> suffixes;
+    private final Map<String, ProfessionDataProvider> professions;
+    private final Map<String, CityDataProvider> cities;
+    private final Map<String, StateDataProvider> states;
+    private final Map<String, CountryDataProvider> countries;
     private final Map<String, StreetAddressDataProvider> streetAddresses;
-    private final Map<String, NationalIdProvider>        nationalIds;
-    private final Map<String, NationalIdProvider>        nationalIdsByCountry;
-    private final Map<String, WeatherDataProvider>       weather;
-    private final Map<String, MeasurementDataProvider>   measurements;
+    private final Map<String, NationalIdProvider> nationalIds;
+    private final Map<String, NationalIdProvider> nationalIdsByCountry;
+    private final Map<String, WeatherDataProvider> weather;
+    private final Map<String, MeasurementDataProvider> measurements;
     private final Map<String, FinancialTermDataProvider> financialTerms;
     private final Map<String, RestaurantTypeDataProvider> restaurantTypes;
-    private final Map<String, HobbyDataProvider>          hobbies;
-    private final Map<String, NationalityDataProvider>    nationalities;
-    private final Map<String, PronounDataProvider>        pronouns;
-    private final Map<String, BloodTypeDataProvider>      bloodTypes;
-    private final Map<String, ChineseZodiacDataProvider>  chineseZodiacs;
-    private final Map<String, ZodiacDataProvider>         zodiacs;
-    private final Map<String, UniversityDataProvider>     universities;
+    private final Map<String, HobbyDataProvider> hobbies;
+    private final Map<String, NationalityDataProvider> nationalities;
+    private final Map<String, PronounDataProvider> pronouns;
+    private final Map<String, BloodTypeDataProvider> bloodTypes;
+    private final Map<String, ChineseZodiacDataProvider> chineseZodiacs;
+    private final Map<String, ZodiacDataProvider> zodiacs;
+    private final Map<String, UniversityDataProvider> universities;
     private final Map<String, IndustryDataProvider> industries;
     private final Map<String, JobFieldDataProvider> jobFields;
     private final Map<String, SeniorityDataProvider> seniorities;
@@ -325,7 +324,11 @@ public final class DataRegistryContext {
     }
 
     public @Nullable StreetAddressDataProvider streetAddressProvider(Locale locale) {
-        return resolve(streetAddresses, locale, StreetAddressDataRegistry::forLocale, StreetAddressDataRegistry::registeredKeys);
+        return resolve(
+                streetAddresses,
+                locale,
+                StreetAddressDataRegistry::forLocale,
+                StreetAddressDataRegistry::registeredKeys);
     }
 
     public boolean isStreetAddressRegistered(Locale locale) {
@@ -333,7 +336,8 @@ public final class DataRegistryContext {
     }
 
     public Set<String> streetAddressRegisteredKeys() {
-        return mergeKeys(streetAddresses.keySet(), useGlobalFallback ? StreetAddressDataRegistry.registeredKeys() : Set.of());
+        return mergeKeys(
+                streetAddresses.keySet(), useGlobalFallback ? StreetAddressDataRegistry.registeredKeys() : Set.of());
     }
 
     /**
@@ -415,7 +419,8 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public @Nullable MeasurementDataProvider measurementProvider(Locale locale) {
-        return resolve(measurements, locale, MeasurementDataRegistry::forLocale, MeasurementDataRegistry::registeredKeys);
+        return resolve(
+                measurements, locale, MeasurementDataRegistry::forLocale, MeasurementDataRegistry::registeredKeys);
     }
 
     /**
@@ -434,7 +439,8 @@ public final class DataRegistryContext {
      * @return immutable locale-key snapshot
      */
     public Set<String> measurementRegisteredKeys() {
-        return mergeKeys(measurements.keySet(), useGlobalFallback ? MeasurementDataRegistry.registeredKeys() : Set.of());
+        return mergeKeys(
+                measurements.keySet(), useGlobalFallback ? MeasurementDataRegistry.registeredKeys() : Set.of());
     }
 
     /**
@@ -444,7 +450,11 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public @Nullable FinancialTermDataProvider financialTermProvider(Locale locale) {
-        return resolve(financialTerms, locale, FinancialTermDataRegistry::forLocale, FinancialTermDataRegistry::registeredKeys);
+        return resolve(
+                financialTerms,
+                locale,
+                FinancialTermDataRegistry::forLocale,
+                FinancialTermDataRegistry::registeredKeys);
     }
 
     /**
@@ -463,7 +473,8 @@ public final class DataRegistryContext {
      * @return immutable locale-key snapshot
      */
     public Set<String> financialTermRegisteredKeys() {
-        return mergeKeys(financialTerms.keySet(), useGlobalFallback ? FinancialTermDataRegistry.registeredKeys() : Set.of());
+        return mergeKeys(
+                financialTerms.keySet(), useGlobalFallback ? FinancialTermDataRegistry.registeredKeys() : Set.of());
     }
 
     /**
@@ -473,7 +484,11 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public @Nullable RestaurantTypeDataProvider restaurantTypeProvider(Locale locale) {
-        return resolve(restaurantTypes, locale, RestaurantTypeDataRegistry::forLocale, RestaurantTypeDataRegistry::registeredKeys);
+        return resolve(
+                restaurantTypes,
+                locale,
+                RestaurantTypeDataRegistry::forLocale,
+                RestaurantTypeDataRegistry::registeredKeys);
     }
 
     /**
@@ -492,7 +507,8 @@ public final class DataRegistryContext {
      * @return immutable locale-key snapshot
      */
     public Set<String> restaurantTypeRegisteredKeys() {
-        return mergeKeys(restaurantTypes.keySet(), useGlobalFallback ? RestaurantTypeDataRegistry.registeredKeys() : Set.of());
+        return mergeKeys(
+                restaurantTypes.keySet(), useGlobalFallback ? RestaurantTypeDataRegistry.registeredKeys() : Set.of());
     }
 
     /**
@@ -531,7 +547,8 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public @Nullable NationalityDataProvider nationalityProvider(Locale locale) {
-        return resolve(nationalities, locale, NationalityDataRegistry::forLocale, NationalityDataRegistry::registeredKeys);
+        return resolve(
+                nationalities, locale, NationalityDataRegistry::forLocale, NationalityDataRegistry::registeredKeys);
     }
 
     /**
@@ -550,7 +567,8 @@ public final class DataRegistryContext {
      * @return immutable locale-key snapshot
      */
     public Set<String> nationalityRegisteredKeys() {
-        return mergeKeys(nationalities.keySet(), useGlobalFallback ? NationalityDataRegistry.registeredKeys() : Set.of());
+        return mergeKeys(
+                nationalities.keySet(), useGlobalFallback ? NationalityDataRegistry.registeredKeys() : Set.of());
     }
 
     /**
@@ -618,7 +636,11 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public @Nullable ChineseZodiacDataProvider chineseZodiacProvider(Locale locale) {
-        return resolve(chineseZodiacs, locale, ChineseZodiacDataRegistry::forLocale, ChineseZodiacDataRegistry::registeredKeys);
+        return resolve(
+                chineseZodiacs,
+                locale,
+                ChineseZodiacDataRegistry::forLocale,
+                ChineseZodiacDataRegistry::registeredKeys);
     }
 
     /**
@@ -637,7 +659,8 @@ public final class DataRegistryContext {
      * @return immutable locale-key snapshot
      */
     public Set<String> chineseZodiacRegisteredKeys() {
-        return mergeKeys(chineseZodiacs.keySet(), useGlobalFallback ? ChineseZodiacDataRegistry.registeredKeys() : Set.of());
+        return mergeKeys(
+                chineseZodiacs.keySet(), useGlobalFallback ? ChineseZodiacDataRegistry.registeredKeys() : Set.of());
     }
 
     /**
@@ -824,7 +847,11 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public @Nullable EducationalAttainmentDataProvider educationalAttainmentProvider(Locale locale) {
-        return resolve(educationalAttainments, locale, EducationalAttainmentDataRegistry::forLocale, EducationalAttainmentDataRegistry::registeredKeys);
+        return resolve(
+                educationalAttainments,
+                locale,
+                EducationalAttainmentDataRegistry::forLocale,
+                EducationalAttainmentDataRegistry::registeredKeys);
     }
 
     /**
@@ -843,7 +870,9 @@ public final class DataRegistryContext {
      * @return immutable locale-key snapshot
      */
     public Set<String> educationalAttainmentRegisteredKeys() {
-        return mergeKeys(educationalAttainments.keySet(), useGlobalFallback ? EducationalAttainmentDataRegistry.registeredKeys() : Set.of());
+        return mergeKeys(
+                educationalAttainments.keySet(),
+                useGlobalFallback ? EducationalAttainmentDataRegistry.registeredKeys() : Set.of());
     }
 
     /**
@@ -853,7 +882,11 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public @Nullable MaritalStatusDataProvider maritalStatusProvider(Locale locale) {
-        return resolve(maritalStatuses, locale, MaritalStatusDataRegistry::forLocale, MaritalStatusDataRegistry::registeredKeys);
+        return resolve(
+                maritalStatuses,
+                locale,
+                MaritalStatusDataRegistry::forLocale,
+                MaritalStatusDataRegistry::registeredKeys);
     }
 
     /**
@@ -872,7 +905,8 @@ public final class DataRegistryContext {
      * @return immutable locale-key snapshot
      */
     public Set<String> maritalStatusRegisteredKeys() {
-        return mergeKeys(maritalStatuses.keySet(), useGlobalFallback ? MaritalStatusDataRegistry.registeredKeys() : Set.of());
+        return mergeKeys(
+                maritalStatuses.keySet(), useGlobalFallback ? MaritalStatusDataRegistry.registeredKeys() : Set.of());
     }
 
     /**
@@ -911,7 +945,8 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public @Nullable CompanyNameDataProvider companyNameProvider(Locale locale) {
-        return resolve(companyNames, locale, CompanyNameDataRegistry::forLocale, CompanyNameDataRegistry::registeredKeys);
+        return resolve(
+                companyNames, locale, CompanyNameDataRegistry::forLocale, CompanyNameDataRegistry::registeredKeys);
     }
 
     /**
@@ -930,7 +965,8 @@ public final class DataRegistryContext {
      * @return immutable locale-key snapshot
      */
     public Set<String> companyNameRegisteredKeys() {
-        return mergeKeys(companyNames.keySet(), useGlobalFallback ? CompanyNameDataRegistry.registeredKeys() : Set.of());
+        return mergeKeys(
+                companyNames.keySet(), useGlobalFallback ? CompanyNameDataRegistry.registeredKeys() : Set.of());
     }
 
     /**
@@ -940,7 +976,11 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public @Nullable CompanyBuzzwordDataProvider companyBuzzwordProvider(Locale locale) {
-        return resolve(companyBuzzwords, locale, CompanyBuzzwordDataRegistry::forLocale, CompanyBuzzwordDataRegistry::registeredKeys);
+        return resolve(
+                companyBuzzwords,
+                locale,
+                CompanyBuzzwordDataRegistry::forLocale,
+                CompanyBuzzwordDataRegistry::registeredKeys);
     }
 
     /**
@@ -959,7 +999,8 @@ public final class DataRegistryContext {
      * @return immutable locale-key snapshot
      */
     public Set<String> companyBuzzwordRegisteredKeys() {
-        return mergeKeys(companyBuzzwords.keySet(), useGlobalFallback ? CompanyBuzzwordDataRegistry.registeredKeys() : Set.of());
+        return mergeKeys(
+                companyBuzzwords.keySet(), useGlobalFallback ? CompanyBuzzwordDataRegistry.registeredKeys() : Set.of());
     }
 
     /**
@@ -969,7 +1010,11 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public @Nullable CompanyCatchPhraseDataProvider companyCatchPhraseProvider(Locale locale) {
-        return resolve(companyCatchPhrases, locale, CompanyCatchPhraseDataRegistry::forLocale, CompanyCatchPhraseDataRegistry::registeredKeys);
+        return resolve(
+                companyCatchPhrases,
+                locale,
+                CompanyCatchPhraseDataRegistry::forLocale,
+                CompanyCatchPhraseDataRegistry::registeredKeys);
     }
 
     /**
@@ -988,7 +1033,9 @@ public final class DataRegistryContext {
      * @return immutable locale-key snapshot
      */
     public Set<String> companyCatchPhraseRegisteredKeys() {
-        return mergeKeys(companyCatchPhrases.keySet(), useGlobalFallback ? CompanyCatchPhraseDataRegistry.registeredKeys() : Set.of());
+        return mergeKeys(
+                companyCatchPhrases.keySet(),
+                useGlobalFallback ? CompanyCatchPhraseDataRegistry.registeredKeys() : Set.of());
     }
 
     /**
@@ -1056,7 +1103,11 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public @Nullable DatabaseColumnDataProvider databaseColumnProvider(Locale locale) {
-        return resolve(databaseColumns, locale, DatabaseColumnDataRegistry::forLocale, DatabaseColumnDataRegistry::registeredKeys);
+        return resolve(
+                databaseColumns,
+                locale,
+                DatabaseColumnDataRegistry::forLocale,
+                DatabaseColumnDataRegistry::registeredKeys);
     }
 
     /**
@@ -1075,7 +1126,8 @@ public final class DataRegistryContext {
      * @return immutable locale-key snapshot
      */
     public Set<String> databaseColumnRegisteredKeys() {
-        return mergeKeys(databaseColumns.keySet(), useGlobalFallback ? DatabaseColumnDataRegistry.registeredKeys() : Set.of());
+        return mergeKeys(
+                databaseColumns.keySet(), useGlobalFallback ? DatabaseColumnDataRegistry.registeredKeys() : Set.of());
     }
 
     /**
@@ -1085,7 +1137,11 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public @Nullable DirectoryNameDataProvider directoryNameProvider(Locale locale) {
-        return resolve(directoryNames, locale, DirectoryNameDataRegistry::forLocale, DirectoryNameDataRegistry::registeredKeys);
+        return resolve(
+                directoryNames,
+                locale,
+                DirectoryNameDataRegistry::forLocale,
+                DirectoryNameDataRegistry::registeredKeys);
     }
 
     /**
@@ -1104,7 +1160,8 @@ public final class DataRegistryContext {
      * @return immutable locale-key snapshot
      */
     public Set<String> directoryNameRegisteredKeys() {
-        return mergeKeys(directoryNames.keySet(), useGlobalFallback ? DirectoryNameDataRegistry.registeredKeys() : Set.of());
+        return mergeKeys(
+                directoryNames.keySet(), useGlobalFallback ? DirectoryNameDataRegistry.registeredKeys() : Set.of());
     }
 
     /**
@@ -1172,7 +1229,8 @@ public final class DataRegistryContext {
      * @return matching provider, or {@code null} when none is registered
      */
     public @Nullable BankAccountDataProvider bankAccountProvider(Locale locale) {
-        return resolve(bankAccounts, locale, BankAccountDataRegistry::forLocale, BankAccountDataRegistry::registeredKeys);
+        return resolve(
+                bankAccounts, locale, BankAccountDataRegistry::forLocale, BankAccountDataRegistry::registeredKeys);
     }
 
     /**
@@ -1191,7 +1249,8 @@ public final class DataRegistryContext {
      * @return immutable locale-key snapshot
      */
     public Set<String> bankAccountRegisteredKeys() {
-        return mergeKeys(bankAccounts.keySet(), useGlobalFallback ? BankAccountDataRegistry.registeredKeys() : Set.of());
+        return mergeKeys(
+                bankAccounts.keySet(), useGlobalFallback ? BankAccountDataRegistry.registeredKeys() : Set.of());
     }
 
     private static <T> void putWithLanguageFallback(Map<String, T> registry, Locale locale, T provider) {
@@ -1213,10 +1272,11 @@ public final class DataRegistryContext {
      * scoped language, then global language. A scoped regional registration therefore only acts
      * as a language fallback for locales that have no exact match anywhere.
      */
-    private <T> @Nullable T resolve(Map<String, T> scoped,
-                                    Locale locale,
-                                    Function<Locale, @Nullable T> globalLookup,
-                          Supplier<Set<String>> globalKeys) {
+    private <T> @Nullable T resolve(
+            Map<String, T> scoped,
+            Locale locale,
+            Function<Locale, @Nullable T> globalLookup,
+            Supplier<Set<String>> globalKeys) {
         if (locale == null) {
             return null;
         }
@@ -1300,8 +1360,7 @@ public final class DataRegistryContext {
         }
     }
 
-    private static void validateBloodTypeDistribution(
-        java.util.List<String> types, java.util.List<Integer> weights) {
+    private static void validateBloodTypeDistribution(java.util.List<String> types, java.util.List<Integer> weights) {
         validateTextValues("types", types);
         Objects.requireNonNull(weights, "weights");
         if (types.size() != weights.size()) {
@@ -1360,29 +1419,29 @@ public final class DataRegistryContext {
 
         private boolean useGlobalFallback = true;
 
-        private final Map<String, FirstNameDataProvider>     firstNames     = new LinkedHashMap<>();
-        private final Map<String, LastNameDataProvider>      lastNames      = new LinkedHashMap<>();
-        private final Map<String, GenderDataProvider>        genders        = new LinkedHashMap<>();
-        private final Map<String, TitleDataProvider>         titles         = new LinkedHashMap<>();
-        private final Map<String, SuffixDataProvider>        suffixes       = new LinkedHashMap<>();
-        private final Map<String, ProfessionDataProvider>    professions    = new LinkedHashMap<>();
-        private final Map<String, CityDataProvider>          cities         = new LinkedHashMap<>();
-        private final Map<String, StateDataProvider>         states         = new LinkedHashMap<>();
-        private final Map<String, CountryDataProvider>       countries      = new LinkedHashMap<>();
+        private final Map<String, FirstNameDataProvider> firstNames = new LinkedHashMap<>();
+        private final Map<String, LastNameDataProvider> lastNames = new LinkedHashMap<>();
+        private final Map<String, GenderDataProvider> genders = new LinkedHashMap<>();
+        private final Map<String, TitleDataProvider> titles = new LinkedHashMap<>();
+        private final Map<String, SuffixDataProvider> suffixes = new LinkedHashMap<>();
+        private final Map<String, ProfessionDataProvider> professions = new LinkedHashMap<>();
+        private final Map<String, CityDataProvider> cities = new LinkedHashMap<>();
+        private final Map<String, StateDataProvider> states = new LinkedHashMap<>();
+        private final Map<String, CountryDataProvider> countries = new LinkedHashMap<>();
         private final Map<String, StreetAddressDataProvider> streetAddresses = new LinkedHashMap<>();
-        private final Map<String, NationalIdProvider>        nationalIds    = new LinkedHashMap<>();
-        private final Map<String, NationalIdProvider>        nationalIdsByCountry = new LinkedHashMap<>();
-        private final Map<String, WeatherDataProvider>       weather        = new LinkedHashMap<>();
-        private final Map<String, MeasurementDataProvider>   measurements   = new LinkedHashMap<>();
+        private final Map<String, NationalIdProvider> nationalIds = new LinkedHashMap<>();
+        private final Map<String, NationalIdProvider> nationalIdsByCountry = new LinkedHashMap<>();
+        private final Map<String, WeatherDataProvider> weather = new LinkedHashMap<>();
+        private final Map<String, MeasurementDataProvider> measurements = new LinkedHashMap<>();
         private final Map<String, FinancialTermDataProvider> financialTerms = new LinkedHashMap<>();
         private final Map<String, RestaurantTypeDataProvider> restaurantTypes = new LinkedHashMap<>();
-        private final Map<String, HobbyDataProvider>          hobbies         = new LinkedHashMap<>();
-        private final Map<String, NationalityDataProvider>    nationalities   = new LinkedHashMap<>();
-        private final Map<String, PronounDataProvider>        pronouns        = new LinkedHashMap<>();
-        private final Map<String, BloodTypeDataProvider>      bloodTypes      = new LinkedHashMap<>();
-        private final Map<String, ChineseZodiacDataProvider>  chineseZodiacs  = new LinkedHashMap<>();
-        private final Map<String, ZodiacDataProvider>         zodiacs        = new LinkedHashMap<>();
-        private final Map<String, UniversityDataProvider>     universities   = new LinkedHashMap<>();
+        private final Map<String, HobbyDataProvider> hobbies = new LinkedHashMap<>();
+        private final Map<String, NationalityDataProvider> nationalities = new LinkedHashMap<>();
+        private final Map<String, PronounDataProvider> pronouns = new LinkedHashMap<>();
+        private final Map<String, BloodTypeDataProvider> bloodTypes = new LinkedHashMap<>();
+        private final Map<String, ChineseZodiacDataProvider> chineseZodiacs = new LinkedHashMap<>();
+        private final Map<String, ZodiacDataProvider> zodiacs = new LinkedHashMap<>();
+        private final Map<String, UniversityDataProvider> universities = new LinkedHashMap<>();
         private final Map<String, IndustryDataProvider> industries = new LinkedHashMap<>();
         private final Map<String, JobFieldDataProvider> jobFields = new LinkedHashMap<>();
         private final Map<String, SeniorityDataProvider> seniorities = new LinkedHashMap<>();
@@ -1430,7 +1489,8 @@ public final class DataRegistryContext {
          * @return this builder
          */
         public Builder registerDataPack(LocalDataPack dataPack) {
-            return registerUniversityProvider(Objects.requireNonNull(dataPack, "dataPack").universityProvider());
+            return registerUniversityProvider(
+                    Objects.requireNonNull(dataPack, "dataPack").universityProvider());
         }
 
         public Builder registerFirstNameProvider(FirstNameDataProvider provider) {

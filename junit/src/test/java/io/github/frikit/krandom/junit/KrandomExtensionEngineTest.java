@@ -5,8 +5,25 @@
  */
 package io.github.frikit.krandom.junit;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
+
 import io.github.frikit.krandom.generator.GenerationRecipe;
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,24 +37,6 @@ import org.junit.platform.engine.reporting.ReportEntry;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
 import org.junit.platform.testkit.engine.Event;
-
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
 /**
  * Runs the {@code @Disabled} fixture classes below through {@link EngineTestKit} (with the
@@ -57,7 +56,8 @@ class KrandomExtensionEngineTest {
         results.testEvents().assertStatistics(stats -> stats.failed(1));
         long reportedSeed = Long.parseLong(singleSeedReportEntry(results));
         String stderr = captured.toString(StandardCharsets.UTF_8);
-        assertTrue(stderr.contains("Annotate it with @KrandomSeed(" + reportedSeed + "L)"),
+        assertTrue(
+                stderr.contains("Annotate it with @KrandomSeed(" + reportedSeed + "L)"),
                 "stderr should carry the reproduction hint, was: " + stderr);
         assertTrue(stderr.contains("Replay recipe:"), "stderr should carry the replay recipe, was: " + stderr);
         assertTrue(singleRecipeReportEntry(results).contains("seed=" + reportedSeed));
@@ -71,8 +71,8 @@ class KrandomExtensionEngineTest {
         results.testEvents().assertStatistics(stats -> stats.failed(1));
         assertEquals("42", singleSeedReportEntry(results));
         String stderr = captured.toString(StandardCharsets.UTF_8);
-        assertTrue(stderr.contains("failed with pinned seed 42"),
-                "stderr should mention the pinned seed, was: " + stderr);
+        assertTrue(
+                stderr.contains("failed with pinned seed 42"), "stderr should mention the pinned seed, was: " + stderr);
         assertTrue(singleRecipeReportEntry(results).contains("seed=42"));
     }
 
@@ -102,17 +102,18 @@ class KrandomExtensionEngineTest {
     @Test
     void systemRecipeOverrideTakesPrecedenceAndPreservesTextSeedMetadata() throws Exception {
         GenerationRecipe recipe = GeneratorConfig.builder()
-                                                 .seed("checkout-replay")
-                                                 .locale(Locale.CANADA_FRENCH)
-                                                 .generationProfile("ci-replay")
-                                                 .build()
-                                                 .getGenerationRecipe()
-                                                 .orElseThrow();
+                .seed("checkout-replay")
+                .locale(Locale.CANADA_FRENCH)
+                .generationProfile("ci-replay")
+                .build()
+                .getGenerationRecipe()
+                .orElseThrow();
 
         withSystemProperty(REPLAY_RECIPE_PROPERTY, encodeRecipe(recipe), () -> {
             EngineExecutionResults results = runFixture(RecipeOverrideFixture.class);
 
-            results.testEvents().assertStatistics(statistics -> statistics.succeeded(1).failed(0));
+            results.testEvents()
+                    .assertStatistics(statistics -> statistics.succeeded(1).failed(0));
         });
     }
 
@@ -121,28 +122,44 @@ class KrandomExtensionEngineTest {
         withSystemProperty(REPLAY_SEED_PROPERTY, "24680", () -> {
             EngineExecutionResults results = runFixture(NumericOverrideFixture.class);
 
-            results.testEvents().assertStatistics(statistics -> statistics.succeeded(1).failed(0));
+            results.testEvents()
+                    .assertStatistics(statistics -> statistics.succeeded(1).failed(0));
         });
     }
 
     @Test
     void malformedSystemRecipeIsAConfigurationError() throws Exception {
-        withSystemProperty(REPLAY_RECIPE_PROPERTY, "base64:not-a-recipe", () ->
-            assertSingleConfigurationError(NumericOverrideFixture.class, "Invalid krandom.junit.recipe"));
+        withSystemProperty(
+                REPLAY_RECIPE_PROPERTY,
+                "base64:not-a-recipe",
+                () -> assertSingleConfigurationError(NumericOverrideFixture.class, "Invalid krandom.junit.recipe"));
     }
 
     @Test
     void conflictingSystemOverridesAreAConfigurationError() throws Exception {
-        GenerationRecipe recipe = GeneratorConfig.builder().seed(42L).build().getGenerationRecipe().orElseThrow();
+        GenerationRecipe recipe = GeneratorConfig.builder()
+                .seed(42L)
+                .build()
+                .getGenerationRecipe()
+                .orElseThrow();
 
-        withSystemProperty(REPLAY_RECIPE_PROPERTY, encodeRecipe(recipe), () ->
-            withSystemProperty(REPLAY_SEED_PROPERTY, "24680", () ->
-                assertSingleConfigurationError(NumericOverrideFixture.class, "Configure only one replay override")));
+        withSystemProperty(
+                REPLAY_RECIPE_PROPERTY,
+                encodeRecipe(recipe),
+                () -> withSystemProperty(
+                        REPLAY_SEED_PROPERTY,
+                        "24680",
+                        () -> assertSingleConfigurationError(
+                                NumericOverrideFixture.class, "Configure only one replay override")));
     }
 
     @Test
     void failingTestPrintsSafeCopyableRecipeOverride() throws Exception {
-        GenerationRecipe recipe = GeneratorConfig.builder().seed("private seed").build().getGenerationRecipe().orElseThrow();
+        GenerationRecipe recipe = GeneratorConfig.builder()
+                .seed("private seed")
+                .build()
+                .getGenerationRecipe()
+                .orElseThrow();
         ByteArrayOutputStream captured = new ByteArrayOutputStream();
 
         withSystemProperty(REPLAY_RECIPE_PROPERTY, encodeRecipe(recipe), () -> {
@@ -152,8 +169,9 @@ class KrandomExtensionEngineTest {
         });
 
         String stderr = captured.toString(StandardCharsets.UTF_8);
-        assertTrue(stderr.contains("-Dkrandom.junit.recipe=base64:"),
-                   "stderr should carry a copyable replay override, was: " + stderr);
+        assertTrue(
+                stderr.contains("-Dkrandom.junit.recipe=base64:"),
+                "stderr should carry a copyable replay override, was: " + stderr);
         assertFalse(stderr.contains("private seed"), "stderr must not reveal textual seed material");
     }
 
@@ -176,7 +194,9 @@ class KrandomExtensionEngineTest {
         });
 
         assertEquals(2, RecordingFailingFixture.RECORDED.size());
-        assertEquals(RecordingFailingFixture.RECORDED.get(0), RecordingFailingFixture.RECORDED.get(1),
+        assertEquals(
+                RecordingFailingFixture.RECORDED.get(0),
+                RecordingFailingFixture.RECORDED.get(1),
                 "the printed replay option must reproduce the failing run's generated value");
     }
 
@@ -186,9 +206,12 @@ class KrandomExtensionEngineTest {
 
         EngineExecutionResults results = runFixture(ParameterizedPinnedFixture.class);
 
-        results.testEvents().assertStatistics(statistics -> statistics.succeeded(3).failed(0));
+        results.testEvents()
+                .assertStatistics(statistics -> statistics.succeeded(3).failed(0));
         assertEquals(3, ParameterizedPinnedFixture.RECORDED.size());
-        assertEquals(1, Set.copyOf(ParameterizedPinnedFixture.RECORDED).size(),
+        assertEquals(
+                1,
+                Set.copyOf(ParameterizedPinnedFixture.RECORDED).size(),
                 "each invocation must draw from its own source seeded with the pinned seed");
     }
 
@@ -203,9 +226,12 @@ class KrandomExtensionEngineTest {
                 .configurationParameter("junit.jupiter.execution.parallel.mode.default", "concurrent")
                 .execute();
 
-        results.testEvents().assertStatistics(statistics -> statistics.succeeded(4).failed(0));
+        results.testEvents()
+                .assertStatistics(statistics -> statistics.succeeded(4).failed(0));
         assertEquals(4, ConcurrentPinnedFixture.RECORDED.size());
-        assertEquals(1, Set.copyOf(ConcurrentPinnedFixture.RECORDED).size(),
+        assertEquals(
+                1,
+                Set.copyOf(ConcurrentPinnedFixture.RECORDED).size(),
                 "concurrent tests must not share or advance one another's random source");
     }
 
@@ -215,9 +241,12 @@ class KrandomExtensionEngineTest {
 
         EngineExecutionResults results = runFixture(LeakProbeFixture.class);
 
-        results.testEvents().assertStatistics(statistics -> statistics.succeeded(2).failed(0));
+        results.testEvents()
+                .assertStatistics(statistics -> statistics.succeeded(2).failed(0));
         assertEquals(2, LeakProbeFixture.RECORDED_SEEDS.size());
-        assertEquals(2, Set.copyOf(LeakProbeFixture.RECORDED_SEEDS).size(),
+        assertEquals(
+                2,
+                Set.copyOf(LeakProbeFixture.RECORDED_SEEDS).size(),
                 "unpinned tests must not reuse a previous test's stored seed");
     }
 
@@ -234,8 +263,10 @@ class KrandomExtensionEngineTest {
 
     @Test
     void malformedSnapshotFlagFailsBeforeReportingARecipe() throws Exception {
-        withSystemProperty("krandom.junit.snapshot-clock", "yes", () ->
-            assertSingleConfigurationError(PassingFixture.class, "snapshot-clock must be true or false"));
+        withSystemProperty(
+                "krandom.junit.snapshot-clock",
+                "yes",
+                () -> assertSingleConfigurationError(PassingFixture.class, "snapshot-clock must be true or false"));
     }
 
     @Test
@@ -250,9 +281,11 @@ class KrandomExtensionEngineTest {
     @KrandomSeed(42)
     static class SnapshotFailingFixture {
         static java.time.ZonedDateTime CLOCK;
+
         @Test
         void failAfterCapturingClock(GeneratorConfig config, GeneratorConfig.Builder builder) {
-            CLOCK = java.time.ZonedDateTime.ofInstant(config.getClock().instant(), config.getClock().getZone());
+            CLOCK = java.time.ZonedDateTime.ofInstant(
+                    config.getClock().instant(), config.getClock().getZone());
             assertEquals(java.time.Clock.fixed(CLOCK.toInstant(), CLOCK.getZone()), config.getClock());
             assertEquals(config.getClock(), builder.build().getClock());
             fail("report the same captured instant");
@@ -278,8 +311,7 @@ class KrandomExtensionEngineTest {
                 .getThrowable()
                 .orElseGet(() -> fail("failed event should carry a throwable"));
         assertInstanceOf(ExtensionConfigurationException.class, thrown);
-        assertTrue(thrown.getMessage().contains(expectedMessagePart),
-                "unexpected message: " + thrown.getMessage());
+        assertTrue(thrown.getMessage().contains(expectedMessagePart), "unexpected message: " + thrown.getMessage());
         // A configuration error aborts the test before a seed exists, so nothing is reported.
         assertEquals(0, results.allEvents().reportingEntryPublished().count());
     }
@@ -376,24 +408,21 @@ class KrandomExtensionEngineTest {
     static class BothValueAndTextFixture {
         @KrandomSeed(value = 1L, text = "also-set")
         @Test
-        void invalid() {
-        }
+        void invalid() {}
     }
 
     @Disabled("fixture for KrandomExtensionEngineTest")
     static class EmptySeedFixture {
         @KrandomSeed
         @Test
-        void invalid() {
-        }
+        void invalid() {}
     }
 
     @Disabled("fixture for KrandomExtensionEngineTest")
     static class BlankTextSeedFixture {
         @KrandomSeed(text = "   ")
         @Test
-        void invalid() {
-        }
+        void invalid() {}
     }
 
     @Disabled("fixture for KrandomExtensionEngineTest")

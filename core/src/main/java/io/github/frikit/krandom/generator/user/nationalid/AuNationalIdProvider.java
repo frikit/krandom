@@ -19,13 +19,12 @@ import java.util.Random;
  */
 public final class AuNationalIdProvider implements NationalIdProvider {
 
-    private static final int[] WEIGHTS = { 1, 4, 3, 7, 5, 8, 6, 9, 10 };
+    private static final int[] WEIGHTS = {1, 4, 3, 7, 5, 8, 6, 9, 10};
 
     /**
      * Creates a provider for Australian TFNs.
      */
-    public AuNationalIdProvider() {
-    }
+    public AuNationalIdProvider() {}
 
     /**
      * Computes the mod-11 weighted remainder for the given 9-digit array.
@@ -59,9 +58,17 @@ public final class AuNationalIdProvider implements NationalIdProvider {
             }
         } while (computeRemainder(digits) != 0);
 
-        return String.format(Locale.ROOT, "%d%d%d %d%d%d %d%d%d",
-                             digits[0], digits[1], digits[2],
-                             digits[3], digits[4], digits[5],
-                             digits[6], digits[7], digits[8]);
+        return String.format(
+                Locale.ROOT,
+                "%d%d%d %d%d%d %d%d%d",
+                digits[0],
+                digits[1],
+                digits[2],
+                digits[3],
+                digits[4],
+                digits[5],
+                digits[6],
+                digits[7],
+                digits[8]);
     }
 }

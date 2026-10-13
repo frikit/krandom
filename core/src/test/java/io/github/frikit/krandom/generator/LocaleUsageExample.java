@@ -5,12 +5,11 @@
  */
 package io.github.frikit.krandom.generator;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Locale;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * Example demonstrating locale usage with GeneratorConfig.
@@ -33,9 +32,9 @@ class LocaleUsageExample {
     @DisplayName("Create config with German locale")
     void germanLocale() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.GERMANY)
-                                                .seed(12345L)  // For reproducible results
-                                                .build();
+                .locale(Locale.GERMANY)
+                .seed(12345L) // For reproducible results
+                .build();
 
         assertEquals(Locale.GERMANY, config.getLocale());
         assertEquals("de", config.getLocale().getLanguage());
@@ -50,9 +49,9 @@ class LocaleUsageExample {
     @DisplayName("Create config with Japanese locale")
     void japaneseLocale() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.JAPAN)
-                                                .stringLength(3, 10)
-                                                .build();
+                .locale(Locale.JAPAN)
+                .stringLength(3, 10)
+                .build();
 
         assertEquals(Locale.JAPAN, config.getLocale());
         assertEquals(3, config.getMinStringLength());
@@ -66,9 +65,8 @@ class LocaleUsageExample {
     void customLocale() {
         Locale mexicanSpanish = Locale.of("es", "MX");
 
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(mexicanSpanish)
-                                                .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(mexicanSpanish).build();
 
         assertEquals("es", config.getLocale().getLanguage());
         assertEquals("MX", config.getLocale().getCountry());
@@ -80,17 +78,12 @@ class LocaleUsageExample {
     @Test
     @DisplayName("Multiple configs with different locales")
     void multipleLocales() {
-        GeneratorConfig usConfig = GeneratorConfig.builder()
-                                                  .locale(Locale.US)
-                                                  .build();
+        GeneratorConfig usConfig = GeneratorConfig.builder().locale(Locale.US).build();
 
-        GeneratorConfig ukConfig = GeneratorConfig.builder()
-                                                  .locale(Locale.UK)
-                                                  .build();
+        GeneratorConfig ukConfig = GeneratorConfig.builder().locale(Locale.UK).build();
 
-        GeneratorConfig franceConfig = GeneratorConfig.builder()
-                                                      .locale(Locale.FRANCE)
-                                                      .build();
+        GeneratorConfig franceConfig =
+                GeneratorConfig.builder().locale(Locale.FRANCE).build();
 
         // All have different locales
         assertEquals(Locale.US, usConfig.getLocale());
@@ -106,11 +99,11 @@ class LocaleUsageExample {
     @DisplayName("Config with all parameters including locale")
     void fullConfiguration() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.GERMANY)
-                                                .seed(42L)
-                                                .stringLength(8, 16)
-                                                .collectionSize(5, 20)
-                                                .build();
+                .locale(Locale.GERMANY)
+                .seed(42L)
+                .stringLength(8, 16)
+                .collectionSize(5, 20)
+                .build();
 
         assertEquals(Locale.GERMANY, config.getLocale());
         assertEquals(42L, config.getSeed().getAsLong());
@@ -119,6 +112,7 @@ class LocaleUsageExample {
         assertEquals(5, config.getMinCollectionSize());
         assertEquals(20, config.getMaxCollectionSize());
 
-        System.out.println("Full config created with locale: " + config.getLocale().getDisplayName());
+        System.out.println(
+                "Full config created with locale: " + config.getLocale().getDisplayName());
     }
 }

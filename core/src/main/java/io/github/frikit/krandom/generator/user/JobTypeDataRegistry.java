@@ -6,12 +6,11 @@
 package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Global, read-only registry mapping locales to {@link JobTypeDataProvider} instances.
@@ -26,11 +25,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class JobTypeDataRegistry {
 
-    private static final List<String> REQUIRED_RESOURCE_DIRECTORIES = List.of(
-        "krandom/job_types/");
+    private static final List<String> REQUIRED_RESOURCE_DIRECTORIES = List.of("krandom/job_types/");
 
-    private static final ConcurrentHashMap<String, JobTypeDataProvider> REGISTRY =
-        new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, JobTypeDataProvider> REGISTRY = new ConcurrentHashMap<>();
 
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
@@ -40,8 +37,7 @@ public final class JobTypeDataRegistry {
         }
     }
 
-    private JobTypeDataRegistry() {
-    }
+    private JobTypeDataRegistry() {}
 
     /**
      * Returns {@code true} if the registry contains an entry for the given locale.
@@ -93,7 +89,8 @@ public final class JobTypeDataRegistry {
 
     static boolean hasBuiltInResources(String resourcePrefix) {
         return REQUIRED_RESOURCE_DIRECTORIES.stream()
-            .allMatch(directory -> JobTypeDataRegistry.class.getResource("/" + directory + resourcePrefix + ".txt") != null);
+                .allMatch(directory ->
+                        JobTypeDataRegistry.class.getResource("/" + directory + resourcePrefix + ".txt") != null);
     }
 
     private static void putProvider(JobTypeDataProvider provider) {

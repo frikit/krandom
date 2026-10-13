@@ -5,20 +5,19 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Method;
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.lang.reflect.Method;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Username and Password generators")
 class UsernamePasswordGeneratorTest {
@@ -46,9 +45,7 @@ class UsernamePasswordGeneratorTest {
         assertNotNull(de.generate());
 
         assertDoesNotThrow(() -> {
-            Method fallback = UsernameGenerator.class.getDeclaredMethod(
-                "fallback", String.class, String.class
-            );
+            Method fallback = UsernameGenerator.class.getDeclaredMethod("fallback", String.class, String.class);
             fallback.setAccessible(true);
             assertEquals("default", fallback.invoke(null, "", "default"));
             assertEquals("value", fallback.invoke(null, "value", "default"));
@@ -87,23 +84,29 @@ class UsernamePasswordGeneratorTest {
     @DisplayName("Password policies enforce required character sets")
     void passwordPolicy() {
         PasswordPolicy policy = PasswordPolicy.builder()
-            .length(12, 12)
-            .requireLowercase(2)
-            .requireUppercase(2)
-            .requireDigits(3)
-            .requireSymbols("!@#", 2)
-            .build();
-        String password = new PasswordGenerator(GeneratorConfig.builder().seed(11L).build()).generate(policy);
+                .length(12, 12)
+                .requireLowercase(2)
+                .requireUppercase(2)
+                .requireDigits(3)
+                .requireSymbols("!@#", 2)
+                .build();
+        String password =
+                new PasswordGenerator(GeneratorConfig.builder().seed(11L).build()).generate(policy);
 
         assertEquals(12, password.length());
         assertTrue(password.chars().filter(Character::isLowerCase).count() >= 2);
         assertTrue(password.chars().filter(Character::isUpperCase).count() >= 2);
         assertTrue(password.chars().filter(Character::isDigit).count() >= 3);
-        assertTrue(password.chars().filter(c -> c == '!' || c == '@' || c == '#').count() >= 2);
+        assertTrue(
+                password.chars().filter(c -> c == '!' || c == '@' || c == '#').count() >= 2);
         assertThrows(NullPointerException.class, () -> new PasswordGenerator().generate((PasswordPolicy) null));
-        assertThrows(IllegalArgumentException.class, () -> PasswordPolicy.builder().length(2).requireDigits(3).build());
-        assertThrows(IllegalArgumentException.class, () -> PasswordPolicy.builder().requireSymbols("", 1));
-        assertThrows(IllegalArgumentException.class, () -> PasswordPolicy.builder().requireLowercase(-1));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> PasswordPolicy.builder().length(2).requireDigits(3).build());
+        assertThrows(
+                IllegalArgumentException.class, () -> PasswordPolicy.builder().requireSymbols("", 1));
+        assertThrows(
+                IllegalArgumentException.class, () -> PasswordPolicy.builder().requireLowercase(-1));
     }
 
     @Test
@@ -118,12 +121,15 @@ class UsernamePasswordGeneratorTest {
         assertTrue(defaultPolicy.alphabet().contains(PasswordPolicy.DIGITS));
         assertTrue(defaultPolicy.alphabet().contains(PasswordPolicy.SYMBOLS));
 
-        PasswordPolicy custom = PasswordPolicy.builder().length(4).require("ab", 0).build();
+        PasswordPolicy custom =
+                PasswordPolicy.builder().length(4).require("ab", 0).build();
         assertEquals("ab", custom.requirements().getFirst().symbols());
         assertEquals(0, custom.requirements().getFirst().minimumCount());
         assertEquals("ab", custom.alphabet());
-        assertThrows(IllegalArgumentException.class, () -> PasswordPolicy.builder().length(0));
-        assertThrows(IllegalArgumentException.class, () -> PasswordPolicy.builder().length(3, 2));
+        assertThrows(
+                IllegalArgumentException.class, () -> PasswordPolicy.builder().length(0));
+        assertThrows(
+                IllegalArgumentException.class, () -> PasswordPolicy.builder().length(3, 2));
         assertThrows(NullPointerException.class, () -> PasswordPolicy.builder().require(null, 1));
     }
 

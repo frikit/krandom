@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
-
 import java.util.Objects;
 import java.util.Random;
 import java.util.random.RandomGenerator;
@@ -25,7 +24,7 @@ import java.util.random.RandomGenerator;
  */
 public final class EnumGenerator<E extends Enum<E>> implements Generator<E> {
 
-    private final E[]             constants;
+    private final E[] constants;
     private final RandomGenerator random;
 
     /**

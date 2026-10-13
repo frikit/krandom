@@ -5,13 +5,13 @@
  */
 package io.github.frikit.krandom.generator.identifier;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("UpcGenerator")
 class UpcGeneratorTest {

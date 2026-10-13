@@ -5,16 +5,15 @@
  */
 package io.github.frikit.krandom.generator.text;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ParagraphGenerator")
 class ParagraphGeneratorTest {
@@ -31,7 +30,8 @@ class ParagraphGeneratorTest {
     @Test
     @DisplayName("generate() produces paragraph with 3-7 sentences")
     void generateDefaultRange() {
-        ParagraphGenerator gen = new ParagraphGenerator(GeneratorConfig.builder().seed(3L).build());
+        ParagraphGenerator gen =
+                new ParagraphGenerator(GeneratorConfig.builder().seed(3L).build());
         String paragraph = gen.generate();
         int dots = paragraph.length() - paragraph.replace(".", "").length();
         assertTrue(dots >= 3 && dots <= 7);
@@ -48,7 +48,8 @@ class ParagraphGeneratorTest {
     @Test
     @DisplayName("generate(sentences) respects exact count")
     void generateSentencesCount() {
-        ParagraphGenerator gen = new ParagraphGenerator(GeneratorConfig.builder().seed(5L).build());
+        ParagraphGenerator gen =
+                new ParagraphGenerator(GeneratorConfig.builder().seed(5L).build());
         String paragraph = gen.generate(4);
         int dots = paragraph.length() - paragraph.replace(".", "").length();
         assertEquals(4, dots);
@@ -57,7 +58,8 @@ class ParagraphGeneratorTest {
     @Test
     @DisplayName("generateParagraphs(count/range) supports range-style paragraph batches")
     void generateParagraphsRangeStyle() {
-        ParagraphGenerator gen = new ParagraphGenerator(GeneratorConfig.builder().seed(27L).build());
+        ParagraphGenerator gen =
+                new ParagraphGenerator(GeneratorConfig.builder().seed(27L).build());
         String fixed = gen.generateParagraphs(2);
         assertEquals(2, fixed.split("\\n\\n").length);
 
@@ -75,7 +77,8 @@ class ParagraphGeneratorTest {
     @Test
     @DisplayName("generate(options) supports sentence count option")
     void generateOptions() {
-        ParagraphGenerator gen = new ParagraphGenerator(GeneratorConfig.builder().seed(9L).build());
+        ParagraphGenerator gen =
+                new ParagraphGenerator(GeneratorConfig.builder().seed(9L).build());
         String fixed = gen.generate(ParagraphGenerator.ParagraphOptions.withSentences(2));
         int dots = fixed.length() - fixed.replace(".", "").length();
         assertEquals(2, dots);
@@ -98,7 +101,10 @@ class ParagraphGeneratorTest {
     @Test
     @DisplayName("seeded generators are reproducible")
     void seededReproducibility() {
-        GeneratorConfig cfg = GeneratorConfig.builder().seed(33L).locale(Locale.of("es", "ES")).build();
+        GeneratorConfig cfg = GeneratorConfig.builder()
+                .seed(33L)
+                .locale(Locale.of("es", "ES"))
+                .build();
         ParagraphGenerator a = new ParagraphGenerator(cfg);
         ParagraphGenerator b = new ParagraphGenerator(cfg);
         for (int i = 0; i < 20; i++) {

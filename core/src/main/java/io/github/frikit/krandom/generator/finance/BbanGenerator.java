@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -34,8 +33,8 @@ import java.util.Random;
  */
 public final class BbanGenerator implements Generator<String> {
 
-    private final Locale              locale;
-    private final Random              random;
+    private final Locale locale;
+    private final Random random;
     private final BankingSafetyPolicy bankingSafetyPolicy;
 
     /**

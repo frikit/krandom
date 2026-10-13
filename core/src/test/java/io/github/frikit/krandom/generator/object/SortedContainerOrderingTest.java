@@ -5,18 +5,6 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NavigableMap;
-import java.util.PriorityQueue;
-import java.util.SortedMap;
-import java.util.SortedSet;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -24,14 +12,24 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NavigableMap;
+import java.util.PriorityQueue;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 /**
  * Sorted containers of comparable elements must use the elements' natural ordering, not their
  * text form: a {@code SortedSet<Integer>} sorts numerically.
  */
 class SortedContainerOrderingTest {
 
-    public record Point(int x, int y) {
-    }
+    public record Point(int x, int y) {}
 
     public static class Scores {
         public SortedSet<Integer> scores;
@@ -62,13 +60,15 @@ class SortedContainerOrderingTest {
     }
 
     private static <T> void assertUnsupported(Class<T> type) {
-        ObjectGenerator<T> generator = new ObjectGenerator<>(type, GeneratorConfig.builder().seed(1L).build());
+        ObjectGenerator<T> generator =
+                new ObjectGenerator<>(type, GeneratorConfig.builder().seed(1L).build());
         ObjectGenerationException error = assertThrows(ObjectGenerationException.class, generator::generate);
         assertTrue(error.getMessage().startsWith("Unsupported type"), error.getMessage());
     }
 
     private static Scores generate(long seed) {
-        GeneratorConfig config = GeneratorConfig.builder().seed(seed).collectionSize(5, 5).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().seed(seed).collectionSize(5, 5).build();
         return new ObjectGenerator<>(Scores.class, config).generate();
     }
 
@@ -124,7 +124,8 @@ class SortedContainerOrderingTest {
     @Test
     @DisplayName("ignored errors leave identity-ordered sorted containers unset")
     void ignoredErrorsLeaveIdentityOrderedContainersUnset() {
-        GeneratorConfig lenient = GeneratorConfig.builder().seed(1L).objectIgnoreErrors(true).build();
+        GeneratorConfig lenient =
+                GeneratorConfig.builder().seed(1L).objectIgnoreErrors(true).build();
         assertNull(new ObjectGenerator<>(TagSet.class, lenient).generate().tags);
         assertNull(new ObjectGenerator<>(TagQueue.class, lenient).generate().tags);
         assertNull(new ObjectGenerator<>(TagKeys.class, lenient).generate().byTag);

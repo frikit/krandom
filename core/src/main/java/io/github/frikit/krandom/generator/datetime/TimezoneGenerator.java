@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.datetime;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.time.Clock;
 import java.time.ZoneId;
 import java.util.List;
@@ -23,23 +22,23 @@ import java.util.Set;
 public final class TimezoneGenerator implements Generator<String> {
 
     private static final Map<String, List<String>> COUNTRY_TO_ZONES = Map.of(
-        "US", List.of("America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles"),
-        "GB", List.of("Europe/London"),
-        "AU", List.of("Australia/Sydney", "Australia/Melbourne", "Australia/Perth"),
-        "DE", List.of("Europe/Berlin"),
-        "FR", List.of("Europe/Paris"),
-        "ES", List.of("Europe/Madrid"),
-        "IT", List.of("Europe/Rome"),
-        "BR", List.of("America/Sao_Paulo", "America/Manaus"),
-        "JP", List.of("Asia/Tokyo"),
-        "CN", List.of("Asia/Shanghai")
-    );
+            "US", List.of("America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles"),
+            "GB", List.of("Europe/London"),
+            "AU", List.of("Australia/Sydney", "Australia/Melbourne", "Australia/Perth"),
+            "DE", List.of("Europe/Berlin"),
+            "FR", List.of("Europe/Paris"),
+            "ES", List.of("Europe/Madrid"),
+            "IT", List.of("Europe/Rome"),
+            "BR", List.of("America/Sao_Paulo", "America/Manaus"),
+            "JP", List.of("Asia/Tokyo"),
+            "CN", List.of("Asia/Shanghai"));
 
-    private static final List<String> ALL_ZONES = List.copyOf(ZoneId.getAvailableZoneIds().stream().sorted().toList());
+    private static final List<String> ALL_ZONES =
+            List.copyOf(ZoneId.getAvailableZoneIds().stream().sorted().toList());
 
     private final Locale locale;
     private final Random random;
-    private final Clock  clock;
+    private final Clock clock;
 
     public TimezoneGenerator() {
         this(GeneratorConfig.defaults());

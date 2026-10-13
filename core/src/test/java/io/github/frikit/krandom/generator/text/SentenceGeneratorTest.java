@@ -5,16 +5,15 @@
  */
 package io.github.frikit.krandom.generator.text;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("SentenceGenerator")
 class SentenceGeneratorTest {
@@ -31,7 +30,8 @@ class SentenceGeneratorTest {
     @Test
     @DisplayName("generate() produces sentence with 12-18 words")
     void generateDefaultRange() {
-        SentenceGenerator gen = new SentenceGenerator(GeneratorConfig.builder().seed(2L).build());
+        SentenceGenerator gen =
+                new SentenceGenerator(GeneratorConfig.builder().seed(2L).build());
         String sentence = gen.generate();
         assertTrue(Character.isUpperCase(sentence.charAt(0)));
         assertTrue(sentence.endsWith("."));
@@ -50,7 +50,8 @@ class SentenceGeneratorTest {
     @Test
     @DisplayName("generate(words) respects exact count")
     void generateWordsCount() {
-        SentenceGenerator gen = new SentenceGenerator(GeneratorConfig.builder().seed(5L).build());
+        SentenceGenerator gen =
+                new SentenceGenerator(GeneratorConfig.builder().seed(5L).build());
         String sentence = gen.generate(5);
         assertTrue(sentence.endsWith("."));
         assertEquals(5, sentence.substring(0, sentence.length() - 1).split(" ").length);
@@ -59,7 +60,8 @@ class SentenceGeneratorTest {
     @Test
     @DisplayName("generateSentences(count/range) supports range-style sentence batches")
     void generateSentencesRangeStyle() {
-        SentenceGenerator gen = new SentenceGenerator(GeneratorConfig.builder().seed(29L).build());
+        SentenceGenerator gen =
+                new SentenceGenerator(GeneratorConfig.builder().seed(29L).build());
         String fixed = gen.generateSentences(3);
         assertEquals(3, fixed.length() - fixed.replace(".", "").length());
 
@@ -77,7 +79,8 @@ class SentenceGeneratorTest {
     @Test
     @DisplayName("generate(options) supports words option")
     void generateOptions() {
-        SentenceGenerator gen = new SentenceGenerator(GeneratorConfig.builder().seed(7L).build());
+        SentenceGenerator gen =
+                new SentenceGenerator(GeneratorConfig.builder().seed(7L).build());
         String fixed = gen.generate(SentenceGenerator.SentenceOptions.withWords(4));
         assertEquals(4, fixed.substring(0, fixed.length() - 1).split(" ").length);
         assertNotNull(gen.generate(new SentenceGenerator.SentenceOptions(null)));
@@ -99,7 +102,8 @@ class SentenceGeneratorTest {
     @Test
     @DisplayName("seeded generators are reproducible")
     void seededReproducibility() {
-        GeneratorConfig cfg = GeneratorConfig.builder().seed(17L).locale(Locale.GERMANY).build();
+        GeneratorConfig cfg =
+                GeneratorConfig.builder().seed(17L).locale(Locale.GERMANY).build();
         SentenceGenerator a = new SentenceGenerator(cfg);
         SentenceGenerator b = new SentenceGenerator(cfg);
         for (int i = 0; i < 20; i++) {

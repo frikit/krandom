@@ -1,4 +1,13 @@
+/*
+ * Copyright (c) 2026 krandom contributors
+ *
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
 package io.github.frikit.krandom.examples;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,26 +21,19 @@ import io.github.frikit.krandom.generator.schema.SchemaValueProvider;
 import io.github.frikit.krandom.jackson.KrandomJackson;
 import io.github.frikit.krandom.spring.KrandomAutoConfiguration;
 import io.github.frikit.krandom.spring.KrandomObjectFakerFactory;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 class JavaGradleIntegrationUsageTest {
 
     @Test
     void jacksonModuleSerializesSchemaAsJsonSchema() {
-        GeneratorConfig config = GeneratorConfig.builder()
-            .locale(Locale.US)
-            .seed(42L)
-            .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
 
         Field field = Generators.ofField(config);
         Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
@@ -44,15 +46,19 @@ class JavaGradleIntegrationUsageTest {
         JsonNode jsonSchema = mapper.valueToTree(schema);
 
         assertEquals("object", jsonSchema.path("type").asText());
-        assertEquals("object", jsonSchema.path("properties").path("order").path("type").asText());
-        assertEquals("object", jsonSchema.path("properties").path("payment").path("type").asText());
+        assertEquals(
+                "object",
+                jsonSchema.path("properties").path("order").path("type").asText());
+        assertEquals(
+                "object",
+                jsonSchema.path("properties").path("payment").path("type").asText());
     }
 
     @Test
     void springStarterAutoConfiguresKrandomBeans() {
         ApplicationContextRunner runner = new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(KrandomAutoConfiguration.class))
-            .withPropertyValues("krandom.locale=en-US", "krandom.seed=42");
+                .withConfiguration(AutoConfigurations.of(KrandomAutoConfiguration.class))
+                .withPropertyValues("krandom.locale=en-US", "krandom.seed=42");
 
         runner.run(context -> {
             GeneratorConfig config = context.getBean(GeneratorConfig.class);
@@ -60,7 +66,10 @@ class JavaGradleIntegrationUsageTest {
             KrandomObjectFakerFactory factory = context.getBean(KrandomObjectFakerFactory.class);
 
             assertEquals(Locale.US, config.getLocale());
-            assertFalse(hub.get("person.email", Generator.class).generate().toString().isBlank());
+            assertFalse(hub.get("person.email", Generator.class)
+                    .generate()
+                    .toString()
+                    .isBlank());
             assertNotNull(factory.generator(SpringExampleUser.class).generate());
         });
     }

@@ -59,36 +59,111 @@ public enum SupportedLocale {
     CA_ES("ca", "ES"),
 
     // ── Tier 3: Curated fallback datasets (15 regional variants) ─────
-    EN_CA("en", "CA", "en_US", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
-          "en_US", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
-    EN_NZ("en", "NZ", "en_AU", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
-          "en_AU", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
-    EN_IE("en", "IE", "en_GB", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
-          "en_GB", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
-    EN_IN("en", "IN", "en_US", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
-          "en_US", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
-    EN_ZA("en", "ZA", "en_GB", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
-          "en_GB", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
-    FR_CA("fr", "CA", "fr_FR", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
-          "fr_FR", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
-    FR_BE("fr", "BE", "fr_FR", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
-          "fr_FR", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
-    FR_CH("fr", "CH", "fr_FR", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
-          "fr_FR", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
-    DE_AT("de", "AT", "de_DE", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
-          "de_DE", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
-    DE_CH("de", "CH", "de_DE", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
-          "de_DE", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
-    ES_MX("es", "MX", "es_ES", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
-          "es_ES", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
-    ES_AR("es", "AR", "es_ES", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
-          "es_ES", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
-    PT_PT("pt", "PT", "pt_BR", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
-          "pt_BR", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
-    NL_BE("nl", "BE", "nl_NL", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
-          "nl_NL", LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
-    ZH_TW("zh", "TW", "zh_CN", LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
-          "zh_CN", LocaleDataQualityTier.CURATED_FALLBACK_DATASET);
+    EN_CA(
+            "en",
+            "CA",
+            "en_US",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+            "en_US",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    EN_NZ(
+            "en",
+            "NZ",
+            "en_AU",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+            "en_AU",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    EN_IE(
+            "en",
+            "IE",
+            "en_GB",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+            "en_GB",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    EN_IN(
+            "en",
+            "IN",
+            "en_US",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+            "en_US",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    EN_ZA(
+            "en",
+            "ZA",
+            "en_GB",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+            "en_GB",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    FR_CA(
+            "fr",
+            "CA",
+            "fr_FR",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+            "fr_FR",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    FR_BE(
+            "fr",
+            "BE",
+            "fr_FR",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+            "fr_FR",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    FR_CH(
+            "fr",
+            "CH",
+            "fr_FR",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+            "fr_FR",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    DE_AT(
+            "de",
+            "AT",
+            "de_DE",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+            "de_DE",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    DE_CH(
+            "de",
+            "CH",
+            "de_DE",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+            "de_DE",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    ES_MX(
+            "es",
+            "MX",
+            "es_ES",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+            "es_ES",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    ES_AR(
+            "es",
+            "AR",
+            "es_ES",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+            "es_ES",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    PT_PT(
+            "pt",
+            "PT",
+            "pt_BR",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+            "pt_BR",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    NL_BE(
+            "nl",
+            "BE",
+            "nl_NL",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+            "nl_NL",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET),
+    ZH_TW(
+            "zh",
+            "TW",
+            "zh_CN",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET,
+            "zh_CN",
+            LocaleDataQualityTier.CURATED_FALLBACK_DATASET);
 
     private final Locale locale;
     private final String canonicalResourcePrefix;
@@ -98,20 +173,22 @@ public enum SupportedLocale {
     private final LocaleDataQualityTier professionDataTier;
 
     SupportedLocale(String language, String country) {
-        this(language,
-             country,
-             language + "_" + country,
-             LocaleDataQualityTier.NATIVE_DATASET,
-             language + "_" + country,
-             LocaleDataQualityTier.NATIVE_DATASET);
+        this(
+                language,
+                country,
+                language + "_" + country,
+                LocaleDataQualityTier.NATIVE_DATASET,
+                language + "_" + country,
+                LocaleDataQualityTier.NATIVE_DATASET);
     }
 
-    SupportedLocale(String language,
-                    String country,
-                    String resourcePrefix,
-                    LocaleDataQualityTier resourceDataTier,
-                    String professionDatasetPrefix,
-                    LocaleDataQualityTier professionDataTier) {
+    SupportedLocale(
+            String language,
+            String country,
+            String resourcePrefix,
+            LocaleDataQualityTier resourceDataTier,
+            String professionDatasetPrefix,
+            LocaleDataQualityTier professionDataTier) {
         this.locale = Locale.of(language, country);
         this.canonicalResourcePrefix = language + "_" + country;
         this.resourcePrefix = resourcePrefix;
@@ -125,7 +202,9 @@ public enum SupportedLocale {
     }
 
     public static Optional<SupportedLocale> fromLocale(Locale locale) {
-        return Arrays.stream(values()).filter(value -> value.locale.equals(locale)).findFirst();
+        return Arrays.stream(values())
+                .filter(value -> value.locale.equals(locale))
+                .findFirst();
     }
 
     public Locale locale() {
@@ -179,7 +258,7 @@ public enum SupportedLocale {
 
     private static Optional<SupportedLocale> fromCanonicalResourcePrefix(String resourcePrefix) {
         return Arrays.stream(values())
-                     .filter(value -> value.canonicalResourcePrefix.equals(resourcePrefix))
-                     .findFirst();
+                .filter(value -> value.canonicalResourcePrefix.equals(resourcePrefix))
+                .findFirst();
     }
 }

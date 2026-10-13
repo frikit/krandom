@@ -5,15 +5,14 @@
  */
 package io.github.frikit.krandom.benchmarks;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.openjdk.jmh.annotations.Param;
-
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.openjdk.jmh.annotations.Param;
 
 @DisplayName("Benchmark workloads")
 class BenchmarkWorkloadTest {
@@ -35,7 +34,8 @@ class BenchmarkWorkloadTest {
     @Test
     @DisplayName("Field-stream workloads cover the default RELAXED semantic mode")
     void fieldStreamsCoverRelaxedSemantics() throws NoSuchFieldException {
-        Param semanticModes = FieldStreamsBenchmark.class.getField("semanticMode").getAnnotation(Param.class);
+        Param semanticModes =
+                FieldStreamsBenchmark.class.getField("semanticMode").getAnnotation(Param.class);
 
         assertEquals(List.of("STRUCTURAL_ONLY", "RELAXED"), List.of(semanticModes.value()));
         for (String mode : semanticModes.value()) {

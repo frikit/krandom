@@ -7,9 +7,11 @@ package io.github.frikit.krandom.benchmarks;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.location.StreetAddressGenerator;
 import io.github.frikit.krandom.generator.user.EmailGenerator;
 import io.github.frikit.krandom.generator.user.FirstNameGenerator;
-import io.github.frikit.krandom.generator.location.StreetAddressGenerator;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -19,9 +21,6 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
-
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Head-to-head scalar value generation: krandom vs DataFaker vs JavaFaker.
@@ -40,10 +39,8 @@ public class CompetitorScalarBenchmark {
 
     @State(Scope.Thread)
     public static class KrandomState {
-        private final GeneratorConfig config = GeneratorConfig.builder()
-                                                              .locale(Locale.US)
-                                                              .seed(7L)
-                                                              .build();
+        private final GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.US).seed(7L).build();
 
         public final FirstNameGenerator firstName = new FirstNameGenerator(config);
         public final EmailGenerator email = new EmailGenerator(config);
@@ -54,16 +51,15 @@ public class CompetitorScalarBenchmark {
 
     @State(Scope.Thread)
     public static class DataFakerState {
-        public final net.datafaker.Faker faker = new net.datafaker.Faker(
-            Locale.US, new java.util.Random(7L));
+        public final net.datafaker.Faker faker = new net.datafaker.Faker(Locale.US, new java.util.Random(7L));
     }
 
     // ── JavaFaker state ──────────────────────────────────────────────────────
 
     @State(Scope.Thread)
     public static class JavaFakerState {
-        public final com.github.javafaker.Faker faker = new com.github.javafaker.Faker(
-            Locale.US, new java.util.Random(7L));
+        public final com.github.javafaker.Faker faker =
+                new com.github.javafaker.Faker(Locale.US, new java.util.Random(7L));
     }
 
     // ── First name ───────────────────────────────────────────────────────────

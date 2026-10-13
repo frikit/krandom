@@ -31,13 +31,15 @@ public final class RoRoNationalIdProvider implements NationalIdProvider {
         int county = random.nextInt(46) + 1;
         int seq = random.nextInt(1000);
         int check = random.nextInt(10);
-        return String.format(Locale.ROOT, "%d%02d%02d%02d%02d%03d%d",
-                             sex,
-                             date.getYear() % 100,
-                             date.getMonthValue(),
-                             date.getDayOfMonth(),
-                             county,
-                             seq,
-                             check);
+        return String.format(
+                Locale.ROOT,
+                "%d%02d%02d%02d%02d%03d%d",
+                sex,
+                date.getYear() % 100,
+                date.getMonthValue(),
+                date.getDayOfMonth(),
+                county,
+                seq,
+                check);
     }
 }

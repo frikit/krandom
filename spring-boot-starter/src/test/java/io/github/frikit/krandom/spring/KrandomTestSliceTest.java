@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.spring;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.provider.ProviderHub;
 import org.junit.jupiter.api.DisplayName;
@@ -14,15 +16,12 @@ import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.TestPropertySource;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @KrandomTest
 @TestPropertySource(properties = {"krandom.seed=42", "krandom.locale=fr-FR"})
 class KrandomTestSliceTest {
 
     @SpringBootConfiguration
-    static class SliceConfiguration {
-    }
+    static class SliceConfiguration {}
 
     @Autowired
     ApplicationContext applicationContext;
@@ -80,7 +79,8 @@ class KrandomTestSliceTest {
     @Test
     @DisplayName("slice does not run unrelated auto-configuration")
     void sliceExcludesUnrelatedAutoConfiguration() {
-        assertTrue(applicationContext
+        assertTrue(
+                applicationContext
                         .getBeansOfType(org.springframework.core.task.TaskExecutor.class)
                         .isEmpty(),
                 "full auto-configuration must stay disabled inside the slice");

@@ -10,7 +10,6 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.location.PhoneNumberGenerator;
-
 import java.util.Locale;
 import java.util.Objects;
 
@@ -19,14 +18,14 @@ import java.util.Objects;
  */
 public final class CompanyInfoGenerator implements Generator<CompanyInfo> {
 
-    private final GeneratorConfig             config;
-    private final CompanyNameGenerator        companyNameGenerator;
-    private final IndustryGenerator           industryGenerator;
+    private final GeneratorConfig config;
+    private final CompanyNameGenerator companyNameGenerator;
+    private final IndustryGenerator industryGenerator;
     private final CompanyCatchPhraseGenerator catchPhraseGenerator;
-    private final CompanyBuzzwordGenerator    buzzwordGenerator;
-    private final CompanyEmailGenerator       emailGenerator;
-    private final PhoneNumberGenerator        phoneNumberGenerator;
-    private final AddressInfoGenerator        addressInfoGenerator;
+    private final CompanyBuzzwordGenerator buzzwordGenerator;
+    private final CompanyEmailGenerator emailGenerator;
+    private final PhoneNumberGenerator phoneNumberGenerator;
+    private final AddressInfoGenerator addressInfoGenerator;
 
     /**
      * Creates a company-info generator using default configuration ({@link Locale#US}).
@@ -41,7 +40,9 @@ public final class CompanyInfoGenerator implements Generator<CompanyInfo> {
      * @param locale locale to use
      */
     public CompanyInfoGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -67,15 +68,14 @@ public final class CompanyInfoGenerator implements Generator<CompanyInfo> {
         String website = "https://www." + email.substring(email.indexOf('@') + 1);
         AddressInfo address = addressInfoGenerator.generate();
         return new CompanyInfo(
-            name,
-            industryGenerator.generate(),
-            catchPhraseGenerator.generate(),
-            buzzwordGenerator.generate(),
-            email,
-            website,
-            phoneNumberGenerator.generate(),
-            address
-        );
+                name,
+                industryGenerator.generate(),
+                catchPhraseGenerator.generate(),
+                buzzwordGenerator.generate(),
+                email,
+                website,
+                phoneNumberGenerator.generate(),
+                address);
     }
 
     /**

@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.text;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -20,8 +18,8 @@ import java.util.Random;
  */
 public final class ParagraphGenerator implements Generator<String> {
 
-    private final Locale            locale;
-    private final Random            random;
+    private final Locale locale;
+    private final Random random;
     private final SentenceGenerator sentenceGenerator;
 
     /**
@@ -104,8 +102,8 @@ public final class ParagraphGenerator implements Generator<String> {
             throw new IllegalArgumentException("minParagraphs must be positive, got: " + minParagraphs);
         }
         if (maxParagraphs < minParagraphs) {
-            throw new IllegalArgumentException("maxParagraphs must be >= minParagraphs, got: "
-                                               + maxParagraphs + " < " + minParagraphs);
+            throw new IllegalArgumentException(
+                    "maxParagraphs must be >= minParagraphs, got: " + maxParagraphs + " < " + minParagraphs);
         }
         int count = minParagraphs + random.nextInt(maxParagraphs - minParagraphs + 1);
         return generateParagraphs(count);

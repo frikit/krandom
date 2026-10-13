@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.datapack;
 
 import io.github.frikit.krandom.generator.user.UniversityData;
 import io.github.frikit.krandom.generator.user.UniversityDataProvider;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -52,14 +51,14 @@ public final class LocalDataPack {
     /** Maximum data file size accepted by the loader. */
     public static final int MAX_DATA_FILE_BYTES = 1_048_576;
 
-    private static final int    FORMAT_VERSION = 1;
-    private static final int    MAX_MANIFEST_BYTES = 65_536;
+    private static final int FORMAT_VERSION = 1;
+    private static final int MAX_MANIFEST_BYTES = 65_536;
     private static final String UNIVERSITY_HEADER = "name,degree,prefix,suffix,place";
 
-    private final Locale                 locale;
-    private final String                 source;
-    private final String                 license;
-    private final List<UniversityData>   universities;
+    private final Locale locale;
+    private final String source;
+    private final String license;
+    private final List<UniversityData> universities;
     private final UniversityDataProvider universityProvider;
 
     private LocalDataPack(Locale locale, String source, String license, List<UniversityData> universities) {
@@ -168,7 +167,9 @@ public final class LocalDataPack {
             if (separator < 1) {
                 throw new IllegalArgumentException("data pack manifest entries must use non-blank key=value syntax");
             }
-            properties.setProperty(line.substring(0, separator).trim(), line.substring(separator + 1).trim());
+            properties.setProperty(
+                    line.substring(0, separator).trim(),
+                    line.substring(separator + 1).trim());
         }
         return properties;
     }
@@ -176,7 +177,8 @@ public final class LocalDataPack {
     private static Path resolveDirectChild(Path root, String fileName) {
         Path relative = Path.of(fileName);
         if (relative.isAbsolute() || relative.getNameCount() != 1 || fileName.equals(".") || fileName.equals("..")) {
-            throw new IllegalArgumentException("data pack file must be a direct child of the pack directory: " + fileName);
+            throw new IllegalArgumentException(
+                    "data pack file must be a direct child of the pack directory: " + fileName);
         }
         return root.resolve(relative);
     }
@@ -185,10 +187,7 @@ public final class LocalDataPack {
         return readBounded(file, maximumBytes, label, Files::newInputStream);
     }
 
-    static byte[] readBounded(Path file,
-                              int maximumBytes,
-                              String label,
-                              InputStreamOpener inputStreamOpener) {
+    static byte[] readBounded(Path file, int maximumBytes, String label, InputStreamOpener inputStreamOpener) {
         try {
             if (!Files.isRegularFile(file)) {
                 throw new IllegalArgumentException(label + " does not exist or is not a regular file: " + file);
@@ -264,8 +263,12 @@ public final class LocalDataPack {
             if (columns.size() != 5) {
                 throw new IllegalArgumentException("university row " + (index + 1) + " must contain 5 columns");
             }
-            universities.add(new UniversityData(columns.get(0).trim(), columns.get(1).trim(), columns.get(2).trim(),
-                                                columns.get(3).trim(), columns.get(4).trim()));
+            universities.add(new UniversityData(
+                    columns.get(0).trim(),
+                    columns.get(1).trim(),
+                    columns.get(2).trim(),
+                    columns.get(3).trim(),
+                    columns.get(4).trim()));
         }
         if (universities.isEmpty()) {
             throw new IllegalArgumentException("university data must contain at least one fixture row");
@@ -313,7 +316,7 @@ public final class LocalDataPack {
 
     private static final class PackUniversityDataProvider implements UniversityDataProvider {
 
-        private final Locale           locale;
+        private final Locale locale;
         private final UniversityData[] universities;
 
         private PackUniversityDataProvider(Locale locale, List<UniversityData> universities) {

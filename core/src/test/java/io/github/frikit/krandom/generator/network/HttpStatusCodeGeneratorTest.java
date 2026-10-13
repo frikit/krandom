@@ -5,15 +5,15 @@
  */
 package io.github.frikit.krandom.generator.network;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("HttpStatusCodeGenerator")
 class HttpStatusCodeGeneratorTest {
@@ -29,7 +29,8 @@ class HttpStatusCodeGeneratorTest {
 
     @Test
     void categories() {
-        HttpStatusCodeGenerator gen = new HttpStatusCodeGenerator(GeneratorConfig.builder().seed(9L).build());
+        HttpStatusCodeGenerator gen =
+                new HttpStatusCodeGenerator(GeneratorConfig.builder().seed(9L).build());
         assertTrue(gen.generateByCategory(1) / 100 == 1);
         assertTrue(gen.generateByCategory(2) / 100 == 2);
         assertTrue(gen.generateByCategory(3) / 100 == 3);
@@ -42,7 +43,8 @@ class HttpStatusCodeGeneratorTest {
 
     @Test
     void reasonPhrasesAndHeaderHelpers() {
-        HttpStatusCodeGenerator generator = new HttpStatusCodeGenerator(GeneratorConfig.builder().seed(42L).build());
+        HttpStatusCodeGenerator generator =
+                new HttpStatusCodeGenerator(GeneratorConfig.builder().seed(42L).build());
 
         assertEquals("OK", generator.reasonPhrase(200));
         assertEquals("Unknown Status", generator.reasonPhrase(777));

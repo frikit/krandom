@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.object;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-
 import java.lang.reflect.AnnotatedElement;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,8 +37,8 @@ final class UniqueFieldTracker {
      */
     private final Map<Class<?>, Optional<ObjectConstructionAdapter>> constructionAdapters = new HashMap<>();
 
-    Optional<ObjectConstructionAdapter> constructionAdapter(Class<?> type,
-                                                            Function<Class<?>, @org.jspecify.annotations.Nullable ObjectConstructionAdapter> lookup) {
+    Optional<ObjectConstructionAdapter> constructionAdapter(
+            Class<?> type, Function<Class<?>, @org.jspecify.annotations.Nullable ObjectConstructionAdapter> lookup) {
         Optional<ObjectConstructionAdapter> adapter = constructionAdapters.get(type);
         if (adapter == null) {
             adapter = Optional.ofNullable(lookup.apply(type));
@@ -73,7 +72,7 @@ final class UniqueFieldTracker {
             }
         }
 
-        throw new ObjectGenerationException(
-            "Could not generate a unique value for field '" + normalizedFieldName + "' after " + maxAttempts + " attempts");
+        throw new ObjectGenerationException("Could not generate a unique value for field '" + normalizedFieldName
+                + "' after " + maxAttempts + " attempts");
     }
 }

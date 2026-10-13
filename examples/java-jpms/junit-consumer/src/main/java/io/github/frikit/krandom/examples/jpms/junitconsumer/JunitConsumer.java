@@ -11,13 +11,13 @@ import io.github.frikit.krandom.junit.KrandomExtension;
 /** Named-module consumer proving the krandom-junit automatic module resolves and works. */
 public final class JunitConsumer {
 
-    private JunitConsumer() {
-    }
+    private JunitConsumer() {}
 
     public static void main(String[] args) {
         KrandomExtension extension = new KrandomExtension();
         GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
-        if (!"krandom.seed".equals(KrandomExtension.REPORT_ENTRY_KEY) || config.getSeed().isEmpty()) {
+        if (!"krandom.seed".equals(KrandomExtension.REPORT_ENTRY_KEY)
+                || config.getSeed().isEmpty()) {
             throw new IllegalStateException("Unexpected extension contract: " + extension);
         }
         System.out.println("junit named-module consumer OK: " + KrandomExtension.RECIPE_REPORT_ENTRY_KEY);

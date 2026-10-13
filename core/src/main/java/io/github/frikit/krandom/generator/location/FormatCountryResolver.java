@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.location;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -32,8 +31,7 @@ final class FormatCountryResolver {
 
     private static final Map<String, String> PRIMARY_COUNTRY_BY_LANGUAGE = primaryCountryByLanguage();
 
-    private FormatCountryResolver() {
-    }
+    private FormatCountryResolver() {}
 
     /**
      * Resolves the format country of {@code locale}.

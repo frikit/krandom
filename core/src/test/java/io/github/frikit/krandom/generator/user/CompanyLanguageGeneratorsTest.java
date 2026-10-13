@@ -5,16 +5,15 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Company language generators")
 class CompanyLanguageGeneratorsTest {
@@ -31,14 +30,20 @@ class CompanyLanguageGeneratorsTest {
     @DisplayName("company catch phrase generator returns non-empty text")
     void catchPhrase() {
         assertFalse(new CompanyCatchPhraseGenerator(Locale.US).generate().isBlank());
-        assertFalse(new CompanyCatchPhraseGenerator(Locale.of("es", "ES")).generate().isBlank());
+        assertFalse(new CompanyCatchPhraseGenerator(Locale.of("es", "ES"))
+                .generate()
+                .isBlank());
     }
 
     @Test
     @DisplayName("locale datasets produce different company language output")
     void localeDifferences() {
-        GeneratorConfig usCfg = GeneratorConfig.builder().seed(19L).locale(Locale.US).build();
-        GeneratorConfig esCfg = GeneratorConfig.builder().seed(19L).locale(Locale.of("es", "ES")).build();
+        GeneratorConfig usCfg =
+                GeneratorConfig.builder().seed(19L).locale(Locale.US).build();
+        GeneratorConfig esCfg = GeneratorConfig.builder()
+                .seed(19L)
+                .locale(Locale.of("es", "ES"))
+                .build();
         String usBuzz = new CompanyBuzzwordGenerator(usCfg).generate();
         String esBuzz = new CompanyBuzzwordGenerator(esCfg).generate();
         assertNotEquals(usBuzz, esBuzz);
@@ -51,7 +56,8 @@ class CompanyLanguageGeneratorsTest {
     @Test
     @DisplayName("company language generators support seeded config")
     void seededConfig() {
-        GeneratorConfig cfg = GeneratorConfig.builder().seed(44L).locale(Locale.US).build();
+        GeneratorConfig cfg =
+                GeneratorConfig.builder().seed(44L).locale(Locale.US).build();
         assertEquals(new CompanyBuzzwordGenerator(cfg).generate(), new CompanyBuzzwordGenerator(cfg).generate());
         assertEquals(new CompanyCatchPhraseGenerator(cfg).generate(), new CompanyCatchPhraseGenerator(cfg).generate());
     }

@@ -5,15 +5,14 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.concurrent.atomic.AtomicInteger;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("UniqueFieldTracker")
 class UniqueFieldTrackerTest {
@@ -38,10 +37,12 @@ class UniqueFieldTrackerTest {
         UniqueFieldTracker tracker = new UniqueFieldTracker();
         AtomicInteger attempts = new AtomicInteger();
 
-        Object value = tracker.nextUnique("email", () -> attempts.getAndIncrement() == 0 ? "a@example.com" : "b@example.com", 3);
+        Object value = tracker.nextUnique(
+                "email", () -> attempts.getAndIncrement() == 0 ? "a@example.com" : "b@example.com", 3);
         assertEquals("a@example.com", value);
 
-        Object next = tracker.nextUnique("email", () -> attempts.getAndIncrement() == 1 ? "a@example.com" : "b@example.com", 3);
+        Object next = tracker.nextUnique(
+                "email", () -> attempts.getAndIncrement() == 1 ? "a@example.com" : "b@example.com", 3);
         assertEquals("b@example.com", next);
     }
 

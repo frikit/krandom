@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.location;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -19,13 +18,13 @@ import java.util.Random;
 public final class AddressInfoGenerator implements Generator<AddressInfo> {
 
     private final GeneratorConfig config;
-    private final Random          random;
+    private final Random random;
     private final StreetAddressGenerator streetAddressGenerator;
     private final PostalCodeGenerator postalCodeGenerator;
-    private final CountryGenerator    countryGenerator;
-    private final String[]            cities;
-    private final String[]            states;
-    private final String[]            stateAbbreviations;
+    private final CountryGenerator countryGenerator;
+    private final String[] cities;
+    private final String[] states;
+    private final String[] stateAbbreviations;
 
     /**
      * Creates an address-info generator using default configuration ({@link Locale#US}).
@@ -40,7 +39,9 @@ public final class AddressInfoGenerator implements Generator<AddressInfo> {
      * @param locale locale to use
      */
     public AddressInfoGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -58,8 +59,9 @@ public final class AddressInfoGenerator implements Generator<AddressInfo> {
         DataRegistryContext registryContext = config.getRegistryContext();
         Locale locale = config.getLocale();
         this.cities = registryContext.isCityRegistered(locale)
-                      ? java.util.Objects.requireNonNull(registryContext.cityProvider(locale)).getCities()
-                      : new String[0];
+                ? java.util.Objects.requireNonNull(registryContext.cityProvider(locale))
+                        .getCities()
+                : new String[0];
 
         if (registryContext.isStateRegistered(locale)) {
             StateDataProvider provider = java.util.Objects.requireNonNull(registryContext.stateProvider(locale));
@@ -84,9 +86,8 @@ public final class AddressInfoGenerator implements Generator<AddressInfo> {
 
         int stateIndex = states.length == 0 ? -1 : random.nextInt(states.length);
         String state = stateIndex >= 0 ? states[stateIndex] : "";
-        String stateAbbr = stateIndex >= 0 && stateIndex < stateAbbreviations.length
-                           ? safe(stateAbbreviations[stateIndex])
-                           : "";
+        String stateAbbr =
+                stateIndex >= 0 && stateIndex < stateAbbreviations.length ? safe(stateAbbreviations[stateIndex]) : "";
 
         String zip = postalCodeGenerator.generate();
         String country = currentOrRandomCountry();
@@ -94,20 +95,19 @@ public final class AddressInfoGenerator implements Generator<AddressInfo> {
         String address = formatAddress(street, streetUnit, city, stateAbbr.isBlank() ? state : stateAbbr, zip, country);
 
         return new AddressInfo(
-            address,
-            street,
-            streetNumber,
-            streetName,
-            streetSuffix,
-            streetPrefix,
-            streetUnit,
-            city,
-            state,
-            stateAbbr,
-            zip,
-            country,
-            countryAbbr
-        );
+                address,
+                street,
+                streetNumber,
+                streetName,
+                streetSuffix,
+                streetPrefix,
+                streetUnit,
+                city,
+                state,
+                stateAbbr,
+                zip,
+                country,
+                countryAbbr);
     }
 
     /**
@@ -145,13 +145,7 @@ public final class AddressInfoGenerator implements Generator<AddressInfo> {
     }
 
     private static String formatAddress(
-        String street,
-        String streetUnit,
-        String city,
-        String stateOrAbbreviation,
-        String zip,
-        String country
-    ) {
+            String street, String streetUnit, String city, String stateOrAbbreviation, String zip, String country) {
         String streetLine = street;
         if (!streetUnit.isBlank()) {
             streetLine = streetLine + ", " + streetUnit;

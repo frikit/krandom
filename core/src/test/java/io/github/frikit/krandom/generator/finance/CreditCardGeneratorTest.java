@@ -5,10 +5,14 @@
  */
 package io.github.frikit.krandom.generator.finance;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -18,13 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("CreditCardGenerator")
 class CreditCardGeneratorTest {
@@ -33,8 +32,8 @@ class CreditCardGeneratorTest {
 
     private static CreditCardGenerator checksumValidGenerator(CardType cardType) {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.CHECKSUM_VALID)
-                                                .build();
+                .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.CHECKSUM_VALID)
+                .build();
         return new CreditCardGenerator(config, cardType);
     }
 
@@ -74,14 +73,14 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("default card output is deliberately not Luhn-valid")
     void defaultCardOutputIsNotLuhnValid() {
-        CardType[] types = { CardType.VISA, CardType.MASTERCARD, CardType.AMEX,
-                             CardType.DISCOVER, CardType.JCB, CardType.DINERS_CLUB };
+        CardType[] types = {
+            CardType.VISA, CardType.MASTERCARD, CardType.AMEX,
+            CardType.DISCOVER, CardType.JCB, CardType.DINERS_CLUB
+        };
 
         for (CardType type : types) {
-            String card = new CreditCardGenerator(
-                GeneratorConfig.builder().seed(42L).build(),
-                type
-            ).generate(false);
+            String card =
+                    new CreditCardGenerator(GeneratorConfig.builder().seed(42L).build(), type).generate(false);
 
             assertFalse(CreditCardGenerator.isValidLuhn(card), type + " card unexpectedly passed Luhn: " + card);
         }
@@ -91,12 +90,12 @@ class CreditCardGeneratorTest {
     @DisplayName("checksum-valid card output requires an explicit safety policy")
     void checksumValidCardOutputRequiresExplicitSafetyPolicy() {
         String card = new CreditCardGenerator(
-            GeneratorConfig.builder()
-                           .seed(42L)
-                           .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.CHECKSUM_VALID)
-                           .build(),
-            CardType.VISA
-        ).generate(false);
+                        GeneratorConfig.builder()
+                                .seed(42L)
+                                .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.CHECKSUM_VALID)
+                                .build(),
+                        CardType.VISA)
+                .generate(false);
 
         assertTrue(CreditCardGenerator.isValidLuhn(card));
     }
@@ -105,16 +104,15 @@ class CreditCardGeneratorTest {
     @DisplayName("Stripe sandbox policy returns documented card numbers for every supported type")
     void stripeSandboxPolicyReturnsDocumentedCardNumbers() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.STRIPE_SANDBOX)
-                                                .build();
+                .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.STRIPE_SANDBOX)
+                .build();
         Map<CardType, String> expectedNumbers = Map.of(
-            CardType.VISA, "4242424242424242",
-            CardType.MASTERCARD, "5555555555554444",
-            CardType.AMEX, "378282246310005",
-            CardType.DISCOVER, "6011111111111117",
-            CardType.JCB, "3566002020360505",
-            CardType.DINERS_CLUB, "3056930009020004"
-        );
+                CardType.VISA, "4242424242424242",
+                CardType.MASTERCARD, "5555555555554444",
+                CardType.AMEX, "378282246310005",
+                CardType.DISCOVER, "6011111111111117",
+                CardType.JCB, "3566002020360505",
+                CardType.DINERS_CLUB, "3056930009020004");
 
         expectedNumbers.forEach((type, expectedNumber) -> {
             String number = new CreditCardGenerator(config, type).generate(false);
@@ -131,10 +129,8 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("faker-style credit-card API aliases are available")
     void fakerStyleAliases() {
-        CreditCardGenerator gen = new CreditCardGenerator(
-            GeneratorConfig.builder().seed(123L).build(),
-            CardType.VISA
-        );
+        CreditCardGenerator gen =
+                new CreditCardGenerator(GeneratorConfig.builder().seed(123L).build(), CardType.VISA);
         assertTrue(gen.generateNumber().matches("\\d+"));
         assertTrue(gen.generateExpiry().matches("\\d{2}/\\d{2}"));
         assertTrue(gen.generateSecurityCode().matches("\\d{3}"));
@@ -161,30 +157,24 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("null config throws NullPointerException")
     void nullConfigThrows() {
-        NullPointerException ex = assertThrows(
-            NullPointerException.class,
-            () -> new CreditCardGenerator((GeneratorConfig) null)
-        );
+        NullPointerException ex =
+                assertThrows(NullPointerException.class, () -> new CreditCardGenerator((GeneratorConfig) null));
         assertTrue(ex.getMessage().contains("config must not be null"));
     }
 
     @Test
     @DisplayName("null card type throws NullPointerException")
     void nullCardTypeThrows() {
-        NullPointerException ex = assertThrows(
-            NullPointerException.class,
-            () -> new CreditCardGenerator((CardType) null)
-        );
+        NullPointerException ex =
+                assertThrows(NullPointerException.class, () -> new CreditCardGenerator((CardType) null));
         assertTrue(ex.getMessage().contains("cardType must not be null"));
     }
 
     @Test
     @DisplayName("null config with card type throws NullPointerException")
     void nullConfigWithCardTypeThrows() {
-        NullPointerException ex = assertThrows(
-            NullPointerException.class,
-            () -> new CreditCardGenerator(null, CardType.VISA)
-        );
+        NullPointerException ex =
+                assertThrows(NullPointerException.class, () -> new CreditCardGenerator(null, CardType.VISA));
         assertTrue(ex.getMessage().contains("config must not be null"));
     }
 
@@ -192,10 +182,7 @@ class CreditCardGeneratorTest {
     @DisplayName("config with null card type throws NullPointerException")
     void configWithNullCardTypeThrows() {
         GeneratorConfig config = GeneratorConfig.defaults();
-        NullPointerException ex = assertThrows(
-            NullPointerException.class,
-            () -> new CreditCardGenerator(config, null)
-        );
+        NullPointerException ex = assertThrows(NullPointerException.class, () -> new CreditCardGenerator(config, null));
         assertTrue(ex.getMessage().contains("cardType must not be null"));
     }
 
@@ -210,8 +197,9 @@ class CreditCardGeneratorTest {
         assertNotNull(card);
         String unformatted = card.replaceAll("\\s", "");
         assertTrue(unformatted.startsWith("4"), "Visa should start with 4, got: " + card);
-        assertTrue(unformatted.length() == 16 || unformatted.length() == 13,
-                   "Visa should be 16 or 13 digits, got: " + unformatted.length());
+        assertTrue(
+                unformatted.length() == 16 || unformatted.length() == 13,
+                "Visa should be 16 or 13 digits, got: " + unformatted.length());
         assertTrue(CreditCardGenerator.isValidLuhn(unformatted), "Failed Luhn check: " + card);
     }
 
@@ -224,8 +212,7 @@ class CreditCardGeneratorTest {
         assertNotNull(card);
         assertTrue(card.matches("\\d+"), "Should contain only digits, got: " + card);
         assertTrue(card.startsWith("4"), "Visa should start with 4");
-        assertTrue(card.length() == 16 || card.length() == 13,
-                   "Visa should be 16 or 13 digits, got: " + card.length());
+        assertTrue(card.length() == 16 || card.length() == 13, "Visa should be 16 or 13 digits, got: " + card.length());
         assertTrue(CreditCardGenerator.isValidLuhn(card), "Failed Luhn check: " + card);
     }
 
@@ -236,9 +223,9 @@ class CreditCardGeneratorTest {
         String card = gen.generate(true);
 
         // 16-digit: "4532 1488 0343 6467" or 13-digit: "4532 1488 0343 6"
-        assertTrue(card.matches("4\\d{3} \\d{4} \\d{4} \\d{4}") ||
-                   card.matches("4\\d{3} \\d{4} \\d{4} \\d"),
-                   "Invalid Visa format: " + card);
+        assertTrue(
+                card.matches("4\\d{3} \\d{4} \\d{4} \\d{4}") || card.matches("4\\d{3} \\d{4} \\d{4} \\d"),
+                "Invalid Visa format: " + card);
     }
 
     @Test
@@ -248,8 +235,7 @@ class CreditCardGeneratorTest {
 
         for (int i = 0; i < 100; i++) {
             String card = gen.generate(false);
-            assertTrue(CreditCardGenerator.isValidLuhn(card),
-                       "Card failed Luhn validation: " + card);
+            assertTrue(CreditCardGenerator.isValidLuhn(card), "Card failed Luhn validation: " + card);
         }
     }
 
@@ -265,11 +251,14 @@ class CreditCardGeneratorTest {
         assertEquals(16, card.length(), "Mastercard should be 16 digits");
 
         // Check if it starts with valid Mastercard prefix
-        boolean validPrefix = card.startsWith("51") || card.startsWith("52") ||
-                              card.startsWith("53") || card.startsWith("54") ||
-                              card.startsWith("55") ||
-                              (card.startsWith("2") && Integer.parseInt(card.substring(0, 4)) >= 2221 &&
-                               Integer.parseInt(card.substring(0, 4)) <= 2720);
+        boolean validPrefix = card.startsWith("51")
+                || card.startsWith("52")
+                || card.startsWith("53")
+                || card.startsWith("54")
+                || card.startsWith("55")
+                || (card.startsWith("2")
+                        && Integer.parseInt(card.substring(0, 4)) >= 2221
+                        && Integer.parseInt(card.substring(0, 4)) <= 2720);
 
         assertTrue(validPrefix, "Invalid Mastercard prefix: " + card.substring(0, 4));
         assertTrue(CreditCardGenerator.isValidLuhn(card), "Failed Luhn check: " + card);
@@ -282,17 +271,14 @@ class CreditCardGeneratorTest {
         String card = gen.generate(true);
 
         // Should match "XXXX XXXX XXXX XXXX"
-        assertTrue(card.matches("\\d{4} \\d{4} \\d{4} \\d{4}"),
-                   "Invalid Mastercard format: " + card);
+        assertTrue(card.matches("\\d{4} \\d{4} \\d{4} \\d{4}"), "Invalid Mastercard format: " + card);
     }
 
     @Test
     @DisplayName("Mastercard 2221-2720 range prefix")
     void mastercardNewRangePrefix() {
-        CreditCardGenerator gen = new CreditCardGenerator(
-            GeneratorConfig.builder().seed(123L).build(),
-            CardType.MASTERCARD
-        );
+        CreditCardGenerator gen =
+                new CreditCardGenerator(GeneratorConfig.builder().seed(123L).build(), CardType.MASTERCARD);
 
         // Generate multiple cards to ensure we get some from the new range
         Set<String> prefixes = new HashSet<>();
@@ -312,8 +298,7 @@ class CreditCardGeneratorTest {
 
         for (int i = 0; i < 100; i++) {
             String card = gen.generate(false);
-            assertTrue(CreditCardGenerator.isValidLuhn(card),
-                       "Card failed Luhn validation: " + card);
+            assertTrue(CreditCardGenerator.isValidLuhn(card), "Card failed Luhn validation: " + card);
         }
     }
 
@@ -327,8 +312,9 @@ class CreditCardGeneratorTest {
 
         assertNotNull(card);
         assertEquals(15, card.length(), "Amex should be 15 digits");
-        assertTrue(card.startsWith("34") || card.startsWith("37"),
-                   "Amex should start with 34 or 37, got: " + card.substring(0, 2));
+        assertTrue(
+                card.startsWith("34") || card.startsWith("37"),
+                "Amex should start with 34 or 37, got: " + card.substring(0, 2));
         assertTrue(CreditCardGenerator.isValidLuhn(card), "Failed Luhn check: " + card);
     }
 
@@ -339,8 +325,7 @@ class CreditCardGeneratorTest {
         String card = gen.generate(true);
 
         // Should match "XXXX XXXXXX XXXXX"
-        assertTrue(card.matches("\\d{4} \\d{6} \\d{5}"),
-                   "Invalid Amex format (expected 4-6-5): " + card);
+        assertTrue(card.matches("\\d{4} \\d{6} \\d{5}"), "Invalid Amex format (expected 4-6-5): " + card);
     }
 
     @Test
@@ -361,8 +346,7 @@ class CreditCardGeneratorTest {
 
         for (int i = 0; i < 100; i++) {
             String card = gen.generate(false);
-            assertTrue(CreditCardGenerator.isValidLuhn(card),
-                       "Card failed Luhn validation: " + card);
+            assertTrue(CreditCardGenerator.isValidLuhn(card), "Card failed Luhn validation: " + card);
         }
     }
 
@@ -378,9 +362,9 @@ class CreditCardGeneratorTest {
         assertEquals(16, card.length(), "Discover should be 16 digits");
 
         // Check if it starts with valid Discover prefix
-        boolean validPrefix = card.startsWith("6011") ||
-                              card.startsWith("65") ||
-                              (card.startsWith("64") && card.charAt(2) >= '4' && card.charAt(2) <= '9');
+        boolean validPrefix = card.startsWith("6011")
+                || card.startsWith("65")
+                || (card.startsWith("64") && card.charAt(2) >= '4' && card.charAt(2) <= '9');
 
         assertTrue(validPrefix, "Invalid Discover prefix: " + card.substring(0, 4));
         assertTrue(CreditCardGenerator.isValidLuhn(card), "Failed Luhn check: " + card);
@@ -393,8 +377,7 @@ class CreditCardGeneratorTest {
 
         for (int i = 0; i < 100; i++) {
             String card = gen.generate(false);
-            assertTrue(CreditCardGenerator.isValidLuhn(card),
-                       "Card failed Luhn validation: " + card);
+            assertTrue(CreditCardGenerator.isValidLuhn(card), "Card failed Luhn validation: " + card);
         }
     }
 
@@ -410,8 +393,7 @@ class CreditCardGeneratorTest {
         assertEquals(16, card.length(), "JCB should be 16 digits");
 
         int prefix = Integer.parseInt(card.substring(0, 4));
-        assertTrue(prefix >= 3528 && prefix <= 3589,
-                   "JCB prefix should be 3528-3589, got: " + prefix);
+        assertTrue(prefix >= 3528 && prefix <= 3589, "JCB prefix should be 3528-3589, got: " + prefix);
         assertTrue(CreditCardGenerator.isValidLuhn(card), "Failed Luhn check: " + card);
     }
 
@@ -422,8 +404,7 @@ class CreditCardGeneratorTest {
 
         for (int i = 0; i < 100; i++) {
             String card = gen.generate(false);
-            assertTrue(CreditCardGenerator.isValidLuhn(card),
-                       "Card failed Luhn validation: " + card);
+            assertTrue(CreditCardGenerator.isValidLuhn(card), "Card failed Luhn validation: " + card);
         }
     }
 
@@ -439,8 +420,9 @@ class CreditCardGeneratorTest {
         assertEquals(14, card.length(), "Diners Club should be 14 digits");
 
         // Check if it starts with valid Diners prefix
-        boolean validPrefix = card.startsWith("36") || card.startsWith("38") ||
-                              (card.startsWith("30") && card.charAt(2) >= '0' && card.charAt(2) <= '5');
+        boolean validPrefix = card.startsWith("36")
+                || card.startsWith("38")
+                || (card.startsWith("30") && card.charAt(2) >= '0' && card.charAt(2) <= '5');
 
         assertTrue(validPrefix, "Invalid Diners Club prefix: " + card.substring(0, 3));
         assertTrue(CreditCardGenerator.isValidLuhn(card), "Failed Luhn check: " + card);
@@ -453,8 +435,7 @@ class CreditCardGeneratorTest {
         String card = gen.generate(true);
 
         // Should match "XXXX XXXXXX XXXX"
-        assertTrue(card.matches("\\d{4} \\d{6} \\d{4}"),
-                   "Invalid Diners Club format (expected 4-6-4): " + card);
+        assertTrue(card.matches("\\d{4} \\d{6} \\d{4}"), "Invalid Diners Club format (expected 4-6-4): " + card);
     }
 
     @Test
@@ -464,8 +445,7 @@ class CreditCardGeneratorTest {
 
         for (int i = 0; i < 100; i++) {
             String card = gen.generate(false);
-            assertTrue(CreditCardGenerator.isValidLuhn(card),
-                       "Card failed Luhn validation: " + card);
+            assertTrue(CreditCardGenerator.isValidLuhn(card), "Card failed Luhn validation: " + card);
         }
     }
 
@@ -559,16 +539,17 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("all card types pass Luhn validation")
     void allCardTypesPassLuhn() {
-        CardType[] types = { CardType.VISA, CardType.MASTERCARD, CardType.AMEX,
-                             CardType.DISCOVER, CardType.JCB, CardType.DINERS_CLUB };
+        CardType[] types = {
+            CardType.VISA, CardType.MASTERCARD, CardType.AMEX,
+            CardType.DISCOVER, CardType.JCB, CardType.DINERS_CLUB
+        };
 
         for (CardType type : types) {
             CreditCardGenerator gen = checksumValidGenerator(type);
 
             for (int i = 0; i < 50; i++) {
                 String card = gen.generate(false);
-                assertTrue(CreditCardGenerator.isValidLuhn(card),
-                           type + " card failed Luhn: " + card);
+                assertTrue(CreditCardGenerator.isValidLuhn(card), type + " card failed Luhn: " + card);
             }
         }
     }
@@ -578,8 +559,7 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("CVV is 3 digits for most card types")
     void cvvThreeDigits() {
-        CardType[] types = { CardType.VISA, CardType.MASTERCARD, CardType.DISCOVER,
-                             CardType.JCB, CardType.DINERS_CLUB };
+        CardType[] types = {CardType.VISA, CardType.MASTERCARD, CardType.DISCOVER, CardType.JCB, CardType.DINERS_CLUB};
 
         for (CardType type : types) {
             CreditCardGenerator gen = new CreditCardGenerator(type);
@@ -594,10 +574,8 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("CVV includes leading zeros")
     void cvvLeadingZeros() {
-        CreditCardGenerator gen = new CreditCardGenerator(
-            GeneratorConfig.builder().seed(1L).build(),
-            CardType.VISA
-        );
+        CreditCardGenerator gen =
+                new CreditCardGenerator(GeneratorConfig.builder().seed(1L).build(), CardType.VISA);
 
         Set<String> cvvs = new HashSet<>();
         for (int i = 0; i < 1000; i++) {
@@ -629,11 +607,11 @@ class CreditCardGeneratorTest {
 
         for (int i = 0; i < 100; i++) {
             String expiry = gen.getExpirationDate();
-            LocalDate expiryDate = LocalDate.parse("01/" + expiry,
-                                                   DateTimeFormatter.ofPattern("dd/MM/yy"));
+            LocalDate expiryDate = LocalDate.parse("01/" + expiry, DateTimeFormatter.ofPattern("dd/MM/yy"));
 
-            assertTrue(expiryDate.isAfter(now) || expiryDate.isEqual(now),
-                       "Expiration date should be in future: " + expiry);
+            assertTrue(
+                    expiryDate.isAfter(now) || expiryDate.isEqual(now),
+                    "Expiration date should be in future: " + expiry);
         }
     }
 
@@ -646,11 +624,9 @@ class CreditCardGeneratorTest {
 
         for (int i = 0; i < 100; i++) {
             String expiry = gen.getExpirationDate();
-            LocalDate expiryDate = LocalDate.parse("01/" + expiry,
-                                                   DateTimeFormatter.ofPattern("dd/MM/yy"));
+            LocalDate expiryDate = LocalDate.parse("01/" + expiry, DateTimeFormatter.ofPattern("dd/MM/yy"));
 
-            assertTrue(expiryDate.isBefore(fiveYearsLater),
-                       "Expiration date should be within 5 years: " + expiry);
+            assertTrue(expiryDate.isBefore(fiveYearsLater), "Expiration date should be within 5 years: " + expiry);
         }
     }
 
@@ -661,7 +637,8 @@ class CreditCardGeneratorTest {
         GeneratorConfig config = GeneratorConfig.builder().seed(4L).clock(clock).build();
         CreditCardGenerator gen = new CreditCardGenerator(config, CardType.VISA);
 
-        LocalDate expiryDate = LocalDate.parse("01/" + gen.getExpirationDate(), DateTimeFormatter.ofPattern("dd/MM/yy"));
+        LocalDate expiryDate =
+                LocalDate.parse("01/" + gen.getExpirationDate(), DateTimeFormatter.ofPattern("dd/MM/yy"));
         LocalDate firstAllowed = LocalDate.now(clock).plusMonths(1).withDayOfMonth(1);
         LocalDate lastAllowed = LocalDate.now(clock).plusMonths(60).withDayOfMonth(1);
 
@@ -691,8 +668,8 @@ class CreditCardGeneratorTest {
         CardInfo info = gen.generateWithType();
 
         String unformatted = info.cardNumber().replaceAll("\\s", "");
-        assertTrue(CreditCardGenerator.isValidLuhn(unformatted),
-                   "CardInfo card number failed Luhn: " + info.cardNumber());
+        assertTrue(
+                CreditCardGenerator.isValidLuhn(unformatted), "CardInfo card number failed Luhn: " + info.cardNumber());
     }
 
     @Test
@@ -713,21 +690,16 @@ class CreditCardGeneratorTest {
         CreditCardGenerator gen = new CreditCardGenerator(CardType.VISA);
         CardInfo info = gen.generateWithType();
 
-        assertTrue(info.expirationDate().matches("\\d{2}/\\d{2}"),
-                   "Expected MM/YY format");
+        assertTrue(info.expirationDate().matches("\\d{2}/\\d{2}"), "Expected MM/YY format");
     }
 
     @Test
     @DisplayName("CardInfo constructor validates null parameters")
     void cardInfoNullParametersThrow() {
-        assertThrows(NullPointerException.class,
-                     () -> new CardInfo(null, CardType.VISA, "123", "12/28"));
-        assertThrows(NullPointerException.class,
-                     () -> new CardInfo("4532148803436467", null, "123", "12/28"));
-        assertThrows(NullPointerException.class,
-                     () -> new CardInfo("4532148803436467", CardType.VISA, null, "12/28"));
-        assertThrows(NullPointerException.class,
-                     () -> new CardInfo("4532148803436467", CardType.VISA, "123", null));
+        assertThrows(NullPointerException.class, () -> new CardInfo(null, CardType.VISA, "123", "12/28"));
+        assertThrows(NullPointerException.class, () -> new CardInfo("4532148803436467", null, "123", "12/28"));
+        assertThrows(NullPointerException.class, () -> new CardInfo("4532148803436467", CardType.VISA, null, "12/28"));
+        assertThrows(NullPointerException.class, () -> new CardInfo("4532148803436467", CardType.VISA, "123", null));
     }
 
     // ── Random card type tests ────────────────────────────────────────────────
@@ -744,8 +716,9 @@ class CreditCardGeneratorTest {
         }
 
         // Should have cards from multiple types
-        assertTrue(prefixes.size() >= 3,
-                   "Should generate variety of card types, got " + prefixes.size() + " different prefixes");
+        assertTrue(
+                prefixes.size() >= 3,
+                "Should generate variety of card types, got " + prefixes.size() + " different prefixes");
     }
 
     @Test
@@ -755,8 +728,7 @@ class CreditCardGeneratorTest {
 
         for (int i = 0; i < 100; i++) {
             String card = gen.generate(false);
-            assertTrue(CreditCardGenerator.isValidLuhn(card),
-                       "Random card failed Luhn: " + card);
+            assertTrue(CreditCardGenerator.isValidLuhn(card), "Random card failed Luhn: " + card);
         }
     }
 
@@ -791,8 +763,7 @@ class CreditCardGeneratorTest {
         CreditCardGenerator gen2 = new CreditCardGenerator(config, CardType.VISA);
         String unformatted = gen2.generate(false);
 
-        assertEquals(unformatted, formatted.replaceAll("\\s", ""),
-                     "Formatted and unformatted should have same digits");
+        assertEquals(unformatted, formatted.replaceAll("\\s", ""), "Formatted and unformatted should have same digits");
     }
 
     // ── Seeding and reproducibility tests ─────────────────────────────────────
@@ -860,8 +831,7 @@ class CreditCardGeneratorTest {
 
         for (String card : cards) {
             String unformatted = card.replaceAll("\\s", "");
-            assertTrue(CreditCardGenerator.isValidLuhn(unformatted),
-                       "Invalid card in list: " + card);
+            assertTrue(CreditCardGenerator.isValidLuhn(unformatted), "Invalid card in list: " + card);
         }
     }
 
@@ -895,8 +865,7 @@ class CreditCardGeneratorTest {
         assertEquals(50, cards.size());
         for (String card : cards) {
             String unformatted = card.replaceAll("\\s", "");
-            assertTrue(CreditCardGenerator.isValidLuhn(unformatted),
-                       "Invalid card in stream: " + card);
+            assertTrue(CreditCardGenerator.isValidLuhn(unformatted), "Invalid card in stream: " + card);
         }
     }
 
@@ -914,16 +883,15 @@ class CreditCardGeneratorTest {
     @Test
     @DisplayName("all card types have valid configuration")
     void allCardTypesHaveValidConfiguration() {
-        CardType[] types = { CardType.VISA, CardType.MASTERCARD, CardType.AMEX,
-                             CardType.DISCOVER, CardType.JCB, CardType.DINERS_CLUB };
+        CardType[] types = {
+            CardType.VISA, CardType.MASTERCARD, CardType.AMEX,
+            CardType.DISCOVER, CardType.JCB, CardType.DINERS_CLUB
+        };
 
         for (CardType type : types) {
-            assertFalse(type.getPrefixPatterns().isEmpty(),
-                        type + " should have prefix patterns");
-            assertFalse(type.getCardLengths().isEmpty(),
-                        type + " should have card lengths");
-            assertTrue(type.getCvvLength() >= 3 && type.getCvvLength() <= 4,
-                       type + " CVV length should be 3 or 4");
+            assertFalse(type.getPrefixPatterns().isEmpty(), type + " should have prefix patterns");
+            assertFalse(type.getCardLengths().isEmpty(), type + " should have card lengths");
+            assertTrue(type.getCvvLength() >= 3 && type.getCvvLength() <= 4, type + " CVV length should be 3 or 4");
         }
     }
 

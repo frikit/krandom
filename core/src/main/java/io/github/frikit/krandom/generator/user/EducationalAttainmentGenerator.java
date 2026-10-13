@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -23,7 +22,7 @@ import java.util.Random;
 public final class EducationalAttainmentGenerator implements Generator<String> {
 
     private static final EducationalAttainmentDataProvider DEFAULT_PROVIDER =
-        new BuiltInEducationalAttainmentDataProvider(Locale.ROOT, "default");
+            new BuiltInEducationalAttainmentDataProvider(Locale.ROOT, "default");
 
     private final List<String> levels;
     private final Random random;
@@ -41,7 +40,9 @@ public final class EducationalAttainmentGenerator implements Generator<String> {
      * @param locale locale whose attainment levels to use; must not be {@code null}
      */
     public EducationalAttainmentGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -51,7 +52,8 @@ public final class EducationalAttainmentGenerator implements Generator<String> {
      */
     public EducationalAttainmentGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        EducationalAttainmentDataProvider provider = config.getRegistryContext().educationalAttainmentProvider(config.getLocale());
+        EducationalAttainmentDataProvider provider =
+                config.getRegistryContext().educationalAttainmentProvider(config.getLocale());
         this.levels = (provider != null ? provider : DEFAULT_PROVIDER).getEducationalAttainments();
         this.random = config.createRandom();
     }

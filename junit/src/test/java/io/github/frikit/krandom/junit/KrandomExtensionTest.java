@@ -5,14 +5,14 @@
  */
 package io.github.frikit.krandom.junit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class KrandomExtensionTest {
 
@@ -25,7 +25,8 @@ class KrandomExtensionTest {
     @KrandomSeed(text = "checkout-flow")
     @Test
     void pinnedTextSeedDerivesLikeGeneratorConfig(GeneratorConfig config) {
-        assertEquals(GeneratorConfig.deriveSeed("checkout-flow"), config.getSeed().getAsLong());
+        assertEquals(
+                GeneratorConfig.deriveSeed("checkout-flow"), config.getSeed().getAsLong());
         assertEquals("checkout-flow", config.getStringSeed().orElseThrow());
     }
 

@@ -5,17 +5,16 @@
  */
 package io.github.frikit.krandom.generator.datetime;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalTime;
-import java.util.HashSet;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.time.LocalTime;
+import java.util.HashSet;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
 
 class TimeGeneratorTest {
 

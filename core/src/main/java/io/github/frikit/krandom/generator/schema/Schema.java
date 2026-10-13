@@ -5,12 +5,11 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
+import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -40,17 +39,17 @@ import java.util.Random;
  */
 public final class Schema implements Generator<Map<String, Object>> {
 
-    private static final String JSON_SCHEMA_DRAFT_2020_12  = "https://json-schema.org/draft/2020-12/schema";
-    static final String         XML_DECLARATION            = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-    static final String         DEFAULT_XML_ROOT_ELEMENT   = "records";
-    static final String         DEFAULT_XML_RECORD_ELEMENT = "record";
-    static final char           NEWLINE                    = '\n';
+    private static final String JSON_SCHEMA_DRAFT_2020_12 = "https://json-schema.org/draft/2020-12/schema";
+    static final String XML_DECLARATION = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+    static final String DEFAULT_XML_ROOT_ELEMENT = "records";
+    static final String DEFAULT_XML_RECORD_ELEMENT = "record";
+    static final char NEWLINE = '\n';
 
-    private final GeneratorConfig                  config;
+    private final GeneratorConfig config;
     private final Map<String, SchemaValueProvider> fields;
-    private final Random                           random;
-    private final Optional<GenerationRecipe>       generationRecipe;
-    private       int                              nextRecordIndex;
+    private final Random random;
+    private final Optional<GenerationRecipe> generationRecipe;
+    private int nextRecordIndex;
 
     @FunctionalInterface
     interface StringBuilderWriter {
@@ -522,14 +521,11 @@ public final class Schema implements Generator<Map<String, Object>> {
             String field = entry.getKey();
             required.add(field);
             try {
-                properties.put(field, JsonSchemaSupport.copyJsonSchema(entry.getValue().jsonSchema()));
+                properties.put(
+                        field, JsonSchemaSupport.copyJsonSchema(entry.getValue().jsonSchema()));
             } catch (RuntimeException ex) {
                 throw new SchemaGenerationException(
-                    field,
-                    -1,
-                    GenerationFailureCategory.SCHEMA_METADATA,
-                    GenerationOperation.EXPORT_SCHEMA,
-                    ex);
+                        field, -1, GenerationFailureCategory.SCHEMA_METADATA, GenerationOperation.EXPORT_SCHEMA, ex);
             }
         }
 
@@ -544,15 +540,17 @@ public final class Schema implements Generator<Map<String, Object>> {
             String name = entry.getKey();
             SchemaValueProvider provider = entry.getValue();
             try {
-                SchemaContext context = new SchemaContext(
-                    config.getLocale(), randomForField(recordIndex, name), recordIndex);
+                SchemaContext context =
+                        new SchemaContext(config.getLocale(), randomForField(recordIndex, name), recordIndex);
                 record.put(name, provider.generate(context));
             } catch (RuntimeException ex) {
                 throw new SchemaGenerationException(
-                    name,
-                    recordIndex,
-                    ex,
-                    generationRecipe.map(GenerationRecipe::serializeForDiagnostics).orElse(null));
+                        name,
+                        recordIndex,
+                        ex,
+                        generationRecipe
+                                .map(GenerationRecipe::serializeForDiagnostics)
+                                .orElse(null));
             }
         }
         return record;
@@ -604,9 +602,9 @@ public final class Schema implements Generator<Map<String, Object>> {
     private static void appendXmlValue(Appendable out, Object value) throws IOException {
         value = normalizeStructuredValue(value);
         if (value instanceof CharSequence
-            || value instanceof Character
-            || value instanceof Number
-            || value instanceof Boolean) {
+                || value instanceof Character
+                || value instanceof Number
+                || value instanceof Boolean) {
             appendXmlText(out, String.valueOf(value));
             return;
         }
@@ -636,7 +634,9 @@ public final class Schema implements Generator<Map<String, Object>> {
     private static void appendXmlEscaped(Appendable out, String value, boolean attribute) throws IOException {
         for (int i = 0; i < value.length(); i++) {
             char ch = value.charAt(i);
-            if (Character.isHighSurrogate(ch) && i + 1 < value.length() && Character.isLowSurrogate(value.charAt(i + 1))) {
+            if (Character.isHighSurrogate(ch)
+                    && i + 1 < value.length()
+                    && Character.isLowSurrogate(value.charAt(i + 1))) {
                 out.append(ch).append(value.charAt(++i));
                 continue;
             }
@@ -1060,7 +1060,8 @@ public final class Schema implements Generator<Map<String, Object>> {
         }
         for (int i = 0; i < value.length(); i++) {
             char ch = value.charAt(i);
-            boolean asciiLetterOrDigit = (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9');
+            boolean asciiLetterOrDigit =
+                    (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9');
             if (!(asciiLetterOrDigit || ch == '_' || ch == '-')) {
                 return false;
             }
@@ -1114,11 +1115,11 @@ public final class Schema implements Generator<Map<String, Object>> {
 
     private static boolean needsCsvQuoting(String value) {
         return value.indexOf(',') >= 0
-               || value.indexOf('"') >= 0
-               || value.indexOf('\n') >= 0
-               || value.indexOf('\r') >= 0
-               || value.startsWith(" ")
-               || value.endsWith(" ");
+                || value.indexOf('"') >= 0
+                || value.indexOf('\n') >= 0
+                || value.indexOf('\r') >= 0
+                || value.startsWith(" ")
+                || value.endsWith(" ");
     }
 
     static String toCsvCell(@org.jspecify.annotations.Nullable Object value) {
@@ -1127,9 +1128,9 @@ public final class Schema implements Generator<Map<String, Object>> {
             return "";
         }
         if (normalized instanceof CharSequence
-            || normalized instanceof Character
-            || normalized instanceof Number
-            || normalized instanceof Boolean) {
+                || normalized instanceof Character
+                || normalized instanceof Number
+                || normalized instanceof Boolean) {
             return String.valueOf(normalized);
         }
         if (normalized instanceof Map<?, ?> || normalized instanceof Iterable<?>) {
@@ -1148,17 +1149,18 @@ public final class Schema implements Generator<Map<String, Object>> {
         return builder.toString();
     }
 
-    static @org.jspecify.annotations.Nullable Object normalizeStructuredValue(@org.jspecify.annotations.Nullable Object value) {
+    static @org.jspecify.annotations.Nullable Object normalizeStructuredValue(
+            @org.jspecify.annotations.Nullable Object value) {
         return normalizeStructuredValue(value, "");
     }
 
     private static @org.jspecify.annotations.Nullable Object normalizeStructuredValue(
-        @org.jspecify.annotations.Nullable Object value, String componentPath) {
+            @org.jspecify.annotations.Nullable Object value, String componentPath) {
         if (value == null
-            || value instanceof CharSequence
-            || value instanceof Character
-            || value instanceof Number
-            || value instanceof Boolean) {
+                || value instanceof CharSequence
+                || value instanceof Character
+                || value instanceof Number
+                || value instanceof Boolean) {
             return value;
         }
         if (value instanceof Map<?, ?> map) {
@@ -1196,13 +1198,10 @@ public final class Schema implements Generator<Map<String, Object>> {
         RecordComponent[] components = record.getClass().getRecordComponents();
         Map<String, Object> values = new LinkedHashMap<>(components.length);
         for (RecordComponent component : components) {
-            String path = componentPath.isEmpty()
-                          ? component.getName()
-                          : componentPath + "." + component.getName();
+            String path = componentPath.isEmpty() ? component.getName() : componentPath + "." + component.getName();
             Object componentValue = SchemaRecordAccess.read(record, component, path);
             values.put(component.getName(), normalizeStructuredValue(componentValue, path));
         }
         return Collections.unmodifiableMap(values);
     }
-
 }

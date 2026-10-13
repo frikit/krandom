@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.util.List;
 import java.util.Locale;
 
@@ -30,10 +29,14 @@ final class BuiltInCompanyBuzzwordDataProvider implements CompanyBuzzwordDataPro
 
     BuiltInCompanyBuzzwordDataProvider(Locale locale, String resourcePrefix) {
         this.locale = locale;
-        this.verbs = List.of(LocaleTextResourceLoader.load("krandom/company_buzzwords/verbs/" + resourcePrefix + ".txt"));
-        this.adjectives = List.of(LocaleTextResourceLoader.load("krandom/company_buzzwords/adjectives/" + resourcePrefix + ".txt"));
-        this.nouns = List.of(LocaleTextResourceLoader.load("krandom/company_buzzwords/nouns/" + resourcePrefix + ".txt"));
-        String[] formats = LocaleTextResourceLoader.load("krandom/company_buzzwords/formats/" + resourcePrefix + ".txt");
+        this.verbs =
+                List.of(LocaleTextResourceLoader.load("krandom/company_buzzwords/verbs/" + resourcePrefix + ".txt"));
+        this.adjectives = List.of(
+                LocaleTextResourceLoader.load("krandom/company_buzzwords/adjectives/" + resourcePrefix + ".txt"));
+        this.nouns =
+                List.of(LocaleTextResourceLoader.load("krandom/company_buzzwords/nouns/" + resourcePrefix + ".txt"));
+        String[] formats =
+                LocaleTextResourceLoader.load("krandom/company_buzzwords/formats/" + resourcePrefix + ".txt");
         this.format = formats[0];
     }
 

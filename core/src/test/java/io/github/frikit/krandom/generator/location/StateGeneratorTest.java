@@ -5,21 +5,7 @@
  */
 package io.github.frikit.krandom.generator.location;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Random;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -28,6 +14,16 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.locale.SupportedLocale;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("StateGenerator")
 class StateGeneratorTest {
@@ -63,9 +59,12 @@ class StateGeneratorTest {
 
         // Check for some major US states
         long usStates = states.stream()
-                              .filter(s -> s.equals("California") || s.equals("Texas") ||
-                                           s.equals("New York") || s.equals("Florida") || s.equals("Illinois"))
-                              .count();
+                .filter(s -> s.equals("California")
+                        || s.equals("Texas")
+                        || s.equals("New York")
+                        || s.equals("Florida")
+                        || s.equals("Illinois"))
+                .count();
         assertTrue(usStates > 0, "Expected to find at least one major US state");
         assertEquals(51, gen.getStateCount()); // 50 states + DC
     }
@@ -82,14 +81,14 @@ class StateGeneratorTest {
 
         // Check for some major US state abbreviations
         long usAbbrevs = abbreviations.stream()
-                                      .filter(s -> s.equals("CA") || s.equals("TX") ||
-                                                   s.equals("NY") || s.equals("FL") || s.equals("IL"))
-                                      .count();
+                .filter(s -> s.equals("CA") || s.equals("TX") || s.equals("NY") || s.equals("FL") || s.equals("IL"))
+                .count();
         assertTrue(usAbbrevs > 0, "Expected to find at least one US state abbreviation");
 
         // All should be 2 characters (standard US state abbreviations)
-        assertTrue(abbreviations.stream().allMatch(a -> a.length() <= 2),
-                   "US abbreviations should be 2 characters or less");
+        assertTrue(
+                abbreviations.stream().allMatch(a -> a.length() <= 2),
+                "US abbreviations should be 2 characters or less");
     }
 
     @Test
@@ -104,10 +103,12 @@ class StateGeneratorTest {
 
         // Check for some major Australian states
         long auStates = states.stream()
-                              .filter(s -> s.equals("New South Wales") || s.equals("Victoria") ||
-                                           s.equals("Queensland") || s.equals("South Australia") ||
-                                           s.equals("Western Australia"))
-                              .count();
+                .filter(s -> s.equals("New South Wales")
+                        || s.equals("Victoria")
+                        || s.equals("Queensland")
+                        || s.equals("South Australia")
+                        || s.equals("Western Australia"))
+                .count();
         assertTrue(auStates > 0, "Expected to find at least one major Australian state");
         assertEquals(8, gen.getStateCount()); // 6 states + 2 territories
     }
@@ -124,9 +125,8 @@ class StateGeneratorTest {
 
         // Check for some Australian state abbreviations
         long auAbbrevs = abbreviations.stream()
-                                      .filter(a -> a.equals("NSW") || a.equals("VIC") ||
-                                                   a.equals("QLD") || a.equals("SA") || a.equals("WA"))
-                                      .count();
+                .filter(a -> a.equals("NSW") || a.equals("VIC") || a.equals("QLD") || a.equals("SA") || a.equals("WA"))
+                .count();
         assertTrue(auAbbrevs > 0, "Expected to find at least one Australian state abbreviation");
     }
 
@@ -142,10 +142,12 @@ class StateGeneratorTest {
 
         // Check for German states with proper German spelling
         long germanStates = states.stream()
-                                  .filter(s -> s.equals("Bayern") || s.equals("Nordrhein-Westfalen") ||
-                                               s.equals("Baden-Württemberg") || s.equals("Hessen") ||
-                                               s.equals("Berlin"))
-                                  .count();
+                .filter(s -> s.equals("Bayern")
+                        || s.equals("Nordrhein-Westfalen")
+                        || s.equals("Baden-Württemberg")
+                        || s.equals("Hessen")
+                        || s.equals("Berlin"))
+                .count();
         assertTrue(germanStates > 0, "Expected to find at least one major German state");
         assertEquals(16, gen.getStateCount());
     }
@@ -162,9 +164,8 @@ class StateGeneratorTest {
 
         // Even with abbreviation flag, should return full names since German states don't have standard abbreviations
         long germanStates = results.stream()
-                                   .filter(s -> s.equals("Bayern") || s.equals("Berlin") ||
-                                                s.equals("Hessen"))
-                                   .count();
+                .filter(s -> s.equals("Bayern") || s.equals("Berlin") || s.equals("Hessen"))
+                .count();
         assertTrue(germanStates > 0, "Expected full state names even with abbreviation flag");
     }
 
@@ -180,9 +181,12 @@ class StateGeneratorTest {
 
         // Check for some Italian regions
         long itRegions = regions.stream()
-                                .filter(r -> r.equals("Toscana") || r.equals("Lombardia") ||
-                                             r.equals("Lazio") || r.equals("Campania") || r.equals("Sicilia"))
-                                .count();
+                .filter(r -> r.equals("Toscana")
+                        || r.equals("Lombardia")
+                        || r.equals("Lazio")
+                        || r.equals("Campania")
+                        || r.equals("Sicilia"))
+                .count();
         assertTrue(itRegions > 0, "Expected to find at least one major Italian region");
         assertEquals(20, gen.getStateCount());
     }
@@ -199,8 +203,8 @@ class StateGeneratorTest {
 
         // Should return full names since Italian regions don't have standard abbreviations in our data
         long itRegions = results.stream()
-                                .filter(r -> r.equals("Toscana") || r.equals("Lombardia") || r.equals("Lazio"))
-                                .count();
+                .filter(r -> r.equals("Toscana") || r.equals("Lombardia") || r.equals("Lazio"))
+                .count();
         assertTrue(itRegions > 0, "Expected full region names even with abbreviation flag");
     }
 
@@ -216,9 +220,11 @@ class StateGeneratorTest {
 
         // Check for UK countries
         long ukCountries = countries.stream()
-                                    .filter(c -> c.equals("England") || c.equals("Scotland") ||
-                                                 c.equals("Wales") || c.equals("Northern Ireland"))
-                                    .count();
+                .filter(c -> c.equals("England")
+                        || c.equals("Scotland")
+                        || c.equals("Wales")
+                        || c.equals("Northern Ireland"))
+                .count();
         assertTrue(ukCountries > 0, "Expected to find at least one UK country");
         assertEquals(4, gen.getStateCount());
     }
@@ -235,8 +241,8 @@ class StateGeneratorTest {
 
         // Should return full names since UK countries don't have abbreviations
         long ukCountries = results.stream()
-                                  .filter(c -> c.equals("England") || c.equals("Scotland"))
-                                  .count();
+                .filter(c -> c.equals("England") || c.equals("Scotland"))
+                .count();
         assertTrue(ukCountries > 0, "Expected full country names even with abbreviation flag");
     }
 
@@ -252,10 +258,12 @@ class StateGeneratorTest {
 
         // Check for some French regions
         long frRegions = regions.stream()
-                                .filter(r -> r.equals("Île-de-France") || r.equals("Auvergne-Rhône-Alpes") ||
-                                             r.equals("Nouvelle-Aquitaine") || r.equals("Provence-Alpes-Côte d'Azur") ||
-                                             r.equals("Bretagne"))
-                                .count();
+                .filter(r -> r.equals("Île-de-France")
+                        || r.equals("Auvergne-Rhône-Alpes")
+                        || r.equals("Nouvelle-Aquitaine")
+                        || r.equals("Provence-Alpes-Côte d'Azur")
+                        || r.equals("Bretagne"))
+                .count();
         assertTrue(frRegions > 0, "Expected to find at least one major French region");
         assertEquals(18, gen.getStateCount());
     }
@@ -272,8 +280,8 @@ class StateGeneratorTest {
 
         // Should return full names since French regions don't have abbreviations
         long frRegions = results.stream()
-                                .filter(r -> r.equals("Île-de-France") || r.equals("Bretagne"))
-                                .count();
+                .filter(r -> r.equals("Île-de-France") || r.equals("Bretagne"))
+                .count();
         assertTrue(frRegions > 0, "Expected full region names even with abbreviation flag");
     }
 
@@ -289,10 +297,12 @@ class StateGeneratorTest {
 
         // Check for some Spanish autonomous communities
         long esRegions = communities.stream()
-                                    .filter(c -> c.equals("Andalucía") || c.equals("Cataluña") ||
-                                                 c.equals("Comunidad de Madrid") || c.equals("País Vasco") ||
-                                                 c.equals("Galicia"))
-                                    .count();
+                .filter(c -> c.equals("Andalucía")
+                        || c.equals("Cataluña")
+                        || c.equals("Comunidad de Madrid")
+                        || c.equals("País Vasco")
+                        || c.equals("Galicia"))
+                .count();
         assertTrue(esRegions > 0, "Expected to find at least one Spanish autonomous community");
         assertEquals(19, gen.getStateCount());
     }
@@ -309,8 +319,8 @@ class StateGeneratorTest {
 
         // Should return full names since Spanish autonomous communities don't have abbreviations
         long esRegions = results.stream()
-                                .filter(c -> c.equals("Andalucía") || c.equals("Cataluña"))
-                                .count();
+                .filter(c -> c.equals("Andalucía") || c.equals("Cataluña"))
+                .count();
         assertTrue(esRegions > 0, "Expected full community names even with abbreviation flag");
     }
 
@@ -326,10 +336,12 @@ class StateGeneratorTest {
 
         // Check for some major Brazilian states
         long brStates = states.stream()
-                              .filter(s -> s.equals("São Paulo") || s.equals("Rio de Janeiro") ||
-                                           s.equals("Minas Gerais") || s.equals("Bahia") ||
-                                           s.equals("Paraná"))
-                              .count();
+                .filter(s -> s.equals("São Paulo")
+                        || s.equals("Rio de Janeiro")
+                        || s.equals("Minas Gerais")
+                        || s.equals("Bahia")
+                        || s.equals("Paraná"))
+                .count();
         assertTrue(brStates > 0, "Expected to find at least one major Brazilian state");
         assertEquals(27, gen.getStateCount()); // 26 states + 1 federal district
     }
@@ -346,9 +358,8 @@ class StateGeneratorTest {
 
         // Check for some Brazilian state abbreviations
         long brAbbrevs = abbreviations.stream()
-                                      .filter(a -> a.equals("SP") || a.equals("RJ") ||
-                                                   a.equals("MG") || a.equals("BA") || a.equals("PR"))
-                                      .count();
+                .filter(a -> a.equals("SP") || a.equals("RJ") || a.equals("MG") || a.equals("BA") || a.equals("PR"))
+                .count();
         assertTrue(brAbbrevs > 0, "Expected to find at least one Brazilian state abbreviation");
     }
 
@@ -364,10 +375,9 @@ class StateGeneratorTest {
 
         // Check for some major Japanese prefectures
         long jpPrefectures = prefectures.stream()
-                                        .filter(p -> p.equals("東京都") || p.equals("大阪府") ||
-                                                     p.equals("京都府") || p.equals("北海道") ||
-                                                     p.equals("神奈川県"))
-                                        .count();
+                .filter(p ->
+                        p.equals("東京都") || p.equals("大阪府") || p.equals("京都府") || p.equals("北海道") || p.equals("神奈川県"))
+                .count();
         assertTrue(jpPrefectures > 0, "Expected to find at least one major Japanese prefecture");
         assertEquals(47, gen.getStateCount());
     }
@@ -383,9 +393,8 @@ class StateGeneratorTest {
         }
 
         // Should return full names since Japanese prefectures don't have abbreviations
-        long jpPrefectures = results.stream()
-                                    .filter(p -> p.equals("東京都") || p.equals("大阪府"))
-                                    .count();
+        long jpPrefectures =
+                results.stream().filter(p -> p.equals("東京都") || p.equals("大阪府")).count();
         assertTrue(jpPrefectures > 0, "Expected full prefecture names even with abbreviation flag");
     }
 
@@ -401,10 +410,9 @@ class StateGeneratorTest {
 
         // Check for some major Chinese provinces
         long cnProvinces = provinces.stream()
-                                    .filter(p -> p.equals("北京市") || p.equals("上海市") ||
-                                                 p.equals("广东省") || p.equals("四川省") ||
-                                                 p.equals("江苏省"))
-                                    .count();
+                .filter(p ->
+                        p.equals("北京市") || p.equals("上海市") || p.equals("广东省") || p.equals("四川省") || p.equals("江苏省"))
+                .count();
         assertTrue(cnProvinces > 0, "Expected to find at least one major Chinese province");
         assertEquals(34, gen.getStateCount());
     }
@@ -420,17 +428,18 @@ class StateGeneratorTest {
         }
 
         // Should return full names since Chinese provinces don't have abbreviations
-        long cnProvinces = results.stream()
-                                  .filter(p -> p.equals("北京市") || p.equals("上海市"))
-                                  .count();
+        long cnProvinces =
+                results.stream().filter(p -> p.equals("北京市") || p.equals("上海市")).count();
         assertTrue(cnProvinces > 0, "Expected full province names even with abbreviation flag");
     }
 
     @Test
     @DisplayName("seeded generator produces reproducible results")
     void seededReproducibility() {
-        GeneratorConfig config1 = GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
-        GeneratorConfig config2 = GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
+        GeneratorConfig config1 =
+                GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
+        GeneratorConfig config2 =
+                GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
 
         StateGenerator gen1 = new StateGenerator(config1);
         StateGenerator gen2 = new StateGenerator(config2);
@@ -444,8 +453,10 @@ class StateGeneratorTest {
     @Test
     @DisplayName("seeded generator with abbreviations produces reproducible results")
     void seededReproducibilityWithAbbreviations() {
-        GeneratorConfig config1 = GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
-        GeneratorConfig config2 = GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
+        GeneratorConfig config1 =
+                GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
+        GeneratorConfig config2 =
+                GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
 
         StateGenerator gen1 = new StateGenerator(config1);
         StateGenerator gen2 = new StateGenerator(config2);
@@ -464,8 +475,10 @@ class StateGeneratorTest {
     @Test
     @DisplayName("different seeds produce different sequences")
     void differentSeeds() {
-        GeneratorConfig config1 = GeneratorConfig.builder().locale(Locale.US).seed(111L).build();
-        GeneratorConfig config2 = GeneratorConfig.builder().locale(Locale.US).seed(222L).build();
+        GeneratorConfig config1 =
+                GeneratorConfig.builder().locale(Locale.US).seed(111L).build();
+        GeneratorConfig config2 =
+                GeneratorConfig.builder().locale(Locale.US).seed(222L).build();
 
         StateGenerator gen1 = new StateGenerator(config1);
         StateGenerator gen2 = new StateGenerator(config2);
@@ -516,8 +529,7 @@ class StateGeneratorTest {
     void stateCountPositive() {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             StateGenerator gen = new StateGenerator(supportedLocale.locale());
-            assertTrue(gen.getStateCount() > 0,
-                       "Locale " + supportedLocale.locale() + " should have states");
+            assertTrue(gen.getStateCount() > 0, "Locale " + supportedLocale.locale() + " should have states");
         }
     }
 
@@ -539,10 +551,8 @@ class StateGeneratorTest {
     @Test
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
-        UnsupportedOperationException ex = assertThrows(
-            UnsupportedOperationException.class,
-            () -> new StateGenerator(Locale.of("xx", "YY"))
-        );
+        UnsupportedOperationException ex =
+                assertThrows(UnsupportedOperationException.class, () -> new StateGenerator(Locale.of("xx", "YY")));
 
         assertTrue(ex.getMessage().contains("not supported"));
         assertTrue(ex.getMessage().contains("xx_YY"));
@@ -551,15 +561,13 @@ class StateGeneratorTest {
     @Test
     @DisplayName("null config throws NullPointerException")
     void nullConfigThrows() {
-        assertThrows(NullPointerException.class,
-                     () -> new StateGenerator((GeneratorConfig) null));
+        assertThrows(NullPointerException.class, () -> new StateGenerator((GeneratorConfig) null));
     }
 
     @Test
     @DisplayName("null locale throws NullPointerException")
     void nullLocaleThrows() {
-        assertThrows(NullPointerException.class,
-                     () -> new StateGenerator((Locale) null));
+        assertThrows(NullPointerException.class, () -> new StateGenerator((Locale) null));
     }
 
     @Test
@@ -620,8 +628,7 @@ class StateGeneratorTest {
     @Test
     @DisplayName("StateResourceLoader loads valid resource file")
     void resourceLoaderLoadsValidFile() {
-        StateResourceLoader.StateData data =
-            StateResourceLoader.load("krandom/states/en_US_states.txt");
+        StateResourceLoader.StateData data = StateResourceLoader.load("krandom/states/en_US_states.txt");
         assertTrue(data.states.length > 0);
         assertTrue(data.abbreviations.length > 0);
         assertTrue(Arrays.asList(data.states).contains("California"));
@@ -631,8 +638,7 @@ class StateGeneratorTest {
     @Test
     @DisplayName("StateResourceLoader filters comments and blank lines")
     void resourceLoaderFiltersCommentsAndBlanks() {
-        StateResourceLoader.StateData data =
-            StateResourceLoader.load("krandom/states/test_states.txt");
+        StateResourceLoader.StateData data = StateResourceLoader.load("krandom/states/test_states.txt");
         assertEquals(3, data.states.length);
         assertEquals(3, data.abbreviations.length);
         assertEquals("State One", data.states[0]);
@@ -647,9 +653,7 @@ class StateGeneratorTest {
     @DisplayName("StateResourceLoader throws for missing resource")
     void resourceLoaderThrowsForMissingFile() {
         IllegalStateException ex = assertThrows(
-            IllegalStateException.class,
-            () -> StateResourceLoader.load("krandom/states/nonexistent.txt")
-        );
+                IllegalStateException.class, () -> StateResourceLoader.load("krandom/states/nonexistent.txt"));
         assertTrue(ex.getMessage().contains("State resource not found"));
     }
 
@@ -676,8 +680,7 @@ class StateGeneratorTest {
     void registryUtilityClassConstructor() throws Exception {
         var constructor = StateDataRegistry.class.getDeclaredConstructor();
         constructor.setAccessible(true);
-        var ex = assertThrows(java.lang.reflect.InvocationTargetException.class,
-                              constructor::newInstance);
+        var ex = assertThrows(java.lang.reflect.InvocationTargetException.class, constructor::newInstance);
         assertTrue(ex.getCause() instanceof UnsupportedOperationException);
         assertEquals("Utility class", ex.getCause().getMessage());
     }
@@ -687,8 +690,7 @@ class StateGeneratorTest {
     void resourceLoaderUtilityClassConstructor() throws Exception {
         var constructor = StateResourceLoader.class.getDeclaredConstructor();
         constructor.setAccessible(true);
-        var ex = assertThrows(java.lang.reflect.InvocationTargetException.class,
-                              constructor::newInstance);
+        var ex = assertThrows(java.lang.reflect.InvocationTargetException.class, constructor::newInstance);
         assertTrue(ex.getCause() instanceof UnsupportedOperationException);
         assertEquals("Utility class", ex.getCause().getMessage());
     }
@@ -698,35 +700,37 @@ class StateGeneratorTest {
     void abbreviationFallbackForContextScopedProvider() {
         Locale locale = Locale.of("zz", "ZZ");
         io.github.frikit.krandom.generator.DataRegistryContext context =
-            io.github.frikit.krandom.generator.DataRegistryContext.builder()
-                .registerStateProvider(new StateDataProvider() {
+                io.github.frikit.krandom.generator.DataRegistryContext.builder()
+                        .registerStateProvider(new StateDataProvider() {
 
-                    @Override
-                    public Locale getLocale() {
-                        return locale;
-                    }
+                            @Override
+                            public Locale getLocale() {
+                                return locale;
+                            }
 
-                    @Override
-                    public String[] getStates() {
-                        return new String[] { "Alpha", "Beta" };
-                    }
+                            @Override
+                            public String[] getStates() {
+                                return new String[] {"Alpha", "Beta"};
+                            }
 
-                    @Override
-                    public String[] getAbbreviations() {
-                        return new String[] { "AA" };
-                    }
-                })
-                .build();
-        StateGenerator generator = new StateGenerator(
-            GeneratorConfig.builder().locale(locale).seed(7L).registryContext(context).build());
+                            @Override
+                            public String[] getAbbreviations() {
+                                return new String[] {"AA"};
+                            }
+                        })
+                        .build();
+        StateGenerator generator = new StateGenerator(GeneratorConfig.builder()
+                .locale(locale)
+                .seed(7L)
+                .registryContext(context)
+                .build());
 
         java.util.Set<String> produced = new java.util.HashSet<>();
         for (int i = 0; i < 100; i++) {
             produced.add(generator.generate(true));
         }
-        org.junit.jupiter.api.Assertions.assertTrue(produced.contains("AA"),
-            "abbreviated state expected: " + produced);
-        org.junit.jupiter.api.Assertions.assertTrue(produced.contains("Beta"),
-            "full-name fallback expected: " + produced);
+        org.junit.jupiter.api.Assertions.assertTrue(produced.contains("AA"), "abbreviated state expected: " + produced);
+        org.junit.jupiter.api.Assertions.assertTrue(
+                produced.contains("Beta"), "full-name fallback expected: " + produced);
     }
 }

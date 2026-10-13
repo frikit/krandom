@@ -6,9 +6,7 @@
 package io.github.frikit.krandom.generator.location;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -36,8 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class CountryDataRegistry {
 
-    private static final ConcurrentHashMap<String, CountryDataProvider> REGISTRY =
-        new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, CountryDataProvider> REGISTRY = new ConcurrentHashMap<>();
 
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
@@ -45,8 +42,7 @@ public final class CountryDataRegistry {
         }
     }
 
-    private CountryDataRegistry() {
-    }
+    private CountryDataRegistry() {}
 
     /**
      * Returns {@code true} if the registry contains an entry for the given locale (exact

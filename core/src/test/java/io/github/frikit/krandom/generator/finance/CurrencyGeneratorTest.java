@@ -5,16 +5,6 @@
  */
 package io.github.frikit.krandom.generator.finance;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.stream.Stream;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -22,6 +12,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class CurrencyGeneratorTest {
 
@@ -42,8 +41,8 @@ class CurrencyGeneratorTest {
 
     @Test
     void testConfigConstructor() {
-        CurrencyGenerator gen = new CurrencyGenerator(
-            GeneratorConfig.builder().seed(12345L).build());
+        CurrencyGenerator gen =
+                new CurrencyGenerator(GeneratorConfig.builder().seed(12345L).build());
         assertNotNull(gen);
         assertNotNull(gen.generate());
     }
@@ -221,7 +220,8 @@ class CurrencyGeneratorTest {
 
     @Test
     void testFakerStyleAliases() {
-        CurrencyGenerator gen = new CurrencyGenerator(GeneratorConfig.builder().seed(77L).build());
+        CurrencyGenerator gen =
+                new CurrencyGenerator(GeneratorConfig.builder().seed(77L).build());
         assertFalse(gen.generateCurrency().isEmpty());
         assertFalse(gen.generateCurrency(Locale.US).isEmpty());
         assertNotNull(gen.generateCurrencyCode());
@@ -341,10 +341,10 @@ class CurrencyGeneratorTest {
 
     @Test
     void testSeededGeneration() {
-        CurrencyGenerator gen1 = new CurrencyGenerator(
-            GeneratorConfig.builder().seed(12345L).build());
-        CurrencyGenerator gen2 = new CurrencyGenerator(
-            GeneratorConfig.builder().seed(12345L).build());
+        CurrencyGenerator gen1 =
+                new CurrencyGenerator(GeneratorConfig.builder().seed(12345L).build());
+        CurrencyGenerator gen2 =
+                new CurrencyGenerator(GeneratorConfig.builder().seed(12345L).build());
 
         assertEquals(gen1.generate(), gen2.generate());
         assertEquals(gen1.generate(), gen2.generate());
@@ -353,10 +353,10 @@ class CurrencyGeneratorTest {
 
     @Test
     void testSeededGenerationWithInfo() {
-        CurrencyGenerator gen1 = new CurrencyGenerator(
-            GeneratorConfig.builder().seed(67890L).build());
-        CurrencyGenerator gen2 = new CurrencyGenerator(
-            GeneratorConfig.builder().seed(67890L).build());
+        CurrencyGenerator gen1 =
+                new CurrencyGenerator(GeneratorConfig.builder().seed(67890L).build());
+        CurrencyGenerator gen2 =
+                new CurrencyGenerator(GeneratorConfig.builder().seed(67890L).build());
 
         CurrencyInfo info1 = gen1.generateWithInfo();
         CurrencyInfo info2 = gen2.generateWithInfo();
@@ -369,10 +369,10 @@ class CurrencyGeneratorTest {
 
     @Test
     void testDifferentSeeds() {
-        CurrencyGenerator gen1 = new CurrencyGenerator(
-            GeneratorConfig.builder().seed(111L).build());
-        CurrencyGenerator gen2 = new CurrencyGenerator(
-            GeneratorConfig.builder().seed(222L).build());
+        CurrencyGenerator gen1 =
+                new CurrencyGenerator(GeneratorConfig.builder().seed(111L).build());
+        CurrencyGenerator gen2 =
+                new CurrencyGenerator(GeneratorConfig.builder().seed(222L).build());
 
         Set<String> codes1 = new HashSet<>();
         Set<String> codes2 = new HashSet<>();
@@ -535,26 +535,22 @@ class CurrencyGeneratorTest {
 
     @Test
     void testCurrencyInfoNullCode() {
-        assertThrows(NullPointerException.class,
-                     () -> new CurrencyInfo(null, "Name", "$", "123"));
+        assertThrows(NullPointerException.class, () -> new CurrencyInfo(null, "Name", "$", "123"));
     }
 
     @Test
     void testCurrencyInfoNullName() {
-        assertThrows(NullPointerException.class,
-                     () -> new CurrencyInfo("USD", null, "$", "123"));
+        assertThrows(NullPointerException.class, () -> new CurrencyInfo("USD", null, "$", "123"));
     }
 
     @Test
     void testCurrencyInfoNullSymbol() {
-        assertThrows(NullPointerException.class,
-                     () -> new CurrencyInfo("USD", "Name", null, "123"));
+        assertThrows(NullPointerException.class, () -> new CurrencyInfo("USD", "Name", null, "123"));
     }
 
     @Test
     void testCurrencyInfoNullNumericCode() {
-        assertThrows(NullPointerException.class,
-                     () -> new CurrencyInfo("USD", "Name", "$", null));
+        assertThrows(NullPointerException.class, () -> new CurrencyInfo("USD", "Name", "$", null));
     }
 
     // Validation Tests

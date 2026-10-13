@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.location;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
@@ -62,22 +60,21 @@ import java.util.Set;
 public final class PostalCodeGenerator implements Generator<String> {
 
     private static final String[] UK_AREA_CODES = {
-        "SW", "EC", "N", "W", "E", "SE", "NW", "WC", "M", "B", "L", "G", "EH", "AB", "BD", "BS",
-        "CB", "CF", "CR", "CV", "LE", "LS", "OX", "RG", "S", "SO", "TN", "YO"
+        "SW", "EC", "N", "W", "E", "SE", "NW", "WC", "M", "B", "L", "G", "EH", "AB", "BD", "BS", "CB", "CF", "CR", "CV",
+        "LE", "LS", "OX", "RG", "S", "SO", "TN", "YO"
     };
 
     /** Countries with a dedicated formatting method below; every other country uses a layout. */
     private static final Set<String> DEDICATED_FORMAT_COUNTRIES = Set.of(
-        "US", "GB", "AU", "DE", "FR", "ES", "IT", "BR", "JP", "CN",
-        "NL", "PL", "RU", "KR", "TR", "SE", "NO", "CZ", "SA", "IN"
-    );
+            "US", "GB", "AU", "DE", "FR", "ES", "IT", "BR", "JP", "CN", "NL", "PL", "RU", "KR", "TR", "SE", "NO", "CZ",
+            "SA", "IN");
 
     private static final Set<String> SUPPORTED_COUNTRIES = supportedCountries();
 
     private final GeneratorConfig config;
-    private final Random          random;
-    private final Locale          locale;
-    private final String          country;
+    private final Random random;
+    private final Locale locale;
+    private final String country;
 
     /**
      * Creates a generator using US locale with default config.
@@ -90,7 +87,7 @@ public final class PostalCodeGenerator implements Generator<String> {
      * Creates a generator using the given config.
      *
      * @param config the generator configuration; must not be {@code null}
-      * @throws NullPointerException if {@code config} is {@code null}
+     * @throws NullPointerException if {@code config} is {@code null}
      */
     public PostalCodeGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
@@ -106,9 +103,9 @@ public final class PostalCodeGenerator implements Generator<String> {
      * @throws NullPointerException if {@code locale} is {@code null}
      */
     public PostalCodeGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(
-            Objects.requireNonNull(locale, "locale must not be null")
-        ).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -156,8 +153,9 @@ public final class PostalCodeGenerator implements Generator<String> {
             case "CZ" -> generateCzechPostcode();
             case "SA" -> generateSaudiPostcode();
             case "IN" -> generateIndianPin();
-            default -> java.util.Objects.requireNonNull(PostalCodeLayouts.forCountry(country), country)
-                                        .generate(random, extended);
+            default ->
+                java.util.Objects.requireNonNull(PostalCodeLayouts.forCountry(country), country)
+                        .generate(random, extended);
         };
     }
 
@@ -191,24 +189,24 @@ public final class PostalCodeGenerator implements Generator<String> {
         int formatType = random.nextInt(6);
 
         switch (formatType) {
-        case 0: // A9
-            outward = areaCode.substring(0, 1) + random.nextInt(10);
-            break;
-        case 1: // A99
-            outward = areaCode.substring(0, 1) + (10 + random.nextInt(90));
-            break;
-        case 2: // AA9
-            outward = areaCode + random.nextInt(10);
-            break;
-        case 3: // AA99
-            outward = areaCode + (10 + random.nextInt(90));
-            break;
-        case 4: // A9A
-            outward = areaCode.substring(0, 1) + random.nextInt(10) + randomLetter();
-            break;
-        default: // AA9A (most common with 2-letter area codes)
-            outward = areaCode + random.nextInt(10) + randomLetter();
-            break;
+            case 0: // A9
+                outward = areaCode.substring(0, 1) + random.nextInt(10);
+                break;
+            case 1: // A99
+                outward = areaCode.substring(0, 1) + (10 + random.nextInt(90));
+                break;
+            case 2: // AA9
+                outward = areaCode + random.nextInt(10);
+                break;
+            case 3: // AA99
+                outward = areaCode + (10 + random.nextInt(90));
+                break;
+            case 4: // A9A
+                outward = areaCode.substring(0, 1) + random.nextInt(10) + randomLetter();
+                break;
+            default: // AA9A (most common with 2-letter area codes)
+                outward = areaCode + random.nextInt(10) + randomLetter();
+                break;
         }
 
         // Inward code: always format 9AA

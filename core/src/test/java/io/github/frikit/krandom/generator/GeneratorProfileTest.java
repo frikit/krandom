@@ -5,14 +5,13 @@
  */
 package io.github.frikit.krandom.generator;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("GeneratorProfile")
 class GeneratorProfileTest {
@@ -45,11 +44,11 @@ class GeneratorProfileTest {
     @DisplayName("FAST preset derives from base config and overrides target fields")
     void fastApplyToBase() {
         GeneratorConfig base = GeneratorConfig.builder()
-                                              .locale(Locale.ITALY)
-                                              .seed(99L)
-                                              .stringLength(20, 40)
-                                              .collectionSize(5, 15)
-                                              .build();
+                .locale(Locale.ITALY)
+                .seed(99L)
+                .stringLength(20, 40)
+                .collectionSize(5, 15)
+                .build();
 
         GeneratorConfig derived = GeneratorProfile.FAST.applyTo(base);
         assertEquals(Locale.ITALY, derived.getLocale());

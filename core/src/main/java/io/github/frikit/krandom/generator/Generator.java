@@ -5,8 +5,6 @@
  */
 package io.github.frikit.krandom.generator;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,6 +12,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Core abstraction for random value generation.
@@ -128,7 +127,7 @@ public interface Generator<T extends @Nullable Object> {
                 }
             }
             throw new IllegalStateException(
-                "Unable to generate a value matching the predicate after " + maxAttempts + " attempts");
+                    "Unable to generate a value matching the predicate after " + maxAttempts + " attempts");
         };
         return SeedableGeneratorDecorator.preserve(this, filtered);
     }

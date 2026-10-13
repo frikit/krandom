@@ -18,12 +18,4 @@ import java.time.LocalDate;
  * @param birthdate date of birth
  */
 public record SimpleProfile(
-    String username,
-    String name,
-    String sex,
-    String address,
-    String mail,
-    LocalDate birthdate
-) {
-
-}
+        String username, String name, String sex, String address, String mail, LocalDate birthdate) {}

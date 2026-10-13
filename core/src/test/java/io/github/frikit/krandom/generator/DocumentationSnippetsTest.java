@@ -5,6 +5,10 @@
  */
 package io.github.frikit.krandom.generator;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.base.CharGenerator;
 import io.github.frikit.krandom.generator.base.IntGenerator;
 import io.github.frikit.krandom.generator.base.StringGenerator;
@@ -18,37 +22,32 @@ import io.github.frikit.krandom.generator.finance.CreditCardInfo;
 import io.github.frikit.krandom.generator.finance.InvoiceInfo;
 import io.github.frikit.krandom.generator.finance.MoneyGenerator;
 import io.github.frikit.krandom.generator.finance.PaymentInfo;
+import io.github.frikit.krandom.generator.locale.LocaleDataBundle;
 import io.github.frikit.krandom.generator.location.CityGenerator;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
 import io.github.frikit.krandom.generator.location.PhoneNumberGenerator;
 import io.github.frikit.krandom.generator.location.StreetAddressGenerator;
-import io.github.frikit.krandom.generator.locale.LocaleDataBundle;
-import io.github.frikit.krandom.generator.object.ObjectGenerator;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
+import io.github.frikit.krandom.generator.object.ObjectGenerator;
 import io.github.frikit.krandom.generator.provider.ProviderHub;
 import io.github.frikit.krandom.generator.provider.TextFormatProvider;
 import io.github.frikit.krandom.generator.schema.Field;
 import io.github.frikit.krandom.generator.schema.Schema;
 import io.github.frikit.krandom.generator.schema.SchemaValueProvider;
 import io.github.frikit.krandom.generator.selection.UniqueGenerator;
+import io.github.frikit.krandom.generator.user.CompanyInfo;
 import io.github.frikit.krandom.generator.user.EmailGenerator;
 import io.github.frikit.krandom.generator.user.FullNameGenerator;
 import io.github.frikit.krandom.generator.user.JobInfo;
 import io.github.frikit.krandom.generator.user.PersonInfo;
-import io.github.frikit.krandom.generator.user.CompanyInfo;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Documentation snippets")
 class DocumentationSnippetsTest {
@@ -59,10 +58,8 @@ class DocumentationSnippetsTest {
         int n = Generators.ofInt(10, 99).generate();
         double p = Generators.ofDouble(0.0, 1.0).generate();
         String token = Generators.ofString(
-            StringGenerator.builder()
-                           .length(16)
-                           .charGenerator(CharGenerator.alphanumeric())
-        ).generate();
+                        StringGenerator.builder().length(16).charGenerator(CharGenerator.alphanumeric()))
+                .generate();
 
         GeneratorConfig seeded = GeneratorConfig.builder().seed(123L).build();
         IntGenerator a = Generators.ofInt(1, 100, seeded);
@@ -91,16 +88,14 @@ class DocumentationSnippetsTest {
         String name = Generators.ofFullName().generate();
         String ipv4 = Generators.ofIPv4().generate();
 
-        GeneratorConfig cfg = GeneratorConfig.builder()
-                                             .locale(Locale.US)
-                                             .seed(42L)
-                                             .build();
+        GeneratorConfig cfg =
+                GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
 
         OrderDto order = Generators.ofObject(OrderDto.class, cfg).generate();
         UserFixture user = Generators.ofObjectFaker(UserFixture.class, cfg)
-                                     .ruleFor("email", () -> "owner@example.test")
-                                     .ruleFor("address.city", () -> "Berlin")
-                                     .generate();
+                .ruleFor("email", () -> "owner@example.test")
+                .ruleFor("address.city", () -> "Berlin")
+                .generate();
 
         Field field = Generators.ofField(cfg);
         LinkedHashMap<String, SchemaValueProvider> fields = new LinkedHashMap<>();
@@ -130,24 +125,21 @@ class DocumentationSnippetsTest {
     @Test
     @DisplayName("runnable snippets guide examples stay runnable")
     void runnableSnippetsGuideExamplesStayRunnable() {
-        GeneratorConfig objectConfig = GeneratorConfig.builder()
-                                                      .objectMaxDepth(3)
-                                                      .build();
+        GeneratorConfig objectConfig =
+                GeneratorConfig.builder().objectMaxDepth(3).build();
 
         ObjectGenerator<UserRecord> objectGenerator = Generators.ofObject(UserRecord.class, objectConfig);
         UserRecord user = objectGenerator.generate();
 
-        GeneratorConfig userDataConfig = GeneratorConfig.builder()
-                                                        .seed(42L)
-                                                        .build();
+        GeneratorConfig userDataConfig = GeneratorConfig.builder().seed(42L).build();
 
         String name = new FullNameGenerator(userDataConfig).generate();
         String email = new EmailGenerator(userDataConfig).generate();
 
         GeneratorConfig locationConfig = GeneratorConfig.builder()
-                                                        .locale(Locale.of("de", "DE"))
-                                                        .seed(42L)
-                                                        .build();
+                .locale(Locale.of("de", "DE"))
+                .seed(42L)
+                .build();
 
         String city = new CityGenerator(locationConfig).generate();
         String country = new CountryGenerator(locationConfig).generate();
@@ -172,10 +164,10 @@ class DocumentationSnippetsTest {
     @DisplayName("examples page snippets stay runnable")
     void examplesPageSnippetsStayRunnable() {
         GeneratorConfig cfg = GeneratorConfig.builder()
-                                             .locale(Locale.US)
-                                             .seed(20260303L)
-                                             .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                             .build();
+                .locale(Locale.US)
+                .seed(20260303L)
+                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
 
         FullNameGenerator names = new FullNameGenerator(cfg);
         EmailGenerator emails = new EmailGenerator(cfg);
@@ -193,25 +185,26 @@ class DocumentationSnippetsTest {
         PaymentInfo payment = Generators.ofPaymentInfo(cfg).generate();
 
         Map<String, Object> user = Map.of(
-            "id", Generators.ofUuid().generate().toString(),
-            "name", names.generate(),
-            "email", emails.generate(),
-            "phone", phones.generate(),
-            "address", addresses.generate()
-        );
+                "id", Generators.ofUuid().generate().toString(),
+                "name", names.generate(),
+                "email", emails.generate(),
+                "phone", phones.generate(),
+                "address", addresses.generate());
 
         Field f = Generators.ofField(cfg);
-        Schema orders = Generators.ofSchema(cfg, new LinkedHashMap<>(Map.of(
-            "orderId", f.bind("code.uuid"),
-            "customer", f.bind("person.full_name"),
-            "email", f.bind("person.email"),
-            "currency", f.bind("finance.currency"),
-            "amount", f.bind("finance.money"),
-            "shipTo", f.bind("address.street_address")
-        )));
+        Schema orders = Generators.ofSchema(
+                cfg,
+                new LinkedHashMap<>(Map.of(
+                        "orderId", f.bind("code.uuid"),
+                        "customer", f.bind("person.full_name"),
+                        "email", f.bind("person.email"),
+                        "currency", f.bind("finance.currency"),
+                        "amount", f.bind("finance.money"),
+                        "shipTo", f.bind("address.street_address"))));
 
         List<Map<String, Object>> batch = orders.generateBatch(5);
-        Generator<Integer> stableIds = Generators.ofInt(1000, 9999, GeneratorConfig.builder().seed(77L).build());
+        Generator<Integer> stableIds =
+                Generators.ofInt(1000, 9999, GeneratorConfig.builder().seed(77L).build());
         UniqueGenerator<String> uniqueEmails = Generators.unique(Generators.ofEmail());
 
         assertTrue(user.get("id").toString().contains("-"));
@@ -221,19 +214,30 @@ class DocumentationSnippetsTest {
         assertNotNull(person.contact());
         assertNotNull(person.address());
         assertTrue(person.contact().email().contains("@"));
-        assertEquals(person.username(), person.contact().email().substring(0, person.contact().email().indexOf('@')));
-        assertEquals(company.email().substring(company.email().indexOf('@') + 1),
-                     URI.create(company.website()).getHost().substring("www.".length()));
+        assertEquals(
+                person.username(),
+                person.contact().email().substring(0, person.contact().email().indexOf('@')));
+        assertEquals(
+                company.email().substring(company.email().indexOf('@') + 1),
+                URI.create(company.website()).getHost().substring("www.".length()));
         assertTrue(job.title().contains(job.profession()));
         assertTrue(product.upc().matches("\\d{12}"));
         assertEquals(order.customer().address(), order.shippingAddress());
-        assertEquals(0, order.total().compareTo(order.subtotal().add(order.shipping()).add(order.tax()).setScale(2)));
+        assertEquals(
+                0,
+                order.total()
+                        .compareTo(order.subtotal()
+                                .add(order.shipping())
+                                .add(order.tax())
+                                .setScale(2)));
         assertEquals(shipment.recipient().address(), shipment.destination());
         assertTrue(shipment.deliveredOn() == null || !shipment.deliveredOn().isBefore(shipment.shippedOn()));
         assertTrue(bank.routingNumber().matches("\\d{9}"));
         assertTrue(cardInfo.exp().matches("\\d{2}/\\d{2}"));
         assertEquals(invoice.customer().address(), invoice.billingAddress());
-        assertEquals(0, invoice.total().compareTo(invoice.subtotal().add(invoice.tax()).setScale(2)));
+        assertEquals(
+                0,
+                invoice.total().compareTo(invoice.subtotal().add(invoice.tax()).setScale(2)));
         assertEquals(payment.payer().address(), payment.billingAddress());
         assertTrue(payment.settledOn() == null || !payment.settledOn().isBefore(payment.authorizedOn()));
 
@@ -253,31 +257,28 @@ class DocumentationSnippetsTest {
         Locale locale = Locale.of("es", "MX");
 
         LocaleDataBundle bundle = LocaleDataBundle.builder(locale)
-                                                  .firstNames(new String[] { "Mateo" }, new String[] { "Sofía" })
-                                                  .lastNames("Hernández", "Ramírez")
-                                                  .genderLabels("Hombre", "Mujer")
-                                                  .cities("Ciudad de México", "Guadalajara")
-                                                  .states(new String[] { "Jalisco", "Ciudad de México" },
-                                                          new String[] { "JAL", "CDMX" })
-                                                  .countries("México")
-                                                  .streetAddress(new String[] { "Juárez" },
-                                                                 new String[] { "Av" },
-                                                                 new String[] { "Avenida" })
-                                                  .build();
+                .firstNames(new String[] {"Mateo"}, new String[] {"Sofía"})
+                .lastNames("Hernández", "Ramírez")
+                .genderLabels("Hombre", "Mujer")
+                .cities("Ciudad de México", "Guadalajara")
+                .states(new String[] {"Jalisco", "Ciudad de México"}, new String[] {"JAL", "CDMX"})
+                .countries("México")
+                .streetAddress(new String[] {"Juárez"}, new String[] {"Av"}, new String[] {"Avenida"})
+                .build();
 
         DataRegistryContext context = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerLocaleData(bundle)
-                                                         .build();
+                .isolated()
+                .registerLocaleData(bundle)
+                .build();
 
         GeneratorConfig mx = GeneratorConfig.builder()
-                                            .locale(locale)
-                                            .registryContext(context)
-                                            .seed(7L)
-                                            .build();
+                .locale(locale)
+                .registryContext(context)
+                .seed(7L)
+                .build();
 
         String firstName = new io.github.frikit.krandom.generator.user.FirstNameGenerator(mx)
-            .generate(io.github.frikit.krandom.generator.user.Gender.MALE);
+                .generate(io.github.frikit.krandom.generator.user.Gender.MALE);
         String city = new CityGenerator(mx).generate();
         String street = new StreetAddressGenerator(mx).generate();
 
@@ -289,7 +290,8 @@ class DocumentationSnippetsTest {
     @Test
     @DisplayName("schema and provider hub guide snippets stay runnable")
     void schemaAndProviderHubGuideSnippetsStayRunnable() {
-        ProviderHub hub = new ProviderHub(GeneratorConfig.builder().locale(Locale.US).seed(42L).build());
+        ProviderHub hub = new ProviderHub(
+                GeneratorConfig.builder().locale(Locale.US).seed(42L).build());
         TextFormatProvider format = hub.get("text.format", TextFormatProvider.class);
 
         String sku = format.template("SKU-??-####");
@@ -304,20 +306,19 @@ class DocumentationSnippetsTest {
         assertTrue(reference.matches("[A-Z]{3}\\d{4}"));
         assertTrue(invoice.matches("[A-Z]{3}-\\d{4}-[A-Z]{2}\\d{2}"));
 
-        SchemaValueProvider typedAmount = SchemaValueProvider.withSample(
-            ctx -> 1000 + ctx.recordIndex(),
-            1000
-        );
+        SchemaValueProvider typedAmount = SchemaValueProvider.withSample(ctx -> 1000 + ctx.recordIndex(), 1000);
 
         SchemaValueProvider typedPayload = SchemaValueProvider.withJsonSchema(
-            ctx -> Map.of("status", "READY"),
-            Map.of(
-                "type", "object",
-                "additionalProperties", false,
-                "properties", Map.of("status", Map.of("type", "string")),
-                "required", List.of("status")
-            )
-        );
+                ctx -> Map.of("status", "READY"),
+                Map.of(
+                        "type",
+                        "object",
+                        "additionalProperties",
+                        false,
+                        "properties",
+                        Map.of("status", Map.of("type", "string")),
+                        "required",
+                        List.of("status")));
 
         assertEquals("integer", typedAmount.jsonSchema().get("type"));
         assertEquals("object", typedPayload.jsonSchema().get("type"));
@@ -326,10 +327,8 @@ class DocumentationSnippetsTest {
     @Test
     @DisplayName("testing integrations guide snippets stay runnable")
     void testingIntegrationsGuideSnippetsStayRunnable() {
-        GeneratorConfig cfg = GeneratorConfig.builder()
-                                             .locale(Locale.US)
-                                             .seed(20260424L)
-                                             .build();
+        GeneratorConfig cfg =
+                GeneratorConfig.builder().locale(Locale.US).seed(20260424L).build();
 
         Field field = Generators.ofField(cfg);
         Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
@@ -345,10 +344,8 @@ class DocumentationSnippetsTest {
             private final GeneratorConfig config;
 
             private TestFixtureFactory(Locale locale, long seed) {
-                this.config = GeneratorConfig.builder()
-                                             .locale(locale)
-                                             .seed(seed)
-                                             .build();
+                this.config =
+                        GeneratorConfig.builder().locale(locale).seed(seed).build();
             }
 
             private OrderDto order() {
@@ -365,7 +362,8 @@ class DocumentationSnippetsTest {
 
         assertTrue(row.get("email").toString().contains("@"));
         assertNotNull(factory.order().email());
-        assertTrue(payment.instrumentReference().startsWith("****") || payment.instrumentReference().startsWith("ACCT-"));
+        assertTrue(payment.instrumentReference().startsWith("****")
+                || payment.instrumentReference().startsWith("ACCT-"));
     }
 
     @Test
@@ -375,17 +373,15 @@ class DocumentationSnippetsTest {
         String email = Generators.ofEmail().generate();
         String city = Generators.ofCity().generate();
 
-        GeneratorConfig cfg = GeneratorConfig.builder()
-                                             .locale(Locale.US)
-                                             .seed(42L)
-                                             .build();
+        GeneratorConfig cfg =
+                GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
 
         OrderDto order = Generators.ofObject(OrderDto.class, cfg).generate();
 
         UserFixture user = Generators.ofObjectFaker(UserFixture.class)
-                                     .ruleFor("email", () -> "owner@example.test")
-                                     .ruleFor("address.city", () -> "Berlin")
-                                     .generate();
+                .ruleFor("email", () -> "owner@example.test")
+                .ruleFor("address.city", () -> "Berlin")
+                .generate();
 
         Field field = Generators.ofField();
         LinkedHashMap<String, SchemaValueProvider> fields = new LinkedHashMap<>();
@@ -412,9 +408,9 @@ class DocumentationSnippetsTest {
     @DisplayName("performance and observability guide snippets stay runnable")
     void performanceAndObservabilityGuideSnippetsStayRunnable() {
         GeneratorConfig cfg = GeneratorConfig.builder()
-                                             .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                             .seed(42L)
-                                             .build();
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .seed(42L)
+                .build();
 
         OrderDto order = Generators.ofObject(OrderDto.class, cfg).generate();
 
@@ -423,14 +419,11 @@ class DocumentationSnippetsTest {
         assertNotNull(order.amount());
     }
 
-    private record AddressRecord(String city, String country) {
-    }
+    private record AddressRecord(String city, String country) {}
 
-    private record UserRecord(String name, AddressRecord address) {
-    }
+    private record UserRecord(String name, AddressRecord address) {}
 
-    private record OrderDto(String email, String amount) {
-    }
+    private record OrderDto(String email, String amount) {}
 
     static final class UserFixture {
 

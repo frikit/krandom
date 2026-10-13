@@ -5,22 +5,19 @@
  */
 package io.github.frikit.krandom.generator;
 
-import org.jspecify.annotations.Nullable;
-
-import io.github.frikit.krandom.generator.object.ObjectFieldStreamPolicy;
-import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
+import io.github.frikit.krandom.generator.object.ObjectFieldStreamPolicy;
 import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
-
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -31,6 +28,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.TreeMap;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A portable, versioned description of deterministic generation.
@@ -79,21 +77,21 @@ public final class GenerationRecipe {
     private static final String SETTING_PREFIX = "setting.";
 
     private static final long FNV1A_64_OFFSET_BASIS = 0xcbf29ce484222325L;
-    private static final long FNV1A_64_PRIME        = 0x100000001b3L;
+    private static final long FNV1A_64_PRIME = 0x100000001b3L;
 
-    private final String                    libraryVersion;
-    private final String                    recipeVersion;
-    private final String                    algorithm;
-    private final long                      seed;
-    private final @Nullable String          seedText;
-    private final Locale                    locale;
-    private final Instant                   clockInstant;
-    private final ZoneId                    clockZone;
-    private final String                    profile;
-    private final String                    safetyPolicy;
-    private final ObjectConstructionPolicy  constructionPolicy;
-    private final String                    providerDatasetVersion;
-    private final Map<String, String>       settings;
+    private final String libraryVersion;
+    private final String recipeVersion;
+    private final String algorithm;
+    private final long seed;
+    private final @Nullable String seedText;
+    private final Locale locale;
+    private final Instant clockInstant;
+    private final ZoneId clockZone;
+    private final String profile;
+    private final String safetyPolicy;
+    private final ObjectConstructionPolicy constructionPolicy;
+    private final String providerDatasetVersion;
+    private final Map<String, String> settings;
 
     private GenerationRecipe(Builder builder) {
         this.libraryVersion = requireToken("libraryVersion", builder.libraryVersion);
@@ -109,7 +107,8 @@ public final class GenerationRecipe {
         this.clockZone = Objects.requireNonNull(builder.clockZone, "clockZone must not be null");
         this.profile = requireToken("profile", builder.profile);
         this.safetyPolicy = requireToken("safetyPolicy", builder.safetyPolicy);
-        this.constructionPolicy = Objects.requireNonNull(builder.constructionPolicy, "constructionPolicy must not be null");
+        this.constructionPolicy =
+                Objects.requireNonNull(builder.constructionPolicy, "constructionPolicy must not be null");
         this.providerDatasetVersion = requireToken("providerDatasetVersion", builder.providerDatasetVersion);
         this.settings = Collections.unmodifiableMap(new TreeMap<>(builder.settings));
     }
@@ -160,16 +159,18 @@ public final class GenerationRecipe {
         String recipeVersion = required(entries, RECIPE_VERSION_KEY);
         String algorithm = required(entries, ALGORITHM_KEY);
         Builder builder = builder()
-            .recipeVersion(recipeVersion)
-            .libraryVersion(required(entries, LIBRARY_VERSION_KEY))
-            .algorithm(algorithm)
-            .seed(parseLong(entries, SEED_KEY))
-            .locale(Locale.forLanguageTag(required(entries, LOCALE_KEY)))
-            .clock(Instant.parse(required(entries, CLOCK_INSTANT_KEY)), ZoneId.of(required(entries, CLOCK_ZONE_KEY)))
-            .profile(required(entries, PROFILE_KEY))
-            .safetyPolicy(required(entries, SAFETY_POLICY_KEY))
-            .constructionPolicy(parseConstructionPolicy(required(entries, CONSTRUCTION_POLICY_KEY)))
-            .providerDatasetVersion(required(entries, PROVIDER_DATASET_VERSION_KEY));
+                .recipeVersion(recipeVersion)
+                .libraryVersion(required(entries, LIBRARY_VERSION_KEY))
+                .algorithm(algorithm)
+                .seed(parseLong(entries, SEED_KEY))
+                .locale(Locale.forLanguageTag(required(entries, LOCALE_KEY)))
+                .clock(
+                        Instant.parse(required(entries, CLOCK_INSTANT_KEY)),
+                        ZoneId.of(required(entries, CLOCK_ZONE_KEY)))
+                .profile(required(entries, PROFILE_KEY))
+                .safetyPolicy(required(entries, SAFETY_POLICY_KEY))
+                .constructionPolicy(parseConstructionPolicy(required(entries, CONSTRUCTION_POLICY_KEY)))
+                .providerDatasetVersion(required(entries, PROVIDER_DATASET_VERSION_KEY));
         String seedText = entries.remove(SEED_TEXT_KEY);
         if (seedText != null) {
             builder.seedText(seedText);
@@ -302,13 +303,13 @@ public final class GenerationRecipe {
      */
     public GeneratorConfig toGeneratorConfig() {
         GeneratorConfig.Builder builder = GeneratorConfig.builder()
-                                                         .seed(seed)
-                                                         .locale(locale)
-                                                         .clock(Clock.fixed(clockInstant, clockZone))
-                                                         .generationProfile(profile)
-                                                         .safetyPolicy(safetyPolicy)
-                                                         .providerDatasetVersion(providerDatasetVersion)
-                                                         .objectConstructionPolicy(constructionPolicy);
+                .seed(seed)
+                .locale(locale)
+                .clock(Clock.fixed(clockInstant, clockZone))
+                .generationProfile(profile)
+                .safetyPolicy(safetyPolicy)
+                .providerDatasetVersion(providerDatasetVersion)
+                .objectConstructionPolicy(constructionPolicy);
         if (seedText != null) {
             builder.seed(seedText);
         }
@@ -420,27 +421,25 @@ public final class GenerationRecipe {
         Integer collectionMin = integerSetting("collection.min");
         Integer collectionMax = integerSetting("collection.max");
         if (collectionMin != null || collectionMax != null) {
-            builder.collectionSize(requirePair("collection.min", collectionMin),
-                                   requirePair("collection.max", collectionMax));
+            builder.collectionSize(
+                    requirePair("collection.min", collectionMin), requirePair("collection.max", collectionMax));
         }
         applyInteger(builder, "object.max-depth", builder::objectMaxDepth);
         applyInteger(builder, "object.pool-size", builder::objectPoolSize);
         applyBoolean(builder, "object.override-default-initialization", builder::objectOverrideDefaultInitialization);
         applyBoolean(builder, "object.ignore-errors", builder::objectIgnoreErrors);
-        builder.paymentCardSafetyPolicy(
-            PaymentCardSafetyPolicy.valueOf(requiredSetting("payment.card-safety-policy")));
+        builder.paymentCardSafetyPolicy(PaymentCardSafetyPolicy.valueOf(requiredSetting("payment.card-safety-policy")));
         builder.bankingSafetyPolicy(BankingSafetyPolicy.valueOf(requiredSetting("banking.safety-policy")));
         builder.businessTaxIdentifierSafetyPolicy(
-            BusinessTaxIdentifierSafetyPolicy.valueOf(requiredSetting("business-tax-identifier.safety-policy")));
+                BusinessTaxIdentifierSafetyPolicy.valueOf(requiredSetting("business-tax-identifier.safety-policy")));
         builder.cryptoAddressSafetyPolicy(
-            CryptoAddressSafetyPolicy.valueOf(requiredSetting("crypto-address.safety-policy")));
+                CryptoAddressSafetyPolicy.valueOf(requiredSetting("crypto-address.safety-policy")));
         builder.securitiesIdentifierSafetyPolicy(
-            SecuritiesIdentifierSafetyPolicy.valueOf(requiredSetting("securities-identifier.safety-policy")));
-        builder.phoneNumberSafetyPolicy(
-            PhoneNumberSafetyPolicy.valueOf(requiredSetting("phone-number.safety-policy")));
+                SecuritiesIdentifierSafetyPolicy.valueOf(requiredSetting("securities-identifier.safety-policy")));
+        builder.phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy.valueOf(requiredSetting("phone-number.safety-policy")));
         builder.nationalIdSafetyPolicy(NationalIdSafetyPolicy.valueOf(requiredSetting("national-id.safety-policy")));
         builder.identityDocumentSafetyPolicy(
-            IdentityDocumentSafetyPolicy.valueOf(requiredSetting("identity-document.safety-policy")));
+                IdentityDocumentSafetyPolicy.valueOf(requiredSetting("identity-document.safety-policy")));
         builder.emailDomainPolicy(EmailDomainPolicy.valueOf(requiredSetting("email.domain-policy")));
         applyEnum(builder, "object.semantic-mode", builder::objectSemanticMode);
         applyDouble(builder, "object.null-probability", builder::objectNullProbability);
@@ -466,8 +465,9 @@ public final class GenerationRecipe {
         String min = settings.get("object.date-min");
         String max = settings.get("object.date-max");
         if (min != null || max != null) {
-            builder.objectDateRange(java.time.LocalDate.parse(requirePair("object.date-min", min)),
-                                    java.time.LocalDate.parse(requirePair("object.date-max", max)));
+            builder.objectDateRange(
+                    java.time.LocalDate.parse(requirePair("object.date-min", min)),
+                    java.time.LocalDate.parse(requirePair("object.date-max", max)));
         }
     }
 
@@ -500,14 +500,33 @@ public final class GenerationRecipe {
 
     private static boolean isKnownSetting(String key) {
         return switch (key) {
-            case "object.field-stream-policy", "child-stream-policy", "charset", "string.min", "string.max", "collection.min", "collection.max", "object.max-depth",
-                 "object.pool-size", "object.override-default-initialization", "object.ignore-errors",
-                 "object.semantic-mode", "object.null-probability", "object.optional-empty-probability",
-                 "object.unique-fields", "object.uniqueness-max-attempts", "object.date-min", "object.date-max",
-                 "payment.card-safety-policy", "banking.safety-policy", "phone-number.safety-policy",
-                 "national-id.safety-policy", "identity-document.safety-policy",
-                 "business-tax-identifier.safety-policy", "crypto-address.safety-policy",
-                 "securities-identifier.safety-policy", "email.domain-policy" -> true;
+            case "object.field-stream-policy",
+                    "child-stream-policy",
+                    "charset",
+                    "string.min",
+                    "string.max",
+                    "collection.min",
+                    "collection.max",
+                    "object.max-depth",
+                    "object.pool-size",
+                    "object.override-default-initialization",
+                    "object.ignore-errors",
+                    "object.semantic-mode",
+                    "object.null-probability",
+                    "object.optional-empty-probability",
+                    "object.unique-fields",
+                    "object.uniqueness-max-attempts",
+                    "object.date-min",
+                    "object.date-max",
+                    "payment.card-safety-policy",
+                    "banking.safety-policy",
+                    "phone-number.safety-policy",
+                    "national-id.safety-policy",
+                    "identity-document.safety-policy",
+                    "business-tax-identifier.safety-policy",
+                    "crypto-address.safety-policy",
+                    "securities-identifier.safety-policy",
+                    "email.domain-policy" -> true;
             default -> false;
         };
     }
@@ -586,18 +605,20 @@ public final class GenerationRecipe {
         };
     }
 
-    private void applyInteger(GeneratorConfig.Builder builder,
-                              String key,
-                              java.util.function.IntFunction<GeneratorConfig.Builder> setter) {
+    private void applyInteger(
+            GeneratorConfig.Builder builder,
+            String key,
+            java.util.function.IntFunction<GeneratorConfig.Builder> setter) {
         String value = settings.get(key);
         if (value != null) {
             setter.apply(Integer.parseInt(value));
         }
     }
 
-    private void applyBoolean(GeneratorConfig.Builder builder,
-                              String key,
-                              java.util.function.Function<Boolean, GeneratorConfig.Builder> setter) {
+    private void applyBoolean(
+            GeneratorConfig.Builder builder,
+            String key,
+            java.util.function.Function<Boolean, GeneratorConfig.Builder> setter) {
         String value = settings.get(key);
         if (value != null) {
             if (!"true".equals(value) && !"false".equals(value)) {
@@ -607,20 +628,23 @@ public final class GenerationRecipe {
         }
     }
 
-    private void applyEnum(GeneratorConfig.Builder builder,
-                           String key,
-                           java.util.function.Function<
-                               io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode,
-                               GeneratorConfig.Builder> setter) {
+    private void applyEnum(
+            GeneratorConfig.Builder builder,
+            String key,
+            java.util.function.Function<
+                            io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode,
+                            GeneratorConfig.Builder>
+                    setter) {
         String value = settings.get(key);
         if (value != null) {
             setter.apply(io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode.valueOf(value));
         }
     }
 
-    private void applyDouble(GeneratorConfig.Builder builder,
-                             String key,
-                             java.util.function.Function<Double, GeneratorConfig.Builder> setter) {
+    private void applyDouble(
+            GeneratorConfig.Builder builder,
+            String key,
+            java.util.function.Function<Double, GeneratorConfig.Builder> setter) {
         String value = settings.get(key);
         if (value != null) {
             setter.apply(Double.parseDouble(value));
@@ -630,22 +654,21 @@ public final class GenerationRecipe {
     /** Builder for a {@link GenerationRecipe}. */
     public static final class Builder {
 
-        private String                    libraryVersion = currentLibraryVersion();
-        private String                    recipeVersion = RECIPE_VERSION;
-        private String                    algorithm = ALGORITHM;
-        private long                      seed;
-        private @Nullable String          seedText;
-        private Locale                    locale = Locale.US;
-        private Instant                   clockInstant = Instant.EPOCH;
-        private ZoneId                    clockZone = ZoneId.of("UTC");
-        private String                    profile = CUSTOM_PROFILE;
-        private String                    safetyPolicy = LEGACY_UNCLASSIFIED_SAFETY_POLICY;
-        private ObjectConstructionPolicy  constructionPolicy = ObjectConstructionPolicy.SAFE_CONSTRUCTORS;
-        private String                    providerDatasetVersion = BUILTIN_PROVIDER_DATASET_VERSION;
+        private String libraryVersion = currentLibraryVersion();
+        private String recipeVersion = RECIPE_VERSION;
+        private String algorithm = ALGORITHM;
+        private long seed;
+        private @Nullable String seedText;
+        private Locale locale = Locale.US;
+        private Instant clockInstant = Instant.EPOCH;
+        private ZoneId clockZone = ZoneId.of("UTC");
+        private String profile = CUSTOM_PROFILE;
+        private String safetyPolicy = LEGACY_UNCLASSIFIED_SAFETY_POLICY;
+        private ObjectConstructionPolicy constructionPolicy = ObjectConstructionPolicy.SAFE_CONSTRUCTORS;
+        private String providerDatasetVersion = BUILTIN_PROVIDER_DATASET_VERSION;
         private final Map<String, String> settings = new TreeMap<>();
 
-        private Builder() {
-        }
+        private Builder() {}
 
         public Builder libraryVersion(String libraryVersion) {
             this.libraryVersion = libraryVersion;

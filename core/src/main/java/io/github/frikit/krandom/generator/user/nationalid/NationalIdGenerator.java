@@ -6,10 +6,8 @@
 package io.github.frikit.krandom.generator.user.nationalid;
 
 import io.github.frikit.krandom.generator.DataRegistryContext;
-import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generator;
-
-import java.security.SecureRandom;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -28,11 +26,9 @@ import java.util.Random;
  */
 public final class NationalIdGenerator implements Generator<String> {
 
-    private final GeneratorConfig    config;
-    private final Random             random;
+    private final GeneratorConfig config;
+    private final Random random;
     private final NationalIdProvider provider;
-
-
 
     /**
      * Creates a generator with explicit configuration (locale + optional seed + registry context).
@@ -42,9 +38,8 @@ public final class NationalIdGenerator implements Generator<String> {
         Locale locale = config.getLocale();
         DataRegistryContext registryContext = config.getRegistryContext();
         if (!registryContext.isNationalIdRegistered(locale)) {
-            throw new UnsupportedOperationException(
-                "Locale " + locale + " is not supported. Registered locales: " +
-                registryContext.nationalIdRegisteredKeys());
+            throw new UnsupportedOperationException("Locale " + locale + " is not supported. Registered locales: "
+                    + registryContext.nationalIdRegisteredKeys());
         }
         this.provider = java.util.Objects.requireNonNull(registryContext.nationalIdProvider(locale));
         this.random = config.createRandom();
@@ -60,8 +55,8 @@ public final class NationalIdGenerator implements Generator<String> {
     public String generate() {
         if (config.getNationalIdSafetyPolicy() == NationalIdSafetyPolicy.DISABLED) {
             throw new IllegalStateException(
-                "National-ID generation is disabled by default; select nationalIdSafetyPolicy(REALISTIC_UNCLASSIFIED) "
-                + "only for isolated fixtures");
+                    "National-ID generation is disabled by default; select nationalIdSafetyPolicy(REALISTIC_UNCLASSIFIED) "
+                            + "only for isolated fixtures");
         }
         return provider.generate(random);
     }

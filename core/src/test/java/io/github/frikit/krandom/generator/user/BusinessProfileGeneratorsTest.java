@@ -5,18 +5,17 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Business profile generators")
 class BusinessProfileGeneratorsTest {
@@ -24,9 +23,12 @@ class BusinessProfileGeneratorsTest {
     @Test
     @DisplayName("Industry generator returns non-empty values and supports seeding")
     void industryGenerator() {
-        IndustryGenerator any = new IndustryGenerator(GeneratorConfig.builder().seed(1L).build());
-        IndustryGenerator a = new IndustryGenerator(GeneratorConfig.builder().seed(1L).build());
-        IndustryGenerator b = new IndustryGenerator(GeneratorConfig.builder().seed(1L).build());
+        IndustryGenerator any =
+                new IndustryGenerator(GeneratorConfig.builder().seed(1L).build());
+        IndustryGenerator a =
+                new IndustryGenerator(GeneratorConfig.builder().seed(1L).build());
+        IndustryGenerator b =
+                new IndustryGenerator(GeneratorConfig.builder().seed(1L).build());
         assertFalse(any.generate().isBlank());
         assertEquals(a.generate(), b.generate());
         assertThrows(NullPointerException.class, () -> new IndustryGenerator((GeneratorConfig) null));
@@ -37,8 +39,10 @@ class BusinessProfileGeneratorsTest {
     void companyUrlGenerator() {
         assertNotNull(new CompanyUrlGenerator().generate());
         CompanyUrlGenerator gen = new CompanyUrlGenerator(Locale.US);
-        CompanyUrlGenerator seededA = new CompanyUrlGenerator(GeneratorConfig.builder().seed(12L).build());
-        CompanyUrlGenerator seededB = new CompanyUrlGenerator(GeneratorConfig.builder().seed(12L).build());
+        CompanyUrlGenerator seededA =
+                new CompanyUrlGenerator(GeneratorConfig.builder().seed(12L).build());
+        CompanyUrlGenerator seededB =
+                new CompanyUrlGenerator(GeneratorConfig.builder().seed(12L).build());
         String url = gen.generate();
         String fromName = gen.generateFromCompanyName();
         String fromBlankName = gen.generateFromCompanyName("___");
@@ -60,12 +64,18 @@ class BusinessProfileGeneratorsTest {
         assertNotNull(new EducationalAttainmentGenerator().generate());
         assertNotNull(new MaritalStatusGenerator().generate());
 
-        JobFieldGenerator field = new JobFieldGenerator(GeneratorConfig.builder().seed(2L).build());
-        JobTypeGenerator type = new JobTypeGenerator(GeneratorConfig.builder().seed(22L).build());
-        SeniorityGenerator seniority = new SeniorityGenerator(GeneratorConfig.builder().seed(3L).build());
-        PositionGenerator position = new PositionGenerator(GeneratorConfig.builder().seed(4L).build());
-        EducationalAttainmentGenerator education = new EducationalAttainmentGenerator(GeneratorConfig.builder().seed(5L).build());
-        MaritalStatusGenerator marital = new MaritalStatusGenerator(GeneratorConfig.builder().seed(6L).build());
+        JobFieldGenerator field =
+                new JobFieldGenerator(GeneratorConfig.builder().seed(2L).build());
+        JobTypeGenerator type =
+                new JobTypeGenerator(GeneratorConfig.builder().seed(22L).build());
+        SeniorityGenerator seniority =
+                new SeniorityGenerator(GeneratorConfig.builder().seed(3L).build());
+        PositionGenerator position =
+                new PositionGenerator(GeneratorConfig.builder().seed(4L).build());
+        EducationalAttainmentGenerator education = new EducationalAttainmentGenerator(
+                GeneratorConfig.builder().seed(5L).build());
+        MaritalStatusGenerator marital =
+                new MaritalStatusGenerator(GeneratorConfig.builder().seed(6L).build());
 
         assertFalse(field.generate().isBlank());
         assertFalse(type.generate().isBlank());

@@ -5,21 +5,20 @@
  */
 package io.github.frikit.krandom.generator.selection;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generator;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.IntStream;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.IntStream;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Selection generators")
 class SelectionGeneratorsTest {
@@ -74,17 +73,14 @@ class SelectionGeneratorsTest {
 
         List<Integer> shuffled = gen.generate();
         assertEquals(source.size(), shuffled.size());
-        assertEquals(source.stream().sorted().toList(), shuffled.stream().sorted().toList());
+        assertEquals(
+                source.stream().sorted().toList(), shuffled.stream().sorted().toList());
     }
 
     @Test
     @DisplayName("WeightedGenerator honors weight bias")
     void weightedHonorsBias() {
-        WeightedGenerator<String> gen = new WeightedGenerator<>(
-            List.of("heads", "tails"),
-            List.of(7, 3),
-            seeded(42L)
-        );
+        WeightedGenerator<String> gen = new WeightedGenerator<>(List.of("heads", "tails"), List.of(7, 3), seeded(42L));
 
         int heads = 0;
         int trials = 10_000;
@@ -157,11 +153,7 @@ class SelectionGeneratorsTest {
             }
         };
 
-        UniqueGenerator<String> unique = new UniqueGenerator<>(
-            source,
-            (a, b) -> a.equalsIgnoreCase(b),
-            5
-        );
+        UniqueGenerator<String> unique = new UniqueGenerator<>(source, (a, b) -> a.equalsIgnoreCase(b), 5);
 
         assertEquals("Alice", unique.generate());
         assertThrows(IllegalStateException.class, unique::generate);
@@ -249,10 +241,12 @@ class SelectionGeneratorsTest {
         assertThrows(IllegalArgumentException.class, () -> new PickSetGenerator<>(List.of(1, 2), -1));
         assertThrows(IllegalArgumentException.class, () -> new WeightedGenerator<>(List.of("a"), List.of(0)));
         assertThrows(IllegalArgumentException.class, () -> new WeightedGenerator<>(List.of("a"), List.of(1, 2)));
-        assertThrows(IllegalArgumentException.class,
-                     () -> new WeightedGenerator<>(List.of("a"), Arrays.asList((Integer) null)));
-        assertThrows(IllegalArgumentException.class,
-                     () -> new WeightedGenerator<>(List.of("a", "b"), List.of(Integer.MAX_VALUE, 1)));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new WeightedGenerator<>(List.of("a"), Arrays.asList((Integer) null)));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new WeightedGenerator<>(List.of("a", "b"), List.of(Integer.MAX_VALUE, 1)));
         assertThrows(IllegalArgumentException.class, () -> new UniqueGenerator<>(() -> 1, 0));
         assertThrows(IllegalArgumentException.class, () -> new RepeatGenerator<>(() -> 1, -1));
     }

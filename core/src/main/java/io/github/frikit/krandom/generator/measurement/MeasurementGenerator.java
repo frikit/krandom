@@ -5,10 +5,9 @@
  */
 package io.github.frikit.krandom.generator.measurement;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -31,7 +30,7 @@ import java.util.Random;
 public final class MeasurementGenerator implements Generator<String> {
 
     private static final MeasurementDataProvider DEFAULT_PROVIDER =
-        new BuiltInMeasurementDataProvider(Locale.ROOT, "krandom/measurement/default.txt");
+            new BuiltInMeasurementDataProvider(Locale.ROOT, "krandom/measurement/default.txt");
 
     private final List<String> units;
     private final Random random;
@@ -50,7 +49,9 @@ public final class MeasurementGenerator implements Generator<String> {
      *               exists; must not be {@code null}
      */
     public MeasurementGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**

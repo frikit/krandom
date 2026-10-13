@@ -5,14 +5,13 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectGenerator — atomic types")
 class ObjectGeneratorAtomicTest {
@@ -29,19 +28,18 @@ class ObjectGeneratorAtomicTest {
     @DisplayName("type overrides apply to AtomicInteger and AtomicLong")
     void atomicTypeOverridesApply() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .override(AtomicInteger.class, () -> new AtomicInteger(123))
-                                                            .override(AtomicLong.class, () -> new AtomicLong(456L))
-                                                            .build();
+                .override(AtomicInteger.class, () -> new AtomicInteger(123))
+                .override(AtomicLong.class, () -> new AtomicLong(456L))
+                .build();
         AtomicHolder holder = new ObjectGenerator<>(AtomicHolder.class, config).generate();
         assertEquals(123, holder.getAtomicInteger().get());
         assertEquals(456L, holder.getAtomicLong().get());
     }
 
-
     static class AtomicHolder {
 
         private AtomicInteger atomicInteger;
-        private AtomicLong    atomicLong;
+        private AtomicLong atomicLong;
 
         AtomicInteger getAtomicInteger() {
             return atomicInteger;

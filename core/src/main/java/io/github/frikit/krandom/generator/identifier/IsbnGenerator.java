@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.identifier;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
 
@@ -43,9 +41,9 @@ import java.util.Random;
  */
 public final class IsbnGenerator implements Generator<String> {
 
-    private final IsbnType        type;
+    private final IsbnType type;
     private final GeneratorConfig config;
-    private final Random          random;
+    private final Random random;
     /**
      * Creates an ISBN-13 generator with default configuration.
      */
@@ -178,5 +176,8 @@ public final class IsbnGenerator implements Generator<String> {
     /**
      * Selects between the ISBN-10 and ISBN-13 formats.
      */
-    public enum IsbnType {ISBN_10, ISBN_13}
+    public enum IsbnType {
+        ISBN_10,
+        ISBN_13
+    }
 }

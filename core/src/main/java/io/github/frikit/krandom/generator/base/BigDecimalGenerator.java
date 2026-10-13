@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.Random;
@@ -26,14 +25,14 @@ import java.util.Random;
  */
 public final class BigDecimalGenerator implements Generator<BigDecimal> {
 
-    private static final BigDecimal DEFAULT_MIN   = BigDecimal.ZERO;
-    private static final BigDecimal DEFAULT_MAX   = new BigDecimal("1000000");
-    private static final int        DEFAULT_SCALE = 2;
+    private static final BigDecimal DEFAULT_MIN = BigDecimal.ZERO;
+    private static final BigDecimal DEFAULT_MAX = new BigDecimal("1000000");
+    private static final int DEFAULT_SCALE = 2;
 
-    private final int        scale;
-    private final long       originInclusive;
-    private final long       boundExclusive;
-    private final Random     random;
+    private final int scale;
+    private final long originInclusive;
+    private final long boundExclusive;
+    private final Random random;
 
     /**
      * Default range [0, 1&nbsp;000&nbsp;000] with scale 2.
@@ -81,7 +80,11 @@ public final class BigDecimalGenerator implements Generator<BigDecimal> {
      * @param config generator configuration; must not be {@code null}
      */
     public BigDecimalGenerator(BigDecimal min, BigDecimal max, int scale, GeneratorConfig config) {
-        this(min, max, scale, Objects.requireNonNull(config, "config must not be null").createRandom());
+        this(
+                min,
+                max,
+                scale,
+                Objects.requireNonNull(config, "config must not be null").createRandom());
     }
 
     private BigDecimalGenerator(BigDecimal min, BigDecimal max, int scale, Random random) {
@@ -109,7 +112,7 @@ public final class BigDecimalGenerator implements Generator<BigDecimal> {
             return value.scaleByPowerOfTen(scale).toBigInteger().longValueExact();
         } catch (ArithmeticException e) {
             throw new IllegalArgumentException(
-                "bound " + value + " scaled by 10^" + scale + " exceeds the supported long range", e);
+                    "bound " + value + " scaled by 10^" + scale + " exceeds the supported long range", e);
         }
     }
 
@@ -118,7 +121,7 @@ public final class BigDecimalGenerator implements Generator<BigDecimal> {
             return Math.addExact(scaledMax, 1L);
         } catch (ArithmeticException e) {
             throw new IllegalArgumentException(
-                "max bound scaled by 10^scale is too close to Long.MAX_VALUE to represent an exclusive bound", e);
+                    "max bound scaled by 10^scale is too close to Long.MAX_VALUE to represent an exclusive bound", e);
         }
     }
 

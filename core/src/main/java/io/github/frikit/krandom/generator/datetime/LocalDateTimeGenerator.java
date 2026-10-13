@@ -6,9 +6,8 @@
 package io.github.frikit.krandom.generator.datetime;
 
 import io.github.frikit.krandom.generator.Generator;
-import io.github.frikit.krandom.generator.Seedable;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
+import io.github.frikit.krandom.generator.Seedable;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -49,13 +48,13 @@ import java.util.Random;
  */
 public final class LocalDateTimeGenerator implements Generator<LocalDateTime>, Seedable {
 
-    private static final int           MIN_YEAR      = 1970;
-    private static final int           MAX_YEAR      = 2100;
+    private static final int MIN_YEAR = 1970;
+    private static final int MAX_YEAR = 2100;
     private static final LocalDateTime MIN_DATE_TIME = LocalDateTime.of(MIN_YEAR, 1, 1, 0, 0, 0);
     private static final LocalDateTime MAX_DATE_TIME = LocalDateTime.of(MAX_YEAR, 12, 31, 23, 59, 59);
 
-    private final Random    random;
-    private final Clock     clock;
+    private final Random random;
+    private final Clock clock;
     private final @org.jspecify.annotations.Nullable LocalDate rangeMin;
     private final @org.jspecify.annotations.Nullable LocalDate rangeMax;
 
@@ -162,8 +161,8 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime>, S
         Objects.requireNonNull(startInclusive, "startInclusive must not be null");
         Objects.requireNonNull(endInclusive, "endInclusive must not be null");
         if (startInclusive.isAfter(endInclusive)) {
-            throw new IllegalArgumentException("startInclusive must be <= endInclusive, got: "
-                                               + startInclusive + " > " + endInclusive);
+            throw new IllegalArgumentException(
+                    "startInclusive must be <= endInclusive, got: " + startInclusive + " > " + endInclusive);
         }
         long seconds = ChronoUnit.SECONDS.between(startInclusive, endInclusive);
         if (seconds == 0) {

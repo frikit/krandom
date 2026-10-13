@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.color;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -72,7 +70,7 @@ public final class ColorGenerator implements Generator<String> {
     };
 
     private final GeneratorConfig config;
-    private final Random          random;
+    private final Random random;
 
     /**
      * Creates a color generator with default configuration.

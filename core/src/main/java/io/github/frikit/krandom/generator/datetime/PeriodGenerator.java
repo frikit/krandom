@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.datetime;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Seedable;
-
 import java.time.Period;
 import java.util.Objects;
 import java.util.Random;
@@ -18,9 +17,9 @@ import java.util.Random;
  */
 public final class PeriodGenerator implements Generator<Period>, Seedable {
 
-    private static final int DEFAULT_MAX_YEARS  = 10;
+    private static final int DEFAULT_MAX_YEARS = 10;
     private static final int DEFAULT_MAX_MONTHS = 11;
-    private static final int DEFAULT_MAX_DAYS   = 30;
+    private static final int DEFAULT_MAX_DAYS = 30;
 
     private final Random random;
 
@@ -36,9 +35,9 @@ public final class PeriodGenerator implements Generator<Period>, Seedable {
     @Override
     public Period generate() {
         return Period.of(
-            random.nextInt(DEFAULT_MAX_YEARS + 1),
-            random.nextInt(DEFAULT_MAX_MONTHS + 1),
-            random.nextInt(DEFAULT_MAX_DAYS + 1));
+                random.nextInt(DEFAULT_MAX_YEARS + 1),
+                random.nextInt(DEFAULT_MAX_MONTHS + 1),
+                random.nextInt(DEFAULT_MAX_DAYS + 1));
     }
 
     @Override

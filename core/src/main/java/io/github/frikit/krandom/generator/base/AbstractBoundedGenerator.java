@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.base;
 import io.github.frikit.krandom.generator.BoundedGenerator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Seedable;
-
 import java.util.Objects;
 import java.util.Random;
 import java.util.random.RandomGenerator;
@@ -28,7 +27,7 @@ import java.util.random.RandomGenerator;
  * @param <T> numeric type; must extend {@link Number} and implement {@link Comparable}
  */
 public abstract class AbstractBoundedGenerator<T extends Number & Comparable<T>>
-    implements BoundedGenerator<T>, Seedable {
+        implements BoundedGenerator<T>, Seedable {
 
     /**
      * The underlying PRNG — {@code RandomGenerator} is the Java-17+ interface.
@@ -109,8 +108,7 @@ public abstract class AbstractBoundedGenerator<T extends Number & Comparable<T>>
         Objects.requireNonNull(min, "min must not be null");
         Objects.requireNonNull(max, "max must not be null");
         if (min.compareTo(max) >= 0) {
-            throw new IllegalArgumentException(
-                "min must be less than max, got: min=" + min + ", max=" + max);
+            throw new IllegalArgumentException("min must be less than max, got: min=" + min + ", max=" + max);
         }
     }
 }

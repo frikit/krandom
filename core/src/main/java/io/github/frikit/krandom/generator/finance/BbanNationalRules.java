@@ -16,12 +16,12 @@ package io.github.frikit.krandom.generator.finance;
  */
 final class BbanNationalRules {
 
-    private static final int[] SPAIN_WEIGHTS         = {1, 2, 4, 8, 5, 10, 9, 7, 3, 6};
-    private static final int[] NORWAY_WEIGHTS        = {5, 4, 3, 2, 7, 6, 5, 4, 3, 2, 1};
-    private static final int[] CZECH_PREFIX_WEIGHTS  = {10, 5, 8, 4, 2, 1};
+    private static final int[] SPAIN_WEIGHTS = {1, 2, 4, 8, 5, 10, 9, 7, 3, 6};
+    private static final int[] NORWAY_WEIGHTS = {5, 4, 3, 2, 7, 6, 5, 4, 3, 2, 1};
+    private static final int[] CZECH_PREFIX_WEIGHTS = {10, 5, 8, 4, 2, 1};
     private static final int[] CZECH_ACCOUNT_WEIGHTS = {6, 3, 7, 9, 10, 5, 8, 4, 2, 1};
-    private static final int[] HUNGARY_WEIGHTS       = {9, 7, 3, 1};
-    private static final int[] POLAND_WEIGHTS        = {3, 9, 7, 1};
+    private static final int[] HUNGARY_WEIGHTS = {9, 7, 3, 1};
+    private static final int[] POLAND_WEIGHTS = {3, 9, 7, 1};
 
     /** Italian CIN values of the characters at odd positions, indexed by digit or letter value. */
     private static final int[] ITALY_ODD_VALUES = {
@@ -31,8 +31,7 @@ final class BbanNationalRules {
     /** French RIB digit values of the letters {@code A} to {@code Z}. */
     private static final String FRANCE_LETTER_VALUES = "12345678912345678923456789";
 
-    private BbanNationalRules() {
-    }
+    private BbanNationalRules() {}
 
     /**
      * Belgium ({@code 3!n7!n2!n}): the last two digits are the first ten digits modulo 97, or 97

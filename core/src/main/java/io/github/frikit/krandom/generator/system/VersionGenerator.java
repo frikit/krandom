@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.system;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.file.SemverGenerator;
-
 import java.util.Objects;
 
 /**

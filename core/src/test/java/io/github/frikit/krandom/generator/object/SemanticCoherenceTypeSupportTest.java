@@ -5,22 +5,21 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * End-to-end coverage for field types the coherence pass cannot represent: generation must keep
@@ -84,6 +83,7 @@ class SemanticCoherenceTypeSupportTest {
     public static class RangedAge {
         @FakeRange(min = 18, max = 21)
         public int age;
+
         public LocalDate birthDate;
     }
 
@@ -106,15 +106,17 @@ class SemanticCoherenceTypeSupportTest {
             SqlDateRow row = generate(SqlDateRow.class, seed);
             assertNotNull(row.createdAt);
             assertNotNull(row.updatedAt);
-            assertFalse(row.createdAt.toLocalDate().isAfter(row.updatedAt.toLocalDate()),
-                "createdAt " + row.createdAt + " must not be after updatedAt " + row.updatedAt);
+            assertFalse(
+                    row.createdAt.toLocalDate().isAfter(row.updatedAt.toLocalDate()),
+                    "createdAt " + row.createdAt + " must not be after updatedAt " + row.updatedAt);
         }
     }
 
     @Test
     @DisplayName("java.sql.Date timestamps also generate when errors are ignored")
     void sqlDateTimestampsGenerateLeniently() {
-        GeneratorConfig lenient = config(3L).toBuilder().objectIgnoreErrors(true).build();
+        GeneratorConfig lenient =
+                config(3L).toBuilder().objectIgnoreErrors(true).build();
         SqlDateRow row = new ObjectGenerator<>(SqlDateRow.class, lenient).generate();
         assertNotNull(row.createdAt);
     }
@@ -168,8 +170,8 @@ class SemanticCoherenceTypeSupportTest {
     void byteAgeTooLargeForTheFieldIsKept() {
         LocalDate longAgo = LocalDate.of(1800, 1, 1);
         GeneratorConfig config = config(5L).toBuilder()
-            .objectOverride(ByteAge.class, "birthDate", () -> longAgo)
-            .build();
+                .objectOverride(ByteAge.class, "birthDate", () -> longAgo)
+                .build();
         ByteAge person = assertDoesNotThrow(() -> new ObjectGenerator<>(ByteAge.class, config).generate());
         assertEquals(longAgo, person.birthDate);
         assertTrue(yearsSince(person.birthDate) > Byte.MAX_VALUE);
@@ -189,8 +191,8 @@ class SemanticCoherenceTypeSupportTest {
 
     private static ByteAge generateWithBirthDate(LocalDate birthDate) {
         GeneratorConfig config = config(5L).toBuilder()
-            .objectOverride(ByteAge.class, "birthDate", () -> birthDate)
-            .build();
+                .objectOverride(ByteAge.class, "birthDate", () -> birthDate)
+                .build();
         return assertDoesNotThrow(() -> new ObjectGenerator<>(ByteAge.class, config).generate());
     }
 
@@ -198,8 +200,8 @@ class SemanticCoherenceTypeSupportTest {
     @DisplayName("STRICT mode still lets semantics win over @FakeRange, as documented")
     void strictModeLetsSemanticsWin() {
         GeneratorConfig strict = config(11L).toBuilder()
-            .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
-            .build();
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                .build();
         RangedAge person = new ObjectGenerator<>(RangedAge.class, strict).generate();
         assertEquals(person.age, yearsSince(person.birthDate));
     }
@@ -217,12 +219,14 @@ class SemanticCoherenceTypeSupportTest {
     public static class RangedByteAge {
         @FakeRange(min = 18, max = 21)
         public byte age;
+
         public LocalDate birthDate;
     }
 
     public static class RangedDoubleAge {
         @FakeRange(min = 18, max = 21)
         public Double age;
+
         public LocalDate birthDate;
     }
 
@@ -235,8 +239,10 @@ class SemanticCoherenceTypeSupportTest {
             assertEquals(byteAge.age, yearsSince(byteAge.birthDate), "birthDate must follow the protected age");
 
             RangedDoubleAge doubleAge = generate(RangedDoubleAge.class, seed);
-            assertEquals((long) Math.floor(doubleAge.age), yearsSince(doubleAge.birthDate),
-                         "birthDate must follow the protected age " + doubleAge.age);
+            assertEquals(
+                    (long) Math.floor(doubleAge.age),
+                    yearsSince(doubleAge.birthDate),
+                    "birthDate must follow the protected age " + doubleAge.age);
         }
     }
 

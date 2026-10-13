@@ -5,10 +5,13 @@
  */
 package io.github.frikit.krandom.generator.namespace;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
-import io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.commerce.CommerceGenerator;
 import io.github.frikit.krandom.generator.commerce.OrderInfoGenerator;
 import io.github.frikit.krandom.generator.commerce.ProductInfoGenerator;
@@ -21,11 +24,11 @@ import io.github.frikit.krandom.generator.datetime.LocalDateTimeGenerator;
 import io.github.frikit.krandom.generator.datetime.TimezoneGenerator;
 import io.github.frikit.krandom.generator.datetime.ZonedDateTimeGenerator;
 import io.github.frikit.krandom.generator.finance.AbaRoutingGenerator;
-import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.BankAccountGenerator;
 import io.github.frikit.krandom.generator.finance.BankCountryGenerator;
 import io.github.frikit.krandom.generator.finance.BankNameGenerator;
 import io.github.frikit.krandom.generator.finance.BankTypeGenerator;
+import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.BbanGenerator;
 import io.github.frikit.krandom.generator.finance.BicGenerator;
 import io.github.frikit.krandom.generator.finance.CardExpirationGenerator;
@@ -78,6 +81,7 @@ import io.github.frikit.krandom.generator.text.WordGenerator;
 import io.github.frikit.krandom.generator.user.AgeGenerator;
 import io.github.frikit.krandom.generator.user.AgeType;
 import io.github.frikit.krandom.generator.user.AvatarUrlGenerator;
+import io.github.frikit.krandom.generator.user.BirthdayGenerator;
 import io.github.frikit.krandom.generator.user.CompanyBuzzwordGenerator;
 import io.github.frikit.krandom.generator.user.CompanyCatchPhraseGenerator;
 import io.github.frikit.krandom.generator.user.CompanyNameGenerator;
@@ -96,16 +100,11 @@ import io.github.frikit.krandom.generator.user.PositionGenerator;
 import io.github.frikit.krandom.generator.user.ProfessionGenerator;
 import io.github.frikit.krandom.generator.user.SeniorityGenerator;
 import io.github.frikit.krandom.generator.user.UsernameGenerator;
-import io.github.frikit.krandom.generator.user.BirthdayGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
+import java.util.Locale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class FluentNamespaceTest {
 
@@ -117,9 +116,8 @@ class FluentNamespaceTest {
     @DisplayName("person namespace generates all values")
     void personNamespace() {
         PersonGenerators p = Generators.person(GeneratorConfig.builder()
-                                                               .nationalIdSafetyPolicy(
-                                                                   NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                               .build());
+                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build());
         assertNotNull(p.fullName().generate());
         assertNotNull(p.firstName().generate());
         assertNotNull(p.lastName().generate());
@@ -176,15 +174,11 @@ class FluentNamespaceTest {
     @DisplayName("finance namespace generates all values with explicit compatibility policies")
     void financeNamespace() {
         FinanceGenerators f = Generators.finance(GeneratorConfig.builder()
-                                                                 .bankingSafetyPolicy(
-                                                                     BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                                 .businessTaxIdentifierSafetyPolicy(
-                                                                     BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                                 .cryptoAddressSafetyPolicy(
-                                                                     CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                                 .securitiesIdentifierSafetyPolicy(
-                                                                     SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                                 .build());
+                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .businessTaxIdentifierSafetyPolicy(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .securitiesIdentifierSafetyPolicy(SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build());
         assertNotNull(f.creditCard().generate());
         assertNotNull(f.creditCardInfo().generate());
         assertNotNull(f.cardExpiration().generate());
@@ -281,7 +275,9 @@ class FluentNamespaceTest {
         assertNotNull(t.paragraph().generate());
         assertNotNull(t.text().generate());
         assertNotNull(t.template("Hello {{name}}").generate());
-        assertNotNull(Generators.text(GeneratorConfig.builder().seed(42L).build()).template("Test {{x}}").generate());
+        assertNotNull(Generators.text(GeneratorConfig.builder().seed(42L).build())
+                .template("Test {{x}}")
+                .generate());
         assertNotNull(Generators.text(config).word().generate());
     }
 
@@ -343,13 +339,13 @@ class FluentNamespaceTest {
     @DisplayName("config namespaces propagate seeded config to config-aware generators")
     void configNamespacesPropagateSeededConfig() {
         GeneratorConfig seeded = GeneratorConfig.builder()
-            .locale(Locale.GERMANY)
-            .seed(987654321L)
-            .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
-            .businessTaxIdentifierSafetyPolicy(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
-            .cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
-            .securitiesIdentifierSafetyPolicy(SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
-            .build();
+                .locale(Locale.GERMANY)
+                .seed(987654321L)
+                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .businessTaxIdentifierSafetyPolicy(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .securitiesIdentifierSafetyPolicy(SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
 
         DateTimeGenerators datetime = Generators.datetime(seeded);
         assertSameFirstValue(new DateGenerator(seeded), datetime.localDate());
@@ -362,16 +358,17 @@ class FluentNamespaceTest {
 
         TextGenerators text = Generators.text(seeded);
         assertSameFirstValue(new LoremIpsumGenerator(seeded), text.loremIpsum());
-        assertSameFirstValue(new LoremIpsumGenerator(LoremIpsumGenerator.Mode.PARAGRAPH, seeded),
-                             text.loremIpsum(LoremIpsumGenerator.Mode.PARAGRAPH));
+        assertSameFirstValue(
+                new LoremIpsumGenerator(LoremIpsumGenerator.Mode.PARAGRAPH, seeded),
+                text.loremIpsum(LoremIpsumGenerator.Mode.PARAGRAPH));
         assertSameFirstValue(new WordGenerator(seeded), text.word());
         assertSameFirstValue(new SyllableGenerator(seeded), text.syllable());
         assertSameFirstValue(new SentenceGenerator(seeded), text.sentence());
         assertSameFirstValue(new ParagraphGenerator(seeded), text.paragraph());
         assertSameFirstValue(new TextGenerator(seeded), text.text());
         assertSameFirstValue(new TemplateStringGenerator("??-####", seeded), text.template("??-####"));
-        assertSameFirstValue(new ProviderTemplateGenerator("{firstname}-##", seeded),
-                             text.providerTemplate("{firstname}-##"));
+        assertSameFirstValue(
+                new ProviderTemplateGenerator("{firstname}-##", seeded), text.providerTemplate("{firstname}-##"));
 
         NetworkGenerators network = Generators.network(seeded);
         assertSameFirstValue(new IPv4Generator(seeded), network.ipv4());
@@ -392,16 +389,21 @@ class FluentNamespaceTest {
         assertSameFirstValue(new UUIDGenerator(seeded), identifier.uuid());
         assertSameFirstValue(new HashGenerator(seeded), identifier.hash());
         assertSameFirstValue(new IsbnGenerator(seeded), identifier.isbn());
-        assertSameFirstValue(new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_10, seeded),
-                             identifier.isbn(IsbnGenerator.IsbnType.ISBN_10));
+        assertSameFirstValue(
+                new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_10, seeded),
+                identifier.isbn(IsbnGenerator.IsbnType.ISBN_10));
         assertSameFirstValue(new EanGenerator(seeded), identifier.ean());
         assertSameFirstValue(new UpcGenerator(seeded), identifier.upc());
         assertSameFirstValue(new IdentifierMaskGenerator(seeded), identifier.mask());
 
-        assertSameFirstValue(new CommerceGenerator(seeded), Generators.commerce(seeded).commerce());
-        assertSameFirstValue(new CoordinatesGenerator(seeded), Generators.location(seeded).coordinates());
-        assertSameFirstValue(new GeohashGenerator(seeded), Generators.location(seeded).geohash());
-        assertSameFirstValue(new GeohashGenerator(8, seeded), Generators.location(seeded).geohash(8));
+        assertSameFirstValue(
+                new CommerceGenerator(seeded), Generators.commerce(seeded).commerce());
+        assertSameFirstValue(
+                new CoordinatesGenerator(seeded), Generators.location(seeded).coordinates());
+        assertSameFirstValue(
+                new GeohashGenerator(seeded), Generators.location(seeded).geohash());
+        assertSameFirstValue(
+                new GeohashGenerator(8, seeded), Generators.location(seeded).geohash(8));
 
         FinanceGenerators finance = Generators.finance(seeded);
         assertSameFirstValue(new CreditCardGenerator(seeded), finance.creditCard());
@@ -438,11 +440,11 @@ class FluentNamespaceTest {
     @DisplayName("locale namespace overloads preserve seeded config")
     void localeNamespaceOverloadsPreserveSeededConfig() {
         GeneratorConfig seeded = GeneratorConfig.builder()
-            .locale(Locale.US)
-            .seed(2468L)
-            .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
-            .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
-            .build();
+                .locale(Locale.US)
+                .seed(2468L)
+                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
         GeneratorConfig german = seeded.toBuilder().locale(Locale.GERMANY).build();
         GeneratorConfig french = seeded.toBuilder().locale(Locale.FRANCE).build();
         GeneratorConfig uk = seeded.toBuilder().locale(Locale.UK).build();
@@ -475,16 +477,15 @@ class FluentNamespaceTest {
         assertSameFirstValue(new OrderInfoGenerator(french), commerce.order(Locale.FRANCE));
         assertSameFirstValue(new ShipmentInfoGenerator(japan), commerce.shipment(Locale.JAPAN));
 
-        assertSameFirstValue(new MoneyGenerator(japan), Generators.finance(seeded).money(Locale.JAPAN));
+        assertSameFirstValue(
+                new MoneyGenerator(japan), Generators.finance(seeded).money(Locale.JAPAN));
     }
 
     @Test
     @DisplayName("person namespace age and birthday preserve seeded config")
     void personNamespaceAgeAndBirthdayPreserveSeededConfig() {
-        GeneratorConfig seeded = GeneratorConfig.builder()
-            .locale(Locale.GERMANY)
-            .seed(13579L)
-            .build();
+        GeneratorConfig seeded =
+                GeneratorConfig.builder().locale(Locale.GERMANY).seed(13579L).build();
         PersonGenerators person = Generators.person(seeded);
 
         assertSameFirstValue(new AgeGenerator(seeded), person.age());

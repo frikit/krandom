@@ -40,7 +40,8 @@ public record HttpStatus(int code, String reasonPhrase) {
     public String statusLine(String version) {
         Objects.requireNonNull(version, "version must not be null");
         if (!HTTP_VERSION.matcher(version).matches()) {
-            throw new IllegalArgumentException("version must be HTTP/1.0, HTTP/1.1, HTTP/2, or HTTP/3, got: " + version);
+            throw new IllegalArgumentException(
+                    "version must be HTTP/1.0, HTTP/1.1, HTTP/2, or HTTP/3, got: " + version);
         }
         return version + ' ' + code + ' ' + reasonPhrase;
     }

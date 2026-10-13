@@ -5,14 +5,14 @@
  */
 package io.github.frikit.krandom.generator.file;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import org.junit.jupiter.api.Test;
 
 class FileNameGeneratorTest {
 
@@ -25,8 +25,10 @@ class FileNameGeneratorTest {
 
     @Test
     void seededReproducibility() {
-        FileNameGenerator a = new FileNameGenerator(GeneratorConfig.builder().seed(5L).build());
-        FileNameGenerator b = new FileNameGenerator(GeneratorConfig.builder().seed(5L).build());
+        FileNameGenerator a =
+                new FileNameGenerator(GeneratorConfig.builder().seed(5L).build());
+        FileNameGenerator b =
+                new FileNameGenerator(GeneratorConfig.builder().seed(5L).build());
         for (int i = 0; i < 20; i++) {
             assertEquals(a.generate(), b.generate());
         }

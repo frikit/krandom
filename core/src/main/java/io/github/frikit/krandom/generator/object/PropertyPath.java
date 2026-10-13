@@ -90,8 +90,7 @@ public final class PropertyPath<T, V> {
         Objects.requireNonNull(selector, "selector must not be null");
         SerializedLambda lambda = serializedLambda(selector);
         int methodKind = lambda.getImplMethodKind();
-        if (methodKind != MethodHandleInfo.REF_invokeVirtual
-            && methodKind != MethodHandleInfo.REF_invokeInterface) {
+        if (methodKind != MethodHandleInfo.REF_invokeVirtual && methodKind != MethodHandleInfo.REF_invokeInterface) {
             throw invalidSelector(lambda.getImplMethodName());
         }
 
@@ -113,8 +112,8 @@ public final class PropertyPath<T, V> {
 
     private static boolean isBeanAccessor(String methodName, String prefix) {
         return methodName.length() > prefix.length()
-               && methodName.startsWith(prefix)
-               && Character.isUpperCase(methodName.charAt(prefix.length()));
+                && methodName.startsWith(prefix)
+                && Character.isUpperCase(methodName.charAt(prefix.length()));
     }
 
     private static String decapitalize(String value) {
@@ -134,17 +133,16 @@ public final class PropertyPath<T, V> {
             }
             throw new IllegalArgumentException("Property selector must be an unbound accessor method reference");
         } catch (NoSuchMethodException | IllegalAccessException e) {
-            throw new IllegalArgumentException(
-                "Property selector must be an unbound accessor method reference", e);
+            throw new IllegalArgumentException("Property selector must be an unbound accessor method reference", e);
         } catch (InvocationTargetException e) {
             throw new IllegalArgumentException(
-                "Could not inspect property selector method reference", e.getTargetException());
+                    "Could not inspect property selector method reference", e.getTargetException());
         }
     }
 
     private static IllegalArgumentException invalidSelector(String methodName) {
         return new IllegalArgumentException(
-            "Property selector must be an unbound getter or record accessor method reference, got '"
-            + methodName + "'");
+                "Property selector must be an unbound getter or record accessor method reference, got '" + methodName
+                        + "'");
     }
 }

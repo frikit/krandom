@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -43,7 +42,7 @@ import java.util.random.RandomGenerator;
  */
 public final class CharGenerator implements Generator<Character> {
 
-    private final char[]          pool;
+    private final char[] pool;
     private final RandomGenerator random;
 
     private CharGenerator(char[] pool, RandomGenerator random) {
@@ -66,7 +65,9 @@ public final class CharGenerator implements Generator<Character> {
      * @return a letter generator backed by the configuration's random source
      */
     public static CharGenerator letters(GeneratorConfig config) {
-        return letters().withRandom(Objects.requireNonNull(config, "config must not be null").createRandom());
+        return letters()
+                .withRandom(Objects.requireNonNull(config, "config must not be null")
+                        .createRandom());
     }
 
     /**
@@ -193,13 +194,12 @@ public final class CharGenerator implements Generator<Character> {
 
     // ── Builder ───────────────────────────────────────────────────────────────
 
-
     public static final class Builder {
 
         private boolean includeUppercase = false;
         private boolean includeLowercase = false;
-        private boolean includeDigits    = false;
-        private boolean includeSpecial   = false;
+        private boolean includeDigits = false;
+        private boolean includeSpecial = false;
         private @org.jspecify.annotations.Nullable Long seed = null;
 
         /**
@@ -248,16 +248,18 @@ public final class CharGenerator implements Generator<Character> {
             if (includeLowercase) for (char c = 'a'; c <= 'z'; c++) chars.add(c);
             if (includeDigits) for (char c = '0'; c <= '9'; c++) chars.add(c);
             if (includeSpecial) {
-                for (String s : new String[] { "!", "@", "#", "$", "%", "^", "&", "*",
-                                               "(", ")", "-", "_", "=", "+", "[", "]",
-                                               "{", "}", "|", ";", ":", ",", ".", "<",
-                                               ">", "?", "/" }) {
+                for (String s : new String[] {
+                    "!", "@", "#", "$", "%", "^", "&", "*",
+                    "(", ")", "-", "_", "=", "+", "[", "]",
+                    "{", "}", "|", ";", ":", ",", ".", "<",
+                    ">", "?", "/"
+                }) {
                     chars.add(s.charAt(0));
                 }
             }
             if (chars.isEmpty()) {
                 throw new IllegalArgumentException(
-                    "At least one character group must be enabled (uppercase, lowercase, digits, special)");
+                        "At least one character group must be enabled (uppercase, lowercase, digits, special)");
             }
             char[] pool = new char[chars.size()];
             for (int i = 0; i < chars.size(); i++) pool[i] = chars.get(i);

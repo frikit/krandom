@@ -5,12 +5,10 @@
  */
 package io.github.frikit.krandom.generator.location;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
 import java.io.InputStream;
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -24,11 +22,11 @@ import java.util.Random;
 public final class StreetAddressGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
-    private final Random          random;
-    private final String[]        streetNames;
-    private final String[]        streetTypesShort;
-    private final String[]        streetTypesLong;
-    private final String[]        secondaryUnits;
+    private final Random random;
+    private final String[] streetNames;
+    private final String[] streetTypesShort;
+    private final String[] streetTypesLong;
+    private final String[] secondaryUnits;
 
     private final @org.jspecify.annotations.Nullable CityGenerator cityGenerator;
     private final @org.jspecify.annotations.Nullable StateGenerator stateGenerator;
@@ -61,24 +59,27 @@ public final class StreetAddressGenerator implements Generator<String> {
         DataRegistryContext registryContext = config.getRegistryContext();
         Locale locale = config.getLocale();
         if (!registryContext.isStreetAddressRegistered(locale)) {
-            throw new UnsupportedOperationException(
-                "Locale " + locale + " is not supported. Registered locales: "
-                + registryContext.streetAddressRegisteredKeys());
+            throw new UnsupportedOperationException("Locale " + locale + " is not supported. Registered locales: "
+                    + registryContext.streetAddressRegisteredKeys());
         }
 
         this.random = config.createRandom();
 
         StreetAddressDataProvider provider =
-            java.util.Objects.requireNonNull(registryContext.streetAddressProvider(locale));
+                java.util.Objects.requireNonNull(registryContext.streetAddressProvider(locale));
         this.streetNames = provider.getStreetNames();
         this.streetTypesShort = provider.getStreetTypesShort();
         this.streetTypesLong = provider.getStreetTypesLong();
         this.secondaryUnits = loadSecondaryUnits(locale);
 
-        this.cityGenerator = registryContext.isCityRegistered(locale) ? new CityGenerator(config.forChildStream("city")) : null;
-        this.stateGenerator = registryContext.isStateRegistered(locale) ? new StateGenerator(config.forChildStream("state")) : null;
+        this.cityGenerator =
+                registryContext.isCityRegistered(locale) ? new CityGenerator(config.forChildStream("city")) : null;
+        this.stateGenerator =
+                registryContext.isStateRegistered(locale) ? new StateGenerator(config.forChildStream("state")) : null;
         this.postalCodeGenerator = new PostalCodeGenerator(config.forChildStream("postalCode"));
-        this.countryGenerator = registryContext.isCountryRegistered(locale) ? new CountryGenerator(config.forChildStream("country")) : null;
+        this.countryGenerator = registryContext.isCountryRegistered(locale)
+                ? new CountryGenerator(config.forChildStream("country"))
+                : null;
     }
 
     private static String[] loadSecondaryUnits(Locale locale) {
@@ -88,7 +89,7 @@ public final class StreetAddressGenerator implements Generator<String> {
         if (is != null) {
             return StreetAddressResourceLoader.load(is, resourcePath);
         }
-        return new String[] { "Apt", "Suite", "Unit", "Floor", "Room" };
+        return new String[] {"Apt", "Suite", "Unit", "Floor", "Room"};
     }
 
     /**
@@ -109,11 +110,7 @@ public final class StreetAddressGenerator implements Generator<String> {
      * @return a street-address string; never {@code null}
      */
     public String generate(boolean shortSuffix) {
-        return generateStreetAddressNumber()
-               + " "
-               + generateStreetName()
-               + " "
-               + generateStreetSuffix(shortSuffix);
+        return generateStreetAddressNumber() + " " + generateStreetName() + " " + generateStreetSuffix(shortSuffix);
     }
 
     /**

@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.network;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Objects;
 import java.util.Random;
 
@@ -16,7 +15,7 @@ import java.util.Random;
  */
 public final class IPGenerator implements Generator<String> {
 
-    private final Random        random;
+    private final Random random;
     private final IPv4Generator ipv4Generator;
     private final IPv6Generator ipv6Generator;
 

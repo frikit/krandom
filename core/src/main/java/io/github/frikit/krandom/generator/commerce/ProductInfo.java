@@ -15,13 +15,4 @@ package io.github.frikit.krandom.generator.commerce;
  * @param upc         UPC-A value
  * @param isbn        ISBN-13 value
  */
-public record ProductInfo(
-    String name,
-    String description,
-    String category,
-    String material,
-    String upc,
-    String isbn
-) {
-
-}
+public record ProductInfo(String name, String description, String category, String material, String upc, String isbn) {}

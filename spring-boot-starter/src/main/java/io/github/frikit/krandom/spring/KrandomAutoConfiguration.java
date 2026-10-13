@@ -5,18 +5,9 @@
  */
 package io.github.frikit.krandom.spring;
 
+import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.provider.ProviderHub;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-
-import io.github.frikit.krandom.generator.GenerationRecipe;
-
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.ZoneId;
@@ -27,6 +18,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 
 /**
  * Auto-configuration for krandom.
@@ -56,8 +54,7 @@ public class KrandomAutoConfiguration {
     private static final Log LOGGER = LogFactory.getLog(KrandomAutoConfiguration.class);
 
     /** Creates the auto-configuration. */
-    public KrandomAutoConfiguration() {
-    }
+    public KrandomAutoConfiguration() {}
 
     /**
      * Creates the generator configuration from the bound application properties.
@@ -68,9 +65,8 @@ public class KrandomAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public GeneratorConfig generatorConfig(KrandomProperties properties) {
-        GeneratorConfig config = hasText(properties.getRecipe())
-            ? recipeConfig(properties)
-            : propertiesConfig(properties);
+        GeneratorConfig config =
+                hasText(properties.getRecipe()) ? recipeConfig(properties) : propertiesConfig(properties);
         logEffectiveRecipe(config);
         return config;
     }
@@ -84,8 +80,8 @@ public class KrandomAutoConfiguration {
         List<String> conflicts = explicitlySetRecipeProperties(properties);
         if (!conflicts.isEmpty()) {
             throw new IllegalArgumentException(
-                "Configure krandom.recipe or the individual krandom.* properties, not both: the recipe already "
-                    + "defines " + String.join(", ", conflicts));
+                    "Configure krandom.recipe or the individual krandom.* properties, not both: the recipe already "
+                            + "defines " + String.join(", ", conflicts));
         }
         return parseRecipe(properties.getRecipe()).toGeneratorConfig();
     }
@@ -108,8 +104,8 @@ public class KrandomAutoConfiguration {
         candidates.put("krandom.banking-safety-policy", properties.getBankingSafetyPolicy());
         candidates.put("krandom.securities-identifier-safety-policy", properties.getSecuritiesIdentifierSafetyPolicy());
         candidates.put("krandom.crypto-address-safety-policy", properties.getCryptoAddressSafetyPolicy());
-        candidates.put("krandom.business-tax-identifier-safety-policy",
-                       properties.getBusinessTaxIdentifierSafetyPolicy());
+        candidates.put(
+                "krandom.business-tax-identifier-safety-policy", properties.getBusinessTaxIdentifierSafetyPolicy());
         candidates.put("krandom.identity-document-safety-policy", properties.getIdentityDocumentSafetyPolicy());
         candidates.put("krandom.object-construction-policy", properties.getObjectConstructionPolicy());
         List<String> set = new ArrayList<>();
@@ -127,11 +123,11 @@ public class KrandomAutoConfiguration {
         }
         config.getGenerationRecipe().ifPresent(recipe -> {
             String serialized = recipe.serializeForDiagnostics();
-            String encoded = Base64.getUrlEncoder().withoutPadding()
-                                   .encodeToString(serialized.getBytes(StandardCharsets.UTF_8));
+            String encoded =
+                    Base64.getUrlEncoder().withoutPadding().encodeToString(serialized.getBytes(StandardCharsets.UTF_8));
             LOGGER.info("krandom: effective generation recipe (replay with krandom.recipe=base64:" + encoded
-                            + "; without krandom.clock the recorded instant is the startup time):"
-                            + System.lineSeparator() + serialized);
+                    + "; without krandom.clock the recorded instant is the startup time):"
+                    + System.lineSeparator() + serialized);
         });
     }
 
@@ -155,9 +151,9 @@ public class KrandomAutoConfiguration {
 
         if (properties.getClock() != null && !properties.getClock().isBlank()) {
             builder.clock(parseClock(properties.getClock(), properties.getClockZone()));
-        } else if (properties.getClockZone() != null && !properties.getClockZone().isBlank()) {
-            throw new IllegalArgumentException(
-                "krandom.clock-zone requires krandom.clock to be set");
+        } else if (properties.getClockZone() != null
+                && !properties.getClockZone().isBlank()) {
+            throw new IllegalArgumentException("krandom.clock-zone requires krandom.clock to be set");
         }
 
         if (properties.getPaymentCardSafetyPolicy() != null) {
@@ -198,21 +194,21 @@ public class KrandomAutoConfiguration {
 
         if (properties.getMinStringLength() != null || properties.getMaxStringLength() != null) {
             int min = properties.getMinStringLength() != null
-                      ? properties.getMinStringLength()
-                      : defaults.getMinStringLength();
+                    ? properties.getMinStringLength()
+                    : defaults.getMinStringLength();
             int max = properties.getMaxStringLength() != null
-                      ? properties.getMaxStringLength()
-                      : defaults.getMaxStringLength();
+                    ? properties.getMaxStringLength()
+                    : defaults.getMaxStringLength();
             builder.stringLength(min, max);
         }
 
         if (properties.getMinCollectionSize() != null || properties.getMaxCollectionSize() != null) {
             int min = properties.getMinCollectionSize() != null
-                      ? properties.getMinCollectionSize()
-                      : defaults.getMinCollectionSize();
+                    ? properties.getMinCollectionSize()
+                    : defaults.getMinCollectionSize();
             int max = properties.getMaxCollectionSize() != null
-                      ? properties.getMaxCollectionSize()
-                      : defaults.getMaxCollectionSize();
+                    ? properties.getMaxCollectionSize()
+                    : defaults.getMaxCollectionSize();
             builder.collectionSize(min, max);
         }
 
@@ -222,9 +218,9 @@ public class KrandomAutoConfiguration {
     private static GenerationRecipe parseRecipe(String value) {
         try {
             String serialized = value.startsWith("base64:")
-                ? new String(Base64.getUrlDecoder().decode(value.substring("base64:".length())),
-                             StandardCharsets.UTF_8)
-                : value.replace("\\n", "\n");
+                    ? new String(
+                            Base64.getUrlDecoder().decode(value.substring("base64:".length())), StandardCharsets.UTF_8)
+                    : value.replace("\\n", "\n");
             return GenerationRecipe.parse(serialized);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid krandom.recipe: " + e.getMessage(), e);
@@ -236,8 +232,7 @@ public class KrandomAutoConfiguration {
             ZoneId zoneId = zone != null && !zone.isBlank() ? ZoneId.of(zone) : ZoneId.of("UTC");
             return Clock.fixed(java.time.Instant.parse(instant.trim()), zoneId);
         } catch (java.time.DateTimeException e) {
-            throw new IllegalArgumentException(
-                "Invalid krandom.clock/krandom.clock-zone: " + e.getMessage(), e);
+            throw new IllegalArgumentException("Invalid krandom.clock/krandom.clock-zone: " + e.getMessage(), e);
         }
     }
 

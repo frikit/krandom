@@ -5,22 +5,23 @@
  */
 package io.github.frikit.krandom.generator;
 
-import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
-import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
+import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
 import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
@@ -35,13 +36,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @DisplayName("GeneratorConfig")
 class GeneratorConfigTest {
@@ -72,13 +71,16 @@ class GeneratorConfigTest {
         assertSame(SemanticFieldRegistry.defaults(), c.getObjectSemanticRegistry());
         assertEquals(0.0, c.getObjectNullProbability());
         assertEquals(0.0, c.getObjectOptionalEmptyProbability());
-        assertEquals(Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id"),
-                     c.getObjectUniqueFieldNames());
+        assertEquals(
+                Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id"),
+                c.getObjectUniqueFieldNames());
         assertEquals(256, c.getObjectUniquenessMaxAttempts());
         assertTrue(c.getObjectTypeOverride(String.class).isEmpty());
-        assertTrue(c.getObjectFieldOverride(RootObjectConfigFixture.class, "name").isEmpty());
+        assertTrue(
+                c.getObjectFieldOverride(RootObjectConfigFixture.class, "name").isEmpty());
         assertTrue(c.getObjectContextualTypeOverride(String.class).isEmpty());
-        assertTrue(c.getObjectContextualFieldOverride(RootObjectConfigFixture.class, "name").isEmpty());
+        assertTrue(c.getObjectContextualFieldOverride(RootObjectConfigFixture.class, "name")
+                .isEmpty());
         assertEquals(Locale.US, c.getLocale());
         assertEquals(ZoneId.systemDefault(), c.getClock().getZone());
         assertSame(DataRegistryContext.globalDefault(), c.getRegistryContext());
@@ -97,11 +99,13 @@ class GeneratorConfigTest {
     @DisplayName("email domain policy is configurable and retained by toBuilder")
     void emailDomainPolicyConfigurable() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED)
-                                                .build();
+                .emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
 
         assertEquals(EmailDomainPolicy.REALISTIC_UNCLASSIFIED, config.getEmailDomainPolicy());
-        assertEquals(EmailDomainPolicy.REALISTIC_UNCLASSIFIED, config.toBuilder().build().getEmailDomainPolicy());
+        assertEquals(
+                EmailDomainPolicy.REALISTIC_UNCLASSIFIED,
+                config.toBuilder().build().getEmailDomainPolicy());
         assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().emailDomainPolicy(null));
     }
 
@@ -109,108 +113,106 @@ class GeneratorConfigTest {
     @DisplayName("payment card safety policy is configurable and retained by toBuilder")
     void paymentCardSafetyPolicyConfigurable() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.CHECKSUM_VALID)
-                                                .build();
+                .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.CHECKSUM_VALID)
+                .build();
 
-        assertEquals(PaymentCardSafetyPolicy.CHECKSUM_VALID,
-                     config.toBuilder().build().getPaymentCardSafetyPolicy());
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().paymentCardSafetyPolicy(null));
+        assertEquals(
+                PaymentCardSafetyPolicy.CHECKSUM_VALID,
+                config.toBuilder().build().getPaymentCardSafetyPolicy());
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().paymentCardSafetyPolicy(null));
     }
 
     @Test
     @DisplayName("phone number safety policy is configurable and retained by toBuilder")
     void phoneNumberSafetyPolicyConfigurable() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                .build();
+                .phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
 
-        assertEquals(PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED,
-                     config.toBuilder().build().getPhoneNumberSafetyPolicy());
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().phoneNumberSafetyPolicy(null));
+        assertEquals(
+                PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                config.toBuilder().build().getPhoneNumberSafetyPolicy());
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().phoneNumberSafetyPolicy(null));
     }
 
     @Test
     @DisplayName("national-ID safety policy is configurable and retained by toBuilder")
     void nationalIdSafetyPolicyConfigurable() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                .build();
+                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
 
-        assertEquals(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED,
-                     config.toBuilder().build().getNationalIdSafetyPolicy());
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().nationalIdSafetyPolicy(null));
+        assertEquals(
+                NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                config.toBuilder().build().getNationalIdSafetyPolicy());
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().nationalIdSafetyPolicy(null));
     }
 
     @Test
     @DisplayName("identity-document safety policy is configurable and retained by toBuilder")
     void identityDocumentSafetyPolicyConfigurable() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .identityDocumentSafetyPolicy(
-                                                    IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                .build();
+                .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
 
-        assertEquals(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED,
-                     config.toBuilder().build().getIdentityDocumentSafetyPolicy());
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().identityDocumentSafetyPolicy(null));
+        assertEquals(
+                IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                config.toBuilder().build().getIdentityDocumentSafetyPolicy());
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().identityDocumentSafetyPolicy(null));
     }
 
     @Test
     @DisplayName("banking safety policy is configurable and retained by toBuilder")
     void bankingSafetyPolicyConfigurable() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                .build();
+                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
 
-        assertEquals(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED,
-                     config.toBuilder().build().getBankingSafetyPolicy());
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().bankingSafetyPolicy(null));
+        assertEquals(
+                BankingSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                config.toBuilder().build().getBankingSafetyPolicy());
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().bankingSafetyPolicy(null));
     }
 
     @Test
     @DisplayName("business tax-identifier safety policy is configurable and retained by toBuilder")
     void businessTaxIdentifierSafetyPolicyConfigurable() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .businessTaxIdentifierSafetyPolicy(
-                                                    BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                .build();
+                .businessTaxIdentifierSafetyPolicy(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
 
-        assertEquals(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED,
-                     config.toBuilder().build().getBusinessTaxIdentifierSafetyPolicy());
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().businessTaxIdentifierSafetyPolicy(null));
+        assertEquals(
+                BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                config.toBuilder().build().getBusinessTaxIdentifierSafetyPolicy());
+        assertThrows(
+                NullPointerException.class, () -> GeneratorConfig.builder().businessTaxIdentifierSafetyPolicy(null));
     }
 
     @Test
     @DisplayName("crypto-address safety policy is configurable and retained by toBuilder")
     void cryptoAddressSafetyPolicyConfigurable() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .cryptoAddressSafetyPolicy(
-                                                    CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                .build();
+                .cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
 
-        assertEquals(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED,
-                     config.toBuilder().build().getCryptoAddressSafetyPolicy());
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().cryptoAddressSafetyPolicy(null));
+        assertEquals(
+                CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                config.toBuilder().build().getCryptoAddressSafetyPolicy());
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().cryptoAddressSafetyPolicy(null));
     }
 
     @Test
     @DisplayName("securities-identifier safety policy is configurable and retained by toBuilder")
     void securitiesIdentifierSafetyPolicyConfigurable() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .securitiesIdentifierSafetyPolicy(
-                                                    SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                .build();
+                .securitiesIdentifierSafetyPolicy(SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
 
-        assertEquals(SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED,
-                     config.toBuilder().build().getSecuritiesIdentifierSafetyPolicy());
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().securitiesIdentifierSafetyPolicy(null));
+        assertEquals(
+                SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED,
+                config.toBuilder().build().getSecuritiesIdentifierSafetyPolicy());
+        assertThrows(
+                NullPointerException.class, () -> GeneratorConfig.builder().securitiesIdentifierSafetyPolicy(null));
     }
 
     @Test
@@ -233,7 +235,8 @@ class GeneratorConfigTest {
     @Test
     @DisplayName("seed(String) rejects blank value")
     void stringSeedBlankThrows() {
-        assertThrows(IllegalArgumentException.class, () -> GeneratorConfig.builder().seed("   "));
+        assertThrows(
+                IllegalArgumentException.class, () -> GeneratorConfig.builder().seed("   "));
     }
 
     @Test
@@ -290,35 +293,36 @@ class GeneratorConfigTest {
     @ParameterizedTest(name = "{0} then {2}")
     @MethodSource("conflictingRandomSources")
     @DisplayName("build rejects conflicting random sources regardless of call order")
-    void conflictingRandomSourcesRejected(String firstName,
-                                           Consumer<GeneratorConfig.Builder> first,
-                                           String secondName,
-                                           Consumer<GeneratorConfig.Builder> second) {
+    void conflictingRandomSourcesRejected(
+            String firstName,
+            Consumer<GeneratorConfig.Builder> first,
+            String secondName,
+            Consumer<GeneratorConfig.Builder> second) {
         GeneratorConfig.Builder builder = GeneratorConfig.builder();
         first.accept(builder);
         second.accept(builder);
 
         IllegalStateException error = assertThrows(IllegalStateException.class, builder::build);
-        assertEquals("Configure only one random source: seed, random, randomFactory, or secureRandom",
-                     error.getMessage());
+        assertEquals(
+                "Configure only one random source: seed, random, randomFactory, or secureRandom", error.getMessage());
     }
 
     private static Stream<Arguments> conflictingRandomSources() {
         var sources = java.util.List.of(
-            new RandomSourceConfiguration("seed", builder -> builder.seed(42L)),
-            new RandomSourceConfiguration("random", builder -> builder.random(new Random(7L))),
-            new RandomSourceConfiguration("randomFactory", builder -> builder.randomFactory(() -> new Random(11L))),
-            new RandomSourceConfiguration("secureRandom", GeneratorConfig.Builder::secureRandom));
+                new RandomSourceConfiguration("seed", builder -> builder.seed(42L)),
+                new RandomSourceConfiguration("random", builder -> builder.random(new Random(7L))),
+                new RandomSourceConfiguration("randomFactory", builder -> builder.randomFactory(() -> new Random(11L))),
+                new RandomSourceConfiguration("secureRandom", GeneratorConfig.Builder::secureRandom));
 
         return IntStream.range(0, sources.size())
-                        .boxed()
-                        .flatMap(first -> IntStream.range(0, sources.size())
-                                                   .filter(second -> second != first)
-                                                   .mapToObj(second -> Arguments.of(
-                                                       sources.get(first).name(),
-                                                       sources.get(first).configure(),
-                                                       sources.get(second).name(),
-                                                       sources.get(second).configure())));
+                .boxed()
+                .flatMap(first -> IntStream.range(0, sources.size())
+                        .filter(second -> second != first)
+                        .mapToObj(second -> Arguments.of(
+                                sources.get(first).name(),
+                                sources.get(first).configure(),
+                                sources.get(second).name(),
+                                sources.get(second).configure())));
     }
 
     @Test
@@ -326,11 +330,11 @@ class GeneratorConfigTest {
     void randomFactoryUsed() {
         AtomicInteger calls = new AtomicInteger();
         GeneratorConfig c = GeneratorConfig.builder()
-                                           .randomFactory(() -> {
-                                               calls.incrementAndGet();
-                                               return new Random(1L);
-                                           })
-                                           .build();
+                .randomFactory(() -> {
+                    calls.incrementAndGet();
+                    return new Random(1L);
+                })
+                .build();
 
         Random actual = c.createRandom();
         Random expected = new Random(1L);
@@ -369,7 +373,8 @@ class GeneratorConfigTest {
     @Test
     @DisplayName("secureRandom(false) disables secure random opt-in")
     void secureRandomCanBeDisabled() {
-        GeneratorConfig c = GeneratorConfig.builder().secureRandom().secureRandom(false).build();
+        GeneratorConfig c =
+                GeneratorConfig.builder().secureRandom().secureRandom(false).build();
 
         assertFalse(c.isSecureRandom());
         assertFalse(c.createRandom() instanceof SecureRandom);
@@ -378,7 +383,8 @@ class GeneratorConfigTest {
     @Test
     @DisplayName("toBuilder() copies secure random opt-in")
     void toBuilderCopiesSecureRandomOptIn() {
-        GeneratorConfig derived = GeneratorConfig.builder().secureRandom().build().toBuilder().build();
+        GeneratorConfig derived =
+                GeneratorConfig.builder().secureRandom().build().toBuilder().build();
 
         assertTrue(derived.isSecureRandom());
         assertTrue(derived.createRandom() instanceof SecureRandom);
@@ -399,15 +405,15 @@ class GeneratorConfigTest {
     @Test
     @DisplayName("charset() stores the charset")
     void charsetStored() {
-        GeneratorConfig c = GeneratorConfig.builder().charset(StandardCharsets.UTF_8).build();
+        GeneratorConfig c =
+                GeneratorConfig.builder().charset(StandardCharsets.UTF_8).build();
         assertEquals(StandardCharsets.UTF_8, c.getCharset());
     }
 
     @Test
     @DisplayName("charset(null) throws NullPointerException")
     void charsetNullThrows() {
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().charset(null));
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().charset(null));
     }
 
     @Test
@@ -421,15 +427,15 @@ class GeneratorConfigTest {
     @Test
     @DisplayName("stringLength(0, 10) throws — min must be >= 1")
     void stringLengthMinBelowOneThrows() {
-        assertThrows(IllegalArgumentException.class,
-                     () -> GeneratorConfig.builder().stringLength(0, 10));
+        assertThrows(
+                IllegalArgumentException.class, () -> GeneratorConfig.builder().stringLength(0, 10));
     }
 
     @Test
     @DisplayName("stringLength(10, 5) throws — max must be >= min")
     void stringLengthMaxBelowMinThrows() {
-        assertThrows(IllegalArgumentException.class,
-                     () -> GeneratorConfig.builder().stringLength(10, 5));
+        assertThrows(
+                IllegalArgumentException.class, () -> GeneratorConfig.builder().stringLength(10, 5));
     }
 
     @Test
@@ -443,29 +449,33 @@ class GeneratorConfigTest {
     @Test
     @DisplayName("collectionSize(-1, 5) throws — min must be >= 0")
     void collectionSizeMinNegativeThrows() {
-        assertThrows(IllegalArgumentException.class,
-                     () -> GeneratorConfig.builder().collectionSize(-1, 5));
+        assertThrows(
+                IllegalArgumentException.class, () -> GeneratorConfig.builder().collectionSize(-1, 5));
     }
 
     @Test
     @DisplayName("collectionSize(5, 3) throws — max must be >= min")
     void collectionSizeMaxBelowMinThrows() {
-        assertThrows(IllegalArgumentException.class,
-                     () -> GeneratorConfig.builder().collectionSize(5, 3));
+        assertThrows(
+                IllegalArgumentException.class, () -> GeneratorConfig.builder().collectionSize(5, 3));
     }
 
     @Test
     @DisplayName("an Integer.MAX_VALUE maximum size is rejected instead of overflowing during generation")
     void maximumIntSizesAreRejected() {
-        IllegalArgumentException collection = assertThrows(IllegalArgumentException.class,
-            () -> GeneratorConfig.builder().collectionSize(0, Integer.MAX_VALUE));
-        IllegalArgumentException string = assertThrows(IllegalArgumentException.class,
-            () -> GeneratorConfig.builder().stringLength(1, Integer.MAX_VALUE));
+        IllegalArgumentException collection = assertThrows(
+                IllegalArgumentException.class, () -> GeneratorConfig.builder().collectionSize(0, Integer.MAX_VALUE));
+        IllegalArgumentException string = assertThrows(
+                IllegalArgumentException.class, () -> GeneratorConfig.builder().stringLength(1, Integer.MAX_VALUE));
 
         assertTrue(collection.getMessage().contains("Integer.MAX_VALUE"), collection.getMessage());
         assertTrue(string.getMessage().contains("Integer.MAX_VALUE"), string.getMessage());
-        assertEquals(Integer.MAX_VALUE - 1,
-                     GeneratorConfig.builder().collectionSize(0, Integer.MAX_VALUE - 1).build().getMaxCollectionSize());
+        assertEquals(
+                Integer.MAX_VALUE - 1,
+                GeneratorConfig.builder()
+                        .collectionSize(0, Integer.MAX_VALUE - 1)
+                        .build()
+                        .getMaxCollectionSize());
     }
 
     @Test
@@ -475,18 +485,18 @@ class GeneratorConfigTest {
         LocalDate max = LocalDate.of(2021, 12, 31);
         GenerationFailureListener listener = diagnostic -> {};
         GeneratorConfig c = GeneratorConfig.builder()
-                                           .objectMaxDepth(3)
-                                           .objectPoolSize(2)
-                                           .objectOverrideDefaultInitialization(true)
-                                           .objectIgnoreErrors(true)
-                                           .generationFailureListener(listener)
-                                           .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
-                                           .objectNullProbability(0.25)
-                                           .objectOptionalEmptyProbability(0.5)
-                                           .objectUniqueFields("email", "accountId")
-                                           .objectUniquenessMaxAttempts(7)
-                                           .objectDateRange(min, max)
-                                           .build();
+                .objectMaxDepth(3)
+                .objectPoolSize(2)
+                .objectOverrideDefaultInitialization(true)
+                .objectIgnoreErrors(true)
+                .generationFailureListener(listener)
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                .objectNullProbability(0.25)
+                .objectOptionalEmptyProbability(0.5)
+                .objectUniqueFields("email", "accountId")
+                .objectUniquenessMaxAttempts(7)
+                .objectDateRange(min, max)
+                .build();
         assertEquals(3, c.getObjectMaxDepth());
         assertEquals(2, c.getObjectPoolSize());
         assertTrue(c.isObjectOverrideDefaultInitialization());
@@ -504,15 +514,15 @@ class GeneratorConfigTest {
     @Test
     @DisplayName("objectMaxDepth(0) throws — min must be >= 1")
     void objectMaxDepthZeroThrows() {
-        assertThrows(IllegalArgumentException.class,
-                     () -> GeneratorConfig.builder().objectMaxDepth(0));
+        assertThrows(
+                IllegalArgumentException.class, () -> GeneratorConfig.builder().objectMaxDepth(0));
     }
 
     @Test
     @DisplayName("objectPoolSize(-1) throws — size must be >= 0")
     void objectPoolSizeNegativeThrows() {
-        assertThrows(IllegalArgumentException.class,
-                     () -> GeneratorConfig.builder().objectPoolSize(-1));
+        assertThrows(
+                IllegalArgumentException.class, () -> GeneratorConfig.builder().objectPoolSize(-1));
     }
 
     @Test
@@ -520,58 +530,63 @@ class GeneratorConfigTest {
     void objectDateRangeInvalidThrows() {
         LocalDate min = LocalDate.of(2024, 1, 1);
         LocalDate max = LocalDate.of(2023, 1, 1);
-        assertThrows(IllegalArgumentException.class,
-                     () -> GeneratorConfig.builder().objectDateRange(min, max));
+        assertThrows(
+                IllegalArgumentException.class, () -> GeneratorConfig.builder().objectDateRange(min, max));
     }
 
     @Test
     @DisplayName("object null and optional probabilities must be within [0, 1]")
     void objectProbabilityValidation() {
-        assertThrows(IllegalArgumentException.class,
-                     () -> GeneratorConfig.builder().objectNullProbability(-0.1));
-        assertThrows(IllegalArgumentException.class,
-                     () -> GeneratorConfig.builder().objectNullProbability(1.1));
-        assertThrows(IllegalArgumentException.class,
-                     () -> GeneratorConfig.builder().objectNullProbability(Double.NaN));
-        assertThrows(IllegalArgumentException.class,
-                     () -> GeneratorConfig.builder().objectOptionalEmptyProbability(-0.1));
-        assertThrows(IllegalArgumentException.class,
-                     () -> GeneratorConfig.builder().objectOptionalEmptyProbability(1.1));
-        assertThrows(IllegalArgumentException.class,
-                     () -> GeneratorConfig.builder().objectOptionalEmptyProbability(Double.NaN));
+        assertThrows(
+                IllegalArgumentException.class, () -> GeneratorConfig.builder().objectNullProbability(-0.1));
+        assertThrows(
+                IllegalArgumentException.class, () -> GeneratorConfig.builder().objectNullProbability(1.1));
+        assertThrows(
+                IllegalArgumentException.class, () -> GeneratorConfig.builder().objectNullProbability(Double.NaN));
+        assertThrows(
+                IllegalArgumentException.class, () -> GeneratorConfig.builder().objectOptionalEmptyProbability(-0.1));
+        assertThrows(
+                IllegalArgumentException.class, () -> GeneratorConfig.builder().objectOptionalEmptyProbability(1.1));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> GeneratorConfig.builder().objectOptionalEmptyProbability(Double.NaN));
     }
 
     @Test
     @DisplayName("object uniqueness settings validate and normalize field names")
     void objectUniquenessSettingsValidateAndNormalize() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectUniqueFields("Email", "user_name")
-                                                .objectUniqueField("Guid")
-                                                .objectUniquenessMaxAttempts(3)
-                                                .build();
+                .objectUniqueFields("Email", "user_name")
+                .objectUniqueField("Guid")
+                .objectUniquenessMaxAttempts(3)
+                .build();
         assertEquals(Set.of("email", "username", "guid"), config.getObjectUniqueFieldNames());
         assertEquals(3, config.getObjectUniquenessMaxAttempts());
-        assertThrows(IllegalArgumentException.class,
-                     () -> GeneratorConfig.builder().objectUniquenessMaxAttempts(0));
-        assertThrows(IllegalArgumentException.class,
-                     () -> GeneratorConfig.builder().objectUniqueField("___"));
+        assertThrows(
+                IllegalArgumentException.class, () -> GeneratorConfig.builder().objectUniquenessMaxAttempts(0));
+        assertThrows(
+                IllegalArgumentException.class, () -> GeneratorConfig.builder().objectUniqueField("___"));
     }
 
     @Test
     @DisplayName("object configuration copies mutable inputs and isolates derived builders")
     void objectConfigurationCopiesMutableInputsAndIsolatesDerivedBuilders() {
         String[] uniqueFields = {"account_id"};
-        GeneratorConfig original = GeneratorConfig.builder().objectUniqueFields(uniqueFields).build();
+        GeneratorConfig original =
+                GeneratorConfig.builder().objectUniqueFields(uniqueFields).build();
         uniqueFields[0] = "email";
 
-        GeneratorConfig derived = original.toBuilder().objectUniqueField("email").build();
+        GeneratorConfig derived =
+                original.toBuilder().objectUniqueField("email").build();
 
         assertEquals(Set.of("accountid"), original.getObjectUniqueFieldNames());
         assertEquals(Set.of("accountid", "email"), derived.getObjectUniqueFieldNames());
-        assertThrows(UnsupportedOperationException.class,
-                     () -> original.getObjectUniqueFieldNames().add("username"));
-        assertThrows(UnsupportedOperationException.class,
-                     () -> original.getObjectSubtypes().put(Runnable.class, Thread.class));
+        assertThrows(
+                UnsupportedOperationException.class,
+                () -> original.getObjectUniqueFieldNames().add("username"));
+        assertThrows(
+                UnsupportedOperationException.class,
+                () -> original.getObjectSubtypes().put(Runnable.class, Thread.class));
     }
 
     @Test
@@ -583,7 +598,9 @@ class GeneratorConfigTest {
             return "configured";
         };
 
-        GeneratorConfig config = GeneratorConfig.builder().objectOverride(String.class, generator).build();
+        GeneratorConfig config = GeneratorConfig.builder()
+                .objectOverride(String.class, generator)
+                .build();
 
         assertSame(generator, config.getObjectTypeOverride(String.class).orElseThrow());
         assertEquals(0, calls.get());
@@ -593,19 +610,25 @@ class GeneratorConfigTest {
     @DisplayName("advanced object overrides and exclusions are stored on the root config")
     void advancedObjectOverridesAndExclusionsStored() throws Exception {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectOverride(String.class, () -> "root-string")
-                                                .objectOverride(RootObjectConfigFixture.class, "name", () -> "field-value")
-                                                .objectOverride(Integer.class, ctx -> 11)
-                                                .objectOverride(RootObjectConfigFixture.class, "score", ctx -> 19)
-                                                .objectExcludeField("password")
-                                                .objectExcludeType(type -> type == LocalDate.class)
-                                                .build();
+                .objectOverride(String.class, () -> "root-string")
+                .objectOverride(RootObjectConfigFixture.class, "name", () -> "field-value")
+                .objectOverride(Integer.class, ctx -> 11)
+                .objectOverride(RootObjectConfigFixture.class, "score", ctx -> 19)
+                .objectExcludeField("password")
+                .objectExcludeType(type -> type == LocalDate.class)
+                .build();
 
-        assertEquals("root-string", config.getObjectTypeOverride(String.class).orElseThrow().generate());
-        assertEquals("field-value",
-                     config.getObjectFieldOverride(RootObjectConfigFixture.class, "name").orElseThrow().generate());
+        assertEquals(
+                "root-string",
+                config.getObjectTypeOverride(String.class).orElseThrow().generate());
+        assertEquals(
+                "field-value",
+                config.getObjectFieldOverride(RootObjectConfigFixture.class, "name")
+                        .orElseThrow()
+                        .generate());
         assertTrue(config.getObjectContextualTypeOverride(Integer.class).isPresent());
-        assertTrue(config.getObjectContextualFieldOverride(RootObjectConfigFixture.class, "score").isPresent());
+        assertTrue(config.getObjectContextualFieldOverride(RootObjectConfigFixture.class, "score")
+                .isPresent());
 
         Field password = RootObjectConfigFixture.class.getDeclaredField("password");
         Field createdAt = RootObjectConfigFixture.class.getDeclaredField("createdAt");
@@ -618,20 +641,23 @@ class GeneratorConfigTest {
     @Test
     @DisplayName("advanced object override and exclusion methods validate null inputs")
     void advancedObjectOverrideAndExclusionMethodsValidateNullInputs() {
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().objectOverride((Class<String>) null, () -> "x"));
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().objectOverride(String.class, (Generator<String>) null));
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().objectOverride(RootObjectConfigFixture.class, null, () -> "x"));
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().objectOverride(String.class, (ContextualGenerator<String>) null));
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().objectExclude(null));
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().objectExcludeType((Class<?>) null));
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().objectExcludeType((java.util.function.Predicate<Class<?>>) null));
+        assertThrows(
+                NullPointerException.class,
+                () -> GeneratorConfig.builder().objectOverride((Class<String>) null, () -> "x"));
+        assertThrows(
+                NullPointerException.class,
+                () -> GeneratorConfig.builder().objectOverride(String.class, (Generator<String>) null));
+        assertThrows(
+                NullPointerException.class,
+                () -> GeneratorConfig.builder().objectOverride(RootObjectConfigFixture.class, null, () -> "x"));
+        assertThrows(
+                NullPointerException.class,
+                () -> GeneratorConfig.builder().objectOverride(String.class, (ContextualGenerator<String>) null));
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().objectExclude(null));
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().objectExcludeType((Class<?>) null));
+        assertThrows(
+                NullPointerException.class,
+                () -> GeneratorConfig.builder().objectExcludeType((java.util.function.Predicate<Class<?>>) null));
     }
 
     @Test
@@ -644,8 +670,7 @@ class GeneratorConfigTest {
     @Test
     @DisplayName("locale(null) throws NullPointerException")
     void localeNullThrows() {
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().locale(null));
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().locale(null));
     }
 
     @Test
@@ -660,32 +685,32 @@ class GeneratorConfigTest {
     @Test
     @DisplayName("clock(null) throws NullPointerException")
     void clockNullThrows() {
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().clock(null));
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().clock(null));
     }
 
     @Test
     @DisplayName("registryContext() stores the context")
     void registryContextStored() {
         DataRegistryContext context = DataRegistryContext.builder().isolated().build();
-        GeneratorConfig config = GeneratorConfig.builder().registryContext(context).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().registryContext(context).build();
         assertSame(context, config.getRegistryContext());
     }
 
     @Test
     @DisplayName("registryContext(null) throws NullPointerException")
     void registryContextNullThrows() {
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().registryContext(null));
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().registryContext(null));
     }
 
     @Test
     @DisplayName("objectSemanticRegistry() stores the registry")
     void objectSemanticRegistryStored() {
         SemanticFieldRegistry registry = SemanticFieldRegistry.defaults().toBuilder()
-                                                              .alias("email", "contactMail")
-                                                              .build();
-        GeneratorConfig config = GeneratorConfig.builder().objectSemanticRegistry(registry).build();
+                .alias("email", "contactMail")
+                .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().objectSemanticRegistry(registry).build();
 
         assertSame(registry, config.getObjectSemanticRegistry());
     }
@@ -693,15 +718,13 @@ class GeneratorConfigTest {
     @Test
     @DisplayName("objectSemanticRegistry(null) throws NullPointerException")
     void objectSemanticRegistryNullThrows() {
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().objectSemanticRegistry(null));
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().objectSemanticRegistry(null));
     }
 
     @Test
     @DisplayName("generationFailureListener(null) throws")
     void generationFailureListenerNullThrows() {
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().generationFailureListener(null));
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().generationFailureListener(null));
     }
 
     @Test
@@ -710,33 +733,33 @@ class GeneratorConfigTest {
         DataRegistryContext context = DataRegistryContext.builder().isolated().build();
         Clock clock = Clock.fixed(Instant.parse("2026-06-04T10:15:30Z"), ZoneId.of("Europe/London"));
         SemanticFieldRegistry semanticRegistry = SemanticFieldRegistry.defaults().toBuilder()
-                                                                         .alias("email", "contactMail")
-                                                                         .build();
+                .alias("email", "contactMail")
+                .build();
         GenerationFailureListener failureListener = diagnostic -> {};
         GeneratorConfig base = GeneratorConfig.builder()
-                                              .seed("my-seed")
-                                              .charset(StandardCharsets.UTF_8)
-                                              .stringLength(8, 16)
-                                              .collectionSize(2, 4)
-                                              .objectMaxDepth(3)
-                                              .objectPoolSize(2)
-                                              .objectOverrideDefaultInitialization(true)
-                                              .objectIgnoreErrors(true)
-                                              .generationFailureListener(failureListener)
-                                              .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
-                                              .objectSemanticRegistry(semanticRegistry)
-                                              .objectNullProbability(0.25)
-                                              .objectOptionalEmptyProbability(0.5)
-                                              .objectUniqueFields("email", "accountId")
-                                              .objectUniquenessMaxAttempts(7)
-                                              .objectDateRange(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 12, 31))
-                                              .objectOverride(String.class, () -> "root-string")
-                                              .objectOverride(RootObjectConfigFixture.class, "name", () -> "field-value")
-                                              .objectExcludeField("password")
-                                              .locale(Locale.FRANCE)
-                                              .clock(clock)
-                                              .registryContext(context)
-                                              .build();
+                .seed("my-seed")
+                .charset(StandardCharsets.UTF_8)
+                .stringLength(8, 16)
+                .collectionSize(2, 4)
+                .objectMaxDepth(3)
+                .objectPoolSize(2)
+                .objectOverrideDefaultInitialization(true)
+                .objectIgnoreErrors(true)
+                .generationFailureListener(failureListener)
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                .objectSemanticRegistry(semanticRegistry)
+                .objectNullProbability(0.25)
+                .objectOptionalEmptyProbability(0.5)
+                .objectUniqueFields("email", "accountId")
+                .objectUniquenessMaxAttempts(7)
+                .objectDateRange(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 12, 31))
+                .objectOverride(String.class, () -> "root-string")
+                .objectOverride(RootObjectConfigFixture.class, "name", () -> "field-value")
+                .objectExcludeField("password")
+                .locale(Locale.FRANCE)
+                .clock(clock)
+                .registryContext(context)
+                .build();
 
         GeneratorConfig derived = base.toBuilder().locale(Locale.JAPAN).build();
         assertTrue(derived.getSeed().isPresent());
@@ -760,9 +783,14 @@ class GeneratorConfigTest {
         assertEquals(7, derived.getObjectUniquenessMaxAttempts());
         assertEquals(LocalDate.of(2022, 1, 1), derived.getObjectDateMin());
         assertEquals(LocalDate.of(2022, 12, 31), derived.getObjectDateMax());
-        assertEquals("root-string", derived.getObjectTypeOverride(String.class).orElseThrow().generate());
-        assertEquals("field-value",
-                     derived.getObjectFieldOverride(RootObjectConfigFixture.class, "name").orElseThrow().generate());
+        assertEquals(
+                "root-string",
+                derived.getObjectTypeOverride(String.class).orElseThrow().generate());
+        assertEquals(
+                "field-value",
+                derived.getObjectFieldOverride(RootObjectConfigFixture.class, "name")
+                        .orElseThrow()
+                        .generate());
         assertEquals(Locale.JAPAN, derived.getLocale());
         assertSame(clock, derived.getClock());
         assertSame(context, derived.getRegistryContext());
@@ -775,43 +803,40 @@ class GeneratorConfigTest {
         GeneratorConfig japan = GeneratorConfig.builder().locale(Locale.JAPAN).build();
         assertEquals(Locale.JAPAN, japan.getLocale());
 
-        GeneratorConfig custom = GeneratorConfig.builder()
-                                                .locale(Locale.of("es", "MX"))
-                                                .build();
+        GeneratorConfig custom =
+                GeneratorConfig.builder().locale(Locale.of("es", "MX")).build();
         assertEquals("es", custom.getLocale().getLanguage());
         assertEquals("MX", custom.getLocale().getCountry());
     }
 
     static class RootObjectConfigFixture {
 
-        String    name;
-        String    password;
-        Integer   score;
+        String name;
+        String password;
+        Integer score;
         LocalDate createdAt;
     }
-
 
     @Test
     @DisplayName("toBuilder round-trip preserves every public property")
     void toBuilderRoundTripPreservesEveryPublicProperty() throws Exception {
         GeneratorConfig original = GeneratorConfig.builder()
-            .seed(4242L)
-            .clock(java.time.Clock.fixed(java.time.Instant.parse("2026-01-01T00:00:00Z"),
-                java.time.ZoneOffset.UTC))
-            .locale(java.util.Locale.GERMANY)
-            .stringLength(3, 9)
-            .collectionSize(2, 4)
-            .objectMaxDepth(3)
-            .objectNullProbability(0.25)
-            .generationProfile("round-trip-profile")
-            .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE)
-            .phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE)
-            .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
-            .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
-            .securitiesIdentifierSafetyPolicy(SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
-            .cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
-            .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)
-            .build();
+                .seed(4242L)
+                .clock(java.time.Clock.fixed(java.time.Instant.parse("2026-01-01T00:00:00Z"), java.time.ZoneOffset.UTC))
+                .locale(java.util.Locale.GERMANY)
+                .stringLength(3, 9)
+                .collectionSize(2, 4)
+                .objectMaxDepth(3)
+                .objectNullProbability(0.25)
+                .generationProfile("round-trip-profile")
+                .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE)
+                .phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE)
+                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .securitiesIdentifierSafetyPolicy(SecuritiesIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
 
         GeneratorConfig copy = original.toBuilder().build();
 
@@ -826,9 +851,8 @@ class GeneratorConfigTest {
             Object expected = getter.invoke(original);
             Object actual = getter.invoke(copy);
             if (expected instanceof java.util.Optional<?> expectedOptional
-                && expectedOptional.orElse(null) instanceof GenerationRecipe expectedRecipe) {
-                GenerationRecipe actualRecipe =
-                    (GenerationRecipe) ((java.util.Optional<?>) actual).orElseThrow();
+                    && expectedOptional.orElse(null) instanceof GenerationRecipe expectedRecipe) {
+                GenerationRecipe actualRecipe = (GenerationRecipe) ((java.util.Optional<?>) actual).orElseThrow();
                 assertEquals(expectedRecipe.serialize(), actualRecipe.serialize(), name);
                 continue;
             }
@@ -836,6 +860,5 @@ class GeneratorConfigTest {
         }
     }
 
-    private record RandomSourceConfiguration(String name, Consumer<GeneratorConfig.Builder> configure) {
-    }
+    private record RandomSourceConfiguration(String name, Consumer<GeneratorConfig.Builder> configure) {}
 }

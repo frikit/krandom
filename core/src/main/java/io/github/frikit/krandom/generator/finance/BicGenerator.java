@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -22,13 +21,11 @@ import java.util.Random;
 public final class BicGenerator implements Generator<String> {
 
     private static final String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private static final String ALNUM   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private static final String ALNUM = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-    private final GeneratorConfig      config;
-    private final Random               random;
+    private final GeneratorConfig config;
+    private final Random random;
     private final BankingSafetyPolicy bankingSafetyPolicy;
-
-
 
     public BicGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");

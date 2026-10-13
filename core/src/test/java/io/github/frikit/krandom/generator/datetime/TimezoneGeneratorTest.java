@@ -5,19 +5,18 @@
  */
 package io.github.frikit.krandom.generator.datetime;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("TimezoneGenerator")
 class TimezoneGeneratorTest {
@@ -58,7 +57,8 @@ class TimezoneGeneratorTest {
     @DisplayName("generateOffset uses configured clock instant")
     void offsetUsesConfiguredClock() {
         Clock summer = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
-        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.UK).clock(summer).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.UK).clock(summer).build();
 
         assertEquals("+01:00", new TimezoneGenerator(config).generateOffset());
     }
@@ -66,7 +66,8 @@ class TimezoneGeneratorTest {
     @Test
     @DisplayName("timezone aliases delegate to core methods")
     void aliases() {
-        GeneratorConfig config = GeneratorConfig.builder().seed(11L).locale(Locale.US).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().seed(11L).locale(Locale.US).build();
         TimezoneGenerator alias = new TimezoneGenerator(config);
         TimezoneGenerator core = new TimezoneGenerator(config);
         assertEquals(core.generate(), alias.generateTimezone());
@@ -76,7 +77,8 @@ class TimezoneGeneratorTest {
     @Test
     @DisplayName("seeded generation is reproducible")
     void seeded() {
-        GeneratorConfig config = GeneratorConfig.builder().seed(77L).locale(Locale.US).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().seed(77L).locale(Locale.US).build();
         TimezoneGenerator a = new TimezoneGenerator(config);
         TimezoneGenerator b = new TimezoneGenerator(config);
         assertEquals(a.generate(), b.generate());

@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.location;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -50,7 +49,6 @@ public final class StreetAddressDataRegistry {
     public static Set<String> registeredKeys() {
         return Set.copyOf(providers.keySet());
     }
-
 
     private static void registerProvider(StreetAddressDataProvider provider) {
         Objects.requireNonNull(provider, "provider must not be null");

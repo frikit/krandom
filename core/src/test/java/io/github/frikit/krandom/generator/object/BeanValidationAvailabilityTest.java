@@ -5,14 +5,18 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.AnnotatedElement;
@@ -20,13 +24,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Locale;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * The Jakarta Validation API is a compile-only dependency of core. These tests reload the whole
@@ -40,9 +39,7 @@ class BeanValidationAvailabilityTest {
 
     static final class Constrained {
 
-        @NotBlank
-        @Size(min = 4, max = 4)
-        String code;
+        @NotBlank @Size(min = 4, max = 4) String code;
     }
 
     static final class CaseInsensitiveEmail {
@@ -51,15 +48,14 @@ class BeanValidationAvailabilityTest {
         String contact;
     }
 
-    record Customer(@Email String email, @Min(1) int visits) {
-    }
+    record Customer(@Email String email, @Min(1) int visits) {}
 
     static final class Order {
 
-        @NotBlank
-        String id;
-        @Size(min = 1, max = 3)
-        List<String> tags;
+        @NotBlank String id;
+
+        @Size(min = 1, max = 3) List<String> tags;
+
         Customer customer;
     }
 
@@ -131,11 +127,12 @@ class BeanValidationAvailabilityTest {
     }
 
     private static Object invoke(Class<?> type, String name, Object... arguments) throws Exception {
-        Class<?>[] parameterTypes = switch (name) {
-            case "constraintModelFor" -> new Class<?>[] {AnnotatedElement.class, Class.class};
-            case "sizeRangeFor" -> new Class<?>[] {AnnotatedElement.class};
-            default -> new Class<?>[0];
-        };
+        Class<?>[] parameterTypes =
+                switch (name) {
+                    case "constraintModelFor" -> new Class<?>[] {AnnotatedElement.class, Class.class};
+                    case "sizeRangeFor" -> new Class<?>[] {AnnotatedElement.class};
+                    default -> new Class<?>[0];
+                };
         // getDeclaredMethod resolves every declared signature, so this also fails if any method of
         // the class mentions a Jakarta type.
         Method method = type.getDeclaredMethod(name, parameterTypes);

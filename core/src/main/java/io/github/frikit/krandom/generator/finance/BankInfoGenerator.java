@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Locale;
 import java.util.Objects;
 
@@ -20,13 +19,11 @@ import java.util.Objects;
  */
 public final class BankInfoGenerator implements Generator<BankInfo> {
 
-    private final GeneratorConfig      config;
+    private final GeneratorConfig config;
     private final BankAccountGenerator bankAccountGenerator;
-    private final AbaRoutingGenerator  abaRoutingGenerator;
-    private final BankNameGenerator    bankNameGenerator;
-    private final BankTypeGenerator    bankTypeGenerator;
-
-
+    private final AbaRoutingGenerator abaRoutingGenerator;
+    private final BankNameGenerator bankNameGenerator;
+    private final BankTypeGenerator bankTypeGenerator;
 
     /**
      * Creates a bank-info generator using explicit configuration.
@@ -45,13 +42,12 @@ public final class BankInfoGenerator implements Generator<BankInfo> {
     public BankInfo generate() {
         config.getBankingSafetyPolicy().requireRealisticOutput();
         return new BankInfo(
-            bankAccountGenerator.generateAccountNumber(),
-            abaRoutingGenerator.generate(),
-            bankNameGenerator.generate(),
-            bankTypeGenerator.generate(),
-            bankAccountGenerator.generateAccountName(),
-            bankAccountGenerator.generateTransactionType()
-        );
+                bankAccountGenerator.generateAccountNumber(),
+                abaRoutingGenerator.generate(),
+                bankNameGenerator.generate(),
+                bankTypeGenerator.generate(),
+                bankAccountGenerator.generateAccountName(),
+                bankAccountGenerator.generateTransactionType());
     }
 
     /**

@@ -5,18 +5,17 @@
  */
 package io.github.frikit.krandom.generator.finance;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("InvoiceInfoGenerator")
 class InvoiceInfoGeneratorTest {
@@ -45,10 +44,8 @@ class InvoiceInfoGeneratorTest {
     @Test
     @DisplayName("seeded generation is reproducible")
     void seededGeneration() {
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.GERMANY)
-                                                .seed(42L)
-                                                .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.GERMANY).seed(42L).build();
 
         InvoiceInfoGenerator one = new InvoiceInfoGenerator(config);
         InvoiceInfoGenerator two = new InvoiceInfoGenerator(config);

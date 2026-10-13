@@ -5,6 +5,20 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.core.model.Address;
@@ -18,46 +32,29 @@ import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("ObjectGenerator")
 class ObjectGeneratorTest {
 
     private static final int SAMPLES = 50;
 
-
     static class PreInitializedFields {
 
         private String presetName = "PRESET";
         private String unsetName;
-        private int    presetAge  = 42;
-        private int    defaultAge;
+        private int presetAge = 42;
+        private int defaultAge;
 
         String getPresetName() {
             return presetName;
@@ -76,7 +73,6 @@ class ObjectGeneratorTest {
         }
     }
 
-
     static class SetterTrap {
 
         private String value;
@@ -93,11 +89,11 @@ class ObjectGeneratorTest {
     @Test
     @DisplayName("ObjectGeneratorConfig can project into the public GeneratorConfig path")
     void objectConfigProjectsIntoPublicGeneratorConfigPath() {
-        Address address =
-            new ObjectGenerator<>(Address.class, ObjectGeneratorConfig.builder().build().toGeneratorConfig()).generate();
+        Address address = new ObjectGenerator<>(
+                        Address.class, ObjectGeneratorConfig.builder().build().toGeneratorConfig())
+                .generate();
         assertNotNull(address);
     }
-
 
     static class GenericStrings {
 
@@ -112,7 +108,6 @@ class ObjectGeneratorTest {
             return label;
         }
     }
-
 
     static class SemanticProfile {
 
@@ -133,7 +128,7 @@ class ObjectGeneratorTest {
 
     static class NullableReferences {
 
-        private String  label;
+        private String label;
         private Address address;
 
         String getLabel() {
@@ -163,14 +158,14 @@ class ObjectGeneratorTest {
     static class RootIgnoreErrorsHolder {
 
         private RootThrowingNested nested;
-        private String             name;
+        private String name;
     }
 
     static class RootAdvancedConfigHolder {
 
-        private String    name;
-        private String    password;
-        private Integer   score;
+        private String name;
+        private String password;
+        private Integer score;
         private LocalDate createdAt;
     }
 
@@ -182,7 +177,6 @@ class ObjectGeneratorTest {
     }
 
     // ── Plain class — flat (Address) ──────────────────────────────────────────
-
 
     @Nested
     @DisplayName("Plain class — flat POJO (Address)")
@@ -244,7 +238,6 @@ class ObjectGeneratorTest {
 
     // ── Plain class — inheritance (Person extends BaseJavaClass) ──────────────
 
-
     @Nested
     @DisplayName("Plain class — with inheritance and nested types (Person)")
     class InheritanceAndNestedTest {
@@ -282,7 +275,9 @@ class ObjectGeneratorTest {
             ObjectGenerator<Person> gen = new ObjectGenerator<>(Person.class);
             for (int i = 0; i < 200; i++) seen.add(gen.generate().getStatus());
             assertTrue(seen.contains(Status.ACTIVE), "ACTIVE should still appear. Seen: " + seen);
-            assertFalse(seen.contains(Status.PENDING), "PENDING should be filtered out by active/status coherence. Seen: " + seen);
+            assertFalse(
+                    seen.contains(Status.PENDING),
+                    "PENDING should be filtered out by active/status coherence. Seen: " + seen);
         }
 
         @Test
@@ -295,7 +290,6 @@ class ObjectGeneratorTest {
     }
 
     // ── Records ───────────────────────────────────────────────────────────────
-
 
     @Nested
     @DisplayName("Java record (PersonRecord)")
@@ -365,9 +359,8 @@ class ObjectGeneratorTest {
         @Test
         @DisplayName("GeneratorConfig constructor applies configured string lengths")
         void generatorConfigAppliesStringLengthDefaults() {
-            GeneratorConfig config = GeneratorConfig.builder()
-                                                    .stringLength(12, 12)
-                                                    .build();
+            GeneratorConfig config =
+                    GeneratorConfig.builder().stringLength(12, 12).build();
 
             GenericStrings value = new ObjectGenerator<>(GenericStrings.class, config).generate();
 
@@ -378,9 +371,8 @@ class ObjectGeneratorTest {
         @Test
         @DisplayName("shared collection-size defaults flow into lists and arrays")
         void generatorConfigAppliesCollectionSizes() {
-            GeneratorConfig config = GeneratorConfig.builder()
-                                                    .collectionSize(4, 4)
-                                                    .build();
+            GeneratorConfig config =
+                    GeneratorConfig.builder().collectionSize(4, 4).build();
 
             PersonWithCollections collections = new ObjectGenerator<>(PersonWithCollections.class, config).generate();
             PersonWithArrays arrays = new ObjectGenerator<>(PersonWithArrays.class, config).generate();
@@ -394,10 +386,8 @@ class ObjectGeneratorTest {
         @Test
         @DisplayName("seeded GeneratorConfig produces a repeatable sequence across generator instances")
         void seededGeneratorConfigProducesRepeatableSequence() {
-            GeneratorConfig config = GeneratorConfig.builder()
-                                                    .seed(11L)
-                                                    .stringLength(10, 10)
-                                                    .build();
+            GeneratorConfig config =
+                    GeneratorConfig.builder().seed(11L).stringLength(10, 10).build();
 
             ObjectGenerator<Person> left = new ObjectGenerator<>(Person.class, config);
             ObjectGenerator<Person> right = new ObjectGenerator<>(Person.class, config);
@@ -409,10 +399,13 @@ class ObjectGeneratorTest {
 
             assertEquals(leftFirst.getFirstName(), rightFirst.getFirstName());
             assertEquals(leftFirst.getLastName(), rightFirst.getLastName());
-            assertEquals(leftFirst.getAddress().getStreet(), rightFirst.getAddress().getStreet());
+            assertEquals(
+                    leftFirst.getAddress().getStreet(), rightFirst.getAddress().getStreet());
             assertEquals(leftSecond.getFirstName(), rightSecond.getFirstName());
             assertEquals(leftSecond.getLastName(), rightSecond.getLastName());
-            assertEquals(leftSecond.getAddress().getStreet(), rightSecond.getAddress().getStreet());
+            assertEquals(
+                    leftSecond.getAddress().getStreet(),
+                    rightSecond.getAddress().getStreet());
         }
 
         @Test
@@ -421,16 +414,17 @@ class ObjectGeneratorTest {
             LocalDate min = LocalDate.of(2021, 1, 1);
             LocalDate max = LocalDate.of(2021, 12, 31);
             GeneratorConfig config = GeneratorConfig.builder()
-                                                    .seed(19L)
-                                                    .stringLength(8, 8)
-                                                    .objectMaxDepth(1)
-                                                    .objectIgnoreErrors(true)
-                                                    .objectOverrideDefaultInitialization(true)
-                                                    .objectDateRange(min, max)
-                                                    .build();
+                    .seed(19L)
+                    .stringLength(8, 8)
+                    .objectMaxDepth(1)
+                    .objectIgnoreErrors(true)
+                    .objectOverrideDefaultInitialization(true)
+                    .objectDateRange(min, max)
+                    .build();
 
             DepthOuter depthOuter = new ObjectGenerator<>(DepthOuter.class, config).generate();
-            RootIgnoreErrorsHolder ignoreErrorsHolder = new ObjectGenerator<>(RootIgnoreErrorsHolder.class, config).generate();
+            RootIgnoreErrorsHolder ignoreErrorsHolder =
+                    new ObjectGenerator<>(RootIgnoreErrorsHolder.class, config).generate();
             PreInitializedFields preInitialized = new ObjectGenerator<>(PreInitializedFields.class, config).generate();
             PersonWithDateTimes dated = new ObjectGenerator<>(PersonWithDateTimes.class, config).generate();
 
@@ -438,7 +432,8 @@ class ObjectGeneratorTest {
             assertNull(depthOuter.middle.inner, "deeper nested object should honor root maxDepth");
             assertNull(ignoreErrorsHolder.nested, "throwing nested type should be swallowed by root ignoreErrors");
             assertNotNull(ignoreErrorsHolder.name, "other fields should still be generated");
-            assertEquals(8, preInitialized.getPresetName().length(), "preset string should be overwritten by root config");
+            assertEquals(
+                    8, preInitialized.getPresetName().length(), "preset string should be overwritten by root config");
             assertNotEquals("PRESET", preInitialized.getPresetName());
 
             LocalDate dob = dated.getDob();
@@ -458,9 +453,8 @@ class ObjectGeneratorTest {
         @Test
         @DisplayName("root null probability can null out nullable reference fields")
         void generatorConfigAppliesNullProbability() {
-            GeneratorConfig config = GeneratorConfig.builder()
-                                                    .objectNullProbability(1.0)
-                                                    .build();
+            GeneratorConfig config =
+                    GeneratorConfig.builder().objectNullProbability(1.0).build();
 
             NullableReferences value = new ObjectGenerator<>(NullableReferences.class, config).generate();
 
@@ -472,12 +466,12 @@ class ObjectGeneratorTest {
         @DisplayName("root GeneratorConfig can drive advanced object overrides and exclusions directly")
         void generatorConfigAppliesAdvancedObjectOverridesAndExclusions() {
             GeneratorConfig config = GeneratorConfig.builder()
-                                                    .objectOverride(String.class, () -> "root-type")
-                                                    .objectOverride(RootAdvancedConfigHolder.class, "name", () -> "root-field")
-                                                    .objectOverride(Integer.class, ctx -> 9)
-                                                    .objectExcludeField("password")
-                                                    .objectExcludeType(LocalDate.class)
-                                                    .build();
+                    .objectOverride(String.class, () -> "root-type")
+                    .objectOverride(RootAdvancedConfigHolder.class, "name", () -> "root-field")
+                    .objectOverride(Integer.class, ctx -> 9)
+                    .objectExcludeField("password")
+                    .objectExcludeType(LocalDate.class)
+                    .build();
 
             RootAdvancedConfigHolder value = new ObjectGenerator<>(RootAdvancedConfigHolder.class, config).generate();
 
@@ -531,7 +525,6 @@ class ObjectGeneratorTest {
 
     // ── ObjectGeneratorConfig ─────────────────────────────────────────────────
 
-
     @Nested
     @DisplayName("ObjectGeneratorConfig")
     class ConfigTest {
@@ -540,8 +533,8 @@ class ObjectGeneratorTest {
         @DisplayName("type-level override replaces built-in String generator")
         void typeOverrideForString() {
             ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                                .override(String.class, () -> "FIXED")
-                                                                .build();
+                    .override(String.class, () -> "FIXED")
+                    .build();
 
             ObjectGenerator<Person> gen = new ObjectGenerator<>(Person.class, config);
             for (int i = 0; i < SAMPLES; i++) {
@@ -555,16 +548,15 @@ class ObjectGeneratorTest {
         @DisplayName("field-level override applies only to the named field")
         void fieldOverrideForSpecificField() {
             ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                                .override(Person.class, "firstName", () -> "Alice")
-                                                                .build();
+                    .override(Person.class, "firstName", () -> "Alice")
+                    .build();
 
             ObjectGenerator<Person> gen = new ObjectGenerator<>(Person.class, config);
             for (int i = 0; i < SAMPLES; i++) {
                 Person p = gen.generate();
                 assertEquals("Alice", p.getFirstName());
                 // lastName must still be randomly generated
-                assertNotEquals("Alice", p.getLastName(),
-                                "Field override bled into lastName");
+                assertNotEquals("Alice", p.getLastName(), "Field override bled into lastName");
             }
         }
 
@@ -572,9 +564,9 @@ class ObjectGeneratorTest {
         @DisplayName("field override wins over type override for the same field")
         void fieldOverrideWinsOverTypeOverride() {
             ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                                .override(String.class, () -> "TYPE_LEVEL")
-                                                                .override(Person.class, "firstName", () -> "FIELD_LEVEL")
-                                                                .build();
+                    .override(String.class, () -> "TYPE_LEVEL")
+                    .override(Person.class, "firstName", () -> "FIELD_LEVEL")
+                    .build();
 
             Person p = new ObjectGenerator<>(Person.class, config).generate();
             assertEquals("FIELD_LEVEL", p.getFirstName());
@@ -588,9 +580,8 @@ class ObjectGeneratorTest {
             // so Address ObjectGenerator runs at depth=1.
             // Inside Address at depth=1: primitive/String fields use BUILTINS (no depth guard).
             // If Address had a further nested object it would be null (depth 1 >= maxDepth 1).
-            ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                                .maxDepth(1)
-                                                                .build();
+            ObjectGeneratorConfig config =
+                    ObjectGeneratorConfig.builder().maxDepth(1).build();
 
             Person p = new ObjectGenerator<>(Person.class, config).generate();
             // Address itself is generated (depth-1 is within maxDepth=1)
@@ -602,9 +593,8 @@ class ObjectGeneratorTest {
         @Test
         @DisplayName("ignoreErrors=true swallows population failures gracefully")
         void ignoreErrorsSwallowsFailures() {
-            ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                                .ignoreErrors(true)
-                                                                .build();
+            ObjectGeneratorConfig config =
+                    ObjectGeneratorConfig.builder().ignoreErrors(true).build();
             // Even if some field can't be set, the generator should not throw
             assertDoesNotThrow(() -> new ObjectGenerator<>(Person.class, config).generate());
         }
@@ -619,13 +609,15 @@ class ObjectGeneratorTest {
             logger.setLevel(Level.DEBUG);
             logger.addAppender(appender);
             try {
-                GeneratorConfig rootConfig = GeneratorConfig.builder().objectIgnoreErrors(true).build();
+                GeneratorConfig rootConfig =
+                        GeneratorConfig.builder().objectIgnoreErrors(true).build();
                 RootIgnoreErrorsHolder holder =
-                    new ObjectGenerator<>(RootIgnoreErrorsHolder.class, rootConfig).generate();
+                        new ObjectGenerator<>(RootIgnoreErrorsHolder.class, rootConfig).generate();
                 assertNull(holder.nested, "throwing nested type should be swallowed");
-                assertTrue(appender.list.stream()
-                                  .anyMatch(e -> e.getFormattedMessage().contains("RootIgnoreErrorsHolder.nested")),
-                           "swallowed failure should be logged at DEBUG level");
+                assertTrue(
+                        appender.list.stream()
+                                .anyMatch(e -> e.getFormattedMessage().contains("RootIgnoreErrorsHolder.nested")),
+                        "swallowed failure should be logged at DEBUG level");
             } finally {
                 logger.detachAppender(appender);
                 logger.setLevel(previousLevel);
@@ -636,10 +628,10 @@ class ObjectGeneratorTest {
         @DisplayName("overrideDefaultInitialization=false preserves non-default initialized values")
         void doesNotOverrideInitializedValuesWhenDisabled() {
             ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                                .overrideDefaultInitialization(false)
-                                                                .override(String.class, () -> "OVERRIDDEN")
-                                                                .override(int.class, () -> 7)
-                                                                .build();
+                    .overrideDefaultInitialization(false)
+                    .override(String.class, () -> "OVERRIDDEN")
+                    .override(int.class, () -> 7)
+                    .build();
 
             PreInitializedFields value = new ObjectGenerator<>(PreInitializedFields.class, config).generate();
             assertEquals("PRESET", value.getPresetName(), "non-default String initializer should be preserved");
@@ -652,10 +644,10 @@ class ObjectGeneratorTest {
         @DisplayName("overrideDefaultInitialization=true overwrites initialized values")
         void overridesInitializedValuesWhenEnabled() {
             ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                                .overrideDefaultInitialization(true)
-                                                                .override(String.class, () -> "OVERRIDDEN")
-                                                                .override(int.class, () -> 7)
-                                                                .build();
+                    .overrideDefaultInitialization(true)
+                    .override(String.class, () -> "OVERRIDDEN")
+                    .override(int.class, () -> 7)
+                    .build();
 
             PreInitializedFields value = new ObjectGenerator<>(PreInitializedFields.class, config).generate();
             assertEquals("OVERRIDDEN", value.getPresetName());
@@ -674,7 +666,6 @@ class ObjectGeneratorTest {
 
     // ── Generator composition ─────────────────────────────────────────────────
 
-
     @Nested
     @DisplayName("Generator composition via map / filter / stream")
     class CompositionTest {
@@ -682,8 +673,7 @@ class ObjectGeneratorTest {
         @Test
         @DisplayName("map() transforms generated Person to a DTO string")
         void mapToString() {
-            var gen = new ObjectGenerator<>(Person.class)
-                .map(p -> p.getFirstName() + " " + p.getLastName());
+            var gen = new ObjectGenerator<>(Person.class).map(p -> p.getFirstName() + " " + p.getLastName());
             String name = gen.generate();
             assertNotNull(name);
             assertTrue(name.contains(" "), "Expected 'First Last' format, got: " + name);
@@ -692,10 +682,8 @@ class ObjectGeneratorTest {
         @Test
         @DisplayName("stream() produces on-demand instances")
         void streamUsage() {
-            List<Person> people = new ObjectGenerator<>(Person.class)
-                .stream()
-                .limit(30)
-                .toList();
+            List<Person> people =
+                    new ObjectGenerator<>(Person.class).stream().limit(30).toList();
             assertEquals(30, people.size());
             people.forEach(p -> assertNotNull(p.getFirstName()));
         }
@@ -703,8 +691,7 @@ class ObjectGeneratorTest {
         @Test
         @DisplayName("filter() retains only ACTIVE persons")
         void filterByStatus() {
-            var gen = new ObjectGenerator<>(Person.class)
-                .filter(p -> p.getStatus() == Status.ACTIVE);
+            var gen = new ObjectGenerator<>(Person.class).filter(p -> p.getStatus() == Status.ACTIVE);
             for (int i = 0; i < 20; i++) {
                 assertEquals(Status.ACTIVE, gen.generate().getStatus());
             }
@@ -712,7 +699,6 @@ class ObjectGeneratorTest {
     }
 
     // ── Error cases ───────────────────────────────────────────────────────────
-
 
     @Nested
     @DisplayName("Error handling")
@@ -722,8 +708,7 @@ class ObjectGeneratorTest {
         @DisplayName("class without no-arg constructor is instantiated via Objenesis")
         void missingNoArgCtorHandledByObjenesis() {
             // Objenesis bypasses the constructor — generation succeeds without throwing.
-            NoDefaultCtor result = assertDoesNotThrow(
-                () -> new ObjectGenerator<>(NoDefaultCtor.class).generate());
+            NoDefaultCtor result = assertDoesNotThrow(() -> new ObjectGenerator<>(NoDefaultCtor.class).generate());
             assertNotNull(result);
         }
 
@@ -736,8 +721,7 @@ class ObjectGeneratorTest {
         @Test
         @DisplayName("generateList with negative count throws IllegalArgumentException")
         void generateListNegativeThrows() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> new ObjectGenerator<>(Address.class).generateList(-1));
+            assertThrows(IllegalArgumentException.class, () -> new ObjectGenerator<>(Address.class).generateList(-1));
         }
 
         @Test
@@ -753,8 +737,7 @@ class ObjectGeneratorTest {
         @DisplayName("constructor that throws reports sanitized root construction context")
         void throwingConstructorIsContextual() {
             ObjectGenerationException error = assertThrows(
-                ObjectGenerationException.class,
-                () -> new ObjectGenerator<>(ThrowingCtor.class).generate());
+                    ObjectGenerationException.class, () -> new ObjectGenerator<>(ThrowingCtor.class).generate());
 
             GenerationFailureContext context = error.getContext().orElseThrow();
             assertEquals(GenerationFailureCategory.CONSTRUCTION, context.category());
@@ -776,7 +759,6 @@ class ObjectGeneratorTest {
             assertTrue(s.contains("depth=0"), "Expected depth in toString: " + s);
         }
 
-
         /**
          * A class with no no-arg constructor — must fail clearly.
          */
@@ -788,7 +770,6 @@ class ObjectGeneratorTest {
                 this.value = value;
             }
         }
-
 
         /**
          * A class whose no-arg constructor throws — triggers ReflectiveOperationException path.
@@ -805,13 +786,11 @@ class ObjectGeneratorTest {
 
     // ── FieldGeneratorResolver branch coverage ────────────────────────────────
 
-
     @Nested
     @DisplayName("FieldGeneratorResolver — branch coverage")
     class FieldResolutionTest {
 
         // ── Fixtures ──────────────────────────────────────────────────────────
-
 
         @Test
         @DisplayName("array-typed field size follows shared collection defaults")
@@ -878,7 +857,8 @@ class ObjectGeneratorTest {
         @Test
         @DisplayName("depth guard returns null for nested objects beyond maxDepth")
         void depthGuardReturnsNull() {
-            ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder().maxDepth(1).build();
+            ObjectGeneratorConfig cfg =
+                    ObjectGeneratorConfig.builder().maxDepth(1).build();
             Outer outer = new ObjectGenerator<>(Outer.class, cfg).generate();
             assertNotNull(outer.middle, "Middle should be generated (depth 0 → 1 is within maxDepth=1)");
             assertNull(outer.middle.inner, "Inner should be null: depth guard fires at depth 1 >= maxDepth 1");
@@ -887,7 +867,8 @@ class ObjectGeneratorTest {
         @Test
         @DisplayName("ignoreErrors=true swallows ObjectGenerationException from nested type with throwing ctor")
         void ignoreErrorsSwallowsNestedOGE() {
-            ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder().ignoreErrors(true).build();
+            ObjectGeneratorConfig cfg =
+                    ObjectGeneratorConfig.builder().ignoreErrors(true).build();
             WithThrowingNestedField obj = new ObjectGenerator<>(WithThrowingNestedField.class, cfg).generate();
             assertNotNull(obj);
             assertNull(obj.nested, "nested field should be null when OGE is swallowed");
@@ -898,8 +879,8 @@ class ObjectGeneratorTest {
         @DisplayName("strict nested constructor failure gains parent field context")
         void strictNestedConstructorFailureIsContextual() {
             ObjectGenerationException error = assertThrows(
-                ObjectGenerationException.class,
-                () -> new ObjectGenerator<>(WithThrowingNestedField.class).generate());
+                    ObjectGenerationException.class,
+                    () -> new ObjectGenerator<>(WithThrowingNestedField.class).generate());
 
             GenerationFailureContext context = error.getContext().orElseThrow();
             assertEquals(GenerationFailureCategory.CONSTRUCTION, context.category());
@@ -916,11 +897,11 @@ class ObjectGeneratorTest {
             // String override throws RuntimeException inside InnerWithString.generate() —
             // this propagates uncaught through generate(), reaching the Exception catch.
             ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
-                                                             .override(String.class, () -> {
-                                                                 throw new RuntimeException("intentional");
-                                                             })
-                                                             .ignoreErrors(true)
-                                                             .build();
+                    .override(String.class, () -> {
+                        throw new RuntimeException("intentional");
+                    })
+                    .ignoreErrors(true)
+                    .build();
             OuterWithInner obj = new ObjectGenerator<>(OuterWithInner.class, cfg).generate();
             assertNotNull(obj);
             assertNull(obj.inner, "nested field should be null when generation throws RuntimeException");
@@ -930,13 +911,12 @@ class ObjectGeneratorTest {
         @DisplayName("strict nested runtime failure gains parent field context")
         void strictNestedRuntimeFailureIsContextual() {
             ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
-                                                             .override(String.class, () -> {
-                                                                 throw new RuntimeException("intentional");
-                                                             })
-                                                             .build();
+                    .override(String.class, () -> {
+                        throw new RuntimeException("intentional");
+                    })
+                    .build();
             ObjectGenerationException error = assertThrows(
-                ObjectGenerationException.class,
-                () -> new ObjectGenerator<>(OuterWithInner.class, cfg).generate());
+                    ObjectGenerationException.class, () -> new ObjectGenerator<>(OuterWithInner.class, cfg).generate());
 
             GenerationFailureContext context = error.getContext().orElseThrow();
             assertEquals(GenerationFailureCategory.REFLECTION, context.category());
@@ -949,14 +929,12 @@ class ObjectGeneratorTest {
         @DisplayName("legacy nested ObjectGenerationException gains parent context")
         void legacyNestedFailureGainsParentContext() {
             ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
-                                                             .override(String.class, () -> {
-                                                                 throw new ObjectGenerationException(
-                                                                     "personal-looking-value");
-                                                             })
-                                                             .build();
+                    .override(String.class, () -> {
+                        throw new ObjectGenerationException("personal-looking-value");
+                    })
+                    .build();
             ObjectGenerationException error = assertThrows(
-                ObjectGenerationException.class,
-                () -> new ObjectGenerator<>(OuterWithInner.class, cfg).generate());
+                    ObjectGenerationException.class, () -> new ObjectGenerator<>(OuterWithInner.class, cfg).generate());
 
             GenerationFailureContext context = error.getContext().orElseThrow();
             assertEquals(GenerationFailureCategory.REFLECTION, context.category());
@@ -971,8 +949,8 @@ class ObjectGeneratorTest {
         @DisplayName("structured nested failure composes a root-relative path once")
         void structuredNestedFailureComposesParentPath() {
             ObjectGenerationException error = assertThrows(
-                ObjectGenerationException.class,
-                () -> new ObjectGenerator<>(NestedUnsupportedRoot.class).generate());
+                    ObjectGenerationException.class,
+                    () -> new ObjectGenerator<>(NestedUnsupportedRoot.class).generate());
 
             GenerationFailureContext context = error.getContext().orElseThrow();
             assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
@@ -988,8 +966,7 @@ class ObjectGeneratorTest {
         @DisplayName("foreign structured nested path is retained below the parent path")
         void foreignNestedFailurePathIsRetained() {
             ObjectGenerationException error = assertThrows(
-                ObjectGenerationException.class,
-                () -> new ObjectGenerator<>(ForeignContextRoot.class).generate());
+                    ObjectGenerationException.class, () -> new ObjectGenerator<>(ForeignContextRoot.class).generate());
 
             GenerationFailureContext context = error.getContext().orElseThrow();
             assertEquals(GenerationFailureCategory.ASSIGNMENT, context.category());
@@ -1003,8 +980,8 @@ class ObjectGeneratorTest {
         @DisplayName("a nested type root path collapses to its parent field path")
         void nestedTypeRootFailurePathCollapsesToParent() {
             ObjectGenerationException error = assertThrows(
-                ObjectGenerationException.class,
-                () -> new ObjectGenerator<>(NestedRootContextRoot.class).generate());
+                    ObjectGenerationException.class,
+                    () -> new ObjectGenerator<>(NestedRootContextRoot.class).generate());
 
             GenerationFailureContext context = error.getContext().orElseThrow();
             assertEquals(GenerationFailureCategory.ASSIGNMENT, context.category());
@@ -1012,12 +989,9 @@ class ObjectGeneratorTest {
             assertEquals(NestedRootContextGenerator.class, context.ownerType());
         }
 
-        private void assertUnsupportedTypeFailure(Class<?> ownerType,
-                                                  String fieldName,
-                                                  Class<?> declaredType) {
-            ObjectGenerationException error = assertThrows(
-                ObjectGenerationException.class,
-                () -> new ObjectGenerator<>(ownerType).generate());
+        private void assertUnsupportedTypeFailure(Class<?> ownerType, String fieldName, Class<?> declaredType) {
+            ObjectGenerationException error =
+                    assertThrows(ObjectGenerationException.class, () -> new ObjectGenerator<>(ownerType).generate());
 
             GenerationFailureContext context = error.getContext().orElseThrow();
             assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
@@ -1029,9 +1003,10 @@ class ObjectGeneratorTest {
             assertTrue(error.getCause() instanceof UnsupportedOperationException);
         }
 
-        private void assertUnsupportedTypeFallback(Class<?> ownerType,
-                                                   String fieldName) throws ReflectiveOperationException {
-            GeneratorConfig config = GeneratorConfig.builder().objectIgnoreErrors(true).build();
+        private void assertUnsupportedTypeFallback(Class<?> ownerType, String fieldName)
+                throws ReflectiveOperationException {
+            GeneratorConfig config =
+                    GeneratorConfig.builder().objectIgnoreErrors(true).build();
             Object generated = new ObjectGenerator<>(ownerType, config).generate();
             var field = ownerType.getDeclaredField(fieldName);
             field.setAccessible(true);
@@ -1039,78 +1014,63 @@ class ObjectGeneratorTest {
             assertNull(field.get(generated));
         }
 
-
         enum EmptyStatus {}
-
 
         static class WithArrayField {
 
             String[] tags;
         }
 
-
         static class WithInterfaceField {
 
             Runnable runner;
         }
 
-
-        static abstract class AbstractBase {
-
-        }
+        abstract static class AbstractBase {}
 
         // ── Tests ─────────────────────────────────────────────────────────────
-
 
         static class WithAbstractField {
 
             AbstractBase base;
         }
 
-
         static class WithJdkTypeField {
 
             java.util.Locale locale;
         }
-
 
         static class WithObjectField {
 
             Object value;
         }
 
-
         static class WithEmptyEnumField {
 
             EmptyStatus status;
         }
 
-
         static class WithStaticAndFinalFields {
 
             static String staticVal = "static";
-            final  int    finalVal  = 1;
+            final int finalVal = 1;
             String mutable;
         }
-
 
         static class Inner {
 
             String value;
         }
 
-
         static class Middle {
 
             Inner inner;
         }
 
-
         static class Outer {
 
             Middle middle;
         }
-
 
         // Objenesis now handles no-arg-constructor-free classes; use a throwing ctor for error cases
         static class ThrowsOnCreate {
@@ -1122,13 +1082,11 @@ class ObjectGeneratorTest {
             }
         }
 
-
         static class WithThrowingNestedField {
 
             ThrowsOnCreate nested;
-            String         name;
+            String name;
         }
-
 
         // For Exception-catch branch in resolveAndGenerate (non-OGE from nested generation)
         static class InnerWithString {
@@ -1136,31 +1094,26 @@ class ObjectGeneratorTest {
             String value;
         }
 
-
         static class OuterWithInner {
 
             InnerWithString inner;
-            int             num;
+            int num;
         }
-
 
         static class NestedUnsupportedRoot {
 
             NestedUnsupportedMiddle middle;
         }
 
-
         static class NestedUnsupportedMiddle {
 
             NestedUnsupportedChild child;
         }
 
-
         static class NestedUnsupportedChild {
 
             Runnable task;
         }
-
 
         static class ForeignContextRoot {
 
@@ -1183,17 +1136,16 @@ class ObjectGeneratorTest {
             @Override
             public String generate() {
                 GenerationFailureContext context = new GenerationFailureContext(
-                    GenerationFailureCategory.ASSIGNMENT,
-                    GenerationOperation.ASSIGN,
-                    NestedRootContextChild.class.getSimpleName(),
-                    NestedRootContextGenerator.class,
-                    String.class.getName(),
-                    2,
-                    -1);
+                        GenerationFailureCategory.ASSIGNMENT,
+                        GenerationOperation.ASSIGN,
+                        NestedRootContextChild.class.getSimpleName(),
+                        NestedRootContextGenerator.class,
+                        String.class.getName(),
+                        2,
+                        -1);
                 throw new ObjectGenerationException("nested root failure", context, null);
             }
         }
-
 
         static class ForeignContextChild {
 
@@ -1201,26 +1153,24 @@ class ObjectGeneratorTest {
             String value;
         }
 
-
         public static class ForeignContextGenerator implements Generator<String> {
 
             @Override
             public String generate() {
                 GenerationFailureContext context = new GenerationFailureContext(
-                    GenerationFailureCategory.ASSIGNMENT,
-                    GenerationOperation.ASSIGN,
-                    "External.path",
-                    ForeignContextGenerator.class,
-                    String.class.getName(),
-                    7,
-                    -1);
+                        GenerationFailureCategory.ASSIGNMENT,
+                        GenerationOperation.ASSIGN,
+                        "External.path",
+                        ForeignContextGenerator.class,
+                        String.class.getName(),
+                        7,
+                        -1);
                 throw new ObjectGenerationException("foreign failure", context, null);
             }
         }
     }
 
     // ── generateClass field.set() failure branches ─────────────────────────────
-
 
     @Nested
     @DisplayName("generateClass — field.set() failure branches")
@@ -1232,9 +1182,9 @@ class ObjectGeneratorTest {
             // Field-level override returns a String for Address.houseNumber (int) —
             // field.set() throws IllegalArgumentException, which must be swallowed.
             ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
-                                                             .override(Address.class, "houseNumber", () -> "NOT_AN_INT")
-                                                             .ignoreErrors(true)
-                                                             .build();
+                    .override(Address.class, "houseNumber", () -> "NOT_AN_INT")
+                    .ignoreErrors(true)
+                    .build();
             Logger logger = (Logger) LoggerFactory.getLogger(ObjectGenerationFailurePolicy.class);
             ListAppender<ILoggingEvent> appender = new ListAppender<>();
             appender.start();
@@ -1244,10 +1194,10 @@ class ObjectGeneratorTest {
             try {
                 assertDoesNotThrow(() -> new ObjectGenerator<>(Address.class, cfg).generate());
                 assertTrue(appender.list.stream()
-                                        .anyMatch(event -> event.getFormattedMessage().contains(
-                                            "'Address.houseNumber' (declared type int, depth 0")));
+                        .anyMatch(event -> event.getFormattedMessage()
+                                .contains("'Address.houseNumber' (declared type int, depth 0")));
                 assertFalse(appender.list.stream()
-                                         .anyMatch(event -> event.getFormattedMessage().contains("NOT_AN_INT")));
+                        .anyMatch(event -> event.getFormattedMessage().contains("NOT_AN_INT")));
             } finally {
                 logger.detachAppender(appender);
                 logger.setLevel(previousLevel);
@@ -1258,14 +1208,12 @@ class ObjectGeneratorTest {
         @DisplayName("ignoreErrors=false throws ObjectGenerationException when field.set() fails")
         void ignoreErrorsFalseThrowsOnWrongTypeField() {
             ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
-                                                             .override(Address.class, "houseNumber", () -> "NOT_AN_INT")
-                                                             .build();
+                    .override(Address.class, "houseNumber", () -> "NOT_AN_INT")
+                    .build();
             ObjectGenerationException error = assertThrows(
-                ObjectGenerationException.class,
-                () -> new ObjectGenerator<>(Address.class, cfg).generate());
+                    ObjectGenerationException.class, () -> new ObjectGenerator<>(Address.class, cfg).generate());
 
-            assertEquals("Could not set field 'Address.houseNumber' (declared type int, depth 0)",
-                         error.getMessage());
+            assertEquals("Could not set field 'Address.houseNumber' (declared type int, depth 0)", error.getMessage());
             GenerationFailureContext context = error.getContext().orElseThrow();
             assertEquals(GenerationFailureCategory.ASSIGNMENT, context.category());
             assertEquals(GenerationOperation.ASSIGN, context.operation());

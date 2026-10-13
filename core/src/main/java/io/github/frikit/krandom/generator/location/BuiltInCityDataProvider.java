@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.location;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.util.Locale;
 
 /**
@@ -14,7 +13,7 @@ import java.util.Locale;
  */
 final class BuiltInCityDataProvider implements CityDataProvider {
 
-    private final Locale   locale;
+    private final Locale locale;
     private final String[] cities;
 
     BuiltInCityDataProvider(SupportedLocale supportedLocale) {

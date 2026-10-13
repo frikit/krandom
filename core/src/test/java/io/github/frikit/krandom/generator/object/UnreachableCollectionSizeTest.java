@@ -5,20 +5,19 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import jakarta.validation.constraints.Size;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import jakarta.validation.constraints.Size;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * A declared minimum size that the element domain cannot reach must fail instead of silently
@@ -27,18 +26,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class UnreachableCollectionSizeTest {
 
     public static class ThreeFlags {
-        @Size(min = 3, max = 3)
-        public Set<Boolean> flags;
+        @Size(min = 3, max = 3) public Set<Boolean> flags;
     }
 
     public static class ThreeFlagKeys {
-        @Size(min = 3)
-        public Map<Boolean, String> byFlag;
+        @Size(min = 3) public Map<Boolean, String> byFlag;
     }
 
     public static class FlexibleFlags {
-        @Size(min = 1, max = 5)
-        public Set<Boolean> flags;
+        @Size(min = 1, max = 5) public Set<Boolean> flags;
     }
 
     /** Distinct by {@code equals}, but sorted by a {@code toString()} with two values. */
@@ -50,8 +46,7 @@ class UnreachableCollectionSizeTest {
     }
 
     public static class TwoParities {
-        @Size(min = 2, max = 2)
-        public SortedSet<Parity> parities;
+        @Size(min = 2, max = 2) public SortedSet<Parity> parities;
     }
 
     /** Every value sorts as equal, so a sorted set holds at most one. */
@@ -63,8 +58,7 @@ class UnreachableCollectionSizeTest {
     }
 
     public static class TwoConstants {
-        @Size(min = 2)
-        public SortedSet<Constant> constants;
+        @Size(min = 2) public SortedSet<Constant> constants;
     }
 
     private static GeneratorConfig seeded() {
@@ -92,7 +86,10 @@ class UnreachableCollectionSizeTest {
     void sortedSetTopsUpOrderCollisions() {
         for (long seed = 0; seed < 30; seed++) {
             SortedSet<Parity> parities = new ObjectGenerator<>(
-                TwoParities.class, GeneratorConfig.builder().seed(seed).build()).generate().parities;
+                            TwoParities.class,
+                            GeneratorConfig.builder().seed(seed).build())
+                    .generate()
+                    .parities;
             assertEquals(2, parities.size(), "seed " + seed + ": " + parities);
         }
     }
@@ -118,7 +115,10 @@ class UnreachableCollectionSizeTest {
     void smallerContainerWithinDeclaredRangeIsKept() {
         for (long seed = 0; seed < 20; seed++) {
             Set<Boolean> flags = new ObjectGenerator<>(
-                FlexibleFlags.class, GeneratorConfig.builder().seed(seed).build()).generate().flags;
+                            FlexibleFlags.class,
+                            GeneratorConfig.builder().seed(seed).build())
+                    .generate()
+                    .flags;
             assertTrue(flags.size() >= 1 && flags.size() <= 2, "unexpected size " + flags.size());
         }
     }

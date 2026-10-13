@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.network;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
 
@@ -25,12 +23,9 @@ public final class UserAgentGenerator implements Generator<String> {
         "iPhone; CPU iPhone OS 17_2 like Mac OS X"
     };
 
-    private static final String[] ENGINES  = { "AppleWebKit/537.36", "Gecko/20100101" };
+    private static final String[] ENGINES = {"AppleWebKit/537.36", "Gecko/20100101"};
     private static final String[] BROWSERS = {
-        "Chrome/123.0.0.0 Safari/537.36",
-        "Firefox/123.0",
-        "Version/17.2 Mobile/15E148 Safari/604.1",
-        "Edg/122.0.0.0"
+        "Chrome/123.0.0.0 Safari/537.36", "Firefox/123.0", "Version/17.2 Mobile/15E148 Safari/604.1", "Edg/122.0.0.0"
     };
 
     private static final String[] BOTS = {
@@ -103,7 +98,8 @@ public final class UserAgentGenerator implements Generator<String> {
      */
     public String generateOpera() {
         String os = OS[random.nextInt(OS.length)];
-        return "Mozilla/5.0 (" + os + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 OPR/109.0.0.0";
+        return "Mozilla/5.0 (" + os
+                + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 OPR/109.0.0.0";
     }
 
     /**

@@ -38,8 +38,7 @@ public record CurrencyPair(CurrencyInfo base, CurrencyInfo quote) {
         Objects.requireNonNull(base, "base must not be null");
         Objects.requireNonNull(quote, "quote must not be null");
         if (base.code().equals(quote.code())) {
-            throw new IllegalArgumentException(
-                "base and quote must be different currencies, got: " + base.code());
+            throw new IllegalArgumentException("base and quote must be different currencies, got: " + base.code());
         }
     }
 

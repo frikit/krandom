@@ -5,13 +5,11 @@
  */
 package io.github.frikit.krandom.generator.weather;
 
-import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Global registry mapping locales to {@link WeatherDataProvider} instances.
@@ -27,8 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class WeatherDataRegistry {
 
-    private static final ConcurrentHashMap<String, WeatherDataProvider> REGISTRY =
-        new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, WeatherDataProvider> REGISTRY = new ConcurrentHashMap<>();
 
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
@@ -39,8 +36,7 @@ public final class WeatherDataRegistry {
         }
     }
 
-    private WeatherDataRegistry() {
-    }
+    private WeatherDataRegistry() {}
 
     /**
      * Returns {@code true} if the registry contains an entry for the given locale.
@@ -82,11 +78,10 @@ public final class WeatherDataRegistry {
         return Set.copyOf(REGISTRY.keySet());
     }
 
-
     private static void putProvider(WeatherDataProvider provider) {
         String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
         REGISTRY.put(lang + "_" + country, provider);
-            REGISTRY.putIfAbsent(lang, provider);
+        REGISTRY.putIfAbsent(lang, provider);
     }
 }

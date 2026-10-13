@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.text;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -23,12 +21,12 @@ import java.util.Random;
  */
 public final class SyllableGenerator implements Generator<String> {
 
-    private static final String                     PHONETICS_PATH_PREFIX = "krandom/text/phonetics/";
-    private static final WordPhonetics              DEFAULT_EN            = WordPhoneticsLoader.load(PHONETICS_PATH_PREFIX + "en.txt");
-    private static final Map<String, WordPhonetics> LOCALE_PROFILES       = localeProfiles();
+    private static final String PHONETICS_PATH_PREFIX = "krandom/text/phonetics/";
+    private static final WordPhonetics DEFAULT_EN = WordPhoneticsLoader.load(PHONETICS_PATH_PREFIX + "en.txt");
+    private static final Map<String, WordPhonetics> LOCALE_PROFILES = localeProfiles();
 
-    private final Locale        locale;
-    private final Random        random;
+    private final Locale locale;
+    private final Random random;
     private final WordPhonetics phonetics;
 
     /**

@@ -15,11 +15,11 @@ public final class TestObjectConstructionAdapter implements ObjectConstructionAd
     @Override
     public boolean supports(Class<?> type) {
         return type == ObjectConstructionPolicyTest.AdapterFixture.class
-               || type == ObjectConstructionPolicyTest.ExclusionAdapterFixture.class
-               || type == ObjectConstructionPolicyTest.NullAdapterFixture.class
-               || type == ObjectConstructionPolicyTest.WrongTypeAdapterFixture.class
-               || type == ObjectConstructionPolicyTest.FailingAdapterFixture.class
-               || type == ObjectConstructionPolicyTest.StructuredFailingAdapterFixture.class;
+                || type == ObjectConstructionPolicyTest.ExclusionAdapterFixture.class
+                || type == ObjectConstructionPolicyTest.NullAdapterFixture.class
+                || type == ObjectConstructionPolicyTest.WrongTypeAdapterFixture.class
+                || type == ObjectConstructionPolicyTest.FailingAdapterFixture.class
+                || type == ObjectConstructionPolicyTest.StructuredFailingAdapterFixture.class;
     }
 
     @Override
@@ -43,7 +43,7 @@ public final class TestObjectConstructionAdapter implements ObjectConstructionAd
         }
         if (context.getType() == ObjectConstructionPolicyTest.ExclusionAdapterFixture.class) {
             return new ObjectConstructionPolicyTest.ExclusionAdapterFixture(
-                context.isExcluded("own"), context.isExcluded("inherited"), context.isExcluded("missing"));
+                    context.isExcluded("own"), context.isExcluded("inherited"), context.isExcluded("missing"));
         }
         boolean explicitlyOverridden = context.hasExplicitOverride("value", String.class);
         String value = (String) context.generate(String.class, String.class, "value", null);

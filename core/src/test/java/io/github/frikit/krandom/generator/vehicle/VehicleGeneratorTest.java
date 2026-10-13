@@ -5,20 +5,19 @@
  */
 package io.github.frikit.krandom.generator.vehicle;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Vehicle generators")
 class VehicleGeneratorTest {
@@ -39,7 +38,8 @@ class VehicleGeneratorTest {
         @Test
         @DisplayName("generate() can surface an 'X' check digit across seeded draws")
         void surfacesXCheckDigit() {
-            VinGenerator gen = new VinGenerator(GeneratorConfig.builder().seed(2L).build());
+            VinGenerator gen =
+                    new VinGenerator(GeneratorConfig.builder().seed(2L).build());
             Set<Character> checkChars = new HashSet<>();
             for (int i = 0; i < 5000; i++) {
                 checkChars.add(gen.generate().charAt(8));
@@ -86,8 +86,16 @@ class VehicleGeneratorTest {
     class Vehicle {
 
         private static final Set<String> MAKES = Set.of(
-            "Toyota", "Honda", "Ford", "Chevrolet", "Volkswagen",
-            "BMW", "Mercedes-Benz", "Nissan", "Hyundai", "Tesla");
+                "Toyota",
+                "Honda",
+                "Ford",
+                "Chevrolet",
+                "Volkswagen",
+                "BMW",
+                "Mercedes-Benz",
+                "Nissan",
+                "Hyundai",
+                "Tesla");
 
         @RepeatedTest(200)
         @DisplayName("generate() is '<make> <model>' with a known make")
@@ -104,8 +112,8 @@ class VehicleGeneratorTest {
         void make() {
             assertTrue(MAKES.contains(new VehicleGenerator().make()));
             assertEquals(
-                new VehicleGenerator(GeneratorConfig.builder().seed(1L).build()).make(),
-                new VehicleGenerator(GeneratorConfig.builder().seed(1L).build()).make());
+                    new VehicleGenerator(GeneratorConfig.builder().seed(1L).build()).make(),
+                    new VehicleGenerator(GeneratorConfig.builder().seed(1L).build()).make());
         }
 
         @RepeatedTest(100)
@@ -123,8 +131,10 @@ class VehicleGeneratorTest {
         @Test
         @DisplayName("same seed is reproducible")
         void reproducible() {
-            List<String> a = new VehicleGenerator(GeneratorConfig.builder().seed(6L).build()).generateList(20);
-            List<String> b = new VehicleGenerator(GeneratorConfig.builder().seed(6L).build()).generateList(20);
+            List<String> a =
+                    new VehicleGenerator(GeneratorConfig.builder().seed(6L).build()).generateList(20);
+            List<String> b =
+                    new VehicleGenerator(GeneratorConfig.builder().seed(6L).build()).generateList(20);
             assertEquals(a, b);
         }
 
@@ -144,10 +154,12 @@ class VehicleGeneratorTest {
         void facadeFactories() {
             assertTrue(Generators.ofVin().generate().matches("[A-HJ-NPR-Z0-9]{17}"));
             assertTrue(Generators.ofVin(GeneratorConfig.builder().seed(1L).build())
-                                 .generate().matches("[A-HJ-NPR-Z0-9]{17}"));
+                    .generate()
+                    .matches("[A-HJ-NPR-Z0-9]{17}"));
             assertTrue(Generators.ofVehicle().generate().contains(" "));
             assertTrue(Generators.ofVehicle(GeneratorConfig.builder().seed(1L).build())
-                                 .licensePlate().matches("[A-Z]{3} \\d{4}"));
+                    .licensePlate()
+                    .matches("[A-Z]{3} \\d{4}"));
         }
     }
 }

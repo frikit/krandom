@@ -12,7 +12,6 @@ import io.github.frikit.krandom.generator.commerce.OrderInfoGenerator;
 import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
 import io.github.frikit.krandom.generator.user.CompanyInfo;
 import io.github.frikit.krandom.generator.user.CompanyInfoGenerator;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -25,14 +24,12 @@ import java.util.Random;
  */
 public final class InvoiceInfoGenerator implements Generator<InvoiceInfo> {
 
-    private static final String[] INVOICE_STATUSES = {
-        "DRAFT", "SENT", "PAID", "OVERDUE"
-    };
+    private static final String[] INVOICE_STATUSES = {"DRAFT", "SENT", "PAID", "OVERDUE"};
 
-    private final GeneratorConfig      config;
-    private final Random               random;
-    private final UUIDGenerator        uuidGenerator;
-    private final OrderInfoGenerator   orderInfoGenerator;
+    private final GeneratorConfig config;
+    private final Random random;
+    private final UUIDGenerator uuidGenerator;
+    private final OrderInfoGenerator orderInfoGenerator;
     private final CompanyInfoGenerator companyInfoGenerator;
 
     /**
@@ -48,7 +45,9 @@ public final class InvoiceInfoGenerator implements Generator<InvoiceInfo> {
      * @param locale locale to use
      */
     public InvoiceInfoGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -74,19 +73,18 @@ public final class InvoiceInfoGenerator implements Generator<InvoiceInfo> {
         BigDecimal tax = order.tax().setScale(2, RoundingMode.HALF_UP);
         BigDecimal total = subtotal.add(tax).setScale(2, RoundingMode.HALF_UP);
         return new InvoiceInfo(
-            prefixedId("INV"),
-            order.orderNumber(),
-            INVOICE_STATUSES[random.nextInt(INVOICE_STATUSES.length)],
-            issuedOn,
-            dueOn,
-            order.currencyCode(),
-            subtotal,
-            tax,
-            total,
-            seller,
-            order.customer(),
-            order.shippingAddress()
-        );
+                prefixedId("INV"),
+                order.orderNumber(),
+                INVOICE_STATUSES[random.nextInt(INVOICE_STATUSES.length)],
+                issuedOn,
+                dueOn,
+                order.currencyCode(),
+                subtotal,
+                tax,
+                total,
+                seller,
+                order.customer(),
+                order.shippingAddress());
     }
 
     /**

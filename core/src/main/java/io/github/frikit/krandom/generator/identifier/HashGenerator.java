@@ -7,10 +7,8 @@ package io.github.frikit.krandom.generator.identifier;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -56,11 +54,11 @@ import java.util.Random;
  */
 public final class HashGenerator implements Generator<String> {
 
-    private static final int    DEFAULT_LENGTH  = 40;  // SHA-1 compatible
+    private static final int DEFAULT_LENGTH = 40; // SHA-1 compatible
     private static final char[] HEX_CHARS_LOWER = "0123456789abcdef".toCharArray();
     private static final char[] HEX_CHARS_UPPER = "0123456789ABCDEF".toCharArray();
     private final GeneratorConfig config;
-    private final Random          random;
+    private final Random random;
 
     /**
      * Creates a hash generator with default configuration.

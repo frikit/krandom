@@ -22,9 +22,8 @@ public enum SecuritiesIdentifierSafetyPolicy {
 
     void requireRealisticOutput() {
         if (this == DISABLED) {
-            throw new IllegalStateException(
-                "Securities-identifier generation is disabled by default; select "
-                + "securitiesIdentifierSafetyPolicy(REALISTIC_UNCLASSIFIED) only for isolated fixtures");
+            throw new IllegalStateException("Securities-identifier generation is disabled by default; select "
+                    + "securitiesIdentifierSafetyPolicy(REALISTIC_UNCLASSIFIED) only for isolated fixtures");
         }
     }
 }

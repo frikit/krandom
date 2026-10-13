@@ -5,8 +5,9 @@
  */
 package io.github.frikit.krandom.benchmarks;
 
-import io.github.frikit.krandom.generator.object.ObjectGenerator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.object.ObjectGenerator;
+import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -17,8 +18,6 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
 
-import java.util.concurrent.TimeUnit;
-
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Warmup(iterations = 2, time = 1)
@@ -28,17 +27,17 @@ public class ObjectGeneratorBenchmark {
 
     @State(Scope.Benchmark)
     public static class GeneratorState {
-        public final ObjectGenerator<BenchmarkFixtures.Depth2Root> depth2Generator =
-            new ObjectGenerator<>(BenchmarkFixtures.Depth2Root.class,
-                                  GeneratorConfig.builder().objectMaxDepth(2).build());
+        public final ObjectGenerator<BenchmarkFixtures.Depth2Root> depth2Generator = new ObjectGenerator<>(
+                BenchmarkFixtures.Depth2Root.class,
+                GeneratorConfig.builder().objectMaxDepth(2).build());
 
-        public final ObjectGenerator<BenchmarkFixtures.Depth5Root> depth5Generator =
-            new ObjectGenerator<>(BenchmarkFixtures.Depth5Root.class,
-                                  GeneratorConfig.builder().objectMaxDepth(5).build());
+        public final ObjectGenerator<BenchmarkFixtures.Depth5Root> depth5Generator = new ObjectGenerator<>(
+                BenchmarkFixtures.Depth5Root.class,
+                GeneratorConfig.builder().objectMaxDepth(5).build());
 
-        public final ObjectGenerator<BenchmarkFixtures.Depth10Root> depth10Generator =
-            new ObjectGenerator<>(BenchmarkFixtures.Depth10Root.class,
-                                  GeneratorConfig.builder().objectMaxDepth(10).build());
+        public final ObjectGenerator<BenchmarkFixtures.Depth10Root> depth10Generator = new ObjectGenerator<>(
+                BenchmarkFixtures.Depth10Root.class,
+                GeneratorConfig.builder().objectMaxDepth(10).build());
     }
 
     @Benchmark

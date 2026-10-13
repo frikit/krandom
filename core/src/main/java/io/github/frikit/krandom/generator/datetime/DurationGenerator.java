@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.datetime;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Random;
@@ -61,8 +60,8 @@ public final class DurationGenerator implements Generator<Duration> {
             throw new IllegalArgumentException("minSeconds must be >= 0, got: " + minSeconds);
         }
         if (maxSeconds < minSeconds) {
-            throw new IllegalArgumentException("maxSeconds must be >= minSeconds, got: "
-                                               + maxSeconds + " < " + minSeconds);
+            throw new IllegalArgumentException(
+                    "maxSeconds must be >= minSeconds, got: " + maxSeconds + " < " + minSeconds);
         }
         if (maxSeconds == minSeconds) {
             return Duration.ofSeconds(minSeconds);
@@ -71,9 +70,7 @@ public final class DurationGenerator implements Generator<Duration> {
         // With minSeconds >= 0 the width never overflows; only the inclusive bound width + 1 can,
         // and only for the full range [0, Long.MAX_VALUE], whose 2^63 values an unsigned shift of
         // one random long covers uniformly.
-        long sample = width == Long.MAX_VALUE
-                      ? random.nextLong() >>> 1
-                      : minSeconds + random.nextLong(width + 1);
+        long sample = width == Long.MAX_VALUE ? random.nextLong() >>> 1 : minSeconds + random.nextLong(width + 1);
         return Duration.ofSeconds(sample);
     }
 }

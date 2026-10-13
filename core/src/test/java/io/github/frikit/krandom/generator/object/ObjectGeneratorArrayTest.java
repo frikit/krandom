@@ -5,15 +5,15 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.core.model.PersonWithArrays;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.core.model.PersonWithArrays;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectGenerator — array auto-population")
 class ObjectGeneratorArrayTest {
@@ -69,18 +69,18 @@ class ObjectGeneratorArrayTest {
 
     @Test
     @DisplayName("lenient Array.set failure leaves primitive array slots at the JVM default")
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     void arraySetIllegalArgumentExceptionHandled() {
         // Supply a String where int[] expects Integer — lenient mode keeps the JVM default.
         // Raw-typed generator used here to deliberately pass the wrong value type.
         var badGen = (io.github.frikit.krandom.generator.Generator) () -> "NOT_AN_INT";
         ObjectGeneratorConfig cfg = ObjectGeneratorConfig.builder()
-                                                         .override((Class) int.class, badGen)
-                                                         .ignoreErrors(true)
-                                                         .build();
+                .override((Class) int.class, badGen)
+                .ignoreErrors(true)
+                .build();
         WithIntArray obj = assertDoesNotThrow(
-            () -> new ObjectGenerator<>(WithIntArray.class, cfg).generate(),
-            "Array.set IAE must not escape generateArray()");
+                () -> new ObjectGenerator<>(WithIntArray.class, cfg).generate(),
+                "Array.set IAE must not escape generateArray()");
         assertNotNull(obj.nums, "array must still be created");
         assertTrue(obj.nums.length >= FieldGeneratorResolver.DEFAULT_MIN_ELEMENT_COUNT);
         assertTrue(obj.nums.length <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
@@ -88,7 +88,6 @@ class ObjectGeneratorArrayTest {
             assertEquals(0, v, "slots must retain JVM default 0 after IAE");
         }
     }
-
 
     /**
      * Holder used to exercise the Array.set catch block.

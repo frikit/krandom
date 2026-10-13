@@ -13,5 +13,4 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * {@code @Service} in this package.
  */
 @SpringBootApplication
-public class SliceFixtureApplication {
-}
+public class SliceFixtureApplication {}

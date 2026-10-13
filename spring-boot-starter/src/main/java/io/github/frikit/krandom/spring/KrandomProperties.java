@@ -65,8 +65,7 @@ public class KrandomProperties {
     private Integer maxCollectionSize;
 
     /** Creates an empty property holder for Spring Boot binding. */
-    public KrandomProperties() {
-    }
+    public KrandomProperties() {}
 
     /**
      * Returns the configured seed.
@@ -229,7 +228,8 @@ public class KrandomProperties {
     private io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy phoneNumberSafetyPolicy;
     private io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy nationalIdSafetyPolicy;
     private io.github.frikit.krandom.generator.finance.BankingSafetyPolicy bankingSafetyPolicy;
-    private io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy securitiesIdentifierSafetyPolicy;
+    private io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy
+            securitiesIdentifierSafetyPolicy;
     private io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy cryptoAddressSafetyPolicy;
     private io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy;
     private io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy;
@@ -370,7 +370,8 @@ public class KrandomProperties {
      *
      * @return the policy, or {@code null} to use the core default
      */
-    public io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy getSecuritiesIdentifierSafetyPolicy() {
+    public io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy
+            getSecuritiesIdentifierSafetyPolicy() {
         return securitiesIdentifierSafetyPolicy;
     }
 
@@ -380,7 +381,8 @@ public class KrandomProperties {
      * @param securitiesIdentifierSafetyPolicy policy to use, or {@code null} for the core default
      */
     public void setSecuritiesIdentifierSafetyPolicy(
-            io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy securitiesIdentifierSafetyPolicy) {
+            io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy
+                    securitiesIdentifierSafetyPolicy) {
         this.securitiesIdentifierSafetyPolicy = securitiesIdentifierSafetyPolicy;
     }
 

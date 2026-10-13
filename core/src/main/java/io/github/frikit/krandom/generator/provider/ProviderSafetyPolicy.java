@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.provider;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Objects;
 
 /**

@@ -25,13 +25,12 @@ import java.util.Random;
  */
 public final class JpNationalIdProvider implements NationalIdProvider {
 
-    private static final int[] WEIGHTS = { 6, 5, 4, 3, 2, 7, 6, 5, 4, 3, 2 };
+    private static final int[] WEIGHTS = {6, 5, 4, 3, 2, 7, 6, 5, 4, 3, 2};
 
     /**
      * Creates a provider for Japanese My Number identifiers.
      */
-    public JpNationalIdProvider() {
-    }
+    public JpNationalIdProvider() {}
 
     /**
      * Computes the My Number check digit from the given 11-digit array.

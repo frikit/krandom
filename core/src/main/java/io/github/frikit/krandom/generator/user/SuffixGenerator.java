@@ -5,11 +5,9 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -35,8 +33,8 @@ import java.util.Random;
 public final class SuffixGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
-    private final Random          random;
-    private final String[]        suffixes;
+    private final Random random;
+    private final String[] suffixes;
 
     /**
      * Uses {@link GeneratorConfig#defaults()} — locale defaults to {@link Locale#US}.
@@ -61,13 +59,13 @@ public final class SuffixGenerator implements Generator<String> {
 
         Locale locale = config.getLocale();
         if (!registryContext.isSuffixRegistered(locale)) {
-            throw new UnsupportedOperationException(
-                "Locale " + locale + " is not supported. Registered locales: "
-                + registryContext.suffixRegisteredKeys());
+            throw new UnsupportedOperationException("Locale " + locale + " is not supported. Registered locales: "
+                    + registryContext.suffixRegisteredKeys());
         }
 
         this.random = config.createRandom();
-        this.suffixes = java.util.Objects.requireNonNull(registryContext.suffixProvider(locale)).getSuffixes();
+        this.suffixes = java.util.Objects.requireNonNull(registryContext.suffixProvider(locale))
+                .getSuffixes();
     }
 
     @Override

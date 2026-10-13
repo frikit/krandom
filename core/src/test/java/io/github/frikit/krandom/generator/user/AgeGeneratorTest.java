@@ -5,17 +5,16 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.Random;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.List;
+import java.util.Random;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("AgeGenerator")
 class AgeGeneratorTest {
@@ -28,8 +27,7 @@ class AgeGeneratorTest {
         AgeGenerator gen = new AgeGenerator();
         for (int i = 0; i < 200; i++) {
             int age = gen.generate();
-            assertTrue(age >= 1 && age <= 100,
-                       "Expected age in [1,100] but got: " + age);
+            assertTrue(age >= 1 && age <= 100, "Expected age in [1,100] but got: " + age);
         }
         assertEquals(1, gen.getMinAge());
         assertEquals(100, gen.getMaxAge());
@@ -120,9 +118,8 @@ class AgeGeneratorTest {
     @Test
     @DisplayName("config constructor supports custom random factory")
     void configConstructorSupportsRandomFactory() {
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .randomFactory(() -> new Random(7L))
-                                                .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().randomFactory(() -> new Random(7L)).build();
         AgeGenerator gen1 = new AgeGenerator(AgeType.TEEN, config);
         AgeGenerator gen2 = new AgeGenerator(AgeType.TEEN, config);
 
@@ -177,16 +174,14 @@ class AgeGeneratorTest {
     @Test
     @DisplayName("negative minAge throws IllegalArgumentException")
     void negativeMinAgeThrows() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                                                   () -> new AgeGenerator(-1, 10));
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> new AgeGenerator(-1, 10));
         assertTrue(ex.getMessage().contains("minAge"));
     }
 
     @Test
     @DisplayName("maxAge less than minAge throws IllegalArgumentException")
     void maxLessThanMinThrows() {
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                                                   () -> new AgeGenerator(10, 5));
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> new AgeGenerator(10, 5));
         assertTrue(ex.getMessage().contains("maxAge"));
     }
 

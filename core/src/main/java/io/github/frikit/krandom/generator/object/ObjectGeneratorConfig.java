@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.object;
 import io.github.frikit.krandom.generator.ContextualGenerator;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -29,7 +28,7 @@ import java.util.function.Predicate;
  */
 final class ObjectGeneratorConfig {
 
-    static final int DEFAULT_MAX_DEPTH        = GeneratorConfig.DEFAULT_OBJECT_MAX_DEPTH;
+    static final int DEFAULT_MAX_DEPTH = GeneratorConfig.DEFAULT_OBJECT_MAX_DEPTH;
     static final int DEFAULT_OBJECT_POOL_SIZE = GeneratorConfig.DEFAULT_OBJECT_POOL_SIZE;
 
     private final GeneratorConfig generatorConfig;
@@ -179,7 +178,7 @@ final class ObjectGeneratorConfig {
      */
     public static final class Builder {
 
-        private GeneratorConfig                             rootConfig;
+        private GeneratorConfig rootConfig;
         private GeneratorConfig.@org.jspecify.annotations.Nullable Builder rootBuilder;
         private final List<Consumer<GeneratorConfig.Builder>> localOperations = new ArrayList<>();
 

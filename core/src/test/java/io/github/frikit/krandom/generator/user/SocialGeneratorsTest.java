@@ -5,17 +5,16 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Social generators")
 class SocialGeneratorsTest {
@@ -24,8 +23,7 @@ class SocialGeneratorsTest {
     @DisplayName("social handle generator supports platform-specific normalization")
     void socialHandleVariants() {
         SocialHandleGenerator generator = new SocialHandleGenerator(
-            GeneratorConfig.builder().seed(11L).locale(Locale.US).build()
-        );
+                GeneratorConfig.builder().seed(11L).locale(Locale.US).build());
 
         String base = generator.generate();
         assertTrue(base.startsWith("@"));
@@ -58,8 +56,7 @@ class SocialGeneratorsTest {
     @DisplayName("social profile generator produces non-empty profile data")
     void socialProfileGenerate() {
         SocialProfileGenerator generator = new SocialProfileGenerator(
-            GeneratorConfig.builder().seed(22L).locale(Locale.US).build()
-        );
+                GeneratorConfig.builder().seed(22L).locale(Locale.US).build());
         SocialProfile profile = generator.generate();
         assertNotNull(profile);
         assertFalse(profile.platform().isBlank());
@@ -81,7 +78,8 @@ class SocialGeneratorsTest {
     @Test
     @DisplayName("social profile generator is deterministic when seeded")
     void socialProfileDeterministic() {
-        GeneratorConfig config = GeneratorConfig.builder().seed(123L).locale(Locale.US).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().seed(123L).locale(Locale.US).build();
         SocialProfileGenerator a = new SocialProfileGenerator(config);
         SocialProfileGenerator b = new SocialProfileGenerator(config);
         assertEquals(a.generate(), b.generate());
@@ -102,8 +100,7 @@ class SocialGeneratorsTest {
 
         for (int seed = 0; seed < 200; seed++) {
             SocialProfileGenerator generator = new SocialProfileGenerator(
-                GeneratorConfig.builder().seed(seed).locale(Locale.US).build()
-            );
+                    GeneratorConfig.builder().seed(seed).locale(Locale.US).build());
             SocialProfile profile = generator.generate();
             if (profile.handle().startsWith("@")) {
                 seenWithAt = true;

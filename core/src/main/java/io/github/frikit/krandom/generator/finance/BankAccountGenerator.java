@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -27,11 +26,11 @@ import java.util.Random;
 public final class BankAccountGenerator implements Generator<String> {
 
     private static final BankAccountDataProvider DEFAULT_PROVIDER =
-        new BuiltInBankAccountDataProvider(Locale.ROOT, "default");
+            new BuiltInBankAccountDataProvider(Locale.ROOT, "default");
 
-    private final Locale                locale;
+    private final Locale locale;
     private final BankAccountDataProvider vocabulary;
-    private final Random                random;
+    private final Random random;
     private final BankingSafetyPolicy bankingSafetyPolicy;
 
     public BankAccountGenerator(GeneratorConfig config) {

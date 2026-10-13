@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.util.Locale;
 
 /**
@@ -19,13 +18,13 @@ import java.util.Locale;
  */
 final class BuiltInProfessionDataProvider implements ProfessionDataProvider {
 
-    private final Locale   locale;
+    private final Locale locale;
     private final String[] professions;
 
     BuiltInProfessionDataProvider(SupportedLocale supportedLocale) {
         this.locale = supportedLocale.locale();
         this.professions =
-            LocaleTextResourceLoader.load("krandom/professions/" + supportedLocale.resourcePrefix() + ".txt");
+                LocaleTextResourceLoader.load("krandom/professions/" + supportedLocale.resourcePrefix() + ".txt");
     }
 
     /**

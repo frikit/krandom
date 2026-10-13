@@ -5,6 +5,13 @@
  */
 package io.github.frikit.krandom.generator;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.commerce.CommerceDataProvider;
 import io.github.frikit.krandom.generator.commerce.CommerceDataRegistry;
 import io.github.frikit.krandom.generator.commerce.CommerceGenerator;
@@ -45,12 +52,6 @@ import io.github.frikit.krandom.generator.user.PositionDataRegistry;
 import io.github.frikit.krandom.generator.user.PositionGenerator;
 import io.github.frikit.krandom.generator.user.SeniorityDataRegistry;
 import io.github.frikit.krandom.generator.user.SeniorityGenerator;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -62,13 +63,11 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Vocabulary generators follow the locale-aware data pattern: every non-English native locale has
@@ -83,86 +82,185 @@ class LocalizedVocabularyTest {
     // ── English lists exactly as they were hard-coded before the migration ──────────────────
 
     private static final List<String> INDUSTRIES = List.of(
-        "Technology", "Healthcare", "Finance", "Education", "Retail", "Manufacturing",
-        "Telecommunications", "Energy", "Transportation", "Construction", "Real Estate",
-        "Hospitality", "Media", "Entertainment", "Agriculture", "Aerospace", "Automotive",
-        "Biotechnology", "Consulting", "Cybersecurity");
+            "Technology",
+            "Healthcare",
+            "Finance",
+            "Education",
+            "Retail",
+            "Manufacturing",
+            "Telecommunications",
+            "Energy",
+            "Transportation",
+            "Construction",
+            "Real Estate",
+            "Hospitality",
+            "Media",
+            "Entertainment",
+            "Agriculture",
+            "Aerospace",
+            "Automotive",
+            "Biotechnology",
+            "Consulting",
+            "Cybersecurity");
     private static final List<String> JOB_FIELDS = List.of(
-        "Engineering", "Marketing", "Sales", "Finance", "Operations", "Product",
-        "Human Resources", "Legal", "Design", "Customer Support", "Research",
-        "Data Science", "Security", "Procurement", "Logistics");
+            "Engineering",
+            "Marketing",
+            "Sales",
+            "Finance",
+            "Operations",
+            "Product",
+            "Human Resources",
+            "Legal",
+            "Design",
+            "Customer Support",
+            "Research",
+            "Data Science",
+            "Security",
+            "Procurement",
+            "Logistics");
     private static final List<String> SENIORITIES = List.of(
-        "Intern", "Junior", "Associate", "Mid-level", "Senior", "Lead",
-        "Principal", "Staff", "Director", "Vice President");
+            "Intern",
+            "Junior",
+            "Associate",
+            "Mid-level",
+            "Senior",
+            "Lead",
+            "Principal",
+            "Staff",
+            "Director",
+            "Vice President");
     private static final List<String> POSITIONS = List.of(
-        "Software Engineer", "Product Manager", "Data Analyst", "UX Designer",
-        "Account Executive", "Marketing Specialist", "Business Analyst",
-        "DevOps Engineer", "Site Reliability Engineer", "Engineering Manager",
-        "Solutions Architect", "Technical Writer", "QA Engineer", "Project Manager",
-        "Security Engineer", "Database Administrator");
+            "Software Engineer",
+            "Product Manager",
+            "Data Analyst",
+            "UX Designer",
+            "Account Executive",
+            "Marketing Specialist",
+            "Business Analyst",
+            "DevOps Engineer",
+            "Site Reliability Engineer",
+            "Engineering Manager",
+            "Solutions Architect",
+            "Technical Writer",
+            "QA Engineer",
+            "Project Manager",
+            "Security Engineer",
+            "Database Administrator");
     private static final List<String> EDUCATION = List.of(
-        "High School", "Associate Degree", "Bachelor's Degree", "Master's Degree",
-        "Doctorate", "Professional Degree", "Vocational Certificate");
-    private static final List<String> MARITAL = List.of(
-        "Single", "Married", "Divorced", "Widowed", "Separated", "Domestic Partnership");
+            "High School",
+            "Associate Degree",
+            "Bachelor's Degree",
+            "Master's Degree",
+            "Doctorate",
+            "Professional Degree",
+            "Vocational Certificate");
+    private static final List<String> MARITAL =
+            List.of("Single", "Married", "Divorced", "Widowed", "Separated", "Domestic Partnership");
     private static final List<String> JOB_TYPES = List.of(
-        "Full-time", "Part-time", "Contract", "Temporary", "Internship", "Freelance",
-        "Apprenticeship", "Seasonal", "Volunteer", "Remote");
+            "Full-time",
+            "Part-time",
+            "Contract",
+            "Temporary",
+            "Internship",
+            "Freelance",
+            "Apprenticeship",
+            "Seasonal",
+            "Volunteer",
+            "Remote");
     private static final List<String> COMPANY_PREFIXES = List.of(
-        "Global", "National", "American", "United", "Premier", "Advanced",
-        "Strategic", "Dynamic", "Innovative", "Professional", "Digital", "Next",
-        "Alpha", "Summit", "Apex");
+            "Global",
+            "National",
+            "American",
+            "United",
+            "Premier",
+            "Advanced",
+            "Strategic",
+            "Dynamic",
+            "Innovative",
+            "Professional",
+            "Digital",
+            "Next",
+            "Alpha",
+            "Summit",
+            "Apex");
     private static final List<String> COMPANY_NOUNS = List.of(
-        "Solutions", "Systems", "Technologies", "Industries", "Services",
-        "Group", "Partners", "Ventures", "Associates", "Consulting",
-        "Networks", "Dynamics", "Resources", "Management", "Analytics");
-    private static final List<String> COMPANY_SUFFIXES = List.of(
-        "Inc.", "LLC", "Corp.", "Ltd.", "Co.", "Group", "Holdings", "Enterprises");
-    private static final List<String> BUZZ_VERBS = List.of(
-        "streamline", "empower", "leverage", "optimize", "synergize", "scale", "deliver", "enable");
-    private static final List<String> BUZZ_ADJECTIVES = List.of(
-        "cross-platform", "end-to-end", "best-in-class", "frictionless", "cloud-native", "data-driven");
-    private static final List<String> BUZZ_NOUNS = List.of(
-        "solutions", "workflows", "infrastructure", "platforms", "experiences", "capabilities");
-    private static final List<String> CATCH_ADJECTIVES = List.of(
-        "Adaptive", "Unified", "Trusted", "Intelligent", "Future-ready", "Effortless", "Secure");
-    private static final List<String> CATCH_NOUNS = List.of(
-        "Platform", "Network", "Experience", "Engine", "Ecosystem", "Suite", "Framework");
-    private static final List<String> CATCH_TAGLINES = List.of(
-        "for modern teams", "for digital growth", "for global scale", "for measurable impact");
+            "Solutions",
+            "Systems",
+            "Technologies",
+            "Industries",
+            "Services",
+            "Group",
+            "Partners",
+            "Ventures",
+            "Associates",
+            "Consulting",
+            "Networks",
+            "Dynamics",
+            "Resources",
+            "Management",
+            "Analytics");
+    private static final List<String> COMPANY_SUFFIXES =
+            List.of("Inc.", "LLC", "Corp.", "Ltd.", "Co.", "Group", "Holdings", "Enterprises");
+    private static final List<String> BUZZ_VERBS =
+            List.of("streamline", "empower", "leverage", "optimize", "synergize", "scale", "deliver", "enable");
+    private static final List<String> BUZZ_ADJECTIVES =
+            List.of("cross-platform", "end-to-end", "best-in-class", "frictionless", "cloud-native", "data-driven");
+    private static final List<String> BUZZ_NOUNS =
+            List.of("solutions", "workflows", "infrastructure", "platforms", "experiences", "capabilities");
+    private static final List<String> CATCH_ADJECTIVES =
+            List.of("Adaptive", "Unified", "Trusted", "Intelligent", "Future-ready", "Effortless", "Secure");
+    private static final List<String> CATCH_NOUNS =
+            List.of("Platform", "Network", "Experience", "Engine", "Ecosystem", "Suite", "Framework");
+    private static final List<String> CATCH_TAGLINES =
+            List.of("for modern teams", "for digital growth", "for global scale", "for measurable impact");
     private static final List<String> TEXT_WORDS = List.of(
-        "alpha", "beta", "gamma", "delta", "vector", "signal", "stream", "token",
-        "cloud", "matrix", "engine", "system", "future", "global", "local", "secure");
-    private static final List<String> COMMERCE_ADJECTIVES = List.of(
-        "Small", "Sleek", "Rustic", "Practical", "Premium", "Ergonomic");
-    private static final List<String> COMMERCE_MATERIALS = List.of(
-        "Steel", "Wooden", "Concrete", "Plastic", "Granite", "Cotton");
-    private static final List<String> COMMERCE_PRODUCTS = List.of(
-        "Chair", "Table", "Computer", "Keyboard", "Shoes", "Watch");
-    private static final List<String> COMMERCE_DEPARTMENTS = List.of(
-        "Books", "Electronics", "Outdoors", "Home", "Toys", "Garden");
-    private static final List<String> COMMERCE_COLORS = List.of(
-        "red", "blue", "green", "black", "white", "silver");
+            "alpha", "beta", "gamma", "delta", "vector", "signal", "stream", "token", "cloud", "matrix", "engine",
+            "system", "future", "global", "local", "secure");
+    private static final List<String> COMMERCE_ADJECTIVES =
+            List.of("Small", "Sleek", "Rustic", "Practical", "Premium", "Ergonomic");
+    private static final List<String> COMMERCE_MATERIALS =
+            List.of("Steel", "Wooden", "Concrete", "Plastic", "Granite", "Cotton");
+    private static final List<String> COMMERCE_PRODUCTS =
+            List.of("Chair", "Table", "Computer", "Keyboard", "Shoes", "Watch");
+    private static final List<String> COMMERCE_DEPARTMENTS =
+            List.of("Books", "Electronics", "Outdoors", "Home", "Toys", "Garden");
+    private static final List<String> COMMERCE_COLORS = List.of("red", "blue", "green", "black", "white", "silver");
     private static final List<String> DB_COLUMNS = List.of(
-        "id", "created_at", "updated_at", "user_id", "order_id", "status", "name", "description",
-        "amount", "metadata");
-    private static final List<String> DIRECTORIES = List.of(
-        "home", "users", "projects", "data", "logs", "tmp", "docs", "assets");
+            "id",
+            "created_at",
+            "updated_at",
+            "user_id",
+            "order_id",
+            "status",
+            "name",
+            "description",
+            "amount",
+            "metadata");
+    private static final List<String> DIRECTORIES =
+            List.of("home", "users", "projects", "data", "logs", "tmp", "docs", "assets");
     private static final List<String> BANK_NAMES = List.of(
-        "First National Bank", "Global Trust Bank", "Pioneer Credit Union", "Summit Financial", "Civic Savings");
-    private static final List<String> BANK_TYPES = List.of(
-        "Retail Bank", "Commercial Bank", "Investment Bank", "Credit Union", "Online Bank");
-    private static final List<String> ACCOUNT_NAMES = List.of(
-        "Checking Account", "Savings Account", "Business Account", "Joint Account", "Payroll Account");
-    private static final List<String> TRANSACTION_TYPES = List.of(
-        "deposit", "withdrawal", "payment", "transfer", "refund", "fee", "interest", "chargeback");
+            "First National Bank", "Global Trust Bank", "Pioneer Credit Union", "Summit Financial", "Civic Savings");
+    private static final List<String> BANK_TYPES =
+            List.of("Retail Bank", "Commercial Bank", "Investment Bank", "Credit Union", "Online Bank");
+    private static final List<String> ACCOUNT_NAMES =
+            List.of("Checking Account", "Savings Account", "Business Account", "Joint Account", "Payroll Account");
+    private static final List<String> TRANSACTION_TYPES =
+            List.of("deposit", "withdrawal", "payment", "transfer", "refund", "fee", "interest", "chargeback");
 
     /**
      * Legacy German employment types; the migration must keep non-English legacy tables verbatim.
      */
     private static final List<String> JOB_TYPES_DE = List.of(
-        "Vollzeit", "Teilzeit", "Vertrag", "Befristet", "Praktikum",
-        "Freelance", "Ausbildung", "Saisonal", "Ehrenamt", "Remote");
+            "Vollzeit",
+            "Teilzeit",
+            "Vertrag",
+            "Befristet",
+            "Praktikum",
+            "Freelance",
+            "Ausbildung",
+            "Saisonal",
+            "Ehrenamt",
+            "Remote");
 
     private static GeneratorConfig seeded() {
         return GeneratorConfig.builder().seed(SEED).build();
@@ -195,7 +293,8 @@ class LocalizedVocabularyTest {
      * text words, commerce and banking vocabulary) must ship complete translations: every native
      * {@link SupportedLocale} except English, which is served by the bundled defaults.
      */
-    static final List<SupportedLocale> TRANSLATED_LOCALES = allNonEnglishNativeLocales().toList();
+    static final List<SupportedLocale> TRANSLATED_LOCALES =
+            allNonEnglishNativeLocales().toList();
 
     static Stream<SupportedLocale> nonEnglishNativeLocales() {
         return TRANSLATED_LOCALES.stream();
@@ -206,26 +305,36 @@ class LocalizedVocabularyTest {
      */
     static Stream<SupportedLocale> allNonEnglishNativeLocales() {
         return Arrays.stream(SupportedLocale.values())
-            .filter(value -> !value.resourceDataTier().isFallback())
-            .filter(value -> !"en".equals(value.locale().getLanguage()));
+                .filter(value -> !value.resourceDataTier().isFallback())
+                .filter(value -> !"en".equals(value.locale().getLanguage()));
     }
 
     @Test
     @DisplayName("display vocabularies are registered exactly for the translated locales")
     void translatedLocalesAreRegistered() {
         List<Function<Locale, Boolean>> registries = List.of(
-            IndustryDataRegistry::isRegistered, JobFieldDataRegistry::isRegistered, SeniorityDataRegistry::isRegistered,
-            PositionDataRegistry::isRegistered, EducationalAttainmentDataRegistry::isRegistered,
-            MaritalStatusDataRegistry::isRegistered, JobTypeDataRegistry::isRegistered,
-            CompanyNameDataRegistry::isRegistered, CompanyBuzzwordDataRegistry::isRegistered,
-            CompanyCatchPhraseDataRegistry::isRegistered, TextWordDataRegistry::isRegistered,
-            CommerceDataRegistry::isRegistered, BankNameDataRegistry::isRegistered, BankTypeDataRegistry::isRegistered,
-            BankAccountDataRegistry::isRegistered);
+                IndustryDataRegistry::isRegistered,
+                JobFieldDataRegistry::isRegistered,
+                SeniorityDataRegistry::isRegistered,
+                PositionDataRegistry::isRegistered,
+                EducationalAttainmentDataRegistry::isRegistered,
+                MaritalStatusDataRegistry::isRegistered,
+                JobTypeDataRegistry::isRegistered,
+                CompanyNameDataRegistry::isRegistered,
+                CompanyBuzzwordDataRegistry::isRegistered,
+                CompanyCatchPhraseDataRegistry::isRegistered,
+                TextWordDataRegistry::isRegistered,
+                CommerceDataRegistry::isRegistered,
+                BankNameDataRegistry::isRegistered,
+                BankTypeDataRegistry::isRegistered,
+                BankAccountDataRegistry::isRegistered);
         allNonEnglishNativeLocales().forEach(supportedLocale -> {
             boolean translated = TRANSLATED_LOCALES.contains(supportedLocale);
             for (int i = 0; i < registries.size(); i++) {
-                assertEquals(translated, registries.get(i).apply(supportedLocale.locale()),
-                             "registry #" + i + " for " + supportedLocale);
+                assertEquals(
+                        translated,
+                        registries.get(i).apply(supportedLocale.locale()),
+                        "registry #" + i + " for " + supportedLocale);
             }
         });
     }
@@ -268,10 +377,9 @@ class LocalizedVocabularyTest {
             List<String> expected = new ArrayList<>();
             for (int i = 0; i < 30; i++) {
                 String name = COMPANY_PREFIXES.get(random.nextInt(COMPANY_PREFIXES.size())) + " "
-                              + COMPANY_NOUNS.get(random.nextInt(COMPANY_NOUNS.size()));
-                expected.add(i % 2 == 0
-                             ? name + " " + COMPANY_SUFFIXES.get(random.nextInt(COMPANY_SUFFIXES.size()))
-                             : name);
+                        + COMPANY_NOUNS.get(random.nextInt(COMPANY_NOUNS.size()));
+                expected.add(
+                        i % 2 == 0 ? name + " " + COMPANY_SUFFIXES.get(random.nextInt(COMPANY_SUFFIXES.size())) : name);
             }
             CompanyNameGenerator generator = new CompanyNameGenerator(seeded());
             List<String> actual = new ArrayList<>();
@@ -290,11 +398,11 @@ class LocalizedVocabularyTest {
             List<String> expectedCatch = new ArrayList<>();
             for (int i = 0; i < 30; i++) {
                 expectedBuzz.add(BUZZ_VERBS.get(buzz.nextInt(BUZZ_VERBS.size())) + " "
-                                 + BUZZ_ADJECTIVES.get(buzz.nextInt(BUZZ_ADJECTIVES.size())) + " "
-                                 + BUZZ_NOUNS.get(buzz.nextInt(BUZZ_NOUNS.size())));
+                        + BUZZ_ADJECTIVES.get(buzz.nextInt(BUZZ_ADJECTIVES.size())) + " "
+                        + BUZZ_NOUNS.get(buzz.nextInt(BUZZ_NOUNS.size())));
                 expectedCatch.add(CATCH_ADJECTIVES.get(catchy.nextInt(CATCH_ADJECTIVES.size())) + " "
-                                  + CATCH_NOUNS.get(catchy.nextInt(CATCH_NOUNS.size())) + " "
-                                  + CATCH_TAGLINES.get(catchy.nextInt(CATCH_TAGLINES.size())));
+                        + CATCH_NOUNS.get(catchy.nextInt(CATCH_NOUNS.size())) + " "
+                        + CATCH_TAGLINES.get(catchy.nextInt(CATCH_TAGLINES.size())));
             }
             assertEquals(expectedBuzz, new CompanyBuzzwordGenerator(seeded()).generateList(30));
             assertEquals(expectedCatch, new CompanyCatchPhraseGenerator(seeded()).generateList(30));
@@ -306,10 +414,11 @@ class LocalizedVocabularyTest {
             Random random = new Random(SEED);
             List<String> expected = new ArrayList<>();
             for (int i = 0; i < 10; i++) {
-                expected.add(COMMERCE_ADJECTIVES.get(random.nextInt(6)) + " " + COMMERCE_MATERIALS.get(random.nextInt(6))
-                             + " " + COMMERCE_PRODUCTS.get(random.nextInt(6)));
-                expected.add("A " + COMMERCE_ADJECTIVES.get(random.nextInt(6)) + " " + COMMERCE_PRODUCTS.get(random.nextInt(6))
-                             + " in " + COMMERCE_COLORS.get(random.nextInt(6)) + ".");
+                expected.add(COMMERCE_ADJECTIVES.get(random.nextInt(6)) + " "
+                        + COMMERCE_MATERIALS.get(random.nextInt(6)) + " " + COMMERCE_PRODUCTS.get(random.nextInt(6)));
+                expected.add("A " + COMMERCE_ADJECTIVES.get(random.nextInt(6)) + " "
+                        + COMMERCE_PRODUCTS.get(random.nextInt(6)) + " in " + COMMERCE_COLORS.get(random.nextInt(6))
+                        + ".");
                 expected.add(COMMERCE_DEPARTMENTS.get(random.nextInt(6)));
             }
             CommerceGenerator generator = new CommerceGenerator(seeded());
@@ -374,16 +483,19 @@ class LocalizedVocabularyTest {
         @DisplayName("legacy non-English tables are migrated verbatim")
         void legacyTablesKept() {
             assertEquals(legacyDraws(JOB_TYPES_DE, 40), new JobTypeGenerator(seeded(Locale.GERMANY)).generateList(40));
-            assertEquals(legacyDraws(JOB_TYPES_DE, 40), new JobTypeGenerator(seeded(Locale.of("de", "AT"))).generateList(40));
+            assertEquals(
+                    legacyDraws(JOB_TYPES_DE, 40),
+                    new JobTypeGenerator(seeded(Locale.of("de", "AT"))).generateList(40));
         }
     }
 
     // ── Every non-English native locale has real localized data ─────────────────────────────
 
-    private record SingleList(String name,
-                              Function<Locale, List<String>> registryValues,
-                              Function<GeneratorConfig, Generator<String>> generator,
-                              Function<Locale, Boolean> registered) {
+    private record SingleList(
+            String name,
+            Function<Locale, List<String>> registryValues,
+            Function<GeneratorConfig, Generator<String>> generator,
+            Function<Locale, Boolean> registered) {
 
         @Override
         public String toString() {
@@ -393,37 +505,68 @@ class LocalizedVocabularyTest {
 
     static Stream<SingleList> singleLists() {
         return Stream.of(
-            new SingleList("industries", locale -> IndustryDataRegistry.forLocale(locale).getIndustries(),
-                           IndustryGenerator::new, null),
-            new SingleList("jobFields", locale -> JobFieldDataRegistry.forLocale(locale).getJobFields(),
-                           JobFieldGenerator::new, null),
-            new SingleList("seniorities", locale -> SeniorityDataRegistry.forLocale(locale).getSeniorities(),
-                           SeniorityGenerator::new, null),
-            new SingleList("positions", locale -> PositionDataRegistry.forLocale(locale).getPositions(),
-                           PositionGenerator::new, null),
-            new SingleList("educationalAttainments",
-                           locale -> EducationalAttainmentDataRegistry.forLocale(locale).getEducationalAttainments(),
-                           EducationalAttainmentGenerator::new, null),
-            new SingleList("maritalStatuses", locale -> MaritalStatusDataRegistry.forLocale(locale).getMaritalStatuses(),
-                           MaritalStatusGenerator::new, null),
-            new SingleList("jobTypes", locale -> JobTypeDataRegistry.forLocale(locale).getJobTypes(),
-                           JobTypeGenerator::new, null),
-            new SingleList("bankNames", locale -> BankNameDataRegistry.forLocale(locale).getBankNames(),
-                           BankNameGenerator::new, null),
-            new SingleList("bankTypes", locale -> BankTypeDataRegistry.forLocale(locale).getBankTypes(),
-                           BankTypeGenerator::new, null),
-            // Identifier vocabulary: English column names are the realistic default, so only the
-            // legacy localized tables ship; every shipped locale must still be used by the generator.
-            new SingleList("databaseColumns", locale -> DatabaseColumnDataRegistry.forLocale(locale).getColumns(),
-                           config -> new DatabaseGenerator(config)::generateColumn, DatabaseColumnDataRegistry::isRegistered));
+                new SingleList(
+                        "industries",
+                        locale -> IndustryDataRegistry.forLocale(locale).getIndustries(),
+                        IndustryGenerator::new,
+                        null),
+                new SingleList(
+                        "jobFields",
+                        locale -> JobFieldDataRegistry.forLocale(locale).getJobFields(),
+                        JobFieldGenerator::new,
+                        null),
+                new SingleList(
+                        "seniorities",
+                        locale -> SeniorityDataRegistry.forLocale(locale).getSeniorities(),
+                        SeniorityGenerator::new,
+                        null),
+                new SingleList(
+                        "positions",
+                        locale -> PositionDataRegistry.forLocale(locale).getPositions(),
+                        PositionGenerator::new,
+                        null),
+                new SingleList(
+                        "educationalAttainments",
+                        locale -> EducationalAttainmentDataRegistry.forLocale(locale)
+                                .getEducationalAttainments(),
+                        EducationalAttainmentGenerator::new,
+                        null),
+                new SingleList(
+                        "maritalStatuses",
+                        locale -> MaritalStatusDataRegistry.forLocale(locale).getMaritalStatuses(),
+                        MaritalStatusGenerator::new,
+                        null),
+                new SingleList(
+                        "jobTypes",
+                        locale -> JobTypeDataRegistry.forLocale(locale).getJobTypes(),
+                        JobTypeGenerator::new,
+                        null),
+                new SingleList(
+                        "bankNames",
+                        locale -> BankNameDataRegistry.forLocale(locale).getBankNames(),
+                        BankNameGenerator::new,
+                        null),
+                new SingleList(
+                        "bankTypes",
+                        locale -> BankTypeDataRegistry.forLocale(locale).getBankTypes(),
+                        BankTypeGenerator::new,
+                        null),
+                // Identifier vocabulary: English column names are the realistic default, so only the
+                // legacy localized tables ship; every shipped locale must still be used by the generator.
+                new SingleList(
+                        "databaseColumns",
+                        locale -> DatabaseColumnDataRegistry.forLocale(locale).getColumns(),
+                        config -> new DatabaseGenerator(config)::generateColumn,
+                        DatabaseColumnDataRegistry::isRegistered));
     }
 
     static Stream<Object[]> singleListsByLocale() {
-        return singleLists().flatMap(list -> (list.registered() == null
-                                              ? nonEnglishNativeLocales()
-                                              : allNonEnglishNativeLocales()
-                                                  .filter(locale -> list.registered().apply(locale.locale())))
-            .map(locale -> new Object[] {list, locale}));
+        return singleLists()
+                .flatMap(list -> (list.registered() == null
+                                ? nonEnglishNativeLocales()
+                                : allNonEnglishNativeLocales()
+                                        .filter(locale -> list.registered().apply(locale.locale())))
+                        .map(locale -> new Object[] {list, locale}));
     }
 
     @ParameterizedTest(name = "{0} {1}")
@@ -471,7 +614,9 @@ class LocalizedVocabularyTest {
             String product = shop.generateProductName();
             assertTrue(commerce.getProducts().stream().anyMatch(product::contains), locale + " product " + product);
             String description = shop.generateProductDescription();
-            assertTrue(commerce.getColors().stream().anyMatch(description::contains), locale + " description " + description);
+            assertTrue(
+                    commerce.getColors().stream().anyMatch(description::contains),
+                    locale + " description " + description);
             assertTrue(commerce.getDepartments().contains(shop.generateDepartment()), locale + " department");
             assertTrue(commerce.getMaterials().contains(shop.generateMaterial()), locale + " material");
             assertTrue(commerce.getAdjectives().contains(shop.generateAdjective()), locale + " adjective");
@@ -483,7 +628,8 @@ class LocalizedVocabularyTest {
         BankAccountGenerator bank = new BankAccountGenerator(seeded(locale));
         for (int i = 0; i < 20; i++) {
             assertTrue(accounts.getAccountNames().contains(bank.generateAccountName()), locale + " account name");
-            assertTrue(accounts.getTransactionTypes().contains(bank.generateTransactionType()), locale + " transaction");
+            assertTrue(
+                    accounts.getTransactionTypes().contains(bank.generateTransactionType()), locale + " transaction");
         }
 
         List<String> words = TextWordDataRegistry.forLocale(locale).getWords();
@@ -514,33 +660,54 @@ class LocalizedVocabularyTest {
     @DisplayName("localized data is translated, unique, parallel to English and in the locale's script")
     void datasetsAreTranslated(SupportedLocale supportedLocale) {
         Locale locale = supportedLocale.locale();
-        assertTranslated(locale, "industries", IndustryDataRegistry.forLocale(locale).getIndustries(), INDUSTRIES, true);
-        assertTranslated(locale, "jobFields", JobFieldDataRegistry.forLocale(locale).getJobFields(), JOB_FIELDS, true);
-        assertTranslated(locale, "seniorities", SeniorityDataRegistry.forLocale(locale).getSeniorities(), SENIORITIES, true);
-        assertTranslated(locale, "positions", PositionDataRegistry.forLocale(locale).getPositions(), POSITIONS, true);
-        assertTranslated(locale, "educationalAttainments",
-                         EducationalAttainmentDataRegistry.forLocale(locale).getEducationalAttainments(), EDUCATION, true);
-        assertTranslated(locale, "maritalStatuses", MaritalStatusDataRegistry.forLocale(locale).getMaritalStatuses(),
-                         MARITAL, true);
-        assertTranslated(locale, "jobTypes", JobTypeDataRegistry.forLocale(locale).getJobTypes(), JOB_TYPES, true);
+        assertTranslated(
+                locale, "industries", IndustryDataRegistry.forLocale(locale).getIndustries(), INDUSTRIES, true);
+        assertTranslated(
+                locale, "jobFields", JobFieldDataRegistry.forLocale(locale).getJobFields(), JOB_FIELDS, true);
+        assertTranslated(
+                locale, "seniorities", SeniorityDataRegistry.forLocale(locale).getSeniorities(), SENIORITIES, true);
+        assertTranslated(
+                locale, "positions", PositionDataRegistry.forLocale(locale).getPositions(), POSITIONS, true);
+        assertTranslated(
+                locale,
+                "educationalAttainments",
+                EducationalAttainmentDataRegistry.forLocale(locale).getEducationalAttainments(),
+                EDUCATION,
+                true);
+        assertTranslated(
+                locale,
+                "maritalStatuses",
+                MaritalStatusDataRegistry.forLocale(locale).getMaritalStatuses(),
+                MARITAL,
+                true);
+        assertTranslated(
+                locale, "jobTypes", JobTypeDataRegistry.forLocale(locale).getJobTypes(), JOB_TYPES, true);
         CompanyNameDataProvider names = CompanyNameDataRegistry.forLocale(locale);
         assertTranslated(locale, "companyPrefixes", names.getPrefixes(), COMPANY_PREFIXES, true);
         assertTranslated(locale, "companyNouns", names.getNouns(), COMPANY_NOUNS, true);
         assertTranslated(locale, "companySuffixes", names.getSuffixes(), COMPANY_SUFFIXES, false);
-        assertTrue(names.getNameFormat().contains("{prefix}") && names.getNameFormat().contains("{noun}"), locale.toString());
-        assertTrue(names.getLegalNameFormat().contains("{name}") && names.getLegalNameFormat().contains("{suffix}"),
-                   locale.toString());
-        assertTranslated(locale, "bankNames", BankNameDataRegistry.forLocale(locale).getBankNames(), BANK_NAMES, true);
-        assertTranslated(locale, "bankTypes", BankTypeDataRegistry.forLocale(locale).getBankTypes(), BANK_TYPES, true);
+        assertTrue(
+                names.getNameFormat().contains("{prefix}")
+                        && names.getNameFormat().contains("{noun}"),
+                locale.toString());
+        assertTrue(
+                names.getLegalNameFormat().contains("{name}")
+                        && names.getLegalNameFormat().contains("{suffix}"),
+                locale.toString());
+        assertTranslated(
+                locale, "bankNames", BankNameDataRegistry.forLocale(locale).getBankNames(), BANK_NAMES, true);
+        assertTranslated(
+                locale, "bankTypes", BankTypeDataRegistry.forLocale(locale).getBankTypes(), BANK_TYPES, true);
         CommerceDataProvider commerce = CommerceDataRegistry.forLocale(locale);
         assertTranslated(locale, "commerceProducts", commerce.getProducts(), COMMERCE_PRODUCTS, true);
         assertTranslated(locale, "commerceDepartments", commerce.getDepartments(), COMMERCE_DEPARTMENTS, true);
-        assertFalse(commerce.getProductDescriptionFormat().startsWith("A {adjective}"),
-                    locale + " product descriptions must not use the English sentence template");
+        assertFalse(
+                commerce.getProductDescriptionFormat().startsWith("A {adjective}"),
+                locale + " product descriptions must not use the English sentence template");
     }
 
-    private static void assertTranslated(Locale locale, String name, List<String> values, List<String> english,
-                                         boolean parallel) {
+    private static void assertTranslated(
+            Locale locale, String name, List<String> values, List<String> english, boolean parallel) {
         String label = locale + " " + name;
         assertFalse(values.isEmpty(), label);
         assertEquals(values.size(), new HashSet<>(values).size(), label + " has duplicates");
@@ -550,17 +717,22 @@ class LocalizedVocabularyTest {
         long untranslated = values.stream().filter(english::contains).count();
         assertTrue(untranslated <= values.size() / 3, label + " looks untranslated: " + values);
         Set<Character.UnicodeScript> scripts = expectedScripts(locale);
-        long native_ = values.stream().filter(value -> value.codePoints().filter(Character::isLetter)
-            .mapToObj(Character.UnicodeScript::of).anyMatch(scripts::contains)).count();
-        assertTrue(native_ >= Math.ceil(values.size() * 0.9), label + " script coverage " + native_ + "/" + values.size());
+        long native_ = values.stream()
+                .filter(value -> value.codePoints()
+                        .filter(Character::isLetter)
+                        .mapToObj(Character.UnicodeScript::of)
+                        .anyMatch(scripts::contains))
+                .count();
+        assertTrue(
+                native_ >= Math.ceil(values.size() * 0.9), label + " script coverage " + native_ + "/" + values.size());
     }
 
     private static Set<Character.UnicodeScript> expectedScripts(Locale locale) {
         return switch (locale.getLanguage()) {
             case "ar" -> Set.of(Character.UnicodeScript.ARABIC);
             case "hi" -> Set.of(Character.UnicodeScript.DEVANAGARI);
-            case "ja" -> Set.of(Character.UnicodeScript.HAN, Character.UnicodeScript.HIRAGANA,
-                                Character.UnicodeScript.KATAKANA);
+            case "ja" ->
+                Set.of(Character.UnicodeScript.HAN, Character.UnicodeScript.HIRAGANA, Character.UnicodeScript.KATAKANA);
             case "ko" -> Set.of(Character.UnicodeScript.HANGUL);
             case "ru", "uk", "bg" -> Set.of(Character.UnicodeScript.CYRILLIC);
             case "zh" -> Set.of(Character.UnicodeScript.HAN);
@@ -593,8 +765,9 @@ class LocalizedVocabularyTest {
         void cjkTextUsesRealWords() {
             for (Locale locale : List.of(Locale.JAPAN, Locale.CHINA)) {
                 for (String block : new TextGenerator(seeded(locale)).generateList(20)) {
-                    assertTrue(block.chars().noneMatch(ch -> (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')),
-                               locale + " text still contains Latin words: " + block);
+                    assertTrue(
+                            block.chars().noneMatch(ch -> (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')),
+                            locale + " text still contains Latin words: " + block);
                 }
             }
             assertTrue(TextWordDataRegistry.forLocale(Locale.JAPAN).getWords().contains("データ"));
@@ -613,10 +786,12 @@ class LocalizedVocabularyTest {
         @Test
         @DisplayName("fallback-tier locales resolve to their native dataset")
         void fallbackTierLocalesResolve() {
-            assertEquals(IndustryDataRegistry.forLocale(Locale.GERMANY).getIndustries(),
-                         IndustryDataRegistry.forLocale(Locale.of("de", "CH")).getIndustries());
-            assertEquals(CommerceDataRegistry.forLocale(Locale.FRANCE).getProducts(),
-                         CommerceDataRegistry.forLocale(Locale.CANADA_FRENCH).getProducts());
+            assertEquals(
+                    IndustryDataRegistry.forLocale(Locale.GERMANY).getIndustries(),
+                    IndustryDataRegistry.forLocale(Locale.of("de", "CH")).getIndustries());
+            assertEquals(
+                    CommerceDataRegistry.forLocale(Locale.FRANCE).getProducts(),
+                    CommerceDataRegistry.forLocale(Locale.CANADA_FRENCH).getProducts());
             assertTrue(IndustryDataRegistry.isRegistered(Locale.of("pt", "PT")));
         }
 
@@ -625,9 +800,13 @@ class LocalizedVocabularyTest {
         void localeConstructorsRejectNull() {
             Locale none = null;
             List<Runnable> constructors = List.of(
-                () -> new IndustryGenerator(none), () -> new JobFieldGenerator(none), () -> new SeniorityGenerator(none),
-                () -> new PositionGenerator(none), () -> new EducationalAttainmentGenerator(none),
-                () -> new MaritalStatusGenerator(none), () -> new CompanyNameGenerator(none));
+                    () -> new IndustryGenerator(none),
+                    () -> new JobFieldGenerator(none),
+                    () -> new SeniorityGenerator(none),
+                    () -> new PositionGenerator(none),
+                    () -> new EducationalAttainmentGenerator(none),
+                    () -> new MaritalStatusGenerator(none),
+                    () -> new CompanyNameGenerator(none));
             for (Runnable constructor : constructors) {
                 assertThrows(NullPointerException.class, constructor::run);
             }
@@ -641,17 +820,31 @@ class LocalizedVocabularyTest {
     void facadeLocaleOverloads() {
         Locale german = Locale.GERMANY;
         List<Supplier<? extends Generator<?>>> generators = List.of(
-            () -> Generators.ofIndustry(german), () -> Generators.ofJobField(german), () -> Generators.ofSeniority(german),
-            () -> Generators.ofPosition(german), () -> Generators.ofEducationalAttainment(german),
-            () -> Generators.ofMaritalStatus(german), () -> Generators.ofJobType(german), () -> Generators.ofCompanyName(german),
-            () -> Generators.ofCompanyBuzzword(german), () -> Generators.ofCompanyCatchPhrase(german),
-            () -> Generators.ofText(german), () -> Generators.ofCommerce(german), () -> Generators.ofDatabase(german),
-            () -> Generators.ofDirPath(german), () -> Generators.ofBankName(german), () -> Generators.ofBankType(german));
+                () -> Generators.ofIndustry(german),
+                () -> Generators.ofJobField(german),
+                () -> Generators.ofSeniority(german),
+                () -> Generators.ofPosition(german),
+                () -> Generators.ofEducationalAttainment(german),
+                () -> Generators.ofMaritalStatus(german),
+                () -> Generators.ofJobType(german),
+                () -> Generators.ofCompanyName(german),
+                () -> Generators.ofCompanyBuzzword(german),
+                () -> Generators.ofCompanyCatchPhrase(german),
+                () -> Generators.ofText(german),
+                () -> Generators.ofCommerce(german),
+                () -> Generators.ofDatabase(german),
+                () -> Generators.ofDirPath(german),
+                () -> Generators.ofBankName(german),
+                () -> Generators.ofBankType(german));
         for (Supplier<? extends Generator<?>> supplier : generators) {
             Object value = Objects.requireNonNull(supplier.get().generate());
             assertNotNull(value.toString());
         }
-        assertTrue(IndustryDataRegistry.forLocale(german).getIndustries().contains(Generators.ofIndustry(german).generate()));
-        assertTrue(BankNameDataRegistry.forLocale(german).getBankNames().contains(Generators.ofBankName(german).generate()));
+        assertTrue(IndustryDataRegistry.forLocale(german)
+                .getIndustries()
+                .contains(Generators.ofIndustry(german).generate()));
+        assertTrue(BankNameDataRegistry.forLocale(german)
+                .getBankNames()
+                .contains(Generators.ofBankName(german).generate()));
     }
 }

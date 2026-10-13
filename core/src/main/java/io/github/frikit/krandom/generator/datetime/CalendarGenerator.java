@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.datetime;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -41,7 +40,7 @@ public final class CalendarGenerator implements Generator<Calendar> {
         ZONE_IDS = Collections.unmodifiableList(zones);
     }
 
-    private final Random    random;
+    private final Random random;
     private final @org.jspecify.annotations.Nullable LocalDate rangeMin;
     private final @org.jspecify.annotations.Nullable LocalDate rangeMax;
 
@@ -82,9 +81,10 @@ public final class CalendarGenerator implements Generator<Calendar> {
         this(config, min, max);
     }
 
-    private CalendarGenerator(GeneratorConfig config,
-                              @org.jspecify.annotations.Nullable LocalDate min,
-                              @org.jspecify.annotations.Nullable LocalDate max) {
+    private CalendarGenerator(
+            GeneratorConfig config,
+            @org.jspecify.annotations.Nullable LocalDate min,
+            @org.jspecify.annotations.Nullable LocalDate max) {
         Objects.requireNonNull(config, "config must not be null");
         if ((min == null) != (max == null)) {
             throw new IllegalArgumentException("min and max must both be provided or both be null");

@@ -5,24 +5,20 @@
  */
 package io.github.frikit.krandom.generator.commerce;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("RestaurantTypeGenerator")
 class RestaurantTypeGeneratorTest {
@@ -30,12 +26,32 @@ class RestaurantTypeGeneratorTest {
     private static final Locale RU = Locale.of("ru", "RU");
 
     private static final Set<String> EN = Set.of(
-        "Italian", "Chinese", "Japanese", "Mexican", "Indian", "French",
-        "Thai", "Greek", "Steakhouse", "Seafood", "Bistro", "Cafe");
+            "Italian",
+            "Chinese",
+            "Japanese",
+            "Mexican",
+            "Indian",
+            "French",
+            "Thai",
+            "Greek",
+            "Steakhouse",
+            "Seafood",
+            "Bistro",
+            "Cafe");
 
     private static final Set<String> RU_TYPES = Set.of(
-        "Итальянский", "Китайский", "Японский", "Мексиканский", "Индийский", "Французский",
-        "Тайский", "Греческий", "Стейк-хаус", "Морепродукты", "Бистро", "Кафе");
+            "Итальянский",
+            "Китайский",
+            "Японский",
+            "Мексиканский",
+            "Индийский",
+            "Французский",
+            "Тайский",
+            "Греческий",
+            "Стейк-хаус",
+            "Морепродукты",
+            "Бистро",
+            "Кафе");
 
     @RepeatedTest(200)
     @DisplayName("default generate() returns a valid English type")
@@ -46,7 +62,8 @@ class RestaurantTypeGeneratorTest {
     @Test
     @DisplayName("default generate() can surface every type over many draws")
     void generateCoversAll() {
-        RestaurantTypeGenerator gen = new RestaurantTypeGenerator(GeneratorConfig.builder().seed(5L).build());
+        RestaurantTypeGenerator gen =
+                new RestaurantTypeGenerator(GeneratorConfig.builder().seed(5L).build());
         Set<String> seen = new HashSet<>();
         for (int i = 0; i < 2000; i++) {
             seen.add(gen.generate());
@@ -72,8 +89,10 @@ class RestaurantTypeGeneratorTest {
     @Test
     @DisplayName("same seed is reproducible")
     void reproducible() {
-        List<String> a = new RestaurantTypeGenerator(GeneratorConfig.builder().seed(8L).build()).generateList(30);
-        List<String> b = new RestaurantTypeGenerator(GeneratorConfig.builder().seed(8L).build()).generateList(30);
+        List<String> a =
+                new RestaurantTypeGenerator(GeneratorConfig.builder().seed(8L).build()).generateList(30);
+        List<String> b =
+                new RestaurantTypeGenerator(GeneratorConfig.builder().seed(8L).build()).generateList(30);
         assertEquals(a, b);
     }
 
@@ -86,8 +105,7 @@ class RestaurantTypeGeneratorTest {
 
     @Nested
     @DisplayName("RestaurantTypeDataRegistry")
-    class Registry {
-    }
+    class Registry {}
 
     @Nested
     @DisplayName("Generators facade")
@@ -98,8 +116,9 @@ class RestaurantTypeGeneratorTest {
         void facade() {
             assertTrue(EN.contains(Generators.ofRestaurantType().generate()));
             assertTrue(RU_TYPES.contains(Generators.ofRestaurantType(RU).generate()));
-            assertTrue(EN.contains(
-                Generators.ofRestaurantType(GeneratorConfig.builder().seed(1L).build()).generate()));
+            assertTrue(EN.contains(Generators.ofRestaurantType(
+                            GeneratorConfig.builder().seed(1L).build())
+                    .generate()));
         }
     }
 }

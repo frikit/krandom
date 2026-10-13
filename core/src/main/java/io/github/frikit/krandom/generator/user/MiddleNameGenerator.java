@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
@@ -21,11 +20,10 @@ import java.util.Set;
  */
 public final class MiddleNameGenerator implements Generator<String> {
 
-    private static final Set<String> MIDDLE_NAME_SUPPORTED = Set.of(
-        "en_US", "en_GB", "en_AU", "fr_FR", "de_DE", "it_IT", "pt_BR"
-    );
+    private static final Set<String> MIDDLE_NAME_SUPPORTED =
+            Set.of("en_US", "en_GB", "en_AU", "fr_FR", "de_DE", "it_IT", "pt_BR");
 
-    private final GeneratorConfig    config;
+    private final GeneratorConfig config;
     private final FirstNameGenerator firstNameGenerator;
 
     /**
@@ -48,10 +46,9 @@ public final class MiddleNameGenerator implements Generator<String> {
     public MiddleNameGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         if (!supportsMiddleName(config.getLocale())) {
-            throw new UnsupportedOperationException(
-                "Middle names are not supported for locale "
-                + config.getLocale()
-                + " (" + localeKey(config.getLocale()) + ")");
+            throw new UnsupportedOperationException("Middle names are not supported for locale "
+                    + config.getLocale()
+                    + " (" + localeKey(config.getLocale()) + ")");
         }
         this.firstNameGenerator = new FirstNameGenerator(config.forChildStream("firstName"));
     }

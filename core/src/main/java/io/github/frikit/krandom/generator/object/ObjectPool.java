@@ -29,9 +29,9 @@ import java.util.Set;
  */
 final class ObjectPool {
 
-    private final int                          maxCachedPerType;
-    private final Set<PoolKey>                 inProgress = new HashSet<>();
-    private final Map<PoolKey, Deque<Object>>  instances  = new HashMap<>();
+    private final int maxCachedPerType;
+    private final Set<PoolKey> inProgress = new HashSet<>();
+    private final Map<PoolKey, Deque<Object>> instances = new HashMap<>();
 
     ObjectPool() {
         this(ObjectGeneratorConfig.DEFAULT_OBJECT_POOL_SIZE);
@@ -144,10 +144,9 @@ final class ObjectPool {
 
     private static PoolKey key(Class<?> type, String typeSignature) {
         return new PoolKey(
-            Objects.requireNonNull(type, "type must not be null"),
-            Objects.requireNonNull(typeSignature, "typeSignature must not be null"));
+                Objects.requireNonNull(type, "type must not be null"),
+                Objects.requireNonNull(typeSignature, "typeSignature must not be null"));
     }
 
-    private record PoolKey(Class<?> type, String typeSignature) {
-    }
+    private record PoolKey(Class<?> type, String typeSignature) {}
 }

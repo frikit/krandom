@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.namespace;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.finance.*;
-
 import java.util.Locale;
 
 /**
@@ -27,48 +26,93 @@ public final class FinanceGenerators {
         this.config = config;
     }
 
-    public CreditCardGenerator creditCard() { return new CreditCardGenerator(config); }
+    public CreditCardGenerator creditCard() {
+        return new CreditCardGenerator(config);
+    }
 
-    public CreditCardInfoGenerator creditCardInfo() { return new CreditCardInfoGenerator(config); }
+    public CreditCardInfoGenerator creditCardInfo() {
+        return new CreditCardInfoGenerator(config);
+    }
 
-    public CardExpirationGenerator cardExpiration() { return new CardExpirationGenerator(config); }
+    public CardExpirationGenerator cardExpiration() {
+        return new CardExpirationGenerator(config);
+    }
 
-    public CurrencyGenerator currency() { return new CurrencyGenerator(config); }
+    public CurrencyGenerator currency() {
+        return new CurrencyGenerator(config);
+    }
 
-    public CurrencyPairGenerator currencyPair() { return new CurrencyPairGenerator(config); }
+    public CurrencyPairGenerator currencyPair() {
+        return new CurrencyPairGenerator(config);
+    }
 
-    public MoneyGenerator money() { return new MoneyGenerator(config); }
-    public MoneyGenerator money(Locale locale) { return new MoneyGenerator(withLocale(locale)); }
+    public MoneyGenerator money() {
+        return new MoneyGenerator(config);
+    }
 
-    public BankAccountGenerator bankAccount() { return new BankAccountGenerator(config); }
+    public MoneyGenerator money(Locale locale) {
+        return new MoneyGenerator(withLocale(locale));
+    }
 
-    public BankNameGenerator bankName() { return new BankNameGenerator(config); }
+    public BankAccountGenerator bankAccount() {
+        return new BankAccountGenerator(config);
+    }
 
-    public BankTypeGenerator bankType() { return new BankTypeGenerator(config); }
+    public BankNameGenerator bankName() {
+        return new BankNameGenerator(config);
+    }
 
-    public BankInfoGenerator bankInfo() { return new BankInfoGenerator(config); }
+    public BankTypeGenerator bankType() {
+        return new BankTypeGenerator(config);
+    }
 
-    public BankCountryGenerator bankCountry() { return new BankCountryGenerator(config); }
+    public BankInfoGenerator bankInfo() {
+        return new BankInfoGenerator(config);
+    }
 
-    public BicGenerator bic() { return new BicGenerator(config); }
+    public BankCountryGenerator bankCountry() {
+        return new BankCountryGenerator(config);
+    }
 
-    public BbanGenerator bban() { return new BbanGenerator(config); }
+    public BicGenerator bic() {
+        return new BicGenerator(config);
+    }
 
-    public IbanGenerator iban() { return new IbanGenerator(config); }
+    public BbanGenerator bban() {
+        return new BbanGenerator(config);
+    }
 
-    public AbaRoutingGenerator abaRouting() { return new AbaRoutingGenerator(config); }
+    public IbanGenerator iban() {
+        return new IbanGenerator(config);
+    }
 
-    public IsinGenerator isin() { return new IsinGenerator(config); }
+    public AbaRoutingGenerator abaRouting() {
+        return new AbaRoutingGenerator(config);
+    }
 
-    public CusipGenerator cusip() { return new CusipGenerator(config); }
+    public IsinGenerator isin() {
+        return new IsinGenerator(config);
+    }
 
-    public EinGenerator ein() { return new EinGenerator(config); }
+    public CusipGenerator cusip() {
+        return new CusipGenerator(config);
+    }
 
-    public CryptoAddressGenerator cryptoAddress() { return new CryptoAddressGenerator(config); }
+    public EinGenerator ein() {
+        return new EinGenerator(config);
+    }
 
-    public InvoiceInfoGenerator invoiceInfo() { return new InvoiceInfoGenerator(config); }
+    public CryptoAddressGenerator cryptoAddress() {
+        return new CryptoAddressGenerator(config);
+    }
 
-    public PaymentInfoGenerator paymentInfo() { return new PaymentInfoGenerator(config); }
+    public InvoiceInfoGenerator invoiceInfo() {
+        return new InvoiceInfoGenerator(config);
+    }
+
+    public PaymentInfoGenerator paymentInfo() {
+        return new PaymentInfoGenerator(config);
+    }
 
     private GeneratorConfig withLocale(Locale locale) {
         return config.toBuilder().locale(locale).build();

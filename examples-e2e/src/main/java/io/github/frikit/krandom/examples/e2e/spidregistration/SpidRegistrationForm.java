@@ -7,7 +7,6 @@ package io.github.frikit.krandom.examples.e2e.spidregistration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import io.github.frikit.krandom.generator.datetime.DateGenerator;
 import io.github.frikit.krandom.generator.datetime.YearGenerator;
 import io.github.frikit.krandom.generator.identifier.IdentifierMaskGenerator;
@@ -17,8 +16,8 @@ import io.github.frikit.krandom.generator.user.BirthdayGenerator;
 import io.github.frikit.krandom.generator.user.EmailGenerator;
 import io.github.frikit.krandom.generator.user.GenderGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import io.github.frikit.krandom.jackson.KrandomJackson;
-
 import java.time.LocalDate;
 import java.util.Locale;
 
@@ -48,8 +47,7 @@ public final class SpidRegistrationForm {
     /** This example is demonstrated with the Italian locale. */
     public static final Locale DEFAULT_LOCALE = Locale.ITALY;
 
-    private SpidRegistrationForm() {
-    }
+    private SpidRegistrationForm() {}
 
     /** The full SPID enrolment profile the portal submits. */
     public record SpidRegistration(
@@ -58,35 +56,20 @@ public final class SpidRegistrationForm {
             Residence residence,
             Contacts contacts,
             ElectronicIdCard idCard,
-            Consents consents) {
-    }
+            Consents consents) {}
 
-    public record Identity(
-            String spidCode,
-            String name,
-            String familyName,
-            String gender,
-            String fiscalNumber) {
-    }
+    public record Identity(String spidCode, String name, String familyName, String gender, String fiscalNumber) {}
 
-    public record BirthDetails(String placeOfBirth, String countyOfBirth, String dateOfBirth) {
-    }
+    public record BirthDetails(String placeOfBirth, String countyOfBirth, String dateOfBirth) {}
 
-    public record Residence(String address, String city, String province, String postalCode, String country) {
-    }
+    public record Residence(String address, String city, String province, String postalCode, String country) {}
 
-    public record Contacts(String mobilePhone, String email, String digitalAddress) {
-    }
+    public record Contacts(String mobilePhone, String email, String digitalAddress) {}
 
     public record ElectronicIdCard(
-            String documentType,
-            String number,
-            String issuingAuthority,
-            String expirationDate) {
-    }
+            String documentType, String number, String issuingAuthority, String expirationDate) {}
 
-    public record Consents(boolean acceptIdentityProviderTerms, boolean consentToDataProcessing) {
-    }
+    public record Consents(boolean acceptIdentityProviderTerms, boolean consentToDataProcessing) {}
 
     /** Fills the whole profile in one call, with each Italy-specific identifier pinned to its own generator. */
     public static SpidRegistration fake(Locale locale, long seed) {
@@ -110,17 +93,23 @@ public final class SpidRegistrationForm {
         IdentifierMaskGenerator identifier = new IdentifierMaskGenerator(config);
         DateGenerator date = new DateGenerator(config);
         // Codice Fiscale is always Italian regardless of the display locale of the rest of the form.
-        NationalIdGenerator codiceFiscale = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.ITALY).seed(seed) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+        NationalIdGenerator codiceFiscale = new NationalIdGenerator(GeneratorConfig.builder()
+                .locale(Locale.ITALY)
+                .seed(seed)
+                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build());
         // A CIE is valid for up to ten years.
         int thisYear = LocalDate.now().getYear();
-        YearGenerator expiryYear = new YearGenerator(thisYear + 1, thisYear + 10, GeneratorConfig.builder().seed(seed + 1).build());
+        YearGenerator expiryYear = new YearGenerator(
+                thisYear + 1,
+                thisYear + 10,
+                GeneratorConfig.builder().seed(seed + 1).build());
 
         return new ObjectFaker<>(SpidRegistration.class, config)
                 // Opaque SPID code assigned by the identity provider (4 letters + 10 digits).
                 .ruleFor("identity.spidCode", () -> identifier.generate("????##########"))
                 // SPID records gender as M/F; take the letter from the gender the generator picks.
-                .ruleFor("identity.gender",
-                        () -> gender.generate().equals(gender.getMaleLabel()) ? "M" : "F")
+                .ruleFor("identity.gender", () -> gender.generate().equals(gender.getMaleLabel()) ? "M" : "F")
                 // Codice Fiscale with the official TINIT- prefix SPID SAML assertions carry.
                 .ruleFor("identity.fiscalNumber", () -> "TINIT-" + codiceFiscale.generate())
                 // Realistic 18..99-year-old, ISO-8601.
@@ -129,12 +118,15 @@ public final class SpidRegistrationForm {
                 .ruleFor("residence.country", () -> "Italia")
                 // PEC (posta elettronica certificata) -- the SPID digitalAddress, on the pec.it domain.
                 .ruleFor("contacts.digitalAddress", () -> email.generate("pec.it"))
-                // Carta d'Identità Elettronica (CIE): 2 letters + 5 digits + 2 letters, issued by the Interior Ministry.
+                // Carta d'Identità Elettronica (CIE): 2 letters + 5 digits + 2 letters, issued by the Interior
+                // Ministry.
                 .ruleFor("idCard.documentType", () -> "Carta d'Identità Elettronica")
                 .ruleFor("idCard.number", () -> identifier.generate("??#####??"))
                 .ruleFor("idCard.issuingAuthority", () -> "Ministero dell'Interno")
-                .ruleFor("idCard.expirationDate",
-                        () -> date.generateWithYear(expiryYear.generate().getValue()).toString())
+                .ruleFor(
+                        "idCard.expirationDate",
+                        () -> date.generateWithYear(expiryYear.generate().getValue())
+                                .toString())
                 // Consents the applicant must affirm to activate the identity.
                 .ruleFor("consents.acceptIdentityProviderTerms", () -> true)
                 .ruleFor("consents.consentToDataProcessing", () -> true)

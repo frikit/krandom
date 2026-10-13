@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.selection;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -20,7 +19,7 @@ import java.util.Random;
 public final class PickGenerator<T> implements Generator<T> {
 
     private final List<T> source;
-    private final Random  random;
+    private final Random random;
 
     /**
      * Creates a pick generator backed by the default fast PRNG.

@@ -5,11 +5,9 @@
  */
 package io.github.frikit.krandom.generator.location;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -28,8 +26,8 @@ import java.util.Random;
 public final class CityGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
-    private final Random          random;
-    private final String[]        cities;
+    private final Random random;
+    private final String[] cities;
 
     /**
      * Creates a generator using default configuration ({@link Locale#US}).
@@ -52,14 +50,14 @@ public final class CityGenerator implements Generator<String> {
 
         Locale locale = config.getLocale();
         if (!registryContext.isCityRegistered(locale)) {
-            throw new UnsupportedOperationException(
-                "Locale " + locale + " is not supported. Registered locales: " +
-                registryContext.cityRegisteredKeys());
+            throw new UnsupportedOperationException("Locale " + locale + " is not supported. Registered locales: "
+                    + registryContext.cityRegisteredKeys());
         }
 
         this.random = config.createRandom();
 
-        this.cities = java.util.Objects.requireNonNull(registryContext.cityProvider(locale)).getCities();
+        this.cities = java.util.Objects.requireNonNull(registryContext.cityProvider(locale))
+                .getCities();
     }
 
     /**

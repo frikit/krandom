@@ -5,20 +5,18 @@
  */
 package io.github.frikit.krandom.generator.selection;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.NoSuchElementException;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Sequence and finite-pool generators")
 class SequenceAndFinitePoolGeneratorTest {
@@ -27,17 +25,15 @@ class SequenceAndFinitePoolGeneratorTest {
     void sequenceRespectsLengthAndNullProbability() {
         Generator<String> first = () -> "first";
         Generator<String> second = () -> "second";
-        SequenceGenerator<String> generator = new SequenceGenerator<>(
-            GeneratorConfig.builder().seed(42L).build(), List.of(first, second), 3, 5, 0.0);
+        SequenceGenerator<String> generator =
+                new SequenceGenerator<>(GeneratorConfig.builder().seed(42L).build(), List.of(first, second), 3, 5, 0.0);
 
         List<String> values = generator.generate();
 
         assertTrue(values.size() >= 3 && values.size() <= 5);
         assertTrue(values.stream().allMatch(value -> value.equals("first") || value.equals("second")));
         assertTrue(new SequenceGenerator<>(GeneratorConfig.builder().seed(1L).build(), List.of(first), 2, 2, 1.0)
-                       .generate()
-                       .stream()
-                       .allMatch(value -> value == null));
+                .generate().stream().allMatch(value -> value == null));
     }
 
     @Test
@@ -45,17 +41,24 @@ class SequenceAndFinitePoolGeneratorTest {
         Generator<String> source = () -> "value";
         GeneratorConfig config = GeneratorConfig.builder().seed(9L).build();
 
-        assertEquals(new SequenceGenerator<>(config, List.of(source), 1, 4, 0.5).generate(),
-                     new SequenceGenerator<>(config, List.of(source), 1, 4, 0.5).generate());
+        assertEquals(
+                new SequenceGenerator<>(config, List.of(source), 1, 4, 0.5).generate(),
+                new SequenceGenerator<>(config, List.of(source), 1, 4, 0.5).generate());
         assertThrows(NullPointerException.class, () -> new SequenceGenerator<String>(null, List.of(source), 1, 1, 0));
         assertThrows(IllegalArgumentException.class, () -> new SequenceGenerator<>(config, List.of(), 1, 1, 0));
         assertThrows(IllegalArgumentException.class, () -> new SequenceGenerator<>(config, List.of(source), -1, 1, 0));
         assertThrows(IllegalArgumentException.class, () -> new SequenceGenerator<>(config, List.of(source), 2, 1, 0));
-        assertThrows(IllegalArgumentException.class, () -> new SequenceGenerator<>(config, List.of(source), 1, 1, -0.1));
+        assertThrows(
+                IllegalArgumentException.class, () -> new SequenceGenerator<>(config, List.of(source), 1, 1, -0.1));
         assertThrows(IllegalArgumentException.class, () -> new SequenceGenerator<>(config, List.of(source), 1, 1, 1.1));
-        assertEquals(2, new SequenceGenerator<>(List.of(source), 2, 2).generate().size());
+        assertEquals(
+                2, new SequenceGenerator<>(List.of(source), 2, 2).generate().size());
         assertEquals(1, Generators.sequence(List.of(source), 1, 1).generate().size());
-        assertEquals(1, Generators.sequence(config, List.of(source), 1, 1, 0.0).generate().size());
+        assertEquals(
+                1,
+                Generators.sequence(config, List.of(source), 1, 1, 0.0)
+                        .generate()
+                        .size());
         List<Generator<? extends String>> nullSource = new ArrayList<>();
         nullSource.add(null);
         assertThrows(NullPointerException.class, () -> new SequenceGenerator<>(config, nullSource, 1, 1, 0));

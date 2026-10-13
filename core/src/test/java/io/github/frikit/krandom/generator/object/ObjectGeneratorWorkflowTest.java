@@ -5,6 +5,14 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
 import io.github.frikit.krandom.generator.core.model.Address;
@@ -13,20 +21,11 @@ import io.github.frikit.krandom.generator.core.model.Person;
 import io.github.frikit.krandom.generator.core.model.PersonRecord;
 import io.github.frikit.krandom.generator.core.model.PersonWithArrays;
 import io.github.frikit.krandom.generator.core.model.PersonWithCollections;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("object generator workflows")
 class ObjectGeneratorWorkflowTest {
@@ -57,10 +56,10 @@ class ObjectGeneratorWorkflowTest {
     @DisplayName("seeded object generation is repeatable with GeneratorConfig")
     void seededObjectGenerationIsRepeatable() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .seed(123L)
-                                                .stringLength(6, 6)
-                                                .collectionSize(2, 2)
-                                                .build();
+                .seed(123L)
+                .stringLength(6, 6)
+                .collectionSize(2, 2)
+                .build();
 
         Person first = Generators.ofObject(Person.class, config).generate();
         Person second = Generators.ofObject(Person.class, config).generate();
@@ -85,7 +84,8 @@ class ObjectGeneratorWorkflowTest {
     @Test
     @DisplayName("nested objects, arrays, collections, maps, and optionals are populated")
     void containerAndNestedObjectFeaturesAreGeneratedNatively() {
-        PersonWithArrays arrays = Generators.ofObject(PersonWithArrays.class, fixedContainerConfig()).generate();
+        PersonWithArrays arrays = Generators.ofObject(PersonWithArrays.class, fixedContainerConfig())
+                .generate();
         assertNotNull(arrays.getTags());
         assertEquals(2, arrays.getTags().length);
         assertNotNull(arrays.getTags()[0]);
@@ -95,8 +95,8 @@ class ObjectGeneratorWorkflowTest {
         assertEquals(2, arrays.getAddresses().length);
         assertNotNull(arrays.getAddresses()[0].getStreet());
 
-        PersonWithCollections collections =
-            Generators.ofObject(PersonWithCollections.class, fixedContainerConfig()).generate();
+        PersonWithCollections collections = Generators.ofObject(PersonWithCollections.class, fixedContainerConfig())
+                .generate();
         assertNotNull(collections.getHobbies());
         assertEquals(2, collections.getHobbies().size());
         assertNotNull(collections.getHobbies().get(0));
@@ -105,7 +105,8 @@ class ObjectGeneratorWorkflowTest {
         assertNotNull(collections.getAttributes());
         assertFalse(collections.getAttributes().isEmpty());
 
-        OptionalHolder optionals = Generators.ofObject(OptionalHolder.class, fixedContainerConfig()).generate();
+        OptionalHolder optionals = Generators.ofObject(OptionalHolder.class, fixedContainerConfig())
+                .generate();
         assertNotNull(optionals.name);
         assertTrue(optionals.name.isPresent());
         assertNotNull(optionals.address);
@@ -116,18 +117,16 @@ class ObjectGeneratorWorkflowTest {
     @Test
     @DisplayName("circular references are bounded by native pool and depth handling")
     void circularReferencesAndDepthAreBoundedNatively() {
-        GeneratorConfig circularConfig = GeneratorConfig.builder()
-                                                        .objectPoolSize(0)
-                                                        .build();
+        GeneratorConfig circularConfig =
+                GeneratorConfig.builder().objectPoolSize(0).build();
 
         CircularNode node = assertDoesNotThrow(
-            () -> Generators.ofObject(CircularNode.class, circularConfig).generate());
+                () -> Generators.ofObject(CircularNode.class, circularConfig).generate());
         assertNotNull(node);
         assertNotNull(node.getName());
 
-        GeneratorConfig depthConfig = GeneratorConfig.builder()
-                                                     .objectMaxDepth(1)
-                                                     .build();
+        GeneratorConfig depthConfig =
+                GeneratorConfig.builder().objectMaxDepth(1).build();
         DepthRoot root = Generators.ofObject(DepthRoot.class, depthConfig).generate();
         assertNotNull(root.middle);
         assertNull(root.middle.leaf, "nested objects beyond max depth should be cut off");
@@ -136,7 +135,8 @@ class ObjectGeneratorWorkflowTest {
     @Test
     @DisplayName("native object generation advances state across repeated calls")
     void reusedObjectGeneratorAdvancesStateAcrossCalls() {
-        ObjectGenerator<Person> generator = Generators.ofObject(Person.class, GeneratorConfig.builder().seed(42L).build());
+        ObjectGenerator<Person> generator = Generators.ofObject(
+                Person.class, GeneratorConfig.builder().seed(42L).build());
 
         Person first = generator.generate();
         Person second = generator.generate();
@@ -146,10 +146,10 @@ class ObjectGeneratorWorkflowTest {
 
     private GeneratorConfig fixedContainerConfig() {
         return GeneratorConfig.builder()
-                              .seed(99L)
-                              .stringLength(4, 4)
-                              .collectionSize(2, 2)
-                              .build();
+                .seed(99L)
+                .stringLength(4, 4)
+                .collectionSize(2, 2)
+                .build();
     }
 
     private void assertPopulatedPerson(Person person) {
@@ -183,7 +183,7 @@ class ObjectGeneratorWorkflowTest {
 
     static class OptionalHolder {
 
-        Optional<String>  name;
+        Optional<String> name;
         Optional<Address> address;
     }
 

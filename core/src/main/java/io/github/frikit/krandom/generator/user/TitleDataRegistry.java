@@ -6,12 +6,10 @@
 package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Global registry mapping locales to {@link TitleDataProvider} instances.
@@ -37,8 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class TitleDataRegistry {
 
-    private static final ConcurrentHashMap<String, TitleDataProvider> REGISTRY =
-        new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, TitleDataProvider> REGISTRY = new ConcurrentHashMap<>();
 
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
@@ -46,8 +43,7 @@ public final class TitleDataRegistry {
         }
     }
 
-    private TitleDataRegistry() {
-    }
+    private TitleDataRegistry() {}
 
     /**
      * Returns {@code true} if the registry contains an entry for the given locale (exact
@@ -102,6 +98,4 @@ public final class TitleDataRegistry {
         // First registration for this language becomes the language-level fallback.
         REGISTRY.putIfAbsent(lang, provider);
     }
-
-
 }

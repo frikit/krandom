@@ -25,10 +25,12 @@ public final class BgBgNationalIdProvider implements NationalIdProvider {
     @Override
     public String generate(Random random) {
         LocalDate date = LocalDate.of(1950, 1, 1).plusDays(random.nextInt(18_262));
-        return String.format(Locale.ROOT, "%02d%02d%02d%04d",
-                             date.getYear() % 100,
-                             date.getMonthValue(),
-                             date.getDayOfMonth(),
-                             random.nextInt(10_000));
+        return String.format(
+                Locale.ROOT,
+                "%02d%02d%02d%04d",
+                date.getYear() % 100,
+                date.getMonthValue(),
+                date.getDayOfMonth(),
+                random.nextInt(10_000));
     }
 }

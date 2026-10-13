@@ -5,6 +5,13 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
@@ -14,22 +21,14 @@ import io.github.frikit.krandom.generator.provider.ProviderCatalog;
 import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
 import io.github.frikit.krandom.generator.provider.ProviderSchemaProjection;
 import io.github.frikit.krandom.generator.text.WordGenerator;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.lang.reflect.Field;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("FieldLookup")
 class FieldLookupTest {
@@ -81,10 +80,10 @@ class FieldLookupTest {
     @DisplayName("resolves and generates values for all built-in references")
     void resolveAllBuiltins() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .seed(77L)
-                                                .locale(Locale.US)
-                                                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                .build();
+                .seed(77L)
+                .locale(Locale.US)
+                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
         FieldLookup lookup = new FieldLookup(config);
         SchemaContext context = new SchemaContext(Locale.US, new Random(1L), 0);
 
@@ -97,29 +96,28 @@ class FieldLookupTest {
     @Test
     @DisplayName("built-in references expose JSON Schema metadata without generation")
     void builtInReferencesExposeJsonSchemaMetadata() {
-        FieldLookup lookup = new FieldLookup(GeneratorConfig.builder().seed(77L).locale(Locale.US).build());
+        FieldLookup lookup = new FieldLookup(
+                GeneratorConfig.builder().seed(77L).locale(Locale.US).build());
 
         assertEquals("string", lookup.resolve("person.email").jsonSchema().get("type"));
         assertEquals("email", lookup.resolve("person.email").jsonSchema().get("format"));
-        assertEquals("integer", lookup.resolve("datetime.timestamp").jsonSchema().get("type"));
+        assertEquals(
+                "integer", lookup.resolve("datetime.timestamp").jsonSchema().get("type"));
 
         @SuppressWarnings("unchecked")
-        Map<String, Object> orderProperties = (Map<String, Object>) lookup.resolve("commerce.order_info")
-                                                                          .jsonSchema()
-                                                                          .get("properties");
+        Map<String, Object> orderProperties = (Map<String, Object>)
+                lookup.resolve("commerce.order_info").jsonSchema().get("properties");
         assertEquals("string", ((Map<?, ?>) orderProperties.get("orderNumber")).get("type"));
         assertEquals("object", ((Map<?, ?>) orderProperties.get("customer")).get("type"));
 
         @SuppressWarnings("unchecked")
-        Map<String, Object> paymentProperties = (Map<String, Object>) lookup.resolve("finance.payment_info")
-                                                                            .jsonSchema()
-                                                                            .get("properties");
+        Map<String, Object> paymentProperties = (Map<String, Object>)
+                lookup.resolve("finance.payment_info").jsonSchema().get("properties");
         assertTrue(allowsNull((Map<?, ?>) paymentProperties.get("settledOn")));
 
         @SuppressWarnings("unchecked")
-        Map<String, Object> shipmentProperties = (Map<String, Object>) lookup.resolve("commerce.shipment_info")
-                                                                             .jsonSchema()
-                                                                             .get("properties");
+        Map<String, Object> shipmentProperties = (Map<String, Object>)
+                lookup.resolve("commerce.shipment_info").jsonSchema().get("properties");
         assertTrue(allowsNull((Map<?, ?>) shipmentProperties.get("deliveredOn")));
     }
 
@@ -128,32 +126,43 @@ class FieldLookupTest {
     void classifiedReferencesExposeSelectedSafetyPolicy() {
         FieldLookup defaults = new FieldLookup(GeneratorConfig.defaults());
         FieldLookup validatorFixtures = new FieldLookup(GeneratorConfig.builder()
-                                                                      .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.CHECKSUM_VALID)
-                                                                      .phoneNumberSafetyPolicy(
-                                                                          PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                                      .build());
+                .paymentCardSafetyPolicy(PaymentCardSafetyPolicy.CHECKSUM_VALID)
+                .phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build());
 
-        assertEquals("GUARANTEED", safetyMetadata(defaults, "finance.credit_card_number").get("formatValidity"));
-        assertEquals("CONFIGURATION_DEPENDENT",
-                     safetyMetadata(defaults, "finance.credit_card_number").get("checksumValidity"));
-        assertEquals(Map.of("setting", "payment.card-safety-policy", "selected", "TEST_SAFE_NON_ROUTABLE"),
-                     safetyMetadata(defaults, "finance.credit_card_number").get("policy"));
-        assertEquals(Map.of("setting", "phone-number.safety-policy", "selected", "TEST_SAFE_WHERE_AVAILABLE"),
-                     safetyMetadata(defaults, "address.phone_number").get("policy"));
-        assertEquals(Map.of("setting", "banking.safety-policy", "selected", "DISABLED"),
-                     safetyMetadata(defaults, "finance.bank_info").get("policy"));
-        assertEquals("UNCLASSIFIED", safetyMetadata(defaults, "finance.bank_info").get("testSafety"));
-        assertEquals(Map.of("setting", "payment.card-safety-policy", "selected", "CHECKSUM_VALID"),
-                     safetyMetadata(validatorFixtures, "finance.credit_card_number").get("policy"));
-        assertEquals(Map.of("setting", "phone-number.safety-policy", "selected", "REALISTIC_UNCLASSIFIED"),
-                     safetyMetadata(validatorFixtures, "address.phone_number").get("policy"));
+        assertEquals(
+                "GUARANTEED",
+                safetyMetadata(defaults, "finance.credit_card_number").get("formatValidity"));
+        assertEquals(
+                "CONFIGURATION_DEPENDENT",
+                safetyMetadata(defaults, "finance.credit_card_number").get("checksumValidity"));
+        assertEquals(
+                Map.of("setting", "payment.card-safety-policy", "selected", "TEST_SAFE_NON_ROUTABLE"),
+                safetyMetadata(defaults, "finance.credit_card_number").get("policy"));
+        assertEquals(
+                Map.of("setting", "phone-number.safety-policy", "selected", "TEST_SAFE_WHERE_AVAILABLE"),
+                safetyMetadata(defaults, "address.phone_number").get("policy"));
+        assertEquals(
+                Map.of("setting", "banking.safety-policy", "selected", "DISABLED"),
+                safetyMetadata(defaults, "finance.bank_info").get("policy"));
+        assertEquals(
+                "UNCLASSIFIED", safetyMetadata(defaults, "finance.bank_info").get("testSafety"));
+        assertEquals(
+                Map.of("setting", "payment.card-safety-policy", "selected", "CHECKSUM_VALID"),
+                safetyMetadata(validatorFixtures, "finance.credit_card_number").get("policy"));
+        assertEquals(
+                Map.of("setting", "phone-number.safety-policy", "selected", "REALISTIC_UNCLASSIFIED"),
+                safetyMetadata(validatorFixtures, "address.phone_number").get("policy"));
         assertNull(defaults.resolve("finance.cvv").jsonSchema().get("x-krandom-safety"));
 
         @SuppressWarnings("unchecked")
-        Map<String, Object> properties = (Map<String, Object>) new Schema(Map.of(
-            "card", defaults.resolve("finance.credit_card_number"))).toJsonSchema().get("properties");
-        assertEquals(safetyMetadata(defaults, "finance.credit_card_number"),
-                     ((Map<?, ?>) properties.get("card")).get("x-krandom-safety"));
+        Map<String, Object> properties =
+                (Map<String, Object>) new Schema(Map.of("card", defaults.resolve("finance.credit_card_number")))
+                        .toJsonSchema()
+                        .get("properties");
+        assertEquals(
+                safetyMetadata(defaults, "finance.credit_card_number"),
+                ((Map<?, ?>) properties.get("card")).get("x-krandom-safety"));
     }
 
     @Test
@@ -162,7 +171,8 @@ class FieldLookupTest {
         FieldLookup lookup = new FieldLookup(GeneratorConfig.defaults());
         assertThrows(NullPointerException.class, () -> lookup.resolve(null));
         assertThrows(IllegalArgumentException.class, () -> lookup.resolve(" "));
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> lookup.resolve("person.unknown"));
+        IllegalArgumentException ex =
+                assertThrows(IllegalArgumentException.class, () -> lookup.resolve("person.unknown"));
         assertTrue(ex.getMessage().contains("Supported references"));
     }
 
@@ -208,13 +218,15 @@ class FieldLookupTest {
     @Test
     @DisplayName("provider-backed references can be registered from provider factories")
     void providerBackedReferences() {
-        FieldLookup lookup = new FieldLookup(GeneratorConfig.builder().seed(7L).locale(Locale.US).build());
+        FieldLookup lookup = new FieldLookup(
+                GeneratorConfig.builder().seed(7L).locale(Locale.US).build());
 
-        lookup.registerProvider("custom.counter",
-                                CountingProvider::new,
-                                CountingProvider.class,
-                                CountingProvider::next,
-                                Map.of("type", "string"));
+        lookup.registerProvider(
+                "custom.counter",
+                CountingProvider::new,
+                CountingProvider.class,
+                CountingProvider::next,
+                Map.of("type", "string"));
 
         SchemaValueProvider provider = lookup.resolve("custom.counter");
         assertEquals("value-0", provider.generate(new SchemaContext(Locale.US, new Random(1L), 0)));
@@ -239,14 +251,13 @@ class FieldLookupTest {
         lookup.registerAlias("custom.alias", "custom.code", ConflictPolicy.REPLACE);
         lookup.registerAlias("custom.code", "custom.code", ConflictPolicy.REPLACE);
 
-        IllegalArgumentException unknownTarget = assertThrows(IllegalArgumentException.class,
-                                                              () -> lookup.registerAlias("custom.missing", "missing.ref"));
+        IllegalArgumentException unknownTarget = assertThrows(
+                IllegalArgumentException.class, () -> lookup.registerAlias("custom.missing", "missing.ref"));
         assertTrue(unknownTarget.getMessage().contains("Target field reference"));
 
-        IllegalArgumentException aliasConflict = assertThrows(IllegalArgumentException.class,
-                                                              () -> lookup.registerAlias("person.full_name",
-                                                                                        "custom.code",
-                                                                                        ConflictPolicy.REPLACE));
+        IllegalArgumentException aliasConflict = assertThrows(
+                IllegalArgumentException.class,
+                () -> lookup.registerAlias("person.full_name", "custom.code", ConflictPolicy.REPLACE));
         assertTrue(aliasConflict.getMessage().contains("Alias conflicts"));
 
         lookup.register("custom.alias", ctx -> "C", ConflictPolicy.REPLACE);
@@ -258,12 +269,14 @@ class FieldLookupTest {
     void providerBackedRegistrationTypeValidation() {
         FieldLookup lookup = new FieldLookup(GeneratorConfig.defaults());
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                                                   () -> lookup.registerProvider("broken.provider",
-                                                                                 cfg -> "not-a-word-generator",
-                                                                                 WordGenerator.class,
-                                                                                 WordGenerator::generateWord,
-                                                                                 ConflictPolicy.REPLACE));
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> lookup.registerProvider(
+                        "broken.provider",
+                        cfg -> "not-a-word-generator",
+                        WordGenerator.class,
+                        WordGenerator::generateWord,
+                        ConflictPolicy.REPLACE));
         assertTrue(ex.getMessage().contains("not " + WordGenerator.class.getName()));
     }
 
@@ -275,40 +288,46 @@ class FieldLookupTest {
         lookup.register("custom.target", ctx -> "target");
         lookup.registerAlias("custom.alias", "custom.target");
 
-        assertThrows(IllegalArgumentException.class,
-                     () -> lookup.registerProvider("custom.target",
-                                                   cfg -> {
-                                                       calls.incrementAndGet();
-                                                       return new CountingProvider(cfg);
-                                                   },
-                                                   CountingProvider.class,
-                                                   CountingProvider::next));
-        assertThrows(IllegalArgumentException.class,
-                     () -> lookup.registerProvider("custom.alias",
-                                                   cfg -> {
-                                                       calls.incrementAndGet();
-                                                       return new CountingProvider(cfg);
-                                                   },
-                                                   CountingProvider.class,
-                                                   CountingProvider::next));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> lookup.registerProvider(
+                        "custom.target",
+                        cfg -> {
+                            calls.incrementAndGet();
+                            return new CountingProvider(cfg);
+                        },
+                        CountingProvider.class,
+                        CountingProvider::next));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> lookup.registerProvider(
+                        "custom.alias",
+                        cfg -> {
+                            calls.incrementAndGet();
+                            return new CountingProvider(cfg);
+                        },
+                        CountingProvider.class,
+                        CountingProvider::next));
         assertEquals(0, calls.get());
 
-        lookup.registerProvider("custom.target",
-                                cfg -> {
-                                    calls.incrementAndGet();
-                                    return new CountingProvider(cfg);
-                                },
-                                CountingProvider.class,
-                                CountingProvider::next,
-                                ConflictPolicy.REPLACE);
-        lookup.registerProvider("custom.alias",
-                                cfg -> {
-                                    calls.incrementAndGet();
-                                    return new CountingProvider(cfg);
-                                },
-                                CountingProvider.class,
-                                CountingProvider::next,
-                                ConflictPolicy.REPLACE);
+        lookup.registerProvider(
+                "custom.target",
+                cfg -> {
+                    calls.incrementAndGet();
+                    return new CountingProvider(cfg);
+                },
+                CountingProvider.class,
+                CountingProvider::next,
+                ConflictPolicy.REPLACE);
+        lookup.registerProvider(
+                "custom.alias",
+                cfg -> {
+                    calls.incrementAndGet();
+                    return new CountingProvider(cfg);
+                },
+                CountingProvider.class,
+                CountingProvider::next,
+                ConflictPolicy.REPLACE);
         assertEquals(2, calls.get());
     }
 
@@ -323,7 +342,8 @@ class FieldLookupTest {
         Map<String, String> aliases = (Map<String, String>) aliasesField.get(lookup);
         aliases.put("broken.alias", "broken.provider");
 
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> lookup.resolve("broken.alias"));
+        IllegalArgumentException ex =
+                assertThrows(IllegalArgumentException.class, () -> lookup.resolve("broken.alias"));
         assertTrue(ex.getMessage().contains("Unknown field reference"));
     }
 

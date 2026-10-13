@@ -23,11 +23,13 @@ public final class ThThNationalIdProvider implements NationalIdProvider {
 
     @Override
     public String generate(Random random) {
-        return String.format(Locale.ROOT, "%d-%04d-%05d-%02d-%d",
-                             random.nextInt(9) + 1,
-                             random.nextInt(10_000),
-                             random.nextInt(100_000),
-                             random.nextInt(100),
-                             random.nextInt(10));
+        return String.format(
+                Locale.ROOT,
+                "%d-%04d-%05d-%02d-%d",
+                random.nextInt(9) + 1,
+                random.nextInt(10_000),
+                random.nextInt(100_000),
+                random.nextInt(100),
+                random.nextInt(10));
     }
 }

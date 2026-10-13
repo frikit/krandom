@@ -11,7 +11,6 @@ import io.github.frikit.krandom.generator.Generators;
 import io.github.frikit.krandom.generator.object.ObjectFaker;
 import io.github.frikit.krandom.generator.user.BirthdayGenerator;
 import io.github.frikit.krandom.jackson.KrandomJackson;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
@@ -32,8 +31,7 @@ public final class JobApplicationForm {
     /** This example is demonstrated with the German locale. */
     public static final Locale DEFAULT_LOCALE = Locale.GERMANY;
 
-    private JobApplicationForm() {
-    }
+    private JobApplicationForm() {}
 
     /** The full application payload the page submits. */
     public record Application(
@@ -47,8 +45,7 @@ public final class JobApplicationForm {
             List<Skill> skills,
             List<Language> languages,
             List<Reference> references,
-            Screening screening) {
-    }
+            Screening screening) {}
 
     public record Personal(
             String firstName,
@@ -58,8 +55,7 @@ public final class JobApplicationForm {
             String nationality,
             String maritalStatus,
             String email,
-            String phoneNumber) {
-    }
+            String phoneNumber) {}
 
     public record Address(
             String line1,
@@ -68,21 +64,12 @@ public final class JobApplicationForm {
             String postalCode,
             String country,
             int yearsAtAddress,
-            String residencyStatus) {
-    }
+            String residencyStatus) {}
 
     public record RightToWork(
-            boolean eligibleToWorkInCountry,
-            boolean requiresSponsorship,
-            String workAuthorizationType) {
-    }
+            boolean eligibleToWorkInCountry, boolean requiresSponsorship, String workAuthorizationType) {}
 
-    public record Driving(
-            boolean hasDrivingLicence,
-            String licenceType,
-            String licenceNumber,
-            boolean hasOwnVehicle) {
-    }
+    public record Driving(boolean hasDrivingLicence, String licenceType, String licenceNumber, boolean hasOwnVehicle) {}
 
     public record Role(
             String desiredTitle,
@@ -92,51 +79,61 @@ public final class JobApplicationForm {
             boolean willingToRelocate,
             boolean willingToTravel,
             String remotePreference,
-            String employmentTypeSought) {
-    }
+            String employmentTypeSought) {}
 
     public record PastJob(
-            String company,
-            String jobTitle,
-            String location,
-            String employmentType,
-            String reasonForLeaving) {
-    }
+            String company, String jobTitle, String location, String employmentType, String reasonForLeaving) {}
 
-    public record Education(String institution, String degree, String fieldOfStudy, String grade) {
-    }
+    public record Education(String institution, String degree, String fieldOfStudy, String grade) {}
 
-    public record Skill(String name, String proficiency) {
-    }
+    public record Skill(String name, String proficiency) {}
 
-    public record Language(String language, String proficiency) {
-    }
+    public record Language(String language, String proficiency) {}
 
-    public record Reference(String name, String relationship, String company, String email, String phoneNumber) {
-    }
+    public record Reference(String name, String relationship, String company, String email, String phoneNumber) {}
 
     public record Screening(
             boolean hasCriminalRecord,
             boolean consentToBackgroundCheck,
             boolean consentToDataProcessing,
             String howDidYouHearAboutUs,
-            String coverNote) {
-    }
+            String coverNote) {}
 
     /** Fills the whole application in one call, with the handful of fields a real form validates pinned. */
     public static Application fake(Locale locale, long seed) {
-        GeneratorConfig config = GeneratorConfig.builder().locale(locale).seed(seed).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(locale).seed(seed).build();
         BirthdayGenerator dateOfBirth = new BirthdayGenerator(18, 99, config);
 
         return new ObjectFaker<>(Application.class, config)
                 // Realistic 18..99-year-old (nested dotted path).
                 .ruleFor("personal.dateOfBirth", () -> dateOfBirth.generate().toString())
                 // Numbers and dates a form would actually validate.
-                .ruleFor("address.yearsAtAddress", Generators.ofInt(0, 40, GeneratorConfig.builder().seed(seed + 1).build()))
-                .ruleFor("role.salaryExpectation", Generators.ofInt(30_000, 200_000, GeneratorConfig.builder().seed(seed + 2).build()))
-                .ruleFor("role.noticePeriodWeeks", Generators.ofInt(0, 12, GeneratorConfig.builder().seed(seed + 3).build()))
-                .ruleFor("role.availableFrom",
-                        () -> LocalDate.now().plusDays(Generators.ofInt(0, 90, GeneratorConfig.builder().seed(seed + 4).build()).generate()).toString())
+                .ruleFor(
+                        "address.yearsAtAddress",
+                        Generators.ofInt(
+                                0, 40, GeneratorConfig.builder().seed(seed + 1).build()))
+                .ruleFor(
+                        "role.salaryExpectation",
+                        Generators.ofInt(
+                                30_000,
+                                200_000,
+                                GeneratorConfig.builder().seed(seed + 2).build()))
+                .ruleFor(
+                        "role.noticePeriodWeeks",
+                        Generators.ofInt(
+                                0, 12, GeneratorConfig.builder().seed(seed + 3).build()))
+                .ruleFor(
+                        "role.availableFrom",
+                        () -> LocalDate.now()
+                                .plusDays(Generators.ofInt(
+                                                0,
+                                                90,
+                                                GeneratorConfig.builder()
+                                                        .seed(seed + 4)
+                                                        .build())
+                                        .generate())
+                                .toString())
                 // Consents and eligibility an applicant would affirm.
                 .ruleFor("rightToWork.eligibleToWorkInCountry", () -> true)
                 .ruleFor("screening.consentToBackgroundCheck", () -> true)

@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -23,7 +22,7 @@ import java.util.Random;
 public final class JobFieldGenerator implements Generator<String> {
 
     private static final JobFieldDataProvider DEFAULT_PROVIDER =
-        new BuiltInJobFieldDataProvider(Locale.ROOT, "default");
+            new BuiltInJobFieldDataProvider(Locale.ROOT, "default");
 
     private final List<String> fields;
     private final Random random;
@@ -41,7 +40,9 @@ public final class JobFieldGenerator implements Generator<String> {
      * @param locale locale whose job fields to use; must not be {@code null}
      */
     public JobFieldGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**

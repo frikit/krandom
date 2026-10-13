@@ -5,26 +5,25 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("MbtiGenerator")
 class MbtiGeneratorTest {
 
     private static final Set<String> TYPES = Set.of(
-        "ISTJ", "ISFJ", "INFJ", "INTJ", "ISTP", "ISFP", "INFP", "INTP",
-        "ESTP", "ESFP", "ENFP", "ENTP", "ESTJ", "ESFJ", "ENFJ", "ENTJ");
+            "ISTJ", "ISFJ", "INFJ", "INTJ", "ISTP", "ISFP", "INFP", "INTP", "ESTP", "ESFP", "ENFP", "ENTP", "ESTJ",
+            "ESFJ", "ENFJ", "ENTJ");
 
     @RepeatedTest(200)
     @DisplayName("generate() returns a valid four-letter type")
@@ -35,7 +34,8 @@ class MbtiGeneratorTest {
     @Test
     @DisplayName("generate() can surface every type over many draws")
     void generateCoversAll() {
-        MbtiGenerator gen = new MbtiGenerator(GeneratorConfig.builder().seed(21L).build());
+        MbtiGenerator gen =
+                new MbtiGenerator(GeneratorConfig.builder().seed(21L).build());
         Set<String> seen = new HashSet<>();
         for (int i = 0; i < 4000; i++) {
             seen.add(gen.generate());
@@ -70,6 +70,6 @@ class MbtiGeneratorTest {
     void facade() {
         assertTrue(TYPES.contains(Generators.ofMbti().generate()));
         assertTrue(TYPES.contains(
-            Generators.ofMbti(GeneratorConfig.builder().seed(1L).build()).generate()));
+                Generators.ofMbti(GeneratorConfig.builder().seed(1L).build()).generate()));
     }
 }

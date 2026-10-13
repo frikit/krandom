@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.text;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
 
@@ -43,25 +41,76 @@ import java.util.Random;
  */
 public final class LoremIpsumGenerator implements Generator<String> {
 
-    private static final String[] WORDS           = {
-        "lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit",
-        "sed", "do", "eiusmod", "tempor", "incididunt", "ut", "labore", "dolore",
-        "magna", "aliqua", "enim", "ad", "minim", "veniam", "quis", "nostrud",
-        "exercitation", "ullamco", "laboris", "nisi", "aliquip", "ex", "ea", "commodo",
-        "consequat", "duis", "aute", "irure", "reprehenderit", "voluptate", "velit",
-        "esse", "cillum", "fugiat", "nulla", "pariatur", "excepteur", "sint", "occaecat",
-        "cupidatat", "proident", "sunt", "culpa", "qui", "officia", "deserunt", "mollit",
-        "anim", "id", "est", "laborum"
+    private static final String[] WORDS = {
+        "lorem",
+        "ipsum",
+        "dolor",
+        "sit",
+        "amet",
+        "consectetur",
+        "adipiscing",
+        "elit",
+        "sed",
+        "do",
+        "eiusmod",
+        "tempor",
+        "incididunt",
+        "ut",
+        "labore",
+        "dolore",
+        "magna",
+        "aliqua",
+        "enim",
+        "ad",
+        "minim",
+        "veniam",
+        "quis",
+        "nostrud",
+        "exercitation",
+        "ullamco",
+        "laboris",
+        "nisi",
+        "aliquip",
+        "ex",
+        "ea",
+        "commodo",
+        "consequat",
+        "duis",
+        "aute",
+        "irure",
+        "reprehenderit",
+        "voluptate",
+        "velit",
+        "esse",
+        "cillum",
+        "fugiat",
+        "nulla",
+        "pariatur",
+        "excepteur",
+        "sint",
+        "occaecat",
+        "cupidatat",
+        "proident",
+        "sunt",
+        "culpa",
+        "qui",
+        "officia",
+        "deserunt",
+        "mollit",
+        "anim",
+        "id",
+        "est",
+        "laborum"
     };
-    private static final String[] CORPUS_SEQUENCE = (
-        "lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore " +
-        "magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat " +
-        "duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat " +
-        "cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum"
-    ).split("\\s+");
-    private final Mode              mode;
-    private final GeneratorConfig   config;
-    private final Random            random;
+    private static final String[] CORPUS_SEQUENCE =
+            ("lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore "
+                            + "magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat "
+                            + "duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur excepteur sint occaecat "
+                            + "cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum")
+                    .split("\\s+");
+    private final Mode mode;
+    private final GeneratorConfig config;
+    private final Random random;
     private final NextWordGenerator nextWordGenerator;
     /**
      * Creates a generator in {@link Mode#SENTENCE} mode with default configuration.
@@ -136,7 +185,7 @@ public final class LoremIpsumGenerator implements Generator<String> {
      * @return a sentence string; never {@code null}
      */
     public String generateSentence() {
-        return generateSentence(random.nextInt(11) + 5);  // [5, 15]
+        return generateSentence(random.nextInt(11) + 5); // [5, 15]
     }
 
     /**
@@ -157,7 +206,7 @@ public final class LoremIpsumGenerator implements Generator<String> {
      * @return a paragraph string; never {@code null}
      */
     public String generateParagraph() {
-        return generateParagraph(random.nextInt(4) + 3);  // [3, 6]
+        return generateParagraph(random.nextInt(4) + 3); // [3, 6]
     }
 
     /**
@@ -189,5 +238,9 @@ public final class LoremIpsumGenerator implements Generator<String> {
     /**
      * Controls what {@link #generate()} produces.
      */
-    public enum Mode {WORD, SENTENCE, PARAGRAPH}
+    public enum Mode {
+        WORD,
+        SENTENCE,
+        PARAGRAPH
+    }
 }

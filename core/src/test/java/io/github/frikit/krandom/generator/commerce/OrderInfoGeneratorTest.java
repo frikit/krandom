@@ -5,20 +5,19 @@
  */
 package io.github.frikit.krandom.generator.commerce;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.math.BigDecimal;
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
+import java.math.BigDecimal;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("OrderInfoGenerator")
 class OrderInfoGeneratorTest {
@@ -35,9 +34,19 @@ class OrderInfoGeneratorTest {
         assertFalse(info.currencyCode().isBlank());
         assertTrue(info.quantity() > 0);
         assertTrue(info.unitPrice().compareTo(BigDecimal.ZERO) >= 0);
-        assertEquals(0, info.subtotal().compareTo(
-            info.unitPrice().multiply(BigDecimal.valueOf(info.quantity())).setScale(2)));
-        assertEquals(0, info.total().compareTo(info.subtotal().add(info.shipping()).add(info.tax()).setScale(2)));
+        assertEquals(
+                0,
+                info.subtotal()
+                        .compareTo(info.unitPrice()
+                                .multiply(BigDecimal.valueOf(info.quantity()))
+                                .setScale(2)));
+        assertEquals(
+                0,
+                info.total()
+                        .compareTo(info.subtotal()
+                                .add(info.shipping())
+                                .add(info.tax())
+                                .setScale(2)));
         assertNotNull(info.customer());
         assertNotNull(info.product());
         assertEquals(info.customer().address(), info.shippingAddress());
@@ -48,10 +57,8 @@ class OrderInfoGeneratorTest {
     @Test
     @DisplayName("seeded generation is reproducible")
     void seededGeneration() {
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.GERMANY)
-                                                .seed(42L)
-                                                .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.GERMANY).seed(42L).build();
 
         OrderInfoGenerator one = new OrderInfoGenerator(config);
         OrderInfoGenerator two = new OrderInfoGenerator(config);
@@ -62,13 +69,10 @@ class OrderInfoGeneratorTest {
     @Test
     @DisplayName("independent shipping generator can override customer home address")
     void independentShippingAddress() {
-        GeneratorConfig orderConfig = GeneratorConfig.builder()
-                                                     .locale(Locale.US)
-                                                     .seed(42L)
-                                                     .build();
+        GeneratorConfig orderConfig =
+                GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
         AddressInfoGenerator shippingAddressGenerator = new AddressInfoGenerator(
-            GeneratorConfig.builder().locale(Locale.CANADA).seed(42L).build()
-        );
+                GeneratorConfig.builder().locale(Locale.CANADA).seed(42L).build());
 
         OrderInfo info = new OrderInfoGenerator(orderConfig, shippingAddressGenerator).generate();
 
@@ -82,13 +86,13 @@ class OrderInfoGeneratorTest {
     void constructorValidation() {
         assertThrows(NullPointerException.class, () -> new OrderInfoGenerator((Locale) null));
         assertThrows(NullPointerException.class, () -> new OrderInfoGenerator((GeneratorConfig) null));
-        assertThrows(NullPointerException.class,
-                     () -> new OrderInfoGenerator(GeneratorConfig.defaults(), null));
+        assertThrows(NullPointerException.class, () -> new OrderInfoGenerator(GeneratorConfig.defaults(), null));
         assertEquals(Locale.US, new OrderInfoGenerator(Locale.US).getLocale());
         assertNotNull(Generators.ofOrderInfo().generate());
         assertNotNull(Generators.ofOrderInfo(Locale.US).generate());
         assertNotNull(Generators.ofOrderInfo(GeneratorConfig.defaults()).generate());
-        assertNotNull(Generators.ofOrderInfo(GeneratorConfig.defaults(),
-                                             new AddressInfoGenerator(GeneratorConfig.defaults())).generate());
+        assertNotNull(
+                Generators.ofOrderInfo(GeneratorConfig.defaults(), new AddressInfoGenerator(GeneratorConfig.defaults()))
+                        .generate());
     }
 }

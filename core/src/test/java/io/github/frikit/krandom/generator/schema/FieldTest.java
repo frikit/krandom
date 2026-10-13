@@ -5,23 +5,22 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.provider.ConflictPolicy;
-import io.github.frikit.krandom.generator.text.WordGenerator;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Random;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.provider.ConflictPolicy;
+import io.github.frikit.krandom.generator.text.WordGenerator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Field")
 class FieldTest {
@@ -31,16 +30,19 @@ class FieldTest {
     void constructors() {
         assertEquals(Locale.US, new Field().getConfig().getLocale());
         assertEquals(Locale.GERMANY, new Field(Locale.GERMANY).getConfig().getLocale());
-        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.FRANCE).seed(5L).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.FRANCE).seed(5L).build();
         assertEquals(Locale.FRANCE, new Field(config).getConfig().getLocale());
-        FieldLookup lookup = new FieldLookup(GeneratorConfig.builder().locale(Locale.CANADA).build());
+        FieldLookup lookup =
+                new FieldLookup(GeneratorConfig.builder().locale(Locale.CANADA).build());
         assertEquals(Locale.CANADA, new Field(lookup).getConfig().getLocale());
     }
 
     @Test
     @DisplayName("bind and call resolve references")
     void bindAndCall() {
-        Field field = new Field(GeneratorConfig.builder().seed(10L).locale(Locale.US).build());
+        Field field =
+                new Field(GeneratorConfig.builder().seed(10L).locale(Locale.US).build());
         SchemaContext ctx = new SchemaContext(Locale.US, new Random(2L), 0);
         assertNotNull(field.bind("person.full_name").generate(ctx));
         assertNotNull(field.call("internet.url").generate(ctx));
@@ -73,13 +75,15 @@ class FieldTest {
     void customRegistrationIsFluent() {
         Field field = new Field();
         field.register("custom.order_id", ctx -> "ORD-" + ctx.recordIndex())
-            .registerAlias("custom.order", "custom.order_id")
-            .registerProvider("text.word.provider", WordGenerator::new, WordGenerator.class, WordGenerator::generateWord)
-            .registerProvider("custom.counter",
-                              CountingProvider::new,
-                              CountingProvider.class,
-                              CountingProvider::next,
-                              Map.of("type", "string"));
+                .registerAlias("custom.order", "custom.order_id")
+                .registerProvider(
+                        "text.word.provider", WordGenerator::new, WordGenerator.class, WordGenerator::generateWord)
+                .registerProvider(
+                        "custom.counter",
+                        CountingProvider::new,
+                        CountingProvider.class,
+                        CountingProvider::next,
+                        Map.of("type", "string"));
 
         SchemaContext ctx = new SchemaContext(Locale.US, new Random(1L), 9);
         assertEquals("ORD-9", field.bind("custom.order").generate(ctx));
@@ -92,16 +96,21 @@ class FieldTest {
     void explicitConflictPolicyOverloadsStayFluent() {
         Field field = new Field();
         field.register("custom.code", ctx -> "A")
-            .register("custom.code", ctx -> "B", ConflictPolicy.REPLACE)
-            .registerProvider("text.word.policy", WordGenerator::new, WordGenerator.class, WordGenerator::generateWord,
-                              ConflictPolicy.REPLACE)
-            .registerProvider("custom.counter.policy",
-                              CountingProvider::new,
-                              CountingProvider.class,
-                              CountingProvider::next,
-                              Map.of("type", "string"),
-                              ConflictPolicy.REPLACE)
-            .registerAlias("custom.code.alias", "custom.code", ConflictPolicy.REPLACE);
+                .register("custom.code", ctx -> "B", ConflictPolicy.REPLACE)
+                .registerProvider(
+                        "text.word.policy",
+                        WordGenerator::new,
+                        WordGenerator.class,
+                        WordGenerator::generateWord,
+                        ConflictPolicy.REPLACE)
+                .registerProvider(
+                        "custom.counter.policy",
+                        CountingProvider::new,
+                        CountingProvider.class,
+                        CountingProvider::next,
+                        Map.of("type", "string"),
+                        ConflictPolicy.REPLACE)
+                .registerAlias("custom.code.alias", "custom.code", ConflictPolicy.REPLACE);
 
         SchemaContext ctx = new SchemaContext(Locale.US, new Random(1L), 0);
         assertEquals("B", field.bind("custom.code.alias").generate(ctx));
@@ -124,7 +133,8 @@ class FieldTest {
         boolean sawMax = false;
         for (int i = 0; i < 80; i++) {
             @SuppressWarnings("unchecked")
-            List<Object> ranged = (List<Object>) field.list(field.constant("x"), 1, 3).generate(ctx);
+            List<Object> ranged =
+                    (List<Object>) field.list(field.constant("x"), 1, 3).generate(ctx);
             sawMin |= ranged.size() == 1;
             sawMax |= ranged.size() == 3;
         }
@@ -169,8 +179,9 @@ class FieldTest {
         assertThrows(NullPointerException.class, () -> field.nested(nullProvider));
 
         assertThrows(IllegalArgumentException.class, () -> field.register("person.full_name", ctx -> "x"));
-        assertThrows(IllegalArgumentException.class,
-                     () -> field.registerAlias("text.word", "person.full_name", ConflictPolicy.REPLACE));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> field.registerAlias("text.word", "person.full_name", ConflictPolicy.REPLACE));
     }
 
     private static final class CountingProvider {

@@ -5,26 +5,25 @@
  */
 package io.github.frikit.krandom.generator.finance;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("BankInfoGenerator")
 class BankInfoGeneratorTest {
 
     private static GeneratorConfig usConfig() {
         return GeneratorConfig.builder()
-                              .locale(Locale.US)
-                              .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                              .build();
+                .locale(Locale.US)
+                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
     }
 
     @Test
@@ -46,10 +45,10 @@ class BankInfoGeneratorTest {
     @DisplayName("seeded generation is reproducible")
     void seededGeneration() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.GERMANY)
-                                                .seed(42L)
-                                                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                .build();
+                .locale(Locale.GERMANY)
+                .seed(42L)
+                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
 
         BankInfoGenerator one = new BankInfoGenerator(config);
         BankInfoGenerator two = new BankInfoGenerator(config);
@@ -63,12 +62,16 @@ class BankInfoGeneratorTest {
         assertThrows(NullPointerException.class, () -> new BankInfoGenerator((GeneratorConfig) null));
         assertEquals(Locale.US, new BankInfoGenerator(usConfig()).getLocale());
         assertThrows(IllegalStateException.class, () -> Generators.ofBankInfo().generate());
-        assertThrows(IllegalStateException.class, () -> Generators.ofBankInfo(Locale.US).generate());
-        assertThrows(IllegalStateException.class, () -> Generators.ofBankInfo(GeneratorConfig.defaults()).generate());
+        assertThrows(
+                IllegalStateException.class,
+                () -> Generators.ofBankInfo(Locale.US).generate());
+        assertThrows(
+                IllegalStateException.class,
+                () -> Generators.ofBankInfo(GeneratorConfig.defaults()).generate());
         assertNotNull(Generators.ofBankInfo(GeneratorConfig.builder()
-                                                              .bankingSafetyPolicy(
-                                                                  BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                              .build()).generate());
+                        .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                        .build())
+                .generate());
     }
 
     private static boolean isValidAba(String value) {

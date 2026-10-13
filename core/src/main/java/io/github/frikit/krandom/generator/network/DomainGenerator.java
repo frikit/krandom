@@ -5,15 +5,12 @@
  */
 package io.github.frikit.krandom.generator.network;
 
-import org.jspecify.annotations.Nullable;
-
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Generates realistic domain names with customizable TLDs (Top-Level Domains).
@@ -71,20 +68,50 @@ import java.util.Random;
 public final class DomainGenerator implements Generator<String> {
 
     private static final String[] POPULAR_TLDS = {
-        "com", "net", "org", "io", "co", "dev", "app",
-        "tech", "online", "site", "xyz", "pro"
+        "com", "net", "org", "io", "co", "dev", "app", "tech", "online", "site", "xyz", "pro"
     };
 
     private static final String[] DOMAIN_WORDS = {
-        "tech", "data", "cloud", "digital", "web", "net", "info", "media",
-        "global", "world", "smart", "quick", "easy", "fast", "modern",
-        "secure", "prime", "apex", "vertex", "nexus", "core", "central",
-        "hub", "link", "connect", "sync", "flow", "stream", "wave",
-        "code", "dev", "build", "maker", "labs", "works", "solutions"
+        "tech",
+        "data",
+        "cloud",
+        "digital",
+        "web",
+        "net",
+        "info",
+        "media",
+        "global",
+        "world",
+        "smart",
+        "quick",
+        "easy",
+        "fast",
+        "modern",
+        "secure",
+        "prime",
+        "apex",
+        "vertex",
+        "nexus",
+        "core",
+        "central",
+        "hub",
+        "link",
+        "connect",
+        "sync",
+        "flow",
+        "stream",
+        "wave",
+        "code",
+        "dev",
+        "build",
+        "maker",
+        "labs",
+        "works",
+        "solutions"
     };
 
     private final GeneratorConfig config;
-    private final Random          random;
+    private final Random random;
     private final @Nullable String localeTLD;
 
     /**

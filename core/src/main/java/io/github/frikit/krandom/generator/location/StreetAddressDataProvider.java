@@ -32,4 +32,3 @@ public interface StreetAddressDataProvider {
      */
     String[] getStreetTypesLong();
 }
-

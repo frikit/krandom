@@ -6,10 +6,9 @@
 package io.github.frikit.krandom.generator.provider;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -25,14 +24,14 @@ import java.util.function.BiFunction;
  */
 public final class ProviderSchemaProjection<T> {
 
-    private final String                        reference;
-    private final List<String>                  aliases;
+    private final String reference;
+    private final List<String> aliases;
     private final BiFunction<? super T, GeneratorConfig, ?> extractor;
-    private final boolean                       integer;
+    private final boolean integer;
     private final @org.jspecify.annotations.Nullable String format;
     private final @org.jspecify.annotations.Nullable Class<?> recordType;
-    private final Set<String>                   nullableComponents;
-    private final ProviderSafetyMetadata        safetyMetadata;
+    private final Set<String> nullableComponents;
+    private final ProviderSafetyMetadata safetyMetadata;
 
     /**
      * Creates a string-shaped schema projection builder.
@@ -42,45 +41,46 @@ public final class ProviderSchemaProjection<T> {
      * @param <T> provider implementation type
      * @return projection builder
      */
-    public static <T> Builder<T> builder(
-        String reference,
-        BiFunction<? super T, GeneratorConfig, ?> extractor) {
+    public static <T> Builder<T> builder(String reference, BiFunction<? super T, GeneratorConfig, ?> extractor) {
         return new Builder<>(reference, extractor);
     }
 
-    ProviderSchemaProjection(String reference,
-                             List<String> aliases,
-                             BiFunction<? super T, GeneratorConfig, ?> extractor,
-                             boolean integer,
-                             @org.jspecify.annotations.Nullable String format,
-                             @org.jspecify.annotations.Nullable Class<?> recordType,
-                             Set<String> nullableComponents) {
-        this(reference,
-             aliases,
-             extractor,
-             integer,
-             format,
-             recordType,
-             nullableComponents,
-             ProviderSafetyMetadata.unclassified());
+    ProviderSchemaProjection(
+            String reference,
+            List<String> aliases,
+            BiFunction<? super T, GeneratorConfig, ?> extractor,
+            boolean integer,
+            @org.jspecify.annotations.Nullable String format,
+            @org.jspecify.annotations.Nullable Class<?> recordType,
+            Set<String> nullableComponents) {
+        this(
+                reference,
+                aliases,
+                extractor,
+                integer,
+                format,
+                recordType,
+                nullableComponents,
+                ProviderSafetyMetadata.unclassified());
     }
 
-    ProviderSchemaProjection(String reference,
-                             List<String> aliases,
-                             BiFunction<? super T, GeneratorConfig, ?> extractor,
-                             boolean integer,
-                             @org.jspecify.annotations.Nullable String format,
-                             @org.jspecify.annotations.Nullable Class<?> recordType,
-                             Set<String> nullableComponents,
-                             ProviderSafetyMetadata safetyMetadata) {
+    ProviderSchemaProjection(
+            String reference,
+            List<String> aliases,
+            BiFunction<? super T, GeneratorConfig, ?> extractor,
+            boolean integer,
+            @org.jspecify.annotations.Nullable String format,
+            @org.jspecify.annotations.Nullable Class<?> recordType,
+            Set<String> nullableComponents,
+            ProviderSafetyMetadata safetyMetadata) {
         this.reference = Objects.requireNonNull(reference, "reference must not be null");
         this.aliases = List.copyOf(Objects.requireNonNull(aliases, "aliases must not be null"));
         this.extractor = Objects.requireNonNull(extractor, "extractor must not be null");
         this.integer = integer;
         this.format = format;
         this.recordType = recordType;
-        this.nullableComponents = Set.copyOf(
-            Objects.requireNonNull(nullableComponents, "nullableComponents must not be null"));
+        this.nullableComponents =
+                Set.copyOf(Objects.requireNonNull(nullableComponents, "nullableComponents must not be null"));
         this.safetyMetadata = Objects.requireNonNull(safetyMetadata, "safetyMetadata must not be null");
     }
 
@@ -159,14 +159,8 @@ public final class ProviderSchemaProjection<T> {
     }
 
     ProviderSchemaProjection<T> withSafetyMetadata(ProviderSafetyMetadata metadata) {
-        return new ProviderSchemaProjection<>(reference,
-                                              aliases,
-                                              extractor,
-                                              integer,
-                                              format,
-                                              recordType,
-                                              nullableComponents,
-                                              metadata);
+        return new ProviderSchemaProjection<>(
+                reference, aliases, extractor, integer, format, recordType, nullableComponents, metadata);
     }
 
     /**
@@ -277,14 +271,8 @@ public final class ProviderSchemaProjection<T> {
             if (aliases.contains(reference)) {
                 throw new IllegalArgumentException("alias duplicates schema reference: " + reference);
             }
-            return new ProviderSchemaProjection<>(reference,
-                                                  aliases,
-                                                  extractor,
-                                                  integer,
-                                                  format,
-                                                  recordType,
-                                                  nullableComponents,
-                                                  safetyMetadata);
+            return new ProviderSchemaProjection<>(
+                    reference, aliases, extractor, integer, format, recordType, nullableComponents, safetyMetadata);
         }
 
         private static String requireName(String name, String value) {

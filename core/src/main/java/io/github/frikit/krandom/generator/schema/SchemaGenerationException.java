@@ -8,9 +8,8 @@ package io.github.frikit.krandom.generator.schema;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Exception thrown when schema field generation fails.
@@ -37,24 +36,35 @@ public final class SchemaGenerationException extends RuntimeException {
     }
 
     SchemaGenerationException(String field, int recordIndex, Throwable cause, @Nullable String replayRecipe) {
-        this(field, recordIndex, GenerationFailureCategory.SCHEMA_VALUE, GenerationOperation.GENERATE, cause, replayRecipe);
+        this(
+                field,
+                recordIndex,
+                GenerationFailureCategory.SCHEMA_VALUE,
+                GenerationOperation.GENERATE,
+                cause,
+                replayRecipe);
     }
 
-    SchemaGenerationException(String field,
-                              int recordIndex,
-                              GenerationFailureCategory category,
-                              GenerationOperation operation,
-                              Throwable cause) {
+    SchemaGenerationException(
+            String field,
+            int recordIndex,
+            GenerationFailureCategory category,
+            GenerationOperation operation,
+            Throwable cause) {
         this(field, recordIndex, category, operation, cause, null);
     }
 
-    SchemaGenerationException(String field,
-                              int recordIndex,
-                              GenerationFailureCategory category,
-                              GenerationOperation operation,
-                              Throwable cause,
-                              @Nullable String replayRecipe) {
-        this(new GenerationFailureContext(category, operation, field, null, null, -1, recordIndex), cause, replayRecipe);
+    SchemaGenerationException(
+            String field,
+            int recordIndex,
+            GenerationFailureCategory category,
+            GenerationOperation operation,
+            Throwable cause,
+            @Nullable String replayRecipe) {
+        this(
+                new GenerationFailureContext(category, operation, field, null, null, -1, recordIndex),
+                cause,
+                replayRecipe);
     }
 
     SchemaGenerationException(GenerationFailureContext context, Throwable cause) {
@@ -74,7 +84,7 @@ public final class SchemaGenerationException extends RuntimeException {
         } else if (context.operation() == GenerationOperation.READ) {
             // Record reads always carry the owner type in their context.
             message = "Failed to read schema record component '" + context.path() + "' from "
-                      + java.util.Objects.requireNonNull(context.ownerType()).getName();
+                    + java.util.Objects.requireNonNull(context.ownerType()).getName();
         } else {
             message = "Failed to generate field '" + context.path() + "' for record index " + context.recordIndex();
         }

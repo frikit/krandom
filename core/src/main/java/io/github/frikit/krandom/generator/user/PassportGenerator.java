@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Objects;
 import java.util.Random;
 
@@ -27,7 +26,6 @@ public final class PassportGenerator implements Generator<String> {
 
     private final Random random;
     private final IdentityDocumentSafetyPolicy safetyPolicy;
-
 
     /**
      * Creates a generator from explicit configuration (optional seed).

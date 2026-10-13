@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.location;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -70,52 +68,51 @@ import java.util.Random;
 public final class PhoneNumberGenerator implements Generator<String> {
 
     private static final Map<String, String> COUNTRY_CALLING_CODES = Map.ofEntries(
-        Map.entry("US", "+1"),
-        Map.entry("GB", "+44"),
-        Map.entry("AU", "+61"),
-        Map.entry("DE", "+49"),
-        Map.entry("FR", "+33"),
-        Map.entry("ES", "+34"),
-        Map.entry("IT", "+39"),
-        Map.entry("BR", "+55"),
-        Map.entry("JP", "+81"),
-        Map.entry("CN", "+86"),
-        Map.entry("NL", "+31"),
-        Map.entry("PL", "+48"),
-        Map.entry("RU", "+7"),
-        Map.entry("KR", "+82"),
-        Map.entry("TR", "+90"),
-        Map.entry("SE", "+46"),
-        Map.entry("NO", "+47"),
-        Map.entry("CZ", "+420"),
-        Map.entry("SA", "+966"),
-        Map.entry("IN", "+91"),
-        Map.entry("DK", "+45"),
-        Map.entry("FI", "+358"),
-        Map.entry("HU", "+36"),
-        Map.entry("RO", "+40"),
-        Map.entry("SK", "+421"),
-        Map.entry("UA", "+380"),
-        Map.entry("BG", "+359"),
-        Map.entry("HR", "+385"),
-        Map.entry("GR", "+30"),
-        Map.entry("TH", "+66"),
-        Map.entry("VN", "+84"),
-        Map.entry("ID", "+62"),
-        Map.entry("MY", "+60"),
-        Map.entry("IL", "+972"),
-        Map.entry("CA", "+1"),
-        Map.entry("NZ", "+64"),
-        Map.entry("IE", "+353"),
-        Map.entry("ZA", "+27"),
-        Map.entry("BE", "+32"),
-        Map.entry("CH", "+41"),
-        Map.entry("AT", "+43"),
-        Map.entry("MX", "+52"),
-        Map.entry("AR", "+54"),
-        Map.entry("PT", "+351"),
-        Map.entry("TW", "+886")
-    );
+            Map.entry("US", "+1"),
+            Map.entry("GB", "+44"),
+            Map.entry("AU", "+61"),
+            Map.entry("DE", "+49"),
+            Map.entry("FR", "+33"),
+            Map.entry("ES", "+34"),
+            Map.entry("IT", "+39"),
+            Map.entry("BR", "+55"),
+            Map.entry("JP", "+81"),
+            Map.entry("CN", "+86"),
+            Map.entry("NL", "+31"),
+            Map.entry("PL", "+48"),
+            Map.entry("RU", "+7"),
+            Map.entry("KR", "+82"),
+            Map.entry("TR", "+90"),
+            Map.entry("SE", "+46"),
+            Map.entry("NO", "+47"),
+            Map.entry("CZ", "+420"),
+            Map.entry("SA", "+966"),
+            Map.entry("IN", "+91"),
+            Map.entry("DK", "+45"),
+            Map.entry("FI", "+358"),
+            Map.entry("HU", "+36"),
+            Map.entry("RO", "+40"),
+            Map.entry("SK", "+421"),
+            Map.entry("UA", "+380"),
+            Map.entry("BG", "+359"),
+            Map.entry("HR", "+385"),
+            Map.entry("GR", "+30"),
+            Map.entry("TH", "+66"),
+            Map.entry("VN", "+84"),
+            Map.entry("ID", "+62"),
+            Map.entry("MY", "+60"),
+            Map.entry("IL", "+972"),
+            Map.entry("CA", "+1"),
+            Map.entry("NZ", "+64"),
+            Map.entry("IE", "+353"),
+            Map.entry("ZA", "+27"),
+            Map.entry("BE", "+32"),
+            Map.entry("CH", "+41"),
+            Map.entry("AT", "+43"),
+            Map.entry("MX", "+52"),
+            Map.entry("AR", "+54"),
+            Map.entry("PT", "+351"),
+            Map.entry("TW", "+886"));
 
     private static final int NANPA_FICTITIOUS_EXCHANGE = 555;
     private static final int NANPA_FICTITIOUS_LINE_START = 100;
@@ -154,23 +151,20 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
     // UK area codes for landlines
     private static final String[] UK_LANDLINE_CODES = {
-        "020", "0121", "0131", "0141", "0151", "0161", "0191", "01202", "01223", "01224",
-        "01225", "01226", "01233", "01234", "01235", "01236", "01237", "01256", "01268",
-        "01270", "01273", "01274", "01275", "01276", "01277", "01278", "01279", "01284",
-        "01293", "01302", "01303", "01305", "01306", "01307", "01308", "01322", "01325",
+        "020", "0121", "0131", "0141", "0151", "0161", "0191", "01202", "01223", "01224", "01225", "01226", "01233",
+        "01234", "01235", "01236", "01237", "01256", "01268", "01270", "01273", "01274", "01275", "01276", "01277",
+        "01278", "01279", "01284", "01293", "01302", "01303", "01305", "01306", "01307", "01308", "01322", "01325",
         "01326", "01332", "01333", "01334", "01335", "01342", "01344", "01352", "01353"
     };
 
     // UK mobile prefixes
     private static final String[] UK_MOBILE_PREFIXES = {
-        "07400", "07401", "07402", "07500", "07501", "07502", "07700", "07701", "07702",
-        "07800", "07801", "07802", "07900", "07901", "07902"
+        "07400", "07401", "07402", "07500", "07501", "07502", "07700", "07701", "07702", "07800", "07801", "07802",
+        "07900", "07901", "07902"
     };
 
     // Australian area codes (landline)
-    private static final String[] AU_LANDLINE_CODES = {
-        "02", "03", "07", "08"
-    };
+    private static final String[] AU_LANDLINE_CODES = {"02", "03", "07", "08"};
 
     // Australian mobile prefixes
     private static final String[] AU_MOBILE_PREFIXES = {
@@ -193,24 +187,18 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
     // German mobile prefixes
     private static final String[] DE_MOBILE_PREFIXES = {
-        "0150", "0151", "0152", "0157", "0159", "0160", "0162", "0163", "0170", "0171",
-        "0172", "0173", "0174", "0175", "0176", "0177", "0178", "0179"
+        "0150", "0151", "0152", "0157", "0159", "0160", "0162", "0163", "0170", "0171", "0172", "0173", "0174", "0175",
+        "0176", "0177", "0178", "0179"
     };
 
     // French area codes (landline)
-    private static final String[] FR_LANDLINE_PREFIXES = {
-        "01", "02", "03", "04", "05"
-    };
+    private static final String[] FR_LANDLINE_PREFIXES = {"01", "02", "03", "04", "05"};
 
     // French mobile prefixes
-    private static final String[] FR_MOBILE_PREFIXES = {
-        "06", "07"
-    };
+    private static final String[] FR_MOBILE_PREFIXES = {"06", "07"};
 
     // Spanish area codes (landline)
-    private static final String[] ES_LANDLINE_CODES = {
-        "91", "93", "95", "96", "94", "92", "98", "97"
-    };
+    private static final String[] ES_LANDLINE_CODES = {"91", "93", "95", "96", "94", "92", "98", "97"};
 
     // Spanish mobile prefixes
     private static final String[] ES_MOBILE_PREFIXES = {
@@ -255,14 +243,12 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
     // Japanese area codes (landline)
     private static final String[] JP_LANDLINE_CODES = {
-        "03", "04", "06", "011", "022", "043", "044", "045", "048", "052", "058",
-        "072", "075", "082", "092", "096", "098"
+        "03", "04", "06", "011", "022", "043", "044", "045", "048", "052", "058", "072", "075", "082", "092", "096",
+        "098"
     };
 
     // Japanese mobile prefixes
-    private static final String[] JP_MOBILE_PREFIXES = {
-        "070", "080", "090"
-    };
+    private static final String[] JP_MOBILE_PREFIXES = {"070", "080", "090"};
 
     // Chinese area codes (landline)
     private static final String[] CN_LANDLINE_CODES = {
@@ -284,9 +270,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
         "071", "072", "073", "074", "075", "076", "077", "078", "079"
     };
 
-    private static final String[] NL_MOBILE_PREFIXES = {
-        "061", "062", "063", "064", "065", "066", "068"
-    };
+    private static final String[] NL_MOBILE_PREFIXES = {"061", "062", "063", "064", "065", "066", "068"};
 
     private static final String[] PL_LANDLINE_CODES = {
         "12", "17", "22", "29", "32", "42", "52", "58", "61", "71", "81", "91"
@@ -312,31 +296,26 @@ public final class PhoneNumberGenerator implements Generator<String> {
     };
 
     private static final String[] KR_LANDLINE_CODES = {
-        "02", "031", "032", "033", "041", "042", "043", "044",
-        "051", "052", "053", "054", "055", "061", "062", "063", "064"
+        "02", "031", "032", "033", "041", "042", "043", "044", "051", "052", "053", "054", "055", "061", "062", "063",
+        "064"
     };
 
-    private static final String[] KR_MOBILE_PREFIXES = {
-        "010", "011", "016", "017", "018", "019"
-    };
+    private static final String[] KR_MOBILE_PREFIXES = {"010", "011", "016", "017", "018", "019"};
 
     private static final String[] TR_LANDLINE_CODES = {
         "0212", "0216", "0224", "0232", "0242", "0258", "0312", "0322", "0352", "0388"
     };
 
     private static final String[] TR_MOBILE_PREFIXES = {
-        "0505", "0530", "0531", "0532", "0533", "0534", "0541", "0542", "0543", "0544",
-        "0551", "0552", "0553", "0554"
+        "0505", "0530", "0531", "0532", "0533", "0534", "0541", "0542", "0543", "0544", "0551", "0552", "0553", "0554"
     };
 
     private static final String[] SE_LANDLINE_CODES = {
-        "08", "010", "011", "013", "018", "019", "021", "023", "026", "031",
-        "033", "036", "040", "042", "046", "054", "060", "063", "090"
+        "08", "010", "011", "013", "018", "019", "021", "023", "026", "031", "033", "036", "040", "042", "046", "054",
+        "060", "063", "090"
     };
 
-    private static final String[] SE_MOBILE_PREFIXES = {
-        "070", "072", "073", "076", "079"
-    };
+    private static final String[] SE_MOBILE_PREFIXES = {"070", "072", "073", "076", "079"};
 
     private static final String[] NO_LANDLINE_CODES = {
         "21", "22", "23", "24", "32", "33", "35", "37", "38", "51",
@@ -357,9 +336,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
         "984", "985", "986", "987", "988", "989"
     };
 
-    private static final String[] CZ_LANDLINE_PREFIXES = {
-        "2", "3", "4", "5"
-    };
+    private static final String[] CZ_LANDLINE_PREFIXES = {"2", "3", "4", "5"};
 
     private static final String[] CZ_MOBILE_PREFIXES = {
         "601", "602", "603", "604", "605", "606", "607", "608", "702", "720",
@@ -367,22 +344,18 @@ public final class PhoneNumberGenerator implements Generator<String> {
         "731", "732", "733", "734", "735", "736", "737", "739"
     };
 
-    private static final String[] SA_LANDLINE_CODES = {
-        "011", "012", "013", "014", "016", "017"
-    };
+    private static final String[] SA_LANDLINE_CODES = {"011", "012", "013", "014", "016", "017"};
 
-    private static final String[] SA_MOBILE_PREFIXES = {
-        "050", "053", "054", "055", "056", "057", "058", "059"
-    };
+    private static final String[] SA_MOBILE_PREFIXES = {"050", "053", "054", "055", "056", "057", "058", "059"};
 
     private static final String[] IN_LANDLINE_CODES = {
         "011", "020", "022", "033", "040", "044", "0471", "0484", "079", "080"
     };
 
     private final GeneratorConfig config;
-    private final Random          random;
-    private final Locale          locale;
-    private final String          country;
+    private final Random random;
+    private final Locale locale;
+    private final String country;
 
     /**
      * Creates a generator using US locale with default config.
@@ -395,7 +368,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
      * Creates a generator using the given config.
      *
      * @param config the generator configuration; must not be {@code null}
-      * @throws NullPointerException if {@code config} is {@code null}
+     * @throws NullPointerException if {@code config} is {@code null}
      */
     public PhoneNumberGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
@@ -411,9 +384,9 @@ public final class PhoneNumberGenerator implements Generator<String> {
      * @throws NullPointerException if {@code locale} is {@code null}
      */
     public PhoneNumberGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(
-            Objects.requireNonNull(locale, "locale must not be null")
-        ).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -497,8 +470,9 @@ public final class PhoneNumberGenerator implements Generator<String> {
             case "CZ" -> generateCzechPhone(formatted, mobile);
             case "SA" -> generateSaudiPhone(formatted, mobile);
             case "IN" -> generateIndianPhone(formatted, mobile);
-            default -> Objects.requireNonNull(PhoneNumberLayouts.forCountry(country), country)
-                              .generate(random, formatted, mobile);
+            default ->
+                Objects.requireNonNull(PhoneNumberLayouts.forCountry(country), country)
+                        .generate(random, formatted, mobile);
         };
     }
 
@@ -583,12 +557,10 @@ public final class PhoneNumberGenerator implements Generator<String> {
     private String generateNanpPhone(boolean formatted, int[] areaCodes) {
         int areaCode = areaCodes[random.nextInt(areaCodes.length)];
         boolean fictionalNanpaRange = usesFictionalNANPARange();
-        int exchange = fictionalNanpaRange
-            ? NANPA_FICTITIOUS_EXCHANGE
-            : 200 + random.nextInt(800);
+        int exchange = fictionalNanpaRange ? NANPA_FICTITIOUS_EXCHANGE : 200 + random.nextInt(800);
         int number = fictionalNanpaRange
-            ? NANPA_FICTITIOUS_LINE_START + random.nextInt(NANPA_FICTITIOUS_LINE_COUNT)
-            : random.nextInt(10000);
+                ? NANPA_FICTITIOUS_LINE_START + random.nextInt(NANPA_FICTITIOUS_LINE_COUNT)
+                : random.nextInt(10000);
 
         if (formatted) {
             // Randomly choose between two common NANP formats
@@ -612,8 +584,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
             return prefix + String.format(Locale.ROOT, "%06d", number);
         } else {
             String areaCode = UK_LANDLINE_CODES[random.nextInt(UK_LANDLINE_CODES.length)];
-            int numberLength = areaCode.equals("020") ? 8 :
-                               (areaCode.length() == 5 ? 6 : 7);
+            int numberLength = areaCode.equals("020") ? 8 : (areaCode.length() == 5 ? 6 : 7);
             int maxNumber = (int) Math.pow(10, numberLength);
             int number = random.nextInt(maxNumber);
 
@@ -854,8 +825,8 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
     private String generateRussianPhone(boolean formatted, boolean mobile) {
         String prefix = mobile
-                        ? RU_MOBILE_PREFIXES[random.nextInt(RU_MOBILE_PREFIXES.length)]
-                        : RU_LANDLINE_CODES[random.nextInt(RU_LANDLINE_CODES.length)];
+                ? RU_MOBILE_PREFIXES[random.nextInt(RU_MOBILE_PREFIXES.length)]
+                : RU_LANDLINE_CODES[random.nextInt(RU_LANDLINE_CODES.length)];
         String suffix = digits(7);
         if (formatted) {
             return prefix + " " + suffix.substring(0, 3) + "-" + suffix.substring(3, 5) + "-" + suffix.substring(5);
@@ -865,8 +836,8 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
     private String generateKoreanPhone(boolean formatted, boolean mobile) {
         String prefix = mobile
-                        ? KR_MOBILE_PREFIXES[random.nextInt(KR_MOBILE_PREFIXES.length)]
-                        : KR_LANDLINE_CODES[random.nextInt(KR_LANDLINE_CODES.length)];
+                ? KR_MOBILE_PREFIXES[random.nextInt(KR_MOBILE_PREFIXES.length)]
+                : KR_LANDLINE_CODES[random.nextInt(KR_LANDLINE_CODES.length)];
         String suffix = digits(8);
         if (formatted) {
             return prefix + "-" + suffix.substring(0, 4) + "-" + suffix.substring(4);
@@ -876,8 +847,8 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
     private String generateTurkishPhone(boolean formatted, boolean mobile) {
         String prefix = mobile
-                        ? TR_MOBILE_PREFIXES[random.nextInt(TR_MOBILE_PREFIXES.length)]
-                        : TR_LANDLINE_CODES[random.nextInt(TR_LANDLINE_CODES.length)];
+                ? TR_MOBILE_PREFIXES[random.nextInt(TR_MOBILE_PREFIXES.length)]
+                : TR_LANDLINE_CODES[random.nextInt(TR_LANDLINE_CODES.length)];
         String suffix = digits(7);
         if (formatted) {
             return prefix + " " + suffix.substring(0, 3) + " " + suffix.substring(3, 5) + " " + suffix.substring(5);
@@ -887,8 +858,8 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
     private String generateSwedishPhone(boolean formatted, boolean mobile) {
         String prefix = mobile
-                        ? SE_MOBILE_PREFIXES[random.nextInt(SE_MOBILE_PREFIXES.length)]
-                        : SE_LANDLINE_CODES[random.nextInt(SE_LANDLINE_CODES.length)];
+                ? SE_MOBILE_PREFIXES[random.nextInt(SE_MOBILE_PREFIXES.length)]
+                : SE_LANDLINE_CODES[random.nextInt(SE_LANDLINE_CODES.length)];
         String suffix = digits(7);
         if (formatted) {
             return prefix + "-" + suffix.substring(0, 3) + " " + suffix.substring(3, 5) + " " + suffix.substring(5);
@@ -898,8 +869,8 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
     private String generateNorwegianPhone(boolean formatted, boolean mobile) {
         String prefix = mobile
-                        ? NO_MOBILE_PREFIXES[random.nextInt(NO_MOBILE_PREFIXES.length)]
-                        : NO_LANDLINE_CODES[random.nextInt(NO_LANDLINE_CODES.length)];
+                ? NO_MOBILE_PREFIXES[random.nextInt(NO_MOBILE_PREFIXES.length)]
+                : NO_LANDLINE_CODES[random.nextInt(NO_LANDLINE_CODES.length)];
         String suffix = mobile ? digits(5) : digits(6);
         if (formatted) {
             if (mobile) {
@@ -912,8 +883,8 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
     private String generateCzechPhone(boolean formatted, boolean mobile) {
         String prefix = mobile
-                        ? CZ_MOBILE_PREFIXES[random.nextInt(CZ_MOBILE_PREFIXES.length)]
-                        : CZ_LANDLINE_PREFIXES[random.nextInt(CZ_LANDLINE_PREFIXES.length)] + digits(2);
+                ? CZ_MOBILE_PREFIXES[random.nextInt(CZ_MOBILE_PREFIXES.length)]
+                : CZ_LANDLINE_PREFIXES[random.nextInt(CZ_LANDLINE_PREFIXES.length)] + digits(2);
         String suffix = digits(6);
         if (formatted) {
             return prefix + " " + suffix.substring(0, 3) + " " + suffix.substring(3);
@@ -923,8 +894,8 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
     private String generateSaudiPhone(boolean formatted, boolean mobile) {
         String prefix = mobile
-                        ? SA_MOBILE_PREFIXES[random.nextInt(SA_MOBILE_PREFIXES.length)]
-                        : SA_LANDLINE_CODES[random.nextInt(SA_LANDLINE_CODES.length)];
+                ? SA_MOBILE_PREFIXES[random.nextInt(SA_MOBILE_PREFIXES.length)]
+                : SA_LANDLINE_CODES[random.nextInt(SA_LANDLINE_CODES.length)];
         String suffix = digits(7);
         if (formatted) {
             return prefix + " " + suffix.substring(0, 3) + " " + suffix.substring(3);

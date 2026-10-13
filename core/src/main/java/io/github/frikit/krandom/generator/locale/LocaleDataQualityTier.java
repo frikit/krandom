@@ -9,7 +9,6 @@ package io.github.frikit.krandom.generator.locale;
  * Declares the quality tier of a built-in locale dataset.
  */
 public enum LocaleDataQualityTier {
-
     NATIVE_DATASET(0),
     CURATED_FALLBACK_DATASET(1),
     ALIAS_FALLBACK_DATASET(2);

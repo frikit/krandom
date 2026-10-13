@@ -13,7 +13,6 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-
 import java.math.BigDecimal;
 
 /**
@@ -21,28 +20,19 @@ import java.math.BigDecimal;
  */
 public class PersonWithConstraints {
 
-    @Size(min = 3, max = 10)
-    String username;
+    @Size(min = 3, max = 10) String username;
 
-    @Min(18)
-    @Max(120)
-    int age;
+    @Min(18) @Max(120) int age;
 
-    @Email
-    String email;
+    @Email String email;
 
-    @Pattern(regexp = "\\d{5}")
-    String zipCode;
+    @Pattern(regexp = "\\d{5}") String zipCode;
 
-    @Positive
-    long salary;
+    @Positive long salary;
 
-    @DecimalMin("0.01")
-    @DecimalMax("9.99")
-    BigDecimal price;
+    @DecimalMin("0.01") @DecimalMax("9.99") BigDecimal price;
 
-    public PersonWithConstraints() {
-    }
+    public PersonWithConstraints() {}
 
     public String getUsername() {
         return username;

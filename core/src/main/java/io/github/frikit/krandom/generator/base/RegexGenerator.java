@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -70,7 +69,7 @@ public final class RegexGenerator implements Generator<String> {
     private static final char[] NON_DIGITS;
     private static final char[] WORD_CHARS;
     private static final char[] NON_WORD_CHARS;
-    private static final char[] WHITESPACE = { ' ', '\t', '\n', '\r' };
+    private static final char[] WHITESPACE = {' ', '\t', '\n', '\r'};
     private static final char[] NON_WHITESPACE;
     private static final Map<String, SequenceNode> PARSED_PATTERNS = new ConcurrentHashMap<>();
 
@@ -119,8 +118,7 @@ public final class RegexGenerator implements Generator<String> {
     private final SequenceNode root;
 
     // ── Node sealed hierarchy ─────────────────────────────────────────────────
-    private final Random       random;
-
+    private final Random random;
 
     /**
      * Creates a regex generator using the default fast PRNG.
@@ -133,7 +131,6 @@ public final class RegexGenerator implements Generator<String> {
         this.random = new Random();
         this.root = parsePattern(pattern);
     }
-
 
     /**
      * Creates a regex generator whose randomness comes from the configuration, so a seeded
@@ -195,9 +192,7 @@ public final class RegexGenerator implements Generator<String> {
                 yield generateNode(chosen);
             }
             case QuantifierNode q -> {
-                int count = q.min() == q.max()
-                            ? q.min()
-                            : q.min() + random.nextInt(q.max() - q.min() + 1);
+                int count = q.min() == q.max() ? q.min() : q.min() + random.nextInt(q.max() - q.min() + 1);
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < count; i++) sb.append(generateNode(q.child()));
                 yield sb.toString();
@@ -207,47 +202,28 @@ public final class RegexGenerator implements Generator<String> {
 
     // ── Fields ────────────────────────────────────────────────────────────────
 
-    private sealed interface Node
-        permits LiteralNode, CharClassNode, SequenceNode, AlternationNode, QuantifierNode {
+    private sealed interface Node permits LiteralNode, CharClassNode, SequenceNode, AlternationNode, QuantifierNode {}
 
-    }
-
-
-    private record LiteralNode(char c) implements Node {
-
-    }
+    private record LiteralNode(char c) implements Node {}
 
     // ── Constructors ──────────────────────────────────────────────────────────
 
+    private record CharClassNode(char[] pool) implements Node {}
 
-    private record CharClassNode(char[] pool) implements Node {
-
-    }
-
-
-    private record SequenceNode(List<Node> nodes) implements Node {
-
-    }
+    private record SequenceNode(List<Node> nodes) implements Node {}
 
     // ── Generator<String> ─────────────────────────────────────────────────────
-
 
     /**
      * Picks one of several alternative sequences at random.
      */
-    private record AlternationNode(List<SequenceNode> alts) implements Node {
-
-    }
+    private record AlternationNode(List<SequenceNode> alts) implements Node {}
 
     // ── Generation helpers ────────────────────────────────────────────────────
 
-
-    private record QuantifierNode(Node child, int min, int max) implements Node {
-
-    }
+    private record QuantifierNode(Node child, int min, int max) implements Node {}
 
     // ── Parser ────────────────────────────────────────────────────────────────
-
 
     /**
      * Recursive-descent parser that converts a pattern string into a node tree.
@@ -256,7 +232,7 @@ public final class RegexGenerator implements Generator<String> {
     private static final class Parser {
 
         private final String src;
-        private       int    pos = 0;
+        private int pos = 0;
 
         Parser(String src) {
             this.src = src;
@@ -269,8 +245,7 @@ public final class RegexGenerator implements Generator<String> {
             SequenceNode result = new SequenceNode(List.copyOf(parseSequence()));
             if (pos < src.length()) {
                 throw new IllegalArgumentException(
-                    "Unexpected character '" + src.charAt(pos) + "' at position " + pos
-                    + " in pattern: " + src);
+                        "Unexpected character '" + src.charAt(pos) + "' at position " + pos + " in pattern: " + src);
             }
             return result;
         }
@@ -282,9 +257,7 @@ public final class RegexGenerator implements Generator<String> {
          */
         private List<Node> parseSequence() {
             List<Node> nodes = new ArrayList<>();
-            while (pos < src.length()
-                   && src.charAt(pos) != '|'
-                   && src.charAt(pos) != ')') {
+            while (pos < src.length() && src.charAt(pos) != '|' && src.charAt(pos) != ')') {
                 Node atom = parseAtom();
                 if (atom != null) {
                     nodes.add(parseQuantifier(atom));
@@ -342,9 +315,7 @@ public final class RegexGenerator implements Generator<String> {
             List<Character> pool = new ArrayList<>();
             while (pos < src.length() && src.charAt(pos) != ']') {
                 char c1 = src.charAt(pos++);
-                if (pos + 1 < src.length()
-                    && src.charAt(pos) == '-'
-                    && src.charAt(pos + 1) != ']') {
+                if (pos + 1 < src.length() && src.charAt(pos) == '-' && src.charAt(pos + 1) != ']') {
                     pos++; // consume '-'
                     char c2 = src.charAt(pos++);
                     for (char c = c1; c <= c2; c++) pool.add(c);
@@ -417,8 +388,8 @@ public final class RegexGenerator implements Generator<String> {
                     if (pos < src.length() && src.charAt(pos) == ',') {
                         pos++; // consume ','
                         int max = pos < src.length() && src.charAt(pos) == '}'
-                                  ? 10  // {n,} — cap unbounded at 10
-                                  : parseNumber();
+                                ? 10 // {n,} — cap unbounded at 10
+                                : parseNumber();
                         if (pos < src.length() && src.charAt(pos) == '}') pos++;
                         yield new QuantifierNode(node, min, max);
                     } else {
@@ -434,17 +405,15 @@ public final class RegexGenerator implements Generator<String> {
             int start = pos;
             while (pos < src.length() && Character.isDigit(src.charAt(pos))) pos++;
             if (pos == start) {
-                throw new IllegalArgumentException(
-                    "Expected number at position " + pos + " in pattern: " + src);
+                throw new IllegalArgumentException("Expected number at position " + pos + " in pattern: " + src);
             }
             String digits = src.substring(start, pos);
             // Parse as long (and short-circuit absurdly long digit runs) so an over-large count is
             // rejected cleanly rather than overflowing int or exhausting memory during generation.
             long value = digits.length() > 18 ? Long.MAX_VALUE : Long.parseLong(digits);
             if (value > MAX_REPETITIONS) {
-                throw new IllegalArgumentException(
-                    "Quantifier repetition " + digits + " exceeds the maximum supported value "
-                    + MAX_REPETITIONS + " in pattern: " + src);
+                throw new IllegalArgumentException("Quantifier repetition " + digits
+                        + " exceeds the maximum supported value " + MAX_REPETITIONS + " in pattern: " + src);
             }
             return (int) value;
         }

@@ -29,10 +29,12 @@ public final class FiFiNationalIdProvider implements NationalIdProvider {
         LocalDate date = LocalDate.of(1950, 1, 1).plusDays(random.nextInt(18_262));
         // Former century-sign draw: still consumed so every other draw keeps its value.
         random.nextInt(2);
-        return String.format(Locale.ROOT, "%02d%02d%02d-%03d",
-                             date.getDayOfMonth(),
-                             date.getMonthValue(),
-                             date.getYear() % 100,
-                             random.nextInt(1000));
+        return String.format(
+                Locale.ROOT,
+                "%02d%02d%02d-%03d",
+                date.getDayOfMonth(),
+                date.getMonthValue(),
+                date.getYear() % 100,
+                random.nextInt(1000));
     }
 }

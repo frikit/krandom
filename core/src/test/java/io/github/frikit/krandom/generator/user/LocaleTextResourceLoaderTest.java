@@ -5,19 +5,18 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.nio.charset.StandardCharsets;
-
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("LocaleTextResourceLoader")
 class LocaleTextResourceLoaderTest {
@@ -63,13 +62,16 @@ class LocaleTextResourceLoaderTest {
     @Test
     @DisplayName("load throws for missing resource")
     void loadMissingFile() {
-        assertThrows(IllegalStateException.class, () -> LocaleTextResourceLoader.load("krandom/names/does_not_exist.txt"));
+        assertThrows(
+                IllegalStateException.class, () -> LocaleTextResourceLoader.load("krandom/names/does_not_exist.txt"));
     }
 
     @Test
     @DisplayName("load wraps IO failures")
     void loadIoFailure() {
-        assertThrows(IllegalStateException.class, () -> LocaleTextResourceLoader.load(closeFailingStream(), "broken-entries"));
+        assertThrows(
+                IllegalStateException.class,
+                () -> LocaleTextResourceLoader.load(closeFailingStream(), "broken-entries"));
     }
 
     @Test

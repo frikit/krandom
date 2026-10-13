@@ -5,26 +5,24 @@
  */
 package io.github.frikit.krandom.generator.tech;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("AzureGenerator")
 class AzureGeneratorTest {
 
     private static final Set<String> REGIONS = Set.of(
-        "eastus", "westus2", "westeurope", "northeurope",
-        "uksouth", "southeastasia", "japaneast", "australiaeast");
+            "eastus", "westus2", "westeurope", "northeurope", "uksouth", "southeastasia", "japaneast", "australiaeast");
 
     @RepeatedTest(200)
     @DisplayName("generate and region return known Azure regions")
@@ -55,7 +53,8 @@ class AzureGeneratorTest {
     @Test
     @DisplayName("resourceGroup reaches both its minimum and maximum body length over many draws")
     void resourceGroupLengthExtremes() {
-        AzureGenerator azure = new AzureGenerator(GeneratorConfig.builder().seed(42L).build());
+        AzureGenerator azure =
+                new AzureGenerator(GeneratorConfig.builder().seed(42L).build());
         int min = Integer.MAX_VALUE;
         int max = Integer.MIN_VALUE;
         for (int i = 0; i < 5000; i++) {
@@ -86,7 +85,7 @@ class AzureGeneratorTest {
     void facade() {
         assertTrue(REGIONS.contains(Generators.ofAzure().generate()));
         assertEquals(
-            Generators.ofAzure(GeneratorConfig.builder().seed(1L).build()).generateList(10),
-            Generators.ofAzure(GeneratorConfig.builder().seed(1L).build()).generateList(10));
+                Generators.ofAzure(GeneratorConfig.builder().seed(1L).build()).generateList(10),
+                Generators.ofAzure(GeneratorConfig.builder().seed(1L).build()).generateList(10));
     }
 }

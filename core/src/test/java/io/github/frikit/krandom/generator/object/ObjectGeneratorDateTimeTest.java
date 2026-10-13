@@ -5,13 +5,13 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.core.model.PersonWithDateTimes;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.core.model.PersonWithDateTimes;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectGenerator — JSR-310 and UUID auto-population")
 class ObjectGeneratorDateTimeTest {
@@ -35,8 +35,7 @@ class ObjectGeneratorDateTimeTest {
     void instantPopulated() {
         PersonWithDateTimes p = new ObjectGenerator<>(PersonWithDateTimes.class).generate();
         assertNotNull(p.getUpdatedAt(), "Instant field must not be null");
-        assertTrue(p.getUpdatedAt().getEpochSecond() >= 0,
-                   "Instant must have a non-negative epoch second");
+        assertTrue(p.getUpdatedAt().getEpochSecond() >= 0, "Instant must have a non-negative epoch second");
     }
 
     @Test

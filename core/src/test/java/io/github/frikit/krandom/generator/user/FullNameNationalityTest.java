@@ -5,16 +5,15 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * The {@code nationality} name option must resolve {@code "uk"} / {@code "UK"} to the United
@@ -35,7 +34,8 @@ class FullNameNationalityTest {
     @Test
     @DisplayName("\"uk\" and \"UK\" yield British names")
     void ukMeansUnitedKingdom() {
-        FullNameGenerator generator = new FullNameGenerator(GeneratorConfig.builder().seed(12L).build());
+        FullNameGenerator generator =
+                new FullNameGenerator(GeneratorConfig.builder().seed(12L).build());
         Set<String> british = firstNames(Locale.UK);
         Set<String> ukrainian = firstNames(Locale.of("uk", "UA"));
         for (String token : List.of("uk", "UK", "gb", "en_GB")) {
@@ -50,7 +50,8 @@ class FullNameNationalityTest {
     @Test
     @DisplayName("Ukrainian names remain reachable through unambiguous tokens")
     void ukrainianStillReachable() {
-        FullNameGenerator generator = new FullNameGenerator(GeneratorConfig.builder().seed(13L).build());
+        FullNameGenerator generator =
+                new FullNameGenerator(GeneratorConfig.builder().seed(13L).build());
         Set<String> ukrainian = firstNames(Locale.of("uk", "UA"));
         for (String token : List.of("uk_UA", "uk-UA", "UA", "UK_UA")) {
             for (int i = 0; i < 10; i++) {

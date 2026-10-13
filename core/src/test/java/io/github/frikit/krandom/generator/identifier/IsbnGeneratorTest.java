@@ -5,16 +5,16 @@
  */
 package io.github.frikit.krandom.generator.identifier;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("IsbnGenerator")
 class IsbnGeneratorTest {
@@ -57,15 +57,13 @@ class IsbnGeneratorTest {
         @Test
         @DisplayName("IsbnType constructor stores type")
         void typeConstructor() {
-            assertEquals(IsbnGenerator.IsbnType.ISBN_10,
-                         new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_10).getType());
+            assertEquals(IsbnGenerator.IsbnType.ISBN_10, new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_10).getType());
         }
 
         @Test
         @DisplayName("config constructor uses ISBN_13 type")
         void configConstructor() {
-            assertEquals(IsbnGenerator.IsbnType.ISBN_13,
-                         new IsbnGenerator(GeneratorConfig.defaults()).getType());
+            assertEquals(IsbnGenerator.IsbnType.ISBN_13, new IsbnGenerator(GeneratorConfig.defaults()).getType());
         }
 
         @Test
@@ -79,18 +77,15 @@ class IsbnGeneratorTest {
         @Test
         @DisplayName("null type throws NullPointerException")
         void nullTypeThrows() {
-            assertThrows(NullPointerException.class,
-                         () -> new IsbnGenerator((IsbnGenerator.IsbnType) null));
+            assertThrows(NullPointerException.class, () -> new IsbnGenerator((IsbnGenerator.IsbnType) null));
         }
 
         @Test
         @DisplayName("null config throws NullPointerException")
         void nullConfigThrows() {
-            assertThrows(NullPointerException.class,
-                         () -> new IsbnGenerator((GeneratorConfig) null));
+            assertThrows(NullPointerException.class, () -> new IsbnGenerator((GeneratorConfig) null));
         }
     }
-
 
     @Nested
     @DisplayName("generate() — ISBN-13")
@@ -130,7 +125,6 @@ class IsbnGeneratorTest {
         }
     }
 
-
     @Nested
     @DisplayName("generate() — ISBN-10")
     class Isbn10GenerateTests {
@@ -166,7 +160,6 @@ class IsbnGeneratorTest {
         }
     }
 
-
     @Nested
     @DisplayName("computeIsbn10Check")
     class Isbn10CheckTests {
@@ -174,17 +167,16 @@ class IsbnGeneratorTest {
         @Test
         @DisplayName("check digit is 10 (X) for digits [1,0,0,0,0,0,0,0,1]")
         void checkIs10() {
-            assertEquals(10, IsbnGenerator.computeIsbn10Check(new int[] { 1, 0, 0, 0, 0, 0, 0, 0, 1 }));
+            assertEquals(10, IsbnGenerator.computeIsbn10Check(new int[] {1, 0, 0, 0, 0, 0, 0, 0, 1}));
         }
 
         @Test
         @DisplayName("check digit is 2 for known ISBN-10 0306406152")
         void checkKnownIsbn10() {
             // 0306406152: digits [0,3,0,6,4,0,6,1,5], check=2
-            assertEquals(2, IsbnGenerator.computeIsbn10Check(new int[] { 0, 3, 0, 6, 4, 0, 6, 1, 5 }));
+            assertEquals(2, IsbnGenerator.computeIsbn10Check(new int[] {0, 3, 0, 6, 4, 0, 6, 1, 5}));
         }
     }
-
 
     @Nested
     @DisplayName("computeIsbn13Check")
@@ -194,19 +186,16 @@ class IsbnGeneratorTest {
         @DisplayName("check digit is 7 for known ISBN-13 9780306406157")
         void checkKnownIsbn13() {
             // 9780306406157: first 12 digits = [9,7,8,0,3,0,6,4,0,6,1,5], check=7
-            assertEquals(7, IsbnGenerator.computeIsbn13Check(
-                new int[] { 9, 7, 8, 0, 3, 0, 6, 4, 0, 6, 1, 5 }));
+            assertEquals(7, IsbnGenerator.computeIsbn13Check(new int[] {9, 7, 8, 0, 3, 0, 6, 4, 0, 6, 1, 5}));
         }
 
         @Test
         @DisplayName("check digit is 0 when sum is divisible by 10")
         void checkIsZero() {
             // All zeros: sum=0, check=(10-0)%10=0
-            assertEquals(0, IsbnGenerator.computeIsbn13Check(
-                new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }));
+            assertEquals(0, IsbnGenerator.computeIsbn13Check(new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
         }
     }
-
 
     @Nested
     @DisplayName("Seeded generation")
@@ -236,7 +225,6 @@ class IsbnGeneratorTest {
             }
         }
     }
-
 
     @Nested
     @DisplayName("Generators factory")

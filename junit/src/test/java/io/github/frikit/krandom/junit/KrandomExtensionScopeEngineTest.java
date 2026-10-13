@@ -5,7 +5,16 @@
  */
 package io.github.frikit.krandom.junit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
@@ -14,16 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
-
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Verifies that configurations resolved against a test <em>class</em> (for {@code @BeforeAll}
@@ -40,11 +39,15 @@ class KrandomExtensionScopeEngineTest {
         EngineExecutionResults results = EngineTestSupport.run(BeforeAllInjectionFixture.class);
 
         results.testEvents().assertStatistics(stats -> stats.succeeded(3).failed(0));
-        assertEquals(2, BeforeAllInjectionFixture.CLASS_SEEDS.size(),
-                     "@BeforeAll and @AfterAll share one class-scoped configuration");
+        assertEquals(
+                2,
+                BeforeAllInjectionFixture.CLASS_SEEDS.size(),
+                "@BeforeAll and @AfterAll share one class-scoped configuration");
         assertEquals(1, Set.copyOf(BeforeAllInjectionFixture.CLASS_SEEDS).size());
-        assertEquals(2, Set.copyOf(BeforeAllInjectionFixture.METHOD_SEEDS).size(),
-                     "unpinned tests must not reuse the class-scoped seed stored for @BeforeAll");
+        assertEquals(
+                2,
+                Set.copyOf(BeforeAllInjectionFixture.METHOD_SEEDS).size(),
+                "unpinned tests must not reuse the class-scoped seed stored for @BeforeAll");
     }
 
     @Test
@@ -54,8 +57,10 @@ class KrandomExtensionScopeEngineTest {
         EngineExecutionResults results = EngineTestSupport.run(ConstructorInjectionFixture.class);
 
         results.testEvents().assertStatistics(stats -> stats.succeeded(3).failed(0));
-        assertEquals(2, Set.copyOf(ConstructorInjectionFixture.SEEDS).size(),
-                     "each test instance must be constructed with its own test method's seed");
+        assertEquals(
+                2,
+                Set.copyOf(ConstructorInjectionFixture.SEEDS).size(),
+                "each test instance must be constructed with its own test method's seed");
     }
 
     @Test
@@ -65,8 +70,10 @@ class KrandomExtensionScopeEngineTest {
         EngineExecutionResults results = EngineTestSupport.run(NestedOuterFixture.class);
 
         results.testEvents().assertStatistics(stats -> stats.succeeded(3).failed(0));
-        assertEquals(2, Set.copyOf(NestedOuterFixture.SEEDS).size(),
-                     "unpinned nested tests must not reuse an enclosing class-scoped seed");
+        assertEquals(
+                2,
+                Set.copyOf(NestedOuterFixture.SEEDS).size(),
+                "unpinned nested tests must not reuse an enclosing class-scoped seed");
     }
 
     @Test
@@ -83,8 +90,10 @@ class KrandomExtensionScopeEngineTest {
         EngineExecutionResults results = EngineTestSupport.run(PerClassUnpinnedFixture.class);
 
         results.testEvents().assertStatistics(stats -> stats.succeeded(2).failed(0));
-        assertEquals(2, Set.copyOf(PerClassUnpinnedFixture.SEEDS).size(),
-                     "PER_CLASS constructor injection must not pin every test method to the class seed");
+        assertEquals(
+                2,
+                Set.copyOf(PerClassUnpinnedFixture.SEEDS).size(),
+                "PER_CLASS constructor injection must not pin every test method to the class seed");
     }
 
     @Test
@@ -94,17 +103,22 @@ class KrandomExtensionScopeEngineTest {
         EngineTestSupport.Captured run = EngineTestSupport.runCapturingStderr(BeforeAllFailingFixture.class);
 
         run.results().testEvents().assertStatistics(stats -> stats.failed(1));
-        long reported = Long.parseLong(EngineTestSupport.singleReportEntry(
-            run.results(), KrandomExtension.REPORT_ENTRY_KEY));
+        long reported =
+                Long.parseLong(EngineTestSupport.singleReportEntry(run.results(), KrandomExtension.REPORT_ENTRY_KEY));
         assertEquals(BeforeAllFailingFixture.methodSeed, reported);
-        assertNotEquals(BeforeAllFailingFixture.classSeed, reported,
-                        "the class-scoped @BeforeAll seed must not be reported as the test seed");
-        assertEquals(new Random(reported).nextLong(), BeforeAllFailingFixture.methodValue,
-                     "pinning the reported seed must reproduce the failing test's data");
+        assertNotEquals(
+                BeforeAllFailingFixture.classSeed,
+                reported,
+                "the class-scoped @BeforeAll seed must not be reported as the test seed");
+        assertEquals(
+                new Random(reported).nextLong(),
+                BeforeAllFailingFixture.methodValue,
+                "pinning the reported seed must reproduce the failing test's data");
         assertTrue(run.stderr().contains("Annotate it with @KrandomSeed(" + reported + "L)"), run.stderr());
-        assertTrue(run.stderr().contains("class-scoped configuration")
-                   && run.stderr().contains(Long.toString(BeforeAllFailingFixture.classSeed)),
-                   "the class-scoped seed used by @BeforeAll must be reported separately, was: " + run.stderr());
+        assertTrue(
+                run.stderr().contains("class-scoped configuration")
+                        && run.stderr().contains(Long.toString(BeforeAllFailingFixture.classSeed)),
+                "the class-scoped seed used by @BeforeAll must be reported separately, was: " + run.stderr());
     }
 
     @Test
@@ -114,8 +128,10 @@ class KrandomExtensionScopeEngineTest {
         EngineExecutionResults results = EngineTestSupport.run(PinnedBesideBeforeAllFixture.class);
 
         results.testEvents().assertStatistics(stats -> stats.succeeded(1).failed(0));
-        assertEquals(List.of(new Random(4242L).nextLong()), PinnedBesideBeforeAllFixture.RECORDED,
-                     "@KrandomSeed on the method must reproduce the same data as a pinned configuration");
+        assertEquals(
+                List.of(new Random(4242L).nextLong()),
+                PinnedBesideBeforeAllFixture.RECORDED,
+                "@KrandomSeed on the method must reproduce the same data as a pinned configuration");
     }
 
     // ── Fixtures: disabled in the regular suite, executed only via EngineTestKit ────────────
@@ -247,8 +263,10 @@ class KrandomExtensionScopeEngineTest {
         @Test
         void methodSeedWins(GeneratorConfig config) {
             assertEquals(31L, config.getSeed().orElseThrow());
-            assertEquals(30L, constructorConfig.getSeed().orElseThrow(),
-                         "PER_CLASS constructors resolve against the class and use the class-level seed");
+            assertEquals(
+                    30L,
+                    constructorConfig.getSeed().orElseThrow(),
+                    "PER_CLASS constructors resolve against the class and use the class-level seed");
         }
 
         @Test

@@ -5,10 +5,9 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -31,7 +30,7 @@ import java.util.Random;
 public final class BloodTypeGenerator implements Generator<String> {
 
     private static final BloodTypeDataProvider DEFAULT_PROVIDER =
-        new BuiltInBloodTypeDataProvider(Locale.ROOT, "krandom/bloodtypes/default.txt");
+            new BuiltInBloodTypeDataProvider(Locale.ROOT, "krandom/bloodtypes/default.txt");
 
     private final List<String> types;
     private final int[] cumulativeWeights;

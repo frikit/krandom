@@ -5,11 +5,13 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -19,11 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Schema - outputs")
 class SchemaOutputTest {
@@ -31,8 +30,7 @@ class SchemaOutputTest {
     @Test
     @DisplayName("record output unwraps present and empty optionals")
     void recordOutputUnwrapsOptionals() {
-        Schema schema = new Schema(Map.of(
-            "record", ctx -> new OptionalRecord(Optional.of("value"), Optional.empty())));
+        Schema schema = new Schema(Map.of("record", ctx -> new OptionalRecord(Optional.of("value"), Optional.empty())));
 
         assertEquals("{\"record\":{\"present\":\"value\",\"empty\":null}}\n", schema.toJsonLines(1));
     }
@@ -53,17 +51,17 @@ class SchemaOutputTest {
             meta.put("ok", false);
             return meta;
         });
-        fields.put("numbers", ctx -> new int[]{ 1, 2 });
+        fields.put("numbers", ctx -> new int[] {1, 2});
         fields.put("custom", ctx -> new NamedValue("json"));
         fields.put("plain", ctx -> new PlainValue("json"));
 
         Schema schema = new Schema(fields);
 
         assertEquals(
-            "{\"id\":0,\"text\":\"a,\\\"b\\\"\\n\\t\",\"control\":\"\\u0001\",\"letter\":\"A\","
-            + "\"flag\":true,\"tags\":[\"x\",null],\"meta\":{\"count\":2,\"ok\":false},"
-            + "\"numbers\":[1,2],\"custom\":{\"value\":\"json\"},\"plain\":\"PlainValue[value=json]\"}\n",
-            schema.toJsonLines(1));
+                "{\"id\":0,\"text\":\"a,\\\"b\\\"\\n\\t\",\"control\":\"\\u0001\",\"letter\":\"A\","
+                        + "\"flag\":true,\"tags\":[\"x\",null],\"meta\":{\"count\":2,\"ok\":false},"
+                        + "\"numbers\":[1,2],\"custom\":{\"value\":\"json\"},\"plain\":\"PlainValue[value=json]\"}\n",
+                schema.toJsonLines(1));
     }
 
     @Test
@@ -78,24 +76,24 @@ class SchemaOutputTest {
         Schema schema = new Schema(fields);
 
         assertEquals(
-            "[{\"id\":1,\"name\":\"Ada\",\"tags\":[\"math\",\"logic\"],\"meta\":{\"active\":true}}]\n",
-            schema.toJson(1));
+                "[{\"id\":1,\"name\":\"Ada\",\"tags\":[\"math\",\"logic\"],\"meta\":{\"active\":true}}]\n",
+                schema.toJson(1));
         assertEquals(
-            "- id: 1\n"
-            + "  name: \"Ada\"\n"
-            + "  tags:\n"
-            + "    - \"math\"\n"
-            + "    - \"logic\"\n"
-            + "  meta:\n"
-            + "    active: true\n",
-            new Schema(fields).toYaml(1));
+                "- id: 1\n"
+                        + "  name: \"Ada\"\n"
+                        + "  tags:\n"
+                        + "    - \"math\"\n"
+                        + "    - \"logic\"\n"
+                        + "  meta:\n"
+                        + "    active: true\n",
+                new Schema(fields).toYaml(1));
         assertEquals(
-            "[[records]]\n"
-            + "id = 1\n"
-            + "name = \"Ada\"\n"
-            + "tags = [\"math\", \"logic\"]\n"
-            + "meta = { active = true }\n",
-            new Schema(fields).toToml(1));
+                "[[records]]\n"
+                        + "id = 1\n"
+                        + "name = \"Ada\"\n"
+                        + "tags = [\"math\", \"logic\"]\n"
+                        + "meta = { active = true }\n",
+                new Schema(fields).toToml(1));
     }
 
     @Test
@@ -184,20 +182,20 @@ class SchemaOutputTest {
     @DisplayName("toJsonLines renders finite numbers and rejects non-finite numbers")
     void toJsonLinesRejectsNonFiniteNumbers() {
         Schema finite = new Schema(Map.of(
-            "doubleValue", ctx -> 1.5d,
-            "floatValue", ctx -> 2.5f,
-            "intValue", ctx -> 7
-        ));
+                "doubleValue", ctx -> 1.5d,
+                "floatValue", ctx -> 2.5f,
+                "intValue", ctx -> 7));
 
         String jsonl = finite.toJsonLines(1);
 
         assertTrue(jsonl.contains("\"doubleValue\":1.5"));
         assertTrue(jsonl.contains("\"floatValue\":2.5"));
         assertTrue(jsonl.contains("\"intValue\":7"));
-        assertThrows(IllegalArgumentException.class,
-                     () -> new Schema(Map.of("value", ctx -> Double.NaN)).toJsonLines(1));
-        assertThrows(IllegalArgumentException.class,
-                     () -> new Schema(Map.of("value", ctx -> Float.POSITIVE_INFINITY)).toJsonLines(1));
+        assertThrows(
+                IllegalArgumentException.class, () -> new Schema(Map.of("value", ctx -> Double.NaN)).toJsonLines(1));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new Schema(Map.of("value", ctx -> Float.POSITIVE_INFINITY)).toJsonLines(1));
     }
 
     @Test
@@ -220,10 +218,10 @@ class SchemaOutputTest {
         Schema schema = new Schema(fields);
 
         assertEquals(
-            "name,padded,meta,tags,custom,plain,blank\n"
-            + "\"Ada \"\"Ace\"\"\",\" padded \",\"{\"\"id\"\":1,\"\"active\"\":true}\","
-            + "\"[\"\"x\"\",\"\"y\"\"]\",\"{\"\"value\"\":\"\"csv\"\"}\",PlainValue[value=csv],\n",
-            schema.toCsv(1));
+                "name,padded,meta,tags,custom,plain,blank\n"
+                        + "\"Ada \"\"Ace\"\"\",\" padded \",\"{\"\"id\"\":1,\"\"active\"\":true}\","
+                        + "\"[\"\"x\"\",\"\"y\"\"]\",\"{\"\"value\"\":\"\"csv\"\"}\",PlainValue[value=csv],\n",
+                schema.toCsv(1));
     }
 
     @Test
@@ -233,16 +231,15 @@ class SchemaOutputTest {
         fields.put("newline", ctx -> "a\nb");
         fields.put("carriage", ctx -> "a\rb");
         fields.put("tail", ctx -> "tail ");
-        fields.put("numbers", ctx -> new int[]{ 1, 2 });
+        fields.put("numbers", ctx -> new int[] {1, 2});
         fields.put("letter", ctx -> 'Q');
         fields.put("active", ctx -> false);
 
         Schema schema = new Schema(fields);
 
         assertEquals(
-            "newline,carriage,tail,numbers,letter,active\n"
-            + "\"a\nb\",\"a\rb\",\"tail \",\"[1,2]\",Q,false\n",
-            schema.toCsv(1));
+                "newline,carriage,tail,numbers,letter,active\n" + "\"a\nb\",\"a\rb\",\"tail \",\"[1,2]\",Q,false\n",
+                schema.toCsv(1));
     }
 
     @Test
@@ -263,17 +260,17 @@ class SchemaOutputTest {
         Schema schema = new Schema(fields);
 
         assertEquals(
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<records>\n"
-            + "  <record>\n"
-            + "    <name>Ada &amp; &lt;Ace&gt;</name>\n"
-            + "    <meta>{\"id\":1,\"active\":true}</meta>\n"
-            + "    <tags>[\"x\",\"y\"]</tags>\n"
-            + "    <field name=\"bad name\">quoted \"value\" and 'apostrophe'</field>\n"
-            + "    <missing/>\n"
-            + "  </record>\n"
-            + "</records>\n",
-            schema.toXml(1));
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<records>\n"
+                        + "  <record>\n"
+                        + "    <name>Ada &amp; &lt;Ace&gt;</name>\n"
+                        + "    <meta>{\"id\":1,\"active\":true}</meta>\n"
+                        + "    <tags>[\"x\",\"y\"]</tags>\n"
+                        + "    <field name=\"bad name\">quoted \"value\" and 'apostrophe'</field>\n"
+                        + "    <missing/>\n"
+                        + "  </record>\n"
+                        + "</records>\n",
+                schema.toXml(1));
     }
 
     @Test
@@ -281,9 +278,7 @@ class SchemaOutputTest {
     void toXmlZeroCountReturnsEmptyRootDocument() {
         Schema schema = new Schema(Map.of("value", ctx -> 1));
 
-        assertEquals(
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<records/>\n",
-            schema.toXml(0));
+        assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<records/>\n", schema.toXml(0));
     }
 
     @Test
@@ -293,7 +288,7 @@ class SchemaOutputTest {
         fields.put("count", ctx -> 5);
         fields.put("enabled", ctx -> false);
         fields.put("letter", ctx -> 'Q');
-        fields.put("numbers", ctx -> new int[]{ 1, 2 });
+        fields.put("numbers", ctx -> new int[] {1, 2});
         fields.put("1bad&<>'\"", ctx -> new NamedValue("xml"));
         fields.put("plain", ctx -> new PlainValue("xml"));
 
@@ -327,10 +322,10 @@ class SchemaOutputTest {
         Schema schema = new Schema(fields);
 
         assertEquals(
-            "INSERT INTO \"public\".\"orders\" (\"id\", \"full name\", \"active\", \"meta\", \"notes\", \"custom\", \"plain\") VALUES "
-            + "(7, 'Ada''s', TRUE, '{\"id\":1,\"tags\":[\"x\",\"y\"]}', NULL, '{\"value\":\"sql\"}', "
-            + "'PlainValue[value=sql]');\n",
-            schema.toSqlInserts("public.orders", 1));
+                "INSERT INTO \"public\".\"orders\" (\"id\", \"full name\", \"active\", \"meta\", \"notes\", \"custom\", \"plain\") VALUES "
+                        + "(7, 'Ada''s', TRUE, '{\"id\":1,\"tags\":[\"x\",\"y\"]}', NULL, '{\"value\":\"sql\"}', "
+                        + "'PlainValue[value=sql]');\n",
+                schema.toSqlInserts("public.orders", 1));
     }
 
     @Test
@@ -340,14 +335,14 @@ class SchemaOutputTest {
         fields.put("quoted\"name", ctx -> "x");
         fields.put("enabled", ctx -> false);
         fields.put("tags", ctx -> List.of("a", "b"));
-        fields.put("numbers", ctx -> new int[]{ 1, 2 });
+        fields.put("numbers", ctx -> new int[] {1, 2});
 
         String sql = new Schema(fields).toSqlInserts("audit.event\"logs", 1);
 
         assertEquals(
-            "INSERT INTO \"audit\".\"event\"\"logs\" (\"quoted\"\"name\", \"enabled\", \"tags\", \"numbers\") VALUES "
-            + "('x', FALSE, '[\"a\",\"b\"]', '[1,2]');\n",
-            sql);
+                "INSERT INTO \"audit\".\"event\"\"logs\" (\"quoted\"\"name\", \"enabled\", \"tags\", \"numbers\") VALUES "
+                        + "('x', FALSE, '[\"a\",\"b\"]', '[1,2]');\n",
+                sql);
     }
 
     @Test
@@ -362,10 +357,12 @@ class SchemaOutputTest {
         String sql = finite.toSqlInserts("metrics", 1);
 
         assertTrue(sql.contains("(1.5, 2.5, 7)"));
-        assertThrows(IllegalArgumentException.class,
-                     () -> new Schema(Map.of("value", ctx -> Double.NaN)).toSqlInserts("metrics", 1));
-        assertThrows(IllegalArgumentException.class,
-                     () -> new Schema(Map.of("value", ctx -> Float.NEGATIVE_INFINITY)).toSqlInserts("metrics", 1));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new Schema(Map.of("value", ctx -> Double.NaN)).toSqlInserts("metrics", 1));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new Schema(Map.of("value", ctx -> Float.NEGATIVE_INFINITY)).toSqlInserts("metrics", 1));
     }
 
     @Test
@@ -376,27 +373,27 @@ class SchemaOutputTest {
         StringBuilder xml = new StringBuilder();
         schema.writeXml(xml, 1);
         assertEquals(
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-            + "<records>\n"
-            + "  <record>\n"
-            + "    <index>0</index>\n"
-            + "  </record>\n"
-            + "</records>\n",
-            xml.toString());
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                        + "<records>\n"
+                        + "  <record>\n"
+                        + "    <index>0</index>\n"
+                        + "  </record>\n"
+                        + "</records>\n",
+                xml.toString());
 
         StringBuilder sql = new StringBuilder();
         schema.writeSqlInserts(sql, "events", 2);
         assertEquals(
-            "INSERT INTO \"events\" (\"index\") VALUES (1);\n"
-            + "INSERT INTO \"events\" (\"index\") VALUES (2);\n",
-            sql.toString());
+                "INSERT INTO \"events\" (\"index\") VALUES (1);\n" + "INSERT INTO \"events\" (\"index\") VALUES (2);\n",
+                sql.toString());
 
         assertThrows(NullPointerException.class, () -> schema.writeXml(null, 1));
         assertThrows(NullPointerException.class, () -> schema.writeSqlInserts(null, "events", 1));
         assertThrows(NullPointerException.class, () -> schema.toSqlInserts(null, 1));
         assertThrows(IllegalArgumentException.class, () -> schema.writeXml(new StringBuilder(), -1));
         assertThrows(IllegalArgumentException.class, () -> schema.writeSqlInserts(new StringBuilder(), " ", 1));
-        assertThrows(IllegalArgumentException.class, () -> schema.writeSqlInserts(new StringBuilder(), "public..events", 1));
+        assertThrows(
+                IllegalArgumentException.class, () -> schema.writeSqlInserts(new StringBuilder(), "public..events", 1));
     }
 
     @Test
@@ -450,21 +447,20 @@ class SchemaOutputTest {
     @DisplayName("internal StringBuilder wrapper converts impossible IOExceptions into IllegalStateException")
     void stringBuilderWrapperConvertsImpossibleIoExceptions() throws Exception {
         Class<?> writerType = Arrays.stream(Schema.class.getDeclaredClasses())
-                                    .filter(candidate -> candidate.getSimpleName().equals("StringBuilderWriter"))
-                                    .findFirst()
-                                    .orElseThrow();
+                .filter(candidate -> candidate.getSimpleName().equals("StringBuilderWriter"))
+                .findFirst()
+                .orElseThrow();
 
         Method method = Schema.class.getDeclaredMethod("buildString", writerType);
         method.setAccessible(true);
 
         Object writer = Proxy.newProxyInstance(
-            writerType.getClassLoader(),
-            new Class<?>[]{ writerType },
-            (proxy, invoked, args) -> {
-                throw new IOException("boom");
-            });
+                writerType.getClassLoader(), new Class<?>[] {writerType}, (proxy, invoked, args) -> {
+                    throw new IOException("boom");
+                });
 
-        InvocationTargetException thrown = assertThrows(InvocationTargetException.class, () -> method.invoke(null, writer));
+        InvocationTargetException thrown =
+                assertThrows(InvocationTargetException.class, () -> method.invoke(null, writer));
         IllegalStateException cause = (IllegalStateException) thrown.getCause();
         assertEquals("StringBuilder should not throw IOException", cause.getMessage());
         assertTrue(cause.getCause() instanceof IOException);
@@ -505,11 +501,9 @@ class SchemaOutputTest {
         }
     }
 
-    record NamedValue(String value) {
-    }
+    record NamedValue(String value) {}
 
-    record OptionalRecord(Optional<String> present, Optional<String> empty) {
-    }
+    record OptionalRecord(Optional<String> present, Optional<String> empty) {}
 
     record ThrowingRecord(String value) {
         @Override

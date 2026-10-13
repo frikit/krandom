@@ -8,6 +8,8 @@ package io.github.frikit.krandom.benchmarks;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.ObjectGenerator;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 import org.instancio.Instancio;
 import org.instancio.Model;
 import org.jeasy.random.EasyRandom;
@@ -21,9 +23,6 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
-
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 /**
  * POJO population split into structural and semantic fixture workloads.
@@ -46,38 +45,36 @@ public class CompetitorObjectBenchmark {
 
     @State(Scope.Thread)
     public static class KrandomState {
-        public final ObjectGenerator<BenchmarkFixtures.ComparableUser> structuralGenerator =
-            new ObjectGenerator<>(BenchmarkFixtures.ComparableUser.class,
-                                  GeneratorConfig.builder()
-                                                 .locale(Locale.US)
-                                                 .seed(7L)
-                                                 .objectMaxDepth(2)
-                                                 .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                 .build());
+        public final ObjectGenerator<BenchmarkFixtures.ComparableUser> structuralGenerator = new ObjectGenerator<>(
+                BenchmarkFixtures.ComparableUser.class,
+                GeneratorConfig.builder()
+                        .locale(Locale.US)
+                        .seed(7L)
+                        .objectMaxDepth(2)
+                        .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                        .build());
 
-        public final ObjectGenerator<BenchmarkFixtures.ComparableUser> semanticGenerator =
-            new ObjectGenerator<>(BenchmarkFixtures.ComparableUser.class,
-                                  GeneratorConfig.builder()
-                                                 .locale(Locale.US)
-                                                 .seed(7L)
-                                                 .objectMaxDepth(2)
-                                                 .build());
+        public final ObjectGenerator<BenchmarkFixtures.ComparableUser> semanticGenerator = new ObjectGenerator<>(
+                BenchmarkFixtures.ComparableUser.class,
+                GeneratorConfig.builder()
+                        .locale(Locale.US)
+                        .seed(7L)
+                        .objectMaxDepth(2)
+                        .build());
     }
 
     // ── DataFaker state ──────────────────────────────────────────────────────
 
     @State(Scope.Thread)
     public static class DataFakerState {
-        public final net.datafaker.Faker faker = new net.datafaker.Faker(
-            Locale.US, new java.util.Random(7L));
+        public final net.datafaker.Faker faker = new net.datafaker.Faker(Locale.US, new java.util.Random(7L));
     }
 
     // ── EasyRandom state ─────────────────────────────────────────────────────
 
     @State(Scope.Thread)
     public static class EasyRandomState {
-        public final EasyRandom easyRandom = new EasyRandom(
-            new EasyRandomParameters().seed(7L));
+        public final EasyRandom easyRandom = new EasyRandom(new EasyRandomParameters().seed(7L));
     }
 
     // ── Instancio state ──────────────────────────────────────────────────────
@@ -87,7 +84,7 @@ public class CompetitorObjectBenchmark {
     @State(Scope.Thread)
     public static class InstancioState {
         public final Model<BenchmarkFixtures.ComparableUser> model =
-            Instancio.of(BenchmarkFixtures.ComparableUser.class).toModel();
+                Instancio.of(BenchmarkFixtures.ComparableUser.class).toModel();
     }
 
     // ── Benchmarks ───────────────────────────────────────────────────────────

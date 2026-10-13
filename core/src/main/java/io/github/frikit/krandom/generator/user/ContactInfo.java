@@ -18,14 +18,11 @@ package io.github.frikit.krandom.generator.user;
  * @param email          email address
  */
 public record ContactInfo(
-    String firstName,
-    String lastName,
-    String name,
-    String gender,
-    int age,
-    String phone,
-    String phoneFormatted,
-    String email
-) {
-
-}
+        String firstName,
+        String lastName,
+        String name,
+        String gender,
+        int age,
+        String phone,
+        String phoneFormatted,
+        String email) {}

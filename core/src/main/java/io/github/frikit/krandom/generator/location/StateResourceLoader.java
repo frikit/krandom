@@ -59,9 +59,9 @@ final class StateResourceLoader {
             List<String> abbreviations = new ArrayList<>();
 
             List<String> allLines = reader.lines()
-                                          .map(String::trim)
-                                          .filter(line -> !line.startsWith("#"))
-                                          .toList();
+                    .map(String::trim)
+                    .filter(line -> !line.startsWith("#"))
+                    .toList();
 
             for (int i = 0; i < allLines.size(); i++) {
                 String line = allLines.get(i);
@@ -86,10 +86,7 @@ final class StateResourceLoader {
                 }
             }
 
-            return new StateData(
-                states.toArray(String[]::new),
-                abbreviations.toArray(String[]::new)
-            );
+            return new StateData(states.toArray(String[]::new), abbreviations.toArray(String[]::new));
         } catch (IOException e) {
             throw new IllegalStateException("Failed to read state resource: " + resourcePath, e);
         }

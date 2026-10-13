@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.database;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -23,7 +22,7 @@ import java.util.Random;
 public final class DatabaseGenerator implements Generator<String> {
 
     private static final DatabaseColumnDataProvider DEFAULT_PROVIDER =
-        new BuiltInDatabaseColumnDataProvider(Locale.ROOT, "default");
+            new BuiltInDatabaseColumnDataProvider(Locale.ROOT, "default");
 
     private static final String[] TYPES = {
         "VARCHAR(255)", "TEXT", "INTEGER", "BIGINT", "BOOLEAN", "DATE", "TIMESTAMP", "DECIMAL(10,2)", "JSON", "UUID"
@@ -32,7 +31,7 @@ public final class DatabaseGenerator implements Generator<String> {
         "users", "orders", "products", "invoices", "payments", "events", "accounts", "sessions"
     };
 
-    private final Random       random;
+    private final Random random;
     private final List<String> columns;
 
     public DatabaseGenerator() {
@@ -40,7 +39,9 @@ public final class DatabaseGenerator implements Generator<String> {
     }
 
     public DatabaseGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     public DatabaseGenerator(GeneratorConfig config) {

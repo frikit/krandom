@@ -5,6 +5,12 @@
  */
 package io.github.frikit.krandom.generator;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.commerce.CommerceDataProvider;
 import io.github.frikit.krandom.generator.commerce.CommerceGenerator;
 import io.github.frikit.krandom.generator.database.DatabaseColumnDataProvider;
@@ -39,10 +45,6 @@ import io.github.frikit.krandom.generator.user.PositionDataProvider;
 import io.github.frikit.krandom.generator.user.PositionGenerator;
 import io.github.frikit.krandom.generator.user.SeniorityDataProvider;
 import io.github.frikit.krandom.generator.user.SeniorityGenerator;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Locale;
@@ -51,12 +53,9 @@ import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Every locale-aware vocabulary generator resolves its data through the configuration's
@@ -69,14 +68,15 @@ class ScopedVocabularyRegistryTest {
 
     /** Placeholders of every composed vocabulary format; each generator replaces its own. */
     private static final String FORMAT =
-        "{prefix} {noun} {name} {suffix} {verb} {adjective} {tagline} {material} {product} {color}";
+            "{prefix} {noun} {name} {suffix} {verb} {adjective} {tagline} {material} {product} {color}";
 
-    private record Concept(String name,
-                           BiFunction<DataRegistryContext.Builder, Locale, DataRegistryContext.Builder> register,
-                           Function<GeneratorConfig, Generator<String>> generator,
-                           BiFunction<DataRegistryContext, Locale, Object> provider,
-                           BiPredicate<DataRegistryContext, Locale> registered,
-                           Function<DataRegistryContext, Set<String>> keys) {
+    private record Concept(
+            String name,
+            BiFunction<DataRegistryContext.Builder, Locale, DataRegistryContext.Builder> register,
+            Function<GeneratorConfig, Generator<String>> generator,
+            BiFunction<DataRegistryContext, Locale, Object> provider,
+            BiPredicate<DataRegistryContext, Locale> registered,
+            Function<DataRegistryContext, Set<String>> keys) {
 
         @Override
         public String toString() {
@@ -86,96 +86,125 @@ class ScopedVocabularyRegistryTest {
 
     static Stream<Concept> concepts() {
         return Stream.of(
-            new Concept("industry",
+                new Concept(
+                        "industry",
                         (b, l) -> b.registerIndustryProvider(stub(IndustryDataProvider.class, l)),
                         IndustryGenerator::new,
-                        DataRegistryContext::industryProvider, DataRegistryContext::isIndustryRegistered,
+                        DataRegistryContext::industryProvider,
+                        DataRegistryContext::isIndustryRegistered,
                         DataRegistryContext::industryRegisteredKeys),
-            new Concept("job field",
+                new Concept(
+                        "job field",
                         (b, l) -> b.registerJobFieldProvider(stub(JobFieldDataProvider.class, l)),
                         JobFieldGenerator::new,
-                        DataRegistryContext::jobFieldProvider, DataRegistryContext::isJobFieldRegistered,
+                        DataRegistryContext::jobFieldProvider,
+                        DataRegistryContext::isJobFieldRegistered,
                         DataRegistryContext::jobFieldRegisteredKeys),
-            new Concept("seniority",
+                new Concept(
+                        "seniority",
                         (b, l) -> b.registerSeniorityProvider(stub(SeniorityDataProvider.class, l)),
                         SeniorityGenerator::new,
-                        DataRegistryContext::seniorityProvider, DataRegistryContext::isSeniorityRegistered,
+                        DataRegistryContext::seniorityProvider,
+                        DataRegistryContext::isSeniorityRegistered,
                         DataRegistryContext::seniorityRegisteredKeys),
-            new Concept("position",
+                new Concept(
+                        "position",
                         (b, l) -> b.registerPositionProvider(stub(PositionDataProvider.class, l)),
                         PositionGenerator::new,
-                        DataRegistryContext::positionProvider, DataRegistryContext::isPositionRegistered,
+                        DataRegistryContext::positionProvider,
+                        DataRegistryContext::isPositionRegistered,
                         DataRegistryContext::positionRegisteredKeys),
-            new Concept("educational attainment",
+                new Concept(
+                        "educational attainment",
                         (b, l) -> b.registerEducationalAttainmentProvider(
-                            stub(EducationalAttainmentDataProvider.class, l)),
+                                stub(EducationalAttainmentDataProvider.class, l)),
                         EducationalAttainmentGenerator::new,
                         DataRegistryContext::educationalAttainmentProvider,
                         DataRegistryContext::isEducationalAttainmentRegistered,
                         DataRegistryContext::educationalAttainmentRegisteredKeys),
-            new Concept("marital status",
+                new Concept(
+                        "marital status",
                         (b, l) -> b.registerMaritalStatusProvider(stub(MaritalStatusDataProvider.class, l)),
                         MaritalStatusGenerator::new,
-                        DataRegistryContext::maritalStatusProvider, DataRegistryContext::isMaritalStatusRegistered,
+                        DataRegistryContext::maritalStatusProvider,
+                        DataRegistryContext::isMaritalStatusRegistered,
                         DataRegistryContext::maritalStatusRegisteredKeys),
-            new Concept("job type",
+                new Concept(
+                        "job type",
                         (b, l) -> b.registerJobTypeProvider(stub(JobTypeDataProvider.class, l)),
                         JobTypeGenerator::new,
-                        DataRegistryContext::jobTypeProvider, DataRegistryContext::isJobTypeRegistered,
+                        DataRegistryContext::jobTypeProvider,
+                        DataRegistryContext::isJobTypeRegistered,
                         DataRegistryContext::jobTypeRegisteredKeys),
-            new Concept("company name",
+                new Concept(
+                        "company name",
                         (b, l) -> b.registerCompanyNameProvider(stub(CompanyNameDataProvider.class, l)),
                         CompanyNameGenerator::new,
-                        DataRegistryContext::companyNameProvider, DataRegistryContext::isCompanyNameRegistered,
+                        DataRegistryContext::companyNameProvider,
+                        DataRegistryContext::isCompanyNameRegistered,
                         DataRegistryContext::companyNameRegisteredKeys),
-            new Concept("company buzzword",
+                new Concept(
+                        "company buzzword",
                         (b, l) -> b.registerCompanyBuzzwordProvider(stub(CompanyBuzzwordDataProvider.class, l)),
                         CompanyBuzzwordGenerator::new,
                         DataRegistryContext::companyBuzzwordProvider,
                         DataRegistryContext::isCompanyBuzzwordRegistered,
                         DataRegistryContext::companyBuzzwordRegisteredKeys),
-            new Concept("company catch phrase",
-                        (b, l) -> b.registerCompanyCatchPhraseProvider(
-                            stub(CompanyCatchPhraseDataProvider.class, l)),
+                new Concept(
+                        "company catch phrase",
+                        (b, l) -> b.registerCompanyCatchPhraseProvider(stub(CompanyCatchPhraseDataProvider.class, l)),
                         CompanyCatchPhraseGenerator::new,
                         DataRegistryContext::companyCatchPhraseProvider,
                         DataRegistryContext::isCompanyCatchPhraseRegistered,
                         DataRegistryContext::companyCatchPhraseRegisteredKeys),
-            new Concept("text word",
+                new Concept(
+                        "text word",
                         (b, l) -> b.registerTextWordProvider(stub(TextWordDataProvider.class, l)),
                         TextGenerator::new,
-                        DataRegistryContext::textWordProvider, DataRegistryContext::isTextWordRegistered,
+                        DataRegistryContext::textWordProvider,
+                        DataRegistryContext::isTextWordRegistered,
                         DataRegistryContext::textWordRegisteredKeys),
-            new Concept("commerce",
+                new Concept(
+                        "commerce",
                         (b, l) -> b.registerCommerceProvider(stub(CommerceDataProvider.class, l)),
                         CommerceGenerator::new,
-                        DataRegistryContext::commerceProvider, DataRegistryContext::isCommerceRegistered,
+                        DataRegistryContext::commerceProvider,
+                        DataRegistryContext::isCommerceRegistered,
                         DataRegistryContext::commerceRegisteredKeys),
-            new Concept("database column",
+                new Concept(
+                        "database column",
                         (b, l) -> b.registerDatabaseColumnProvider(stub(DatabaseColumnDataProvider.class, l)),
                         DatabaseGenerator::new,
                         DataRegistryContext::databaseColumnProvider,
                         DataRegistryContext::isDatabaseColumnRegistered,
                         DataRegistryContext::databaseColumnRegisteredKeys),
-            new Concept("directory name",
+                new Concept(
+                        "directory name",
                         (b, l) -> b.registerDirectoryNameProvider(stub(DirectoryNameDataProvider.class, l)),
                         DirPathGenerator::new,
-                        DataRegistryContext::directoryNameProvider, DataRegistryContext::isDirectoryNameRegistered,
+                        DataRegistryContext::directoryNameProvider,
+                        DataRegistryContext::isDirectoryNameRegistered,
                         DataRegistryContext::directoryNameRegisteredKeys),
-            new Concept("bank name",
+                new Concept(
+                        "bank name",
                         (b, l) -> b.registerBankNameProvider(stub(BankNameDataProvider.class, l)),
                         BankNameGenerator::new,
-                        DataRegistryContext::bankNameProvider, DataRegistryContext::isBankNameRegistered,
+                        DataRegistryContext::bankNameProvider,
+                        DataRegistryContext::isBankNameRegistered,
                         DataRegistryContext::bankNameRegisteredKeys),
-            new Concept("bank type",
+                new Concept(
+                        "bank type",
                         (b, l) -> b.registerBankTypeProvider(stub(BankTypeDataProvider.class, l)),
                         BankTypeGenerator::new,
-                        DataRegistryContext::bankTypeProvider, DataRegistryContext::isBankTypeRegistered,
+                        DataRegistryContext::bankTypeProvider,
+                        DataRegistryContext::isBankTypeRegistered,
                         DataRegistryContext::bankTypeRegisteredKeys),
-            new Concept("bank account",
+                new Concept(
+                        "bank account",
                         (b, l) -> b.registerBankAccountProvider(stub(BankAccountDataProvider.class, l)),
                         config -> new BankAccountGenerator(config)::generateAccountName,
-                        DataRegistryContext::bankAccountProvider, DataRegistryContext::isBankAccountRegistered,
+                        DataRegistryContext::bankAccountProvider,
+                        DataRegistryContext::isBankAccountRegistered,
                         DataRegistryContext::bankAccountRegisteredKeys));
     }
 
@@ -183,12 +212,18 @@ class ScopedVocabularyRegistryTest {
     @MethodSource("concepts")
     @DisplayName("a scoped registration drives the generator and stays out of other contexts")
     void scopedRegistrationDrivesTheGenerator(Concept concept) {
-        DataRegistryContext scoped = concept.register().apply(DataRegistryContext.builder().isolated(), Locale.US)
-                                            .build();
+        DataRegistryContext scoped = concept.register()
+                .apply(DataRegistryContext.builder().isolated(), Locale.US)
+                .build();
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
 
-        String value = concept.generator().apply(
-            GeneratorConfig.builder().seed(1L).locale(Locale.US).registryContext(scoped).build()).generate();
+        String value = concept.generator()
+                .apply(GeneratorConfig.builder()
+                        .seed(1L)
+                        .locale(Locale.US)
+                        .registryContext(scoped)
+                        .build())
+                .generate();
 
         assertTrue(value.toLowerCase(Locale.ROOT).contains(MARKER), value);
         assertTrue(concept.registered().test(scoped, Locale.US));
@@ -203,13 +238,16 @@ class ScopedVocabularyRegistryTest {
     @MethodSource("concepts")
     @DisplayName("an isolated context never reads the global registries")
     void isolatedContextIgnoresGlobalData(Concept concept) {
-        GeneratorConfig global = GeneratorConfig.builder().seed(1L).locale(Locale.GERMANY).build();
+        GeneratorConfig global =
+                GeneratorConfig.builder().seed(1L).locale(Locale.GERMANY).build();
         GeneratorConfig isolated = global.toBuilder()
-                                         .registryContext(DataRegistryContext.builder().isolated().build())
-                                         .build();
+                .registryContext(DataRegistryContext.builder().isolated().build())
+                .build();
 
-        assertNotEquals(samples(concept, global), samples(concept, isolated),
-                        "an isolated context must use the bundled English data, not the global German data");
+        assertNotEquals(
+                samples(concept, global),
+                samples(concept, isolated),
+                "an isolated context must use the bundled English data, not the global German data");
     }
 
     private static List<String> samples(Concept concept, GeneratorConfig config) {

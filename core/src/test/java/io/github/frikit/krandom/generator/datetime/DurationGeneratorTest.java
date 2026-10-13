@@ -5,16 +5,15 @@
  */
 package io.github.frikit.krandom.generator.datetime;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.time.Duration;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.time.Duration;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("DurationGenerator")
 class DurationGeneratorTest {
@@ -30,7 +29,8 @@ class DurationGeneratorTest {
     @Test
     @DisplayName("betweenSeconds(min,max) respects inclusive range")
     void betweenSeconds() {
-        DurationGenerator gen = new DurationGenerator(GeneratorConfig.builder().seed(41L).build());
+        DurationGenerator gen =
+                new DurationGenerator(GeneratorConfig.builder().seed(41L).build());
         for (int i = 0; i < 30; i++) {
             Duration d = gen.betweenSeconds(10, 20);
             assertTrue(d.getSeconds() >= 10 && d.getSeconds() <= 20);
@@ -66,7 +66,8 @@ class DurationGeneratorTest {
     @Test
     @DisplayName("between(Duration,Duration) respects inclusive range")
     void betweenDuration() {
-        DurationGenerator gen = new DurationGenerator(GeneratorConfig.builder().seed(7L).build());
+        DurationGenerator gen =
+                new DurationGenerator(GeneratorConfig.builder().seed(7L).build());
         Duration min = Duration.ofMinutes(5);
         Duration max = Duration.ofMinutes(15);
         for (int i = 0; i < 30; i++) {
@@ -100,22 +101,26 @@ class DurationGeneratorTest {
     @Test
     @DisplayName("the full non-negative second range samples without overflow")
     void fullSecondRangeDoesNotOverflow() {
-        DurationGenerator gen = new DurationGenerator(GeneratorConfig.builder().seed(13L).build());
+        DurationGenerator gen =
+                new DurationGenerator(GeneratorConfig.builder().seed(13L).build());
 
         for (int i = 0; i < 1_000; i++) {
             Duration duration = gen.betweenSeconds(0, Long.MAX_VALUE);
             assertTrue(!duration.isNegative(), duration.toString());
         }
-        Duration full = new DurationGenerator(GeneratorConfig.builder().seed(13L).build())
-            .between(Duration.ZERO, Duration.ofSeconds(Long.MAX_VALUE));
-        assertEquals(new DurationGenerator(GeneratorConfig.builder().seed(13L).build()).betweenSeconds(0, Long.MAX_VALUE),
-                     full);
+        Duration full = new DurationGenerator(
+                        GeneratorConfig.builder().seed(13L).build())
+                .between(Duration.ZERO, Duration.ofSeconds(Long.MAX_VALUE));
+        assertEquals(
+                new DurationGenerator(GeneratorConfig.builder().seed(13L).build()).betweenSeconds(0, Long.MAX_VALUE),
+                full);
     }
 
     @Test
     @DisplayName("ranges that fit keep their seeded values")
     void fittingRangesKeepSeededValues() {
-        DurationGenerator gen = new DurationGenerator(GeneratorConfig.builder().seed(17L).build());
+        DurationGenerator gen =
+                new DurationGenerator(GeneratorConfig.builder().seed(17L).build());
         java.util.Random reference = new java.util.Random(17L);
 
         assertEquals(Duration.ofSeconds(10 + reference.nextLong(91)), gen.betweenSeconds(10, 100));

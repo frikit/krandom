@@ -5,20 +5,19 @@
  */
 package io.github.frikit.krandom.generator.location;
 
-import io.github.frikit.krandom.generator.DataRegistryContext;
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Method;
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.DataRegistryContext;
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.lang.reflect.Method;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("AddressInfoGenerator")
 class AddressInfoGeneratorTest {
@@ -50,10 +49,8 @@ class AddressInfoGeneratorTest {
     @Test
     @DisplayName("seeded generation is reproducible")
     void seededGeneration() {
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.GERMANY)
-                                                .seed(42L)
-                                                .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.GERMANY).seed(42L).build();
 
         AddressInfoGenerator one = new AddressInfoGenerator(config);
         AddressInfoGenerator two = new AddressInfoGenerator(config);
@@ -77,48 +74,47 @@ class AddressInfoGeneratorTest {
     void isolatedRegistryFallbacks() {
         Locale locale = Locale.ENGLISH;
         DataRegistryContext context = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerStreetAddressProvider(new StreetAddressDataProvider() {
-                                                             @Override
-                                                             public Locale getLocale() {
-                                                                 return locale;
-                                                             }
+                .isolated()
+                .registerStreetAddressProvider(new StreetAddressDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-                                                             @Override
-                                                             public String[] getStreetNames() {
-                                                                 return new String[] { "Main" };
-                                                             }
+                    @Override
+                    public String[] getStreetNames() {
+                        return new String[] {"Main"};
+                    }
 
-                                                             @Override
-                                                             public String[] getStreetTypesShort() {
-                                                                 return new String[] { "St" };
-                                                             }
+                    @Override
+                    public String[] getStreetTypesShort() {
+                        return new String[] {"St"};
+                    }
 
-                                                             @Override
-                                                             public String[] getStreetTypesLong() {
-                                                                 return new String[] { "Street" };
-                                                             }
-                                                         })
-                                                         .registerCountryProvider(new CountryDataProvider() {
-                                                             @Override
-                                                             public Locale getLocale() {
-                                                                 return locale;
-                                                             }
+                    @Override
+                    public String[] getStreetTypesLong() {
+                        return new String[] {"Street"};
+                    }
+                })
+                .registerCountryProvider(new CountryDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-                                                             @Override
-                                                             public String[] getCountries() {
-                                                                 return new String[] { "Fallbackland" };
-                                                             }
-                                                         })
-                                                         .build();
+                    @Override
+                    public String[] getCountries() {
+                        return new String[] {"Fallbackland"};
+                    }
+                })
+                .build();
 
-        AddressInfo info = new AddressInfoGenerator(
-            GeneratorConfig.builder()
-                           .locale(locale)
-                           .registryContext(context)
-                           .seed(7L)
-                           .build()
-        ).generate();
+        AddressInfo info = new AddressInfoGenerator(GeneratorConfig.builder()
+                        .locale(locale)
+                        .registryContext(context)
+                        .seed(7L)
+                        .build())
+                .generate();
 
         assertTrue(info.city().isBlank());
         assertTrue(info.state().isBlank());
@@ -131,85 +127,85 @@ class AddressInfoGeneratorTest {
     void missingStateAbbreviationAndHelpers() throws Exception {
         Locale locale = Locale.US;
         DataRegistryContext context = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerCityProvider(new CityDataProvider() {
-                                                             @Override
-                                                             public Locale getLocale() {
-                                                                 return locale;
-                                                             }
+                .isolated()
+                .registerCityProvider(new CityDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-                                                             @Override
-                                                             public String[] getCities() {
-                                                                 return new String[] { "Testville" };
-                                                             }
-                                                         })
-                                                         .registerStreetAddressProvider(new StreetAddressDataProvider() {
-                                                             @Override
-                                                             public Locale getLocale() {
-                                                                 return locale;
-                                                             }
+                    @Override
+                    public String[] getCities() {
+                        return new String[] {"Testville"};
+                    }
+                })
+                .registerStreetAddressProvider(new StreetAddressDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-                                                             @Override
-                                                             public String[] getStreetNames() {
-                                                                 return new String[] { "Main" };
-                                                             }
+                    @Override
+                    public String[] getStreetNames() {
+                        return new String[] {"Main"};
+                    }
 
-                                                             @Override
-                                                             public String[] getStreetTypesShort() {
-                                                                 return new String[] { "St" };
-                                                             }
+                    @Override
+                    public String[] getStreetTypesShort() {
+                        return new String[] {"St"};
+                    }
 
-                                                             @Override
-                                                             public String[] getStreetTypesLong() {
-                                                                 return new String[] { "Street" };
-                                                             }
-                                                         })
-                                                         .registerStateProvider(new StateDataProvider() {
-                                                             @Override
-                                                             public Locale getLocale() {
-                                                                 return locale;
-                                                             }
+                    @Override
+                    public String[] getStreetTypesLong() {
+                        return new String[] {"Street"};
+                    }
+                })
+                .registerStateProvider(new StateDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-                                                             @Override
-                                                             public String[] getStates() {
-                                                                 return new String[] { "Example State" };
-                                                             }
+                    @Override
+                    public String[] getStates() {
+                        return new String[] {"Example State"};
+                    }
 
-                                                             @Override
-                                                             public String[] getAbbreviations() {
-                                                                 return new String[0];
-                                                             }
-                                                         })
-                                                         .registerCountryProvider(new CountryDataProvider() {
-                                                             @Override
-                                                             public Locale getLocale() {
-                                                                 return locale;
-                                                             }
+                    @Override
+                    public String[] getAbbreviations() {
+                        return new String[0];
+                    }
+                })
+                .registerCountryProvider(new CountryDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-                                                             @Override
-                                                             public String[] getCountries() {
-                                                                 return new String[] { "United States" };
-                                                             }
-                                                         })
-                                                         .build();
+                    @Override
+                    public String[] getCountries() {
+                        return new String[] {"United States"};
+                    }
+                })
+                .build();
 
-        AddressInfo info = new AddressInfoGenerator(
-            GeneratorConfig.builder()
-                           .locale(locale)
-                           .registryContext(context)
-                           .seed(5L)
-                           .build()
-        ).generate();
+        AddressInfo info = new AddressInfoGenerator(GeneratorConfig.builder()
+                        .locale(locale)
+                        .registryContext(context)
+                        .seed(5L)
+                        .build())
+                .generate();
 
         assertEquals("", info.stateAbbr());
         assertTrue(info.address().contains("Example State"));
 
         Method safe = AddressInfoGenerator.class.getDeclaredMethod("safe", String.class);
         safe.setAccessible(true);
-        assertEquals("", safe.invoke(null, new Object[] { null }));
+        assertEquals("", safe.invoke(null, new Object[] {null}));
 
-        Method joinNonBlank = AddressInfoGenerator.class.getDeclaredMethod("joinNonBlank", String.class, String[].class);
+        Method joinNonBlank =
+                AddressInfoGenerator.class.getDeclaredMethod("joinNonBlank", String.class, String[].class);
         joinNonBlank.setAccessible(true);
-        assertEquals("a, b", joinNonBlank.invoke(null, new Object[] { ", ", new String[] { "a", null, "", "b" } }));
+        assertEquals("a, b", joinNonBlank.invoke(null, new Object[] {", ", new String[] {"a", null, "", "b"}}));
     }
 }

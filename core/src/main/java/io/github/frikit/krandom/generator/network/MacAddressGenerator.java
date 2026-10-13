@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.network;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -43,7 +41,7 @@ import java.util.Random;
 public final class MacAddressGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
-    private final Random          random;
+    private final Random random;
 
     /**
      * Creates a MAC-address generator with default configuration.

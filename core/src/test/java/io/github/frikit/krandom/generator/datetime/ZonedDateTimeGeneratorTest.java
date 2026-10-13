@@ -5,19 +5,18 @@
  */
 package io.github.frikit.krandom.generator.datetime;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.HashSet;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.HashSet;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ZonedDateTimeGenerator")
 class ZonedDateTimeGeneratorTest {
@@ -46,8 +45,7 @@ class ZonedDateTimeGeneratorTest {
         ZonedDateTimeGenerator gen = new ZonedDateTimeGenerator();
         for (int i = 0; i < SAMPLES; i++) {
             ZoneId zone = gen.generate().getZone();
-            assertTrue(available.contains(zone.getId()),
-                       "unknown zone ID: " + zone.getId());
+            assertTrue(available.contains(zone.getId()), "unknown zone ID: " + zone.getId());
         }
     }
 

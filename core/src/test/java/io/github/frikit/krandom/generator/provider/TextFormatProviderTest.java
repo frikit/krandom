@@ -5,13 +5,13 @@
  */
 package io.github.frikit.krandom.generator.provider;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("TextFormatProvider")
 class TextFormatProviderTest {
@@ -36,7 +36,8 @@ class TextFormatProviderTest {
     @Test
     @DisplayName("formatting helpers respect their placeholder semantics")
     void formattingHelpersRespectPlaceholderSemantics() {
-        TextFormatProvider provider = new TextFormatProvider(GeneratorConfig.builder().seed(7L).build());
+        TextFormatProvider provider =
+                new TextFormatProvider(GeneratorConfig.builder().seed(7L).build());
 
         assertTrue(provider.numerify("##-##").matches("\\d{2}-\\d{2}"));
         assertTrue(provider.lexify("??").matches("[a-z]{2}"));
@@ -52,7 +53,8 @@ class TextFormatProviderTest {
     @Test
     @DisplayName("asciify leaves non-placeholder characters unchanged")
     void asciifyLeavesNonPlaceholderCharactersUnchanged() {
-        TextFormatProvider provider = new TextFormatProvider(GeneratorConfig.builder().seed(7L).build());
+        TextFormatProvider provider =
+                new TextFormatProvider(GeneratorConfig.builder().seed(7L).build());
 
         String value = provider.asciify("a*b", '*');
 
@@ -64,7 +66,8 @@ class TextFormatProviderTest {
     @Test
     @DisplayName("hexify leaves non-placeholder characters unchanged")
     void hexifyLeavesNonPlaceholderCharactersUnchanged() {
-        TextFormatProvider provider = new TextFormatProvider(GeneratorConfig.builder().seed(7L).build());
+        TextFormatProvider provider =
+                new TextFormatProvider(GeneratorConfig.builder().seed(7L).build());
 
         String value = provider.hexify("a^b");
 
@@ -76,7 +79,8 @@ class TextFormatProviderTest {
     @Test
     @DisplayName("examplify preserves separators and matches character categories")
     void examplifyPreservesSeparatorsAndMatchesCharacterCategories() {
-        TextFormatProvider provider = new TextFormatProvider(GeneratorConfig.builder().seed(7L).build());
+        TextFormatProvider provider =
+                new TextFormatProvider(GeneratorConfig.builder().seed(7L).build());
 
         String value = provider.examplify("ABc-19_中");
 

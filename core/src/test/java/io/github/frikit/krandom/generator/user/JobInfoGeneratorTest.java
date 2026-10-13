@@ -5,18 +5,17 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Method;
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.lang.reflect.Method;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("JobInfoGenerator")
 class JobInfoGeneratorTest {
@@ -39,10 +38,8 @@ class JobInfoGeneratorTest {
     @Test
     @DisplayName("seeded generation is reproducible")
     void seededGeneration() {
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.GERMANY)
-                                                .seed(42L)
-                                                .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.GERMANY).seed(42L).build();
 
         JobInfoGenerator one = new JobInfoGenerator(config);
         JobInfoGenerator two = new JobInfoGenerator(config);
@@ -67,7 +64,8 @@ class JobInfoGeneratorTest {
         Method joinNonBlank = JobInfoGenerator.class.getDeclaredMethod("joinNonBlank", String.class, String[].class);
         joinNonBlank.setAccessible(true);
 
-        assertEquals("Senior Engineer",
-                     joinNonBlank.invoke(null, new Object[] { " ", new String[] { null, "", "Senior", "Engineer" } }));
+        assertEquals("Senior Engineer", joinNonBlank.invoke(null, new Object[] {
+            " ", new String[] {null, "", "Senior", "Engineer"}
+        }));
     }
 }

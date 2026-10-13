@@ -13,5 +13,4 @@ import java.lang.annotation.Target;
 /** Minimal test-only stand-in for Kotlin's runtime metadata annotation. */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface Metadata {
-}
+public @interface Metadata {}

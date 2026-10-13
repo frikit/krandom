@@ -5,6 +5,9 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.base.RegexGenerator;
 import jakarta.validation.constraints.AssertFalse;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.DecimalMax;
@@ -20,23 +23,18 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Null;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
-import io.github.frikit.krandom.generator.Generator;
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.base.RegexGenerator;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.RecordComponent;
-import java.math.BigInteger;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.time.Clock;
@@ -50,11 +48,11 @@ import java.time.OffsetTime;
 import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +61,7 @@ import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Derives a constrained {@link Generator} from Bean Validation annotations on a field.
@@ -78,18 +77,18 @@ final class BeanValidationSupport {
     private static final int TEXT_GENERATION_ATTEMPTS = 256;
     private static final BigDecimal DECIMAL_DEFAULT_SPAN = new BigDecimal("1000000");
     private static final java.util.regex.Pattern EMAIL_SHAPE =
-        java.util.regex.Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
+            java.util.regex.Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
     private static final Comparator<NumericBound> LOWER_BOUND_ORDER =
-        Comparator.comparing(NumericBound::value).thenComparing(bound -> !bound.inclusive());
+            Comparator.comparing(NumericBound::value).thenComparing(bound -> !bound.inclusive());
     private static final Comparator<NumericBound> UPPER_BOUND_ORDER =
-        Comparator.comparing(NumericBound::value).thenComparing(NumericBound::inclusive);
+            Comparator.comparing(NumericBound::value).thenComparing(NumericBound::inclusive);
     private static final ClassValue<ConcurrentMap<ConstraintCacheKey, ConstraintModel>> CONSTRAINT_MODELS =
-        new ClassValue<>() {
-            @Override
-            protected ConcurrentMap<ConstraintCacheKey, ConstraintModel> computeValue(Class<?> type) {
-                return new ConcurrentHashMap<>();
-            }
-        };
+            new ClassValue<>() {
+                @Override
+                protected ConcurrentMap<ConstraintCacheKey, ConstraintModel> computeValue(Class<?> type) {
+                    return new ConcurrentHashMap<>();
+                }
+            };
     private static final ClassValue<AccessorMethods> ACCESSOR_METHODS = new ClassValue<>() {
         @Override
         protected AccessorMethods computeValue(Class<?> type) {
@@ -97,8 +96,7 @@ final class BeanValidationSupport {
         }
     };
 
-    private BeanValidationSupport() {
-    }
+    private BeanValidationSupport() {}
 
     /**
      * Whether the Jakarta Validation API can be loaded by this class's loader.
@@ -109,7 +107,8 @@ final class BeanValidationSupport {
 
     private static boolean detectJakartaValidation() {
         try {
-            Class.forName("jakarta.validation.constraints.NotNull", false, BeanValidationSupport.class.getClassLoader());
+            Class.forName(
+                    "jakarta.validation.constraints.NotNull", false, BeanValidationSupport.class.getClassLoader());
             return true;
         } catch (ClassNotFoundException | LinkageError absent) {
             return false;
@@ -117,24 +116,22 @@ final class BeanValidationSupport {
     }
 
     record ConstraintModel(
-        boolean constrained,
-        boolean nullOnly,
-        boolean required,
-        @Nullable SizeRange size,
-        @Nullable NumericRange numeric,
-        @Nullable Boolean assertion,
-        @Nullable TemporalConstraint temporal,
-        @Nullable TextConstraint text
-    ) {
+            boolean constrained,
+            boolean nullOnly,
+            boolean required,
+            @Nullable SizeRange size,
+            @Nullable NumericRange numeric,
+            @Nullable Boolean assertion,
+            @Nullable TemporalConstraint temporal,
+            @Nullable TextConstraint text) {
 
         private static final ConstraintModel NONE =
-            new ConstraintModel(false, false, false, null, null, null, null, null);
+                new ConstraintModel(false, false, false, null, null, null, null, null);
     }
 
     private record ConstraintCacheKey(boolean recordComponent, String name, Class<?> rawType) {}
 
-    private record AccessorMethods(Map<String, List<Method>> declared,
-                                   Map<String, List<Method>> interfaces) {}
+    private record AccessorMethods(Map<String, List<Method>> declared, Map<String, List<Method>> interfaces) {}
 
     static final class ConstraintConflictException extends IllegalArgumentException {
 
@@ -157,25 +154,23 @@ final class BeanValidationSupport {
         return constraintGeneratorFor(element, rawType, new Random(), Clock.systemDefaultZone());
     }
 
-    static @Nullable Generator<?> constraintGeneratorFor(@Nullable AnnotatedElement element,
-                                                         Class<?> rawType,
-                                                         Random random) {
+    static @Nullable Generator<?> constraintGeneratorFor(
+            @Nullable AnnotatedElement element, Class<?> rawType, Random random) {
         return constraintGeneratorFor(element, rawType, random, Clock.systemDefaultZone());
     }
 
-    static @Nullable Generator<?> constraintGeneratorFor(@Nullable AnnotatedElement element,
-                                               Class<?> rawType,
-                                               Random random,
-                                               Clock clock) {
+    static @Nullable Generator<?> constraintGeneratorFor(
+            @Nullable AnnotatedElement element, Class<?> rawType, Random random, Clock clock) {
         ConstraintModel constraints = constraintModelFor(element, rawType);
         return constraintGeneratorFor(element, rawType, random, clock, constraints);
     }
 
-    static @Nullable Generator<?> constraintGeneratorFor(@Nullable AnnotatedElement element,
-                                               Class<?> rawType,
-                                               Random random,
-                                               Clock clock,
-                                               ConstraintModel constraints) {
+    static @Nullable Generator<?> constraintGeneratorFor(
+            @Nullable AnnotatedElement element,
+            Class<?> rawType,
+            Random random,
+            Clock clock,
+            ConstraintModel constraints) {
         Objects.requireNonNull(random, "random must not be null");
         Objects.requireNonNull(clock, "clock must not be null");
         Objects.requireNonNull(constraints, "constraints must not be null");
@@ -206,13 +201,15 @@ final class BeanValidationSupport {
         Objects.requireNonNull(rawType, "rawType must not be null");
         if (element instanceof Field field) {
             ConstraintCacheKey key = new ConstraintCacheKey(false, field.getName(), rawType);
-            return CONSTRAINT_MODELS.get(field.getDeclaringClass())
-                                    .computeIfAbsent(key, ignored -> buildConstraintModel(element, rawType));
+            return CONSTRAINT_MODELS
+                    .get(field.getDeclaringClass())
+                    .computeIfAbsent(key, ignored -> buildConstraintModel(element, rawType));
         }
         if (element instanceof RecordComponent component) {
             ConstraintCacheKey key = new ConstraintCacheKey(true, component.getName(), rawType);
-            return CONSTRAINT_MODELS.get(component.getDeclaringRecord())
-                                    .computeIfAbsent(key, ignored -> buildConstraintModel(element, rawType));
+            return CONSTRAINT_MODELS
+                    .get(component.getDeclaringRecord())
+                    .computeIfAbsent(key, ignored -> buildConstraintModel(element, rawType));
         }
         return buildConstraintModel(element, rawType);
     }
@@ -240,21 +237,21 @@ final class BeanValidationSupport {
         TemporalConstraint temporal = temporalConstraintFor(element, rawType);
         TextConstraint text = textConstraintFor(element, rawType, size, notBlank, numeric);
         boolean constrained = nullOnly
-                              || requiredByAnnotation
-                              || size != null
-                              || numeric != null
-                              || assertion != null
-                              || temporal != null
-                              || text != null;
+                || requiredByAnnotation
+                || size != null
+                || numeric != null
+                || assertion != null
+                || temporal != null
+                || text != null;
         return new ConstraintModel(
-            constrained,
-            nullOnly,
-            rawType.isPrimitive() || requiredByAnnotation,
-            size,
-            numeric,
-            assertion,
-            temporal,
-            text);
+                constrained,
+                nullOnly,
+                rawType.isPrimitive() || requiredByAnnotation,
+                size,
+                numeric,
+                assertion,
+                temporal,
+                text);
     }
 
     static @Nullable SizeRange sizeRangeFor(@Nullable AnnotatedElement element) {
@@ -262,8 +259,8 @@ final class BeanValidationSupport {
             return null;
         }
         Size size = annotation(element, Size.class);
-        boolean requiresContent = annotation(element, NotEmpty.class) != null
-                                  || annotation(element, NotBlank.class) != null;
+        boolean requiresContent =
+                annotation(element, NotEmpty.class) != null || annotation(element, NotBlank.class) != null;
         if (size == null && !requiresContent) {
             return null;
         }
@@ -283,16 +280,17 @@ final class BeanValidationSupport {
 
     private static boolean supportsSize(Class<?> rawType) {
         return rawType == String.class
-               || rawType.isArray()
-               || Collection.class.isAssignableFrom(rawType)
-               || java.util.Map.class.isAssignableFrom(rawType);
+                || rawType.isArray()
+                || Collection.class.isAssignableFrom(rawType)
+                || java.util.Map.class.isAssignableFrom(rawType);
     }
 
-    private static @Nullable TextConstraint textConstraintFor(AnnotatedElement element,
-                                                              Class<?> rawType,
-                                                              @Nullable SizeRange size,
-                                                              boolean nonBlank,
-                                                              @Nullable NumericRange numeric) {
+    private static @Nullable TextConstraint textConstraintFor(
+            AnnotatedElement element,
+            Class<?> rawType,
+            @Nullable SizeRange size,
+            boolean nonBlank,
+            @Nullable NumericRange numeric) {
         Email email = annotation(element, Email.class);
         List<Pattern> patternAnnotations = annotations(element, Pattern.class);
         boolean hasTextAnnotation = email != null || !patternAnnotations.isEmpty();
@@ -329,10 +327,7 @@ final class BeanValidationSupport {
 
     private static TextPattern compileTextPattern(String expression, int compiledFlags, boolean source) {
         try {
-            return new TextPattern(
-                expression,
-                java.util.regex.Pattern.compile(expression, compiledFlags),
-                source);
+            return new TextPattern(expression, java.util.regex.Pattern.compile(expression, compiledFlags), source);
         } catch (java.util.regex.PatternSyntaxException invalidPattern) {
             throw conflict("text constraint contains an invalid regular expression");
         }
@@ -373,16 +368,18 @@ final class BeanValidationSupport {
 
     // Each regex source replays from its own seed, drawn from the engine's replayable stream.
     private static RegexGenerator regexGenerator(String expression, Random random) {
-        return new RegexGenerator(expression, GeneratorConfig.builder().seed(random.nextLong()).build());
+        return new RegexGenerator(
+                expression, GeneratorConfig.builder().seed(random.nextLong()).build());
     }
 
     record TextPattern(String expression, java.util.regex.Pattern compiled, boolean source) {}
 
-    record TextConstraint(boolean email,
-                          List<TextPattern> patterns,
-                          @Nullable SizeRange size,
-                          boolean nonBlank,
-                          @Nullable NumericRange numeric) {
+    record TextConstraint(
+            boolean email,
+            List<TextPattern> patterns,
+            @Nullable SizeRange size,
+            boolean nonBlank,
+            @Nullable NumericRange numeric) {
 
         boolean accepts(String candidate) {
             if (size != null && (candidate.length() < size.min() || candidate.length() > size.max())) {
@@ -468,27 +465,30 @@ final class BeanValidationSupport {
         return () -> randomBigInteger(random, integral.min(), integral.max()).toString();
     }
 
-    private static @Nullable Generator<?> numericGeneratorFor(@Nullable NumericRange range,
-                                                              Class<?> rawType,
-                                                              Random random) {
+    private static @Nullable Generator<?> numericGeneratorFor(
+            @Nullable NumericRange range, Class<?> rawType, Random random) {
         if (range == null) {
             return null;
         }
         if (rawType == byte.class || rawType == Byte.class) {
             IntegralRange integral = integralRangeFor(range, rawType);
-            return () -> randomBigInteger(random, integral.min(), integral.max()).byteValueExact();
+            return () ->
+                    randomBigInteger(random, integral.min(), integral.max()).byteValueExact();
         }
         if (rawType == short.class || rawType == Short.class) {
             IntegralRange integral = integralRangeFor(range, rawType);
-            return () -> randomBigInteger(random, integral.min(), integral.max()).shortValueExact();
+            return () ->
+                    randomBigInteger(random, integral.min(), integral.max()).shortValueExact();
         }
         if (rawType == int.class || rawType == Integer.class) {
             IntegralRange integral = integralRangeFor(range, rawType);
-            return () -> randomBigInteger(random, integral.min(), integral.max()).intValueExact();
+            return () ->
+                    randomBigInteger(random, integral.min(), integral.max()).intValueExact();
         }
         if (rawType == long.class || rawType == Long.class || rawType == Number.class) {
             IntegralRange integral = integralRangeFor(range, rawType);
-            return () -> randomLongInclusive(random, integral.min().longValueExact(), integral.max().longValueExact());
+            return () -> randomLongInclusive(
+                    random, integral.min().longValueExact(), integral.max().longValueExact());
         }
         if (rawType == float.class || rawType == Float.class) {
             FloatingRange floating = floatingRangeFor(range, true);
@@ -505,20 +505,16 @@ final class BeanValidationSupport {
         return () -> randomBigDecimal(random, range);
     }
 
-    private static @Nullable Generator<?> temporalGeneratorFor(@Nullable TemporalConstraint constraint,
-                                                     Class<?> rawType,
-                                                     Random random,
-                                                     Clock clock) {
+    private static @Nullable Generator<?> temporalGeneratorFor(
+            @Nullable TemporalConstraint constraint, Class<?> rawType, Random random, Clock clock) {
         if (constraint == null) {
             return null;
         }
         return () -> temporalValueFor(rawType, constraint, random, clock);
     }
 
-    private static Object temporalValueFor(Class<?> rawType,
-                                           TemporalConstraint constraint,
-                                           Random random,
-                                           Clock clock) {
+    private static Object temporalValueFor(
+            Class<?> rawType, TemporalConstraint constraint, Random random, Clock clock) {
         if (constraint.direction() == TemporalDirection.PRESENT) {
             return presentTemporalValueFor(rawType, clock);
         }
@@ -544,9 +540,15 @@ final class BeanValidationSupport {
             return calendar;
         }
         if (rawType == LocalTime.class) return localTimeFor(future, clock);
-        if (rawType == OffsetTime.class) return localTimeFor(future, clock).atOffset(OffsetDateTime.now(clock).getOffset());
-        if (rawType == Year.class) return future ? Year.now(clock).plusYears(1) : Year.now(clock).minusYears(1);
-        if (rawType == YearMonth.class) return future ? YearMonth.now(clock).plusMonths(1) : YearMonth.now(clock).minusMonths(1);
+        if (rawType == OffsetTime.class)
+            return localTimeFor(future, clock)
+                    .atOffset(OffsetDateTime.now(clock).getOffset());
+        if (rawType == Year.class)
+            return future ? Year.now(clock).plusYears(1) : Year.now(clock).minusYears(1);
+        if (rawType == YearMonth.class)
+            return future
+                    ? YearMonth.now(clock).plusMonths(1)
+                    : YearMonth.now(clock).minusMonths(1);
         return monthDayFor(future, clock);
     }
 
@@ -593,8 +595,8 @@ final class BeanValidationSupport {
         return boundary;
     }
 
-    private static @Nullable TemporalConstraint temporalConstraintFor(@Nullable AnnotatedElement element,
-                                                                      Class<?> rawType) {
+    private static @Nullable TemporalConstraint temporalConstraintFor(
+            @Nullable AnnotatedElement element, Class<?> rawType) {
         boolean futureOnly = annotation(element, Future.class) != null;
         boolean futureOrPresent = annotation(element, FutureOrPresent.class) != null;
         boolean pastOnly = annotation(element, Past.class) != null;
@@ -613,29 +615,33 @@ final class BeanValidationSupport {
             throw conflict("temporal constraints have an empty intersection");
         }
         TemporalDirection direction = allowsFuture
-                                      ? TemporalDirection.FUTURE
-                                      : allowsPast ? TemporalDirection.PAST : TemporalDirection.PRESENT;
+                ? TemporalDirection.FUTURE
+                : allowsPast ? TemporalDirection.PAST : TemporalDirection.PRESENT;
         return new TemporalConstraint(direction);
     }
 
     private static boolean supportsTemporal(Class<?> rawType) {
         return rawType == Instant.class
-               || rawType == LocalDate.class
-               || rawType == LocalDateTime.class
-               || rawType == ZonedDateTime.class
-               || rawType == OffsetDateTime.class
-               || rawType == Date.class
-               || rawType == java.sql.Date.class
-               || rawType == Timestamp.class
-               || rawType == Calendar.class
-               || rawType == LocalTime.class
-               || rawType == OffsetTime.class
-               || rawType == Year.class
-               || rawType == YearMonth.class
-               || rawType == MonthDay.class;
+                || rawType == LocalDate.class
+                || rawType == LocalDateTime.class
+                || rawType == ZonedDateTime.class
+                || rawType == OffsetDateTime.class
+                || rawType == Date.class
+                || rawType == java.sql.Date.class
+                || rawType == Timestamp.class
+                || rawType == Calendar.class
+                || rawType == LocalTime.class
+                || rawType == OffsetTime.class
+                || rawType == Year.class
+                || rawType == YearMonth.class
+                || rawType == MonthDay.class;
     }
 
-    private enum TemporalDirection { PAST, PRESENT, FUTURE }
+    private enum TemporalDirection {
+        PAST,
+        PRESENT,
+        FUTURE
+    }
 
     record TemporalConstraint(TemporalDirection direction) {}
 
@@ -656,13 +662,13 @@ final class BeanValidationSupport {
 
     private static boolean hasNumericConstraint(AnnotatedElement element) {
         return annotation(element, Min.class) != null
-               || annotation(element, Max.class) != null
-               || annotation(element, DecimalMin.class) != null
-               || annotation(element, DecimalMax.class) != null
-               || annotation(element, Positive.class) != null
-               || annotation(element, PositiveOrZero.class) != null
-               || annotation(element, Negative.class) != null
-               || annotation(element, NegativeOrZero.class) != null;
+                || annotation(element, Max.class) != null
+                || annotation(element, DecimalMin.class) != null
+                || annotation(element, DecimalMax.class) != null
+                || annotation(element, Positive.class) != null
+                || annotation(element, PositiveOrZero.class) != null
+                || annotation(element, Negative.class) != null
+                || annotation(element, NegativeOrZero.class) != null;
     }
 
     private static @Nullable NumericRange numericRangeFor(AnnotatedElement element, Class<?> rawType) {
@@ -718,7 +724,8 @@ final class BeanValidationSupport {
         }
         int comparison = range.lower().value().compareTo(range.upper().value());
         if (comparison > 0
-            || (comparison == 0 && (!range.lower().inclusive() || !range.upper().inclusive()))) {
+                || (comparison == 0
+                        && (!range.lower().inclusive() || !range.upper().inclusive()))) {
             throw conflict("numeric constraints have an empty intersection");
         }
     }
@@ -743,15 +750,15 @@ final class BeanValidationSupport {
 
     private static boolean isIntegralTarget(Class<?> rawType) {
         return rawType == byte.class
-               || rawType == Byte.class
-               || rawType == short.class
-               || rawType == Short.class
-               || rawType == int.class
-               || rawType == Integer.class
-               || rawType == long.class
-               || rawType == Long.class
-               || rawType == Number.class
-               || rawType == BigInteger.class;
+                || rawType == Byte.class
+                || rawType == short.class
+                || rawType == Short.class
+                || rawType == int.class
+                || rawType == Integer.class
+                || rawType == long.class
+                || rawType == Long.class
+                || rawType == Number.class
+                || rawType == BigInteger.class;
     }
 
     /** The value domain of a bounded integral target type; {@code null} for {@link BigInteger}. */
@@ -829,7 +836,8 @@ final class BeanValidationSupport {
         return new FloatingRange(min, max);
     }
 
-    private static @Nullable Double floatingLower(@Nullable NumericBound lower, boolean singlePrecision, double magnitude) {
+    private static @Nullable Double floatingLower(
+            @Nullable NumericBound lower, boolean singlePrecision, double magnitude) {
         if (lower == null) {
             return null;
         }
@@ -841,16 +849,18 @@ final class BeanValidationSupport {
         if (lower.value().compareTo(domainMin) < 0) {
             return -magnitude;
         }
-        double candidate = singlePrecision ? lower.value().floatValue() : lower.value().doubleValue();
+        double candidate =
+                singlePrecision ? lower.value().floatValue() : lower.value().doubleValue();
         BigDecimal represented = representedFloating(candidate, singlePrecision);
         if (represented.compareTo(lower.value()) < 0
-            || (!lower.inclusive() && represented.compareTo(lower.value()) == 0)) {
+                || (!lower.inclusive() && represented.compareTo(lower.value()) == 0)) {
             candidate = singlePrecision ? Math.nextUp((float) candidate) : Math.nextUp(candidate);
         }
         return candidate;
     }
 
-    private static @Nullable Double floatingUpper(@Nullable NumericBound upper, boolean singlePrecision, double magnitude) {
+    private static @Nullable Double floatingUpper(
+            @Nullable NumericBound upper, boolean singlePrecision, double magnitude) {
         if (upper == null) {
             return null;
         }
@@ -862,10 +872,11 @@ final class BeanValidationSupport {
         if (upper.value().compareTo(domainMax) > 0) {
             return magnitude;
         }
-        double candidate = singlePrecision ? upper.value().floatValue() : upper.value().doubleValue();
+        double candidate =
+                singlePrecision ? upper.value().floatValue() : upper.value().doubleValue();
         BigDecimal represented = representedFloating(candidate, singlePrecision);
         if (represented.compareTo(upper.value()) > 0
-            || (!upper.inclusive() && represented.compareTo(upper.value()) == 0)) {
+                || (!upper.inclusive() && represented.compareTo(upper.value()) == 0)) {
             candidate = singlePrecision ? Math.nextDown((float) candidate) : Math.nextDown(candidate);
         }
         return candidate;
@@ -877,7 +888,8 @@ final class BeanValidationSupport {
 
     record NumericBound(BigDecimal value, boolean inclusive) {}
 
-    record NumericRange(@Nullable NumericBound lower, @Nullable NumericBound upper, boolean decimal) {}
+    record NumericRange(
+            @Nullable NumericBound lower, @Nullable NumericBound upper, boolean decimal) {}
 
     private record IntegralRange(BigInteger min, BigInteger max) {}
 
@@ -893,9 +905,10 @@ final class BeanValidationSupport {
             BigDecimal fraction = BigDecimal.valueOf(0.25d + random.nextDouble() * 0.5d);
             return lower.value().add(upper.value().subtract(lower.value()).multiply(fraction));
         }
-        BigDecimal offset = DECIMAL_DEFAULT_SPAN.multiply(
-            BigDecimal.valueOf(0.25d + random.nextDouble() * 0.5d));
-        return lower != null ? lower.value().add(offset) : Objects.requireNonNull(upper).value().subtract(offset);
+        BigDecimal offset = DECIMAL_DEFAULT_SPAN.multiply(BigDecimal.valueOf(0.25d + random.nextDouble() * 0.5d));
+        return lower != null
+                ? lower.value().add(offset)
+                : Objects.requireNonNull(upper).value().subtract(offset);
     }
 
     private static BigInteger randomBigInteger(Random random, BigInteger min, BigInteger max) {
@@ -922,8 +935,8 @@ final class BeanValidationSupport {
         return Math.min(value, max);
     }
 
-    private static <A extends java.lang.annotation.Annotation> @Nullable A annotation(@Nullable AnnotatedElement element,
-                                                                                      Class<A> type) {
+    private static <A extends java.lang.annotation.Annotation> @Nullable A annotation(
+            @Nullable AnnotatedElement element, Class<A> type) {
         if (element == null) {
             return null;
         }
@@ -940,8 +953,8 @@ final class BeanValidationSupport {
         return null;
     }
 
-    private static <A extends java.lang.annotation.Annotation> List<A> annotations(AnnotatedElement element,
-                                                                                   Class<A> type) {
+    private static <A extends java.lang.annotation.Annotation> List<A> annotations(
+            AnnotatedElement element, Class<A> type) {
         if (element instanceof RecordComponent component) {
             return List.of(component.getAccessor().getAnnotationsByType(type));
         }
@@ -955,12 +968,12 @@ final class BeanValidationSupport {
         return List.of();
     }
 
-    private static <A extends java.lang.annotation.Annotation> List<A> accessorAnnotations(Field field,
-                                                                                            Class<A> type) {
-        String capitalized = Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1);
+    private static <A extends java.lang.annotation.Annotation> List<A> accessorAnnotations(Field field, Class<A> type) {
+        String capitalized = Character.toUpperCase(field.getName().charAt(0))
+                + field.getName().substring(1);
         String[] names = field.getType() == boolean.class || field.getType() == Boolean.class
-                         ? new String[] { field.getName(), "is" + capitalized, "get" + capitalized }
-                         : new String[] { field.getName(), "get" + capitalized };
+                ? new String[] {field.getName(), "is" + capitalized, "get" + capitalized}
+                : new String[] {field.getName(), "get" + capitalized};
         for (String name : names) {
             List<A> declared = declaredMethodAnnotations(field.getDeclaringClass(), name, type);
             if (!declared.isEmpty()) {
@@ -975,9 +988,7 @@ final class BeanValidationSupport {
     }
 
     private static <A extends java.lang.annotation.Annotation> List<A> interfaceMethodAnnotations(
-        Class<?> owner,
-        String name,
-        Class<A> type) {
+            Class<?> owner, String name, Class<A> type) {
         for (Method method : ACCESSOR_METHODS.get(owner).interfaces().getOrDefault(name, List.of())) {
             List<A> found = List.of(method.getAnnotationsByType(type));
             if (!found.isEmpty()) {
@@ -988,9 +999,7 @@ final class BeanValidationSupport {
     }
 
     private static <A extends java.lang.annotation.Annotation> List<A> declaredMethodAnnotations(
-        Class<?> owner,
-        String name,
-        Class<A> type) {
+            Class<?> owner, String name, Class<A> type) {
         for (Method method : ACCESSOR_METHODS.get(owner).declared().getOrDefault(name, List.of())) {
             List<A> found = List.of(method.getAnnotationsByType(type));
             if (!found.isEmpty()) {
@@ -1000,11 +1009,13 @@ final class BeanValidationSupport {
         return List.of();
     }
 
-    private static <A extends java.lang.annotation.Annotation> @Nullable A accessorAnnotation(Field field, Class<A> type) {
-        String capitalized = Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1);
+    private static <A extends java.lang.annotation.Annotation> @Nullable A accessorAnnotation(
+            Field field, Class<A> type) {
+        String capitalized = Character.toUpperCase(field.getName().charAt(0))
+                + field.getName().substring(1);
         String[] names = field.getType() == boolean.class || field.getType() == Boolean.class
-                         ? new String[] { field.getName(), "is" + capitalized, "get" + capitalized }
-                         : new String[] { field.getName(), "get" + capitalized };
+                ? new String[] {field.getName(), "is" + capitalized, "get" + capitalized}
+                : new String[] {field.getName(), "get" + capitalized};
         for (String name : names) {
             A annotation = declaredMethodAnnotation(field.getDeclaringClass(), name, type);
             if (annotation != null) {
@@ -1018,9 +1029,8 @@ final class BeanValidationSupport {
         return null;
     }
 
-    private static <A extends java.lang.annotation.Annotation> @Nullable A interfaceMethodAnnotation(Class<?> owner,
-                                                                                           String name,
-                                                                                           Class<A> type) {
+    private static <A extends java.lang.annotation.Annotation> @Nullable A interfaceMethodAnnotation(
+            Class<?> owner, String name, Class<A> type) {
         for (Method method : ACCESSOR_METHODS.get(owner).interfaces().getOrDefault(name, List.of())) {
             A annotation = method.getAnnotation(type);
             if (annotation != null) {
@@ -1030,9 +1040,8 @@ final class BeanValidationSupport {
         return null;
     }
 
-    private static <A extends java.lang.annotation.Annotation> @Nullable A declaredMethodAnnotation(Class<?> owner,
-                                                                                          String name,
-                                                                                          Class<A> type) {
+    private static <A extends java.lang.annotation.Annotation> @Nullable A declaredMethodAnnotation(
+            Class<?> owner, String name, Class<A> type) {
         for (Method method : ACCESSOR_METHODS.get(owner).declared().getOrDefault(name, List.of())) {
             A annotation = method.getAnnotation(type);
             if (annotation != null) {
@@ -1048,7 +1057,8 @@ final class BeanValidationSupport {
         while (current != Object.class) {
             for (Method method : current.getDeclaredMethods()) {
                 if (method.getParameterCount() == 0) {
-                    declared.computeIfAbsent(method.getName(), ignored -> new ArrayList<>()).add(method);
+                    declared.computeIfAbsent(method.getName(), ignored -> new ArrayList<>())
+                            .add(method);
                 }
             }
             current = current.getSuperclass();
@@ -1058,7 +1068,9 @@ final class BeanValidationSupport {
         for (Class<?> interfaceType : owner.getInterfaces()) {
             for (Method method : interfaceType.getMethods()) {
                 if (method.getParameterCount() == 0) {
-                    interfaces.computeIfAbsent(method.getName(), ignored -> new ArrayList<>()).add(method);
+                    interfaces
+                            .computeIfAbsent(method.getName(), ignored -> new ArrayList<>())
+                            .add(method);
                 }
             }
         }

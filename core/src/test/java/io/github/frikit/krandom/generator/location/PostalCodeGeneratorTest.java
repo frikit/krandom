@@ -5,23 +5,22 @@
  */
 package io.github.frikit.krandom.generator.location;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.regex.Pattern;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.locale.SupportedLocale;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.regex.Pattern;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("PostalCodeGenerator")
 class PostalCodeGeneratorTest {
@@ -38,10 +37,8 @@ class PostalCodeGeneratorTest {
     @Test
     @DisplayName("constructor with config accepts config")
     void constructorWithConfig() {
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.GERMANY)
-                                                .seed(42L)
-                                                .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.GERMANY).seed(42L).build();
 
         PostalCodeGenerator gen = new PostalCodeGenerator(config);
         assertEquals(Locale.GERMANY, gen.getLocale());
@@ -57,20 +54,16 @@ class PostalCodeGeneratorTest {
     @Test
     @DisplayName("null config throws NullPointerException")
     void nullConfigThrows() {
-        NullPointerException ex = assertThrows(
-            NullPointerException.class,
-            () -> new PostalCodeGenerator((GeneratorConfig) null)
-        );
+        NullPointerException ex =
+                assertThrows(NullPointerException.class, () -> new PostalCodeGenerator((GeneratorConfig) null));
         assertTrue(ex.getMessage().contains("config must not be null"));
     }
 
     @Test
     @DisplayName("null locale throws NullPointerException")
     void nullLocaleThrows() {
-        NullPointerException ex = assertThrows(
-            NullPointerException.class,
-            () -> new PostalCodeGenerator((Locale) null)
-        );
+        NullPointerException ex =
+                assertThrows(NullPointerException.class, () -> new PostalCodeGenerator((Locale) null));
         assertTrue(ex.getMessage().contains("locale must not be null"));
     }
 
@@ -93,8 +86,7 @@ class PostalCodeGeneratorTest {
         String zipPlus4 = gen.generate(true);
 
         assertNotNull(zipPlus4);
-        assertTrue(zipPlus4.matches("\\d{5}-\\d{4}"),
-                   "Expected ZIP+4 format, got: " + zipPlus4);
+        assertTrue(zipPlus4.matches("\\d{5}-\\d{4}"), "Expected ZIP+4 format, got: " + zipPlus4);
     }
 
     @Test
@@ -120,8 +112,9 @@ class PostalCodeGeneratorTest {
 
         assertNotNull(postcode);
         // UK format: outward code (2-4 chars) + space + inward code (3 chars: digit + 2 letters)
-        assertTrue(postcode.matches("[A-Z]{1,2}\\d{1,2}[A-Z]? \\d[A-Z]{2}"),
-                   "Expected valid UK postcode format, got: " + postcode);
+        assertTrue(
+                postcode.matches("[A-Z]{1,2}\\d{1,2}[A-Z]? \\d[A-Z]{2}"),
+                "Expected valid UK postcode format, got: " + postcode);
     }
 
     @Test
@@ -129,9 +122,9 @@ class PostalCodeGeneratorTest {
     void ukValidAreaCode() {
         PostalCodeGenerator gen = new PostalCodeGenerator(Locale.UK);
 
-        Set<String> areaCodes = Set.of("SW", "EC", "N", "W", "E", "SE", "NW", "WC", "M", "B",
-                                       "L", "G", "EH", "AB", "BD", "BS", "CB", "CF", "CR", "CV", "LE", "LS", "OX",
-                                       "RG", "S", "SO", "TN", "YO");
+        Set<String> areaCodes = Set.of(
+                "SW", "EC", "N", "W", "E", "SE", "NW", "WC", "M", "B", "L", "G", "EH", "AB", "BD", "BS", "CB", "CF",
+                "CR", "CV", "LE", "LS", "OX", "RG", "S", "SO", "TN", "YO");
 
         boolean foundValidAreaCode = false;
         for (int i = 0; i < 50; i++) {
@@ -139,8 +132,8 @@ class PostalCodeGeneratorTest {
             String outward = postcode.split(" ")[0];
             String firstChar = outward.substring(0, 1);
             String firstTwoChars = outward.length() >= 2 && Character.isLetter(outward.charAt(1))
-                                   ? outward.substring(0, 2)
-                                   : firstChar;
+                    ? outward.substring(0, 2)
+                    : firstChar;
 
             if (areaCodes.contains(firstChar) || areaCodes.contains(firstTwoChars)) {
                 foundValidAreaCode = true;
@@ -184,8 +177,7 @@ class PostalCodeGeneratorTest {
         for (int i = 0; i < 100; i++) {
             String postcode = gen.generate();
             int value = Integer.parseInt(postcode);
-            assertTrue(value >= 200 && value <= 9999,
-                       "Expected postcode in range 0200-9999, got: " + postcode);
+            assertTrue(value >= 200 && value <= 9999, "Expected postcode in range 0200-9999, got: " + postcode);
         }
     }
 
@@ -209,8 +201,7 @@ class PostalCodeGeneratorTest {
         for (int i = 0; i < 100; i++) {
             String plz = gen.generate();
             int value = Integer.parseInt(plz);
-            assertTrue(value >= 1000 && value <= 99999,
-                       "Expected PLZ >= 01000, got: " + plz);
+            assertTrue(value >= 1000 && value <= 99999, "Expected PLZ >= 01000, got: " + plz);
         }
     }
 
@@ -223,8 +214,7 @@ class PostalCodeGeneratorTest {
         String codePostal = gen.generate();
 
         assertNotNull(codePostal);
-        assertTrue(codePostal.matches("\\d{5}"),
-                   "Expected 5-digit code postal, got: " + codePostal);
+        assertTrue(codePostal.matches("\\d{5}"), "Expected 5-digit code postal, got: " + codePostal);
     }
 
     @Test
@@ -235,8 +225,7 @@ class PostalCodeGeneratorTest {
         for (int i = 0; i < 100; i++) {
             String codePostal = gen.generate();
             int dept = Integer.parseInt(codePostal.substring(0, 2));
-            assertTrue(dept >= 1 && dept <= 95,
-                       "Expected department 01-95, got: " + codePostal);
+            assertTrue(dept >= 1 && dept <= 95, "Expected department 01-95, got: " + codePostal);
         }
     }
 
@@ -249,8 +238,7 @@ class PostalCodeGeneratorTest {
         String codigoPostal = gen.generate();
 
         assertNotNull(codigoPostal);
-        assertTrue(codigoPostal.matches("\\d{5}"),
-                   "Expected 5-digit código postal, got: " + codigoPostal);
+        assertTrue(codigoPostal.matches("\\d{5}"), "Expected 5-digit código postal, got: " + codigoPostal);
     }
 
     @Test
@@ -261,8 +249,7 @@ class PostalCodeGeneratorTest {
         for (int i = 0; i < 100; i++) {
             String codigoPostal = gen.generate();
             int province = Integer.parseInt(codigoPostal.substring(0, 2));
-            assertTrue(province >= 1 && province <= 52,
-                       "Expected province 01-52, got: " + codigoPostal);
+            assertTrue(province >= 1 && province <= 52, "Expected province 01-52, got: " + codigoPostal);
         }
     }
 
@@ -286,8 +273,7 @@ class PostalCodeGeneratorTest {
         for (int i = 0; i < 100; i++) {
             String cap = gen.generate();
             int value = Integer.parseInt(cap);
-            assertTrue(value >= 0 && value <= 98999,
-                       "Expected CAP in range 00000-98999, got: " + cap);
+            assertTrue(value >= 0 && value <= 98999, "Expected CAP in range 00000-98999, got: " + cap);
         }
     }
 
@@ -310,8 +296,7 @@ class PostalCodeGeneratorTest {
         String cep = gen.generate(true);
 
         assertNotNull(cep);
-        assertTrue(cep.matches("\\d{5}-\\d{3}"),
-                   "Expected CEP with hyphen (00000-000), got: " + cep);
+        assertTrue(cep.matches("\\d{5}-\\d{3}"), "Expected CEP with hyphen (00000-000), got: " + cep);
     }
 
     // ── Japanese postal codes (ja_JP) ─────────────────────────────────────────
@@ -333,8 +318,7 @@ class PostalCodeGeneratorTest {
         String postcode = gen.generate(true);
 
         assertNotNull(postcode);
-        assertTrue(postcode.matches("\\d{3}-\\d{4}"),
-                   "Expected postcode with hyphen (000-0000), got: " + postcode);
+        assertTrue(postcode.matches("\\d{3}-\\d{4}"), "Expected postcode with hyphen (000-0000), got: " + postcode);
     }
 
     // ── Chinese postal codes (zh_CN) ──────────────────────────────────────────
@@ -357,8 +341,8 @@ class PostalCodeGeneratorTest {
         for (int i = 0; i < 100; i++) {
             String postcode = gen.generate();
             int value = Integer.parseInt(postcode);
-            assertTrue(value >= 100000 && value <= 999999,
-                       "Expected postcode in range 100000-999999, got: " + postcode);
+            assertTrue(
+                    value >= 100000 && value <= 999999, "Expected postcode in range 100000-999999, got: " + postcode);
         }
     }
 
@@ -367,14 +351,10 @@ class PostalCodeGeneratorTest {
     @Test
     @DisplayName("seeded generator produces reproducible results")
     void seededReproducibility() {
-        GeneratorConfig config1 = GeneratorConfig.builder()
-                                                 .locale(Locale.US)
-                                                 .seed(42L)
-                                                 .build();
-        GeneratorConfig config2 = GeneratorConfig.builder()
-                                                 .locale(Locale.US)
-                                                 .seed(42L)
-                                                 .build();
+        GeneratorConfig config1 =
+                GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
+        GeneratorConfig config2 =
+                GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
 
         PostalCodeGenerator gen1 = new PostalCodeGenerator(config1);
         PostalCodeGenerator gen2 = new PostalCodeGenerator(config2);
@@ -388,14 +368,10 @@ class PostalCodeGeneratorTest {
     @Test
     @DisplayName("seeded generator with UK locale is reproducible")
     void seededUKReproducibility() {
-        GeneratorConfig config1 = GeneratorConfig.builder()
-                                                 .locale(Locale.UK)
-                                                 .seed(123L)
-                                                 .build();
-        GeneratorConfig config2 = GeneratorConfig.builder()
-                                                 .locale(Locale.UK)
-                                                 .seed(123L)
-                                                 .build();
+        GeneratorConfig config1 =
+                GeneratorConfig.builder().locale(Locale.UK).seed(123L).build();
+        GeneratorConfig config2 =
+                GeneratorConfig.builder().locale(Locale.UK).seed(123L).build();
 
         PostalCodeGenerator gen1 = new PostalCodeGenerator(config1);
         PostalCodeGenerator gen2 = new PostalCodeGenerator(config2);
@@ -409,14 +385,10 @@ class PostalCodeGeneratorTest {
     @Test
     @DisplayName("different seeds produce different sequences")
     void differentSeeds() {
-        GeneratorConfig config1 = GeneratorConfig.builder()
-                                                 .locale(Locale.FRANCE)
-                                                 .seed(111L)
-                                                 .build();
-        GeneratorConfig config2 = GeneratorConfig.builder()
-                                                 .locale(Locale.FRANCE)
-                                                 .seed(222L)
-                                                 .build();
+        GeneratorConfig config1 =
+                GeneratorConfig.builder().locale(Locale.FRANCE).seed(111L).build();
+        GeneratorConfig config2 =
+                GeneratorConfig.builder().locale(Locale.FRANCE).seed(222L).build();
 
         PostalCodeGenerator gen1 = new PostalCodeGenerator(config1);
         PostalCodeGenerator gen2 = new PostalCodeGenerator(config2);
@@ -457,10 +429,7 @@ class PostalCodeGeneratorTest {
     void generateListNegativeThrows() {
         PostalCodeGenerator gen = new PostalCodeGenerator();
 
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> gen.generateList(-1)
-        );
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> gen.generateList(-1));
         assertTrue(ex.getMessage().contains("count must be >= 0"));
     }
 
@@ -490,8 +459,7 @@ class PostalCodeGeneratorTest {
         Pattern ukPattern = Pattern.compile("[A-Z]{1,2}\\d{1,2}[A-Z]? \\d[A-Z]{2}");
         codes.forEach(code -> {
             assertNotNull(code);
-            assertTrue(ukPattern.matcher(code).matches(),
-                       "Expected valid UK postcode, got: " + code);
+            assertTrue(ukPattern.matcher(code).matches(), "Expected valid UK postcode, got: " + code);
         });
     }
 
@@ -511,9 +479,17 @@ class PostalCodeGeneratorTest {
     @Test
     @DisplayName("an unknown country and language use the documented en_US default")
     void unknownCountryAndLanguageUseTheDocumentedDefault() {
-        assertEquals(new PostalCodeGenerator(GeneratorConfig.builder().locale(Locale.US).seed(3L).build()).generateList(20),
-                     new PostalCodeGenerator(GeneratorConfig.builder().locale(Locale.of("xx", "YY")).seed(3L).build())
-                         .generateList(20));
+        assertEquals(
+                new PostalCodeGenerator(GeneratorConfig.builder()
+                                .locale(Locale.US)
+                                .seed(3L)
+                                .build())
+                        .generateList(20),
+                new PostalCodeGenerator(GeneratorConfig.builder()
+                                .locale(Locale.of("xx", "YY"))
+                                .seed(3L)
+                                .build())
+                        .generateList(20));
     }
 
     @Test
@@ -594,10 +570,8 @@ class PostalCodeGeneratorTest {
     @Test
     @DisplayName("generate() with no args matches generate(false)")
     void generateNoArgsMatchesFalse() {
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.US)
-                                                .seed(999L)
-                                                .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.US).seed(999L).build();
 
         PostalCodeGenerator gen1 = new PostalCodeGenerator(config);
         PostalCodeGenerator gen2 = new PostalCodeGenerator(config);
@@ -617,22 +591,16 @@ class PostalCodeGeneratorTest {
 
             String inward = parts[1];
             assertEquals(3, inward.length(), "Inward code should be 3 chars: " + postcode);
-            assertTrue(Character.isDigit(inward.charAt(0)),
-                       "Inward code should start with digit: " + postcode);
-            assertTrue(Character.isLetter(inward.charAt(1)),
-                       "Inward code char 2 should be letter: " + postcode);
-            assertTrue(Character.isLetter(inward.charAt(2)),
-                       "Inward code char 3 should be letter: " + postcode);
+            assertTrue(Character.isDigit(inward.charAt(0)), "Inward code should start with digit: " + postcode);
+            assertTrue(Character.isLetter(inward.charAt(1)), "Inward code char 2 should be letter: " + postcode);
+            assertTrue(Character.isLetter(inward.charAt(2)), "Inward code char 3 should be letter: " + postcode);
         }
     }
 
     @Test
     @DisplayName("all locales produce variety of values")
     void allLocalesProduceVariety() {
-        Locale[] locales = {
-            Locale.US, Locale.UK, Locale.GERMANY, Locale.FRANCE,
-            Locale.JAPAN, Locale.CHINA
-        };
+        Locale[] locales = {Locale.US, Locale.UK, Locale.GERMANY, Locale.FRANCE, Locale.JAPAN, Locale.CHINA};
 
         for (Locale locale : locales) {
             PostalCodeGenerator gen = new PostalCodeGenerator(locale);
@@ -642,8 +610,9 @@ class PostalCodeGeneratorTest {
                 seen.add(gen.generate());
             }
 
-            assertTrue(seen.size() > 30,
-                       "Locale " + locale + " should produce variety, got " + seen.size() + " unique values");
+            assertTrue(
+                    seen.size() > 30,
+                    "Locale " + locale + " should produce variety, got " + seen.size() + " unique values");
         }
     }
 }

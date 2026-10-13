@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.location.PhoneNumberGenerator;
-
 import java.text.Normalizer;
 import java.util.Locale;
 import java.util.Objects;
@@ -22,13 +21,13 @@ public final class ContactInfoGenerator implements Generator<ContactInfo> {
     private static final int DEFAULT_MIN_AGE = 18;
     private static final int DEFAULT_MAX_AGE = 90;
 
-    private final GeneratorConfig      config;
-    private final Random               random;
-    private final FirstNameGenerator   firstNameGenerator;
-    private final LastNameGenerator    lastNameGenerator;
-    private final GenderGenerator      genderGenerator;
+    private final GeneratorConfig config;
+    private final Random random;
+    private final FirstNameGenerator firstNameGenerator;
+    private final LastNameGenerator lastNameGenerator;
+    private final GenderGenerator genderGenerator;
     private final PhoneNumberGenerator phoneNumberGenerator;
-    private final EmailGenerator       emailGenerator;
+    private final EmailGenerator emailGenerator;
 
     /**
      * Creates a contact-info generator using default configuration ({@link Locale#US}).
@@ -43,7 +42,9 @@ public final class ContactInfoGenerator implements Generator<ContactInfo> {
      * @param locale locale to use
      */
     public ContactInfoGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -72,15 +73,14 @@ public final class ContactInfoGenerator implements Generator<ContactInfo> {
         String phone = digitsOnly(phoneFormatted);
 
         return new ContactInfo(
-            firstName,
-            lastName,
-            name,
-            genderGenerator.generate(gender),
-            age,
-            phone,
-            phoneFormatted,
-            coherentEmail(firstName, lastName)
-        );
+                firstName,
+                lastName,
+                name,
+                genderGenerator.generate(gender),
+                age,
+                phone,
+                phoneFormatted,
+                coherentEmail(firstName, lastName));
     }
 
     /**
@@ -122,8 +122,8 @@ public final class ContactInfoGenerator implements Generator<ContactInfo> {
 
     private static String normalize(String value) {
         return Normalizer.normalize(value, Normalizer.Form.NFD)
-                         .replaceAll("\\p{M}+", "")
-                         .toLowerCase(Locale.ROOT)
-                         .replaceAll("[^a-z0-9]", "");
+                .replaceAll("\\p{M}+", "")
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]", "");
     }
 }

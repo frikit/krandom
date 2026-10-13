@@ -28,11 +28,13 @@ public final class HuHuNationalIdProvider implements NationalIdProvider {
     public String generate(Random random) {
         int gender = random.nextInt(2) + 1;
         LocalDate date = LocalDate.of(1950, 1, 1).plusDays(random.nextInt(18_262));
-        return String.format(Locale.ROOT, "%d-%02d%02d%02d-%04d",
-                             gender,
-                             date.getYear() % 100,
-                             date.getMonthValue(),
-                             date.getDayOfMonth(),
-                             random.nextInt(10_000));
+        return String.format(
+                Locale.ROOT,
+                "%d-%02d%02d%02d-%04d",
+                gender,
+                date.getYear() % 100,
+                date.getMonthValue(),
+                date.getDayOfMonth(),
+                random.nextInt(10_000));
     }
 }

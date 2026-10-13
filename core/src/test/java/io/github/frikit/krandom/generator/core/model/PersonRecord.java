@@ -12,13 +12,4 @@ package io.github.frikit.krandom.generator.core.model;
  * Records are intentionally immutable: the generator must use the canonical constructor
  * rather than no-arg construction + field injection.
  */
-public record PersonRecord(
-    String firstName,
-    String lastName,
-    int age,
-    double salary,
-    Status status,
-    Address address
-) {
-
-}
+public record PersonRecord(String firstName, String lastName, int age, double salary, Status status, Address address) {}

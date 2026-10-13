@@ -5,13 +5,11 @@
  */
 package io.github.frikit.krandom.generator.user.nationalid;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.apache.commons.validator.routines.checkdigit.LuhnCheckDigit;
-import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -23,10 +21,11 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.apache.commons.validator.routines.checkdigit.LuhnCheckDigit;
+import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 /**
  * Checks every Tier-1 built-in national-ID provider against an independent validator written from
@@ -37,15 +36,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("Tier-1 national IDs satisfy their published validity rules")
 class NationalIdTier1ValidityTest {
 
-    static final int  GENERATED_COUNT = 1_000;
-    static final long SEED            = 20_260_927L;
+    static final int GENERATED_COUNT = 1_000;
+    static final long SEED = 20_260_927L;
 
     static List<String> generated(Locale locale) {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(locale)
-                                                .seed(SEED)
-                                                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                .build();
+                .locale(locale)
+                .seed(SEED)
+                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
         List<String> ids = new NationalIdGenerator(config).generateList(GENERATED_COUNT);
         assertEquals(GENERATED_COUNT, ids.size());
         return ids;
@@ -130,19 +129,26 @@ class NationalIdTier1ValidityTest {
         @Test
         @DisplayName("never-assigned areas, groups and serials are rejected")
         void neverAssignedRejected() {
-            assertRejected(UsSocialSecurityNumber::isValid,
-                           "000-12-3456", "666-12-3456", "900-12-3456", "987-65-4320", "123-00-4567",
-                           "123-45-0000", "123-45-678");
+            assertRejected(
+                    UsSocialSecurityNumber::isValid,
+                    "000-12-3456",
+                    "666-12-3456",
+                    "900-12-3456",
+                    "987-65-4320",
+                    "123-00-4567",
+                    "123-45-0000",
+                    "123-45-678");
         }
 
         @Test
         @DisplayName("1000 seeded SSNs validate in every output format")
         void generatedValidate() {
             assertAllSatisfy(generated(Locale.US), id -> id.matches("\\d{3}-\\d{2}-\\d{4}") && isValid(id));
-            assertAllSatisfy(generated(new UsNationalIdProvider().withoutDashes()),
-                             id -> id.matches("\\d{9}") && isValid(id));
-            assertAllSatisfy(generated(new UsNationalIdProvider().lastFourOnly()),
-                             id -> id.matches("\\d{4}") && !id.equals("0000"));
+            assertAllSatisfy(
+                    generated(new UsNationalIdProvider().withoutDashes()), id -> id.matches("\\d{9}") && isValid(id));
+            assertAllSatisfy(
+                    generated(new UsNationalIdProvider().lastFourOnly()),
+                    id -> id.matches("\\d{4}") && !id.equals("0000"));
         }
     }
 
@@ -165,8 +171,8 @@ class NationalIdTier1ValidityTest {
                 return false;
             }
             return "DFIQUV".indexOf(nino.charAt(0)) < 0
-                   && "DFIOQUV".indexOf(nino.charAt(1)) < 0
-                   && !NOT_ALLOCATED.contains(nino.substring(0, 2));
+                    && "DFIOQUV".indexOf(nino.charAt(1)) < 0
+                    && !NOT_ALLOCATED.contains(nino.substring(0, 2));
         }
 
         @Test
@@ -180,16 +186,21 @@ class NationalIdTier1ValidityTest {
         @DisplayName("HMRC's illustrative number and unallocated prefixes are rejected")
         void invalidRejected() {
             // HMRC NIM39110 illustrates the format with "QQ 12 34 56 A", which is not a usable number.
-            assertRejected(GbNationalInsuranceNumber::isValid,
-                           "QQ 12 34 56 A", "GB 12 34 56 A", "AO 12 34 56 A", "DA 12 34 56 A", "AB 12 34 56 E",
-                           "AB 12 34 5 A");
+            assertRejected(
+                    GbNationalInsuranceNumber::isValid,
+                    "QQ 12 34 56 A",
+                    "GB 12 34 56 A",
+                    "AO 12 34 56 A",
+                    "DA 12 34 56 A",
+                    "AB 12 34 56 E",
+                    "AB 12 34 5 A");
         }
 
         @Test
         @DisplayName("1000 seeded NINOs validate")
         void generatedValidate() {
-            assertAllSatisfy(generated(Locale.UK),
-                             id -> id.matches("[A-Z]{2} \\d{2} \\d{2} \\d{2} [A-D]") && isValid(id));
+            assertAllSatisfy(
+                    generated(Locale.UK), id -> id.matches("[A-Z]{2} \\d{2} \\d{2} \\d{2} [A-D]") && isValid(id));
         }
     }
 
@@ -199,7 +210,7 @@ class NationalIdTier1ValidityTest {
     @DisplayName("AU Tax File Number")
     class AuTaxFileNumber {
 
-        private static final int[] WEIGHTS = { 1, 4, 3, 7, 5, 8, 6, 9, 10 };
+        private static final int[] WEIGHTS = {1, 4, 3, 7, 5, 8, 6, 9, 10};
 
         /**
          * ATO TFN algorithm (Wikipedia "Tax file number"): the digits weighted 1, 4, 3, 7, 5, 8, 6, 9
@@ -233,8 +244,8 @@ class NationalIdTier1ValidityTest {
         @Test
         @DisplayName("1000 seeded TFNs validate")
         void generatedValidate() {
-            assertAllSatisfy(generated(Locale.of("en", "AU")),
-                             id -> id.matches("[1-9]\\d{2} \\d{3} \\d{3}") && isValid(id));
+            assertAllSatisfy(
+                    generated(Locale.of("en", "AU")), id -> id.matches("[1-9]\\d{2} \\d{3} \\d{3}") && isValid(id));
         }
     }
 
@@ -245,7 +256,7 @@ class NationalIdTier1ValidityTest {
     class FrNir {
 
         private static final Pattern NIR =
-            Pattern.compile("[12]\\d{2}(?:0[1-9]|1[0-2])(\\d{2}|2A|2B)(\\d{3})(\\d{3})(\\d{2})");
+                Pattern.compile("[12]\\d{2}(?:0[1-9]|1[0-2])(\\d{2}|2A|2B)(\\d{3})(\\d{3})(\\d{2})");
 
         /**
          * French NIR (fr.wikipedia "Numéro de sécurité sociale en France"): sex, YY, month,
@@ -256,9 +267,9 @@ class NationalIdTier1ValidityTest {
             String nir = value.replace(" ", "");
             Matcher matcher = NIR.matcher(nir);
             if (!matcher.matches()
-                || matcher.group(1).equals("00")
-                || matcher.group(2).equals("000")
-                || matcher.group(3).equals("000")) {
+                    || matcher.group(1).equals("00")
+                    || matcher.group(2).equals("000")
+                    || matcher.group(3).equals("000")) {
                 return false;
             }
             long body = Long.parseLong(nir.substring(0, 13).replace("2A", "19").replace("2B", "18"));
@@ -342,21 +353,22 @@ class NationalIdTier1ValidityTest {
         void publishedSamples() {
             // ELSTER "Prüfung der Steuer- und Steueridentifikationsnummer", Tabelle 2-1 (ITZ Bund concept
             // IDs): a digit twice (7, 8) and a digit three times with two adjacent (9, 5, 1).
-            assertAccepted(DeSteuerId::isValid,
-                           "86095742719", "47036892816", "65929970489", "57549285017", "25768131411");
+            assertAccepted(
+                    DeSteuerId::isValid, "86095742719", "47036892816", "65929970489", "57549285017", "25768131411");
         }
 
         @Test
         @DisplayName("check-digit and digit-repetition violations are rejected")
         void invalidRejected() {
-            assertRejected(DeSteuerId::isValid,
-                           "86095742718", // wrong check digit
-                           "02476291358", // ELSTER test IdNr: a leading zero is only allowed for test numbers
-                           "12345678903", // correct check digit, but no digit repeats
-                           "11223456785", // correct check digit, but two digits repeat
-                           "11123456786", // correct check digit, but a digit occurs three times in a row
-                           "11112345678"  // correct check digit, but a digit occurs four times
-            );
+            assertRejected(
+                    DeSteuerId::isValid,
+                    "86095742718", // wrong check digit
+                    "02476291358", // ELSTER test IdNr: a leading zero is only allowed for test numbers
+                    "12345678903", // correct check digit, but no digit repeats
+                    "11223456785", // correct check digit, but two digits repeat
+                    "11123456786", // correct check digit, but a digit occurs three times in a row
+                    "11112345678" // correct check digit, but a digit occurs four times
+                    );
         }
 
         @Test
@@ -430,8 +442,8 @@ class NationalIdTier1ValidityTest {
     @DisplayName("ES DNI")
     class EsDni {
 
-        private static final String  CONTROL_LETTERS = "TRWAGMYFPDXBNJZSQVHLCKE";
-        private static final Pattern DNI             = Pattern.compile("(\\d{8})-?([A-Z])");
+        private static final String CONTROL_LETTERS = "TRWAGMYFPDXBNJZSQVHLCKE";
+        private static final Pattern DNI = Pattern.compile("(\\d{8})-?([A-Z])");
 
         /**
          * Ministerio del Interior, "Cálculo del dígito de control del NIF/NIE": the control letter is
@@ -440,7 +452,8 @@ class NationalIdTier1ValidityTest {
         static boolean isValid(String value) {
             Matcher matcher = DNI.matcher(value);
             return matcher.matches()
-                   && CONTROL_LETTERS.charAt(Integer.parseInt(matcher.group(1)) % 23) == matcher.group(2).charAt(0);
+                    && CONTROL_LETTERS.charAt(Integer.parseInt(matcher.group(1)) % 23)
+                            == matcher.group(2).charAt(0);
         }
 
         @Test
@@ -460,8 +473,8 @@ class NationalIdTier1ValidityTest {
         @DisplayName("1000 seeded DNIs validate with and without the dash")
         void generatedValidate() {
             assertAllSatisfy(generated(Locale.of("es", "ES")), id -> id.matches("\\d{8}[A-Z]") && isValid(id));
-            assertAllSatisfy(generated(new EsNationalIdProvider().withDash()),
-                             id -> id.matches("\\d{8}-[A-Z]") && isValid(id));
+            assertAllSatisfy(
+                    generated(new EsNationalIdProvider().withDash()), id -> id.matches("\\d{8}-[A-Z]") && isValid(id));
         }
     }
 
@@ -471,13 +484,13 @@ class NationalIdTier1ValidityTest {
     @DisplayName("IT Codice Fiscale")
     class ItCodiceFiscale {
 
-        private static final String  MONTH_LETTERS       = "ABCDEHLMPRST";
+        private static final String MONTH_LETTERS = "ABCDEHLMPRST";
         // Odd-position conversion values from DM 23 December 1976, for 0-9 and A-Z (0 and A share 1, ...).
-        private static final int[]   ODD_POSITION_VALUES = {
+        private static final int[] ODD_POSITION_VALUES = {
             1, 0, 5, 7, 9, 13, 15, 17, 19, 21, 2, 4, 18, 20, 11, 3, 6, 8, 12, 14, 16, 10, 22, 25, 24, 23
         };
-        private static final Pattern CODE                =
-            Pattern.compile("[A-Z]{6}(\\d{2})([" + MONTH_LETTERS + "])(\\d{2})[A-Z]\\d{3}[A-Z]");
+        private static final Pattern CODE =
+                Pattern.compile("[A-Z]{6}(\\d{2})([" + MONTH_LETTERS + "])(\\d{2})[A-Z]\\d{3}[A-Z]");
 
         /**
          * Codice fiscale of a natural person (DM 23 December 1976; Wikipedia "Italian fiscal code"):
@@ -518,12 +531,13 @@ class NationalIdTier1ValidityTest {
         @Test
         @DisplayName("wrong check letters and impossible birth dates are rejected")
         void invalidRejected() {
-            assertRejected(ItCodiceFiscale::isValid,
-                           "MRTMTT91D08F205K", // wrong check letter
-                           "RSSMRA85B30H501C", // correct check letter, but 30 February
-                           "RSSMRA01B29H501Z", // correct check letter, but 29 February in a non-leap year
-                           "RSSMRA85D31H501I"  // correct check letter, but 31 April
-            );
+            assertRejected(
+                    ItCodiceFiscale::isValid,
+                    "MRTMTT91D08F205K", // wrong check letter
+                    "RSSMRA85B30H501C", // correct check letter, but 30 February
+                    "RSSMRA01B29H501Z", // correct check letter, but 29 February in a non-leap year
+                    "RSSMRA85D31H501I" // correct check letter, but 31 April
+                    );
         }
 
         @Test
@@ -578,10 +592,12 @@ class NationalIdTier1ValidityTest {
         @Test
         @DisplayName("1000 seeded CPFs validate with and without formatting")
         void generatedValidate() {
-            assertAllSatisfy(generated(Locale.of("pt", "BR")),
-                             id -> id.matches("\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}") && isValid(id));
-            assertAllSatisfy(generated(new BrNationalIdProvider().withoutFormatting()),
-                             id -> id.matches("\\d{11}") && isValid(id));
+            assertAllSatisfy(
+                    generated(Locale.of("pt", "BR")),
+                    id -> id.matches("\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}") && isValid(id));
+            assertAllSatisfy(
+                    generated(new BrNationalIdProvider().withoutFormatting()),
+                    id -> id.matches("\\d{11}") && isValid(id));
         }
     }
 
@@ -602,9 +618,10 @@ class NationalIdTier1ValidityTest {
         static boolean isValid(String value) {
             Matcher matcher = ID.matcher(value);
             if (!matcher.matches()
-                || !isCalendarDate(Integer.parseInt(matcher.group(2)),
-                                   Integer.parseInt(matcher.group(3)),
-                                   Integer.parseInt(matcher.group(4)))) {
+                    || !isCalendarDate(
+                            Integer.parseInt(matcher.group(2)),
+                            Integer.parseInt(matcher.group(3)),
+                            Integer.parseInt(matcher.group(4)))) {
                 return false;
             }
             int sum = 0;
@@ -628,20 +645,25 @@ class NationalIdTier1ValidityTest {
         @DisplayName("wrong check characters and impossible dates are rejected")
         void invalidRejected() {
             // "110101198001011237" was the provider's former Javadoc example; its correct check character is 2.
-            assertRejected(CnResidentIdentityNumber::isValid,
-                           "110101198001011237", "110105194912310021", "11010519491331002X");
+            assertRejected(
+                    CnResidentIdentityNumber::isValid,
+                    "110101198001011237",
+                    "110105194912310021",
+                    "11010519491331002X");
         }
 
         @Test
         @DisplayName("1000 seeded IDs validate and stay inside the documented field ranges")
         void generatedValidate() {
-            assertAllSatisfy(generated(Locale.CHINA), id -> isValid(id)
-                                                            && number(id, 0, 6) >= 100_000
-                                                            && number(id, 0, 6) <= 658_999
-                                                            && number(id, 6, 10) >= 1940
-                                                            && number(id, 6, 10) <= 2005
-                                                            && number(id, 12, 14) <= 28
-                                                            && number(id, 14, 17) >= 1);
+            assertAllSatisfy(
+                    generated(Locale.CHINA),
+                    id -> isValid(id)
+                            && number(id, 0, 6) >= 100_000
+                            && number(id, 0, 6) <= 658_999
+                            && number(id, 6, 10) >= 1940
+                            && number(id, 6, 10) <= 2005
+                            && number(id, 12, 14) <= 28
+                            && number(id, 14, 17) >= 1);
         }
     }
 
@@ -692,9 +714,9 @@ class NationalIdTier1ValidityTest {
     @DisplayName("PL PESEL-style identifier (documented synthetic digits, standard checksum)")
     class PlPesel {
 
-        private static final int[] WEIGHTS                 = { 1, 3, 7, 9, 1, 3, 7, 9, 1, 3, 1 };
+        private static final int[] WEIGHTS = {1, 3, 7, 9, 1, 3, 7, 9, 1, 3, 1};
         // Month + 0 for 1900-1999, + 20 for 2000-2099, + 40 for 2100-2199, + 60 for 2200-2299, + 80 for 1800-1899.
-        private static final int[] CENTURY_BY_MONTH_BLOCK = { 1900, 2000, 2100, 2200, 1800 };
+        private static final int[] CENTURY_BY_MONTH_BLOCK = {1900, 2000, 2100, 2200, 1800};
 
         /**
          * The PESEL check digit (gov.pl "Czym jest numer PESEL"): the 1-3-7-9 weighted sum of all
@@ -719,9 +741,10 @@ class NationalIdTier1ValidityTest {
                 return false;
             }
             int encodedMonth = number(value, 2, 4);
-            return isCalendarDate(CENTURY_BY_MONTH_BLOCK[encodedMonth / 20] + number(value, 0, 2),
-                                  encodedMonth % 20,
-                                  number(value, 4, 6));
+            return isCalendarDate(
+                    CENTURY_BY_MONTH_BLOCK[encodedMonth / 20] + number(value, 0, 2),
+                    encodedMonth % 20,
+                    number(value, 4, 6));
         }
 
         @Test
@@ -809,8 +832,8 @@ class NationalIdTier1ValidityTest {
     @DisplayName("KR resident registration number")
     class KrResidentRegistrationNumber {
 
-        private static final int[]   WEIGHTS = { 2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5 };
-        private static final Pattern RRN     = Pattern.compile("(\\d{2})(\\d{2})(\\d{2})-(\\d)\\d{6}");
+        private static final int[] WEIGHTS = {2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5};
+        private static final Pattern RRN = Pattern.compile("(\\d{2})(\\d{2})(\\d{2})-(\\d)\\d{6}");
 
         /**
          * Resident registration number (ko.wikipedia "주민등록번호"; en.wikipedia "Resident registration
@@ -822,14 +845,16 @@ class NationalIdTier1ValidityTest {
             if (!matcher.matches()) {
                 return false;
             }
-            int century = switch (Integer.parseInt(matcher.group(4))) {
-                case 9, 0 -> 1800;
-                case 1, 2, 5, 6 -> 1900;
-                default -> 2000;
-            };
-            if (!isCalendarDate(century + Integer.parseInt(matcher.group(1)),
-                                Integer.parseInt(matcher.group(2)),
-                                Integer.parseInt(matcher.group(3)))) {
+            int century =
+                    switch (Integer.parseInt(matcher.group(4))) {
+                        case 9, 0 -> 1800;
+                        case 1, 2, 5, 6 -> 1900;
+                        default -> 2000;
+                    };
+            if (!isCalendarDate(
+                    century + Integer.parseInt(matcher.group(1)),
+                    Integer.parseInt(matcher.group(2)),
+                    Integer.parseInt(matcher.group(3)))) {
                 return false;
             }
             String digits = value.replace("-", "");
@@ -857,8 +882,8 @@ class NationalIdTier1ValidityTest {
         @Test
         @DisplayName("1000 seeded RRNs validate with documented 1980-1999 dates")
         void generatedValidate() {
-            assertAllSatisfy(generated(Locale.of("ko", "KR")), id -> isValid(id)
-                                                                   && id.matches("[89]\\d{5}-[12]\\d{6}"));
+            assertAllSatisfy(
+                    generated(Locale.of("ko", "KR")), id -> isValid(id) && id.matches("[89]\\d{5}-[12]\\d{6}"));
         }
     }
 
@@ -925,10 +950,11 @@ class NationalIdTier1ValidityTest {
             int month = Integer.parseInt(matcher.group(3));
             int day = Integer.parseInt(matcher.group(4));
             boolean realDate = matcher.group(1) == null
-                               ? isDateInEitherCentury(twoDigitYear, month, day)
-                               : isCalendarDate(Integer.parseInt(matcher.group(1) + matcher.group(2)), month, day);
-            return realDate && LuhnCheckDigit.LUHN_CHECK_DIGIT.isValid(
-                matcher.group(2) + matcher.group(3) + matcher.group(4) + matcher.group(5));
+                    ? isDateInEitherCentury(twoDigitYear, month, day)
+                    : isCalendarDate(Integer.parseInt(matcher.group(1) + matcher.group(2)), month, day);
+            return realDate
+                    && LuhnCheckDigit.LUHN_CHECK_DIGIT.isValid(
+                            matcher.group(2) + matcher.group(3) + matcher.group(4) + matcher.group(5));
         }
 
         @Test
@@ -947,8 +973,7 @@ class NationalIdTier1ValidityTest {
         @Test
         @DisplayName("1000 seeded personnummer validate with documented 1950-1999 dates")
         void generatedValidate() {
-            assertAllSatisfy(generated(Locale.of("sv", "SE")), id -> id.matches("19[5-9]\\d{5}-\\d{4}")
-                                                                   && isValid(id));
+            assertAllSatisfy(generated(Locale.of("sv", "SE")), id -> id.matches("19[5-9]\\d{5}-\\d{4}") && isValid(id));
         }
     }
 
@@ -964,7 +989,7 @@ class NationalIdTier1ValidityTest {
          */
         static boolean isValid(String value) {
             return value.matches("\\d{11}")
-                   && isDateInEitherCentury(number(value, 4, 6), number(value, 2, 4), number(value, 0, 2));
+                    && isDateInEitherCentury(number(value, 4, 6), number(value, 2, 4), number(value, 0, 2));
         }
 
         @Test
@@ -983,11 +1008,11 @@ class NationalIdTier1ValidityTest {
         @Test
         @DisplayName("1000 seeded values keep the documented shape with 1950-1999 dates")
         void generatedValidate() {
-            assertAllSatisfy(generated(Locale.of("nb", "NO")), id -> isValid(id)
-                                                                   && number(id, 4, 6) >= 50
-                                                                   && isCalendarDate(1900 + number(id, 4, 6),
-                                                                                     number(id, 2, 4),
-                                                                                     number(id, 0, 2)));
+            assertAllSatisfy(
+                    generated(Locale.of("nb", "NO")),
+                    id -> isValid(id)
+                            && number(id, 4, 6) >= 50
+                            && isCalendarDate(1900 + number(id, 4, 6), number(id, 2, 4), number(id, 0, 2)));
         }
     }
 
@@ -1033,11 +1058,11 @@ class NationalIdTier1ValidityTest {
         @Test
         @DisplayName("1000 seeded values keep the documented shape with 1950-1999 dates")
         void generatedValidate() {
-            assertAllSatisfy(generated(Locale.of("cs", "CZ")), id -> isValid(id)
-                                                                   && number(id, 0, 2) >= 50
-                                                                   && isCalendarDate(1900 + number(id, 0, 2),
-                                                                                     number(id, 2, 4),
-                                                                                     number(id, 4, 6)));
+            assertAllSatisfy(
+                    generated(Locale.of("cs", "CZ")),
+                    id -> isValid(id)
+                            && number(id, 0, 2) >= 50
+                            && isCalendarDate(1900 + number(id, 0, 2), number(id, 2, 4), number(id, 4, 6)));
         }
     }
 

@@ -16,12 +16,11 @@ import java.util.Set;
  */
 public class PersonWithCollections {
 
-    private List<String>         hobbies;
-    private Set<Status>          roles;
+    private List<String> hobbies;
+    private Set<Status> roles;
     private Map<String, Integer> attributes;
 
-    public PersonWithCollections() {
-    }
+    public PersonWithCollections() {}
 
     public List<String> getHobbies() {
         return hobbies;

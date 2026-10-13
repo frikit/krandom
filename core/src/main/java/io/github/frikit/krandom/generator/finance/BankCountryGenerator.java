@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -22,7 +20,7 @@ import java.util.Random;
  */
 public final class BankCountryGenerator implements Generator<String> {
 
-    private static final String[] SUPPORTED = { "US", "GB", "DE", "FR", "ES", "IT", "BR", "JP", "CN", "AU" };
+    private static final String[] SUPPORTED = {"US", "GB", "DE", "FR", "ES", "IT", "BR", "JP", "CN", "AU"};
 
     private final Locale locale;
     private final Random random;

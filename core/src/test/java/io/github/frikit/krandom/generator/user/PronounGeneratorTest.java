@@ -5,31 +5,26 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("PronounGenerator")
 class PronounGeneratorTest {
 
     private static final Locale RU = Locale.of("ru", "RU");
 
-    private static final Set<String> EN_SETS =
-        Set.of("he/him", "she/her", "they/them", "ze/zir", "xe/xem", "ey/em");
+    private static final Set<String> EN_SETS = Set.of("he/him", "she/her", "they/them", "ze/zir", "xe/xem", "ey/em");
     private static final Set<String> EN_SUBJECTS = Set.of("he", "she", "they", "ze", "xe", "ey");
     private static final Set<String> EN_OBJECTS = Set.of("him", "her", "them", "zir", "xem", "em");
 
@@ -84,8 +79,7 @@ class PronounGeneratorTest {
 
     @Nested
     @DisplayName("PronounDataRegistry")
-    class Registry {
-    }
+    class Registry {}
 
     @Nested
     @DisplayName("Generators facade")
@@ -97,7 +91,8 @@ class PronounGeneratorTest {
             assertTrue(EN_SETS.contains(Generators.ofPronoun().generate()));
             assertTrue(RU_SETS.contains(Generators.ofPronoun(RU).generate()));
             assertTrue(EN_SETS.contains(
-                Generators.ofPronoun(GeneratorConfig.builder().seed(1L).build()).generate()));
+                    Generators.ofPronoun(GeneratorConfig.builder().seed(1L).build())
+                            .generate()));
         }
     }
 }

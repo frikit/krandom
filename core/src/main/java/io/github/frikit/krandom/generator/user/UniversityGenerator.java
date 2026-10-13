@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -23,8 +22,8 @@ import java.util.Random;
  */
 public final class UniversityGenerator implements Generator<UniversityData> {
 
-    private final GeneratorConfig  config;
-    private final Random           random;
+    private final GeneratorConfig config;
+    private final Random random;
     private final UniversityData[] universities;
 
     /**
@@ -40,9 +39,8 @@ public final class UniversityGenerator implements Generator<UniversityData> {
         Locale locale = config.getLocale();
         UniversityDataProvider provider = context.universityProvider(locale);
         if (provider == null) {
-            throw new UnsupportedOperationException(
-                "Locale " + locale + " has no local university data pack. Registered locales: "
-                + context.universityRegisteredKeys());
+            throw new UnsupportedOperationException("Locale " + locale
+                    + " has no local university data pack. Registered locales: " + context.universityRegisteredKeys());
         }
         this.random = config.createRandom();
         this.universities = provider.getUniversities();

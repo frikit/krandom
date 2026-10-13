@@ -5,51 +5,46 @@
  */
 package io.github.frikit.krandom.generator;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.commerce.RestaurantTypeDataProvider;
-import io.github.frikit.krandom.generator.commerce.RestaurantTypeDataRegistry;
 import io.github.frikit.krandom.generator.commerce.RestaurantTypeGenerator;
 import io.github.frikit.krandom.generator.finance.FinancialTermDataProvider;
-import io.github.frikit.krandom.generator.finance.FinancialTermDataRegistry;
 import io.github.frikit.krandom.generator.finance.FinancialTermGenerator;
 import io.github.frikit.krandom.generator.location.CityDataProvider;
 import io.github.frikit.krandom.generator.location.CountryDataProvider;
 import io.github.frikit.krandom.generator.location.StateDataProvider;
 import io.github.frikit.krandom.generator.location.StreetAddressDataProvider;
 import io.github.frikit.krandom.generator.measurement.MeasurementDataProvider;
-import io.github.frikit.krandom.generator.measurement.MeasurementDataRegistry;
 import io.github.frikit.krandom.generator.measurement.MeasurementGenerator;
+import io.github.frikit.krandom.generator.user.BloodTypeDataProvider;
+import io.github.frikit.krandom.generator.user.BloodTypeGenerator;
+import io.github.frikit.krandom.generator.user.ChineseZodiacDataProvider;
+import io.github.frikit.krandom.generator.user.ChineseZodiacGenerator;
 import io.github.frikit.krandom.generator.user.FirstNameDataProvider;
 import io.github.frikit.krandom.generator.user.FirstNameDataRegistry;
 import io.github.frikit.krandom.generator.user.GenderDataProvider;
 import io.github.frikit.krandom.generator.user.HobbyDataProvider;
-import io.github.frikit.krandom.generator.user.HobbyDataRegistry;
 import io.github.frikit.krandom.generator.user.HobbyGenerator;
-import io.github.frikit.krandom.generator.user.BloodTypeDataProvider;
-import io.github.frikit.krandom.generator.user.BloodTypeDataRegistry;
-import io.github.frikit.krandom.generator.user.BloodTypeGenerator;
-import io.github.frikit.krandom.generator.user.ChineseZodiacDataProvider;
-import io.github.frikit.krandom.generator.user.ChineseZodiacDataRegistry;
-import io.github.frikit.krandom.generator.user.ChineseZodiacGenerator;
 import io.github.frikit.krandom.generator.user.LastNameDataProvider;
 import io.github.frikit.krandom.generator.user.NationalityDataProvider;
-import io.github.frikit.krandom.generator.user.NationalityDataRegistry;
 import io.github.frikit.krandom.generator.user.NationalityGenerator;
 import io.github.frikit.krandom.generator.user.ProfessionDataProvider;
 import io.github.frikit.krandom.generator.user.PronounDataProvider;
-import io.github.frikit.krandom.generator.user.PronounDataRegistry;
 import io.github.frikit.krandom.generator.user.PronounGenerator;
 import io.github.frikit.krandom.generator.user.SuffixDataProvider;
 import io.github.frikit.krandom.generator.user.TitleDataProvider;
 import io.github.frikit.krandom.generator.user.ZodiacDataProvider;
-import io.github.frikit.krandom.generator.user.ZodiacDataRegistry;
 import io.github.frikit.krandom.generator.user.ZodiacGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
 import io.github.frikit.krandom.generator.weather.WeatherDataProvider;
-import io.github.frikit.krandom.generator.weather.WeatherDataRegistry;
 import io.github.frikit.krandom.generator.weather.WeatherGenerator;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,14 +55,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("DataRegistryContext")
 class DataRegistryContextTest {
@@ -166,19 +155,19 @@ class DataRegistryContextTest {
         Locale fallbackLocale = Locale.CANADA;
 
         DataRegistryContext context = DataRegistryContext.builder()
-            .isolated()
-            .registerFirstNameProvider(firstNameProvider(locale))
-            .registerLastNameProvider(lastNameProvider(locale))
-            .registerGenderProvider(genderProvider(locale))
-            .registerTitleProvider(titleProvider(locale))
-            .registerSuffixProvider(suffixProvider(locale))
-            .registerProfessionProvider(professionProvider(locale))
-            .registerCityProvider(cityProvider(locale))
-            .registerStateProvider(stateProvider(locale))
-            .registerCountryProvider(countryProvider(locale))
-            .registerStreetAddressProvider(streetAddressProvider(locale))
-            .registerNationalIdProvider(nationalIdProvider(locale))
-            .build();
+                .isolated()
+                .registerFirstNameProvider(firstNameProvider(locale))
+                .registerLastNameProvider(lastNameProvider(locale))
+                .registerGenderProvider(genderProvider(locale))
+                .registerTitleProvider(titleProvider(locale))
+                .registerSuffixProvider(suffixProvider(locale))
+                .registerProfessionProvider(professionProvider(locale))
+                .registerCityProvider(cityProvider(locale))
+                .registerStateProvider(stateProvider(locale))
+                .registerCountryProvider(countryProvider(locale))
+                .registerStreetAddressProvider(streetAddressProvider(locale))
+                .registerNationalIdProvider(nationalIdProvider(locale))
+                .build();
 
         assertEquals("m1", context.firstNameProvider(fallbackLocale).getMaleFirstNames()[0]);
         assertEquals("l1", context.lastNameProvider(fallbackLocale).getLastNames()[0]);
@@ -213,27 +202,37 @@ class DataRegistryContextTest {
     @DisplayName("language-only locale registration stores language key")
     void languageOnlyRegistration() {
         DataRegistryContext context = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerCountryProvider(countryProvider(Locale.of("en")))
-                                                         .build();
+                .isolated()
+                .registerCountryProvider(countryProvider(Locale.of("en")))
+                .build();
         assertTrue(context.countryRegisteredKeys().contains("en"));
-        assertEquals("CountryOne", context.countryProvider(Locale.of("en", "GB")).getCountries()[0]);
+        assertEquals(
+                "CountryOne", context.countryProvider(Locale.of("en", "GB")).getCountries()[0]);
     }
 
     @Test
     @DisplayName("weather providers remain isolated between contexts")
     void weatherProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
-                                                        .isolated()
-                                                        .registerWeatherProvider(weatherProvider(Locale.US, "Sun"))
-                                                        .build();
+                .isolated()
+                .registerWeatherProvider(weatherProvider(Locale.US, "Sun"))
+                .build();
         DataRegistryContext second = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerWeatherProvider(weatherProvider(Locale.US, "Rain"))
-                                                         .build();
+                .isolated()
+                .registerWeatherProvider(weatherProvider(Locale.US, "Rain"))
+                .build();
 
-        assertEquals("Sun", new WeatherGenerator(GeneratorConfig.builder().registryContext(first).build()).generate());
-        assertEquals("Rain", new WeatherGenerator(GeneratorConfig.builder().registryContext(second).build()).generate());
+        assertEquals(
+                "Sun",
+                new WeatherGenerator(
+                                GeneratorConfig.builder().registryContext(first).build())
+                        .generate());
+        assertEquals(
+                "Rain",
+                new WeatherGenerator(GeneratorConfig.builder()
+                                .registryContext(second)
+                                .build())
+                        .generate());
         assertEquals(Set.of("en", "en_US"), first.weatherRegisteredKeys());
 
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
@@ -247,82 +246,123 @@ class DataRegistryContextTest {
     @DisplayName("measurement providers remain isolated between contexts")
     void measurementProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
-                                                        .isolated()
-                                                        .registerMeasurementProvider(measurementProvider(Locale.US, "Meter"))
-                                                        .build();
+                .isolated()
+                .registerMeasurementProvider(measurementProvider(Locale.US, "Meter"))
+                .build();
         DataRegistryContext second = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerMeasurementProvider(measurementProvider(Locale.US, "Yard"))
-                                                         .build();
+                .isolated()
+                .registerMeasurementProvider(measurementProvider(Locale.US, "Yard"))
+                .build();
 
-        assertEquals("Meter", new MeasurementGenerator(GeneratorConfig.builder().registryContext(first).build()).generate());
-        assertEquals("Yard", new MeasurementGenerator(GeneratorConfig.builder().registryContext(second).build()).generate());
+        assertEquals(
+                "Meter",
+                new MeasurementGenerator(
+                                GeneratorConfig.builder().registryContext(first).build())
+                        .generate());
+        assertEquals(
+                "Yard",
+                new MeasurementGenerator(GeneratorConfig.builder()
+                                .registryContext(second)
+                                .build())
+                        .generate());
         assertEquals(Set.of("en", "en_US"), first.measurementRegisteredKeys());
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
         assertTrue(first.isMeasurementRegistered(Locale.US));
         assertNull(empty.measurementProvider(Locale.US));
         assertFalse(empty.isMeasurementRegistered(Locale.US));
-        assertFalse(DataRegistryContext.globalDefault().measurementRegisteredKeys().isEmpty());
+        assertFalse(
+                DataRegistryContext.globalDefault().measurementRegisteredKeys().isEmpty());
     }
 
     @Test
     @DisplayName("financial-term providers remain isolated between contexts")
     void financialTermProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
-                                                        .isolated()
-                                                        .registerFinancialTermProvider(financialTermProvider(Locale.US, "Asset"))
-                                                        .build();
+                .isolated()
+                .registerFinancialTermProvider(financialTermProvider(Locale.US, "Asset"))
+                .build();
         DataRegistryContext second = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerFinancialTermProvider(financialTermProvider(Locale.US, "Dividend"))
-                                                         .build();
+                .isolated()
+                .registerFinancialTermProvider(financialTermProvider(Locale.US, "Dividend"))
+                .build();
 
-        assertEquals("Asset", new FinancialTermGenerator(GeneratorConfig.builder().registryContext(first).build()).generate());
-        assertEquals("Dividend", new FinancialTermGenerator(GeneratorConfig.builder().registryContext(second).build()).generate());
+        assertEquals(
+                "Asset",
+                new FinancialTermGenerator(
+                                GeneratorConfig.builder().registryContext(first).build())
+                        .generate());
+        assertEquals(
+                "Dividend",
+                new FinancialTermGenerator(GeneratorConfig.builder()
+                                .registryContext(second)
+                                .build())
+                        .generate());
         assertEquals(Set.of("en", "en_US"), first.financialTermRegisteredKeys());
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
         assertTrue(first.isFinancialTermRegistered(Locale.US));
         assertNull(empty.financialTermProvider(Locale.US));
         assertFalse(empty.isFinancialTermRegistered(Locale.US));
-        assertFalse(DataRegistryContext.globalDefault().financialTermRegisteredKeys().isEmpty());
+        assertFalse(DataRegistryContext.globalDefault()
+                .financialTermRegisteredKeys()
+                .isEmpty());
     }
 
     @Test
     @DisplayName("restaurant-type providers remain isolated between contexts")
     void restaurantTypeProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
-                                                        .isolated()
-                                                        .registerRestaurantTypeProvider(restaurantTypeProvider(Locale.US, "Italian"))
-                                                        .build();
+                .isolated()
+                .registerRestaurantTypeProvider(restaurantTypeProvider(Locale.US, "Italian"))
+                .build();
         DataRegistryContext second = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerRestaurantTypeProvider(restaurantTypeProvider(Locale.US, "Steakhouse"))
-                                                         .build();
+                .isolated()
+                .registerRestaurantTypeProvider(restaurantTypeProvider(Locale.US, "Steakhouse"))
+                .build();
 
-        assertEquals("Italian", new RestaurantTypeGenerator(GeneratorConfig.builder().registryContext(first).build()).generate());
-        assertEquals("Steakhouse", new RestaurantTypeGenerator(GeneratorConfig.builder().registryContext(second).build()).generate());
+        assertEquals(
+                "Italian",
+                new RestaurantTypeGenerator(
+                                GeneratorConfig.builder().registryContext(first).build())
+                        .generate());
+        assertEquals(
+                "Steakhouse",
+                new RestaurantTypeGenerator(GeneratorConfig.builder()
+                                .registryContext(second)
+                                .build())
+                        .generate());
         assertEquals(Set.of("en", "en_US"), first.restaurantTypeRegisteredKeys());
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
         assertTrue(first.isRestaurantTypeRegistered(Locale.US));
         assertNull(empty.restaurantTypeProvider(Locale.US));
         assertFalse(empty.isRestaurantTypeRegistered(Locale.US));
-        assertFalse(DataRegistryContext.globalDefault().restaurantTypeRegisteredKeys().isEmpty());
+        assertFalse(DataRegistryContext.globalDefault()
+                .restaurantTypeRegisteredKeys()
+                .isEmpty());
     }
 
     @Test
     @DisplayName("hobby providers remain isolated between contexts")
     void hobbyProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
-                                                        .isolated()
-                                                        .registerHobbyProvider(hobbyProvider(Locale.US, "Chess"))
-                                                        .build();
+                .isolated()
+                .registerHobbyProvider(hobbyProvider(Locale.US, "Chess"))
+                .build();
         DataRegistryContext second = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerHobbyProvider(hobbyProvider(Locale.US, "Running"))
-                                                         .build();
+                .isolated()
+                .registerHobbyProvider(hobbyProvider(Locale.US, "Running"))
+                .build();
 
-        assertEquals("Chess", new HobbyGenerator(GeneratorConfig.builder().registryContext(first).build()).generate());
-        assertEquals("Running", new HobbyGenerator(GeneratorConfig.builder().registryContext(second).build()).generate());
+        assertEquals(
+                "Chess",
+                new HobbyGenerator(
+                                GeneratorConfig.builder().registryContext(first).build())
+                        .generate());
+        assertEquals(
+                "Running",
+                new HobbyGenerator(GeneratorConfig.builder()
+                                .registryContext(second)
+                                .build())
+                        .generate());
         assertEquals(Set.of("en", "en_US"), first.hobbyRegisteredKeys());
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
         assertTrue(first.isHobbyRegistered(Locale.US));
@@ -335,38 +375,57 @@ class DataRegistryContextTest {
     @DisplayName("nationality providers remain isolated between contexts")
     void nationalityProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
-                                                        .isolated()
-                                                        .registerNationalityProvider(nationalityProvider(Locale.US, "Canadian"))
-                                                        .build();
+                .isolated()
+                .registerNationalityProvider(nationalityProvider(Locale.US, "Canadian"))
+                .build();
         DataRegistryContext second = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerNationalityProvider(nationalityProvider(Locale.US, "Brazilian"))
-                                                         .build();
+                .isolated()
+                .registerNationalityProvider(nationalityProvider(Locale.US, "Brazilian"))
+                .build();
 
-        assertEquals("Canadian", new NationalityGenerator(GeneratorConfig.builder().registryContext(first).build()).generate());
-        assertEquals("Brazilian", new NationalityGenerator(GeneratorConfig.builder().registryContext(second).build()).generate());
+        assertEquals(
+                "Canadian",
+                new NationalityGenerator(
+                                GeneratorConfig.builder().registryContext(first).build())
+                        .generate());
+        assertEquals(
+                "Brazilian",
+                new NationalityGenerator(GeneratorConfig.builder()
+                                .registryContext(second)
+                                .build())
+                        .generate());
         assertEquals(Set.of("en", "en_US"), first.nationalityRegisteredKeys());
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
         assertTrue(first.isNationalityRegistered(Locale.US));
         assertNull(empty.nationalityProvider(Locale.US));
         assertFalse(empty.isNationalityRegistered(Locale.US));
-        assertFalse(DataRegistryContext.globalDefault().nationalityRegisteredKeys().isEmpty());
+        assertFalse(
+                DataRegistryContext.globalDefault().nationalityRegisteredKeys().isEmpty());
     }
 
     @Test
     @DisplayName("pronoun providers remain isolated between contexts")
     void pronounProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
-                                                        .isolated()
-                                                        .registerPronounProvider(pronounProvider(Locale.US, "she/her"))
-                                                        .build();
+                .isolated()
+                .registerPronounProvider(pronounProvider(Locale.US, "she/her"))
+                .build();
         DataRegistryContext second = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerPronounProvider(pronounProvider(Locale.US, "they/them"))
-                                                         .build();
+                .isolated()
+                .registerPronounProvider(pronounProvider(Locale.US, "they/them"))
+                .build();
 
-        assertEquals("she/her", new PronounGenerator(GeneratorConfig.builder().registryContext(first).build()).generate());
-        assertEquals("they/them", new PronounGenerator(GeneratorConfig.builder().registryContext(second).build()).generate());
+        assertEquals(
+                "she/her",
+                new PronounGenerator(
+                                GeneratorConfig.builder().registryContext(first).build())
+                        .generate());
+        assertEquals(
+                "they/them",
+                new PronounGenerator(GeneratorConfig.builder()
+                                .registryContext(second)
+                                .build())
+                        .generate());
         assertEquals(Set.of("en", "en_US"), first.pronounRegisteredKeys());
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
         assertTrue(first.isPronounRegistered(Locale.US));
@@ -378,92 +437,139 @@ class DataRegistryContextTest {
     @Test
     @DisplayName("pronoun providers reject values without one subject/object separator")
     void pronounProvidersRejectMalformedSets() {
-        assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
-                                                                             .registerPronounProvider(pronounProvider(Locale.US, "/them")));
-        assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
-                                                                             .registerPronounProvider(pronounProvider(Locale.US, "they/")));
-        assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
-                                                                             .registerPronounProvider(pronounProvider(Locale.US, "they/them/us")));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> DataRegistryContext.builder().registerPronounProvider(pronounProvider(Locale.US, "/them")));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> DataRegistryContext.builder().registerPronounProvider(pronounProvider(Locale.US, "they/")));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> DataRegistryContext.builder()
+                        .registerPronounProvider(pronounProvider(Locale.US, "they/them/us")));
     }
 
     @Test
     @DisplayName("blood-type providers remain isolated between contexts")
     void bloodTypeProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
-                                                        .isolated()
-                                                        .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("O+"), java.util.List.of(1)))
-                                                        .build();
+                .isolated()
+                .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("O+"), java.util.List.of(1)))
+                .build();
         DataRegistryContext second = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("AB-"), java.util.List.of(1)))
-                                                         .build();
+                .isolated()
+                .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("AB-"), java.util.List.of(1)))
+                .build();
 
-        assertEquals("O+", new BloodTypeGenerator(GeneratorConfig.builder().registryContext(first).build()).generate());
-        assertEquals("AB-", new BloodTypeGenerator(GeneratorConfig.builder().registryContext(second).build()).generate());
+        assertEquals(
+                "O+",
+                new BloodTypeGenerator(
+                                GeneratorConfig.builder().registryContext(first).build())
+                        .generate());
+        assertEquals(
+                "AB-",
+                new BloodTypeGenerator(GeneratorConfig.builder()
+                                .registryContext(second)
+                                .build())
+                        .generate());
         assertEquals(Set.of("en", "en_US"), first.bloodTypeRegisteredKeys());
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
         assertTrue(first.isBloodTypeRegistered(Locale.US));
         assertNull(empty.bloodTypeProvider(Locale.US));
         assertFalse(empty.isBloodTypeRegistered(Locale.US));
-        assertFalse(DataRegistryContext.globalDefault().bloodTypeRegisteredKeys().isEmpty());
+        assertFalse(
+                DataRegistryContext.globalDefault().bloodTypeRegisteredKeys().isEmpty());
     }
 
     @Test
     @DisplayName("blood-type providers require parallel positive weights")
     void bloodTypeProvidersRejectInvalidDistributions() {
-        assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
-                                                                             .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("O+"), java.util.List.of(1, 2))));
-        assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
-                                                                             .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("O+"), java.util.List.of(0))));
-        assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
-                                                                             .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("O+"), java.util.Collections.singletonList(null))));
-        assertThrows(NullPointerException.class, () -> DataRegistryContext.builder()
-                                                                             .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("O+"), null)));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> DataRegistryContext.builder()
+                        .registerBloodTypeProvider(
+                                bloodTypeProvider(Locale.US, java.util.List.of("O+"), java.util.List.of(1, 2))));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> DataRegistryContext.builder()
+                        .registerBloodTypeProvider(
+                                bloodTypeProvider(Locale.US, java.util.List.of("O+"), java.util.List.of(0))));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> DataRegistryContext.builder()
+                        .registerBloodTypeProvider(bloodTypeProvider(
+                                Locale.US, java.util.List.of("O+"), java.util.Collections.singletonList(null))));
+        assertThrows(
+                NullPointerException.class,
+                () -> DataRegistryContext.builder()
+                        .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("O+"), null)));
     }
 
     @Test
     @DisplayName("Chinese-zodiac providers remain isolated between contexts")
     void chineseZodiacProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
-                                                        .isolated()
-                                                        .registerChineseZodiacProvider(chineseZodiacProvider(Locale.US, "First Dragon"))
-                                                        .build();
+                .isolated()
+                .registerChineseZodiacProvider(chineseZodiacProvider(Locale.US, "First Dragon"))
+                .build();
         DataRegistryContext second = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerChineseZodiacProvider(chineseZodiacProvider(Locale.US, "Second Dragon"))
-                                                         .build();
+                .isolated()
+                .registerChineseZodiacProvider(chineseZodiacProvider(Locale.US, "Second Dragon"))
+                .build();
 
-        assertEquals("First Dragon", new ChineseZodiacGenerator(GeneratorConfig.builder().registryContext(first).build()).animalFor(2024));
-        assertEquals("Second Dragon", new ChineseZodiacGenerator(GeneratorConfig.builder().registryContext(second).build()).animalFor(2024));
+        assertEquals(
+                "First Dragon",
+                new ChineseZodiacGenerator(
+                                GeneratorConfig.builder().registryContext(first).build())
+                        .animalFor(2024));
+        assertEquals(
+                "Second Dragon",
+                new ChineseZodiacGenerator(GeneratorConfig.builder()
+                                .registryContext(second)
+                                .build())
+                        .animalFor(2024));
         assertEquals(Set.of("en", "en_US"), first.chineseZodiacRegisteredKeys());
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
         assertTrue(first.isChineseZodiacRegistered(Locale.US));
         assertNull(empty.chineseZodiacProvider(Locale.US));
         assertFalse(empty.isChineseZodiacRegistered(Locale.US));
-        assertFalse(DataRegistryContext.globalDefault().chineseZodiacRegisteredKeys().isEmpty());
+        assertFalse(DataRegistryContext.globalDefault()
+                .chineseZodiacRegisteredKeys()
+                .isEmpty());
     }
 
     @Test
     @DisplayName("Chinese-zodiac providers require the complete ordered cycle")
     void chineseZodiacProvidersRejectIncompleteCycles() {
-        assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
-                                                                             .registerChineseZodiacProvider(chineseZodiacProvider(Locale.US, "only", 11)));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> DataRegistryContext.builder()
+                        .registerChineseZodiacProvider(chineseZodiacProvider(Locale.US, "only", 11)));
     }
 
     @Test
     @DisplayName("Western-zodiac providers remain isolated between contexts")
     void zodiacProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
-                                                        .isolated()
-                                                        .registerZodiacProvider(zodiacProvider(Locale.US, "First Aries"))
-                                                        .build();
+                .isolated()
+                .registerZodiacProvider(zodiacProvider(Locale.US, "First Aries"))
+                .build();
         DataRegistryContext second = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerZodiacProvider(zodiacProvider(Locale.US, "Second Aries"))
-                                                         .build();
+                .isolated()
+                .registerZodiacProvider(zodiacProvider(Locale.US, "Second Aries"))
+                .build();
 
-        assertEquals("First Aries", new ZodiacGenerator(GeneratorConfig.builder().registryContext(first).build()).signFor(java.time.LocalDate.of(2024, 3, 21)));
-        assertEquals("Second Aries", new ZodiacGenerator(GeneratorConfig.builder().registryContext(second).build()).signFor(java.time.LocalDate.of(2024, 3, 21)));
+        assertEquals(
+                "First Aries",
+                new ZodiacGenerator(
+                                GeneratorConfig.builder().registryContext(first).build())
+                        .signFor(java.time.LocalDate.of(2024, 3, 21)));
+        assertEquals(
+                "Second Aries",
+                new ZodiacGenerator(GeneratorConfig.builder()
+                                .registryContext(second)
+                                .build())
+                        .signFor(java.time.LocalDate.of(2024, 3, 21)));
         assertEquals(Set.of("en", "en_US"), first.zodiacRegisteredKeys());
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
         assertTrue(first.isZodiacRegistered(Locale.US));
@@ -475,8 +581,9 @@ class DataRegistryContextTest {
     @Test
     @DisplayName("Western-zodiac providers require the complete ordered cycle")
     void zodiacProvidersRejectIncompleteCycles() {
-        assertThrows(IllegalArgumentException.class, () -> DataRegistryContext.builder()
-                                                                             .registerZodiacProvider(zodiacProvider(Locale.US, "only", 11)));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> DataRegistryContext.builder().registerZodiacProvider(zodiacProvider(Locale.US, "only", 11)));
     }
 
     @Test
@@ -486,22 +593,23 @@ class DataRegistryContextTest {
         FirstNameDataProvider usFirstNames = firstNameProvider(Locale.US);
         WeatherDataProvider languageWeather = weatherProvider(Locale.ENGLISH, "English weather");
         WeatherDataProvider usWeather = weatherProvider(Locale.US, "US weather");
-        BloodTypeDataProvider languageBloodTypes = bloodTypeProvider(Locale.ENGLISH, List.of("English blood"), List.of(1));
+        BloodTypeDataProvider languageBloodTypes =
+                bloodTypeProvider(Locale.ENGLISH, List.of("English blood"), List.of(1));
         BloodTypeDataProvider usBloodTypes = bloodTypeProvider(Locale.US, List.of("US blood"), List.of(1));
         ZodiacDataProvider languageZodiac = zodiacProvider(Locale.ENGLISH, "English aries");
         ZodiacDataProvider usZodiac = zodiacProvider(Locale.US, "US aries");
 
         DataRegistryContext context = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerFirstNameProvider(languageFirstNames)
-                                                         .registerFirstNameProvider(usFirstNames)
-                                                         .registerWeatherProvider(languageWeather)
-                                                         .registerWeatherProvider(usWeather)
-                                                         .registerBloodTypeProvider(languageBloodTypes)
-                                                         .registerBloodTypeProvider(usBloodTypes)
-                                                         .registerZodiacProvider(languageZodiac)
-                                                         .registerZodiacProvider(usZodiac)
-                                                         .build();
+                .isolated()
+                .registerFirstNameProvider(languageFirstNames)
+                .registerFirstNameProvider(usFirstNames)
+                .registerWeatherProvider(languageWeather)
+                .registerWeatherProvider(usWeather)
+                .registerBloodTypeProvider(languageBloodTypes)
+                .registerBloodTypeProvider(usBloodTypes)
+                .registerZodiacProvider(languageZodiac)
+                .registerZodiacProvider(usZodiac)
+                .build();
 
         assertSame(usFirstNames, context.firstNameProvider(Locale.US));
         assertSame(languageFirstNames, context.firstNameProvider(Locale.CANADA));
@@ -519,9 +627,9 @@ class DataRegistryContextTest {
         FirstNameDataProvider indianEnglish = firstNameProvider(Locale.of("en", "IN"));
         FirstNameDataProvider germanOnly = firstNameProvider(Locale.GERMAN);
         DataRegistryContext context = DataRegistryContext.builder()
-                                                         .registerFirstNameProvider(indianEnglish)
-                                                         .registerFirstNameProvider(germanOnly)
-                                                         .build();
+                .registerFirstNameProvider(indianEnglish)
+                .registerFirstNameProvider(germanOnly)
+                .build();
 
         assertSame(indianEnglish, context.firstNameProvider(Locale.of("en", "IN")));
         assertSame(FirstNameDataRegistry.forLocale(Locale.US), context.firstNameProvider(Locale.US));
@@ -530,7 +638,9 @@ class DataRegistryContextTest {
         assertSame(indianEnglish, context.firstNameProvider(Locale.of("en", "SG")));
         assertSame(germanOnly, context.firstNameProvider(Locale.of("de", "LI")));
         assertSame(indianEnglish, context.firstNameProvider(Locale.ENGLISH));
-        assertSame(FirstNameDataRegistry.forLocale(Locale.of("fr", "LU")), context.firstNameProvider(Locale.of("fr", "LU")));
+        assertSame(
+                FirstNameDataRegistry.forLocale(Locale.of("fr", "LU")),
+                context.firstNameProvider(Locale.of("fr", "LU")));
         assertNull(context.firstNameProvider(null));
     }
 
@@ -538,28 +648,32 @@ class DataRegistryContextTest {
     @DisplayName("a scoped regional bundle does not replace default-locale names")
     void scopedRegionalBundleDoesNotReplaceDefaultLocaleNames() {
         DataRegistryContext context = DataRegistryContext.builder()
-                                                         .registerLocaleData(io.github.frikit.krandom.generator.locale.LocaleDataBundle
-                                                                                 .builder(Locale.of("en", "IN"))
-                                                                                 .firstNames(new String[] { "Arjun" },
-                                                                                             new String[] { "Priya" })
-                                                                                 .lastNames("Sharma")
-                                                                                 .build())
-                                                         .build();
-        GeneratorConfig usConfig = GeneratorConfig.builder().seed(7L).registryContext(context).build();
+                .registerLocaleData(
+                        io.github.frikit.krandom.generator.locale.LocaleDataBundle.builder(Locale.of("en", "IN"))
+                                .firstNames(new String[] {"Arjun"}, new String[] {"Priya"})
+                                .lastNames("Sharma")
+                                .build())
+                .build();
+        GeneratorConfig usConfig =
+                GeneratorConfig.builder().seed(7L).registryContext(context).build();
         GeneratorConfig indiaConfig = GeneratorConfig.builder()
-                                                     .seed(7L)
-                                                     .locale(Locale.of("en", "IN"))
-                                                     .registryContext(context)
-                                                     .build();
+                .seed(7L)
+                .locale(Locale.of("en", "IN"))
+                .registryContext(context)
+                .build();
 
-        List<String> usLastNames = new io.github.frikit.krandom.generator.user.LastNameGenerator(usConfig).generateList(50);
+        List<String> usLastNames =
+                new io.github.frikit.krandom.generator.user.LastNameGenerator(usConfig).generateList(50);
 
         assertFalse(usLastNames.contains("Sharma"), usLastNames.toString());
-        assertEquals(new io.github.frikit.krandom.generator.user.LastNameGenerator(
-                         GeneratorConfig.builder().seed(7L).build()).generateList(50),
-                     usLastNames);
-        assertEquals(List.of("Sharma", "Sharma"),
-                     new io.github.frikit.krandom.generator.user.LastNameGenerator(indiaConfig).generateList(2));
+        assertEquals(
+                new io.github.frikit.krandom.generator.user.LastNameGenerator(
+                                GeneratorConfig.builder().seed(7L).build())
+                        .generateList(50),
+                usLastNames);
+        assertEquals(
+                List.of("Sharma", "Sharma"),
+                new io.github.frikit.krandom.generator.user.LastNameGenerator(indiaConfig).generateList(2));
     }
 
     @Test
@@ -584,366 +698,418 @@ class DataRegistryContextTest {
         DataRegistryContext.Builder builder = DataRegistryContext.builder().isolated();
 
         assertThrows(NullPointerException.class, () -> builder.registerFirstNameProvider(null));
-        assertThrows(IllegalArgumentException.class, () -> builder.registerFirstNameProvider(new FirstNameDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerFirstNameProvider(new FirstNameDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getMaleFirstNames() {
-                return new String[0];
-            }
+                    @Override
+                    public String[] getMaleFirstNames() {
+                        return new String[0];
+                    }
 
-            @Override
-            public String[] getFemaleFirstNames() {
-                return new String[] { "f1" };
-            }
-        }));
+                    @Override
+                    public String[] getFemaleFirstNames() {
+                        return new String[] {"f1"};
+                    }
+                }));
 
-        assertThrows(IllegalArgumentException.class, () -> builder.registerLastNameProvider(new LastNameDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerLastNameProvider(new LastNameDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getLastNames() {
-                return new String[0];
-            }
-        }));
+                    @Override
+                    public String[] getLastNames() {
+                        return new String[0];
+                    }
+                }));
 
-        assertThrows(IllegalArgumentException.class, () -> builder.registerGenderProvider(new GenderDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerGenderProvider(new GenderDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String getMaleLabel() {
-                return " ";
-            }
+                    @Override
+                    public String getMaleLabel() {
+                        return " ";
+                    }
 
-            @Override
-            public String getFemaleLabel() {
-                return "female";
-            }
-        }));
-        assertThrows(IllegalArgumentException.class, () -> builder.registerGenderProvider(new GenderDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+                    @Override
+                    public String getFemaleLabel() {
+                        return "female";
+                    }
+                }));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerGenderProvider(new GenderDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String getMaleLabel() {
-                return null;
-            }
+                    @Override
+                    public String getMaleLabel() {
+                        return null;
+                    }
 
-            @Override
-            public String getFemaleLabel() {
-                return "female";
-            }
-        }));
+                    @Override
+                    public String getFemaleLabel() {
+                        return "female";
+                    }
+                }));
 
-        assertThrows(IllegalArgumentException.class, () -> builder.registerTitleProvider(new TitleDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerTitleProvider(new TitleDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getTitles() {
-                return new String[0];
-            }
-        }));
+                    @Override
+                    public String[] getTitles() {
+                        return new String[0];
+                    }
+                }));
 
-        assertThrows(IllegalArgumentException.class, () -> builder.registerSuffixProvider(new SuffixDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerSuffixProvider(new SuffixDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getSuffixes() {
-                return new String[0];
-            }
-        }));
+                    @Override
+                    public String[] getSuffixes() {
+                        return new String[0];
+                    }
+                }));
 
-        assertThrows(IllegalArgumentException.class, () -> builder.registerProfessionProvider(new ProfessionDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerProfessionProvider(new ProfessionDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getProfessions() {
-                return new String[] { "Engineer" };
-            }
+                    @Override
+                    public String[] getProfessions() {
+                        return new String[] {"Engineer"};
+                    }
 
-            @Override
-            public int[] getWeights() {
-                return new int[0];
-            }
-        }));
-        assertThrows(IllegalArgumentException.class, () -> builder.registerProfessionProvider(new ProfessionDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+                    @Override
+                    public int[] getWeights() {
+                        return new int[0];
+                    }
+                }));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerProfessionProvider(new ProfessionDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getProfessions() {
-                return new String[0];
-            }
+                    @Override
+                    public String[] getProfessions() {
+                        return new String[0];
+                    }
 
-            @Override
-            public int[] getWeights() {
-                return new int[0];
-            }
-        }));
-        assertThrows(IllegalArgumentException.class, () -> builder.registerProfessionProvider(new ProfessionDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+                    @Override
+                    public int[] getWeights() {
+                        return new int[0];
+                    }
+                }));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerProfessionProvider(new ProfessionDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getProfessions() {
-                return new String[] { "  " };
-            }
+                    @Override
+                    public String[] getProfessions() {
+                        return new String[] {"  "};
+                    }
 
-            @Override
-            public int[] getWeights() {
-                return new int[] { 1 };
-            }
-        }));
-        assertThrows(IllegalArgumentException.class, () -> builder.registerProfessionProvider(new ProfessionDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+                    @Override
+                    public int[] getWeights() {
+                        return new int[] {1};
+                    }
+                }));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerProfessionProvider(new ProfessionDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getProfessions() {
-                return new String[] { null };
-            }
+                    @Override
+                    public String[] getProfessions() {
+                        return new String[] {null};
+                    }
 
-            @Override
-            public int[] getWeights() {
-                return new int[] { 1 };
-            }
-        }));
-        assertThrows(IllegalArgumentException.class, () -> builder.registerProfessionProvider(new ProfessionDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+                    @Override
+                    public int[] getWeights() {
+                        return new int[] {1};
+                    }
+                }));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerProfessionProvider(new ProfessionDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getProfessions() {
-                return new String[] { "Engineer" };
-            }
+                    @Override
+                    public String[] getProfessions() {
+                        return new String[] {"Engineer"};
+                    }
 
-            @Override
-            public int[] getWeights() {
-                return new int[] { 0 };
-            }
-        }));
+                    @Override
+                    public int[] getWeights() {
+                        return new int[] {0};
+                    }
+                }));
 
-        assertThrows(NullPointerException.class, () -> builder.registerCityProvider(new CityDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return null;
-            }
+        assertThrows(
+                NullPointerException.class,
+                () -> builder.registerCityProvider(new CityDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return null;
+                    }
 
-            @Override
-            public String[] getCities() {
-                return new String[] { "CityOne" };
-            }
-        }));
-        assertThrows(IllegalArgumentException.class, () -> builder.registerCityProvider(new CityDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+                    @Override
+                    public String[] getCities() {
+                        return new String[] {"CityOne"};
+                    }
+                }));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerCityProvider(new CityDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getCities() {
-                return new String[] { " " };
-            }
-        }));
-        assertThrows(IllegalArgumentException.class, () -> builder.registerCityProvider(new CityDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+                    @Override
+                    public String[] getCities() {
+                        return new String[] {" "};
+                    }
+                }));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerCityProvider(new CityDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getCities() {
-                return new String[] { null };
-            }
-        }));
+                    @Override
+                    public String[] getCities() {
+                        return new String[] {null};
+                    }
+                }));
 
-        assertThrows(NullPointerException.class, () -> builder.registerStateProvider(new StateDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return null;
-            }
+        assertThrows(
+                NullPointerException.class,
+                () -> builder.registerStateProvider(new StateDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return null;
+                    }
 
-            @Override
-            public String[] getStates() {
-                return new String[] { "StateOne" };
-            }
+                    @Override
+                    public String[] getStates() {
+                        return new String[] {"StateOne"};
+                    }
 
-            @Override
-            public String[] getAbbreviations() {
-                return new String[] { "S1" };
-            }
-        }));
-        assertThrows(IllegalArgumentException.class, () -> builder.registerStateProvider(new StateDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+                    @Override
+                    public String[] getAbbreviations() {
+                        return new String[] {"S1"};
+                    }
+                }));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerStateProvider(new StateDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getStates() {
-                return new String[] { "" };
-            }
+                    @Override
+                    public String[] getStates() {
+                        return new String[] {""};
+                    }
 
-            @Override
-            public String[] getAbbreviations() {
-                return new String[] { "S1" };
-            }
-        }));
-        assertThrows(IllegalArgumentException.class, () -> builder.registerStateProvider(new StateDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+                    @Override
+                    public String[] getAbbreviations() {
+                        return new String[] {"S1"};
+                    }
+                }));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerStateProvider(new StateDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getStates() {
-                return new String[] { null };
-            }
+                    @Override
+                    public String[] getStates() {
+                        return new String[] {null};
+                    }
 
-            @Override
-            public String[] getAbbreviations() {
-                return new String[] { "S1" };
-            }
-        }));
-        assertThrows(IllegalArgumentException.class, () -> builder.registerStateProvider(new StateDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+                    @Override
+                    public String[] getAbbreviations() {
+                        return new String[] {"S1"};
+                    }
+                }));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerStateProvider(new StateDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getStates() {
-                return new String[] { "StateOne" };
-            }
+                    @Override
+                    public String[] getStates() {
+                        return new String[] {"StateOne"};
+                    }
 
-            @Override
-            public String[] getAbbreviations() {
-                return new String[] { null };
-            }
-        }));
+                    @Override
+                    public String[] getAbbreviations() {
+                        return new String[] {null};
+                    }
+                }));
 
-        assertThrows(NullPointerException.class, () -> builder.registerCountryProvider(new CountryDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return null;
-            }
+        assertThrows(
+                NullPointerException.class,
+                () -> builder.registerCountryProvider(new CountryDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return null;
+                    }
 
-            @Override
-            public String[] getCountries() {
-                return new String[] { "CountryOne" };
-            }
-        }));
-        assertThrows(IllegalArgumentException.class, () -> builder.registerCountryProvider(new CountryDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+                    @Override
+                    public String[] getCountries() {
+                        return new String[] {"CountryOne"};
+                    }
+                }));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerCountryProvider(new CountryDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getCountries() {
-                return new String[] { " " };
-            }
-        }));
-        assertThrows(IllegalArgumentException.class, () -> builder.registerCountryProvider(new CountryDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+                    @Override
+                    public String[] getCountries() {
+                        return new String[] {" "};
+                    }
+                }));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerCountryProvider(new CountryDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getCountries() {
-                return new String[] { null };
-            }
-        }));
+                    @Override
+                    public String[] getCountries() {
+                        return new String[] {null};
+                    }
+                }));
 
-        assertThrows(IllegalArgumentException.class, () -> builder.registerStreetAddressProvider(new StreetAddressDataProvider() {
-            @Override
-            public Locale getLocale() {
-                return locale;
-            }
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerStreetAddressProvider(new StreetAddressDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-            @Override
-            public String[] getStreetNames() {
-                return new String[] { "Main" };
-            }
+                    @Override
+                    public String[] getStreetNames() {
+                        return new String[] {"Main"};
+                    }
 
-            @Override
-            public String[] getStreetTypesShort() {
-                return new String[0];
-            }
+                    @Override
+                    public String[] getStreetTypesShort() {
+                        return new String[0];
+                    }
 
-            @Override
-            public String[] getStreetTypesLong() {
-                return new String[] { "Street" };
-            }
-        }));
+                    @Override
+                    public String[] getStreetTypesLong() {
+                        return new String[] {"Street"};
+                    }
+                }));
 
-        assertThrows(NullPointerException.class, () -> builder.registerNationalIdProvider(new NationalIdProvider() {
-            @Override
-            public Locale getLocale() {
-                return null;
-            }
+        assertThrows(
+                NullPointerException.class,
+                () -> builder.registerNationalIdProvider(new NationalIdProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return null;
+                    }
 
-            @Override
-            public String generate(Random random) {
-                return "x";
-            }
-        }));
+                    @Override
+                    public String generate(Random random) {
+                        return "x";
+                    }
+                }));
 
-        assertThrows(NullPointerException.class, () -> DataRegistryContext.builder().useGlobalFallback(true)
-                                                                           .registerFirstNameProvider(new FirstNameDataProvider() {
-                                                                               @Override
-                                                                               public Locale getLocale() {
-                                                                                   return null;
-                                                                               }
+        assertThrows(
+                NullPointerException.class,
+                () -> DataRegistryContext.builder()
+                        .useGlobalFallback(true)
+                        .registerFirstNameProvider(new FirstNameDataProvider() {
+                            @Override
+                            public Locale getLocale() {
+                                return null;
+                            }
 
-                                                                               @Override
-                                                                               public String[] getMaleFirstNames() {
-                                                                                   return new String[] { "m1" };
-                                                                               }
+                            @Override
+                            public String[] getMaleFirstNames() {
+                                return new String[] {"m1"};
+                            }
 
-                                                                               @Override
-                                                                               public String[] getFemaleFirstNames() {
-                                                                                   return new String[] { "f1" };
-                                                                               }
-                                                                           }));
+                            @Override
+                            public String[] getFemaleFirstNames() {
+                                return new String[] {"f1"};
+                            }
+                        }));
 
         assertThrows(NullPointerException.class, () -> builder.registerWeatherProvider(null));
-        assertThrows(IllegalArgumentException.class,
-                     () -> builder.registerWeatherProvider(weatherProvider(locale, java.util.List.of())));
-        assertThrows(IllegalArgumentException.class,
-                     () -> builder.registerWeatherProvider(weatherProvider(locale, java.util.List.of(" "))));
-        assertThrows(IllegalArgumentException.class,
-                     () -> builder.registerWeatherProvider(
-                         weatherProvider(locale, java.util.Collections.singletonList(null))));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerWeatherProvider(weatherProvider(locale, java.util.List.of())));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerWeatherProvider(weatherProvider(locale, java.util.List.of(" "))));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> builder.registerWeatherProvider(
+                        weatherProvider(locale, java.util.Collections.singletonList(null))));
     }
 
     private static FirstNameDataProvider firstNameProvider(Locale locale) {
@@ -955,12 +1121,12 @@ class DataRegistryContextTest {
 
             @Override
             public String[] getMaleFirstNames() {
-                return new String[] { "m1" };
+                return new String[] {"m1"};
             }
 
             @Override
             public String[] getFemaleFirstNames() {
-                return new String[] { "f1" };
+                return new String[] {"f1"};
             }
         };
     }
@@ -974,7 +1140,7 @@ class DataRegistryContextTest {
 
             @Override
             public String[] getLastNames() {
-                return new String[] { "l1" };
+                return new String[] {"l1"};
             }
         };
     }
@@ -1007,7 +1173,7 @@ class DataRegistryContextTest {
 
             @Override
             public String[] getTitles() {
-                return new String[] { "Dr" };
+                return new String[] {"Dr"};
             }
         };
     }
@@ -1021,7 +1187,7 @@ class DataRegistryContextTest {
 
             @Override
             public String[] getSuffixes() {
-                return new String[] { "Jr" };
+                return new String[] {"Jr"};
             }
         };
     }
@@ -1035,12 +1201,12 @@ class DataRegistryContextTest {
 
             @Override
             public String[] getProfessions() {
-                return new String[] { "Engineer" };
+                return new String[] {"Engineer"};
             }
 
             @Override
             public int[] getWeights() {
-                return new int[] { 1 };
+                return new int[] {1};
             }
         };
     }
@@ -1054,7 +1220,7 @@ class DataRegistryContextTest {
 
             @Override
             public String[] getCities() {
-                return new String[] { "CityOne" };
+                return new String[] {"CityOne"};
             }
         };
     }
@@ -1068,12 +1234,12 @@ class DataRegistryContextTest {
 
             @Override
             public String[] getStates() {
-                return new String[] { "StateOne" };
+                return new String[] {"StateOne"};
             }
 
             @Override
             public String[] getAbbreviations() {
-                return new String[] { "S1" };
+                return new String[] {"S1"};
             }
         };
     }
@@ -1087,7 +1253,7 @@ class DataRegistryContextTest {
 
             @Override
             public String[] getCountries() {
-                return new String[] { "CountryOne" };
+                return new String[] {"CountryOne"};
             }
         };
     }
@@ -1101,17 +1267,17 @@ class DataRegistryContextTest {
 
             @Override
             public String[] getStreetNames() {
-                return new String[] { "Main" };
+                return new String[] {"Main"};
             }
 
             @Override
             public String[] getStreetTypesShort() {
-                return new String[] { "St" };
+                return new String[] {"St"};
             }
 
             @Override
             public String[] getStreetTypesLong() {
-                return new String[] { "Street" };
+                return new String[] {"Street"};
             }
         };
     }
@@ -1132,22 +1298,25 @@ class DataRegistryContextTest {
 
     private static DataRegistryContext scopedVocabularyContext(String marker) {
         return DataRegistryContext.builder()
-                                  .isolated()
-                                  .registerWeatherProvider(weatherProvider(Locale.US, marker + " weather"))
-                                  .registerMeasurementProvider(measurementProvider(Locale.US, marker + " unit"))
-                                  .registerFinancialTermProvider(financialTermProvider(Locale.US, marker + " term"))
-                                  .registerRestaurantTypeProvider(restaurantTypeProvider(Locale.US, marker + " restaurant"))
-                                  .registerHobbyProvider(hobbyProvider(Locale.US, marker + " hobby"))
-                                  .registerNationalityProvider(nationalityProvider(Locale.US, marker + " nationality"))
-                                  .registerPronounProvider(pronounProvider(Locale.US, marker + "/pronoun"))
-                                  .registerBloodTypeProvider(bloodTypeProvider(Locale.US, List.of(marker + " blood"), List.of(1)))
-                                  .registerChineseZodiacProvider(chineseZodiacProvider(Locale.US, marker + " dragon"))
-                                  .registerZodiacProvider(zodiacProvider(Locale.US, marker + " aries"))
-                                  .build();
+                .isolated()
+                .registerWeatherProvider(weatherProvider(Locale.US, marker + " weather"))
+                .registerMeasurementProvider(measurementProvider(Locale.US, marker + " unit"))
+                .registerFinancialTermProvider(financialTermProvider(Locale.US, marker + " term"))
+                .registerRestaurantTypeProvider(restaurantTypeProvider(Locale.US, marker + " restaurant"))
+                .registerHobbyProvider(hobbyProvider(Locale.US, marker + " hobby"))
+                .registerNationalityProvider(nationalityProvider(Locale.US, marker + " nationality"))
+                .registerPronounProvider(pronounProvider(Locale.US, marker + "/pronoun"))
+                .registerBloodTypeProvider(bloodTypeProvider(Locale.US, List.of(marker + " blood"), List.of(1)))
+                .registerChineseZodiacProvider(chineseZodiacProvider(Locale.US, marker + " dragon"))
+                .registerZodiacProvider(zodiacProvider(Locale.US, marker + " aries"))
+                .build();
     }
 
     private static List<String> generateScopedVocabulary(DataRegistryContext context) {
-        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).registryContext(context).build();
+        GeneratorConfig config = GeneratorConfig.builder()
+                .locale(Locale.US)
+                .registryContext(context)
+                .build();
         WeatherGenerator weather = new WeatherGenerator(config);
         MeasurementGenerator measurement = new MeasurementGenerator(config);
         FinancialTermGenerator financialTerm = new FinancialTermGenerator(config);
@@ -1161,33 +1330,35 @@ class DataRegistryContextTest {
         List<String> output = new ArrayList<>(200);
 
         for (int index = 0; index < 200; index++) {
-            output.add(String.join("|",
-                                   weather.generate(),
-                                   measurement.generate(),
-                                   financialTerm.generate(),
-                                   restaurantType.generate(),
-                                   hobby.generate(),
-                                   nationality.generate(),
-                                   pronoun.generate(),
-                                   bloodType.generate(),
-                                   chineseZodiac.animalFor(2024),
-                                   zodiac.signFor(LocalDate.of(2024, 3, 21))));
+            output.add(String.join(
+                    "|",
+                    weather.generate(),
+                    measurement.generate(),
+                    financialTerm.generate(),
+                    restaurantType.generate(),
+                    hobby.generate(),
+                    nationality.generate(),
+                    pronoun.generate(),
+                    bloodType.generate(),
+                    chineseZodiac.animalFor(2024),
+                    zodiac.signFor(LocalDate.of(2024, 3, 21))));
         }
         return output;
     }
 
     private static String expectedScopedVocabulary(String marker) {
-        return String.join("|",
-                           marker + " weather",
-                           marker + " unit",
-                           marker + " term",
-                           marker + " restaurant",
-                           marker + " hobby",
-                           marker + " nationality",
-                           marker + "/pronoun",
-                           marker + " blood",
-                           marker + " dragon",
-                           marker + " aries");
+        return String.join(
+                "|",
+                marker + " weather",
+                marker + " unit",
+                marker + " term",
+                marker + " restaurant",
+                marker + " hobby",
+                marker + " nationality",
+                marker + "/pronoun",
+                marker + " blood",
+                marker + " dragon",
+                marker + " aries");
     }
 
     private static WeatherDataProvider weatherProvider(Locale locale, String condition) {
@@ -1293,7 +1464,7 @@ class DataRegistryContextTest {
     }
 
     private static BloodTypeDataProvider bloodTypeProvider(
-        Locale locale, java.util.List<String> types, java.util.List<Integer> weights) {
+            Locale locale, java.util.List<String> types, java.util.List<Integer> weights) {
         return new BloodTypeDataProvider() {
             @Override
             public Locale getLocale() {

@@ -5,10 +5,9 @@
  */
 package io.github.frikit.krandom.generator.failure;
 
-import org.jspecify.annotations.Nullable;
-
 import java.io.Serializable;
 import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Sanitized, machine-readable context attached to a generation failure.
@@ -25,14 +24,14 @@ import java.util.Objects;
  * @param recordIndex  schema record index, or {@code -1} when not applicable
  */
 public record GenerationFailureContext(
-    GenerationFailureCategory category,
-    GenerationOperation operation,
-    String path,
-    @Nullable Class<?> ownerType,
-    @Nullable String declaredType,
-    int depth,
-    int recordIndex
-) implements Serializable {
+        GenerationFailureCategory category,
+        GenerationOperation operation,
+        String path,
+        @Nullable Class<?> ownerType,
+        @Nullable String declaredType,
+        int depth,
+        int recordIndex)
+        implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

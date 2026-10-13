@@ -5,18 +5,17 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Field;
-import java.util.Locale;
-import java.util.Random;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.lang.reflect.Field;
+import java.util.Locale;
+import java.util.Random;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("CompanyEmailGenerator")
 class CompanyEmailGeneratorTest {
@@ -48,7 +47,8 @@ class CompanyEmailGeneratorTest {
     @Test
     @DisplayName("seeded generation is reproducible")
     void seeded() {
-        GeneratorConfig cfg = GeneratorConfig.builder().seed(99L).locale(Locale.US).build();
+        GeneratorConfig cfg =
+                GeneratorConfig.builder().seed(99L).locale(Locale.US).build();
         CompanyEmailGenerator a = new CompanyEmailGenerator(cfg);
         CompanyEmailGenerator b = new CompanyEmailGenerator(cfg);
         assertEquals(a.generate(), b.generate());
@@ -66,7 +66,7 @@ class CompanyEmailGeneratorTest {
     @DisplayName("local-part generator supports concatenated first+last branch")
     void localPartDefaultBranch() throws Exception {
         CompanyEmailGenerator gen = new CompanyEmailGenerator(
-            GeneratorConfig.builder().seed(12L).locale(Locale.US).build());
+                GeneratorConfig.builder().seed(12L).locale(Locale.US).build());
         Field randomField = CompanyEmailGenerator.class.getDeclaredField("random");
         randomField.setAccessible(true);
         randomField.set(gen, new Random() {
@@ -90,7 +90,7 @@ class CompanyEmailGeneratorTest {
     @DisplayName("local-part generator supports dotted first.last branch")
     void localPartDottedBranch() throws Exception {
         CompanyEmailGenerator gen = new CompanyEmailGenerator(
-            GeneratorConfig.builder().seed(12L).locale(Locale.US).build());
+                GeneratorConfig.builder().seed(12L).locale(Locale.US).build());
         Field randomField = CompanyEmailGenerator.class.getDeclaredField("random");
         randomField.setAccessible(true);
         randomField.set(gen, new Random() {

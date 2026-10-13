@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Objects;
 import java.util.Random;
 import java.util.random.RandomGenerator;
@@ -47,9 +46,9 @@ import java.util.random.RandomGenerator;
  */
 public final class StringGenerator implements Generator<String> {
 
-    private final CharGenerator   charGenerator;
-    private final int             minLength;
-    private final int             maxLength;
+    private final CharGenerator charGenerator;
+    private final int minLength;
+    private final int maxLength;
     private final RandomGenerator random;
 
     private StringGenerator(Builder b) {
@@ -97,7 +96,11 @@ public final class StringGenerator implements Generator<String> {
      * @return a generator producing letter strings in the given length range
      */
     public static StringGenerator letters(int minLength, int maxLength) {
-        return builder().charGenerator(CharGenerator.letters()).minLength(minLength).maxLength(maxLength).build();
+        return builder()
+                .charGenerator(CharGenerator.letters())
+                .minLength(minLength)
+                .maxLength(maxLength)
+                .build();
     }
 
     /**
@@ -136,9 +139,7 @@ public final class StringGenerator implements Generator<String> {
      * @throws IllegalArgumentException if characters is null or empty
      */
     public static StringGenerator pool(String characters) {
-        return builder()
-            .charGenerator(CharGenerator.pool(characters))
-            .build();
+        return builder().charGenerator(CharGenerator.pool(characters)).build();
     }
 
     /**
@@ -157,9 +158,9 @@ public final class StringGenerator implements Generator<String> {
      */
     public static StringGenerator pool(String characters, int length) {
         return builder()
-            .charGenerator(CharGenerator.pool(characters))
-            .length(length)
-            .build();
+                .charGenerator(CharGenerator.pool(characters))
+                .length(length)
+                .build();
     }
 
     /**
@@ -179,10 +180,10 @@ public final class StringGenerator implements Generator<String> {
      */
     public static StringGenerator pool(String characters, int minLength, int maxLength) {
         return builder()
-            .charGenerator(CharGenerator.pool(characters))
-            .minLength(minLength)
-            .maxLength(maxLength)
-            .build();
+                .charGenerator(CharGenerator.pool(characters))
+                .minLength(minLength)
+                .maxLength(maxLength)
+                .build();
     }
 
     public static Builder builder() {
@@ -191,9 +192,7 @@ public final class StringGenerator implements Generator<String> {
 
     @Override
     public String generate() {
-        int length = (minLength == maxLength)
-                     ? minLength
-                     : random.nextInt(minLength, maxLength + 1);
+        int length = (minLength == maxLength) ? minLength : random.nextInt(minLength, maxLength + 1);
 
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
@@ -204,12 +203,11 @@ public final class StringGenerator implements Generator<String> {
 
     // ── Builder ───────────────────────────────────────────────────────────────
 
-
     public static final class Builder {
 
-        private CharGenerator   charGenerator = CharGenerator.letters();
-        private int             minLength     = 5;
-        private int             maxLength     = 20;
+        private CharGenerator charGenerator = CharGenerator.letters();
+        private int minLength = 5;
+        private int maxLength = 20;
         private @org.jspecify.annotations.Nullable Long seed = null;
         private @org.jspecify.annotations.Nullable GeneratorConfig config = null;
 
@@ -272,7 +270,7 @@ public final class StringGenerator implements Generator<String> {
         public StringGenerator build() {
             if (maxLength < minLength) {
                 throw new IllegalArgumentException(
-                    "maxLength (" + maxLength + ") must be >= minLength (" + minLength + ")");
+                        "maxLength (" + maxLength + ") must be >= minLength (" + minLength + ")");
             }
             return new StringGenerator(this);
         }

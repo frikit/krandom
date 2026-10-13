@@ -18,14 +18,13 @@ import java.util.UUID;
  */
 public class PersonWithDateTimes {
 
-    private LocalDate     dob;
+    private LocalDate dob;
     private LocalDateTime createdAt;
-    private Instant       updatedAt;
+    private Instant updatedAt;
     private ZonedDateTime scheduledAt;
-    private UUID          id;
+    private UUID id;
 
-    public PersonWithDateTimes() {
-    }
+    public PersonWithDateTimes() {}
 
     public LocalDate getDob() {
         return dob;

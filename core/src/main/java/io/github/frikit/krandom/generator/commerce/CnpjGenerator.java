@@ -5,10 +5,9 @@
  */
 package io.github.frikit.krandom.generator.commerce;
 
+import io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy;
-
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Random;
@@ -40,7 +39,6 @@ public final class CnpjGenerator implements Generator<String> {
     private final boolean alphanumericFormat;
     private final BusinessTaxIdentifierSafetyPolicy safetyPolicy;
 
-
     /**
      * Creates a generator from explicit configuration (optional seed).
      *
@@ -54,10 +52,11 @@ public final class CnpjGenerator implements Generator<String> {
         this.safetyPolicy = config.getBusinessTaxIdentifierSafetyPolicy();
     }
 
-    private CnpjGenerator(Random random,
-                          boolean formatted,
-                          boolean alphanumericFormat,
-                          BusinessTaxIdentifierSafetyPolicy safetyPolicy) {
+    private CnpjGenerator(
+            Random random,
+            boolean formatted,
+            boolean alphanumericFormat,
+            BusinessTaxIdentifierSafetyPolicy safetyPolicy) {
         this.random = random;
         this.formatted = formatted;
         this.alphanumericFormat = alphanumericFormat;
@@ -159,15 +158,21 @@ public final class CnpjGenerator implements Generator<String> {
     }
 
     private static String format(String cnpj) {
-        return cnpj.substring(0, 2) + '.' + cnpj.substring(2, 5) + '.' + cnpj.substring(5, 8)
-            + '/' + cnpj.substring(8, 12) + '-' + cnpj.substring(12, 14);
+        return cnpj.substring(0, 2)
+                + '.'
+                + cnpj.substring(2, 5)
+                + '.'
+                + cnpj.substring(5, 8)
+                + '/'
+                + cnpj.substring(8, 12)
+                + '-'
+                + cnpj.substring(12, 14);
     }
 
     private void requireRealisticOutput() {
         if (safetyPolicy == BusinessTaxIdentifierSafetyPolicy.DISABLED) {
-            throw new IllegalStateException(
-                "Business tax-identifier generation is disabled by default; select "
-                + "businessTaxIdentifierSafetyPolicy(REALISTIC_UNCLASSIFIED) only for isolated fixtures");
+            throw new IllegalStateException("Business tax-identifier generation is disabled by default; select "
+                    + "businessTaxIdentifierSafetyPolicy(REALISTIC_UNCLASSIFIED) only for isolated fixtures");
         }
     }
 }

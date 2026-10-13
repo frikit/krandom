@@ -5,18 +5,17 @@
  */
 package io.github.frikit.krandom.generator.text;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.List;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("TextGenerator")
 class TextGeneratorTest {
@@ -54,20 +53,18 @@ class TextGeneratorTest {
     @DisplayName("options support ext word list and unique words")
     void options() {
         TextGenerator generator = new TextGenerator();
-        TextGenerator.TextOptions options = new TextGenerator.TextOptions(
-            120,
-            List.of("apple", "banana", "cherry", "date"),
-            true,
-            false
-        );
+        TextGenerator.TextOptions options =
+                new TextGenerator.TextOptions(120, List.of("apple", "banana", "cherry", "date"), true, false);
         String text = generator.generate(options);
-        assertTrue(text.contains("apple") || text.contains("banana") || text.contains("cherry") || text.contains("date"));
+        assertTrue(
+                text.contains("apple") || text.contains("banana") || text.contains("cherry") || text.contains("date"));
     }
 
     @Test
     @DisplayName("seeded generation is reproducible")
     void seeded() {
-        GeneratorConfig cfg = GeneratorConfig.builder().seed(555L).locale(Locale.US).build();
+        GeneratorConfig cfg =
+                GeneratorConfig.builder().seed(555L).locale(Locale.US).build();
         TextGenerator a = new TextGenerator(cfg);
         TextGenerator b = new TextGenerator(cfg);
         assertEquals(a.generate(90), b.generate(90));
@@ -76,8 +73,10 @@ class TextGeneratorTest {
     @Test
     @DisplayName("default locale vocabulary affects output")
     void localeVocabulary() {
-        GeneratorConfig usCfg = GeneratorConfig.builder().seed(123L).locale(Locale.US).build();
-        GeneratorConfig deCfg = GeneratorConfig.builder().seed(123L).locale(Locale.GERMANY).build();
+        GeneratorConfig usCfg =
+                GeneratorConfig.builder().seed(123L).locale(Locale.US).build();
+        GeneratorConfig deCfg =
+                GeneratorConfig.builder().seed(123L).locale(Locale.GERMANY).build();
         String us = new TextGenerator(usCfg).generate(80);
         String de = new TextGenerator(deCfg).generate(80);
         assertNotEquals(us, de);
@@ -86,21 +85,25 @@ class TextGeneratorTest {
     @Test
     @DisplayName("unknown locale language falls back to default vocabulary")
     void unknownLocaleFallback() {
-        GeneratorConfig cfg = GeneratorConfig.builder().seed(321L).locale(Locale.of("is", "IS")).build();
+        GeneratorConfig cfg = GeneratorConfig.builder()
+                .seed(321L)
+                .locale(Locale.of("is", "IS"))
+                .build();
         String text = new TextGenerator(cfg).generate(80);
-        assertTrue(text.contains("alpha")
-                   || text.contains("beta")
-                   || text.contains("gamma")
-                   || text.contains("delta"));
+        assertTrue(text.contains("alpha") || text.contains("beta") || text.contains("gamma") || text.contains("delta"));
     }
 
     @Test
     @DisplayName("Russian locale uses Russian vocabulary")
     void russianVocabulary() {
-        GeneratorConfig cfg = GeneratorConfig.builder().seed(321L).locale(Locale.of("ru", "RU")).build();
+        GeneratorConfig cfg = GeneratorConfig.builder()
+                .seed(321L)
+                .locale(Locale.of("ru", "RU"))
+                .build();
         String text = new TextGenerator(cfg).generate(80);
-        assertTrue(text.codePoints().anyMatch(ch -> Character.UnicodeScript.of(ch) == Character.UnicodeScript.CYRILLIC),
-                   text);
+        assertTrue(
+                text.codePoints().anyMatch(ch -> Character.UnicodeScript.of(ch) == Character.UnicodeScript.CYRILLIC),
+                text);
     }
 
     @Test
@@ -114,7 +117,8 @@ class TextGeneratorTest {
     @Test
     @DisplayName("empty external word list falls back to defaults")
     void emptyExtListFallsBack() {
-        TextGenerator generator = new TextGenerator(GeneratorConfig.builder().seed(11L).locale(Locale.US).build());
+        TextGenerator generator = new TextGenerator(
+                GeneratorConfig.builder().seed(11L).locale(Locale.US).build());
         String text = generator.generate(new TextGenerator.TextOptions(40, List.of(), false, true));
         assertTrue(text.endsWith("."));
         assertFalse(text.isBlank());
@@ -140,18 +144,15 @@ class TextGeneratorTest {
         assertTrue(dotted.endsWith("."));
 
         String enoughUniqueWords = generator.generate(new TextGenerator.TextOptions(
-            120,
-            List.of("w1", "w2", "w3", "w4", "w5", "w6", "w7", "w8", "w9", "w10"),
-            true,
-            false
-        ));
+                120, List.of("w1", "w2", "w3", "w4", "w5", "w6", "w7", "w8", "w9", "w10"), true, false));
         assertTrue(enoughUniqueWords.endsWith("."));
     }
 
     @Test
     @DisplayName("generateText alias delegates to generate")
     void generateTextAlias() {
-        GeneratorConfig cfg = GeneratorConfig.builder().seed(202L).locale(Locale.US).build();
+        GeneratorConfig cfg =
+                GeneratorConfig.builder().seed(202L).locale(Locale.US).build();
         TextGenerator alias = new TextGenerator(cfg);
         TextGenerator core = new TextGenerator(cfg);
         assertEquals(core.generate(), alias.generateText());

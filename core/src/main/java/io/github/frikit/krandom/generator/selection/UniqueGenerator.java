@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.selection;
 
 import io.github.frikit.krandom.generator.Generator;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -34,11 +33,11 @@ public final class UniqueGenerator<T> implements Generator<T> {
     private static final int DEFAULT_MAX_ATTEMPTS = 10_000;
     private static final BiPredicate<Object, Object> DEFAULT_EQUALITY = Objects::equals;
 
-    private final Generator<T>      source;
+    private final Generator<T> source;
     private final BiPredicate<T, T> comparator;
-    private final int               maxAttempts;
-    private final Set<T>            seenSet;
-    private final List<T>           seen;
+    private final int maxAttempts;
+    private final Set<T> seenSet;
+    private final List<T> seen;
 
     /**
      * Creates a unique generator using {@link Objects#equals(Object, Object)}.

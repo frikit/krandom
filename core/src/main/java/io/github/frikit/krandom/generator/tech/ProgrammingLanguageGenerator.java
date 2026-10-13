@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.tech;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Objects;
 import java.util.Random;
 
@@ -21,9 +20,34 @@ import java.util.Random;
 public final class ProgrammingLanguageGenerator implements Generator<String> {
 
     private static final String[] LANGUAGES = {
-        "Java", "Kotlin", "Scala", "Groovy", "Clojure", "Python", "JavaScript", "TypeScript",
-        "Ruby", "Go", "Rust", "C", "C++", "C#", "Swift", "Objective-C", "PHP", "Perl",
-        "Haskell", "Elixir", "Erlang", "Dart", "R", "Julia", "Lua", "Shell", "SQL", "F#"
+        "Java",
+        "Kotlin",
+        "Scala",
+        "Groovy",
+        "Clojure",
+        "Python",
+        "JavaScript",
+        "TypeScript",
+        "Ruby",
+        "Go",
+        "Rust",
+        "C",
+        "C++",
+        "C#",
+        "Swift",
+        "Objective-C",
+        "PHP",
+        "Perl",
+        "Haskell",
+        "Elixir",
+        "Erlang",
+        "Dart",
+        "R",
+        "Julia",
+        "Lua",
+        "Shell",
+        "SQL",
+        "F#"
     };
 
     private final Random random;

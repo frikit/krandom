@@ -5,19 +5,18 @@
  */
 package io.github.frikit.krandom.generator.finance;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.List;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("MoneyGenerator")
 class MoneyGeneratorTest {
@@ -41,7 +40,8 @@ class MoneyGeneratorTest {
     @Test
     @DisplayName("config constructor stores locale from config")
     void configConstructor() {
-        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.JAPAN).seed(42L).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.JAPAN).seed(42L).build();
         MoneyGenerator gen = new MoneyGenerator(config);
         assertEquals(Locale.JAPAN, gen.getLocale());
     }
@@ -140,7 +140,8 @@ class MoneyGeneratorTest {
     @Test
     @DisplayName("generate(max) returns value within max")
     void generateWithMaxInRange() {
-        MoneyGenerator gen = new MoneyGenerator(GeneratorConfig.builder().seed(1L).build());
+        MoneyGenerator gen =
+                new MoneyGenerator(GeneratorConfig.builder().seed(1L).build());
         for (int i = 0; i < 100; i++) {
             String result = gen.generate(100.0);
             assertNotNull(result);
@@ -230,7 +231,8 @@ class MoneyGeneratorTest {
     @Test
     @DisplayName("generatePrice aliases delegate to generate variants")
     void generatePriceAliases() {
-        GeneratorConfig cfg = GeneratorConfig.builder().seed(121L).locale(Locale.US).build();
+        GeneratorConfig cfg =
+                GeneratorConfig.builder().seed(121L).locale(Locale.US).build();
         MoneyGenerator a = new MoneyGenerator(cfg);
         MoneyGenerator b = new MoneyGenerator(cfg);
 
@@ -345,8 +347,10 @@ class MoneyGeneratorTest {
     @Test
     @DisplayName("different seeds produce different sequences")
     void differentSeeds() {
-        MoneyGenerator gen1 = new MoneyGenerator(GeneratorConfig.builder().seed(1L).build());
-        MoneyGenerator gen2 = new MoneyGenerator(GeneratorConfig.builder().seed(2L).build());
+        MoneyGenerator gen1 =
+                new MoneyGenerator(GeneratorConfig.builder().seed(1L).build());
+        MoneyGenerator gen2 =
+                new MoneyGenerator(GeneratorConfig.builder().seed(2L).build());
         assertNotEquals(gen1.generateList(30), gen2.generateList(30));
     }
 
@@ -355,7 +359,8 @@ class MoneyGeneratorTest {
     void seededDollarReproducibility() {
         GeneratorConfig cfg = GeneratorConfig.builder().seed(99L).build();
         MoneyGenerator gen1 = new MoneyGenerator(cfg);
-        MoneyGenerator gen2 = new MoneyGenerator(GeneratorConfig.builder().seed(99L).build());
+        MoneyGenerator gen2 =
+                new MoneyGenerator(GeneratorConfig.builder().seed(99L).build());
         assertEquals(gen1.generateDollar(), gen2.generateDollar());
     }
 
@@ -385,9 +390,16 @@ class MoneyGeneratorTest {
     @DisplayName("all 10 supported locales produce non-null formatted amounts")
     void allSupportedLocales() {
         Locale[] locales = {
-            Locale.US, Locale.UK, Locale.of("en", "AU"),
-            Locale.GERMANY, Locale.FRANCE, Locale.of("es", "ES"),
-            Locale.ITALY, Locale.of("pt", "BR"), Locale.JAPAN, Locale.of("zh", "CN")
+            Locale.US,
+            Locale.UK,
+            Locale.of("en", "AU"),
+            Locale.GERMANY,
+            Locale.FRANCE,
+            Locale.of("es", "ES"),
+            Locale.ITALY,
+            Locale.of("pt", "BR"),
+            Locale.JAPAN,
+            Locale.of("zh", "CN")
         };
         for (Locale locale : locales) {
             MoneyGenerator gen = new MoneyGenerator(locale);

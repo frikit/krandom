@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.games.coin;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;

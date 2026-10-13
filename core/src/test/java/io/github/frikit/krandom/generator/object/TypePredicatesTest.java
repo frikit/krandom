@@ -5,8 +5,9 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
@@ -14,10 +15,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Modifier;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("TypePredicates")
 class TypePredicatesTest {
@@ -61,7 +60,8 @@ class TypePredicatesTest {
     @DisplayName("annotation, modifier, interface, abstract, enum, and array predicates match expected classes")
     void richerTypePredicatesMatchExpectedClasses() {
         assertTrue(TypePredicates.isAnnotatedWith(TypeMarker.class).test(AnnotatedSample.class));
-        assertTrue(TypePredicates.isAnnotatedWith(OtherTypeMarker.class, TypeMarker.class).test(AnnotatedSample.class));
+        assertTrue(TypePredicates.isAnnotatedWith(OtherTypeMarker.class, TypeMarker.class)
+                .test(AnnotatedSample.class));
         assertFalse(TypePredicates.isAnnotatedWith(OtherTypeMarker.class).test(AnnotatedSample.class));
         assertTrue(TypePredicates.isInterface().test(SampleInterface.class));
         assertFalse(TypePredicates.isInterface().test(Sample.class));
@@ -79,29 +79,24 @@ class TypePredicatesTest {
     void newPredicateGuardsThrow() {
         assertThrows(NullPointerException.class, () -> TypePredicates.named(null));
         assertThrows(NullPointerException.class, () -> TypePredicates.ofType(null));
-        assertThrows(NullPointerException.class,
-                     () -> TypePredicates.isAnnotatedWith((Class<? extends Annotation>[]) null));
+        assertThrows(
+                NullPointerException.class, () -> TypePredicates.isAnnotatedWith((Class<? extends Annotation>[]) null));
         assertThrows(NullPointerException.class, () -> TypePredicates.isAnnotatedWith(TypeMarker.class, null));
         assertThrows(NullPointerException.class, () -> TypePredicates.isAssignableFrom(null));
         assertThrows(IllegalArgumentException.class, TypePredicates::isAnnotatedWith);
         assertThrows(IllegalArgumentException.class, () -> TypePredicates.hasModifiers(0));
     }
 
-    static class Sample {
-    }
+    static class Sample {}
 
     @TypeMarker
-    static class AnnotatedSample {
-    }
+    static class AnnotatedSample {}
 
-    interface SampleInterface {
-    }
+    interface SampleInterface {}
 
-    abstract static class AbstractSample {
-    }
+    abstract static class AbstractSample {}
 
-    static class ConcreteChild extends AbstractSample {
-    }
+    static class ConcreteChild extends AbstractSample {}
 
     enum SampleEnum {
         VALUE
@@ -109,11 +104,9 @@ class TypePredicatesTest {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
-    @interface TypeMarker {
-    }
+    @interface TypeMarker {}
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.TYPE)
-    @interface OtherTypeMarker {
-    }
+    @interface OtherTypeMarker {}
 }

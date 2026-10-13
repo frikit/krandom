@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.datetime;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Seedable;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -21,7 +20,7 @@ import java.util.TimeZone;
 public final class LegacyTimeZoneGenerator implements Generator<TimeZone>, Seedable {
 
     private static final List<String> ZONE_IDS =
-        List.copyOf(Arrays.stream(TimeZone.getAvailableIDs()).sorted().toList());
+            List.copyOf(Arrays.stream(TimeZone.getAvailableIDs()).sorted().toList());
 
     private final Random random;
 

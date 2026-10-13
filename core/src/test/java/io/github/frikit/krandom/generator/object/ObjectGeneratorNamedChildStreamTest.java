@@ -5,30 +5,28 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectGenerator named child streams")
 class ObjectGeneratorNamedChildStreamTest {
 
     private static final GeneratorConfig CONFIG = GeneratorConfig.builder()
-                                                               .seed(91L)
-                                                               .clock(Clock.fixed(
-                                                                   Instant.parse("2026-07-10T12:00:00Z"), ZoneOffset.UTC))
-                                                               .stringLength(8, 8)
-                                                               .collectionSize(2, 2)
-                                                               .build();
+            .seed(91L)
+            .clock(Clock.fixed(Instant.parse("2026-07-10T12:00:00Z"), ZoneOffset.UTC))
+            .stringLength(8, 8)
+            .collectionSize(2, 2)
+            .build();
 
     @Test
     @DisplayName("an unrelated inherited field does not perturb existing seeded members")

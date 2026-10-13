@@ -6,9 +6,8 @@
 package io.github.frikit.krandom.generator.datetime;
 
 import io.github.frikit.krandom.generator.Generator;
-import io.github.frikit.krandom.generator.Seedable;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
+import io.github.frikit.krandom.generator.Seedable;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -23,7 +22,7 @@ public final class SqlTimestampGenerator implements Generator<Timestamp>, Seedab
     private static final LocalDate DEFAULT_MIN = LocalDate.of(1970, 1, 1);
     private static final LocalDate DEFAULT_MAX = LocalDate.of(2100, 12, 31);
 
-    private final Random    random;
+    private final Random random;
     private final LocalDate min;
     private final LocalDate max;
 
@@ -50,7 +49,8 @@ public final class SqlTimestampGenerator implements Generator<Timestamp>, Seedab
     @Override
     public Timestamp generate() {
         long lo = min.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
-        long hiExclusive = max.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+        long hiExclusive =
+                max.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
         // The origin/bound form draws exactly like lo + nextLong(hiExclusive - lo) whenever that width
         // fits in a long, and still samples uniformly when it does not.
         return new Timestamp(random.nextLong(lo, hiExclusive));

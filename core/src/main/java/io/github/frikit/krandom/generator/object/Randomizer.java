@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.object;
 
 import io.github.frikit.krandom.generator.Generator;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -28,7 +27,7 @@ import java.lang.annotation.Target;
  * reseeded for every object from that object's seeded stream, so they replay from the seed and its
  * recipe. Other generators control their own randomness, which seeded replay cannot reproduce.
  */
-@Target({ ElementType.FIELD, ElementType.RECORD_COMPONENT })
+@Target({ElementType.FIELD, ElementType.RECORD_COMPONENT})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Randomizer {

@@ -11,12 +11,11 @@ package io.github.frikit.krandom.generator.core.model;
  */
 public class PersonWithArrays {
 
-    private String[]  tags;
-    private int[]     scores;
+    private String[] tags;
+    private int[] scores;
     private Address[] addresses;
 
-    public PersonWithArrays() {
-    }
+    public PersonWithArrays() {}
 
     public String[] getTags() {
         return tags;

@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.schema;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.provider.ConflictPolicy;
 import io.github.frikit.krandom.generator.provider.ProviderFactory;
-
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,7 +22,7 @@ import java.util.function.Function;
 public final class Field {
 
     private final GeneratorConfig config;
-    private final FieldLookup     lookup;
+    private final FieldLookup lookup;
     private final SchemaTemplateEngine templateEngine;
 
     /**
@@ -163,10 +162,8 @@ public final class Field {
      * @param <T>            provider type
      * @return this field resolver for fluent configuration
      */
-    public <T> Field registerProvider(String reference,
-                                      ProviderFactory factory,
-                                      Class<T> providerType,
-                                      Function<? super T, ?> valueExtractor) {
+    public <T> Field registerProvider(
+            String reference, ProviderFactory factory, Class<T> providerType, Function<? super T, ?> valueExtractor) {
         lookup.registerProvider(reference, factory, providerType, valueExtractor);
         return this;
     }
@@ -182,11 +179,12 @@ public final class Field {
      * @param <T>            provider type
      * @return this field resolver for fluent configuration
      */
-    public <T> Field registerProvider(String reference,
-                                      ProviderFactory factory,
-                                      Class<T> providerType,
-                                      Function<? super T, ?> valueExtractor,
-                                      ConflictPolicy policy) {
+    public <T> Field registerProvider(
+            String reference,
+            ProviderFactory factory,
+            Class<T> providerType,
+            Function<? super T, ?> valueExtractor,
+            ConflictPolicy policy) {
         lookup.registerProvider(reference, factory, providerType, valueExtractor, policy);
         return this;
     }
@@ -202,11 +200,12 @@ public final class Field {
      * @param <T>            provider type
      * @return this field resolver for fluent configuration
      */
-    public <T> Field registerProvider(String reference,
-                                      ProviderFactory factory,
-                                      Class<T> providerType,
-                                      Function<? super T, ?> valueExtractor,
-                                      Map<String, ?> jsonSchema) {
+    public <T> Field registerProvider(
+            String reference,
+            ProviderFactory factory,
+            Class<T> providerType,
+            Function<? super T, ?> valueExtractor,
+            Map<String, ?> jsonSchema) {
         lookup.registerProvider(reference, factory, providerType, valueExtractor, jsonSchema);
         return this;
     }
@@ -223,12 +222,13 @@ public final class Field {
      * @param <T>            provider type
      * @return this field resolver for fluent configuration
      */
-    public <T> Field registerProvider(String reference,
-                                      ProviderFactory factory,
-                                      Class<T> providerType,
-                                      Function<? super T, ?> valueExtractor,
-                                      Map<String, ?> jsonSchema,
-                                      ConflictPolicy policy) {
+    public <T> Field registerProvider(
+            String reference,
+            ProviderFactory factory,
+            Class<T> providerType,
+            Function<? super T, ?> valueExtractor,
+            Map<String, ?> jsonSchema,
+            ConflictPolicy policy) {
         lookup.registerProvider(reference, factory, providerType, valueExtractor, jsonSchema, policy);
         return this;
     }
@@ -296,14 +296,16 @@ public final class Field {
         if (max < min) {
             throw new IllegalArgumentException("max must be >= min, got: " + max + " < " + min);
         }
-        return SchemaValueProvider.withJsonSchema(context -> {
-            int size = min == max ? min : min + context.random().nextInt(max - min + 1);
-            List<Object> values = new ArrayList<>(size);
-            for (int i = 0; i < size; i++) {
-                values.add(provider.generate(context));
-            }
-            return values;
-        }, JsonSchemaSupport.array(provider.jsonSchema()));
+        return SchemaValueProvider.withJsonSchema(
+                context -> {
+                    int size = min == max ? min : min + context.random().nextInt(max - min + 1);
+                    List<Object> values = new ArrayList<>(size);
+                    for (int i = 0; i < size; i++) {
+                        values.add(provider.generate(context));
+                    }
+                    return values;
+                },
+                JsonSchemaSupport.array(provider.jsonSchema()));
     }
 
     /**
@@ -321,20 +323,22 @@ public final class Field {
         Map<String, Map<String, Object>> properties = new LinkedHashMap<>(copy.size());
         for (Map.Entry<String, SchemaValueProvider> entry : copy.entrySet()) {
             String name = validateFieldName(entry.getKey());
-            SchemaValueProvider provider = Objects.requireNonNull(entry.getValue(),
-                                                                  "provider for nested field '" + name + "' must not be null");
+            SchemaValueProvider provider = Objects.requireNonNull(
+                    entry.getValue(), "provider for nested field '" + name + "' must not be null");
             properties.put(name, provider.jsonSchema());
         }
-        return SchemaValueProvider.withJsonSchema(context -> {
-            Map<String, Object> nested = new LinkedHashMap<>(copy.size());
-            for (Map.Entry<String, SchemaValueProvider> entry : copy.entrySet()) {
-                String name = validateFieldName(entry.getKey());
-                SchemaValueProvider provider = Objects.requireNonNull(entry.getValue(),
-                                                                      "provider for nested field '" + name + "' must not be null");
-                nested.put(name, provider.generate(context));
-            }
-            return nested;
-        }, JsonSchemaSupport.object(properties));
+        return SchemaValueProvider.withJsonSchema(
+                context -> {
+                    Map<String, Object> nested = new LinkedHashMap<>(copy.size());
+                    for (Map.Entry<String, SchemaValueProvider> entry : copy.entrySet()) {
+                        String name = validateFieldName(entry.getKey());
+                        SchemaValueProvider provider = Objects.requireNonNull(
+                                entry.getValue(), "provider for nested field '" + name + "' must not be null");
+                        nested.put(name, provider.generate(context));
+                    }
+                    return nested;
+                },
+                JsonSchemaSupport.object(properties));
     }
 
     /**

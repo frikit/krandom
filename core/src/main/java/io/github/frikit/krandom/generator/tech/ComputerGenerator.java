@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.tech;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Objects;
 import java.util.Random;
 
@@ -30,13 +29,9 @@ public final class ComputerGenerator implements Generator<String> {
         "Fedora 39", "Debian 12", "Android 14", "iOS 17", "ChromeOS"
     };
 
-    private static final String[] PLATFORMS = {
-        "Windows", "macOS", "Linux", "Android", "iOS"
-    };
+    private static final String[] PLATFORMS = {"Windows", "macOS", "Linux", "Android", "iOS"};
 
-    private static final String[] DEVICE_TYPES = {
-        "Laptop", "Desktop", "Tablet", "Phone", "Server"
-    };
+    private static final String[] DEVICE_TYPES = {"Laptop", "Desktop", "Tablet", "Phone", "Server"};
 
     private final Random random;
 

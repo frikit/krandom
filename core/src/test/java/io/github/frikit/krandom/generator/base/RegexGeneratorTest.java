@@ -5,19 +5,18 @@
  */
 package io.github.frikit.krandom.generator.base;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.HashSet;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("RegexGenerator")
 class RegexGeneratorTest {
@@ -32,8 +31,9 @@ class RegexGeneratorTest {
         RegexGenerator gen = new RegexGenerator("\\d?");
         for (int i = 0; i < SAMPLES; i++) {
             String s = gen.generate();
-            assertTrue(s.isEmpty() || (s.length() == 1 && Character.isDigit(s.charAt(0))),
-                       "\\d? must produce 0 or 1 digit, got: " + s);
+            assertTrue(
+                    s.isEmpty() || (s.length() == 1 && Character.isDigit(s.charAt(0))),
+                    "\\d? must produce 0 or 1 digit, got: " + s);
         }
     }
 
@@ -132,8 +132,7 @@ class RegexGeneratorTest {
         for (int i = 0; i < 200; i++) {
             String s = gen.generate();
             assertEquals(1, s.length(), "must produce exactly 1 char, got: " + s);
-            assertTrue(s.equals("a") || s.equals("b") || s.equals("c"),
-                       "must produce a, b, or c; got: " + s);
+            assertTrue(s.equals("a") || s.equals("b") || s.equals("c"), "must produce a, b, or c; got: " + s);
             seen.add(s);
         }
         assertEquals(Set.of("a", "b", "c"), seen, "all three chars must appear");
@@ -192,8 +191,8 @@ class RegexGeneratorTest {
         for (int i = 0; i < SAMPLES; i++) {
             String s = gen.generate();
             assertTrue(s.endsWith("x"), "must end with 'x', got: " + s);
-            assertTrue(s.length() == 2 || s.length() == 3,
-                       "1–2 digits + 'x' must give length 2 or 3, got: " + s.length());
+            assertTrue(
+                    s.length() == 2 || s.length() == 3, "1–2 digits + 'x' must give length 2 or 3, got: " + s.length());
         }
     }
 
@@ -216,22 +215,19 @@ class RegexGeneratorTest {
     @Test
     @DisplayName("unclosed group throws IllegalArgumentException")
     void unclosedGroupThrows() {
-        assertThrows(IllegalArgumentException.class,
-                     () -> new RegexGenerator("(abc|def"));
+        assertThrows(IllegalArgumentException.class, () -> new RegexGenerator("(abc|def"));
     }
 
     @Test
     @DisplayName("trailing backslash throws IllegalArgumentException")
     void trailingBackslashThrows() {
-        assertThrows(IllegalArgumentException.class,
-                     () -> new RegexGenerator("\\d{3}\\"));
+        assertThrows(IllegalArgumentException.class, () -> new RegexGenerator("\\d{3}\\"));
     }
 
     @Test
     @DisplayName("unexpected closing paren at top level throws IllegalArgumentException")
     void unexpectedClosingParenThrows() {
-        assertThrows(IllegalArgumentException.class,
-                     () -> new RegexGenerator("abc)def"));
+        assertThrows(IllegalArgumentException.class, () -> new RegexGenerator("abc)def"));
     }
 
     // ── Single-alternative group ──────────────────────────────────────────────
@@ -239,8 +235,7 @@ class RegexGeneratorTest {
     @Test
     @DisplayName("{ with no digits (bad quantifier) throws IllegalArgumentException")
     void badQuantifierNoDigitsThrows() {
-        assertThrows(IllegalArgumentException.class,
-                     () -> new RegexGenerator("\\d{abc}"));
+        assertThrows(IllegalArgumentException.class, () -> new RegexGenerator("\\d{abc}"));
     }
 
     // ── Quantifier edge cases ─────────────────────────────────────────────────
@@ -250,7 +245,6 @@ class RegexGeneratorTest {
     void nullPatternThrows() {
         assertThrows(NullPointerException.class, () -> new RegexGenerator(null));
     }
-
 
     @Nested
     @DisplayName("\\d{3} — exactly 3 digits")
@@ -270,13 +264,11 @@ class RegexGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 String s = new RegexGenerator("\\d{3}").generate();
                 for (char c : s.toCharArray()) {
-                    assertTrue(Character.isDigit(c),
-                               "expected digit but got '" + c + "' in: " + s);
+                    assertTrue(Character.isDigit(c), "expected digit but got '" + c + "' in: " + s);
                 }
             }
         }
     }
-
 
     @Nested
     @DisplayName("[A-Z]{5} — exactly 5 uppercase letters")
@@ -295,15 +287,13 @@ class RegexGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 String s = new RegexGenerator("[A-Z]{5}").generate();
                 for (char c : s.toCharArray()) {
-                    assertTrue(c >= 'A' && c <= 'Z',
-                               "expected uppercase A-Z but got '" + c + "' in: " + s);
+                    assertTrue(c >= 'A' && c <= 'Z', "expected uppercase A-Z but got '" + c + "' in: " + s);
                 }
             }
         }
     }
 
     // ── Invalid patterns → IllegalArgumentException ───────────────────────────
-
 
     @Nested
     @DisplayName("(yes|no) — alternation")
@@ -314,8 +304,7 @@ class RegexGeneratorTest {
         void onlyYesOrNo() {
             for (int i = 0; i < SAMPLES; i++) {
                 String s = new RegexGenerator("(yes|no)").generate();
-                assertTrue(s.equals("yes") || s.equals("no"),
-                           "expected 'yes' or 'no', got: " + s);
+                assertTrue(s.equals("yes") || s.equals("no"), "expected 'yes' or 'no', got: " + s);
             }
         }
 
@@ -325,11 +314,9 @@ class RegexGeneratorTest {
             Set<String> seen = new HashSet<>();
             RegexGenerator gen = new RegexGenerator("(yes|no)");
             for (int i = 0; i < 100; i++) seen.add(gen.generate());
-            assertEquals(Set.of("yes", "no"), seen,
-                         "both 'yes' and 'no' must appear");
+            assertEquals(Set.of("yes", "no"), seen, "both 'yes' and 'no' must appear");
         }
     }
-
 
     @Nested
     @DisplayName("\\w+ — one or more word characters")
@@ -350,13 +337,11 @@ class RegexGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 String s = new RegexGenerator("\\w+").generate();
                 for (char c : s.toCharArray()) {
-                    assertTrue(Character.isLetterOrDigit(c) || c == '_',
-                               "non-word character '" + c + "' in: " + s);
+                    assertTrue(Character.isLetterOrDigit(c) || c == '_', "non-word character '" + c + "' in: " + s);
                 }
             }
         }
     }
-
 
     @Nested
     @DisplayName("Escape sequences")
@@ -368,8 +353,7 @@ class RegexGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 String s = new RegexGenerator("\\D").generate();
                 assertEquals(1, s.length(), "\\D must produce exactly 1 char");
-                assertFalse(Character.isDigit(s.charAt(0)),
-                            "\\D must not produce a digit, got: " + s);
+                assertFalse(Character.isDigit(s.charAt(0)), "\\D must not produce a digit, got: " + s);
             }
         }
 
@@ -378,8 +362,7 @@ class RegexGeneratorTest {
         void nonWordEscape() {
             for (int i = 0; i < SAMPLES; i++) {
                 char c = new RegexGenerator("\\W").generate().charAt(0);
-                assertFalse(Character.isLetterOrDigit(c) || c == '_',
-                            "\\W must not produce a word char, got: " + c);
+                assertFalse(Character.isLetterOrDigit(c) || c == '_', "\\W must not produce a word char, got: " + c);
             }
         }
 
@@ -388,8 +371,9 @@ class RegexGeneratorTest {
         void whitespaceEscape() {
             for (int i = 0; i < SAMPLES; i++) {
                 char c = new RegexGenerator("\\s").generate().charAt(0);
-                assertTrue(c == ' ' || c == '\t' || c == '\n' || c == '\r',
-                           "\\s must produce whitespace, got: '" + c + "'");
+                assertTrue(
+                        c == ' ' || c == '\t' || c == '\n' || c == '\r',
+                        "\\s must produce whitespace, got: '" + c + "'");
             }
         }
 
@@ -398,8 +382,9 @@ class RegexGeneratorTest {
         void nonWhitespaceEscape() {
             for (int i = 0; i < SAMPLES; i++) {
                 char c = new RegexGenerator("\\S").generate().charAt(0);
-                assertFalse(c == ' ' || c == '\t' || c == '\n' || c == '\r',
-                            "\\S must not produce whitespace, got: '" + c + "'");
+                assertFalse(
+                        c == ' ' || c == '\t' || c == '\n' || c == '\r',
+                        "\\S must not produce whitespace, got: '" + c + "'");
             }
         }
 
@@ -443,12 +428,11 @@ class RegexGeneratorTest {
         @DisplayName("unknown escape (\\q) is treated as the literal character q")
         void unknownEscape() {
             for (int i = 0; i < SAMPLES; i++) {
-                assertEquals("q", new RegexGenerator("\\q").generate(),
-                             "unknown escape must produce the literal character");
+                assertEquals(
+                        "q", new RegexGenerator("\\q").generate(), "unknown escape must produce the literal character");
             }
         }
     }
-
 
     @Nested
     @DisplayName("Character class variants")
@@ -460,8 +444,7 @@ class RegexGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 String s = new RegexGenerator("[abc]").generate();
                 assertEquals(1, s.length());
-                assertTrue(s.equals("a") || s.equals("b") || s.equals("c"),
-                           "expected a/b/c, got: " + s);
+                assertTrue(s.equals("a") || s.equals("b") || s.equals("c"), "expected a/b/c, got: " + s);
             }
         }
 
@@ -479,8 +462,7 @@ class RegexGeneratorTest {
         void negatedCharClass() {
             for (int i = 0; i < SAMPLES; i++) {
                 char c = new RegexGenerator("[^aeiou]").generate().charAt(0);
-                assertFalse("aeiou".indexOf(c) >= 0,
-                            "negated class must exclude vowels, got: " + c);
+                assertFalse("aeiou".indexOf(c) >= 0, "negated class must exclude vowels, got: " + c);
             }
         }
 
@@ -499,7 +481,6 @@ class RegexGeneratorTest {
             assertThrows(IllegalArgumentException.class, () -> new RegexGenerator("[]"));
         }
     }
-
 
     @Nested
     @DisplayName("Additional quantifiers")
@@ -544,8 +525,7 @@ class RegexGeneratorTest {
             RegexGenerator gen = new RegexGenerator("\\d{3,5");
             for (int i = 0; i < SAMPLES; i++) {
                 int len = gen.generate().length();
-                assertTrue(len >= 3 && len <= 5,
-                           "unclosed {3,5 must give 3-5 chars, got: " + len);
+                assertTrue(len >= 3 && len <= 5, "unclosed {3,5 must give 3-5 chars, got: " + len);
             }
         }
     }
@@ -566,22 +546,23 @@ class RegexGeneratorTest {
         @Test
         @DisplayName("{n} above the cap is rejected at construction")
         void exactCountAboveCapThrows() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> new RegexGenerator("a{" + (RegexGenerator.MAX_REPETITIONS + 1) + "}"));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> new RegexGenerator("a{" + (RegexGenerator.MAX_REPETITIONS + 1) + "}"));
         }
 
         @Test
         @DisplayName("{n,m} max above the cap is rejected at construction")
         void rangeMaxAboveCapThrows() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> new RegexGenerator("a{1," + (RegexGenerator.MAX_REPETITIONS + 1) + "}"));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> new RegexGenerator("a{1," + (RegexGenerator.MAX_REPETITIONS + 1) + "}"));
         }
 
         @Test
         @DisplayName("absurdly long digit run is rejected without overflowing")
         void hugeCountThrows() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> new RegexGenerator("a{1234567890123456789}"));
+            assertThrows(IllegalArgumentException.class, () -> new RegexGenerator("a{1234567890123456789}"));
         }
     }
 

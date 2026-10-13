@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.schema;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.text.TemplateStringGenerator;
-
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -22,31 +21,32 @@ import java.util.regex.Pattern;
  */
 final class SchemaTemplateEngine {
 
-    private static final Pattern PLACEHOLDER      = Pattern.compile("\\{\\{\\s*([^{}]+?)\\s*}}");
+    private static final Pattern PLACEHOLDER = Pattern.compile("\\{\\{\\s*([^{}]+?)\\s*}}");
     private static final Pattern FULL_PLACEHOLDER = Pattern.compile("^\\{\\{\\s*([^{}]+?)\\s*}}$");
 
-    private final FieldLookup              lookup;
-    private final TemplateStringGenerator  templateGenerator;
+    private final FieldLookup lookup;
+    private final TemplateStringGenerator templateGenerator;
 
     SchemaTemplateEngine(FieldLookup lookup, GeneratorConfig config) {
         this.lookup = Objects.requireNonNull(lookup, "lookup must not be null");
-        this.templateGenerator = new TemplateStringGenerator("", Objects.requireNonNull(config, "config must not be null"));
+        this.templateGenerator =
+                new TemplateStringGenerator("", Objects.requireNonNull(config, "config must not be null"));
     }
 
     SchemaValueProvider template(String template) {
         String value = Objects.requireNonNull(template, "template must not be null");
-        return SchemaValueProvider.withJsonSchema(context -> renderInterpolatedString(value, context),
-                                                  JsonSchemaSupport.string());
+        return SchemaValueProvider.withJsonSchema(
+                context -> renderInterpolatedString(value, context), JsonSchemaSupport.string());
     }
 
     SchemaValueProvider templatePayload(Object template) {
         Objects.requireNonNull(template, "template must not be null");
-        return SchemaValueProvider.withJsonSchema(context -> renderPayload(template, context),
-                                                  inferPayloadSchema(template));
+        return SchemaValueProvider.withJsonSchema(
+                context -> renderPayload(template, context), inferPayloadSchema(template));
     }
 
-    private @org.jspecify.annotations.Nullable Object renderPayload(@org.jspecify.annotations.Nullable Object template,
-                                                                   SchemaContext context) {
+    private @org.jspecify.annotations.Nullable Object renderPayload(
+            @org.jspecify.annotations.Nullable Object template, SchemaContext context) {
         if (template == null) {
             return null;
         }
@@ -110,9 +110,8 @@ final class SchemaTemplateEngine {
                     break;
                 }
             }
-            return JsonSchemaSupport.array(firstNonNull == null
-                                           ? JsonSchemaSupport.nullType()
-                                           : inferPayloadSchema(firstNonNull));
+            return JsonSchemaSupport.array(
+                    firstNonNull == null ? JsonSchemaSupport.nullType() : inferPayloadSchema(firstNonNull));
         }
         if (template.getClass().isArray()) {
             int length = Array.getLength(template);

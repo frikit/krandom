@@ -5,8 +5,24 @@
  */
 package io.github.frikit.krandom.junit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
@@ -18,37 +34,20 @@ import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.Event;
 
-import java.nio.charset.StandardCharsets;
-import java.time.Clock;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-
 /**
  * Verifies the printed replay commands, JUnit configuration-parameter support, the documented
  * source precedence, and how the failure output explains the recorded clock instant.
  */
 class KrandomExtensionReplayEngineTest {
 
-    private static final Pattern GRADLE_REPLAY = Pattern.compile(
-        "KRANDOM_JUNIT_RECIPE=(base64:[A-Za-z0-9_-]+) \\./gradlew test --tests '([^']+)' --rerun");
-    private static final Pattern MAVEN_REPLAY = Pattern.compile(
-        "mvn test -Dtest='([^']+)' -Dkrandom\\.junit\\.recipe=(base64:[A-Za-z0-9_-]+)");
+    private static final Pattern GRADLE_REPLAY =
+            Pattern.compile("KRANDOM_JUNIT_RECIPE=(base64:[A-Za-z0-9_-]+) \\./gradlew test --tests '([^']+)' --rerun");
+    private static final Pattern MAVEN_REPLAY =
+            Pattern.compile("mvn test -Dtest='([^']+)' -Dkrandom\\.junit\\.recipe=(base64:[A-Za-z0-9_-]+)");
     private static final Pattern GRADLE_CLASS_REPLAY = Pattern.compile(
-        "KRANDOM_JUNIT_CLASS_RECIPE='([^']+)' KRANDOM_JUNIT_RECIPE=(base64:[A-Za-z0-9_-]+) \\./gradlew test");
+            "KRANDOM_JUNIT_CLASS_RECIPE='([^']+)' KRANDOM_JUNIT_RECIPE=(base64:[A-Za-z0-9_-]+) \\./gradlew test");
     private static final Pattern MAVEN_CLASS_REPLAY = Pattern.compile(
-        "-Dkrandom\\.junit\\.recipe=base64:[A-Za-z0-9_-]+ -Dkrandom\\.junit\\.class-recipe='([^']+)'");
+            "-Dkrandom\\.junit\\.recipe=base64:[A-Za-z0-9_-]+ -Dkrandom\\.junit\\.class-recipe='([^']+)'");
 
     @Test
     void failurePrintsAGradleCommandWhoseEnvironmentVariableReachesTheTestJvm() {
@@ -57,8 +56,9 @@ class KrandomExtensionReplayEngineTest {
         Matcher gradle = GRADLE_REPLAY.matcher(run.stderr());
         assertTrue(gradle.find(), "stderr should print a Gradle replay command, was: " + run.stderr());
         assertEquals(RecordingFailingFixture.class.getName(), gradle.group(2));
-        assertFalse(run.stderr().contains("./gradlew test -Dkrandom.junit"),
-                    "Gradle -D sets a property on the Gradle JVM, not on the forked test JVM");
+        assertFalse(
+                run.stderr().contains("./gradlew test -Dkrandom.junit"),
+                "Gradle -D sets a property on the Gradle JVM, not on the forked test JVM");
     }
 
     @Test
@@ -80,8 +80,10 @@ class KrandomExtensionReplayEngineTest {
         run.results().testEvents().assertStatistics(stats -> stats.failed(1));
         Matcher gradle = GRADLE_REPLAY.matcher(run.stderr());
         assertTrue(gradle.find(), run.stderr());
-        assertEquals(NestedFailingFixture.class.getName(), gradle.group(2),
-                     "Gradle selects @Nested tests through the class that JUnit discovered");
+        assertEquals(
+                NestedFailingFixture.class.getName(),
+                gradle.group(2),
+                "Gradle selects @Nested tests through the class that JUnit discovered");
     }
 
     @Test
@@ -92,13 +94,15 @@ class KrandomExtensionReplayEngineTest {
         Matcher gradle = GRADLE_REPLAY.matcher(first.stderr());
         assertTrue(gradle.find(), first.stderr());
 
-        EngineExecutionResults replay = EngineTestSupport.run(
-            RecordingFailingFixture.class, Map.of("krandom.junit.recipe", gradle.group(1)));
+        EngineExecutionResults replay =
+                EngineTestSupport.run(RecordingFailingFixture.class, Map.of("krandom.junit.recipe", gradle.group(1)));
 
         replay.testEvents().assertStatistics(stats -> stats.failed(1));
         assertEquals(2, RecordingFailingFixture.RECORDED.size());
-        assertEquals(RecordingFailingFixture.RECORDED.get(0), RecordingFailingFixture.RECORDED.get(1),
-                     "a recipe supplied as a JUnit configuration parameter must reproduce the failure");
+        assertEquals(
+                RecordingFailingFixture.RECORDED.get(0),
+                RecordingFailingFixture.RECORDED.get(1),
+                "a recipe supplied as a JUnit configuration parameter must reproduce the failure");
     }
 
     @Test
@@ -112,8 +116,9 @@ class KrandomExtensionReplayEngineTest {
         assertTrue(maven.find(), first.stderr());
         assertEquals(gradle.group(1), maven.group(1), "both commands must carry the same class-scoped recipes");
 
-        EngineExecutionResults replay = EngineTestSupport.run(ClassScopedFailingFixture.class, Map.of(
-            "krandom.junit.class-recipe", gradle.group(1), "krandom.junit.recipe", gradle.group(2)));
+        EngineExecutionResults replay = EngineTestSupport.run(
+                ClassScopedFailingFixture.class,
+                Map.of("krandom.junit.class-recipe", gradle.group(1), "krandom.junit.recipe", gradle.group(2)));
 
         replay.testEvents().assertStatistics(stats -> stats.failed(1));
         assertReplayed(ClassScopedFailingFixture.OUTER_VALUES, "outer @BeforeAll data");
@@ -125,29 +130,42 @@ class KrandomExtensionReplayEngineTest {
     void classRecipeAppliesOnlyToTheClassItNames() {
         ClassScopedFailingFixture.reset();
         String entry = ClassScopedFailingFixture.class.getCanonicalName() + "="
-                       + encoded(GeneratorConfig.builder().seed(5L).build().getGenerationRecipe().orElseThrow());
+                + encoded(GeneratorConfig.builder()
+                        .seed(5L)
+                        .build()
+                        .getGenerationRecipe()
+                        .orElseThrow());
 
         EngineTestSupport.run(ClassScopedFailingFixture.class, Map.of("krandom.junit.class-recipe", entry));
 
         long recipeValue = new Random(5L).nextLong();
         assertEquals(List.of(recipeValue), ClassScopedFailingFixture.OUTER_VALUES);
-        assertNotEquals(List.of(recipeValue), ClassScopedFailingFixture.INNER_VALUES,
-                        "a nested class without an entry keeps its own class-scoped configuration");
-        assertNotEquals(List.of(recipeValue), ClassScopedFailingFixture.TEST_VALUES,
-                        "class recipes never apply to test methods");
+        assertNotEquals(
+                List.of(recipeValue),
+                ClassScopedFailingFixture.INNER_VALUES,
+                "a nested class without an entry keeps its own class-scoped configuration");
+        assertNotEquals(
+                List.of(recipeValue),
+                ClassScopedFailingFixture.TEST_VALUES,
+                "class recipes never apply to test methods");
     }
 
     @Test
     void malformedClassRecipesAreConfigurationErrors() {
-        String recipe = encoded(GeneratorConfig.builder().seed(5L).build().getGenerationRecipe().orElseThrow());
+        String recipe = encoded(
+                GeneratorConfig.builder().seed(5L).build().getGenerationRecipe().orElseThrow());
         String owner = ClassScopedFailingFixture.class.getCanonicalName();
-        for (String value : List.of("not-an-entry", owner + "=plain", owner + "=" + recipe + "," + owner + "=" + recipe)) {
-            EngineExecutionResults results = EngineTestSupport.run(
-                ClassScopedFailingFixture.class, Map.of("krandom.junit.class-recipe", value));
+        for (String value :
+                List.of("not-an-entry", owner + "=plain", owner + "=" + recipe + "," + owner + "=" + recipe)) {
+            EngineExecutionResults results =
+                    EngineTestSupport.run(ClassScopedFailingFixture.class, Map.of("krandom.junit.class-recipe", value));
 
             List<Event> failed = results.containerEvents().failed().list();
             assertEquals(1, failed.size(), value);
-            Throwable thrown = failed.get(0).getRequiredPayload(TestExecutionResult.class).getThrowable().orElseThrow();
+            Throwable thrown = failed.get(0)
+                    .getRequiredPayload(TestExecutionResult.class)
+                    .getThrowable()
+                    .orElseThrow();
             while (!(thrown instanceof ExtensionConfigurationException) && thrown.getCause() != null) {
                 thrown = thrown.getCause();
             }
@@ -162,30 +180,32 @@ class KrandomExtensionReplayEngineTest {
     }
 
     private static String encoded(GenerationRecipe recipe) {
-        return "base64:" + Base64.getUrlEncoder().withoutPadding()
-                                 .encodeToString(recipe.serialize().getBytes(StandardCharsets.UTF_8));
+        return "base64:"
+                + Base64.getUrlEncoder()
+                        .withoutPadding()
+                        .encodeToString(recipe.serialize().getBytes(StandardCharsets.UTF_8));
     }
 
     @Test
     void seedConfigurationParameterOverridesKrandomSeed() {
-        EngineExecutionResults results = EngineTestSupport.run(
-            PinnedExpectingOverrideFixture.class, Map.of("krandom.junit.seed", "24680"));
+        EngineExecutionResults results =
+                EngineTestSupport.run(PinnedExpectingOverrideFixture.class, Map.of("krandom.junit.seed", "24680"));
 
         results.testEvents().assertStatistics(stats -> stats.succeeded(1).failed(0));
     }
 
     @Test
     void snapshotClockConfigurationParameterIsHonoured() {
-        EngineExecutionResults results = EngineTestSupport.run(
-            SnapshotExpectingFixture.class, Map.of("krandom.junit.snapshot-clock", "true"));
+        EngineExecutionResults results =
+                EngineTestSupport.run(SnapshotExpectingFixture.class, Map.of("krandom.junit.snapshot-clock", "true"));
 
         results.testEvents().assertStatistics(stats -> stats.succeeded(1).failed(0));
     }
 
     @Test
     void malformedSnapshotConfigurationParameterIsAConfigurationError() {
-        EngineExecutionResults results = EngineTestSupport.run(
-            SnapshotExpectingFixture.class, Map.of("krandom.junit.snapshot-clock", "yes"));
+        EngineExecutionResults results =
+                EngineTestSupport.run(SnapshotExpectingFixture.class, Map.of("krandom.junit.snapshot-clock", "yes"));
 
         assertSingleConfigurationError(results, "snapshot-clock must be true or false");
     }
@@ -204,8 +224,8 @@ class KrandomExtensionReplayEngineTest {
     void configurationParameterTakesPrecedenceOverTheEnvironmentVariable() {
         EnvironmentSeedFixture.SEEDS.clear();
 
-        EngineExecutionResults results = EngineTestSupport.run(
-            EnvironmentSeedFixture.class, Map.of("krandom.junit.seed", "24680"));
+        EngineExecutionResults results =
+                EngineTestSupport.run(EnvironmentSeedFixture.class, Map.of("krandom.junit.seed", "24680"));
 
         results.testEvents().assertStatistics(stats -> stats.succeeded(1).failed(0));
         assertEquals(List.of(24680L), EnvironmentSeedFixture.SEEDS);
@@ -213,8 +233,8 @@ class KrandomExtensionReplayEngineTest {
 
     @Test
     void recipeAndSeedFromDifferentSourcesConflict() {
-        EngineExecutionResults results = EngineTestSupport.run(
-            EnvironmentRecipeFixture.class, Map.of("krandom.junit.seed", "24680"));
+        EngineExecutionResults results =
+                EngineTestSupport.run(EnvironmentRecipeFixture.class, Map.of("krandom.junit.seed", "24680"));
 
         assertSingleConfigurationError(results, "Configure only one replay override");
     }
@@ -224,14 +244,15 @@ class KrandomExtensionReplayEngineTest {
         EngineTestSupport.Captured run = EngineTestSupport.runCapturingStderr(RecordingFailingFixture.class);
 
         assertTrue(run.stderr().contains("read when the failure was reported"), run.stderr());
-        assertTrue(run.stderr().contains("krandom.junit.snapshot-clock=true"),
-                   "time-sensitive tests should be pointed at the snapshot option, was: " + run.stderr());
+        assertTrue(
+                run.stderr().contains("krandom.junit.snapshot-clock=true"),
+                "time-sensitive tests should be pointed at the snapshot option, was: " + run.stderr());
     }
 
     @Test
     void snapshotOutputStatesThatTheClockWasCapturedBeforeInjection() {
         EngineTestSupport.Captured run = EngineTestSupport.runCapturingStderr(
-            RecordingFailingFixture.class, Map.of("krandom.junit.snapshot-clock", "true"));
+                RecordingFailingFixture.class, Map.of("krandom.junit.snapshot-clock", "true"));
 
         assertTrue(run.stderr().contains("captured before parameter injection"), run.stderr());
         assertFalse(run.stderr().contains("read when the failure was reported"), run.stderr());
@@ -239,12 +260,18 @@ class KrandomExtensionReplayEngineTest {
 
     @Test
     void replayedRecipeOutputStatesThatTheClockCameFromTheRecipe() {
-        GenerationRecipe recipe = GeneratorConfig.builder().seed(42L).build().getGenerationRecipe().orElseThrow();
-        String encoded = "base64:" + Base64.getUrlEncoder().withoutPadding()
-                                           .encodeToString(recipe.serialize().getBytes(StandardCharsets.UTF_8));
+        GenerationRecipe recipe = GeneratorConfig.builder()
+                .seed(42L)
+                .build()
+                .getGenerationRecipe()
+                .orElseThrow();
+        String encoded = "base64:"
+                + Base64.getUrlEncoder()
+                        .withoutPadding()
+                        .encodeToString(recipe.serialize().getBytes(StandardCharsets.UTF_8));
 
         EngineTestSupport.Captured run = EngineTestSupport.runCapturingStderr(
-            RecordingFailingFixture.class, Map.of("krandom.junit.recipe", encoded));
+                RecordingFailingFixture.class, Map.of("krandom.junit.recipe", encoded));
 
         assertTrue(run.stderr().contains("fixed by the replay recipe"), run.stderr());
     }
@@ -253,9 +280,9 @@ class KrandomExtensionReplayEngineTest {
         List<Event> failed = results.testEvents().failed().list();
         assertEquals(1, failed.size());
         Throwable thrown = failed.get(0)
-                                 .getRequiredPayload(TestExecutionResult.class)
-                                 .getThrowable()
-                                 .orElseGet(() -> fail("failed event should carry a throwable"));
+                .getRequiredPayload(TestExecutionResult.class)
+                .getThrowable()
+                .orElseGet(() -> fail("failed event should carry a throwable"));
         assertInstanceOf(ExtensionConfigurationException.class, thrown);
         assertTrue(thrown.getMessage().contains(expectedMessagePart), "unexpected message: " + thrown.getMessage());
     }
@@ -352,7 +379,7 @@ class KrandomExtensionReplayEngineTest {
 
         @RegisterExtension
         static final KrandomExtension EXTENSION =
-            new KrandomExtension(name -> "KRANDOM_JUNIT_SEED".equals(name) ? "13579" : null);
+                new KrandomExtension(name -> "KRANDOM_JUNIT_SEED".equals(name) ? "13579" : null);
 
         @Test
         void record(GeneratorConfig config) {
@@ -365,10 +392,17 @@ class KrandomExtensionReplayEngineTest {
 
         @RegisterExtension
         static final KrandomExtension EXTENSION = new KrandomExtension(name -> "KRANDOM_JUNIT_RECIPE".equals(name)
-            ? "base64:" + Base64.getUrlEncoder().withoutPadding().encodeToString(
-                GeneratorConfig.builder().seed(7L).build().getGenerationRecipe().orElseThrow().serialize()
-                               .getBytes(StandardCharsets.UTF_8))
-            : null);
+                ? "base64:"
+                        + Base64.getUrlEncoder()
+                                .withoutPadding()
+                                .encodeToString(GeneratorConfig.builder()
+                                        .seed(7L)
+                                        .build()
+                                        .getGenerationRecipe()
+                                        .orElseThrow()
+                                        .serialize()
+                                        .getBytes(StandardCharsets.UTF_8))
+                : null);
 
         @Test
         void unreachable(GeneratorConfig config) {

@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.file;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import io.github.frikit.krandom.generator.user.LocaleTextResourceLoader;
-
 import java.util.List;
 import java.util.Locale;
 
@@ -28,7 +27,8 @@ final class BuiltInDirectoryNameDataProvider implements DirectoryNameDataProvide
 
     BuiltInDirectoryNameDataProvider(Locale locale, String resourcePrefix) {
         this.locale = locale;
-        this.directoryNames = List.of(LocaleTextResourceLoader.load("krandom/directory_names/" + resourcePrefix + ".txt"));
+        this.directoryNames =
+                List.of(LocaleTextResourceLoader.load("krandom/directory_names/" + resourcePrefix + ".txt"));
     }
 
     @Override

@@ -5,26 +5,23 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("BloodTypeGenerator")
 class BloodTypeGeneratorTest {
@@ -67,8 +64,8 @@ class BloodTypeGeneratorTest {
         @Test
         @DisplayName("Japan distribution surfaces its most common type (A+)")
         void japanCommon() {
-            BloodTypeGenerator gen =
-                new BloodTypeGenerator(GeneratorConfig.builder().locale(Locale.JAPAN).seed(1L).build());
+            BloodTypeGenerator gen = new BloodTypeGenerator(
+                    GeneratorConfig.builder().locale(Locale.JAPAN).seed(1L).build());
             Set<String> seen = new HashSet<>();
             for (int i = 0; i < 500; i++) {
                 seen.add(gen.generate());
@@ -80,10 +77,15 @@ class BloodTypeGeneratorTest {
         @Test
         @DisplayName("same seed + locale is reproducible")
         void reproducible() {
-            GeneratorConfig cfg = GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
+            GeneratorConfig cfg =
+                    GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
             List<String> first = draw(new BloodTypeGenerator(cfg), 50);
-            List<String> second =
-                draw(new BloodTypeGenerator(GeneratorConfig.builder().locale(Locale.US).seed(42L).build()), 50);
+            List<String> second = draw(
+                    new BloodTypeGenerator(GeneratorConfig.builder()
+                            .locale(Locale.US)
+                            .seed(42L)
+                            .build()),
+                    50);
             assertEquals(first, second);
         }
     }
@@ -150,8 +152,9 @@ class BloodTypeGeneratorTest {
         void facadeFactories() {
             assertTrue(ABO_RH.contains(Generators.ofBloodType().generate()));
             assertTrue(ABO_RH.contains(Generators.ofBloodType(Locale.US).generate()));
-            assertTrue(ABO_RH.contains(
-                Generators.ofBloodType(GeneratorConfig.builder().locale(Locale.US).seed(1L).build()).generate()));
+            assertTrue(ABO_RH.contains(Generators.ofBloodType(
+                            GeneratorConfig.builder().locale(Locale.US).seed(1L).build())
+                    .generate()));
         }
     }
 

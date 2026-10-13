@@ -5,13 +5,14 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.Test;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.concurrent.atomic.AtomicBoolean;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class ProfileRollbackTest {
     public static class Fixture {
@@ -22,23 +23,29 @@ class ProfileRollbackTest {
     }
 
     private GeneratorConfig config() {
-        return GeneratorConfig.builder().seed(42).clock(Clock.fixed(Instant.EPOCH, ZoneOffset.UTC))
-            .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY).build();
+        return GeneratorConfig.builder()
+                .seed(42)
+                .clock(Clock.fixed(Instant.EPOCH, ZoneOffset.UTC))
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .build();
     }
 
     @Test
     void failedNestedProfileCanBeRetriedWithoutLeakingConfiguration() {
         AtomicBoolean fail = new AtomicBoolean(true);
         ObjectFaker<Fixture> faker = new ObjectFaker<>(Fixture.class, config())
-            .profile("nested", f -> f.ruleForContext("other", context -> "nested"))
-            .profile("retry", f -> {
-                f.useProfile("nested").ruleFor("name", () -> "fixed")
-                    .ruleFor("derived", value -> value.name + "!")
-                    .ignore("age").include("name", "other", "derived")
-                    .afterGenerate(value -> value.age = 7).strict();
-                f.profile("created", value -> value.ignore("age"));
-                if (fail.getAndSet(false)) throw new IllegalStateException("failed");
-            });
+                .profile("nested", f -> f.ruleForContext("other", context -> "nested"))
+                .profile("retry", f -> {
+                    f.useProfile("nested")
+                            .ruleFor("name", () -> "fixed")
+                            .ruleFor("derived", value -> value.name + "!")
+                            .ignore("age")
+                            .include("name", "other", "derived")
+                            .afterGenerate(value -> value.age = 7)
+                            .strict();
+                    f.profile("created", value -> value.ignore("age"));
+                    if (fail.getAndSet(false)) throw new IllegalStateException("failed");
+                });
         assertThrows(IllegalStateException.class, () -> faker.useProfile("retry"));
         assertThrows(IllegalArgumentException.class, () -> faker.useProfile("created"));
         Fixture untouched = faker.generate();
@@ -59,7 +66,10 @@ class ProfileRollbackTest {
         ObjectFaker<Fixture> faker = new ObjectFaker<>(Fixture.class, config()).ruleFor("name", () -> "kept");
         ObjectFaker<Fixture> control = new ObjectFaker<>(Fixture.class, config()).ruleFor("name", () -> "kept");
         assertEquals(control.generate().age, faker.generate().age);
-        faker.profile("bad", f -> { f.ruleFor("other", () -> "discarded"); throw new AssertionError("failed"); });
+        faker.profile("bad", f -> {
+            f.ruleFor("other", () -> "discarded");
+            throw new AssertionError("failed");
+        });
         assertThrows(AssertionError.class, () -> faker.useProfile("bad"));
         Fixture next = faker.generate();
         Fixture expected = control.generate();

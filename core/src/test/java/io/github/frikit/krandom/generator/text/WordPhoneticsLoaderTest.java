@@ -5,16 +5,15 @@
  */
 package io.github.frikit.krandom.generator.text;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
-
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("WordPhoneticsLoader")
 class WordPhoneticsLoaderTest {
@@ -48,42 +47,41 @@ class WordPhoneticsLoaderTest {
     @DisplayName("load parses valid profile")
     void loadValidProfile() {
         WordPhonetics data = WordPhoneticsLoader.load("krandom/text/phonetics/test_valid.txt");
-        assertArrayEquals(new String[] { "a", "b" }, data.onsets());
-        assertArrayEquals(new String[] { "e", "i" }, data.nuclei());
-        assertArrayEquals(new String[] { "", "n" }, data.codas());
+        assertArrayEquals(new String[] {"a", "b"}, data.onsets());
+        assertArrayEquals(new String[] {"e", "i"}, data.nuclei());
+        assertArrayEquals(new String[] {"", "n"}, data.codas());
     }
 
     @Test
     @DisplayName("load ignores blank and comment lines")
     void loadWithBlankAndCommentLines() {
         WordPhonetics data = WordPhoneticsLoader.load("krandom/text/phonetics/test_valid_with_blanks.txt");
-        assertArrayEquals(new String[] { "br", "cl" }, data.onsets());
-        assertArrayEquals(new String[] { "a", "e" }, data.nuclei());
-        assertArrayEquals(new String[] { "", "n" }, data.codas());
+        assertArrayEquals(new String[] {"br", "cl"}, data.onsets());
+        assertArrayEquals(new String[] {"a", "e"}, data.nuclei());
+        assertArrayEquals(new String[] {"", "n"}, data.codas());
     }
 
     @Test
     @DisplayName("load throws for missing resource")
     void loadMissingResource() {
         assertThrows(
-            IllegalStateException.class,
-            () -> WordPhoneticsLoader.load("krandom/text/phonetics/does_not_exist.txt")
-        );
+                IllegalStateException.class,
+                () -> WordPhoneticsLoader.load("krandom/text/phonetics/does_not_exist.txt"));
     }
 
     @Test
     @DisplayName("load throws for malformed resource")
     void loadMalformedResource() {
         assertThrows(
-            IllegalStateException.class,
-            () -> WordPhoneticsLoader.load("krandom/text/phonetics/test_invalid_missing_codas.txt")
-        );
+                IllegalStateException.class,
+                () -> WordPhoneticsLoader.load("krandom/text/phonetics/test_invalid_missing_codas.txt"));
     }
 
     @Test
     @DisplayName("load wraps IO failures")
     void loadIoFailure() {
-        assertThrows(IllegalStateException.class, () -> WordPhoneticsLoader.load(readFailingStream(), "broken-phonetics"));
+        assertThrows(
+                IllegalStateException.class, () -> WordPhoneticsLoader.load(readFailingStream(), "broken-phonetics"));
     }
 
     @Test

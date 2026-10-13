@@ -5,6 +5,13 @@
  */
 package io.github.frikit.krandom.generator.locale;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.location.CityGenerator;
@@ -21,19 +28,11 @@ import io.github.frikit.krandom.generator.user.TitleGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("LocaleDataBundle")
 class LocaleDataBundleTest {
@@ -43,31 +42,29 @@ class LocaleDataBundleTest {
     void appliesToIsolatedContext() {
         Locale locale = Locale.of("es", "MX");
         LocaleDataBundle bundle = LocaleDataBundle.builder(locale)
-                                                  .firstNames(new String[] { "Mateo" }, new String[] { "Sofía" })
-                                                  .lastNames("Hernández")
-                                                  .genderLabels("Hombre", "Mujer")
-                                                  .titles("Lic.")
-                                                  .suffixes("Jr.")
-                                                  .professions("Ingeniero")
-                                                  .cities("Ciudad de México")
-                                                  .states(new String[] { "Jalisco" }, new String[] { "JAL" })
-                                                  .countries("México")
-                                                  .streetAddress(new String[] { "Juárez" },
-                                                                 new String[] { "Av" },
-                                                                 new String[] { "Avenida" })
-                                                  .nationalIdProvider(new FixedNationalIdProvider(locale, "MX-123"))
-                                                  .build();
+                .firstNames(new String[] {"Mateo"}, new String[] {"Sofía"})
+                .lastNames("Hernández")
+                .genderLabels("Hombre", "Mujer")
+                .titles("Lic.")
+                .suffixes("Jr.")
+                .professions("Ingeniero")
+                .cities("Ciudad de México")
+                .states(new String[] {"Jalisco"}, new String[] {"JAL"})
+                .countries("México")
+                .streetAddress(new String[] {"Juárez"}, new String[] {"Av"}, new String[] {"Avenida"})
+                .nationalIdProvider(new FixedNationalIdProvider(locale, "MX-123"))
+                .build();
 
         DataRegistryContext context = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerLocaleData(bundle)
-                                                         .build();
+                .isolated()
+                .registerLocaleData(bundle)
+                .build();
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(locale)
-                                                .registryContext(context)
-                                                .seed(7L)
-                                                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                .build();
+                .locale(locale)
+                .registryContext(context)
+                .seed(7L)
+                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
 
         assertEquals("Mateo", new FirstNameGenerator(config).generate(Gender.MALE));
         assertEquals("Sofía", new FirstNameGenerator(config).generate(Gender.FEMALE));
@@ -95,37 +92,51 @@ class LocaleDataBundleTest {
         Locale locale = Locale.of("fr", "CA");
 
         assertThrows(NullPointerException.class, () -> LocaleDataBundle.builder(null));
-        assertThrows(IllegalArgumentException.class,
-                     () -> LocaleDataBundle.builder(locale).states(new String[] { "Québec" }, new String[] { "QC", "ON" }));
-        assertThrows(IllegalArgumentException.class,
-                     () -> LocaleDataBundle.builder(locale).titles("Dr", null));
-        assertThrows(IllegalArgumentException.class,
-                     () -> LocaleDataBundle.builder(locale).titles());
-        assertThrows(IllegalArgumentException.class,
-                     () -> LocaleDataBundle.builder(locale).genderLabels(null, "Femme"));
-        assertThrows(IllegalArgumentException.class,
-                     () -> LocaleDataBundle.builder(locale).genderLabels(" ", "Femme"));
-        assertThrows(IllegalArgumentException.class,
-                     () -> LocaleDataBundle.builder(locale).professions(new String[] { "Ingénieur" }, new int[] { 1, 2 }));
-        assertThrows(IllegalArgumentException.class,
-                     () -> LocaleDataBundle.builder(locale).professions(new String[] { "Ingénieur" }, new int[] { 0 }));
-        assertThrows(IllegalArgumentException.class,
-                     () -> LocaleDataBundle.builder(locale).states(new String[] { "Québec" }, new String[] { null }));
-        assertThrows(NullPointerException.class,
-                     () -> LocaleDataBundle.builder(locale).states(new String[] { "Québec" }, null));
-        assertThrows(NullPointerException.class,
-                     () -> LocaleDataBundle.builder(locale).streetAddress(new String[] { "Rue" }, null, new String[] { "Rue" }));
-        assertThrows(IllegalArgumentException.class,
-                     () -> LocaleDataBundle.builder(locale).countries("Canada", " "));
-        assertThrows(IllegalArgumentException.class,
-                     () -> LocaleDataBundle.builder(locale)
-                                           .nationalIdProvider(new FixedNationalIdProvider(Locale.US, "US-1")));
-        assertThrows(NullPointerException.class,
-                     () -> LocaleDataBundle.builder(locale).nationalIdProvider(null));
-        assertThrows(NullPointerException.class,
-                     () -> LocaleDataBundle.builder(locale).build().applyTo(null));
-        assertThrows(NullPointerException.class,
-                     () -> DataRegistryContext.builder().registerLocaleData(null));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> LocaleDataBundle.builder(locale).states(new String[] {"Québec"}, new String[] {"QC", "ON"}));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> LocaleDataBundle.builder(locale).titles("Dr", null));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> LocaleDataBundle.builder(locale).titles());
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> LocaleDataBundle.builder(locale).genderLabels(null, "Femme"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> LocaleDataBundle.builder(locale).genderLabels(" ", "Femme"));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> LocaleDataBundle.builder(locale).professions(new String[] {"Ingénieur"}, new int[] {1, 2}));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> LocaleDataBundle.builder(locale).professions(new String[] {"Ingénieur"}, new int[] {0}));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> LocaleDataBundle.builder(locale).states(new String[] {"Québec"}, new String[] {null}));
+        assertThrows(
+                NullPointerException.class,
+                () -> LocaleDataBundle.builder(locale).states(new String[] {"Québec"}, null));
+        assertThrows(
+                NullPointerException.class,
+                () -> LocaleDataBundle.builder(locale).streetAddress(new String[] {"Rue"}, null, new String[] {"Rue"}));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> LocaleDataBundle.builder(locale).countries("Canada", " "));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> LocaleDataBundle.builder(locale)
+                        .nationalIdProvider(new FixedNationalIdProvider(Locale.US, "US-1")));
+        assertThrows(
+                NullPointerException.class,
+                () -> LocaleDataBundle.builder(locale).nationalIdProvider(null));
+        assertThrows(
+                NullPointerException.class,
+                () -> LocaleDataBundle.builder(locale).build().applyTo(null));
+        assertThrows(
+                NullPointerException.class, () -> DataRegistryContext.builder().registerLocaleData(null));
     }
 
     @Test
@@ -133,14 +144,14 @@ class LocaleDataBundleTest {
     void partialBundlesOnlyRegisterDefinedFamilies() {
         Locale locale = Locale.of("mi", "NZ");
         LocaleDataBundle bundle = LocaleDataBundle.builder(locale)
-                                                  .firstNames(new String[] { "Aroha" }, new String[] { "Moana" })
-                                                  .lastNames("Ngata")
-                                                  .build();
+                .firstNames(new String[] {"Aroha"}, new String[] {"Moana"})
+                .lastNames("Ngata")
+                .build();
 
         DataRegistryContext context = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerLocaleData(bundle)
-                                                         .build();
+                .isolated()
+                .registerLocaleData(bundle)
+                .build();
 
         assertTrue(context.isFirstNameRegistered(locale));
         assertTrue(context.isLastNameRegistered(locale));
@@ -154,12 +165,12 @@ class LocaleDataBundleTest {
     void supportsStateFallbackAndUniformProfessionWeights() {
         Locale locale = Locale.of("fr", "CA");
         LocaleDataBundle bundle = LocaleDataBundle.builder(locale)
-                                                  .states("Québec")
-                                                  .professions("Architecte")
-                                                  .build();
+                .states("Québec")
+                .professions("Architecte")
+                .build();
         LocaleDataBundle alignedStateBundle = LocaleDataBundle.builder(locale)
-                                                              .states(new String[] { "Québec" }, new String[0])
-                                                              .build();
+                .states(new String[] {"Québec"}, new String[0])
+                .build();
 
         DataRegistryContext.Builder builder = DataRegistryContext.builder().isolated();
         assertSame(builder, bundle.applyTo(builder));
@@ -167,10 +178,10 @@ class LocaleDataBundleTest {
 
         DataRegistryContext context = builder.build();
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(locale)
-                                                .registryContext(context)
-                                                .seed(3L)
-                                                .build();
+                .locale(locale)
+                .registryContext(context)
+                .seed(3L)
+                .build();
 
         assertEquals(locale, bundle.locale());
         assertEquals("Québec", new StateGenerator(config).generate());

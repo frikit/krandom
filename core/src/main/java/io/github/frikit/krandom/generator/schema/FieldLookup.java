@@ -9,10 +9,9 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.provider.ConflictPolicy;
 import io.github.frikit.krandom.generator.provider.ProviderCatalog;
 import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
-import io.github.frikit.krandom.generator.provider.ProviderSafetyMetadata;
 import io.github.frikit.krandom.generator.provider.ProviderFactory;
+import io.github.frikit.krandom.generator.provider.ProviderSafetyMetadata;
 import io.github.frikit.krandom.generator.provider.ProviderSchemaProjection;
-
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -27,9 +26,9 @@ import java.util.function.Function;
  */
 public final class FieldLookup {
 
-    private final GeneratorConfig                  config;
+    private final GeneratorConfig config;
     private final Map<String, SchemaValueProvider> providers = new LinkedHashMap<>();
-    private final Map<String, String>              aliases   = new LinkedHashMap<>();
+    private final Map<String, String> aliases = new LinkedHashMap<>();
 
     /**
      * Creates a lookup with generators initialized from the provided config.
@@ -88,10 +87,8 @@ public final class FieldLookup {
      * @param valueExtractor extractor invoked on the provider instance
      * @param <T>            provider type
      */
-    public <T> void registerProvider(String reference,
-                                     ProviderFactory factory,
-                                     Class<T> providerType,
-                                     Function<? super T, ?> valueExtractor) {
+    public <T> void registerProvider(
+            String reference, ProviderFactory factory, Class<T> providerType, Function<? super T, ?> valueExtractor) {
         registerProvider(reference, factory, providerType, valueExtractor, ConflictPolicy.FAIL);
     }
 
@@ -105,11 +102,12 @@ public final class FieldLookup {
      * @param policy         conflict policy
      * @param <T>            provider type
      */
-    public <T> void registerProvider(String reference,
-                                     ProviderFactory factory,
-                                     Class<T> providerType,
-                                     Function<? super T, ?> valueExtractor,
-                                     ConflictPolicy policy) {
+    public <T> void registerProvider(
+            String reference,
+            ProviderFactory factory,
+            Class<T> providerType,
+            Function<? super T, ?> valueExtractor,
+            ConflictPolicy policy) {
         registerProvider(reference, factory, providerType, valueExtractor, JsonSchemaSupport.any(), policy);
     }
 
@@ -123,11 +121,12 @@ public final class FieldLookup {
      * @param jsonSchema     JSON Schema fragment for extracted values
      * @param <T>            provider type
      */
-    public <T> void registerProvider(String reference,
-                                     ProviderFactory factory,
-                                     Class<T> providerType,
-                                     Function<? super T, ?> valueExtractor,
-                                     Map<String, ?> jsonSchema) {
+    public <T> void registerProvider(
+            String reference,
+            ProviderFactory factory,
+            Class<T> providerType,
+            Function<? super T, ?> valueExtractor,
+            Map<String, ?> jsonSchema) {
         registerProvider(reference, factory, providerType, valueExtractor, jsonSchema, ConflictPolicy.FAIL);
     }
 
@@ -142,12 +141,13 @@ public final class FieldLookup {
      * @param policy         conflict policy
      * @param <T>            provider type
      */
-    public <T> void registerProvider(String reference,
-                                     ProviderFactory factory,
-                                     Class<T> providerType,
-                                     Function<? super T, ?> valueExtractor,
-                                     Map<String, ?> jsonSchema,
-                                     ConflictPolicy policy) {
+    public <T> void registerProvider(
+            String reference,
+            ProviderFactory factory,
+            Class<T> providerType,
+            Function<? super T, ?> valueExtractor,
+            Map<String, ?> jsonSchema,
+            ConflictPolicy policy) {
         String key = normalize(reference);
         ProviderFactory providerFactory = Objects.requireNonNull(factory, "factory must not be null");
         Class<T> expectedType = Objects.requireNonNull(providerType, "providerType must not be null");
@@ -157,11 +157,11 @@ public final class FieldLookup {
         if ((providers.containsKey(key) || aliases.containsKey(key)) && conflictPolicy == ConflictPolicy.FAIL) {
             throw new IllegalArgumentException("Field reference already registered: " + key);
         }
-        Object provider = Objects.requireNonNull(providerFactory.create(config), "provider factory must not return null");
+        Object provider =
+                Objects.requireNonNull(providerFactory.create(config), "provider factory must not return null");
         if (!expectedType.isInstance(provider)) {
-            throw new IllegalArgumentException(
-                "Provider for reference '" + reference + "' is "
-                + provider.getClass().getName() + ", not " + expectedType.getName());
+            throw new IllegalArgumentException("Provider for reference '" + reference + "' is "
+                    + provider.getClass().getName() + ", not " + expectedType.getName());
         }
         T typedProvider = expectedType.cast(provider);
         register(key, ctx -> extractor.apply(typedProvider), schema, conflictPolicy);
@@ -222,7 +222,7 @@ public final class FieldLookup {
         SchemaValueProvider provider = providers.get(canonical);
         if (provider == null) {
             throw new IllegalArgumentException(
-                "Unknown field reference '" + reference + "'. Supported references: " + supportedReferences());
+                    "Unknown field reference '" + reference + "'. Supported references: " + supportedReferences());
         }
         return provider;
     }
@@ -261,17 +261,14 @@ public final class FieldLookup {
         }
         String canonical = aliases.get(key);
         if (canonical == null) {
-            throw new IllegalArgumentException(
-                "Unknown field reference '" + reference + "'. Supported references: " + supportedReferences()
-                + ", aliases: " + aliases.keySet());
+            throw new IllegalArgumentException("Unknown field reference '" + reference + "'. Supported references: "
+                    + supportedReferences() + ", aliases: " + aliases.keySet());
         }
         return canonical;
     }
 
-    private void register(String reference,
-                          SchemaValueProvider provider,
-                          Map<String, ?> jsonSchema,
-                          ConflictPolicy policy) {
+    private void register(
+            String reference, SchemaValueProvider provider, Map<String, ?> jsonSchema, ConflictPolicy policy) {
         register(reference, SchemaValueProvider.withJsonSchema(provider, jsonSchema), policy);
     }
 
@@ -286,10 +283,11 @@ public final class FieldLookup {
     private <T> void registerDescriptorTyped(ProviderDescriptor<T> descriptor, ConflictPolicy policy) {
         T provider = descriptor.create(config);
         for (ProviderSchemaProjection<T> projection : descriptor.getSchemaProjections()) {
-            register(projection.getReference(),
-                     context -> projection.extract(provider, config),
-                     jsonSchemaFor(projection),
-                     policy);
+            register(
+                    projection.getReference(),
+                    context -> projection.extract(provider, config),
+                    jsonSchemaFor(projection),
+                    policy);
             for (String alias : projection.getAliases()) {
                 registerAlias(alias, projection.getReference(), policy);
             }
@@ -299,7 +297,8 @@ public final class FieldLookup {
     private Map<String, ?> jsonSchemaFor(ProviderSchemaProjection<?> projection) {
         Map<String, Object> schema;
         if (projection.getRecordType().isPresent()) {
-            schema = JsonSchemaSupport.record(projection.getRecordType().orElseThrow(), projection.getNullableComponents());
+            schema = JsonSchemaSupport.record(
+                    projection.getRecordType().orElseThrow(), projection.getNullableComponents());
         } else if (projection.isInteger()) {
             schema = JsonSchemaSupport.integer();
         } else {
@@ -317,9 +316,10 @@ public final class FieldLookup {
         safety.put("checksumValidity", metadata.checksumValidity().name());
         safety.put("semanticPlausibility", metadata.semanticPlausibility().name());
         safety.put("testSafety", metadata.testSafety().name());
-        metadata.safetyPolicy().ifPresent(safetyPolicy ->
-            safety.put("policy", Map.of("setting", safetyPolicy.getSetting(),
-                                         "selected", safetyPolicy.selectedValue(config))));
+        metadata.safetyPolicy()
+                .ifPresent(safetyPolicy -> safety.put(
+                        "policy",
+                        Map.of("setting", safetyPolicy.getSetting(), "selected", safetyPolicy.selectedValue(config))));
         Map<String, Object> extended = new LinkedHashMap<>(schema);
         extended.put("x-krandom-safety", Collections.unmodifiableMap(safety));
         return Collections.unmodifiableMap(extended);

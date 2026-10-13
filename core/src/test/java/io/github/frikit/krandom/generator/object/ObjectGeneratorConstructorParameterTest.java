@@ -5,16 +5,17 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -22,13 +23,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Classes built through their single declared constructor resolve each parameter like the field
@@ -80,6 +79,7 @@ class ObjectGeneratorConstructorParameterTest {
     static final class Money {
 
         private final String currency;
+
         @Exclude
         private final long amount;
 
@@ -107,8 +107,7 @@ class ObjectGeneratorConstructorParameterTest {
         }
     }
 
-    record Level(int level) {
-    }
+    record Level(int level) {}
 
     private static GeneratorConfig.Builder seeded() {
         return GeneratorConfig.builder().seed(42L);
@@ -137,9 +136,8 @@ class ObjectGeneratorConstructorParameterTest {
     @Test
     @DisplayName("by-name overrides apply to constructor parameters")
     void byNameOverridesApplyToConstructorParameters() {
-        GeneratorConfig config = seeded()
-            .objectOverride(Contact.class, "email", () -> "ada@example.com")
-            .build();
+        GeneratorConfig config = seeded().objectOverride(Contact.class, "email", () -> "ada@example.com")
+                .build();
 
         Contact contact = new ObjectGenerator<>(Contact.class, config).generate();
 
@@ -160,7 +158,8 @@ class ObjectGeneratorConstructorParameterTest {
     @Test
     @DisplayName("a name exclusion applies to a parameter that no field backs, and survives toBuilder")
     void nameExclusionAppliesToParameterWithoutBackingField() {
-        GeneratorConfig config = seeded().objectExcludeField("title").build().toBuilder().build();
+        GeneratorConfig config =
+                seeded().objectExcludeField("title").build().toBuilder().build();
         assertTrue(config.isObjectFieldNameExcluded("title"));
         assertFalse(config.isObjectFieldNameExcluded("label"));
 
@@ -185,10 +184,9 @@ class ObjectGeneratorConstructorParameterTest {
         Constructor<?> constructor = nameless.getDeclaredConstructors()[0];
         assertFalse(constructor.getParameters()[0].isNamePresent());
 
-        GeneratorConfig config = seeded()
-            .objectOverride(nameless, "constructorArg1", () -> "ada@example.com")
-            .objectExcludeField("firstName")
-            .build();
+        GeneratorConfig config = seeded().objectOverride(nameless, "constructorArg1", () -> "ada@example.com")
+                .objectExcludeField("firstName")
+                .build();
 
         Object contact = new ObjectGenerator<>(nameless, config).generate();
 
@@ -200,29 +198,32 @@ class ObjectGeneratorConstructorParameterTest {
     @Test
     @DisplayName("positional parameters use constructorArg<index> as their independent stream identity")
     void positionalParametersUseIndexedStreamIdentity(@TempDir Path namelessDir, @TempDir Path namedDir)
-        throws Exception {
+            throws Exception {
         Class<?> nameless = compileFixture(namelessDir, NAMELESS_SOURCE);
         Class<?> positionallyNamed = compileFixture(namedDir, POSITIONALLY_NAMED_SOURCE, "-parameters");
         assertEquals(nameless.getName(), positionallyNamed.getName());
-        GeneratorConfig config = seeded().objectFieldStreamPolicy(ObjectFieldStreamPolicy.INDEPENDENT).build();
+        GeneratorConfig config = seeded().objectFieldStreamPolicy(ObjectFieldStreamPolicy.INDEPENDENT)
+                .build();
 
         Object fromNameless = new ObjectGenerator<>(nameless, config).generate();
         Object fromNamed = new ObjectGenerator<>(positionallyNamed, config).generate();
 
-        assertEquals(positionallyNamed.getField("constructorArg0").get(fromNamed),
-                     nameless.getField("firstName").get(fromNameless));
-        assertEquals(positionallyNamed.getField("constructorArg1").get(fromNamed),
-                     nameless.getField("email").get(fromNameless));
+        assertEquals(
+                positionallyNamed.getField("constructorArg0").get(fromNamed),
+                nameless.getField("firstName").get(fromNameless));
+        assertEquals(
+                positionallyNamed.getField("constructorArg1").get(fromNamed),
+                nameless.getField("email").get(fromNameless));
     }
 
     @Test
     @DisplayName("a record argument the canonical constructor rejects is a contextual construction failure")
     void recordArgumentMismatchIsContextual() {
-        GeneratorConfig config = seeded().objectOverride(Level.class, "level", () -> "high").build();
+        GeneratorConfig config =
+                seeded().objectOverride(Level.class, "level", () -> "high").build();
 
         ObjectGenerationException error = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(Level.class, config).generate());
+                ObjectGenerationException.class, () -> new ObjectGenerator<>(Level.class, config).generate());
 
         var context = error.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.CONSTRUCTION, context.category());
@@ -234,11 +235,11 @@ class ObjectGeneratorConstructorParameterTest {
     @Test
     @DisplayName("a constructor argument the class constructor rejects is a contextual construction failure")
     void classArgumentMismatchIsContextual() {
-        GeneratorConfig config = seeded().objectOverride(Threshold.class, "level", () -> "high").build();
+        GeneratorConfig config =
+                seeded().objectOverride(Threshold.class, "level", () -> "high").build();
 
         ObjectGenerationException error = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(Threshold.class, config).generate());
+                ObjectGenerationException.class, () -> new ObjectGenerator<>(Threshold.class, config).generate());
 
         var context = error.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.CONSTRUCTION, context.category());
@@ -261,8 +262,8 @@ class ObjectGeneratorConstructorParameterTest {
         int status = compiler.run(null, null, null, arguments.toArray(String[]::new));
         assertEquals(0, status, "fixture compilation failed");
         try (URLClassLoader loader = new URLClassLoader(
-            new URL[] {directory.toUri().toURL()},
-            ObjectGeneratorConstructorParameterTest.class.getClassLoader())) {
+                new URL[] {directory.toUri().toURL()},
+                ObjectGeneratorConstructorParameterTest.class.getClassLoader())) {
             return loader.loadClass("NamelessContact");
         }
     }

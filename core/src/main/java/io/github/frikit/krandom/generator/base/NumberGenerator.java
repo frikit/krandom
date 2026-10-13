@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.base;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Seedable;
-
 import java.util.Objects;
 import java.util.Random;
 

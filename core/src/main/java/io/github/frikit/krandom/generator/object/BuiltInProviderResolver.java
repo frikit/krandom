@@ -9,7 +9,6 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.provider.ProviderCatalog;
 import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -24,8 +23,7 @@ final class BuiltInProviderResolver {
 
     private static final Map<String, ProviderDescriptor<?>> PROVIDERS_BY_NAME = buildProvidersByName();
 
-    private BuiltInProviderResolver() {
-    }
+    private BuiltInProviderResolver() {}
 
     static Generator<?> generator(String name, GeneratorConfig config) {
         return provider(name, config, Generator.class);
@@ -45,7 +43,8 @@ final class BuiltInProviderResolver {
         return expectedType.cast(descriptor.create(config));
     }
 
-    private static @org.jspecify.annotations.Nullable ProviderDescriptor<?> extensionProvider(String name, GeneratorConfig config) {
+    private static @org.jspecify.annotations.Nullable ProviderDescriptor<?> extensionProvider(
+            String name, GeneratorConfig config) {
         for (ProviderDescriptor<?> descriptor : config.getExtensionRegistry().getProviderDescriptors()) {
             if (descriptor.getKey().equals(name) || descriptor.getAliases().contains(name)) {
                 return descriptor;

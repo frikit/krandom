@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.util.List;
 import java.util.Locale;
 
@@ -27,7 +26,8 @@ final class BuiltInEducationalAttainmentDataProvider implements EducationalAttai
 
     BuiltInEducationalAttainmentDataProvider(Locale locale, String resourcePrefix) {
         this.locale = locale;
-        this.educationalAttainments = List.of(LocaleTextResourceLoader.load("krandom/educational_attainments/" + resourcePrefix + ".txt"));
+        this.educationalAttainments =
+                List.of(LocaleTextResourceLoader.load("krandom/educational_attainments/" + resourcePrefix + ".txt"));
     }
 
     @Override

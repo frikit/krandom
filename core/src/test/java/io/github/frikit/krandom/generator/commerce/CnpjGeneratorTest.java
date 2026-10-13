@@ -5,20 +5,19 @@
  */
 package io.github.frikit.krandom.generator.commerce;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy;
-import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-
-import java.util.Arrays;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy;
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
+import java.util.Arrays;
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("CnpjGenerator")
 class CnpjGeneratorTest {
@@ -62,7 +61,10 @@ class CnpjGeneratorTest {
     @RepeatedTest(200)
     @DisplayName("realistic policy produces formatted valid output")
     void formattedValid() {
-        String cnpj = new CnpjGenerator(GeneratorConfig.builder() .businessTaxIdentifierSafetyPolicy( BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate();
+        String cnpj = new CnpjGenerator(GeneratorConfig.builder()
+                        .businessTaxIdentifierSafetyPolicy(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                        .build())
+                .generate();
         assertTrue(cnpj.matches("\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}"), cnpj);
         assertTrue(isValidCnpj(cnpj.replaceAll("\\D", "")), cnpj);
     }
@@ -70,7 +72,11 @@ class CnpjGeneratorTest {
     @RepeatedTest(200)
     @DisplayName("realistic policy produces unformatted valid output")
     void unformattedValid() {
-        String cnpj = new CnpjGenerator(GeneratorConfig.builder() .businessTaxIdentifierSafetyPolicy( BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).withoutFormatting().generate();
+        String cnpj = new CnpjGenerator(GeneratorConfig.builder()
+                        .businessTaxIdentifierSafetyPolicy(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                        .build())
+                .withoutFormatting()
+                .generate();
         assertTrue(cnpj.matches("\\d{14}"), cnpj);
         assertEquals("0001", cnpj.substring(8, 12), "headquarters branch");
         assertTrue(isValidCnpj(cnpj), cnpj);
@@ -98,8 +104,12 @@ class CnpjGeneratorTest {
         assertTrue(bare.substring(0, 12).matches(".*[A-Z].*"), bare);
         assertTrue(isValidAlphanumericCnpj(bare), bare);
         assertEquals(
-            new CnpjGenerator(realisticConfig(456L)).withAlphanumericFormat().generateList(10),
-            new CnpjGenerator(realisticConfig(456L)).withAlphanumericFormat().generateList(10));
+                new CnpjGenerator(realisticConfig(456L))
+                        .withAlphanumericFormat()
+                        .generateList(10),
+                new CnpjGenerator(realisticConfig(456L))
+                        .withAlphanumericFormat()
+                        .generateList(10));
     }
 
     @Test
@@ -127,10 +137,12 @@ class CnpjGeneratorTest {
     @Test
     @DisplayName("configured generation fails closed by default")
     void configuredGenerationFailsClosedByDefault() {
-        assertThrows(IllegalStateException.class,
-                     () -> new CnpjGenerator(GeneratorConfig.defaults()).generate());
-        assertThrows(IllegalStateException.class,
-                     () -> new CnpjGenerator(GeneratorConfig.defaults()).withAlphanumericFormat().generate());
+        assertThrows(IllegalStateException.class, () -> new CnpjGenerator(GeneratorConfig.defaults()).generate());
+        assertThrows(
+                IllegalStateException.class,
+                () -> new CnpjGenerator(GeneratorConfig.defaults())
+                        .withAlphanumericFormat()
+                        .generate());
         assertThrows(IllegalStateException.class, () -> Generators.ofCnpj().generate());
     }
 
@@ -144,32 +156,31 @@ class CnpjGeneratorTest {
     @DisplayName("facade requires an explicit realistic compatibility policy")
     void facadeCnpj() {
         assertThrows(IllegalStateException.class, () -> Generators.ofCnpj().generate());
-        assertTrue(isValidCnpj(
-            Generators.ofCnpj(realisticConfig(1L)).generate().replaceAll("\\D", "")));
+        assertTrue(isValidCnpj(Generators.ofCnpj(realisticConfig(1L)).generate().replaceAll("\\D", "")));
     }
 
     @Test
     @DisplayName("facade ofCpf fails closed while explicit fixtures remain reproducible")
     void facadeCpf() {
         assertThrows(IllegalStateException.class, () -> Generators.ofCpf().generate());
-        assertThrows(IllegalStateException.class, () -> Generators.ofCpf(seeded(5L)).generate());
+        assertThrows(
+                IllegalStateException.class, () -> Generators.ofCpf(seeded(5L)).generate());
 
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(java.util.Locale.of("pt", "BR"))
-                                                .seed(5L)
-                                                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                .build();
+                .locale(java.util.Locale.of("pt", "BR"))
+                .seed(5L)
+                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
         assertEquals(
-            Generators.ofNationalId(config).generateList(10),
-            Generators.ofNationalId(config).generateList(10));
+                Generators.ofNationalId(config).generateList(10),
+                Generators.ofNationalId(config).generateList(10));
     }
 
     private static GeneratorConfig realisticConfig(long seed) {
         return GeneratorConfig.builder()
-                              .seed(seed)
-                              .businessTaxIdentifierSafetyPolicy(
-                                  BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                              .build();
+                .seed(seed)
+                .businessTaxIdentifierSafetyPolicy(BusinessTaxIdentifierSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
     }
 
     private static GeneratorConfig seeded(long seed) {

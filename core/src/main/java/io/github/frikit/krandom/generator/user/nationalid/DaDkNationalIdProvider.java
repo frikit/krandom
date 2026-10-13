@@ -34,10 +34,12 @@ public final class DaDkNationalIdProvider implements NationalIdProvider {
             // Century digits 5-8 denote births in 1858-1899 or 2000-2057; 0-3 denote the 1900s.
             sequence -= 5_000;
         }
-        return String.format(Locale.ROOT, "%02d%02d%02d-%04d",
-                             date.getDayOfMonth(),
-                             date.getMonthValue(),
-                             date.getYear() % 100,
-                             Math.max(1, sequence));
+        return String.format(
+                Locale.ROOT,
+                "%02d%02d%02d-%04d",
+                date.getDayOfMonth(),
+                date.getMonthValue(),
+                date.getYear() % 100,
+                Math.max(1, sequence));
     }
 }

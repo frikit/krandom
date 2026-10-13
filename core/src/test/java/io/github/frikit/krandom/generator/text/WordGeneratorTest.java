@@ -5,17 +5,16 @@
  */
 package io.github.frikit.krandom.generator.text;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("WordGenerator")
 class WordGeneratorTest {
@@ -46,7 +45,8 @@ class WordGeneratorTest {
     @Test
     @DisplayName("generate(syllables) tends to produce longer words for more syllables")
     void generateSyllables() {
-        WordGenerator gen = new WordGenerator(GeneratorConfig.builder().seed(42L).build());
+        WordGenerator gen =
+                new WordGenerator(GeneratorConfig.builder().seed(42L).build());
         String one = gen.generate(1);
         String four = gen.generate(4);
         assertTrue(one.matches("[a-z]+"));
@@ -74,7 +74,8 @@ class WordGeneratorTest {
     @Test
     @DisplayName("generateWords(count) and generateWords(min,max) support range-style generation")
     void generateWordsRangeStyle() {
-        WordGenerator gen = new WordGenerator(GeneratorConfig.builder().seed(31L).build());
+        WordGenerator gen =
+                new WordGenerator(GeneratorConfig.builder().seed(31L).build());
         String fixed = gen.generateWords(4);
         assertEquals(4, fixed.split(" ").length);
 
@@ -119,7 +120,8 @@ class WordGeneratorTest {
     @Test
     @DisplayName("length takes precedence when both length and syllables are set")
     void optionsPrecedence() {
-        WordGenerator gen = new WordGenerator(GeneratorConfig.builder().seed(13L).build());
+        WordGenerator gen =
+                new WordGenerator(GeneratorConfig.builder().seed(13L).build());
         String word = gen.generate(new WordGenerator.WordOptions(2, 7));
         assertEquals(7, word.length());
     }
@@ -141,8 +143,10 @@ class WordGeneratorTest {
     @Test
     @DisplayName("same seed with different locales produces different sequence")
     void localeAffectsOutput() {
-        GeneratorConfig us = GeneratorConfig.builder().seed(7L).locale(Locale.US).build();
-        GeneratorConfig de = GeneratorConfig.builder().seed(7L).locale(Locale.GERMANY).build();
+        GeneratorConfig us =
+                GeneratorConfig.builder().seed(7L).locale(Locale.US).build();
+        GeneratorConfig de =
+                GeneratorConfig.builder().seed(7L).locale(Locale.GERMANY).build();
         WordGenerator usGen = new WordGenerator(us);
         WordGenerator deGen = new WordGenerator(de);
 
@@ -158,8 +162,14 @@ class WordGeneratorTest {
     @Test
     @DisplayName("language fallback applies for unsupported country variant")
     void languageFallback() {
-        GeneratorConfig esEs = GeneratorConfig.builder().seed(11L).locale(Locale.of("es", "ES")).build();
-        GeneratorConfig esMx = GeneratorConfig.builder().seed(11L).locale(Locale.of("es", "MX")).build();
+        GeneratorConfig esEs = GeneratorConfig.builder()
+                .seed(11L)
+                .locale(Locale.of("es", "ES"))
+                .build();
+        GeneratorConfig esMx = GeneratorConfig.builder()
+                .seed(11L)
+                .locale(Locale.of("es", "MX"))
+                .build();
         WordGenerator a = new WordGenerator(esEs);
         WordGenerator b = new WordGenerator(esMx);
 
@@ -171,8 +181,12 @@ class WordGeneratorTest {
     @Test
     @DisplayName("unknown language falls back to default English profile")
     void unknownLanguageFallback() {
-        GeneratorConfig unknown = GeneratorConfig.builder().seed(19L).locale(Locale.of("xx", "YY")).build();
-        GeneratorConfig english = GeneratorConfig.builder().seed(19L).locale(Locale.US).build();
+        GeneratorConfig unknown = GeneratorConfig.builder()
+                .seed(19L)
+                .locale(Locale.of("xx", "YY"))
+                .build();
+        GeneratorConfig english =
+                GeneratorConfig.builder().seed(19L).locale(Locale.US).build();
         WordGenerator a = new WordGenerator(unknown);
         WordGenerator b = new WordGenerator(english);
 
@@ -184,8 +198,10 @@ class WordGeneratorTest {
     @Test
     @DisplayName("language-only locale resolves without country branch")
     void languageOnlyLocale() {
-        GeneratorConfig deLangOnly = GeneratorConfig.builder().seed(23L).locale(Locale.of("de")).build();
-        GeneratorConfig deExact = GeneratorConfig.builder().seed(23L).locale(Locale.GERMANY).build();
+        GeneratorConfig deLangOnly =
+                GeneratorConfig.builder().seed(23L).locale(Locale.of("de")).build();
+        GeneratorConfig deExact =
+                GeneratorConfig.builder().seed(23L).locale(Locale.GERMANY).build();
         WordGenerator a = new WordGenerator(deLangOnly);
         WordGenerator b = new WordGenerator(deExact);
 

@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -43,14 +42,14 @@ import java.util.Random;
 public final class CompanyNameGenerator implements Generator<String> {
 
     private static final CompanyNameDataProvider DEFAULT_PROVIDER =
-        new BuiltInCompanyNameDataProvider(Locale.ROOT, "default");
+            new BuiltInCompanyNameDataProvider(Locale.ROOT, "default");
 
     private final List<String> prefixes;
     private final List<String> nouns;
     private final List<String> suffixes;
-    private final String       nameFormat;
-    private final String       legalNameFormat;
-    private final Random       random;
+    private final String nameFormat;
+    private final String legalNameFormat;
+    private final Random random;
 
     /**
      * Creates a company-name generator with default configuration.
@@ -65,7 +64,9 @@ public final class CompanyNameGenerator implements Generator<String> {
      * @param locale locale whose company-name vocabulary to use; must not be {@code null}
      */
     public CompanyNameGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**

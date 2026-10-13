@@ -5,6 +5,5 @@
  */
 class PackageLessFixture {
 
-    private PackageLessFixture() {
-    }
+    private PackageLessFixture() {}
 }

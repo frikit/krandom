@@ -7,10 +7,8 @@ package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
 
@@ -46,7 +44,7 @@ public final class PyDecimalGenerator implements Generator<BigDecimal> {
         BigDecimal value = BigDecimal.valueOf(integerPart);
         if (rightDigits > 0) {
             BigDecimal fraction = BigDecimal.valueOf(random.nextLong((long) Math.pow(10, Math.min(rightDigits, 9))))
-                                            .movePointLeft(rightDigits);
+                    .movePointLeft(rightDigits);
             value = value.add(fraction);
         }
         return value.setScale(rightDigits, RoundingMode.DOWN);

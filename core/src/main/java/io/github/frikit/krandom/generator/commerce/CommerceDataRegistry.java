@@ -6,12 +6,11 @@
 package io.github.frikit.krandom.generator.commerce;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Global, read-only registry mapping locales to {@link CommerceDataProvider} instances.
@@ -27,15 +26,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class CommerceDataRegistry {
 
     private static final List<String> REQUIRED_RESOURCE_DIRECTORIES = List.of(
-        "krandom/commerce/adjectives/",
-        "krandom/commerce/materials/",
-        "krandom/commerce/products/",
-        "krandom/commerce/departments/",
-        "krandom/commerce/colors/",
-        "krandom/commerce/formats/");
+            "krandom/commerce/adjectives/",
+            "krandom/commerce/materials/",
+            "krandom/commerce/products/",
+            "krandom/commerce/departments/",
+            "krandom/commerce/colors/",
+            "krandom/commerce/formats/");
 
-    private static final ConcurrentHashMap<String, CommerceDataProvider> REGISTRY =
-        new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, CommerceDataProvider> REGISTRY = new ConcurrentHashMap<>();
 
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
@@ -45,8 +43,7 @@ public final class CommerceDataRegistry {
         }
     }
 
-    private CommerceDataRegistry() {
-    }
+    private CommerceDataRegistry() {}
 
     /**
      * Returns {@code true} if the registry contains an entry for the given locale.
@@ -98,7 +95,8 @@ public final class CommerceDataRegistry {
 
     static boolean hasBuiltInResources(String resourcePrefix) {
         return REQUIRED_RESOURCE_DIRECTORIES.stream()
-            .allMatch(directory -> CommerceDataRegistry.class.getResource("/" + directory + resourcePrefix + ".txt") != null);
+                .allMatch(directory ->
+                        CommerceDataRegistry.class.getResource("/" + directory + resourcePrefix + ".txt") != null);
     }
 
     private static void putProvider(CommerceDataProvider provider) {

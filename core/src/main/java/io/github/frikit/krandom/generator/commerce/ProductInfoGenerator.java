@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.commerce;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Locale;
 import java.util.Objects;
 
@@ -16,7 +15,7 @@ import java.util.Objects;
  */
 public final class ProductInfoGenerator implements Generator<ProductInfo> {
 
-    private final GeneratorConfig   config;
+    private final GeneratorConfig config;
     private final CommerceGenerator commerceGenerator;
 
     /**
@@ -32,7 +31,9 @@ public final class ProductInfoGenerator implements Generator<ProductInfo> {
      * @param locale locale to use
      */
     public ProductInfoGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**

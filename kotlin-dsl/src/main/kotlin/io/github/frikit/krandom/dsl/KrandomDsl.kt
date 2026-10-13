@@ -40,7 +40,10 @@ inline fun <reified T : Any> krandom(block: KrandomBuilder<T>.() -> Unit = {}): 
  * }
  * ```
  */
-inline fun <reified T : Any> krandomList(count: Int, block: KrandomBuilder<T>.() -> Unit = {}): List<T> {
+inline fun <reified T : Any> krandomList(
+    count: Int,
+    block: KrandomBuilder<T>.() -> Unit = {},
+): List<T> {
     val builder = KrandomBuilder(T::class.java)
     builder.block()
     return builder.build().generateList(count)
@@ -88,10 +91,13 @@ fun krandomConfig(block: ConfigScope.() -> Unit): GeneratorConfig {
  * would be ignored, which surprises DSL users.
  */
 @KrandomDslMarker
-class KrandomBuilder<T : Any>(private val type: Class<T>) {
-
-    private var configBuilder = GeneratorConfig.builder()
-        .objectOverrideDefaultInitialization(true)
+class KrandomBuilder<T : Any>(
+    private val type: Class<T>,
+) {
+    private var configBuilder =
+        GeneratorConfig
+            .builder()
+            .objectOverrideDefaultInitialization(true)
     private val fieldOverrides = mutableMapOf<String, Generator<*>>()
     private val typeOverrides = mutableMapOf<Class<*>, Generator<*>>()
     private val exclusions = linkedSetOf<String>()
@@ -115,7 +121,10 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
      *
      * @throws IllegalArgumentException when a rule for the same property is already registered
      */
-    fun <V> rule(property: KProperty1<T, V>, generator: () -> V) {
+    fun <V> rule(
+        property: KProperty1<T, V>,
+        generator: () -> V,
+    ) {
         registerFieldRule(property.name, Generator { generator() })
     }
 
@@ -132,11 +141,17 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
      *
      * @throws IllegalArgumentException when a rule for the same field is already registered
      */
-    fun <V> rule(fieldName: String, generator: () -> V) {
+    fun <V> rule(
+        fieldName: String,
+        generator: () -> V,
+    ) {
         registerFieldRule(fieldName, Generator { generator() })
     }
 
-    private fun registerFieldRule(fieldName: String, generator: Generator<*>) {
+    private fun registerFieldRule(
+        fieldName: String,
+        generator: Generator<*>,
+    ) {
         require(!fieldOverrides.containsKey(fieldName)) {
             "Duplicate rule for field '$fieldName' of ${type.name}"
         }
@@ -153,7 +168,10 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
      * ruleForType(String::class.java) { "fixed" }
      * ```
      */
-    fun <V> ruleForType(clazz: Class<V>, generator: () -> V) {
+    fun <V> ruleForType(
+        clazz: Class<V>,
+        generator: () -> V,
+    ) {
         require(!typeOverrides.containsKey(clazz)) {
             "Duplicate type rule for ${clazz.name}"
         }
@@ -235,8 +253,9 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
      * Resolves rule and exclusion names against what object generation can actually target: Java
      * fields of the generated type and its superclasses, and Kotlin primary-constructor parameters.
      */
-    private class RuleTargets(private val type: Class<*>) {
-
+    private class RuleTargets(
+        private val type: Class<*>,
+    ) {
         private val fields = LinkedHashMap<String, Field>()
         private val constructorParameters = mutableSetOf<String>()
         private val memberPropertiesWithoutField = mutableSetOf<String>()
@@ -266,7 +285,10 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
          * Returns the owner type under which a field rule is looked up: the generated type for its
          * own fields and constructor parameters, or the declaring superclass for inherited fields.
          */
-        fun ruleOwner(name: String, kind: String): Class<*> {
+        fun ruleOwner(
+            name: String,
+            kind: String,
+        ): Class<*> {
             val field = fields[name]
             return when {
                 field != null && field.declaringClass == type -> type
@@ -281,38 +303,42 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
             fields[name] ?: if (name in constructorParameters) {
                 throw IllegalArgumentException(
                     "Cannot exclude constructor parameter '$name' of ${type.name}: it has no backing " +
-                        "field; declare it as a property or register a rule instead"
+                        "field; declare it as a property or register a rule instead",
                 )
             } else {
                 throw unresolved(name, "exclusion")
             }
 
-        private fun unresolved(name: String, kind: String): IllegalArgumentException =
+        private fun unresolved(
+            name: String,
+            kind: String,
+        ): IllegalArgumentException =
             if (name in memberPropertiesWithoutField) {
                 IllegalArgumentException(
                     "Property '$name' of ${type.name} has no backing field (computed or delegated) and " +
-                        "is not a primary-constructor parameter, so a $kind cannot apply to it"
+                        "is not a primary-constructor parameter, so a $kind cannot apply to it",
                 )
             } else {
                 IllegalArgumentException(
                     "Unknown field $kind [$name] for ${type.name}; known fields: " +
-                        (fields.keys + constructorParameters).toSortedSet()
+                        (fields.keys + constructorParameters).toSortedSet(),
                 )
             }
     }
 
     companion object {
         @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-        private val WRAPPER_TO_PRIMITIVE = mapOf<Class<*>, Class<*>>(
-            java.lang.Boolean::class.java to Boolean::class.javaPrimitiveType!!,
-            java.lang.Byte::class.java to Byte::class.javaPrimitiveType!!,
-            java.lang.Short::class.java to Short::class.javaPrimitiveType!!,
-            java.lang.Integer::class.java to Int::class.javaPrimitiveType!!,
-            java.lang.Long::class.java to Long::class.javaPrimitiveType!!,
-            java.lang.Float::class.java to Float::class.javaPrimitiveType!!,
-            java.lang.Double::class.java to Double::class.javaPrimitiveType!!,
-            java.lang.Character::class.java to Char::class.javaPrimitiveType!!,
-        )
+        private val WRAPPER_TO_PRIMITIVE =
+            mapOf<Class<*>, Class<*>>(
+                java.lang.Boolean::class.java to Boolean::class.javaPrimitiveType!!,
+                java.lang.Byte::class.java to Byte::class.javaPrimitiveType!!,
+                java.lang.Short::class.java to Short::class.javaPrimitiveType!!,
+                java.lang.Integer::class.java to Int::class.javaPrimitiveType!!,
+                java.lang.Long::class.java to Long::class.javaPrimitiveType!!,
+                java.lang.Float::class.java to Float::class.javaPrimitiveType!!,
+                java.lang.Double::class.java to Double::class.javaPrimitiveType!!,
+                java.lang.Character::class.java to Char::class.javaPrimitiveType!!,
+            )
 
         private val PRIMITIVE_TO_WRAPPER = WRAPPER_TO_PRIMITIVE.entries.associate { (k, v) -> v to k }
 
@@ -325,8 +351,9 @@ class KrandomBuilder<T : Any>(private val type: Class<T>) {
  * Scope for configuring [GeneratorConfig] properties within the DSL.
  */
 @KrandomDslMarker
-class ConfigScope(private val builder: GeneratorConfig.Builder) {
-
+class ConfigScope(
+    private val builder: GeneratorConfig.Builder,
+) {
     fun seed(seed: Long) {
         builder.seed(seed)
     }
@@ -335,11 +362,17 @@ class ConfigScope(private val builder: GeneratorConfig.Builder) {
         builder.locale(locale)
     }
 
-    fun stringLength(min: Int, max: Int) {
+    fun stringLength(
+        min: Int,
+        max: Int,
+    ) {
         builder.stringLength(min, max)
     }
 
-    fun collectionSize(min: Int, max: Int) {
+    fun collectionSize(
+        min: Int,
+        max: Int,
+    ) {
         builder.collectionSize(min, max)
     }
 

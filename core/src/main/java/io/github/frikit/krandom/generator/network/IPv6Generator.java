@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.network;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
 import java.util.StringJoiner;
@@ -59,8 +57,9 @@ public final class IPv6Generator implements Generator<String> {
      * Maximum value of one 16-bit group (0xFFFF = 65535).
      */
     private static final int GROUP_MAX = 0x10000; // nextInt(exclusive upper bound)
+
     private final GeneratorConfig config;
-    private final Random          random;
+    private final Random random;
 
     /**
      * Creates an IPv6 generator with default configuration.

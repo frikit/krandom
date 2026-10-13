@@ -6,15 +6,13 @@
 package io.github.frikit.krandom.generator.object;
 
 import io.github.frikit.krandom.generator.ContextualGenerator;
+import io.github.frikit.krandom.generator.GenerationContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.GenerationContext;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -31,6 +29,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Fluent fixture authoring API built on top of {@link ObjectGenerator}.
@@ -60,20 +59,20 @@ public final class ObjectFaker<T> implements Generator<T> {
 
     private final Class<T> type;
     private final ObjectGeneratorConfig baseConfig;
-    private final Map<String, RulePath>                   rulePaths            = new LinkedHashMap<>();
-    private final Map<String, Generator<?>>               fieldRules           = new LinkedHashMap<>();
-    private final Map<String, ContextualGenerator<?>>     contextualFieldRules = new LinkedHashMap<>();
-    private final Map<String, Function<? super T, ?>>     dependentFieldRules  = new LinkedHashMap<>();
-    private final Map<String, Consumer<ObjectFaker<T>>>   namedProfiles        = new LinkedHashMap<>();
-    private final Set<String>                             ignoredFields        = new LinkedHashSet<>();
-    private final Set<String>                             includedFields       = new LinkedHashSet<>();
-    private final List<UnaryOperator<T>>                  postProcessors       = new ArrayList<>();
-    private final Set<String>                             applyingProfiles     = new LinkedHashSet<>();
-    private final Set<String>                             appliedProfiles      = new LinkedHashSet<>();
+    private final Map<String, RulePath> rulePaths = new LinkedHashMap<>();
+    private final Map<String, Generator<?>> fieldRules = new LinkedHashMap<>();
+    private final Map<String, ContextualGenerator<?>> contextualFieldRules = new LinkedHashMap<>();
+    private final Map<String, Function<? super T, ?>> dependentFieldRules = new LinkedHashMap<>();
+    private final Map<String, Consumer<ObjectFaker<T>>> namedProfiles = new LinkedHashMap<>();
+    private final Set<String> ignoredFields = new LinkedHashSet<>();
+    private final Set<String> includedFields = new LinkedHashSet<>();
+    private final List<UnaryOperator<T>> postProcessors = new ArrayList<>();
+    private final Set<String> applyingProfiles = new LinkedHashSet<>();
+    private final Set<String> appliedProfiles = new LinkedHashSet<>();
 
     private UniqueFieldTracker uniqueFieldTracker = new UniqueFieldTracker();
     private @Nullable ObjectGenerator<T> objectGenerator;
-    private boolean             strictValidation;
+    private boolean strictValidation;
 
     /**
      * Creates a fixture authoring API with default object-generation settings.
@@ -122,17 +121,16 @@ public final class ObjectFaker<T> implements Generator<T> {
     /**
      * Registers a deterministic root field rule through a type-safe accessor reference.
      */
-    public <V> ObjectFaker<T> ruleFor(PropertySelector<T, V> property,
-                                      Generator<? extends V> generator) {
+    public <V> ObjectFaker<T> ruleFor(PropertySelector<T, V> property, Generator<? extends V> generator) {
         return ruleFor(PropertyPath.of(property), generator);
     }
 
     /**
      * Registers a deterministic field rule through a type-safe root or nested property path.
      */
-    public <V> ObjectFaker<T> ruleFor(PropertyPath<T, V> property,
-                                      Generator<? extends V> generator) {
-        return ruleFor(Objects.requireNonNull(property, "property must not be null").path(), generator);
+    public <V> ObjectFaker<T> ruleFor(PropertyPath<T, V> property, Generator<? extends V> generator) {
+        return ruleFor(
+                Objects.requireNonNull(property, "property must not be null").path(), generator);
     }
 
     /**
@@ -149,17 +147,17 @@ public final class ObjectFaker<T> implements Generator<T> {
     /**
      * Registers a context-aware root field rule through a type-safe accessor reference.
      */
-    public <V> ObjectFaker<T> ruleForContext(PropertySelector<T, V> property,
-                                             ContextualGenerator<? extends V> generator) {
+    public <V> ObjectFaker<T> ruleForContext(
+            PropertySelector<T, V> property, ContextualGenerator<? extends V> generator) {
         return ruleForContext(PropertyPath.of(property), generator);
     }
 
     /**
      * Registers a context-aware field rule through a type-safe root or nested property path.
      */
-    public <V> ObjectFaker<T> ruleForContext(PropertyPath<T, V> property,
-                                             ContextualGenerator<? extends V> generator) {
-        return ruleForContext(Objects.requireNonNull(property, "property must not be null").path(), generator);
+    public <V> ObjectFaker<T> ruleForContext(PropertyPath<T, V> property, ContextualGenerator<? extends V> generator) {
+        return ruleForContext(
+                Objects.requireNonNull(property, "property must not be null").path(), generator);
     }
 
     /**
@@ -175,17 +173,16 @@ public final class ObjectFaker<T> implements Generator<T> {
     /**
      * Registers a correlated root assignment through a type-safe accessor reference.
      */
-    public <V> ObjectFaker<T> ruleFor(PropertySelector<T, V> property,
-                                      Function<? super T, ? extends V> generator) {
+    public <V> ObjectFaker<T> ruleFor(PropertySelector<T, V> property, Function<? super T, ? extends V> generator) {
         return ruleFor(PropertyPath.of(property), generator);
     }
 
     /**
      * Registers a correlated root or nested assignment through a type-safe property path.
      */
-    public <V> ObjectFaker<T> ruleFor(PropertyPath<T, V> property,
-                                      Function<? super T, ? extends V> generator) {
-        return ruleFor(Objects.requireNonNull(property, "property must not be null").path(), generator);
+    public <V> ObjectFaker<T> ruleFor(PropertyPath<T, V> property, Function<? super T, ? extends V> generator) {
+        return ruleFor(
+                Objects.requireNonNull(property, "property must not be null").path(), generator);
     }
 
     /**
@@ -220,7 +217,8 @@ public final class ObjectFaker<T> implements Generator<T> {
      * Excludes a root or nested type-safe property path.
      */
     public ObjectFaker<T> ignore(PropertyPath<T, ?> property) {
-        return ignore(Objects.requireNonNull(property, "property must not be null").path());
+        return ignore(
+                Objects.requireNonNull(property, "property must not be null").path());
     }
 
     /**
@@ -249,7 +247,8 @@ public final class ObjectFaker<T> implements Generator<T> {
      * Restricts generation to a root or nested type-safe property path.
      */
     public ObjectFaker<T> include(PropertyPath<T, ?> property) {
-        return include(Objects.requireNonNull(property, "property must not be null").path());
+        return include(
+                Objects.requireNonNull(property, "property must not be null").path());
     }
 
     /**
@@ -413,8 +412,7 @@ public final class ObjectFaker<T> implements Generator<T> {
         required.removeAll(ruleRoots);
 
         if (!required.isEmpty()) {
-            throw new IllegalStateException(
-                "ObjectFaker for " + type.getName() + " has no rules for: " + required);
+            throw new IllegalStateException("ObjectFaker for " + type.getName() + " has no rules for: " + required);
         }
         return this;
     }
@@ -439,11 +437,11 @@ public final class ObjectFaker<T> implements Generator<T> {
         Objects.requireNonNull(instance, "instance must not be null");
         if (type.isRecord()) {
             throw new UnsupportedOperationException(
-                "ObjectFaker.populate(existing) does not support records: " + type.getName());
+                    "ObjectFaker.populate(existing) does not support records: " + type.getName());
         }
         if (!type.isInstance(instance)) {
-            throw new IllegalArgumentException(
-                "instance must be assignable to " + type.getName() + ", got " + instance.getClass().getName());
+            throw new IllegalArgumentException("instance must be assignable to " + type.getName() + ", got "
+                    + instance.getClass().getName());
         }
         return applyPostGenerationRules(generator().populate(type.cast(instance)));
     }
@@ -476,21 +474,23 @@ public final class ObjectFaker<T> implements Generator<T> {
         ObjectGeneratorConfig.Builder builder = baseConfig.toBuilder();
         for (RuleTarget excludedField : excludedByIncludeRuleTargets()) {
             builder.exclude(field -> field.getDeclaringClass() == excludedField.ownerType()
-                                     && field.getName().equals(excludedField.fieldName()));
+                    && field.getName().equals(excludedField.fieldName()));
         }
         for (RuleTarget ignoredField : ignoredRuleTargets()) {
             builder.exclude(field -> field.getDeclaringClass() == ignoredField.ownerType()
-                                     && field.getName().equals(ignoredField.fieldName()));
+                    && field.getName().equals(ignoredField.fieldName()));
         }
         for (RulePath target : directRootFieldRulePaths()) {
-            builder.override(target.leaf().ownerType(),
-                             target.leaf().fieldName(),
-                             Objects.requireNonNull(fieldRules.get(target.path())));
+            builder.override(
+                    target.leaf().ownerType(),
+                    target.leaf().fieldName(),
+                    Objects.requireNonNull(fieldRules.get(target.path())));
         }
         for (RulePath target : contextualRootFieldRulePaths()) {
-            builder.override(target.leaf().ownerType(),
-                             target.leaf().fieldName(),
-                             Objects.requireNonNull(contextualFieldRules.get(target.path())));
+            builder.override(
+                    target.leaf().ownerType(),
+                    target.leaf().fieldName(),
+                    Objects.requireNonNull(contextualFieldRules.get(target.path())));
         }
         return builder.build();
     }
@@ -558,14 +558,15 @@ public final class ObjectFaker<T> implements Generator<T> {
             RulePath path = Objects.requireNonNull(rulePaths.get(entry.getKey()));
             if (!path.isRoot()) {
                 RuleTarget target = path.leaf();
-                Object fieldValue = entry.getValue().generate(
-                    new GenerationContext(target.fieldName(),
-                                          target.ownerType(),
-                                          path.depth(),
-                                          type.getSimpleName() + "." + path.path(),
-                                          target.field() != null ? target.field().getGenericType() : target.valueType(),
-                                          target.field() != null ? target.field() : target.accessor(),
-                                          baseConfig.getGeneratorConfig()));
+                Object fieldValue = entry.getValue()
+                        .generate(new GenerationContext(
+                                target.fieldName(),
+                                target.ownerType(),
+                                path.depth(),
+                                type.getSimpleName() + "." + path.path(),
+                                target.field() != null ? target.field().getGenericType() : target.valueType(),
+                                target.field() != null ? target.field() : target.accessor(),
+                                baseConfig.getGeneratorConfig()));
                 current = assignFieldValue(current, path, fieldValue);
             }
         }
@@ -610,16 +611,13 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     private Object assignNestedValue(Object current, RulePath path, int index, @Nullable Object fieldValue)
-        throws ReflectiveOperationException {
+            throws ReflectiveOperationException {
         return assignNestedValue(current, path, index, fieldValue, true);
     }
 
-    private Object assignNestedValue(Object current,
-                                     RulePath path,
-                                     int index,
-                                     @Nullable Object fieldValue,
-                                     boolean materializeMissingParents)
-        throws ReflectiveOperationException {
+    private Object assignNestedValue(
+            Object current, RulePath path, int index, @Nullable Object fieldValue, boolean materializeMissingParents)
+            throws ReflectiveOperationException {
         RuleTarget segment = path.segments().get(index);
         if (index == path.segments().size() - 1) {
             return writeTargetValue(current, segment, fieldValue);
@@ -644,46 +642,30 @@ public final class ObjectFaker<T> implements Generator<T> {
 
     private T clearFieldValue(T instance, RulePath path) {
         try {
-            return type.cast(assignNestedValue(instance, path, 0, defaultValue(path.leaf().valueType()), false));
+            return type.cast(assignNestedValue(
+                    instance, path, 0, defaultValue(path.leaf().valueType()), false));
         } catch (ReflectiveOperationException | IllegalArgumentException e) {
             throw fakerFailure(GenerationFailureCategory.ASSIGNMENT, path, e);
         }
     }
 
-    private ObjectGenerationException fakerFailure(GenerationFailureCategory category,
-                                                    RulePath path,
-                                                    Throwable cause) {
+    private ObjectGenerationException fakerFailure(GenerationFailureCategory category, RulePath path, Throwable cause) {
         RuleTarget target = path.leaf();
-        return fakerFailure(
-            category,
-            type.getSimpleName() + "." + path.path(),
-            target,
-            path.depth(),
-            cause);
+        return fakerFailure(category, type.getSimpleName() + "." + path.path(), target, path.depth(), cause);
     }
 
-    private ObjectGenerationException fakerFailure(GenerationFailureCategory category,
-                                                    String path,
-                                                    RuleTarget target,
-                                                    int depth,
-                                                    Throwable cause) {
+    private ObjectGenerationException fakerFailure(
+            GenerationFailureCategory category, String path, RuleTarget target, int depth, Throwable cause) {
         String declaredType = target.valueType().getTypeName();
         GenerationFailureContext context = new GenerationFailureContext(
-            category,
-            GenerationOperation.APPLY_RULE,
-            path,
-            target.ownerType(),
-            declaredType,
-            depth,
-            -1);
-        Throwable originalCause = cause instanceof InvocationTargetException invocation
-                                  ? invocation.getTargetException()
-                                  : cause;
+                category, GenerationOperation.APPLY_RULE, path, target.ownerType(), declaredType, depth, -1);
+        Throwable originalCause =
+                cause instanceof InvocationTargetException invocation ? invocation.getTargetException() : cause;
         return new ObjectGenerationException(
-            "Could not apply fixture rule at '" + path + "' (declared type "
-            + declaredType + ", depth " + depth + ")",
-            context,
-            originalCause);
+                "Could not apply fixture rule at '" + path + "' (declared type " + declaredType + ", depth " + depth
+                        + ")",
+                context,
+                originalCause);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -702,7 +684,7 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     private Object writeTargetValue(Object instance, RuleTarget target, @Nullable Object fieldValue)
-        throws ReflectiveOperationException {
+            throws ReflectiveOperationException {
         if (target.accessor() != null) {
             return rebuildRecord(instance, target.fieldName(), fieldValue);
         }
@@ -713,7 +695,7 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     private Object rebuildRecord(Object instance, String fieldName, @Nullable Object fieldValue)
-        throws ReflectiveOperationException {
+            throws ReflectiveOperationException {
         Class<?> recordType = instance.getClass();
         RecordComponent[] components = recordType.getRecordComponents();
         Class<?>[] parameterTypes = new Class<?>[components.length];
@@ -738,9 +720,8 @@ public final class ObjectFaker<T> implements Generator<T> {
         RulePath path = rulePaths.computeIfAbsent(fieldName, this::resolveRulePath);
         RuleTarget leaf = path.leaf();
         if (leaf.field() != null && Modifier.isFinal(leaf.field().getModifiers())) {
-            throw new IllegalArgumentException(
-                "Field path '" + fieldName + "' on " + type.getName()
-                + " is final and cannot be used with ObjectFaker " + operation);
+            throw new IllegalArgumentException("Field path '" + fieldName + "' on " + type.getName()
+                    + " is final and cannot be used with ObjectFaker " + operation);
         }
         return path;
     }
@@ -749,9 +730,8 @@ public final class ObjectFaker<T> implements Generator<T> {
         String prefix = fieldName + ".";
         for (String path : rulePaths.keySet()) {
             if (path.startsWith(prefix)) {
-                throw new IllegalStateException(
-                    "Root field '" + fieldName + "' cannot be " + action
-                    + " because nested fixture rules already target '" + path + "'");
+                throw new IllegalStateException("Root field '" + fieldName + "' cannot be " + action
+                        + " because nested fixture rules already target '" + path + "'");
             }
         }
     }
@@ -760,9 +740,8 @@ public final class ObjectFaker<T> implements Generator<T> {
         String prefix = fieldName + ".";
         for (String path : includedFields) {
             if (path.startsWith(prefix)) {
-                throw new IllegalStateException(
-                    "Root field '" + fieldName + "' cannot be " + action
-                    + " because nested include rules already target '" + path + "'");
+                throw new IllegalStateException("Root field '" + fieldName + "' cannot be " + action
+                        + " because nested include rules already target '" + path + "'");
             }
         }
     }
@@ -773,8 +752,8 @@ public final class ObjectFaker<T> implements Generator<T> {
             throw new IllegalStateException("Field '" + rootFieldName + "' is already ignored");
         }
         if (fieldRules.containsKey(fieldName)
-            || contextualFieldRules.containsKey(fieldName)
-            || dependentFieldRules.containsKey(fieldName)) {
+                || contextualFieldRules.containsKey(fieldName)
+                || dependentFieldRules.containsKey(fieldName)) {
             throw new IllegalStateException("Field '" + fieldName + "' already has a registered rule");
         }
     }
@@ -787,14 +766,16 @@ public final class ObjectFaker<T> implements Generator<T> {
         List<RuleTarget> targets = new ArrayList<>();
         if (targetType.isRecord()) {
             for (RecordComponent component : targetType.getRecordComponents()) {
-                targets.add(new RuleTarget(targetType, component.getName(), component.getType(), null, component.getAccessor()));
+                targets.add(new RuleTarget(
+                        targetType, component.getName(), component.getType(), null, component.getAccessor()));
             }
             return targets;
         }
         for (Class<?> current = targetType; current != Object.class; current = current.getSuperclass()) {
             for (Field field : current.getDeclaredFields()) {
                 if (!Modifier.isStatic(field.getModifiers())) {
-                    targets.add(new RuleTarget(field.getDeclaringClass(), field.getName(), field.getType(), field, null));
+                    targets.add(
+                            new RuleTarget(field.getDeclaringClass(), field.getName(), field.getType(), field, null));
                 }
             }
         }
@@ -812,7 +793,7 @@ public final class ObjectFaker<T> implements Generator<T> {
             currentType = segment.valueType();
             if (currentType.isPrimitive() && i < pathSegments.size() - 1) {
                 throw new IllegalArgumentException(
-                    "Nested field path '" + fieldName + "' crosses primitive segment '" + segmentName + "'");
+                        "Nested field path '" + fieldName + "' crosses primitive segment '" + segmentName + "'");
             }
         }
         return new RulePath(fieldName, List.copyOf(segments));
@@ -825,7 +806,8 @@ public final class ObjectFaker<T> implements Generator<T> {
                     return new RuleTarget(ownerType, fieldName, component.getType(), null, component.getAccessor());
                 }
             }
-            throw new IllegalArgumentException("Unknown record component '" + fieldName + "' on " + ownerType.getName());
+            throw new IllegalArgumentException(
+                    "Unknown record component '" + fieldName + "' on " + ownerType.getName());
         }
 
         List<Field> matches = new ArrayList<>();
@@ -840,10 +822,9 @@ public final class ObjectFaker<T> implements Generator<T> {
             throw new IllegalArgumentException("Unknown field '" + fieldName + "' on " + ownerType.getName());
         }
         if (matches.size() > 1) {
-            throw new IllegalArgumentException(
-                "Field '" + fieldName + "' is ambiguous on " + ownerType.getName()
-                + "; use GeneratorConfig.Builder.objectOverride(ownerType, fieldName, generator) "
-                + "for owner-specific overrides");
+            throw new IllegalArgumentException("Field '" + fieldName + "' is ambiguous on " + ownerType.getName()
+                    + "; use GeneratorConfig.Builder.objectOverride(ownerType, fieldName, generator) "
+                    + "for owner-specific overrides");
         }
         Field field = matches.getFirst();
         return new RuleTarget(field.getDeclaringClass(), field.getName(), field.getType(), field, null);
@@ -904,10 +885,7 @@ public final class ObjectFaker<T> implements Generator<T> {
         return pruneToIncludedPaths(current, includeNode, currentPath, -1);
     }
 
-    private Object pruneToIncludedPaths(Object current,
-                                        IncludeNode includeNode,
-                                        String currentPath,
-                                        int currentDepth) {
+    private Object pruneToIncludedPaths(Object current, IncludeNode includeNode, String currentPath, int currentDepth) {
         if (current == null || includeNode.keepAll || includeNode.children.isEmpty()) {
             return current;
         }
@@ -978,12 +956,12 @@ public final class ObjectFaker<T> implements Generator<T> {
         }
     }
 
-    private record RuleTarget(Class<?> ownerType,
-                              String fieldName,
-                              Class<?> valueType,
-                              @Nullable Field field,
-                              @Nullable Method accessor) {
-    }
+    private record RuleTarget(
+            Class<?> ownerType,
+            String fieldName,
+            Class<?> valueType,
+            @Nullable Field field,
+            @Nullable Method accessor) {}
 
     private static final class IncludeNode {
 

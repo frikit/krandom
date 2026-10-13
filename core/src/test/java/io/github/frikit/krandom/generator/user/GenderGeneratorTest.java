@@ -5,16 +5,6 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -22,6 +12,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.locale.SupportedLocale;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("GenderGenerator")
 class GenderGeneratorTest {
@@ -169,8 +168,8 @@ class GenderGeneratorTest {
     @Test
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
-        UnsupportedOperationException ex = assertThrows(UnsupportedOperationException.class,
-                                                        () -> new GenderGenerator(Locale.of("xx", "YY")));
+        UnsupportedOperationException ex =
+                assertThrows(UnsupportedOperationException.class, () -> new GenderGenerator(Locale.of("xx", "YY")));
         assertTrue(ex.getMessage().contains("not supported"));
     }
 
@@ -179,10 +178,8 @@ class GenderGeneratorTest {
     @Test
     @DisplayName("GeneratorConfig constructor with locale and seed works")
     void configConstructor() {
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.US)
-                                                .seed(42L)
-                                                .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
         GenderGenerator gen = new GenderGenerator(config);
         assertEquals(Locale.US, gen.getLocale());
         assertTrue(gen.isLocaleExplicitlySupported());
@@ -191,15 +188,13 @@ class GenderGeneratorTest {
     @Test
     @DisplayName("null config throws NullPointerException")
     void nullConfigThrows() {
-        assertThrows(NullPointerException.class,
-                     () -> new GenderGenerator((GeneratorConfig) null));
+        assertThrows(NullPointerException.class, () -> new GenderGenerator((GeneratorConfig) null));
     }
 
     @Test
     @DisplayName("null locale throws NullPointerException")
     void nullLocaleThrows() {
-        assertThrows(NullPointerException.class,
-                     () -> new GenderGenerator((Locale) null));
+        assertThrows(NullPointerException.class, () -> new GenderGenerator((Locale) null));
     }
 
     // ── Seeded reproducibility ────────────────────────────────────────────────
@@ -219,9 +214,7 @@ class GenderGeneratorTest {
     void differentSeeds() {
         GeneratorConfig config1 = GeneratorConfig.builder().seed(1L).build();
         GeneratorConfig config2 = GeneratorConfig.builder().seed(2L).build();
-        assertNotEquals(
-            new GenderGenerator(config1).generateList(50),
-            new GenderGenerator(config2).generateList(50));
+        assertNotEquals(new GenderGenerator(config1).generateList(50), new GenderGenerator(config2).generateList(50));
     }
 
     // ── generateList / stream ─────────────────────────────────────────────────
@@ -251,10 +244,9 @@ class GenderGeneratorTest {
     void allBuiltInLocales() {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             GenderGenerator gen = new GenderGenerator(supportedLocale.locale());
-            assertFalse(gen.getMaleLabel().isEmpty(),
-                        "Male label should not be empty for " + supportedLocale.locale());
-            assertFalse(gen.getFemaleLabel().isEmpty(),
-                        "Female label should not be empty for " + supportedLocale.locale());
+            assertFalse(gen.getMaleLabel().isEmpty(), "Male label should not be empty for " + supportedLocale.locale());
+            assertFalse(
+                    gen.getFemaleLabel().isEmpty(), "Female label should not be empty for " + supportedLocale.locale());
         }
     }
 
@@ -321,8 +313,9 @@ class GenderGeneratorTest {
     @DisplayName("isLocaleExplicitlySupported returns true for all built-in locales")
     void localeSupported() {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
-            assertTrue(new GenderGenerator(supportedLocale.locale()).isLocaleExplicitlySupported(),
-                       "Locale " + supportedLocale.locale() + " should be supported");
+            assertTrue(
+                    new GenderGenerator(supportedLocale.locale()).isLocaleExplicitlySupported(),
+                    "Locale " + supportedLocale.locale() + " should be supported");
         }
     }
 

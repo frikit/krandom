@@ -5,6 +5,12 @@
  */
 package io.github.frikit.krandom.generator;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.base.AtomicIntegerGenerator;
 import io.github.frikit.krandom.generator.base.AtomicLongGenerator;
 import io.github.frikit.krandom.generator.base.NumberGenerator;
@@ -18,9 +24,6 @@ import io.github.frikit.krandom.generator.datetime.ZoneIdGenerator;
 import io.github.frikit.krandom.generator.datetime.ZoneOffsetGenerator;
 import io.github.frikit.krandom.generator.namespace.DateTimeGenerators;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -44,12 +47,8 @@ import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("built-in generator catalog")
 class BuiltInGeneratorCatalogTest {
@@ -61,22 +60,28 @@ class BuiltInGeneratorCatalogTest {
         assertInstanceOf(AtomicInteger.class, Generators.ofAtomicInteger().generate());
         assertInstanceOf(AtomicLong.class, Generators.ofAtomicLong().generate());
 
-        AtomicInteger boundedInteger = Generators.ofAtomicInteger(10, 20, seeded(42L)).generate();
-        AtomicInteger unseededBoundedInteger = Generators.ofAtomicInteger(10, 20).generate();
-        AtomicLong boundedLong = Generators.ofAtomicLong(100L, 200L, seeded(42L)).generate();
+        AtomicInteger boundedInteger =
+                Generators.ofAtomicInteger(10, 20, seeded(42L)).generate();
+        AtomicInteger unseededBoundedInteger =
+                Generators.ofAtomicInteger(10, 20).generate();
+        AtomicLong boundedLong =
+                Generators.ofAtomicLong(100L, 200L, seeded(42L)).generate();
         AtomicLong unseededBoundedLong = Generators.ofAtomicLong(100L, 200L).generate();
 
         assertTrue(boundedInteger.get() >= 10 && boundedInteger.get() < 20);
         assertTrue(unseededBoundedInteger.get() >= 10 && unseededBoundedInteger.get() < 20);
         assertTrue(boundedLong.get() >= 100L && boundedLong.get() < 200L);
         assertTrue(unseededBoundedLong.get() >= 100L && unseededBoundedLong.get() < 200L);
-        assertEquals(Generators.ofNumber(seeded(123L)).generate(), Generators.ofNumber(seeded(123L)).generate());
+        assertEquals(
+                Generators.ofNumber(seeded(123L)).generate(),
+                Generators.ofNumber(seeded(123L)).generate());
     }
 
     @Test
     @DisplayName("new number generators validate bounds and support seeding")
     void newNumberGeneratorsValidateBoundsAndSupportSeeding() {
-        NumberGenerator number = new NumberGenerator(GeneratorConfig.builder().seed(1L).build());
+        NumberGenerator number =
+                new NumberGenerator(GeneratorConfig.builder().seed(1L).build());
         assertTrue(number.generate(10, 20).intValue() >= 10);
         assertThrows(IllegalArgumentException.class, () -> number.generate(5, 5));
         assertThrows(IllegalArgumentException.class, () -> number.generate(20, 10));
@@ -86,14 +91,17 @@ class BuiltInGeneratorCatalogTest {
 
         assertThrows(IllegalArgumentException.class, () -> new AtomicIntegerGenerator(20, 10, seeded(5L)));
         AtomicIntegerGenerator atomicInteger = new AtomicIntegerGenerator(10, 20, seeded(5L));
-        assertNotNull(new AtomicIntegerGenerator(GeneratorConfig.builder().seed(3L).build()).generate());
+        assertNotNull(
+                new AtomicIntegerGenerator(GeneratorConfig.builder().seed(3L).build()).generate());
         assertNotNull(new AtomicIntegerGenerator(0, 1).generate());
         int integerValue = atomicInteger.generate().get();
         assertTrue(integerValue >= 10 && integerValue < 20);
         assertThrows(IllegalArgumentException.class, () -> new AtomicIntegerGenerator(1, 1));
         assertThrows(NullPointerException.class, () -> new AtomicIntegerGenerator(null));
         atomicInteger.reseed(123L);
-        assertEquals(new AtomicIntegerGenerator(10, 20, seeded(123L)).generate().get(), atomicInteger.generate().get());
+        assertEquals(
+                new AtomicIntegerGenerator(10, 20, seeded(123L)).generate().get(),
+                atomicInteger.generate().get());
 
         AtomicLongGenerator atomicLong = new AtomicLongGenerator(10L, 20L, seeded(5L));
         assertNotNull(new AtomicLongGenerator(GeneratorConfig.builder().seed(3L).build()).generate());
@@ -103,7 +111,9 @@ class BuiltInGeneratorCatalogTest {
         assertThrows(IllegalArgumentException.class, () -> new AtomicLongGenerator(1L, 1L));
         assertThrows(NullPointerException.class, () -> new AtomicLongGenerator(null));
         atomicLong.reseed(123L);
-        assertEquals(new AtomicLongGenerator(10L, 20L, seeded(123L)).generate().get(), atomicLong.generate().get());
+        assertEquals(
+                new AtomicLongGenerator(10L, 20L, seeded(123L)).generate().get(),
+                atomicLong.generate().get());
     }
 
     @Test
@@ -143,7 +153,8 @@ class BuiltInGeneratorCatalogTest {
         assertInstanceOf(ZoneOffset.class, Generators.ofZoneOffset().generate());
         assertInstanceOf(TimeZone.class, Generators.ofTimeZoneObject().generate());
 
-        DateTimeGenerators datetime = Generators.datetime(GeneratorConfig.builder().seed(31L).build());
+        DateTimeGenerators datetime =
+                Generators.datetime(GeneratorConfig.builder().seed(31L).build());
         assertInstanceOf(java.util.Date.class, datetime.utilDate().generate());
         assertInstanceOf(java.sql.Date.class, datetime.sqlDate().generate());
         assertInstanceOf(java.sql.Time.class, datetime.sqlTime().generate());
@@ -222,8 +233,14 @@ class BuiltInGeneratorCatalogTest {
         assertInstanceOf(UUID.class, Generators.ofUuid().generate());
         assertInstanceOf(URI.class, Generators.ofUriObject().generate());
         assertInstanceOf(java.net.URL.class, Generators.ofUrlObject().generate());
-        assertInstanceOf(URI.class, Generators.ofUriObject(GeneratorConfig.builder().seed(7L).build()).generate());
-        assertInstanceOf(java.net.URL.class, Generators.ofUrlObject(GeneratorConfig.builder().seed(7L).build()).generate());
+        assertInstanceOf(
+                URI.class,
+                Generators.ofUriObject(GeneratorConfig.builder().seed(7L).build())
+                        .generate());
+        assertInstanceOf(
+                java.net.URL.class,
+                Generators.ofUrlObject(GeneratorConfig.builder().seed(7L).build())
+                        .generate());
 
         assertInstanceOf(String.class, Generators.ofUri().generate());
         assertInstanceOf(String.class, Generators.ofUrl().generate());
@@ -251,30 +268,33 @@ class BuiltInGeneratorCatalogTest {
         Method generatorToUrl = Generators.class.getDeclaredMethod("toUrl", URI.class);
         generatorToUrl.setAccessible(true);
         InvocationTargetException generatorFailure = assertThrows(
-            InvocationTargetException.class,
-            () -> generatorToUrl.invoke(null, URI.create("relative/path"))
-        );
+                InvocationTargetException.class, () -> generatorToUrl.invoke(null, URI.create("relative/path")));
         assertInstanceOf(IllegalStateException.class, generatorFailure.getCause());
-        assertEquals("Generated URI could not be converted to URL", generatorFailure.getCause().getMessage());
+        assertEquals(
+                "Generated URI could not be converted to URL",
+                generatorFailure.getCause().getMessage());
 
         Class<?> resolverClass = Class.forName("io.github.frikit.krandom.generator.object.FieldGeneratorResolver");
         Method resolverToUrl = resolverClass.getDeclaredMethod("toUrl", URI.class);
         resolverToUrl.setAccessible(true);
         InvocationTargetException resolverFailure = assertThrows(
-            InvocationTargetException.class,
-            () -> resolverToUrl.invoke(null, URI.create("relative/path"))
-        );
+                InvocationTargetException.class, () -> resolverToUrl.invoke(null, URI.create("relative/path")));
         assertInstanceOf(ObjectGenerationException.class, resolverFailure.getCause());
-        assertEquals("Generated URI could not be converted to URL", resolverFailure.getCause().getMessage());
+        assertEquals(
+                "Generated URI could not be converted to URL",
+                resolverFailure.getCause().getMessage());
     }
 
     @Test
     @DisplayName("collection, map, optional, and Java built-ins resolve during object generation")
     void objectGenerationResolvesBuiltInFamilies() {
         BuiltInFixture fixture = Generators.ofObject(
-            BuiltInFixture.class,
-            GeneratorConfig.builder().seed(777L).collectionSize(1, 2).build()
-        ).generate();
+                        BuiltInFixture.class,
+                        GeneratorConfig.builder()
+                                .seed(777L)
+                                .collectionSize(1, 2)
+                                .build())
+                .generate();
 
         assertNotNull(fixture.number);
         assertNotNull(fixture.atomicInteger);
@@ -290,7 +310,8 @@ class BuiltInGeneratorCatalogTest {
     @DisplayName("generic forType lookup includes built-in generator targets")
     void forTypeIncludesBuiltInGeneratorTargets() {
         assertInstanceOf(Number.class, Generators.forType(Number.class).generate());
-        assertInstanceOf(AtomicInteger.class, Generators.forType(AtomicInteger.class).generate());
+        assertInstanceOf(
+                AtomicInteger.class, Generators.forType(AtomicInteger.class).generate());
         assertInstanceOf(AtomicLong.class, Generators.forType(AtomicLong.class).generate());
         assertInstanceOf(LocalTime.class, Generators.forType(LocalTime.class).generate());
         assertInstanceOf(OffsetTime.class, Generators.forType(OffsetTime.class).generate());
@@ -302,7 +323,8 @@ class BuiltInGeneratorCatalogTest {
         assertInstanceOf(ZoneOffset.class, Generators.forType(ZoneOffset.class).generate());
         assertInstanceOf(TimeZone.class, Generators.forType(TimeZone.class).generate());
         assertInstanceOf(URI.class, Generators.forType(URI.class).generate());
-        assertInstanceOf(java.net.URL.class, Generators.forType(java.net.URL.class).generate());
+        assertInstanceOf(
+                java.net.URL.class, Generators.forType(java.net.URL.class).generate());
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")

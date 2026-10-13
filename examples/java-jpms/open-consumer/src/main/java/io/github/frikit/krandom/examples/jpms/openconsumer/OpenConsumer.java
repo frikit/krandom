@@ -16,12 +16,13 @@ public final class OpenConsumer {
     /** Runs the executable consumer contract. */
     public static void main(String[] args) {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectOverride(String.class, () -> "jpms-value")
-                                                .build();
+                .objectOverride(String.class, () -> "jpms-value")
+                .build();
 
         PrivateFixture fixture = new ObjectGenerator<>(PrivateFixture.class, config).generate();
-        if (!fixture.constructorRan || !"jpms-value".equals(fixture.constructorValue)
-            || !"jpms-value".equals(fixture.mutableValue)) {
+        if (!fixture.constructorRan
+                || !"jpms-value".equals(fixture.constructorValue)
+                || !"jpms-value".equals(fixture.mutableValue)) {
             throw new AssertionError("Qualified opens did not permit safe reflective construction");
         }
     }
@@ -29,8 +30,8 @@ public final class OpenConsumer {
     static final class PrivateFixture {
 
         private final boolean constructorRan;
-        private final String  constructorValue;
-        private       String  mutableValue;
+        private final String constructorValue;
+        private String mutableValue;
 
         private PrivateFixture(String constructorValue) {
             this.constructorRan = true;

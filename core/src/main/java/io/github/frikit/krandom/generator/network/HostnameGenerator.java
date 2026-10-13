@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.network;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -18,11 +16,9 @@ import java.util.Random;
  */
 public final class HostnameGenerator implements Generator<String> {
 
-    private static final String[] SUBDOMAINS = {
-        "www", "mail", "api", "app", "cdn", "m", "img", "files"
-    };
+    private static final String[] SUBDOMAINS = {"www", "mail", "api", "app", "cdn", "m", "img", "files"};
 
-    private final Random          random;
+    private final Random random;
     private final DomainGenerator domainGenerator;
 
     public HostnameGenerator() {

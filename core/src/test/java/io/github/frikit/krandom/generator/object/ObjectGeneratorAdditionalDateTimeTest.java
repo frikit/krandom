@@ -5,23 +5,22 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.core.model.PersonWithAdditionalDateTimes;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import io.github.frikit.krandom.generator.core.model.PersonWithAdditionalDateTimes;
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.YearMonth;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectGenerator — additional JSR-310 support")
 class ObjectGeneratorAdditionalDateTimeTest {
 
-    private static final int       SAMPLES = 50;
-    private static final LocalDate MIN     = LocalDate.of(2021, 1, 1);
-    private static final LocalDate MAX     = LocalDate.of(2022, 12, 31);
+    private static final int SAMPLES = 50;
+    private static final LocalDate MIN = LocalDate.of(2021, 1, 1);
+    private static final LocalDate MAX = LocalDate.of(2022, 12, 31);
 
     @Test
     @DisplayName("additional JSR-310 fields are auto-populated")
@@ -41,8 +40,10 @@ class ObjectGeneratorAdditionalDateTimeTest {
     @Test
     @DisplayName("dateRange constrains offsetDateTime/year/yearMonth fields")
     void dateRangeConstrainsAdditionalTypes() {
-        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder().dateRange(MIN, MAX).build();
-        ObjectGenerator<PersonWithAdditionalDateTimes> gen = new ObjectGenerator<>(PersonWithAdditionalDateTimes.class, config);
+        ObjectGeneratorConfig config =
+                ObjectGeneratorConfig.builder().dateRange(MIN, MAX).build();
+        ObjectGenerator<PersonWithAdditionalDateTimes> gen =
+                new ObjectGenerator<>(PersonWithAdditionalDateTimes.class, config);
 
         for (int i = 0; i < SAMPLES; i++) {
             PersonWithAdditionalDateTimes p = gen.generate();

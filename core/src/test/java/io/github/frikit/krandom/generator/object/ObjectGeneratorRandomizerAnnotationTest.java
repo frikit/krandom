@@ -5,21 +5,21 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import jakarta.validation.constraints.Email;
-import io.github.frikit.krandom.generator.Generator;
-import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
-import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
-import io.github.frikit.krandom.generator.failure.GenerationOperation;
-import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import jakarta.validation.constraints.Email;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectGenerator — @Randomizer")
 class ObjectGeneratorRandomizerAnnotationTest {
@@ -36,8 +36,8 @@ class ObjectGeneratorRandomizerAnnotationTest {
     @DisplayName("field override takes precedence over @Randomizer annotation")
     void fieldOverrideWinsOverRandomizerAnnotation() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .override(OverridePrecedenceTarget.class, "value", () -> "FIELD_OVERRIDE")
-                                                            .build();
+                .override(OverridePrecedenceTarget.class, "value", () -> "FIELD_OVERRIDE")
+                .build();
         OverridePrecedenceTarget target = new ObjectGenerator<>(OverridePrecedenceTarget.class, config).generate();
         assertEquals("FIELD_OVERRIDE", target.getValue());
     }
@@ -46,8 +46,8 @@ class ObjectGeneratorRandomizerAnnotationTest {
     @DisplayName("type override takes precedence over @Randomizer annotation")
     void typeOverrideWinsOverRandomizerAnnotation() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .override(String.class, () -> "TYPE_OVERRIDE")
-                                                            .build();
+                .override(String.class, () -> "TYPE_OVERRIDE")
+                .build();
         OverridePrecedenceTarget target = new ObjectGenerator<>(OverridePrecedenceTarget.class, config).generate();
         assertEquals("TYPE_OVERRIDE", target.getValue());
     }
@@ -70,8 +70,7 @@ class ObjectGeneratorRandomizerAnnotationTest {
     @DisplayName("invalid @Randomizer generator type throws ObjectGenerationException")
     void invalidRandomizerTypeThrows() {
         ObjectGenerationException error = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(InvalidAnnotatedTarget.class).generate());
+                ObjectGenerationException.class, () -> new ObjectGenerator<>(InvalidAnnotatedTarget.class).generate());
 
         var context = error.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.CUSTOM_GENERATOR, context.category());
@@ -85,8 +84,8 @@ class ObjectGeneratorRandomizerAnnotationTest {
     @DisplayName("throwing @Randomizer constructors report sanitized field context")
     void throwingRandomizerConstructorIsContextual() {
         ObjectGenerationException error = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(ThrowingConstructorRandomizerTarget.class).generate());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(ThrowingConstructorRandomizerTarget.class).generate());
 
         var context = error.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.CUSTOM_GENERATOR, context.category());
@@ -101,8 +100,8 @@ class ObjectGeneratorRandomizerAnnotationTest {
     @DisplayName("throwing @Randomizer generator reports sanitized field context")
     void throwingRandomizerIsContextual() {
         ObjectGenerationException error = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(ThrowingRandomizerTarget.class).generate());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(ThrowingRandomizerTarget.class).generate());
 
         var context = error.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.CUSTOM_GENERATOR, context.category());
@@ -117,10 +116,12 @@ class ObjectGeneratorRandomizerAnnotationTest {
     @DisplayName("legacy uncontextual @Randomizer failure gains field context")
     void legacyRandomizerFailureGainsContext() {
         ObjectGenerationException error = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(LegacyFailingRandomizerTarget.class).generate());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(LegacyFailingRandomizerTarget.class).generate());
 
-        assertEquals("LegacyFailingRandomizerTarget.value", error.getContext().orElseThrow().path());
+        assertEquals(
+                "LegacyFailingRandomizerTarget.value",
+                error.getContext().orElseThrow().path());
         assertTrue(error.getCause() instanceof ObjectGenerationException);
         assertFalse(error.getMessage().contains("personal-looking-value"));
     }
@@ -129,8 +130,8 @@ class ObjectGeneratorRandomizerAnnotationTest {
     @DisplayName("already-contextual @Randomizer failure is not wrapped again")
     void contextualRandomizerFailurePassesThrough() {
         ObjectGenerationException error = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(ContextualFailingRandomizerTarget.class).generate());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(ContextualFailingRandomizerTarget.class).generate());
 
         assertSame(ContextualFailingGenerator.FAILURE, error);
         assertEquals("Nested.path", error.getContext().orElseThrow().path());
@@ -146,8 +147,9 @@ class ObjectGeneratorRandomizerAnnotationTest {
     @Test
     @DisplayName("invalid @RandomizerArgument values throw ObjectGenerationException")
     void invalidRandomizerArgumentsThrow() {
-        assertThrows(ObjectGenerationException.class,
-                     () -> new ObjectGenerator<>(InvalidRandomizerArgumentTarget.class).generate());
+        assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(InvalidRandomizerArgumentTarget.class).generate());
     }
 
     @Test
@@ -160,15 +162,17 @@ class ObjectGeneratorRandomizerAnnotationTest {
     @Test
     @DisplayName("invalid char @RandomizerArgument values throw ObjectGenerationException")
     void invalidCharRandomizerArgumentsThrow() {
-        assertThrows(ObjectGenerationException.class,
-                     () -> new ObjectGenerator<>(InvalidCharRandomizerArgumentTarget.class).generate());
+        assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(InvalidCharRandomizerArgumentTarget.class).generate());
     }
 
     @Test
     @DisplayName("unsupported @RandomizerArgument type throws ObjectGenerationException")
     void unsupportedRandomizerArgumentTypeThrows() {
-        assertThrows(ObjectGenerationException.class,
-                     () -> new ObjectGenerator<>(UnsupportedTypeRandomizerArgumentTarget.class).generate());
+        assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(UnsupportedTypeRandomizerArgumentTarget.class).generate());
     }
 
     @Test
@@ -179,12 +183,10 @@ class ObjectGeneratorRandomizerAnnotationTest {
         assertNotNull(target.getLocalField());
     }
 
-
     enum Flavor {
         SWEET,
         SALTY
     }
-
 
     public static class ConstantValueGenerator implements Generator<String> {
 
@@ -194,18 +196,15 @@ class ObjectGeneratorRandomizerAnnotationTest {
         }
     }
 
-
     public static class NoDefaultCtorGenerator implements Generator<String> {
 
-        public NoDefaultCtorGenerator(String ignored) {
-        }
+        public NoDefaultCtorGenerator(String ignored) {}
 
         @Override
         public String generate() {
             return "INVALID";
         }
     }
-
 
     public static class ThrowingGenerator implements Generator<String> {
 
@@ -214,7 +213,6 @@ class ObjectGeneratorRandomizerAnnotationTest {
             throw new IllegalStateException("personal-looking-value");
         }
     }
-
 
     public static class ThrowingConstructorGenerator implements Generator<String> {
 
@@ -228,7 +226,6 @@ class ObjectGeneratorRandomizerAnnotationTest {
         }
     }
 
-
     public static class LegacyFailingGenerator implements Generator<String> {
 
         @Override
@@ -237,20 +234,19 @@ class ObjectGeneratorRandomizerAnnotationTest {
         }
     }
 
-
     public static class ContextualFailingGenerator implements Generator<String> {
 
         private static final ObjectGenerationException FAILURE = new ObjectGenerationException(
-            "nested failure",
-            new GenerationFailureContext(
-                GenerationFailureCategory.ASSIGNMENT,
-                GenerationOperation.ASSIGN,
-                "Nested.path",
-                ContextualFailingGenerator.class,
-                String.class.getName(),
-                2,
-                -1),
-            new IllegalStateException("nested cause"));
+                "nested failure",
+                new GenerationFailureContext(
+                        GenerationFailureCategory.ASSIGNMENT,
+                        GenerationOperation.ASSIGN,
+                        "Nested.path",
+                        ContextualFailingGenerator.class,
+                        String.class.getName(),
+                        2,
+                        -1),
+                new IllegalStateException("nested cause"));
 
         @Override
         public String generate() {
@@ -258,11 +254,10 @@ class ObjectGeneratorRandomizerAnnotationTest {
         }
     }
 
-
     public static class PrefixGenerator implements Generator<String> {
 
         private final String prefix;
-        private final int    count;
+        private final int count;
         private final Flavor flavor;
 
         public PrefixGenerator(String prefix, int count, Flavor flavor) {
@@ -276,7 +271,6 @@ class ObjectGeneratorRandomizerAnnotationTest {
             return prefix + "-" + count + "-" + flavor.name();
         }
     }
-
 
     public static class CharGenerator implements Generator<String> {
 
@@ -292,11 +286,9 @@ class ObjectGeneratorRandomizerAnnotationTest {
         }
     }
 
-
     public static class UnsupportedArgTypeGenerator implements Generator<String> {
 
-        public UnsupportedArgTypeGenerator(Class<?> ignored) {
-        }
+        public UnsupportedArgTypeGenerator(Class<?> ignored) {}
 
         @Override
         public String generate() {
@@ -304,11 +296,11 @@ class ObjectGeneratorRandomizerAnnotationTest {
         }
     }
 
-
     static class AnnotatedFieldTarget {
 
         @Randomizer(ConstantValueGenerator.class)
         private String token;
+
         private String name;
 
         String getToken() {
@@ -320,7 +312,6 @@ class ObjectGeneratorRandomizerAnnotationTest {
         }
     }
 
-
     static class OverridePrecedenceTarget {
 
         @Randomizer(ConstantValueGenerator.class)
@@ -331,11 +322,9 @@ class ObjectGeneratorRandomizerAnnotationTest {
         }
     }
 
-
     static class BeanValidationAnnotatedTarget {
 
-        @Email
-        @Randomizer(ConstantValueGenerator.class)
+        @Email @Randomizer(ConstantValueGenerator.class)
         private String email;
 
         String getEmail() {
@@ -343,13 +332,11 @@ class ObjectGeneratorRandomizerAnnotationTest {
         }
     }
 
-
     static class InvalidAnnotatedTarget {
 
         @Randomizer(NoDefaultCtorGenerator.class)
         private String value;
     }
-
 
     static class ThrowingRandomizerTarget {
 
@@ -357,13 +344,11 @@ class ObjectGeneratorRandomizerAnnotationTest {
         private String value;
     }
 
-
     static class ThrowingConstructorRandomizerTarget {
 
         @Randomizer(ThrowingConstructorGenerator.class)
         private String value;
     }
-
 
     static class LegacyFailingRandomizerTarget {
 
@@ -371,13 +356,11 @@ class ObjectGeneratorRandomizerAnnotationTest {
         private String value;
     }
 
-
     static class ContextualFailingRandomizerTarget {
 
         @Randomizer(ContextualFailingGenerator.class)
         private String value;
     }
-
 
     static class RandomizerArgumentTarget {
 
@@ -392,7 +375,6 @@ class ObjectGeneratorRandomizerAnnotationTest {
         }
     }
 
-
     static class InvalidRandomizerArgumentTarget {
 
         @Randomizer(PrefixGenerator.class)
@@ -401,7 +383,6 @@ class ObjectGeneratorRandomizerAnnotationTest {
         @RandomizerArgument(type = Flavor.class, value = "SWEET")
         private String value;
     }
-
 
     static class CharRandomizerArgumentTarget {
 
@@ -414,7 +395,6 @@ class ObjectGeneratorRandomizerAnnotationTest {
         }
     }
 
-
     static class InvalidCharRandomizerArgumentTarget {
 
         @Randomizer(CharGenerator.class)
@@ -422,14 +402,12 @@ class ObjectGeneratorRandomizerAnnotationTest {
         private String value;
     }
 
-
     static class UnsupportedTypeRandomizerArgumentTarget {
 
         @Randomizer(UnsupportedArgTypeGenerator.class)
         @RandomizerArgument(type = Class.class, value = "java.lang.String")
         private String value;
     }
-
 
     static class BaseAnnotatedTarget {
 
@@ -441,7 +419,6 @@ class ObjectGeneratorRandomizerAnnotationTest {
         }
     }
 
-
     static class InheritedAnnotatedTarget extends BaseAnnotatedTarget {
 
         private String localField;
@@ -451,8 +428,6 @@ class ObjectGeneratorRandomizerAnnotationTest {
         }
     }
 
-
-    record AnnotatedRecordTarget(@Randomizer(ConstantValueGenerator.class) String token) {
-
-    }
+    record AnnotatedRecordTarget(
+            @Randomizer(ConstantValueGenerator.class) String token) {}
 }

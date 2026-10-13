@@ -5,6 +5,8 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -27,11 +29,6 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
-import org.hibernate.validator.HibernateValidator;
-import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
@@ -44,20 +41,21 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.hibernate.validator.HibernateValidator;
+import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Bean Validation constraint generation")
 class BeanValidationConstraintGenerationTest {
 
     private static final int SAMPLES = 20;
 
-    private static final Validator VALIDATOR =
-        Validation.byProvider(HibernateValidator.class)
-                  .configure()
-                  .messageInterpolator(new ParameterMessageInterpolator())
-                  .buildValidatorFactory()
-                  .getValidator();
+    private static final Validator VALIDATOR = Validation.byProvider(HibernateValidator.class)
+            .configure()
+            .messageInterpolator(new ParameterMessageInterpolator())
+            .buildValidatorFactory()
+            .getValidator();
 
     @Test
     @DisplayName("generated objects satisfy field and getter constraints with Hibernate Validator")
@@ -72,10 +70,9 @@ class BeanValidationConstraintGenerationTest {
     }
 
     private static String violationsFor(ConstraintFixture fixture) {
-        return VALIDATOR.validate(fixture)
-                        .stream()
-                        .map(BeanValidationConstraintGenerationTest::formatViolation)
-                        .collect(Collectors.joining(", "));
+        return VALIDATOR.validate(fixture).stream()
+                .map(BeanValidationConstraintGenerationTest::formatViolation)
+                .collect(Collectors.joining(", "));
     }
 
     private static String formatViolation(ConstraintViolation<ConstraintFixture> violation) {
@@ -84,85 +81,59 @@ class BeanValidationConstraintGenerationTest {
 
     static final class ConstraintFixture {
 
-        @AssertFalse
-        boolean disabled;
+        @AssertFalse boolean disabled;
 
-        @AssertTrue
-        Boolean enabled;
+        @AssertTrue Boolean enabled;
 
-        @DecimalMin("1.50")
-        BigDecimal decimalMinOnly;
+        @DecimalMin("1.50") BigDecimal decimalMinOnly;
 
-        @DecimalMax("9.50")
-        BigDecimal decimalMaxOnly;
+        @DecimalMax("9.50") BigDecimal decimalMaxOnly;
 
-        @Email
-        String email;
+        @Email String email;
 
-        @Future
-        Instant futureInstant;
+        @Future Instant futureInstant;
 
-        @FutureOrPresent
-        LocalDate futureOrPresentDate;
+        @FutureOrPresent LocalDate futureOrPresentDate;
 
-        @Max(10)
-        byte maxByte;
+        @Max(10) byte maxByte;
 
-        @Min(3)
-        short minShort;
+        @Min(3) short minShort;
 
-        @Negative
-        int negativeInt;
+        @Negative int negativeInt;
 
-        @NegativeOrZero
-        long negativeOrZeroLong;
+        @NegativeOrZero long negativeOrZeroLong;
 
-        @NotBlank
-        String notBlank;
+        @NotBlank String notBlank;
 
-        @Null
-        String absent;
+        @Null String absent;
 
-        @Past
-        Date pastDate;
+        @Past Date pastDate;
 
-        @PastOrPresent
-        Calendar pastOrPresentCalendar;
+        @PastOrPresent Calendar pastOrPresentCalendar;
 
-        @Pattern(regexp = "[A-Z]{2}\\d{3}")
-        String code;
+        @Pattern(regexp = "[A-Z]{2}\\d{3}") String code;
 
-        @Positive
-        BigInteger positiveBigInteger;
+        @Positive BigInteger positiveBigInteger;
 
-        @PositiveOrZero
-        double positiveOrZeroDouble;
+        @PositiveOrZero double positiveOrZeroDouble;
 
-        @Size(min = 2, max = 4)
-        String sizedText;
+        @Size(min = 2, max = 4) String sizedText;
 
-        @Size(min = 2, max = 4)
-        String[] tags;
+        @Size(min = 2, max = 4) String[] tags;
 
-        @Size(min = 2, max = 4)
-        List<Integer> scores;
+        @Size(min = 2, max = 4) List<Integer> scores;
 
-        @Size(min = 2, max = 4)
-        LinkedList<Integer> linkedScores;
+        @Size(min = 2, max = 4) LinkedList<Integer> linkedScores;
 
-        @Size(min = 2, max = 4)
-        Set<String> labels;
+        @Size(min = 2, max = 4) Set<String> labels;
 
-        @Size(min = 2, max = 4)
-        Queue<Integer> queue;
+        @Size(min = 2, max = 4) Queue<Integer> queue;
 
-        @Size(min = 2, max = 4)
-        Map<String, Integer> counts;
+        @Size(min = 2, max = 4) Map<String, Integer> counts;
 
         String getterSizedText;
 
-        @Size(min = 6, max = 6)
-        public String getGetterSizedText() {
+        @Size(min = 6, max = 6) public String getGetterSizedText() {
             return getterSizedText;
         }
     }

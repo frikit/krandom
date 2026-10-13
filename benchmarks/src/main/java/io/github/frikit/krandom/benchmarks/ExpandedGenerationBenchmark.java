@@ -11,19 +11,18 @@ import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.ObjectGenerator;
 import io.github.frikit.krandom.generator.selection.UniqueGenerator;
 import io.github.frikit.krandom.generator.user.EmailGenerator;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
-import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.OperationsPerInvocation;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
-
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
@@ -37,61 +36,59 @@ public class ExpandedGenerationBenchmark {
     @State(Scope.Thread)
     public static class GeneratorState {
         private final GeneratorConfig structuralConfig = GeneratorConfig.builder()
-                                                                       .locale(Locale.US)
-                                                                       .seed(7L)
-                                                                       .objectMaxDepth(4)
-                                                                       .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                                       .objectNullProbability(0.0)
-                                                                       .objectOptionalEmptyProbability(0.0)
-                                                                       .build();
+                .locale(Locale.US)
+                .seed(7L)
+                .objectMaxDepth(4)
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .objectNullProbability(0.0)
+                .objectOptionalEmptyProbability(0.0)
+                .build();
 
         private final GeneratorConfig relaxedConfig = GeneratorConfig.builder()
-                                                                    .locale(Locale.US)
-                                                                    .seed(7L)
-                                                                    .objectMaxDepth(4)
-                                                                    .objectSemanticMode(ObjectGenerationSemanticMode.RELAXED)
-                                                                    .objectNullProbability(0.0)
-                                                                    .objectOptionalEmptyProbability(0.0)
-                                                                    .build();
+                .locale(Locale.US)
+                .seed(7L)
+                .objectMaxDepth(4)
+                .objectSemanticMode(ObjectGenerationSemanticMode.RELAXED)
+                .objectNullProbability(0.0)
+                .objectOptionalEmptyProbability(0.0)
+                .build();
 
         private final GeneratorConfig semanticConfig = GeneratorConfig.builder()
-                                                                     .locale(Locale.US)
-                                                                     .seed(7L)
-                                                                     .objectMaxDepth(4)
-                                                                     .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
-                                                                     .objectNullProbability(0.0)
-                                                                     .objectOptionalEmptyProbability(0.0)
-                                                                     .build();
+                .locale(Locale.US)
+                .seed(7L)
+                .objectMaxDepth(4)
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                .objectNullProbability(0.0)
+                .objectOptionalEmptyProbability(0.0)
+                .build();
 
         private final GeneratorConfig uniqueObjectConfig = GeneratorConfig.builder()
-                                                                         .locale(Locale.US)
-                                                                         .seed(7L)
-                                                                         .objectMaxDepth(4)
-                                                                         .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
-                                                                         .objectNullProbability(0.0)
-                                                                         .objectOptionalEmptyProbability(0.0)
-                                                                         .objectUniqueFields("id", "email", "username")
-                                                                         .objectUniquenessMaxAttempts(2_000)
-                                                                         .build();
+                .locale(Locale.US)
+                .seed(7L)
+                .objectMaxDepth(4)
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                .objectNullProbability(0.0)
+                .objectOptionalEmptyProbability(0.0)
+                .objectUniqueFields("id", "email", "username")
+                .objectUniquenessMaxAttempts(2_000)
+                .build();
 
         public final ObjectGenerator<BenchmarkFixtures.SemanticCustomer> structuralCustomer =
-            Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, structuralConfig);
+                Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, structuralConfig);
 
         public final ObjectGenerator<BenchmarkFixtures.SemanticCustomer> relaxedCustomer =
-            Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, relaxedConfig);
+                Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, relaxedConfig);
 
         public final ObjectGenerator<BenchmarkFixtures.SemanticCustomer> semanticCustomer =
-            Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, semanticConfig);
+                Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, semanticConfig);
 
         public final ObjectGenerator<BenchmarkFixtures.SemanticCustomer> semanticCustomerWithUniqueness =
-            Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, uniqueObjectConfig);
+                Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, uniqueObjectConfig);
 
-        public final UniqueGenerator<String> uniqueEmail =
-            Generators.unique(new EmailGenerator(GeneratorConfig.builder()
-                                                                .locale(Locale.US)
-                                                                .seed(7L)
-                                                                .build()),
-                              2_000);
+        public final UniqueGenerator<String> uniqueEmail = Generators.unique(
+                new EmailGenerator(
+                        GeneratorConfig.builder().locale(Locale.US).seed(7L).build()),
+                2_000);
 
         String generateUniqueEmailBatch() {
             uniqueEmail.reset();

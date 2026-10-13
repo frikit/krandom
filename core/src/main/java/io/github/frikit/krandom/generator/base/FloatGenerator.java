@@ -5,12 +5,10 @@
  */
 package io.github.frikit.krandom.generator.base;
 
-import org.jspecify.annotations.Nullable;
-
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Generates random {@link Float} values.
@@ -107,8 +105,7 @@ public final class FloatGenerator extends AbstractBoundedGenerator<Float> {
      */
     public FloatGenerator withPrecision(int decimals) {
         if (decimals < 0 || decimals > 7) {
-            throw new IllegalArgumentException(
-                "Precision must be between 0 and 7, got: " + decimals);
+            throw new IllegalArgumentException("Precision must be between 0 and 7, got: " + decimals);
         }
         if (seed == null && config != null) {
             return new FloatGenerator(getMin(), getMax(), config, decimals);
@@ -159,10 +156,12 @@ public final class FloatGenerator extends AbstractBoundedGenerator<Float> {
     private void requireRepresentableValue(float min, float max) {
         int scale = java.util.Objects.requireNonNull(precision, "precision");
         // Float.toString gives the shortest decimal that identifies the float, e.g. "0.1" for 0.1f.
-        float smallest = new BigDecimal(Float.toString(min)).setScale(scale, RoundingMode.CEILING).floatValue();
+        float smallest = new BigDecimal(Float.toString(min))
+                .setScale(scale, RoundingMode.CEILING)
+                .floatValue();
         if (smallest >= max) {
-            throw new IllegalArgumentException("Range [" + min + ", " + max + ") contains no value with "
-                                               + precision + " decimal places");
+            throw new IllegalArgumentException(
+                    "Range [" + min + ", " + max + ") contains no value with " + precision + " decimal places");
         }
     }
 }

@@ -12,7 +12,6 @@ import java.lang.reflect.RecordComponent;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -37,8 +36,7 @@ final class JsonSchemaSupport {
 
     private record VariableResolution(TypeVariable<?> variable, Map<TypeVariable<?>, Type> bindings) {}
 
-    private JsonSchemaSupport() {
-    }
+    private JsonSchemaSupport() {}
 
     static Map<String, Object> any() {
         return Map.of();
@@ -93,17 +91,19 @@ final class JsonSchemaSupport {
     }
 
     static Map<String, Object> record(Class<?> recordType, Set<String> nullableComponents) {
-        Set<String> nullable = Set.copyOf(Objects.requireNonNull(nullableComponents, "nullableComponents must not be null"));
+        Set<String> nullable =
+                Set.copyOf(Objects.requireNonNull(nullableComponents, "nullableComponents must not be null"));
         if (!recordType.isRecord()) {
             throw new IllegalArgumentException("recordType must be a record class: " + recordType.getName());
         }
         return record(recordType, nullable, Map.of(), new HashSet<>());
     }
 
-    private static Map<String, Object> record(Type declaredType,
-                                              Set<String> nullableComponents,
-                                              Map<TypeVariable<?>, Type> inheritedBindings,
-                                              Set<Object> visiting) {
+    private static Map<String, Object> record(
+            Type declaredType,
+            Set<String> nullableComponents,
+            Map<TypeVariable<?>, Type> inheritedBindings,
+            Set<Object> visiting) {
         Class<?> recordType = rawClass(declaredType);
         if (!visiting.add(declaredType)) {
             return any();
@@ -116,9 +116,7 @@ final class JsonSchemaSupport {
                 String name = component.getName();
                 Map<String, Object> componentSchema = fromType(component.getGenericType(), bindings, visiting);
                 required.add(name);
-                properties.put(
-                    name,
-                    nullableComponents.contains(name) ? nullable(componentSchema) : componentSchema);
+                properties.put(name, nullableComponents.contains(name) ? nullable(componentSchema) : componentSchema);
             }
             return objectWithRequired(properties, required);
         } finally {
@@ -180,7 +178,11 @@ final class JsonSchemaSupport {
         if (value instanceof Boolean) {
             return bool();
         }
-        if (value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long || value instanceof BigInteger) {
+        if (value instanceof Byte
+                || value instanceof Short
+                || value instanceof Integer
+                || value instanceof Long
+                || value instanceof BigInteger) {
             return integer();
         }
         if (value instanceof Number) {
@@ -254,9 +256,7 @@ final class JsonSchemaSupport {
         return fromType(type, Map.of(), new HashSet<>());
     }
 
-    private static Map<String, Object> fromType(Type type,
-                                                Map<TypeVariable<?>, Type> bindings,
-                                                Set<Object> visiting) {
+    private static Map<String, Object> fromType(Type type, Map<TypeVariable<?>, Type> bindings, Set<Object> visiting) {
         if (type instanceof Class<?> rawType) {
             return fromClass(rawType, bindings, visiting);
         }
@@ -312,18 +312,23 @@ final class JsonSchemaSupport {
         return any();
     }
 
-    private static Map<String, Object> fromClass(Class<?> type,
-                                                 Map<TypeVariable<?>, Type> bindings,
-                                                 Set<Object> visiting) {
+    private static Map<String, Object> fromClass(
+            Class<?> type, Map<TypeVariable<?>, Type> bindings, Set<Object> visiting) {
         if (type == String.class || type == Character.class || type == char.class) {
             return string();
         }
         if (type == boolean.class || type == Boolean.class) {
             return bool();
         }
-        if (type == byte.class || type == short.class || type == int.class || type == long.class
-            || type == Byte.class || type == Short.class || type == Integer.class || type == Long.class
-            || type == BigInteger.class) {
+        if (type == byte.class
+                || type == short.class
+                || type == int.class
+                || type == long.class
+                || type == Byte.class
+                || type == Short.class
+                || type == Integer.class
+                || type == Long.class
+                || type == BigInteger.class) {
             return integer();
         }
         if (type == float.class || type == double.class || Number.class.isAssignableFrom(type)) {
@@ -370,11 +375,12 @@ final class JsonSchemaSupport {
         return any();
     }
 
-    private static Map<String, Object> fromContractArgument(Type declaredType,
-                                                            Class<?> contract,
-                                                            int argumentIndex,
-                                                            Map<TypeVariable<?>, Type> inheritedBindings,
-                                                            Set<Object> visiting) {
+    private static Map<String, Object> fromContractArgument(
+            Type declaredType,
+            Class<?> contract,
+            int argumentIndex,
+            Map<TypeVariable<?>, Type> inheritedBindings,
+            Set<Object> visiting) {
         Map<TypeVariable<?>, Type> bindings = bindingsFor(declaredType, inheritedBindings);
         return fromType(contract.getTypeParameters()[argumentIndex], bindings, visiting);
     }
@@ -387,15 +393,13 @@ final class JsonSchemaSupport {
     }
 
     private static Map<TypeVariable<?>, Type> bindingsFor(
-        Type declaredType,
-        Map<TypeVariable<?>, Type> inheritedBindings) {
+            Type declaredType, Map<TypeVariable<?>, Type> inheritedBindings) {
         Map<TypeVariable<?>, Type> bindings = new LinkedHashMap<>(inheritedBindings);
         collectBindings(declaredType, bindings);
         return Collections.unmodifiableMap(bindings);
     }
 
-    private static void collectBindings(Type relationship,
-                                        Map<TypeVariable<?>, Type> bindings) {
+    private static void collectBindings(Type relationship, Map<TypeVariable<?>, Type> bindings) {
         Class<?> rawType;
         if (relationship instanceof ParameterizedType parameterized) {
             rawType = rawClass(parameterized);
@@ -425,17 +429,17 @@ final class JsonSchemaSupport {
     }
 
     private static @org.jspecify.annotations.Nullable Object normalizeStructuredValue(
-        @org.jspecify.annotations.Nullable Object value) {
+            @org.jspecify.annotations.Nullable Object value) {
         return normalizeStructuredValue(value, "");
     }
 
     private static @org.jspecify.annotations.Nullable Object normalizeStructuredValue(
-        @org.jspecify.annotations.Nullable Object value, String componentPath) {
+            @org.jspecify.annotations.Nullable Object value, String componentPath) {
         if (value == null
-            || value instanceof CharSequence
-            || value instanceof Character
-            || value instanceof Number
-            || value instanceof Boolean) {
+                || value instanceof CharSequence
+                || value instanceof Character
+                || value instanceof Number
+                || value instanceof Boolean) {
             return value;
         }
         if (value instanceof Map<?, ?> map) {
@@ -473,9 +477,7 @@ final class JsonSchemaSupport {
         RecordComponent[] components = record.getClass().getRecordComponents();
         Map<String, Object> values = new LinkedHashMap<>(components.length);
         for (RecordComponent component : components) {
-            String path = componentPath.isEmpty()
-                          ? component.getName()
-                          : componentPath + "." + component.getName();
+            String path = componentPath.isEmpty() ? component.getName() : componentPath + "." + component.getName();
             Object componentValue = SchemaRecordAccess.read(record, component, path);
             values.put(component.getName(), normalizeStructuredValue(componentValue, path));
         }

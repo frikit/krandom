@@ -5,11 +5,15 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.EmailDomainPolicy;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -18,13 +22,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.Supplier;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class EmailGeneratorTest {
 
@@ -60,14 +59,12 @@ class EmailGeneratorTest {
 
     @Test
     void testNullConfig() {
-        assertThrows(NullPointerException.class,
-                     () -> new EmailGenerator((GeneratorConfig) null));
+        assertThrows(NullPointerException.class, () -> new EmailGenerator((GeneratorConfig) null));
     }
 
     @Test
     void testNullLocale() {
-        assertThrows(NullPointerException.class,
-                     () -> new EmailGenerator((Locale) null));
+        assertThrows(NullPointerException.class, () -> new EmailGenerator((Locale) null));
     }
 
     // Basic Generation Tests
@@ -121,8 +118,7 @@ class EmailGeneratorTest {
 
     @Test
     void testGenerateWithNullDomain() {
-        assertThrows(NullPointerException.class,
-                     () -> generator.generate((String) null));
+        assertThrows(NullPointerException.class, () -> generator.generate((String) null));
     }
 
     @Test
@@ -131,9 +127,20 @@ class EmailGeneratorTest {
         assertNotNull(email);
         assertValidEmail(email);
         String domain = email.substring(email.indexOf('@') + 1);
-        assertTrue(List.of("gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com",
-                           "protonmail.com", "mail.com", "aol.com", "zoho.com", "gmx.com", "yandex.com",
-                           "qq.com").contains(domain));
+        assertTrue(List.of(
+                        "gmail.com",
+                        "yahoo.com",
+                        "outlook.com",
+                        "hotmail.com",
+                        "icloud.com",
+                        "protonmail.com",
+                        "mail.com",
+                        "aol.com",
+                        "zoho.com",
+                        "gmx.com",
+                        "yandex.com",
+                        "qq.com")
+                .contains(domain));
     }
 
     @Test
@@ -141,9 +148,7 @@ class EmailGeneratorTest {
         String email = generator.generateSafeEmail();
         assertNotNull(email);
         assertValidEmail(email);
-        assertTrue(email.endsWith("@example.com")
-                   || email.endsWith("@example.org")
-                   || email.endsWith("@example.net"));
+        assertTrue(email.endsWith("@example.com") || email.endsWith("@example.org") || email.endsWith("@example.net"));
     }
 
     @Test
@@ -180,23 +185,33 @@ class EmailGeneratorTest {
     @Test
     void testGetFreeEmailProviderAllLocaleBranches() {
         assertTrue(List.of("gmx.de", "web.de", "gmail.com", "outlook.com")
-                       .contains(realistic(Locale.GERMANY).getFreeEmailProvider()));
+                .contains(realistic(Locale.GERMANY).getFreeEmailProvider()));
         assertTrue(List.of("orange.fr", "laposte.net", "gmail.com", "outlook.com")
-                       .contains(realistic(Locale.FRANCE).getFreeEmailProvider()));
+                .contains(realistic(Locale.FRANCE).getFreeEmailProvider()));
         assertTrue(List.of("hotmail.es", "gmail.com", "outlook.com", "yahoo.com")
-                       .contains(realistic(Locale.of("es", "ES")).getFreeEmailProvider()));
+                .contains(realistic(Locale.of("es", "ES")).getFreeEmailProvider()));
         assertTrue(List.of("libero.it", "gmail.com", "outlook.com", "yahoo.com")
-                       .contains(realistic(Locale.ITALY).getFreeEmailProvider()));
+                .contains(realistic(Locale.ITALY).getFreeEmailProvider()));
         assertTrue(List.of("uol.com.br", "bol.com.br", "gmail.com", "outlook.com")
-                       .contains(realistic(Locale.of("pt", "BR")).getFreeEmailProvider()));
+                .contains(realistic(Locale.of("pt", "BR")).getFreeEmailProvider()));
         assertTrue(List.of("yahoo.co.jp", "gmail.com", "outlook.com")
-                       .contains(realistic(Locale.JAPAN).getFreeEmailProvider()));
+                .contains(realistic(Locale.JAPAN).getFreeEmailProvider()));
         assertTrue(List.of("qq.com", "163.com", "126.com", "gmail.com")
-                       .contains(realistic(Locale.CHINA).getFreeEmailProvider()));
-        assertTrue(List.of("gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com",
-                           "protonmail.com", "mail.com", "aol.com", "zoho.com", "gmx.com", "yandex.com",
-                           "qq.com")
-                       .contains(realistic(Locale.US).getFreeEmailProvider()));
+                .contains(realistic(Locale.CHINA).getFreeEmailProvider()));
+        assertTrue(List.of(
+                        "gmail.com",
+                        "yahoo.com",
+                        "outlook.com",
+                        "hotmail.com",
+                        "icloud.com",
+                        "protonmail.com",
+                        "mail.com",
+                        "aol.com",
+                        "zoho.com",
+                        "gmx.com",
+                        "yandex.com",
+                        "qq.com")
+                .contains(realistic(Locale.US).getFreeEmailProvider()));
     }
 
     @Test
@@ -218,8 +233,9 @@ class EmailGeneratorTest {
             allEmails[i] = generator.generate();
         }
         String combined = String.join(" ", allEmails);
-        assertTrue(combined.contains("gmail.com") || combined.contains("yahoo.com") ||
-                   combined.contains("outlook.com"), "Should use common email providers");
+        assertTrue(
+                combined.contains("gmail.com") || combined.contains("yahoo.com") || combined.contains("outlook.com"),
+                "Should use common email providers");
     }
 
     // Format Tests
@@ -231,8 +247,7 @@ class EmailGeneratorTest {
         assertTrue(email.contains("@"));
 
         String localPart = email.substring(0, email.indexOf('@'));
-        assertTrue(localPart.contains("."),
-                   "FIRSTNAME_DOT_LASTNAME format should contain dot");
+        assertTrue(localPart.contains("."), "FIRSTNAME_DOT_LASTNAME format should contain dot");
     }
 
     @Test
@@ -242,8 +257,9 @@ class EmailGeneratorTest {
         assertTrue(email.contains("@"));
 
         String localPart = email.substring(0, email.indexOf('@'));
-        assertFalse(localPart.contains(".") || localPart.contains("_"),
-                    "FIRSTNAME_LASTNAME format should not contain separators");
+        assertFalse(
+                localPart.contains(".") || localPart.contains("_"),
+                "FIRSTNAME_LASTNAME format should not contain separators");
     }
 
     @Test
@@ -253,8 +269,7 @@ class EmailGeneratorTest {
         assertTrue(email.contains("@"));
 
         String localPart = email.substring(0, email.indexOf('@'));
-        assertTrue(localPart.length() >= 2,
-                   "FIRSTINITIAL_LASTNAME should have at least 2 characters");
+        assertTrue(localPart.length() >= 2, "FIRSTINITIAL_LASTNAME should have at least 2 characters");
     }
 
     @Test
@@ -264,8 +279,7 @@ class EmailGeneratorTest {
         assertTrue(email.contains("@"));
 
         String localPart = email.substring(0, email.indexOf('@'));
-        assertTrue(localPart.contains("_"),
-                   "FIRSTNAME_UNDERSCORE_LASTNAME format should contain underscore");
+        assertTrue(localPart.contains("_"), "FIRSTNAME_UNDERSCORE_LASTNAME format should contain underscore");
     }
 
     @Test
@@ -275,14 +289,12 @@ class EmailGeneratorTest {
         assertTrue(email.contains("@"));
 
         String localPart = email.substring(0, email.indexOf('@'));
-        assertTrue(localPart.contains("."),
-                   "LASTNAME_DOT_FIRSTNAME format should contain dot");
+        assertTrue(localPart.contains("."), "LASTNAME_DOT_FIRSTNAME format should contain dot");
     }
 
     @Test
     void testGenerateWithNullFormat() {
-        assertThrows(NullPointerException.class,
-                     () -> generator.generate((EmailFormat) null));
+        assertThrows(NullPointerException.class, () -> generator.generate((EmailFormat) null));
     }
 
     @Test
@@ -311,21 +323,18 @@ class EmailGeneratorTest {
         for (EmailFormat format : EmailFormat.values()) {
             String email = generator.generate(format, "test.org");
             assertNotNull(email);
-            assertTrue(email.endsWith("@test.org"),
-                       "Email with format " + format + " should use custom domain");
+            assertTrue(email.endsWith("@test.org"), "Email with format " + format + " should use custom domain");
         }
     }
 
     @Test
     void testGenerateWithNullFormatInCombined() {
-        assertThrows(NullPointerException.class,
-                     () -> generator.generate(null, "example.com"));
+        assertThrows(NullPointerException.class, () -> generator.generate(null, "example.com"));
     }
 
     @Test
     void testGenerateWithNullDomainInCombined() {
-        assertThrows(NullPointerException.class,
-                     () -> generator.generate(EmailFormat.FIRSTNAME_DOT_LASTNAME, null));
+        assertThrows(NullPointerException.class, () -> generator.generate(EmailFormat.FIRSTNAME_DOT_LASTNAME, null));
     }
 
     // Locale-Specific Tests
@@ -422,8 +431,8 @@ class EmailGeneratorTest {
         EmailGenerator gen1 = new EmailGenerator(config);
         EmailGenerator gen2 = new EmailGenerator(config);
 
-        assertEquals(gen1.generate(EmailFormat.FIRSTNAME_DOT_LASTNAME),
-                     gen2.generate(EmailFormat.FIRSTNAME_DOT_LASTNAME));
+        assertEquals(
+                gen1.generate(EmailFormat.FIRSTNAME_DOT_LASTNAME), gen2.generate(EmailFormat.FIRSTNAME_DOT_LASTNAME));
     }
 
     @Test
@@ -495,8 +504,7 @@ class EmailGeneratorTest {
         for (int i = 0; i < 50; i++) {
             String email = generator.generate();
             String localPart = email.substring(0, email.indexOf('@'));
-            assertEquals(localPart.toLowerCase(), localPart,
-                         "Local part should be lowercase");
+            assertEquals(localPart.toLowerCase(), localPart, "Local part should be lowercase");
         }
     }
 
@@ -545,7 +553,8 @@ class EmailGeneratorTest {
 
     @Test
     void testUniqueGenerationFailurePathViaReflection() throws Exception {
-        EmailGenerator generator = new EmailGenerator(GeneratorConfig.builder().seed(1L).build());
+        EmailGenerator generator =
+                new EmailGenerator(GeneratorConfig.builder().seed(1L).build());
 
         Field issuedEmailsField = EmailGenerator.class.getDeclaredField("issuedEmails");
         issuedEmailsField.setAccessible(true);
@@ -558,7 +567,7 @@ class EmailGeneratorTest {
 
         Supplier<String> supplier = () -> "fixed@example.com";
         InvocationTargetException ex =
-            assertThrows(InvocationTargetException.class, () -> uniqueInternal.invoke(generator, supplier));
+                assertThrows(InvocationTargetException.class, () -> uniqueInternal.invoke(generator, supplier));
         assertNotNull(ex.getCause());
         assertTrue(ex.getCause() instanceof IllegalStateException);
     }
@@ -567,9 +576,9 @@ class EmailGeneratorTest {
 
     private static EmailGenerator realistic(Locale locale) {
         return new EmailGenerator(GeneratorConfig.builder()
-                                                 .locale(locale)
-                                                 .emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED)
-                                                 .build());
+                .locale(locale)
+                .emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED)
+                .build());
     }
 
     private void assertValidEmail(String email) {

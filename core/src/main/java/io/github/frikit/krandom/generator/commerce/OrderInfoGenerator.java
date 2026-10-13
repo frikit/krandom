@@ -14,7 +14,6 @@ import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.user.PersonInfo;
 import io.github.frikit.krandom.generator.user.PersonInfoGenerator;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Locale;
@@ -26,16 +25,14 @@ import java.util.Random;
  */
 public final class OrderInfoGenerator implements Generator<OrderInfo> {
 
-    private static final String[] ORDER_STATUSES = {
-        "PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"
-    };
+    private static final String[] ORDER_STATUSES = {"PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED"};
 
-    private final GeneratorConfig      config;
-    private final Random               random;
-    private final UUIDGenerator        uuidGenerator;
-    private final DateGenerator        dateGenerator;
-    private final CurrencyGenerator    currencyGenerator;
-    private final PersonInfoGenerator  personInfoGenerator;
+    private final GeneratorConfig config;
+    private final Random random;
+    private final UUIDGenerator uuidGenerator;
+    private final DateGenerator dateGenerator;
+    private final CurrencyGenerator currencyGenerator;
+    private final PersonInfoGenerator personInfoGenerator;
     private final ProductInfoGenerator productInfoGenerator;
     private final @org.jspecify.annotations.Nullable AddressInfoGenerator shippingAddressGenerator;
 
@@ -52,7 +49,9 @@ public final class OrderInfoGenerator implements Generator<OrderInfo> {
      * @param locale locale to use
      */
     public OrderInfoGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -85,10 +84,8 @@ public final class OrderInfoGenerator implements Generator<OrderInfo> {
         this.currencyGenerator = new CurrencyGenerator(config.forChildStream("currency"));
         this.personInfoGenerator = new PersonInfoGenerator(config.forChildStream("personInfo"));
         this.productInfoGenerator = new ProductInfoGenerator(config.forChildStream("productInfo"));
-        this.shippingAddressGenerator = Objects.requireNonNull(
-            shippingAddressGenerator,
-            "shippingAddressGenerator must not be null"
-        );
+        this.shippingAddressGenerator =
+                Objects.requireNonNull(shippingAddressGenerator, "shippingAddressGenerator must not be null");
     }
 
     @Override
@@ -100,26 +97,24 @@ public final class OrderInfoGenerator implements Generator<OrderInfo> {
         BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity)).setScale(2, RoundingMode.HALF_UP);
         BigDecimal shipping = amountBetween(0.00, 25.00);
         BigDecimal tax = subtotal.multiply(BigDecimal.valueOf(0.05 + (random.nextDouble() * 0.15)))
-                                 .setScale(2, RoundingMode.HALF_UP);
+                .setScale(2, RoundingMode.HALF_UP);
         BigDecimal total = subtotal.add(shipping).add(tax).setScale(2, RoundingMode.HALF_UP);
-        AddressInfo shippingAddress = shippingAddressGenerator == null
-                                      ? customer.address()
-                                      : shippingAddressGenerator.generate();
+        AddressInfo shippingAddress =
+                shippingAddressGenerator == null ? customer.address() : shippingAddressGenerator.generate();
         return new OrderInfo(
-            prefixedId("ORD"),
-            ORDER_STATUSES[random.nextInt(ORDER_STATUSES.length)],
-            dateGenerator.generate(),
-            currencyGenerator.generate(config.getLocale()),
-            quantity,
-            unitPrice,
-            subtotal,
-            shipping,
-            tax,
-            total,
-            customer,
-            product,
-            shippingAddress
-        );
+                prefixedId("ORD"),
+                ORDER_STATUSES[random.nextInt(ORDER_STATUSES.length)],
+                dateGenerator.generate(),
+                currencyGenerator.generate(config.getLocale()),
+                quantity,
+                unitPrice,
+                subtotal,
+                shipping,
+                tax,
+                total,
+                customer,
+                product,
+                shippingAddress);
     }
 
     /**
@@ -130,8 +125,7 @@ public final class OrderInfoGenerator implements Generator<OrderInfo> {
     }
 
     private BigDecimal amountBetween(double min, double max) {
-        return BigDecimal.valueOf(min + (random.nextDouble() * (max - min)))
-                         .setScale(2, RoundingMode.HALF_UP);
+        return BigDecimal.valueOf(min + (random.nextDouble() * (max - min))).setScale(2, RoundingMode.HALF_UP);
     }
 
     private String prefixedId(String prefix) {

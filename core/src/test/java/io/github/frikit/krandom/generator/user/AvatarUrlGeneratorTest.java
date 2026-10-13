@@ -5,15 +5,15 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("AvatarUrlGenerator")
 class AvatarUrlGeneratorTest {
@@ -30,7 +30,8 @@ class AvatarUrlGeneratorTest {
     @Test
     @DisplayName("supports username and size options")
     void options() {
-        AvatarUrlGenerator generator = new AvatarUrlGenerator(GeneratorConfig.builder().seed(5L).build());
+        AvatarUrlGenerator generator =
+                new AvatarUrlGenerator(GeneratorConfig.builder().seed(5L).build());
         String byName = generator.generate("john doe");
         String bySize = generator.generate(128);
         String full = generator.generate("alice", 512);
@@ -48,9 +49,8 @@ class AvatarUrlGeneratorTest {
         boolean uiAvatars = false;
 
         for (int seed = 0; seed < 64; seed++) {
-            AvatarUrlGenerator generator = new AvatarUrlGenerator(
-                GeneratorConfig.builder().seed(seed).build()
-            );
+            AvatarUrlGenerator generator =
+                    new AvatarUrlGenerator(GeneratorConfig.builder().seed(seed).build());
             String url = generator.generate("user", 256);
             dicebear |= url.contains("dicebear");
             robohash |= url.contains("robohash");

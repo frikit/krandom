@@ -5,23 +5,22 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.base.ByteGenerator;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * {@link Randomizer} generators follow the seeded replay contract when they are {@link
@@ -34,6 +33,7 @@ class RandomizerReplayTest {
     public static class SeedableField {
         @Randomizer(ByteGenerator.class)
         public byte value;
+
         public int plain;
     }
 
@@ -74,8 +74,9 @@ class RandomizerReplayTest {
         GeneratorConfig config = seeded(42L);
         List<Byte> original = values(config, 8);
         assertEquals(original, values(seeded(42L), 8));
-        GeneratorConfig replay = GenerationRecipe.parse(config.getGenerationRecipe().orElseThrow().serialize())
-                                                 .toGeneratorConfig();
+        GeneratorConfig replay = GenerationRecipe.parse(
+                        config.getGenerationRecipe().orElseThrow().serialize())
+                .toGeneratorConfig();
         assertEquals(original, values(replay, 8));
         assertTrue(new HashSet<>(original).size() > 1, "values should vary between objects: " + original);
     }
@@ -85,8 +86,9 @@ class RandomizerReplayTest {
     void nestedSeedableRandomizersReplay() {
         Holder first = new ObjectGenerator<>(Holder.class, seeded(7L)).generate();
         Holder second = new ObjectGenerator<>(Holder.class, seeded(7L)).generate();
-        assertEquals(first.items.stream().map(item -> item.value).toList(),
-                     second.items.stream().map(item -> item.value).toList());
+        assertEquals(
+                first.items.stream().map(item -> item.value).toList(),
+                second.items.stream().map(item -> item.value).toList());
     }
 
     @Test

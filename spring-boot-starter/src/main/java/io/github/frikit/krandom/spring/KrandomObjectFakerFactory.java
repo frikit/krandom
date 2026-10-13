@@ -9,7 +9,6 @@ import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.object.ObjectFaker;
 import io.github.frikit.krandom.generator.object.ObjectGenerator;
-
 import java.util.Objects;
 
 /**
@@ -118,7 +117,7 @@ public class KrandomObjectFakerFactory {
             return config;
         }
         return config.toBuilder()
-                     .seed(GenerationRecipe.deriveChildSeed(config.getSeed().getAsLong(), streamName))
-                     .build();
+                .seed(GenerationRecipe.deriveChildSeed(config.getSeed().getAsLong(), streamName))
+                .build();
     }
 }

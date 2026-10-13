@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -106,7 +105,7 @@ public final class NaturalNumberGenerator extends AbstractBoundedGenerator<Integ
     @Override
     public Integer generate(Integer min, Integer max) {
         validate(min, max);
-        
+
         // If no exclusions, use simple generation
         if (excludedValues.isEmpty()) {
             return random.nextInt(min, max);
@@ -114,13 +113,11 @@ public final class NaturalNumberGenerator extends AbstractBoundedGenerator<Integ
 
         // Count how many values in range are excluded
         long rangeSize = (long) max - min;
-        long excludedInRange = excludedValues.stream()
-                                             .filter(v -> v >= min && v < max)
-                                             .count();
+        long excludedInRange =
+                excludedValues.stream().filter(v -> v >= min && v < max).count();
 
         if (excludedInRange >= rangeSize) {
-            throw new IllegalStateException(
-                "All values in range [" + min + ", " + max + ") are excluded");
+            throw new IllegalStateException("All values in range [" + min + ", " + max + ") are excluded");
         }
 
         // Generate with retry for excluded values
@@ -134,6 +131,6 @@ public final class NaturalNumberGenerator extends AbstractBoundedGenerator<Integ
         }
 
         throw new IllegalStateException(
-            "Failed to generate non-excluded value after " + MAX_RETRY_ATTEMPTS + " attempts");
+                "Failed to generate non-excluded value after " + MAX_RETRY_ATTEMPTS + " attempts");
     }
 }

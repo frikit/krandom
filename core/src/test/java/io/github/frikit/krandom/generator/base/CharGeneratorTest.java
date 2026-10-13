@@ -5,19 +5,18 @@
  */
 package io.github.frikit.krandom.generator.base;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 /**
  * Comprehensive test suite for {@link CharGenerator}.
@@ -82,8 +81,7 @@ class CharGeneratorTest {
             for (int i = 0; i < 1000; i++) {
                 char c = generator.generate();
                 generated.add(c);
-                assertTrue(Character.isLetterOrDigit(c),
-                           "Should only generate letters or digits, got: " + c);
+                assertTrue(Character.isLetterOrDigit(c), "Should only generate letters or digits, got: " + c);
             }
 
             // Should see uppercase, lowercase, and digits
@@ -110,7 +108,6 @@ class CharGeneratorTest {
             assertTrue(generated.stream().anyMatch(c -> !Character.isLetterOrDigit(c)));
         }
     }
-
 
     @Nested
     @DisplayName("Custom Pool - String")
@@ -140,8 +137,7 @@ class CharGeneratorTest {
             for (int i = 0; i < 200; i++) {
                 char c = hex.generate();
                 generated.add(c);
-                assertTrue("0123456789ABCDEF".indexOf(c) >= 0,
-                           "Should be hex digit, got: " + c);
+                assertTrue("0123456789ABCDEF".indexOf(c) >= 0, "Should be hex digit, got: " + c);
             }
 
             assertEquals(16, generated.size(), "Should generate all 16 hex digits");
@@ -155,8 +151,7 @@ class CharGeneratorTest {
 
             for (int i = 0; i < 100; i++) {
                 char c = gen.generate();
-                assertTrue(consonants.indexOf(c) >= 0,
-                           "Should be consonant, got: " + c);
+                assertTrue(consonants.indexOf(c) >= 0, "Should be consonant, got: " + c);
             }
         }
 
@@ -183,8 +178,8 @@ class CharGeneratorTest {
         @Test
         @DisplayName("pool(String) should reject null")
         void poolShouldRejectNull() {
-            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                                                       () -> CharGenerator.pool((String) null));
+            IllegalArgumentException ex =
+                    assertThrows(IllegalArgumentException.class, () -> CharGenerator.pool((String) null));
 
             assertTrue(ex.getMessage().contains("must not be null"));
         }
@@ -192,13 +187,11 @@ class CharGeneratorTest {
         @Test
         @DisplayName("pool(String) should reject empty string")
         void poolShouldRejectEmptyString() {
-            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                                                       () -> CharGenerator.pool(""));
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> CharGenerator.pool(""));
 
             assertTrue(ex.getMessage().contains("must not be null or empty"));
         }
     }
-
 
     @Nested
     @DisplayName("Custom Pool - Varargs")
@@ -228,8 +221,7 @@ class CharGeneratorTest {
             for (int i = 0; i < 100; i++) {
                 char c = arrows.generate();
                 generated.add(c);
-                assertTrue(c == '←' || c == '↑' || c == '→' || c == '↓',
-                           "Should be arrow, got: " + c);
+                assertTrue(c == '←' || c == '↑' || c == '→' || c == '↓', "Should be arrow, got: " + c);
             }
 
             assertEquals(4, generated.size(), "Should generate all 4 arrows");
@@ -248,8 +240,8 @@ class CharGeneratorTest {
         @Test
         @DisplayName("pool(char...) should reject null")
         void poolVarargsShouldRejectNull() {
-            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                                                       () -> CharGenerator.pool((char[]) null));
+            IllegalArgumentException ex =
+                    assertThrows(IllegalArgumentException.class, () -> CharGenerator.pool((char[]) null));
 
             assertTrue(ex.getMessage().contains("must not be null"));
         }
@@ -257,13 +249,12 @@ class CharGeneratorTest {
         @Test
         @DisplayName("pool(char...) should reject empty array")
         void poolVarargsShouldRejectEmptyArray() {
-            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                                                       () -> CharGenerator.pool(new char[0]));
+            IllegalArgumentException ex =
+                    assertThrows(IllegalArgumentException.class, () -> CharGenerator.pool(new char[0]));
 
             assertTrue(ex.getMessage().contains("must not be null or empty"));
         }
     }
-
 
     @Nested
     @DisplayName("Seeded Custom Pool")
@@ -310,32 +301,27 @@ class CharGeneratorTest {
         @Test
         @DisplayName("seeded pool(String) should reject null characters")
         void seededPoolStringShouldRejectNull() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> CharGenerator.pool(42L, (String) null));
+            assertThrows(IllegalArgumentException.class, () -> CharGenerator.pool(42L, (String) null));
         }
 
         @Test
         @DisplayName("seeded pool(String) should reject empty string")
         void seededPoolStringShouldRejectEmptyString() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> CharGenerator.pool(42L, ""));
+            assertThrows(IllegalArgumentException.class, () -> CharGenerator.pool(42L, ""));
         }
 
         @Test
         @DisplayName("seeded pool(char...) should reject null array")
         void seededPoolVarargsShouldRejectNull() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> CharGenerator.pool(42L, (char[]) null));
+            assertThrows(IllegalArgumentException.class, () -> CharGenerator.pool(42L, (char[]) null));
         }
 
         @Test
         @DisplayName("seeded pool(char...) should reject empty array")
         void seededPoolVarargsShouldRejectEmptyArray() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> CharGenerator.pool(42L, new char[0]));
+            assertThrows(IllegalArgumentException.class, () -> CharGenerator.pool(42L, new char[0]));
         }
     }
-
 
     @Nested
     @DisplayName("Builder Pattern")
@@ -383,8 +369,7 @@ class CharGeneratorTest {
 
             for (int i = 0; i < 50; i++) {
                 char c = gen.generate();
-                assertFalse(Character.isLetterOrDigit(c),
-                            "Should not be letter or digit, got: " + c);
+                assertFalse(Character.isLetterOrDigit(c), "Should not be letter or digit, got: " + c);
             }
         }
 
@@ -404,8 +389,9 @@ class CharGeneratorTest {
         @Test
         @DisplayName("builder should reject empty configuration")
         void builderShouldRejectEmptyConfiguration() {
-            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                                                       () -> CharGenerator.builder().build());
+            IllegalArgumentException ex = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> CharGenerator.builder().build());
 
             assertTrue(ex.getMessage().contains("At least one character group"));
         }
@@ -414,11 +400,11 @@ class CharGeneratorTest {
         @DisplayName("builder with all groups")
         void builderWithAllGroups() {
             CharGenerator gen = CharGenerator.builder()
-                                             .uppercase()
-                                             .lowercase()
-                                             .digits()
-                                             .special()
-                                             .build();
+                    .uppercase()
+                    .lowercase()
+                    .digits()
+                    .special()
+                    .build();
 
             Set<Character> generated = new HashSet<>();
             for (int i = 0; i < 2000; i++) {
@@ -433,7 +419,6 @@ class CharGeneratorTest {
         }
     }
 
-
     @Nested
     @DisplayName("Integration Tests")
     class Integration {
@@ -443,10 +428,7 @@ class CharGeneratorTest {
         void shouldWorkWithStreamOperations() {
             CharGenerator vowels = CharGenerator.pool("aeiou");
 
-            List<Character> chars = vowels.stream()
-                                          .limit(100)
-                                          .distinct()
-                                          .toList();
+            List<Character> chars = vowels.stream().limit(100).distinct().toList();
 
             assertTrue(chars.size() <= 5, "Should have at most 5 distinct vowels");
             assertTrue(chars.stream().allMatch(c -> "aeiou".indexOf(c) >= 0));
@@ -477,7 +459,6 @@ class CharGeneratorTest {
             }
         }
     }
-
 
     @Nested
     @DisplayName("Edge Cases")
