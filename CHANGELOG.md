@@ -117,6 +117,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Add `pre_commit_check.sh --fast`, module-boundary checks in the pre-commit gate, and JaCoCo
   reports for the integration modules; only `krandom-core` has the exact coverage gate and is
   uploaded to Codecov.
+- Format Java with Palantir Java Format and Kotlin sources and Gradle scripts with ktlint through
+  Spotless, with a shared `.editorconfig`; `spotlessCheck` runs as part of `check`. The reformat
+  spreads statements over more lines, so the `spring-boot-starter` JaCoCo line floor moves from
+  0.96 to 0.95; the tested code is unchanged.
 - The Jakarta Validation API is now a compile-only dependency of `krandom-core` (`requires static`
   in the module descriptor) instead of a transitive runtime dependency. Consumers that rely on
   constraint-aware generation add `jakarta.validation:jakarta.validation-api` themselves; without

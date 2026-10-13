@@ -63,7 +63,11 @@ java -version   # must report 21+
 - **Dependency integrity**: dependencies resolve against reviewed SHA-256 checksums in
   `gradle/verification-metadata.xml`; see [dependency reproducibility](docs/development/dependency-reproducibility.md)
   for updating it, including for Dependabot pull requests.
-- **Formatting**: Spotless enforces consistent formatting and MIT license headers. Run `./gradlew spotlessApply` to fix formatting issues.
+- **Formatting**: Spotless formats Java with [Palantir Java Format](https://github.com/palantir/palantir-java-format)
+  and Kotlin sources and Gradle scripts with [ktlint](https://pinterest.github.io/ktlint/), and applies
+  the MIT license header; `.editorconfig` carries the shared indentation and 120-column line length.
+  Run `./gradlew spotlessApply` before committing. `spotlessCheck` is part of `check`, so the
+  pre-commit gate and CI reject unformatted code.
 - **Tests**: all tests must pass. Java modules use JUnit Jupiter; Kotlin modules use Kotest.
 
 CI additionally builds on Java 21 and 25, requires the GraalVM native-image smoke test, and runs every

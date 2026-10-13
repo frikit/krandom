@@ -2,9 +2,11 @@ plugins {
     kotlin("jvm") version "2.4.20"
 }
 
-val krandomVersion = providers.gradleProperty("krandomVersion")
-    .orElse(providers.environmentVariable("KRANDOM_VERSION"))
-    .orElse("2.6.0-SNAPSHOT")
+val krandomVersion =
+    providers
+        .gradleProperty("krandomVersion")
+        .orElse(providers.environmentVariable("KRANDOM_VERSION"))
+        .orElse("2.6.0-SNAPSHOT")
 
 repositories {
     mavenLocal()

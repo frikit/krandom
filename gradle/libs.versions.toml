@@ -2,6 +2,8 @@
 kotlin = "2.4.20"
 jacoco = "0.8.15"
 spotless = "8.10.3"
+palantir-java-format = "2.98.0"
+ktlint = "1.8.0"
 commons-validator = "1.11.0"
 slf4j = "2.0.20"
 logback = "1.6.4"
@@ -32,6 +34,9 @@ pitest-junit5-plugin = { module = "org.pitest:pitest-junit5-plugin", version.ref
 # Nullness verification for core main sources (core/build.gradle.kts): Error Prone runs NullAway only.
 errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
 nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
+# Formatters resolved by Spotless (build.gradle.kts reads the versions); declared so Dependabot updates them.
+palantir-java-format = { module = "com.palantir.javaformat:palantir-java-format", version.ref = "palantir-java-format" }
+ktlint-cli = { module = "com.pinterest.ktlint:ktlint-cli", version.ref = "ktlint" }
 commons-validator = { module = "commons-validator:commons-validator", version.ref = "commons-validator" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
