@@ -11,6 +11,19 @@ record components, and interface accessor declarations. Supported constraints fo
 compatible annotations are intersected, and an impossible contract fails before a fixture is
 returned.
 
+## Dependency
+
+The Jakarta Validation API is a compile-only dependency of `krandom-core`, so it is not pulled in
+transitively. Add `jakarta.validation:jakarta.validation-api` to your own dependencies (test scope
+is enough) to activate constraint-aware generation. Without the API on the class path, kRandom
+detects its absence once and generates plain values; constraint annotations are ignored rather
+than failing with a `NoClassDefFoundError`.
+
+On the module path the core descriptor declares `requires static jakarta.validation`, which does
+not resolve the module for you: add `requires jakarta.validation;` to your own module descriptor
+(or start the JVM with `--add-modules jakarta.validation`) so the constraints are visible at run
+time.
+
 ## Support matrix
 
 | Constraint | Generated targets | Composition and failure behavior |

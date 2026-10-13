@@ -7,7 +7,8 @@
  * Core kRandom generators, object fixtures, providers, and schema support.
  */
 module io.github.frikit.krandom {
-    requires jakarta.validation;
+    // Optional: constraint-aware generation activates only when the consumer provides the API.
+    requires static jakarta.validation;
     requires java.sql;
     requires org.objenesis;
     requires org.slf4j;

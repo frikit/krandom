@@ -66,9 +66,14 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * Derives a constrained {@link Generator} from Bean Validation annotations on a field.
+ *
+ * <p>The Jakarta Validation API is a compile-only dependency of core. When it is absent from the
+ * runtime class path, {@link #isAvailable()} is {@code false}, every lookup reports no constraints,
+ * and no {@code jakarta.validation} class is ever touched.
  */
 final class BeanValidationSupport {
 
+    private static final boolean AVAILABLE = detectJakartaValidation();
     private static final int SIZE_UNBOUNDED_CAP = 255;
     private static final int TEXT_GENERATION_ATTEMPTS = 256;
     private static final BigDecimal DECIMAL_DEFAULT_SPAN = new BigDecimal("1000000");
@@ -93,6 +98,22 @@ final class BeanValidationSupport {
     };
 
     private BeanValidationSupport() {
+    }
+
+    /**
+     * Whether the Jakarta Validation API can be loaded by this class's loader.
+     */
+    static boolean isAvailable() {
+        return AVAILABLE;
+    }
+
+    private static boolean detectJakartaValidation() {
+        try {
+            Class.forName("jakarta.validation.constraints.NotNull", false, BeanValidationSupport.class.getClassLoader());
+            return true;
+        } catch (ClassNotFoundException | LinkageError absent) {
+            return false;
+        }
     }
 
     record ConstraintModel(
@@ -179,7 +200,7 @@ final class BeanValidationSupport {
     }
 
     static ConstraintModel constraintModelFor(@Nullable AnnotatedElement element, Class<?> rawType) {
-        if (element == null) {
+        if (element == null || !AVAILABLE) {
             return ConstraintModel.NONE;
         }
         Objects.requireNonNull(rawType, "rawType must not be null");
@@ -237,6 +258,9 @@ final class BeanValidationSupport {
     }
 
     static @Nullable SizeRange sizeRangeFor(@Nullable AnnotatedElement element) {
+        if (!AVAILABLE) {
+            return null;
+        }
         Size size = annotation(element, Size.class);
         boolean requiresContent = annotation(element, NotEmpty.class) != null
                                   || annotation(element, NotBlank.class) != null;
@@ -282,24 +306,28 @@ final class BeanValidationSupport {
             return null;
         }
 
+        // The flag conversion stays inline: a helper taking Pattern.Flag[] would put a Jakarta type
+        // into a method signature, which breaks reflection over this class when the API is absent.
         List<TextPattern> patterns = new ArrayList<>();
         for (Pattern pattern : patternAnnotations) {
-            patterns.add(compileTextPattern(pattern.regexp(), pattern.flags(), true));
+            int compiledFlags = 0;
+            for (Pattern.Flag flag : pattern.flags()) {
+                compiledFlags |= flag.getValue();
+            }
+            patterns.add(compileTextPattern(pattern.regexp(), compiledFlags, true));
         }
         if (email != null) {
+            int compiledFlags = 0;
+            for (Pattern.Flag flag : email.flags()) {
+                compiledFlags |= flag.getValue();
+            }
             boolean usefulSource = !".*".equals(email.regexp());
-            patterns.add(compileTextPattern(email.regexp(), email.flags(), usefulSource));
+            patterns.add(compileTextPattern(email.regexp(), compiledFlags, usefulSource));
         }
         return new TextConstraint(email != null, List.copyOf(patterns), size, nonBlank, numeric);
     }
 
-    private static TextPattern compileTextPattern(String expression,
-                                                  Pattern.Flag[] flags,
-                                                  boolean source) {
-        int compiledFlags = 0;
-        for (Pattern.Flag flag : flags) {
-            compiledFlags |= flag.getValue();
-        }
+    private static TextPattern compileTextPattern(String expression, int compiledFlags, boolean source) {
         try {
             return new TextPattern(
                 expression,

@@ -28,8 +28,11 @@ dependencies {
     api(libs.jspecify)
     implementation(libs.slf4j.api)
     implementation(libs.objenesis)
-    implementation(libs.jakarta.validation.api)
+    // Bean Validation is optional for consumers: core compiles against the API, detects it at
+    // runtime (BeanValidationSupport#isAvailable) and ignores constraints when it is absent.
+    compileOnly(libs.jakarta.validation.api)
 
+    testImplementation(libs.jakarta.validation.api)
     testImplementation(libs.commons.validator)
     testImplementation(libs.hibernate.validator)
     testImplementation(libs.junit.jupiter.api)
