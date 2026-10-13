@@ -67,7 +67,9 @@ java -version   # must report 21+
   and Kotlin sources and Gradle scripts with [ktlint](https://pinterest.github.io/ktlint/), and applies
   the MIT license header; `.editorconfig` carries the shared indentation and 120-column line length.
   Run `./gradlew spotlessApply` before committing. `spotlessCheck` is part of `check`, so the
-  pre-commit gate and CI reject unformatted code.
+  pre-commit gate and CI reject unformatted code. The one-time reformat commit is listed in
+  `.git-blame-ignore-revs`; run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once so
+  local `git blame` skips it (GitHub's blame view reads the file automatically).
 - **Tests**: all tests must pass. Java modules use JUnit Jupiter; Kotlin modules use Kotest.
 
 CI additionally builds on Java 21 and 25, requires the GraalVM native-image smoke test, and runs every
