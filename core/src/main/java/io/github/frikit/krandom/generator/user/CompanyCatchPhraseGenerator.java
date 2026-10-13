@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -54,7 +55,7 @@ public final class CompanyCatchPhraseGenerator implements Generator<String> {
     public CompanyCatchPhraseGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         CompanyCatchPhraseDataProvider provider =
-                effective.getRegistryContext().companyCatchPhraseProvider(effective.getLocale());
+                effective.getRegistryContext().provider(Vocabulary.COMPANY_CATCH_PHRASE, effective.getLocale());
         CompanyCatchPhraseDataProvider resolved = provider != null ? provider : DEFAULT_PROVIDER;
         this.adjectives = resolved.getAdjectives();
         this.nouns = resolved.getNouns();

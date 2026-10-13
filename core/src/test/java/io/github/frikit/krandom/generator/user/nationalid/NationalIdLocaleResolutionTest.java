@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import java.util.List;
 import java.util.Locale;
@@ -110,37 +111,51 @@ class NationalIdLocaleResolutionTest {
     void scopedContextsApplyTheSameCountryRule() {
         DataRegistryContext isolated = DataRegistryContext.builder()
                 .isolated()
-                .registerNationalIdProvider(fixed(Locale.US, "US-ID"))
+                .register(Vocabulary.NATIONAL_ID, fixed(Locale.US, "US-ID"))
                 .build();
-        assertNull(isolated.nationalIdProvider(Locale.CANADA));
-        assertFalse(isolated.isNationalIdRegistered(Locale.CANADA));
-        assertEquals("US-ID", isolated.nationalIdProvider(Locale.US).generate(new Random(1L)));
-        assertEquals("US-ID", isolated.nationalIdProvider(Locale.ENGLISH).generate(new Random(1L)));
-        assertEquals("US-ID", isolated.nationalIdProvider(Locale.of("es", "US")).generate(new Random(1L)));
-        assertNull(isolated.nationalIdProvider(Locale.GERMAN));
-        assertNull(isolated.nationalIdProvider(null));
+        assertNull(isolated.provider(Vocabulary.NATIONAL_ID, Locale.CANADA));
+        assertFalse(isolated.isRegistered(Vocabulary.NATIONAL_ID, Locale.CANADA));
+        assertEquals(
+                "US-ID", isolated.provider(Vocabulary.NATIONAL_ID, Locale.US).generate(new Random(1L)));
+        assertEquals(
+                "US-ID",
+                isolated.provider(Vocabulary.NATIONAL_ID, Locale.ENGLISH).generate(new Random(1L)));
+        assertEquals(
+                "US-ID",
+                isolated.provider(Vocabulary.NATIONAL_ID, Locale.of("es", "US")).generate(new Random(1L)));
+        assertNull(isolated.provider(Vocabulary.NATIONAL_ID, Locale.GERMAN));
+        assertNull(isolated.provider(Vocabulary.NATIONAL_ID, null));
 
         DataRegistryContext scoped = DataRegistryContext.builder()
-                .registerNationalIdProvider(fixed(Locale.CANADA_FRENCH, "CA-ID"))
-                .registerNationalIdProvider(fixed(Locale.of("es", "US"), "US-ES-ID"))
+                .register(Vocabulary.NATIONAL_ID, fixed(Locale.CANADA_FRENCH, "CA-ID"))
+                .register(Vocabulary.NATIONAL_ID, fixed(Locale.of("es", "US"), "US-ES-ID"))
                 .build();
-        assertEquals("CA-ID", scoped.nationalIdProvider(Locale.CANADA_FRENCH).generate(new Random(1L)));
-        assertEquals("CA-ID", scoped.nationalIdProvider(Locale.CANADA).generate(new Random(1L)));
-        assertSame(NationalIdRegistry.forLocale(Locale.US), scoped.nationalIdProvider(Locale.US));
         assertEquals(
-                "US-ES-ID", scoped.nationalIdProvider(Locale.of("es", "US")).generate(new Random(1L)));
+                "CA-ID",
+                scoped.provider(Vocabulary.NATIONAL_ID, Locale.CANADA_FRENCH).generate(new Random(1L)));
+        assertEquals(
+                "CA-ID", scoped.provider(Vocabulary.NATIONAL_ID, Locale.CANADA).generate(new Random(1L)));
+        assertSame(NationalIdRegistry.forLocale(Locale.US), scoped.provider(Vocabulary.NATIONAL_ID, Locale.US));
+        assertEquals(
+                "US-ES-ID",
+                scoped.provider(Vocabulary.NATIONAL_ID, Locale.of("es", "US")).generate(new Random(1L)));
         assertSame(
-                NationalIdRegistry.forLocale(Locale.of("hi", "IN")), scoped.nationalIdProvider(Locale.of("en", "IN")));
-        assertNull(scoped.nationalIdProvider(Locale.of("de", "AT")));
-        assertEquals("CA-ID", scoped.nationalIdProvider(Locale.FRENCH).generate(new Random(1L)));
-        assertSame(NationalIdRegistry.forLocale(Locale.ENGLISH), scoped.nationalIdProvider(Locale.ENGLISH));
+                NationalIdRegistry.forLocale(Locale.of("hi", "IN")),
+                scoped.provider(Vocabulary.NATIONAL_ID, Locale.of("en", "IN")));
+        assertNull(scoped.provider(Vocabulary.NATIONAL_ID, Locale.of("de", "AT")));
+        assertEquals(
+                "CA-ID", scoped.provider(Vocabulary.NATIONAL_ID, Locale.FRENCH).generate(new Random(1L)));
+        assertSame(
+                NationalIdRegistry.forLocale(Locale.ENGLISH), scoped.provider(Vocabulary.NATIONAL_ID, Locale.ENGLISH));
 
         DataRegistryContext languageOnly = DataRegistryContext.builder()
                 .isolated()
-                .registerNationalIdProvider(fixed(Locale.GERMAN, "DE-LANG"))
+                .register(Vocabulary.NATIONAL_ID, fixed(Locale.GERMAN, "DE-LANG"))
                 .build();
-        assertEquals("DE-LANG", languageOnly.nationalIdProvider(Locale.GERMAN).generate(new Random(1L)));
-        assertNull(languageOnly.nationalIdProvider(Locale.GERMANY));
+        assertEquals(
+                "DE-LANG",
+                languageOnly.provider(Vocabulary.NATIONAL_ID, Locale.GERMAN).generate(new Random(1L)));
+        assertNull(languageOnly.provider(Vocabulary.NATIONAL_ID, Locale.GERMANY));
     }
 
     private static GeneratorConfig config(Locale locale) {

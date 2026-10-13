@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.object;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
 import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
@@ -770,7 +771,7 @@ final class SemanticCoherenceAdjuster {
         Locale locale = config.getGeneratorConfig().getLocale();
         boolean localeHasNoCountry = locale.getCountry().isBlank();
         boolean localeRegistered =
-                config.getGeneratorConfig().getRegistryContext().isCountryRegistered(locale);
+                config.getGeneratorConfig().getRegistryContext().isRegistered(Vocabulary.COUNTRY, locale);
         if (localeHasNoCountry | !localeRegistered) {
             return null;
         }

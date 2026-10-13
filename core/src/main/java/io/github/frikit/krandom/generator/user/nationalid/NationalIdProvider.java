@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.user.nationalid;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.Locale;
 import java.util.Random;
 
@@ -12,13 +13,13 @@ import java.util.Random;
  * Contract for a locale-specific national identity number generator.
  *
  * <p>Implement this interface and register an instance on a configuration-scoped context with
- * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerNationalIdProvider(NationalIdProvider)}
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#register(io.github.frikit.krandom.generator.Vocabulary, io.github.frikit.krandom.generator.LocaleDataProvider)}
  * to extend or override national ID generation for any locale — including locales not built into the
  * library.
  *
  * <pre>{@code
  * DataRegistryContext context = DataRegistryContext.builder()
- *     .registerNationalIdProvider(new NationalIdProvider() {
+ *     .register(Vocabulary.NATIONAL_ID, new NationalIdProvider() {
  *         public Locale getLocale() { return Locale.of("ko", "KR"); }
  *         public String generate(Random random) { return "..."; }
  *     })
@@ -34,7 +35,7 @@ import java.util.Random;
  * <p>Implementations must be stateless with respect to the generation logic; all randomness is
  * supplied via the {@link Random} argument so that seeding is controlled by the caller.
  */
-public interface NationalIdProvider {
+public interface NationalIdProvider extends LocaleDataProvider {
 
     /**
      * The locale this provider generates national IDs for.

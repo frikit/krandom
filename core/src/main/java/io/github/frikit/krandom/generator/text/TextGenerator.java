@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.text;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -44,7 +45,7 @@ public final class TextGenerator implements Generator<String> {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.createRandom();
-        TextWordDataProvider provider = config.getRegistryContext().textWordProvider(locale);
+        TextWordDataProvider provider = config.getRegistryContext().provider(Vocabulary.TEXT_WORD, locale);
         this.localeWords = (provider != null ? provider : DEFAULT_PROVIDER).getWords();
     }
 

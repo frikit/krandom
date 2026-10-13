@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.finance;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.List;
 import java.util.Locale;
 
@@ -12,12 +13,12 @@ import java.util.Locale;
  * Contract for a locale-specific list of financial-term names.
  *
  * <p>Implement this interface and register an instance with
- * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerFinancialTermProvider(FinancialTermDataProvider)}
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#register(io.github.frikit.krandom.generator.Vocabulary, io.github.frikit.krandom.generator.LocaleDataProvider)}
  * to add or override financial-term vocabulary for one configuration.
  * {@link FinancialTermDataRegistry} holds the built-in vocabulary served by
  * {@link io.github.frikit.krandom.generator.DataRegistryContext#globalDefault()}.
  */
-public interface FinancialTermDataProvider {
+public interface FinancialTermDataProvider extends LocaleDataProvider {
 
     /**
      * The locale this provider supplies financial terms for.

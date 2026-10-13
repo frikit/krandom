@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.database;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -47,7 +48,8 @@ public final class DatabaseGenerator implements Generator<String> {
     public DatabaseGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
-        DatabaseColumnDataProvider provider = config.getRegistryContext().databaseColumnProvider(config.getLocale());
+        DatabaseColumnDataProvider provider =
+                config.getRegistryContext().provider(Vocabulary.DATABASE_COLUMN, config.getLocale());
         this.columns = (provider != null ? provider : DEFAULT_PROVIDER).getColumns();
     }
 

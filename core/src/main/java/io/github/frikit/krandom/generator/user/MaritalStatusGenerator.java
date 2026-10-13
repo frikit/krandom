@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -52,7 +53,8 @@ public final class MaritalStatusGenerator implements Generator<String> {
      */
     public MaritalStatusGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        MaritalStatusDataProvider provider = config.getRegistryContext().maritalStatusProvider(config.getLocale());
+        MaritalStatusDataProvider provider =
+                config.getRegistryContext().provider(Vocabulary.MARITAL_STATUS, config.getLocale());
         this.statuses = (provider != null ? provider : DEFAULT_PROVIDER).getMaritalStatuses();
         this.random = config.createRandom();
     }

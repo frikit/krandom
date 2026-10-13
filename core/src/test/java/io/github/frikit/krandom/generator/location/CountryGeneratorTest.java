@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -537,7 +538,7 @@ class CountryGeneratorTest {
         Locale locale = Locale.of("en", "ZZ");
         io.github.frikit.krandom.generator.DataRegistryContext context =
                 io.github.frikit.krandom.generator.DataRegistryContext.builder()
-                        .registerCountryProvider(new CountryDataProvider() {
+                        .register(Vocabulary.COUNTRY, new CountryDataProvider() {
 
                             @Override
                             public Locale getLocale() {

@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import java.util.HashSet;
 import java.util.List;
@@ -980,7 +981,7 @@ class NationalIdGeneratorTest {
             Locale locale = Locale.CANADA;
             DataRegistryContext context = DataRegistryContext.builder()
                     .isolated()
-                    .registerNationalIdProvider(new NationalIdProvider() {
+                    .register(Vocabulary.NATIONAL_ID, new NationalIdProvider() {
                         @Override
                         public Locale getLocale() {
                             return locale;

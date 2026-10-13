@@ -5,18 +5,19 @@
  */
 package io.github.frikit.krandom.generator.location;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.Locale;
 
 /**
  * Contract for a locale-specific state/province name data source.
  *
  * <p>Implement this interface and register an instance on a configuration-scoped context with
- * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerStateProvider(StateDataProvider)}
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#register(io.github.frikit.krandom.generator.Vocabulary, io.github.frikit.krandom.generator.LocaleDataProvider)}
  * to extend or override state data for any locale — including locales not built into the library.
  *
  * <pre>{@code
  * DataRegistryContext context = DataRegistryContext.builder()
- *     .registerStateProvider(new StateDataProvider() {
+ *     .register(Vocabulary.STATE, new StateDataProvider() {
  *         public Locale getLocale() { return Locale.of("en", "IN"); }
  *         public String[] getStates() { return new String[]{"Maharashtra", "Karnataka", "Tamil Nadu"}; }
  *         public String[] getAbbreviations() { return new String[]{"MH", "KA", "TN"}; }
@@ -33,7 +34,7 @@ import java.util.Locale;
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}. Custom registrations take
  * precedence over the built-in data for the same locale key.
  */
-public interface StateDataProvider {
+public interface StateDataProvider extends LocaleDataProvider {
 
     /**
      * The locale this provider supplies state names for.

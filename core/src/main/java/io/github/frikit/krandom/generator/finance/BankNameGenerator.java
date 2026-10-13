@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -39,7 +40,7 @@ public final class BankNameGenerator implements Generator<String> {
 
     public BankNameGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        BankNameDataProvider provider = config.getRegistryContext().bankNameProvider(config.getLocale());
+        BankNameDataProvider provider = config.getRegistryContext().provider(Vocabulary.BANK_NAME, config.getLocale());
         this.bankNames = (provider != null ? provider : DEFAULT_PROVIDER).getBankNames();
         this.random = config.createRandom();
     }

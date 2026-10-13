@@ -5,12 +5,13 @@
  */
 package io.github.frikit.krandom.generator.location;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.Locale;
 
 /**
  * Contract for locale-specific street-address components.
  */
-public interface StreetAddressDataProvider {
+public interface StreetAddressDataProvider extends LocaleDataProvider {
 
     /**
      * @return non-null locale this provider serves.

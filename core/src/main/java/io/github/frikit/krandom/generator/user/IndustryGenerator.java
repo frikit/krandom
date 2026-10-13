@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -53,7 +54,7 @@ public final class IndustryGenerator implements Generator<String> {
      */
     public IndustryGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        IndustryDataProvider provider = config.getRegistryContext().industryProvider(config.getLocale());
+        IndustryDataProvider provider = config.getRegistryContext().provider(Vocabulary.INDUSTRY, config.getLocale());
         this.industries = (provider != null ? provider : DEFAULT_PROVIDER).getIndustries();
         this.random = config.createRandom();
     }

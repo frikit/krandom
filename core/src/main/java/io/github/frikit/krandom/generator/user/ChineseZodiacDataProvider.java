@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.List;
 import java.util.Locale;
 
@@ -14,12 +15,12 @@ import java.util.Locale;
  * <p>{@link #getAnimals()} must return exactly 12 names in the cycle order used by
  * {@code animals.get(year mod 12)}, starting with Monkey: {@code [Monkey, Rooster, Dog, Pig, Rat, Ox,
  * Tiger, Rabbit, Dragon, Snake, Horse, Goat]}. Register an instance with
- * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerChineseZodiacProvider(ChineseZodiacDataProvider)}
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#register(io.github.frikit.krandom.generator.Vocabulary, io.github.frikit.krandom.generator.LocaleDataProvider)}
  * to override validated vocabulary for one configuration. {@link ChineseZodiacDataRegistry} holds
  * the built-in animal names served by
  * {@link io.github.frikit.krandom.generator.DataRegistryContext#globalDefault()}.
  */
-public interface ChineseZodiacDataProvider {
+public interface ChineseZodiacDataProvider extends LocaleDataProvider {
 
     /**
      * The locale this provider supplies animal names for.

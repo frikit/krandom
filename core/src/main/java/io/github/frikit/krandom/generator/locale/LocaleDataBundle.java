@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.locale;
 
 import io.github.frikit.krandom.generator.DataRegistryContext;
+import io.github.frikit.krandom.generator.Vocabulary;
 import io.github.frikit.krandom.generator.location.CityDataProvider;
 import io.github.frikit.krandom.generator.location.CountryDataProvider;
 import io.github.frikit.krandom.generator.location.StateDataProvider;
@@ -105,37 +106,37 @@ public final class LocaleDataBundle {
     public DataRegistryContext.Builder applyTo(DataRegistryContext.Builder builder) {
         Objects.requireNonNull(builder, "builder must not be null");
         if (hasFirstNames()) {
-            builder.registerFirstNameProvider(firstNameProvider());
+            builder.register(Vocabulary.FIRST_NAME, firstNameProvider());
         }
         if (hasLastNames()) {
-            builder.registerLastNameProvider(lastNameProvider());
+            builder.register(Vocabulary.LAST_NAME, lastNameProvider());
         }
         if (hasGenderLabels()) {
-            builder.registerGenderProvider(genderProvider());
+            builder.register(Vocabulary.GENDER, genderProvider());
         }
         if (hasTitles()) {
-            builder.registerTitleProvider(titleProvider());
+            builder.register(Vocabulary.TITLE, titleProvider());
         }
         if (hasSuffixes()) {
-            builder.registerSuffixProvider(suffixProvider());
+            builder.register(Vocabulary.SUFFIX, suffixProvider());
         }
         if (hasProfessions()) {
-            builder.registerProfessionProvider(professionProvider());
+            builder.register(Vocabulary.PROFESSION, professionProvider());
         }
         if (hasCities()) {
-            builder.registerCityProvider(cityProvider());
+            builder.register(Vocabulary.CITY, cityProvider());
         }
         if (hasStates()) {
-            builder.registerStateProvider(stateProvider());
+            builder.register(Vocabulary.STATE, stateProvider());
         }
         if (hasCountries()) {
-            builder.registerCountryProvider(countryProvider());
+            builder.register(Vocabulary.COUNTRY, countryProvider());
         }
         if (hasStreetAddress()) {
-            builder.registerStreetAddressProvider(streetAddressProvider());
+            builder.register(Vocabulary.STREET_ADDRESS, streetAddressProvider());
         }
         if (nationalIdProvider != null) {
-            builder.registerNationalIdProvider(nationalIdProvider);
+            builder.register(Vocabulary.NATIONAL_ID, nationalIdProvider);
         }
         return builder;
     }

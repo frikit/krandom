@@ -63,6 +63,33 @@ String street = new StreetAddressGenerator(mx).generate();
 
 Register bundles through `DataRegistryContext.builder().registerLocaleData(...)` on the `GeneratorConfig` that consumes them. 2.0.0 removed process-wide registration (`registerGlobal()` and the per-registry `register(...)` methods): custom vocabulary is always scoped to a configuration and cannot leak between tests.
 
+## Registering a single vocabulary
+
+A bundle covers the person and address vocabularies. Any vocabulary, including the ones a bundle
+does not cover, can be registered on its own under its `Vocabulary` key; the provider implements
+that vocabulary's data interface:
+
+```java
+DataRegistryContext context = DataRegistryContext.builder()
+    .register(Vocabulary.WEATHER, new RainyWeather(Locale.UK)) // implements WeatherDataProvider
+    .build();
+GeneratorConfig config = GeneratorConfig.builder().registryContext(context).build();
+
+WeatherDataProvider weather = context.provider(Vocabulary.WEATHER, Locale.UK);
+Set<String> keys = context.registeredKeys(Vocabulary.WEATHER); // "en_GB", "en" and the bundled keys
+```
+
+`Vocabulary.all()` lists the 39 built-in vocabularies. Lookups resolve the exact
+`language_COUNTRY` key first, then the bundled data for that key, then the language entry (a
+regional registration also serves its language) and finally the bundled language data;
+`isolated()` contexts skip the bundled data. `Vocabulary.NATIONAL_ID` is the one exception: for a
+locale with a country, the third step is the registration for that country whatever its language,
+because identity-number formats are national; language-only locales use the language entry.
+
+Generators you write yourself can define their own vocabulary with
+`Vocabulary.custom("colour", ColourProvider.class)`, where `ColourProvider` extends
+`LocaleDataProvider`; keep the key in a constant, because keys compare by identity.
+
 ## Locale quality tiers
 
 `SupportedLocale` now exposes built-in dataset quality metadata so callers can tell whether a locale is backed by native data or a fallback.

@@ -5,18 +5,19 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.Locale;
 
 /**
  * Contract for a locale-specific last-name data source.
  *
  * <p>Implement this interface and register an instance on a configuration-scoped context with
- * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerLastNameProvider(LastNameDataProvider)}
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#register(io.github.frikit.krandom.generator.Vocabulary, io.github.frikit.krandom.generator.LocaleDataProvider)}
  * to extend or override last-name data for any locale — including locales not built into the library.
  *
  * <pre>{@code
  * DataRegistryContext context = DataRegistryContext.builder()
- *     .registerLastNameProvider(new LastNameDataProvider() {
+ *     .register(Vocabulary.LAST_NAME, new LastNameDataProvider() {
  *         public Locale getLocale() { return Locale.of("ko", "KR"); }
  *         public String[] getLastNames() { return new String[]{"김", "이", "박", "최", "정"}; }
  *     })
@@ -31,7 +32,7 @@ import java.util.Locale;
  * <p>The built-in baseline is seeded by {@link LastNameDataRegistry} from
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}.
  */
-public interface LastNameDataProvider {
+public interface LastNameDataProvider extends LocaleDataProvider {
 
     /**
      * The locale this provider supplies data for.

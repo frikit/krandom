@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -54,7 +55,7 @@ public final class CompanyBuzzwordGenerator implements Generator<String> {
     public CompanyBuzzwordGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         CompanyBuzzwordDataProvider provider =
-                effective.getRegistryContext().companyBuzzwordProvider(effective.getLocale());
+                effective.getRegistryContext().provider(Vocabulary.COMPANY_BUZZWORD, effective.getLocale());
         CompanyBuzzwordDataProvider resolved = provider != null ? provider : DEFAULT_PROVIDER;
         this.verbs = resolved.getVerbs();
         this.adjectives = resolved.getAdjectives();

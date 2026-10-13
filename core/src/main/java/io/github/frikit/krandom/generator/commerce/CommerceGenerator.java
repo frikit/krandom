@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.commerce;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import io.github.frikit.krandom.generator.identifier.EanGenerator;
 import io.github.frikit.krandom.generator.identifier.IsbnGenerator;
 import io.github.frikit.krandom.generator.identifier.UpcGenerator;
@@ -51,7 +52,7 @@ public final class CommerceGenerator implements Generator<String> {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.createRandom();
-        CommerceDataProvider provider = config.getRegistryContext().commerceProvider(locale);
+        CommerceDataProvider provider = config.getRegistryContext().provider(Vocabulary.COMMERCE, locale);
         this.vocabulary = provider != null ? provider : DEFAULT_PROVIDER;
         this.upcGenerator = new UpcGenerator(config.forChildStream("upc"));
         this.isbn10Generator = new IsbnGenerator(IsbnGenerator.IsbnType.ISBN_10, config.forChildStream("isbn10"));

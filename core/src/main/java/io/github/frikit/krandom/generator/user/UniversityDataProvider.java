@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.Locale;
 
 /**
@@ -14,7 +15,7 @@ import java.util.Locale;
  * {@link io.github.frikit.krandom.generator.datapack.LocalDataPack} and registered on a
  * configuration-scoped registry context.
  */
-public interface UniversityDataProvider {
+public interface UniversityDataProvider extends LocaleDataProvider {
 
     /**
      * Returns the locale supplied by this provider.

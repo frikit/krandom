@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -35,14 +36,14 @@ public final class TitleGenerator implements Generator<String> {
         DataRegistryContext registryContext = config.getRegistryContext();
 
         Locale locale = config.getLocale();
-        if (!registryContext.isTitleRegistered(locale)) {
+        if (!registryContext.isRegistered(Vocabulary.TITLE, locale)) {
             throw new UnsupportedOperationException("Locale " + locale + " is not supported. Registered locales: "
-                    + registryContext.titleRegisteredKeys());
+                    + registryContext.registeredKeys(Vocabulary.TITLE));
         }
 
         this.random = config.createRandom();
 
-        this.titles = java.util.Objects.requireNonNull(registryContext.titleProvider(locale))
+        this.titles = java.util.Objects.requireNonNull(registryContext.provider(Vocabulary.TITLE, locale))
                 .getTitles();
     }
 
@@ -64,6 +65,6 @@ public final class TitleGenerator implements Generator<String> {
     }
 
     public boolean isLocaleExplicitlySupported() {
-        return config.getRegistryContext().isTitleRegistered(config.getLocale());
+        return config.getRegistryContext().isRegistered(Vocabulary.TITLE, config.getLocale());
     }
 }

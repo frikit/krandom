@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -52,7 +53,7 @@ public final class PositionGenerator implements Generator<String> {
      */
     public PositionGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        PositionDataProvider provider = config.getRegistryContext().positionProvider(config.getLocale());
+        PositionDataProvider provider = config.getRegistryContext().provider(Vocabulary.POSITION, config.getLocale());
         this.positions = (provider != null ? provider : DEFAULT_PROVIDER).getPositions();
         this.random = config.createRandom();
     }

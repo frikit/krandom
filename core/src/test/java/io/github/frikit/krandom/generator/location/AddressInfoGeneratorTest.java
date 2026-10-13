@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.lang.reflect.Method;
 import java.util.Locale;
 import org.junit.jupiter.api.DisplayName;
@@ -75,7 +76,7 @@ class AddressInfoGeneratorTest {
         Locale locale = Locale.ENGLISH;
         DataRegistryContext context = DataRegistryContext.builder()
                 .isolated()
-                .registerStreetAddressProvider(new StreetAddressDataProvider() {
+                .register(Vocabulary.STREET_ADDRESS, new StreetAddressDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -96,7 +97,7 @@ class AddressInfoGeneratorTest {
                         return new String[] {"Street"};
                     }
                 })
-                .registerCountryProvider(new CountryDataProvider() {
+                .register(Vocabulary.COUNTRY, new CountryDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -128,7 +129,7 @@ class AddressInfoGeneratorTest {
         Locale locale = Locale.US;
         DataRegistryContext context = DataRegistryContext.builder()
                 .isolated()
-                .registerCityProvider(new CityDataProvider() {
+                .register(Vocabulary.CITY, new CityDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -139,7 +140,7 @@ class AddressInfoGeneratorTest {
                         return new String[] {"Testville"};
                     }
                 })
-                .registerStreetAddressProvider(new StreetAddressDataProvider() {
+                .register(Vocabulary.STREET_ADDRESS, new StreetAddressDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -160,7 +161,7 @@ class AddressInfoGeneratorTest {
                         return new String[] {"Street"};
                     }
                 })
-                .registerStateProvider(new StateDataProvider() {
+                .register(Vocabulary.STATE, new StateDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -176,7 +177,7 @@ class AddressInfoGeneratorTest {
                         return new String[0];
                     }
                 })
-                .registerCountryProvider(new CountryDataProvider() {
+                .register(Vocabulary.COUNTRY, new CountryDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;

@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.Vocabulary;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import java.lang.reflect.Method;
 import java.util.HashSet;
@@ -321,10 +322,10 @@ class FullNameGeneratorTest {
             Locale scopedLocale = Locale.of("nl", "NL");
             DataRegistryContext registryContext = DataRegistryContext.builder()
                     .isolated()
-                    .registerFirstNameProvider(new StaticFirstNameProvider(Locale.US, "RootFirst"))
-                    .registerLastNameProvider(new StaticLastNameProvider(Locale.US, "RootLast"))
-                    .registerFirstNameProvider(new StaticFirstNameProvider(scopedLocale, "ScopedFirst"))
-                    .registerLastNameProvider(new StaticLastNameProvider(scopedLocale, "ScopedLast"))
+                    .register(Vocabulary.FIRST_NAME, new StaticFirstNameProvider(Locale.US, "RootFirst"))
+                    .register(Vocabulary.LAST_NAME, new StaticLastNameProvider(Locale.US, "RootLast"))
+                    .register(Vocabulary.FIRST_NAME, new StaticFirstNameProvider(scopedLocale, "ScopedFirst"))
+                    .register(Vocabulary.LAST_NAME, new StaticLastNameProvider(scopedLocale, "ScopedLast"))
                     .build();
             GeneratorConfig config = GeneratorConfig.builder()
                     .locale(Locale.US)
@@ -345,12 +346,12 @@ class FullNameGeneratorTest {
             Locale scopedLocale = Locale.GERMANY;
             DataRegistryContext registryContext = DataRegistryContext.builder()
                     .isolated()
-                    .registerFirstNameProvider(new StaticFirstNameProvider(Locale.US, "RootFirst"))
-                    .registerLastNameProvider(new StaticLastNameProvider(Locale.US, "RootLast"))
-                    .registerFirstNameProvider(new StaticFirstNameProvider(scopedLocale, "ScopedFirst"))
-                    .registerLastNameProvider(new StaticLastNameProvider(scopedLocale, "ScopedLast"))
-                    .registerTitleProvider(new StaticTitleProvider(scopedLocale, "ScopedTitle"))
-                    .registerSuffixProvider(new StaticSuffixProvider(scopedLocale, "ScopedSuffix"))
+                    .register(Vocabulary.FIRST_NAME, new StaticFirstNameProvider(Locale.US, "RootFirst"))
+                    .register(Vocabulary.LAST_NAME, new StaticLastNameProvider(Locale.US, "RootLast"))
+                    .register(Vocabulary.FIRST_NAME, new StaticFirstNameProvider(scopedLocale, "ScopedFirst"))
+                    .register(Vocabulary.LAST_NAME, new StaticLastNameProvider(scopedLocale, "ScopedLast"))
+                    .register(Vocabulary.TITLE, new StaticTitleProvider(scopedLocale, "ScopedTitle"))
+                    .register(Vocabulary.SUFFIX, new StaticSuffixProvider(scopedLocale, "ScopedSuffix"))
                     .build();
             GeneratorConfig config = GeneratorConfig.builder()
                     .locale(Locale.US)

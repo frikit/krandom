@@ -67,41 +67,41 @@ class DataRegistryContextTest {
         DataRegistryContext context = DataRegistryContext.globalDefault();
         Locale locale = Locale.US;
 
-        assertTrue(context.isFirstNameRegistered(locale));
-        assertTrue(context.isLastNameRegistered(locale));
-        assertTrue(context.isGenderRegistered(locale));
-        assertTrue(context.isTitleRegistered(locale));
-        assertTrue(context.isSuffixRegistered(locale));
-        assertTrue(context.isProfessionRegistered(locale));
-        assertTrue(context.isCityRegistered(locale));
-        assertTrue(context.isStateRegistered(locale));
-        assertTrue(context.isCountryRegistered(locale));
-        assertTrue(context.isStreetAddressRegistered(locale));
-        assertTrue(context.isNationalIdRegistered(locale));
+        assertTrue(context.isRegistered(Vocabulary.FIRST_NAME, locale));
+        assertTrue(context.isRegistered(Vocabulary.LAST_NAME, locale));
+        assertTrue(context.isRegistered(Vocabulary.GENDER, locale));
+        assertTrue(context.isRegistered(Vocabulary.TITLE, locale));
+        assertTrue(context.isRegistered(Vocabulary.SUFFIX, locale));
+        assertTrue(context.isRegistered(Vocabulary.PROFESSION, locale));
+        assertTrue(context.isRegistered(Vocabulary.CITY, locale));
+        assertTrue(context.isRegistered(Vocabulary.STATE, locale));
+        assertTrue(context.isRegistered(Vocabulary.COUNTRY, locale));
+        assertTrue(context.isRegistered(Vocabulary.STREET_ADDRESS, locale));
+        assertTrue(context.isRegistered(Vocabulary.NATIONAL_ID, locale));
 
-        assertNotNull(context.firstNameProvider(locale));
-        assertNotNull(context.lastNameProvider(locale));
-        assertNotNull(context.genderProvider(locale));
-        assertNotNull(context.titleProvider(locale));
-        assertNotNull(context.suffixProvider(locale));
-        assertNotNull(context.professionProvider(locale));
-        assertNotNull(context.cityProvider(locale));
-        assertNotNull(context.stateProvider(locale));
-        assertNotNull(context.countryProvider(locale));
-        assertNotNull(context.streetAddressProvider(locale));
-        assertNotNull(context.nationalIdProvider(locale));
+        assertNotNull(context.provider(Vocabulary.FIRST_NAME, locale));
+        assertNotNull(context.provider(Vocabulary.LAST_NAME, locale));
+        assertNotNull(context.provider(Vocabulary.GENDER, locale));
+        assertNotNull(context.provider(Vocabulary.TITLE, locale));
+        assertNotNull(context.provider(Vocabulary.SUFFIX, locale));
+        assertNotNull(context.provider(Vocabulary.PROFESSION, locale));
+        assertNotNull(context.provider(Vocabulary.CITY, locale));
+        assertNotNull(context.provider(Vocabulary.STATE, locale));
+        assertNotNull(context.provider(Vocabulary.COUNTRY, locale));
+        assertNotNull(context.provider(Vocabulary.STREET_ADDRESS, locale));
+        assertNotNull(context.provider(Vocabulary.NATIONAL_ID, locale));
 
-        assertFalse(context.firstNameRegisteredKeys().isEmpty());
-        assertFalse(context.lastNameRegisteredKeys().isEmpty());
-        assertFalse(context.genderRegisteredKeys().isEmpty());
-        assertFalse(context.titleRegisteredKeys().isEmpty());
-        assertFalse(context.suffixRegisteredKeys().isEmpty());
-        assertFalse(context.professionRegisteredKeys().isEmpty());
-        assertFalse(context.cityRegisteredKeys().isEmpty());
-        assertFalse(context.stateRegisteredKeys().isEmpty());
-        assertFalse(context.countryRegisteredKeys().isEmpty());
-        assertFalse(context.streetAddressRegisteredKeys().isEmpty());
-        assertFalse(context.nationalIdRegisteredKeys().isEmpty());
+        assertFalse(context.registeredKeys(Vocabulary.FIRST_NAME).isEmpty());
+        assertFalse(context.registeredKeys(Vocabulary.LAST_NAME).isEmpty());
+        assertFalse(context.registeredKeys(Vocabulary.GENDER).isEmpty());
+        assertFalse(context.registeredKeys(Vocabulary.TITLE).isEmpty());
+        assertFalse(context.registeredKeys(Vocabulary.SUFFIX).isEmpty());
+        assertFalse(context.registeredKeys(Vocabulary.PROFESSION).isEmpty());
+        assertFalse(context.registeredKeys(Vocabulary.CITY).isEmpty());
+        assertFalse(context.registeredKeys(Vocabulary.STATE).isEmpty());
+        assertFalse(context.registeredKeys(Vocabulary.COUNTRY).isEmpty());
+        assertFalse(context.registeredKeys(Vocabulary.STREET_ADDRESS).isEmpty());
+        assertFalse(context.registeredKeys(Vocabulary.NATIONAL_ID).isEmpty());
     }
 
     @Test
@@ -110,42 +110,42 @@ class DataRegistryContextTest {
         DataRegistryContext context = DataRegistryContext.builder().isolated().build();
         Locale locale = Locale.US;
 
-        assertFalse(context.isFirstNameRegistered(locale));
-        assertFalse(context.isLastNameRegistered(locale));
-        assertFalse(context.isGenderRegistered(locale));
-        assertFalse(context.isTitleRegistered(locale));
-        assertFalse(context.isSuffixRegistered(locale));
-        assertFalse(context.isProfessionRegistered(locale));
-        assertFalse(context.isCityRegistered(locale));
-        assertFalse(context.isStateRegistered(locale));
-        assertFalse(context.isCountryRegistered(locale));
-        assertFalse(context.isStreetAddressRegistered(locale));
-        assertFalse(context.isNationalIdRegistered(locale));
+        assertFalse(context.isRegistered(Vocabulary.FIRST_NAME, locale));
+        assertFalse(context.isRegistered(Vocabulary.LAST_NAME, locale));
+        assertFalse(context.isRegistered(Vocabulary.GENDER, locale));
+        assertFalse(context.isRegistered(Vocabulary.TITLE, locale));
+        assertFalse(context.isRegistered(Vocabulary.SUFFIX, locale));
+        assertFalse(context.isRegistered(Vocabulary.PROFESSION, locale));
+        assertFalse(context.isRegistered(Vocabulary.CITY, locale));
+        assertFalse(context.isRegistered(Vocabulary.STATE, locale));
+        assertFalse(context.isRegistered(Vocabulary.COUNTRY, locale));
+        assertFalse(context.isRegistered(Vocabulary.STREET_ADDRESS, locale));
+        assertFalse(context.isRegistered(Vocabulary.NATIONAL_ID, locale));
 
-        assertNull(context.firstNameProvider(locale));
-        assertNull(context.lastNameProvider(locale));
-        assertNull(context.genderProvider(locale));
-        assertNull(context.titleProvider(locale));
-        assertNull(context.suffixProvider(locale));
-        assertNull(context.professionProvider(locale));
-        assertNull(context.cityProvider(locale));
-        assertNull(context.stateProvider(locale));
-        assertNull(context.countryProvider(locale));
-        assertNull(context.streetAddressProvider(locale));
-        assertNull(context.nationalIdProvider(locale));
-        assertNull(context.firstNameProvider(null));
+        assertNull(context.provider(Vocabulary.FIRST_NAME, locale));
+        assertNull(context.provider(Vocabulary.LAST_NAME, locale));
+        assertNull(context.provider(Vocabulary.GENDER, locale));
+        assertNull(context.provider(Vocabulary.TITLE, locale));
+        assertNull(context.provider(Vocabulary.SUFFIX, locale));
+        assertNull(context.provider(Vocabulary.PROFESSION, locale));
+        assertNull(context.provider(Vocabulary.CITY, locale));
+        assertNull(context.provider(Vocabulary.STATE, locale));
+        assertNull(context.provider(Vocabulary.COUNTRY, locale));
+        assertNull(context.provider(Vocabulary.STREET_ADDRESS, locale));
+        assertNull(context.provider(Vocabulary.NATIONAL_ID, locale));
+        assertNull(context.provider(Vocabulary.FIRST_NAME, null));
 
-        assertTrue(context.firstNameRegisteredKeys().isEmpty());
-        assertTrue(context.lastNameRegisteredKeys().isEmpty());
-        assertTrue(context.genderRegisteredKeys().isEmpty());
-        assertTrue(context.titleRegisteredKeys().isEmpty());
-        assertTrue(context.suffixRegisteredKeys().isEmpty());
-        assertTrue(context.professionRegisteredKeys().isEmpty());
-        assertTrue(context.cityRegisteredKeys().isEmpty());
-        assertTrue(context.stateRegisteredKeys().isEmpty());
-        assertTrue(context.countryRegisteredKeys().isEmpty());
-        assertTrue(context.streetAddressRegisteredKeys().isEmpty());
-        assertTrue(context.nationalIdRegisteredKeys().isEmpty());
+        assertTrue(context.registeredKeys(Vocabulary.FIRST_NAME).isEmpty());
+        assertTrue(context.registeredKeys(Vocabulary.LAST_NAME).isEmpty());
+        assertTrue(context.registeredKeys(Vocabulary.GENDER).isEmpty());
+        assertTrue(context.registeredKeys(Vocabulary.TITLE).isEmpty());
+        assertTrue(context.registeredKeys(Vocabulary.SUFFIX).isEmpty());
+        assertTrue(context.registeredKeys(Vocabulary.PROFESSION).isEmpty());
+        assertTrue(context.registeredKeys(Vocabulary.CITY).isEmpty());
+        assertTrue(context.registeredKeys(Vocabulary.STATE).isEmpty());
+        assertTrue(context.registeredKeys(Vocabulary.COUNTRY).isEmpty());
+        assertTrue(context.registeredKeys(Vocabulary.STREET_ADDRESS).isEmpty());
+        assertTrue(context.registeredKeys(Vocabulary.NATIONAL_ID).isEmpty());
     }
 
     @Test
@@ -156,46 +156,57 @@ class DataRegistryContextTest {
 
         DataRegistryContext context = DataRegistryContext.builder()
                 .isolated()
-                .registerFirstNameProvider(firstNameProvider(locale))
-                .registerLastNameProvider(lastNameProvider(locale))
-                .registerGenderProvider(genderProvider(locale))
-                .registerTitleProvider(titleProvider(locale))
-                .registerSuffixProvider(suffixProvider(locale))
-                .registerProfessionProvider(professionProvider(locale))
-                .registerCityProvider(cityProvider(locale))
-                .registerStateProvider(stateProvider(locale))
-                .registerCountryProvider(countryProvider(locale))
-                .registerStreetAddressProvider(streetAddressProvider(locale))
-                .registerNationalIdProvider(nationalIdProvider(locale))
+                .register(Vocabulary.FIRST_NAME, firstNameProvider(locale))
+                .register(Vocabulary.LAST_NAME, lastNameProvider(locale))
+                .register(Vocabulary.GENDER, genderProvider(locale))
+                .register(Vocabulary.TITLE, titleProvider(locale))
+                .register(Vocabulary.SUFFIX, suffixProvider(locale))
+                .register(Vocabulary.PROFESSION, professionProvider(locale))
+                .register(Vocabulary.CITY, cityProvider(locale))
+                .register(Vocabulary.STATE, stateProvider(locale))
+                .register(Vocabulary.COUNTRY, countryProvider(locale))
+                .register(Vocabulary.STREET_ADDRESS, streetAddressProvider(locale))
+                .register(Vocabulary.NATIONAL_ID, nationalIdProvider(locale))
                 .build();
 
-        assertEquals("m1", context.firstNameProvider(fallbackLocale).getMaleFirstNames()[0]);
-        assertEquals("l1", context.lastNameProvider(fallbackLocale).getLastNames()[0]);
-        assertEquals("male", context.genderProvider(fallbackLocale).getMaleLabel());
-        assertEquals("Dr", context.titleProvider(fallbackLocale).getTitles()[0]);
-        assertEquals("Jr", context.suffixProvider(fallbackLocale).getSuffixes()[0]);
-        assertEquals("Engineer", context.professionProvider(fallbackLocale).getProfessions()[0]);
-        assertEquals("CityOne", context.cityProvider(fallbackLocale).getCities()[0]);
-        assertEquals("StateOne", context.stateProvider(fallbackLocale).getStates()[0]);
-        assertEquals("CountryOne", context.countryProvider(fallbackLocale).getCountries()[0]);
-        assertEquals("Main", context.streetAddressProvider(fallbackLocale).getStreetNames()[0]);
+        assertEquals(
+                "m1", context.provider(Vocabulary.FIRST_NAME, fallbackLocale).getMaleFirstNames()[0]);
+        assertEquals(
+                "l1", context.provider(Vocabulary.LAST_NAME, fallbackLocale).getLastNames()[0]);
+        assertEquals("male", context.provider(Vocabulary.GENDER, fallbackLocale).getMaleLabel());
+        assertEquals("Dr", context.provider(Vocabulary.TITLE, fallbackLocale).getTitles()[0]);
+        assertEquals("Jr", context.provider(Vocabulary.SUFFIX, fallbackLocale).getSuffixes()[0]);
+        assertEquals(
+                "Engineer",
+                context.provider(Vocabulary.PROFESSION, fallbackLocale).getProfessions()[0]);
+        assertEquals(
+                "CityOne", context.provider(Vocabulary.CITY, fallbackLocale).getCities()[0]);
+        assertEquals(
+                "StateOne", context.provider(Vocabulary.STATE, fallbackLocale).getStates()[0]);
+        assertEquals(
+                "CountryOne",
+                context.provider(Vocabulary.COUNTRY, fallbackLocale).getCountries()[0]);
+        assertEquals(
+                "Main",
+                context.provider(Vocabulary.STREET_ADDRESS, fallbackLocale).getStreetNames()[0]);
         // National identifiers are country-specific: another country never borrows them by language.
-        assertNull(context.nationalIdProvider(fallbackLocale));
-        assertEquals("NID", context.nationalIdProvider(Locale.ENGLISH).generate(new Random(1L)));
+        assertNull(context.provider(Vocabulary.NATIONAL_ID, fallbackLocale));
+        assertEquals(
+                "NID", context.provider(Vocabulary.NATIONAL_ID, Locale.ENGLISH).generate(new Random(1L)));
 
-        assertTrue(context.firstNameRegisteredKeys().contains("en_US"));
-        assertTrue(context.firstNameRegisteredKeys().contains("en"));
-        assertTrue(context.lastNameRegisteredKeys().contains("en_US"));
-        assertTrue(context.genderRegisteredKeys().contains("en_US"));
-        assertTrue(context.titleRegisteredKeys().contains("en_US"));
-        assertTrue(context.suffixRegisteredKeys().contains("en_US"));
-        assertTrue(context.professionRegisteredKeys().contains("en_US"));
-        assertTrue(context.cityRegisteredKeys().contains("en_US"));
-        assertTrue(context.stateRegisteredKeys().contains("en_US"));
-        assertTrue(context.countryRegisteredKeys().contains("en_US"));
-        assertTrue(context.streetAddressRegisteredKeys().contains("en_US"));
-        assertTrue(context.nationalIdRegisteredKeys().contains("en_US"));
-        assertTrue(context.nationalIdRegisteredKeys().contains("en"));
+        assertTrue(context.registeredKeys(Vocabulary.FIRST_NAME).contains("en_US"));
+        assertTrue(context.registeredKeys(Vocabulary.FIRST_NAME).contains("en"));
+        assertTrue(context.registeredKeys(Vocabulary.LAST_NAME).contains("en_US"));
+        assertTrue(context.registeredKeys(Vocabulary.GENDER).contains("en_US"));
+        assertTrue(context.registeredKeys(Vocabulary.TITLE).contains("en_US"));
+        assertTrue(context.registeredKeys(Vocabulary.SUFFIX).contains("en_US"));
+        assertTrue(context.registeredKeys(Vocabulary.PROFESSION).contains("en_US"));
+        assertTrue(context.registeredKeys(Vocabulary.CITY).contains("en_US"));
+        assertTrue(context.registeredKeys(Vocabulary.STATE).contains("en_US"));
+        assertTrue(context.registeredKeys(Vocabulary.COUNTRY).contains("en_US"));
+        assertTrue(context.registeredKeys(Vocabulary.STREET_ADDRESS).contains("en_US"));
+        assertTrue(context.registeredKeys(Vocabulary.NATIONAL_ID).contains("en_US"));
+        assertTrue(context.registeredKeys(Vocabulary.NATIONAL_ID).contains("en"));
     }
 
     @Test
@@ -203,11 +214,12 @@ class DataRegistryContextTest {
     void languageOnlyRegistration() {
         DataRegistryContext context = DataRegistryContext.builder()
                 .isolated()
-                .registerCountryProvider(countryProvider(Locale.of("en")))
+                .register(Vocabulary.COUNTRY, countryProvider(Locale.of("en")))
                 .build();
-        assertTrue(context.countryRegisteredKeys().contains("en"));
+        assertTrue(context.registeredKeys(Vocabulary.COUNTRY).contains("en"));
         assertEquals(
-                "CountryOne", context.countryProvider(Locale.of("en", "GB")).getCountries()[0]);
+                "CountryOne",
+                context.provider(Vocabulary.COUNTRY, Locale.of("en", "GB")).getCountries()[0]);
     }
 
     @Test
@@ -215,11 +227,11 @@ class DataRegistryContextTest {
     void weatherProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
                 .isolated()
-                .registerWeatherProvider(weatherProvider(Locale.US, "Sun"))
+                .register(Vocabulary.WEATHER, weatherProvider(Locale.US, "Sun"))
                 .build();
         DataRegistryContext second = DataRegistryContext.builder()
                 .isolated()
-                .registerWeatherProvider(weatherProvider(Locale.US, "Rain"))
+                .register(Vocabulary.WEATHER, weatherProvider(Locale.US, "Rain"))
                 .build();
 
         assertEquals(
@@ -233,13 +245,15 @@ class DataRegistryContextTest {
                                 .registryContext(second)
                                 .build())
                         .generate());
-        assertEquals(Set.of("en", "en_US"), first.weatherRegisteredKeys());
+        assertEquals(Set.of("en", "en_US"), first.registeredKeys(Vocabulary.WEATHER));
 
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
-        assertNull(empty.weatherProvider(Locale.US));
-        assertFalse(empty.isWeatherRegistered(Locale.US));
-        assertTrue(DataRegistryContext.globalDefault().isWeatherRegistered(Locale.of("ru", "RU")));
-        assertFalse(DataRegistryContext.globalDefault().weatherRegisteredKeys().isEmpty());
+        assertNull(empty.provider(Vocabulary.WEATHER, Locale.US));
+        assertFalse(empty.isRegistered(Vocabulary.WEATHER, Locale.US));
+        assertTrue(DataRegistryContext.globalDefault().isRegistered(Vocabulary.WEATHER, Locale.of("ru", "RU")));
+        assertFalse(DataRegistryContext.globalDefault()
+                .registeredKeys(Vocabulary.WEATHER)
+                .isEmpty());
     }
 
     @Test
@@ -247,11 +261,11 @@ class DataRegistryContextTest {
     void measurementProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
                 .isolated()
-                .registerMeasurementProvider(measurementProvider(Locale.US, "Meter"))
+                .register(Vocabulary.MEASUREMENT, measurementProvider(Locale.US, "Meter"))
                 .build();
         DataRegistryContext second = DataRegistryContext.builder()
                 .isolated()
-                .registerMeasurementProvider(measurementProvider(Locale.US, "Yard"))
+                .register(Vocabulary.MEASUREMENT, measurementProvider(Locale.US, "Yard"))
                 .build();
 
         assertEquals(
@@ -265,13 +279,14 @@ class DataRegistryContextTest {
                                 .registryContext(second)
                                 .build())
                         .generate());
-        assertEquals(Set.of("en", "en_US"), first.measurementRegisteredKeys());
+        assertEquals(Set.of("en", "en_US"), first.registeredKeys(Vocabulary.MEASUREMENT));
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
-        assertTrue(first.isMeasurementRegistered(Locale.US));
-        assertNull(empty.measurementProvider(Locale.US));
-        assertFalse(empty.isMeasurementRegistered(Locale.US));
-        assertFalse(
-                DataRegistryContext.globalDefault().measurementRegisteredKeys().isEmpty());
+        assertTrue(first.isRegistered(Vocabulary.MEASUREMENT, Locale.US));
+        assertNull(empty.provider(Vocabulary.MEASUREMENT, Locale.US));
+        assertFalse(empty.isRegistered(Vocabulary.MEASUREMENT, Locale.US));
+        assertFalse(DataRegistryContext.globalDefault()
+                .registeredKeys(Vocabulary.MEASUREMENT)
+                .isEmpty());
     }
 
     @Test
@@ -279,11 +294,11 @@ class DataRegistryContextTest {
     void financialTermProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
                 .isolated()
-                .registerFinancialTermProvider(financialTermProvider(Locale.US, "Asset"))
+                .register(Vocabulary.FINANCIAL_TERM, financialTermProvider(Locale.US, "Asset"))
                 .build();
         DataRegistryContext second = DataRegistryContext.builder()
                 .isolated()
-                .registerFinancialTermProvider(financialTermProvider(Locale.US, "Dividend"))
+                .register(Vocabulary.FINANCIAL_TERM, financialTermProvider(Locale.US, "Dividend"))
                 .build();
 
         assertEquals(
@@ -297,13 +312,13 @@ class DataRegistryContextTest {
                                 .registryContext(second)
                                 .build())
                         .generate());
-        assertEquals(Set.of("en", "en_US"), first.financialTermRegisteredKeys());
+        assertEquals(Set.of("en", "en_US"), first.registeredKeys(Vocabulary.FINANCIAL_TERM));
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
-        assertTrue(first.isFinancialTermRegistered(Locale.US));
-        assertNull(empty.financialTermProvider(Locale.US));
-        assertFalse(empty.isFinancialTermRegistered(Locale.US));
+        assertTrue(first.isRegistered(Vocabulary.FINANCIAL_TERM, Locale.US));
+        assertNull(empty.provider(Vocabulary.FINANCIAL_TERM, Locale.US));
+        assertFalse(empty.isRegistered(Vocabulary.FINANCIAL_TERM, Locale.US));
         assertFalse(DataRegistryContext.globalDefault()
-                .financialTermRegisteredKeys()
+                .registeredKeys(Vocabulary.FINANCIAL_TERM)
                 .isEmpty());
     }
 
@@ -312,11 +327,11 @@ class DataRegistryContextTest {
     void restaurantTypeProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
                 .isolated()
-                .registerRestaurantTypeProvider(restaurantTypeProvider(Locale.US, "Italian"))
+                .register(Vocabulary.RESTAURANT_TYPE, restaurantTypeProvider(Locale.US, "Italian"))
                 .build();
         DataRegistryContext second = DataRegistryContext.builder()
                 .isolated()
-                .registerRestaurantTypeProvider(restaurantTypeProvider(Locale.US, "Steakhouse"))
+                .register(Vocabulary.RESTAURANT_TYPE, restaurantTypeProvider(Locale.US, "Steakhouse"))
                 .build();
 
         assertEquals(
@@ -330,13 +345,13 @@ class DataRegistryContextTest {
                                 .registryContext(second)
                                 .build())
                         .generate());
-        assertEquals(Set.of("en", "en_US"), first.restaurantTypeRegisteredKeys());
+        assertEquals(Set.of("en", "en_US"), first.registeredKeys(Vocabulary.RESTAURANT_TYPE));
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
-        assertTrue(first.isRestaurantTypeRegistered(Locale.US));
-        assertNull(empty.restaurantTypeProvider(Locale.US));
-        assertFalse(empty.isRestaurantTypeRegistered(Locale.US));
+        assertTrue(first.isRegistered(Vocabulary.RESTAURANT_TYPE, Locale.US));
+        assertNull(empty.provider(Vocabulary.RESTAURANT_TYPE, Locale.US));
+        assertFalse(empty.isRegistered(Vocabulary.RESTAURANT_TYPE, Locale.US));
         assertFalse(DataRegistryContext.globalDefault()
-                .restaurantTypeRegisteredKeys()
+                .registeredKeys(Vocabulary.RESTAURANT_TYPE)
                 .isEmpty());
     }
 
@@ -345,11 +360,11 @@ class DataRegistryContextTest {
     void hobbyProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
                 .isolated()
-                .registerHobbyProvider(hobbyProvider(Locale.US, "Chess"))
+                .register(Vocabulary.HOBBY, hobbyProvider(Locale.US, "Chess"))
                 .build();
         DataRegistryContext second = DataRegistryContext.builder()
                 .isolated()
-                .registerHobbyProvider(hobbyProvider(Locale.US, "Running"))
+                .register(Vocabulary.HOBBY, hobbyProvider(Locale.US, "Running"))
                 .build();
 
         assertEquals(
@@ -363,12 +378,14 @@ class DataRegistryContextTest {
                                 .registryContext(second)
                                 .build())
                         .generate());
-        assertEquals(Set.of("en", "en_US"), first.hobbyRegisteredKeys());
+        assertEquals(Set.of("en", "en_US"), first.registeredKeys(Vocabulary.HOBBY));
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
-        assertTrue(first.isHobbyRegistered(Locale.US));
-        assertNull(empty.hobbyProvider(Locale.US));
-        assertFalse(empty.isHobbyRegistered(Locale.US));
-        assertFalse(DataRegistryContext.globalDefault().hobbyRegisteredKeys().isEmpty());
+        assertTrue(first.isRegistered(Vocabulary.HOBBY, Locale.US));
+        assertNull(empty.provider(Vocabulary.HOBBY, Locale.US));
+        assertFalse(empty.isRegistered(Vocabulary.HOBBY, Locale.US));
+        assertFalse(DataRegistryContext.globalDefault()
+                .registeredKeys(Vocabulary.HOBBY)
+                .isEmpty());
     }
 
     @Test
@@ -376,11 +393,11 @@ class DataRegistryContextTest {
     void nationalityProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
                 .isolated()
-                .registerNationalityProvider(nationalityProvider(Locale.US, "Canadian"))
+                .register(Vocabulary.NATIONALITY, nationalityProvider(Locale.US, "Canadian"))
                 .build();
         DataRegistryContext second = DataRegistryContext.builder()
                 .isolated()
-                .registerNationalityProvider(nationalityProvider(Locale.US, "Brazilian"))
+                .register(Vocabulary.NATIONALITY, nationalityProvider(Locale.US, "Brazilian"))
                 .build();
 
         assertEquals(
@@ -394,13 +411,14 @@ class DataRegistryContextTest {
                                 .registryContext(second)
                                 .build())
                         .generate());
-        assertEquals(Set.of("en", "en_US"), first.nationalityRegisteredKeys());
+        assertEquals(Set.of("en", "en_US"), first.registeredKeys(Vocabulary.NATIONALITY));
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
-        assertTrue(first.isNationalityRegistered(Locale.US));
-        assertNull(empty.nationalityProvider(Locale.US));
-        assertFalse(empty.isNationalityRegistered(Locale.US));
-        assertFalse(
-                DataRegistryContext.globalDefault().nationalityRegisteredKeys().isEmpty());
+        assertTrue(first.isRegistered(Vocabulary.NATIONALITY, Locale.US));
+        assertNull(empty.provider(Vocabulary.NATIONALITY, Locale.US));
+        assertFalse(empty.isRegistered(Vocabulary.NATIONALITY, Locale.US));
+        assertFalse(DataRegistryContext.globalDefault()
+                .registeredKeys(Vocabulary.NATIONALITY)
+                .isEmpty());
     }
 
     @Test
@@ -408,11 +426,11 @@ class DataRegistryContextTest {
     void pronounProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
                 .isolated()
-                .registerPronounProvider(pronounProvider(Locale.US, "she/her"))
+                .register(Vocabulary.PRONOUN, pronounProvider(Locale.US, "she/her"))
                 .build();
         DataRegistryContext second = DataRegistryContext.builder()
                 .isolated()
-                .registerPronounProvider(pronounProvider(Locale.US, "they/them"))
+                .register(Vocabulary.PRONOUN, pronounProvider(Locale.US, "they/them"))
                 .build();
 
         assertEquals(
@@ -426,12 +444,14 @@ class DataRegistryContextTest {
                                 .registryContext(second)
                                 .build())
                         .generate());
-        assertEquals(Set.of("en", "en_US"), first.pronounRegisteredKeys());
+        assertEquals(Set.of("en", "en_US"), first.registeredKeys(Vocabulary.PRONOUN));
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
-        assertTrue(first.isPronounRegistered(Locale.US));
-        assertNull(empty.pronounProvider(Locale.US));
-        assertFalse(empty.isPronounRegistered(Locale.US));
-        assertFalse(DataRegistryContext.globalDefault().pronounRegisteredKeys().isEmpty());
+        assertTrue(first.isRegistered(Vocabulary.PRONOUN, Locale.US));
+        assertNull(empty.provider(Vocabulary.PRONOUN, Locale.US));
+        assertFalse(empty.isRegistered(Vocabulary.PRONOUN, Locale.US));
+        assertFalse(DataRegistryContext.globalDefault()
+                .registeredKeys(Vocabulary.PRONOUN)
+                .isEmpty());
     }
 
     @Test
@@ -439,14 +459,14 @@ class DataRegistryContextTest {
     void pronounProvidersRejectMalformedSets() {
         assertThrows(
                 IllegalArgumentException.class,
-                () -> DataRegistryContext.builder().registerPronounProvider(pronounProvider(Locale.US, "/them")));
+                () -> DataRegistryContext.builder().register(Vocabulary.PRONOUN, pronounProvider(Locale.US, "/them")));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> DataRegistryContext.builder().registerPronounProvider(pronounProvider(Locale.US, "they/")));
+                () -> DataRegistryContext.builder().register(Vocabulary.PRONOUN, pronounProvider(Locale.US, "they/")));
         assertThrows(
                 IllegalArgumentException.class,
                 () -> DataRegistryContext.builder()
-                        .registerPronounProvider(pronounProvider(Locale.US, "they/them/us")));
+                        .register(Vocabulary.PRONOUN, pronounProvider(Locale.US, "they/them/us")));
     }
 
     @Test
@@ -454,11 +474,15 @@ class DataRegistryContextTest {
     void bloodTypeProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
                 .isolated()
-                .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("O+"), java.util.List.of(1)))
+                .register(
+                        Vocabulary.BLOOD_TYPE,
+                        bloodTypeProvider(Locale.US, java.util.List.of("O+"), java.util.List.of(1)))
                 .build();
         DataRegistryContext second = DataRegistryContext.builder()
                 .isolated()
-                .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("AB-"), java.util.List.of(1)))
+                .register(
+                        Vocabulary.BLOOD_TYPE,
+                        bloodTypeProvider(Locale.US, java.util.List.of("AB-"), java.util.List.of(1)))
                 .build();
 
         assertEquals(
@@ -472,13 +496,14 @@ class DataRegistryContextTest {
                                 .registryContext(second)
                                 .build())
                         .generate());
-        assertEquals(Set.of("en", "en_US"), first.bloodTypeRegisteredKeys());
+        assertEquals(Set.of("en", "en_US"), first.registeredKeys(Vocabulary.BLOOD_TYPE));
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
-        assertTrue(first.isBloodTypeRegistered(Locale.US));
-        assertNull(empty.bloodTypeProvider(Locale.US));
-        assertFalse(empty.isBloodTypeRegistered(Locale.US));
-        assertFalse(
-                DataRegistryContext.globalDefault().bloodTypeRegisteredKeys().isEmpty());
+        assertTrue(first.isRegistered(Vocabulary.BLOOD_TYPE, Locale.US));
+        assertNull(empty.provider(Vocabulary.BLOOD_TYPE, Locale.US));
+        assertFalse(empty.isRegistered(Vocabulary.BLOOD_TYPE, Locale.US));
+        assertFalse(DataRegistryContext.globalDefault()
+                .registeredKeys(Vocabulary.BLOOD_TYPE)
+                .isEmpty());
     }
 
     @Test
@@ -487,22 +512,28 @@ class DataRegistryContextTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> DataRegistryContext.builder()
-                        .registerBloodTypeProvider(
+                        .register(
+                                Vocabulary.BLOOD_TYPE,
                                 bloodTypeProvider(Locale.US, java.util.List.of("O+"), java.util.List.of(1, 2))));
         assertThrows(
                 IllegalArgumentException.class,
                 () -> DataRegistryContext.builder()
-                        .registerBloodTypeProvider(
+                        .register(
+                                Vocabulary.BLOOD_TYPE,
                                 bloodTypeProvider(Locale.US, java.util.List.of("O+"), java.util.List.of(0))));
         assertThrows(
                 IllegalArgumentException.class,
                 () -> DataRegistryContext.builder()
-                        .registerBloodTypeProvider(bloodTypeProvider(
-                                Locale.US, java.util.List.of("O+"), java.util.Collections.singletonList(null))));
+                        .register(
+                                Vocabulary.BLOOD_TYPE,
+                                bloodTypeProvider(
+                                        Locale.US,
+                                        java.util.List.of("O+"),
+                                        java.util.Collections.singletonList(null))));
         assertThrows(
                 NullPointerException.class,
                 () -> DataRegistryContext.builder()
-                        .registerBloodTypeProvider(bloodTypeProvider(Locale.US, java.util.List.of("O+"), null)));
+                        .register(Vocabulary.BLOOD_TYPE, bloodTypeProvider(Locale.US, java.util.List.of("O+"), null)));
     }
 
     @Test
@@ -510,11 +541,11 @@ class DataRegistryContextTest {
     void chineseZodiacProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
                 .isolated()
-                .registerChineseZodiacProvider(chineseZodiacProvider(Locale.US, "First Dragon"))
+                .register(Vocabulary.CHINESE_ZODIAC, chineseZodiacProvider(Locale.US, "First Dragon"))
                 .build();
         DataRegistryContext second = DataRegistryContext.builder()
                 .isolated()
-                .registerChineseZodiacProvider(chineseZodiacProvider(Locale.US, "Second Dragon"))
+                .register(Vocabulary.CHINESE_ZODIAC, chineseZodiacProvider(Locale.US, "Second Dragon"))
                 .build();
 
         assertEquals(
@@ -528,13 +559,13 @@ class DataRegistryContextTest {
                                 .registryContext(second)
                                 .build())
                         .animalFor(2024));
-        assertEquals(Set.of("en", "en_US"), first.chineseZodiacRegisteredKeys());
+        assertEquals(Set.of("en", "en_US"), first.registeredKeys(Vocabulary.CHINESE_ZODIAC));
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
-        assertTrue(first.isChineseZodiacRegistered(Locale.US));
-        assertNull(empty.chineseZodiacProvider(Locale.US));
-        assertFalse(empty.isChineseZodiacRegistered(Locale.US));
+        assertTrue(first.isRegistered(Vocabulary.CHINESE_ZODIAC, Locale.US));
+        assertNull(empty.provider(Vocabulary.CHINESE_ZODIAC, Locale.US));
+        assertFalse(empty.isRegistered(Vocabulary.CHINESE_ZODIAC, Locale.US));
         assertFalse(DataRegistryContext.globalDefault()
-                .chineseZodiacRegisteredKeys()
+                .registeredKeys(Vocabulary.CHINESE_ZODIAC)
                 .isEmpty());
     }
 
@@ -544,7 +575,7 @@ class DataRegistryContextTest {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> DataRegistryContext.builder()
-                        .registerChineseZodiacProvider(chineseZodiacProvider(Locale.US, "only", 11)));
+                        .register(Vocabulary.CHINESE_ZODIAC, chineseZodiacProvider(Locale.US, "only", 11)));
     }
 
     @Test
@@ -552,11 +583,11 @@ class DataRegistryContextTest {
     void zodiacProvidersRemainIsolatedBetweenContexts() {
         DataRegistryContext first = DataRegistryContext.builder()
                 .isolated()
-                .registerZodiacProvider(zodiacProvider(Locale.US, "First Aries"))
+                .register(Vocabulary.ZODIAC, zodiacProvider(Locale.US, "First Aries"))
                 .build();
         DataRegistryContext second = DataRegistryContext.builder()
                 .isolated()
-                .registerZodiacProvider(zodiacProvider(Locale.US, "Second Aries"))
+                .register(Vocabulary.ZODIAC, zodiacProvider(Locale.US, "Second Aries"))
                 .build();
 
         assertEquals(
@@ -570,12 +601,14 @@ class DataRegistryContextTest {
                                 .registryContext(second)
                                 .build())
                         .signFor(java.time.LocalDate.of(2024, 3, 21)));
-        assertEquals(Set.of("en", "en_US"), first.zodiacRegisteredKeys());
+        assertEquals(Set.of("en", "en_US"), first.registeredKeys(Vocabulary.ZODIAC));
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
-        assertTrue(first.isZodiacRegistered(Locale.US));
-        assertNull(empty.zodiacProvider(Locale.US));
-        assertFalse(empty.isZodiacRegistered(Locale.US));
-        assertFalse(DataRegistryContext.globalDefault().zodiacRegisteredKeys().isEmpty());
+        assertTrue(first.isRegistered(Vocabulary.ZODIAC, Locale.US));
+        assertNull(empty.provider(Vocabulary.ZODIAC, Locale.US));
+        assertFalse(empty.isRegistered(Vocabulary.ZODIAC, Locale.US));
+        assertFalse(DataRegistryContext.globalDefault()
+                .registeredKeys(Vocabulary.ZODIAC)
+                .isEmpty());
     }
 
     @Test
@@ -583,7 +616,7 @@ class DataRegistryContextTest {
     void zodiacProvidersRejectIncompleteCycles() {
         assertThrows(
                 IllegalArgumentException.class,
-                () -> DataRegistryContext.builder().registerZodiacProvider(zodiacProvider(Locale.US, "only", 11)));
+                () -> DataRegistryContext.builder().register(Vocabulary.ZODIAC, zodiacProvider(Locale.US, "only", 11)));
     }
 
     @Test
@@ -601,24 +634,24 @@ class DataRegistryContextTest {
 
         DataRegistryContext context = DataRegistryContext.builder()
                 .isolated()
-                .registerFirstNameProvider(languageFirstNames)
-                .registerFirstNameProvider(usFirstNames)
-                .registerWeatherProvider(languageWeather)
-                .registerWeatherProvider(usWeather)
-                .registerBloodTypeProvider(languageBloodTypes)
-                .registerBloodTypeProvider(usBloodTypes)
-                .registerZodiacProvider(languageZodiac)
-                .registerZodiacProvider(usZodiac)
+                .register(Vocabulary.FIRST_NAME, languageFirstNames)
+                .register(Vocabulary.FIRST_NAME, usFirstNames)
+                .register(Vocabulary.WEATHER, languageWeather)
+                .register(Vocabulary.WEATHER, usWeather)
+                .register(Vocabulary.BLOOD_TYPE, languageBloodTypes)
+                .register(Vocabulary.BLOOD_TYPE, usBloodTypes)
+                .register(Vocabulary.ZODIAC, languageZodiac)
+                .register(Vocabulary.ZODIAC, usZodiac)
                 .build();
 
-        assertSame(usFirstNames, context.firstNameProvider(Locale.US));
-        assertSame(languageFirstNames, context.firstNameProvider(Locale.CANADA));
-        assertSame(usWeather, context.weatherProvider(Locale.US));
-        assertSame(languageWeather, context.weatherProvider(Locale.CANADA));
-        assertSame(usBloodTypes, context.bloodTypeProvider(Locale.US));
-        assertSame(languageBloodTypes, context.bloodTypeProvider(Locale.CANADA));
-        assertSame(usZodiac, context.zodiacProvider(Locale.US));
-        assertSame(languageZodiac, context.zodiacProvider(Locale.CANADA));
+        assertSame(usFirstNames, context.provider(Vocabulary.FIRST_NAME, Locale.US));
+        assertSame(languageFirstNames, context.provider(Vocabulary.FIRST_NAME, Locale.CANADA));
+        assertSame(usWeather, context.provider(Vocabulary.WEATHER, Locale.US));
+        assertSame(languageWeather, context.provider(Vocabulary.WEATHER, Locale.CANADA));
+        assertSame(usBloodTypes, context.provider(Vocabulary.BLOOD_TYPE, Locale.US));
+        assertSame(languageBloodTypes, context.provider(Vocabulary.BLOOD_TYPE, Locale.CANADA));
+        assertSame(usZodiac, context.provider(Vocabulary.ZODIAC, Locale.US));
+        assertSame(languageZodiac, context.provider(Vocabulary.ZODIAC, Locale.CANADA));
     }
 
     @Test
@@ -627,21 +660,23 @@ class DataRegistryContextTest {
         FirstNameDataProvider indianEnglish = firstNameProvider(Locale.of("en", "IN"));
         FirstNameDataProvider germanOnly = firstNameProvider(Locale.GERMAN);
         DataRegistryContext context = DataRegistryContext.builder()
-                .registerFirstNameProvider(indianEnglish)
-                .registerFirstNameProvider(germanOnly)
+                .register(Vocabulary.FIRST_NAME, indianEnglish)
+                .register(Vocabulary.FIRST_NAME, germanOnly)
                 .build();
 
-        assertSame(indianEnglish, context.firstNameProvider(Locale.of("en", "IN")));
-        assertSame(FirstNameDataRegistry.forLocale(Locale.US), context.firstNameProvider(Locale.US));
-        assertSame(FirstNameDataRegistry.forLocale(Locale.UK), context.firstNameProvider(Locale.UK));
-        assertSame(FirstNameDataRegistry.forLocale(Locale.GERMANY), context.firstNameProvider(Locale.GERMANY));
-        assertSame(indianEnglish, context.firstNameProvider(Locale.of("en", "SG")));
-        assertSame(germanOnly, context.firstNameProvider(Locale.of("de", "LI")));
-        assertSame(indianEnglish, context.firstNameProvider(Locale.ENGLISH));
+        assertSame(indianEnglish, context.provider(Vocabulary.FIRST_NAME, Locale.of("en", "IN")));
+        assertSame(FirstNameDataRegistry.forLocale(Locale.US), context.provider(Vocabulary.FIRST_NAME, Locale.US));
+        assertSame(FirstNameDataRegistry.forLocale(Locale.UK), context.provider(Vocabulary.FIRST_NAME, Locale.UK));
+        assertSame(
+                FirstNameDataRegistry.forLocale(Locale.GERMANY),
+                context.provider(Vocabulary.FIRST_NAME, Locale.GERMANY));
+        assertSame(indianEnglish, context.provider(Vocabulary.FIRST_NAME, Locale.of("en", "SG")));
+        assertSame(germanOnly, context.provider(Vocabulary.FIRST_NAME, Locale.of("de", "LI")));
+        assertSame(indianEnglish, context.provider(Vocabulary.FIRST_NAME, Locale.ENGLISH));
         assertSame(
                 FirstNameDataRegistry.forLocale(Locale.of("fr", "LU")),
-                context.firstNameProvider(Locale.of("fr", "LU")));
-        assertNull(context.firstNameProvider(null));
+                context.provider(Vocabulary.FIRST_NAME, Locale.of("fr", "LU")));
+        assertNull(context.provider(Vocabulary.FIRST_NAME, null));
     }
 
     @Test
@@ -697,10 +732,10 @@ class DataRegistryContextTest {
         Locale locale = Locale.US;
         DataRegistryContext.Builder builder = DataRegistryContext.builder().isolated();
 
-        assertThrows(NullPointerException.class, () -> builder.registerFirstNameProvider(null));
+        assertThrows(NullPointerException.class, () -> builder.register(Vocabulary.FIRST_NAME, null));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerFirstNameProvider(new FirstNameDataProvider() {
+                () -> builder.register(Vocabulary.FIRST_NAME, new FirstNameDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -719,7 +754,7 @@ class DataRegistryContextTest {
 
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerLastNameProvider(new LastNameDataProvider() {
+                () -> builder.register(Vocabulary.LAST_NAME, new LastNameDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -733,7 +768,7 @@ class DataRegistryContextTest {
 
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerGenderProvider(new GenderDataProvider() {
+                () -> builder.register(Vocabulary.GENDER, new GenderDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -751,7 +786,7 @@ class DataRegistryContextTest {
                 }));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerGenderProvider(new GenderDataProvider() {
+                () -> builder.register(Vocabulary.GENDER, new GenderDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -770,7 +805,7 @@ class DataRegistryContextTest {
 
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerTitleProvider(new TitleDataProvider() {
+                () -> builder.register(Vocabulary.TITLE, new TitleDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -784,7 +819,7 @@ class DataRegistryContextTest {
 
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerSuffixProvider(new SuffixDataProvider() {
+                () -> builder.register(Vocabulary.SUFFIX, new SuffixDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -798,7 +833,7 @@ class DataRegistryContextTest {
 
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerProfessionProvider(new ProfessionDataProvider() {
+                () -> builder.register(Vocabulary.PROFESSION, new ProfessionDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -816,7 +851,7 @@ class DataRegistryContextTest {
                 }));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerProfessionProvider(new ProfessionDataProvider() {
+                () -> builder.register(Vocabulary.PROFESSION, new ProfessionDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -834,7 +869,7 @@ class DataRegistryContextTest {
                 }));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerProfessionProvider(new ProfessionDataProvider() {
+                () -> builder.register(Vocabulary.PROFESSION, new ProfessionDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -852,7 +887,7 @@ class DataRegistryContextTest {
                 }));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerProfessionProvider(new ProfessionDataProvider() {
+                () -> builder.register(Vocabulary.PROFESSION, new ProfessionDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -870,7 +905,7 @@ class DataRegistryContextTest {
                 }));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerProfessionProvider(new ProfessionDataProvider() {
+                () -> builder.register(Vocabulary.PROFESSION, new ProfessionDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -889,7 +924,7 @@ class DataRegistryContextTest {
 
         assertThrows(
                 NullPointerException.class,
-                () -> builder.registerCityProvider(new CityDataProvider() {
+                () -> builder.register(Vocabulary.CITY, new CityDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return null;
@@ -902,7 +937,7 @@ class DataRegistryContextTest {
                 }));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerCityProvider(new CityDataProvider() {
+                () -> builder.register(Vocabulary.CITY, new CityDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -915,7 +950,7 @@ class DataRegistryContextTest {
                 }));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerCityProvider(new CityDataProvider() {
+                () -> builder.register(Vocabulary.CITY, new CityDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -929,7 +964,7 @@ class DataRegistryContextTest {
 
         assertThrows(
                 NullPointerException.class,
-                () -> builder.registerStateProvider(new StateDataProvider() {
+                () -> builder.register(Vocabulary.STATE, new StateDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return null;
@@ -947,7 +982,7 @@ class DataRegistryContextTest {
                 }));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerStateProvider(new StateDataProvider() {
+                () -> builder.register(Vocabulary.STATE, new StateDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -965,7 +1000,7 @@ class DataRegistryContextTest {
                 }));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerStateProvider(new StateDataProvider() {
+                () -> builder.register(Vocabulary.STATE, new StateDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -983,7 +1018,7 @@ class DataRegistryContextTest {
                 }));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerStateProvider(new StateDataProvider() {
+                () -> builder.register(Vocabulary.STATE, new StateDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -1002,7 +1037,7 @@ class DataRegistryContextTest {
 
         assertThrows(
                 NullPointerException.class,
-                () -> builder.registerCountryProvider(new CountryDataProvider() {
+                () -> builder.register(Vocabulary.COUNTRY, new CountryDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return null;
@@ -1015,7 +1050,7 @@ class DataRegistryContextTest {
                 }));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerCountryProvider(new CountryDataProvider() {
+                () -> builder.register(Vocabulary.COUNTRY, new CountryDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -1028,7 +1063,7 @@ class DataRegistryContextTest {
                 }));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerCountryProvider(new CountryDataProvider() {
+                () -> builder.register(Vocabulary.COUNTRY, new CountryDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -1042,7 +1077,7 @@ class DataRegistryContextTest {
 
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerStreetAddressProvider(new StreetAddressDataProvider() {
+                () -> builder.register(Vocabulary.STREET_ADDRESS, new StreetAddressDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;
@@ -1066,7 +1101,7 @@ class DataRegistryContextTest {
 
         assertThrows(
                 NullPointerException.class,
-                () -> builder.registerNationalIdProvider(new NationalIdProvider() {
+                () -> builder.register(Vocabulary.NATIONAL_ID, new NationalIdProvider() {
                     @Override
                     public Locale getLocale() {
                         return null;
@@ -1082,7 +1117,7 @@ class DataRegistryContextTest {
                 NullPointerException.class,
                 () -> DataRegistryContext.builder()
                         .useGlobalFallback(true)
-                        .registerFirstNameProvider(new FirstNameDataProvider() {
+                        .register(Vocabulary.FIRST_NAME, new FirstNameDataProvider() {
                             @Override
                             public Locale getLocale() {
                                 return null;
@@ -1099,17 +1134,17 @@ class DataRegistryContextTest {
                             }
                         }));
 
-        assertThrows(NullPointerException.class, () -> builder.registerWeatherProvider(null));
+        assertThrows(NullPointerException.class, () -> builder.register(Vocabulary.WEATHER, null));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerWeatherProvider(weatherProvider(locale, java.util.List.of())));
+                () -> builder.register(Vocabulary.WEATHER, weatherProvider(locale, java.util.List.of())));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerWeatherProvider(weatherProvider(locale, java.util.List.of(" "))));
+                () -> builder.register(Vocabulary.WEATHER, weatherProvider(locale, java.util.List.of(" "))));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> builder.registerWeatherProvider(
-                        weatherProvider(locale, java.util.Collections.singletonList(null))));
+                () -> builder.register(
+                        Vocabulary.WEATHER, weatherProvider(locale, java.util.Collections.singletonList(null))));
     }
 
     private static FirstNameDataProvider firstNameProvider(Locale locale) {
@@ -1299,16 +1334,16 @@ class DataRegistryContextTest {
     private static DataRegistryContext scopedVocabularyContext(String marker) {
         return DataRegistryContext.builder()
                 .isolated()
-                .registerWeatherProvider(weatherProvider(Locale.US, marker + " weather"))
-                .registerMeasurementProvider(measurementProvider(Locale.US, marker + " unit"))
-                .registerFinancialTermProvider(financialTermProvider(Locale.US, marker + " term"))
-                .registerRestaurantTypeProvider(restaurantTypeProvider(Locale.US, marker + " restaurant"))
-                .registerHobbyProvider(hobbyProvider(Locale.US, marker + " hobby"))
-                .registerNationalityProvider(nationalityProvider(Locale.US, marker + " nationality"))
-                .registerPronounProvider(pronounProvider(Locale.US, marker + "/pronoun"))
-                .registerBloodTypeProvider(bloodTypeProvider(Locale.US, List.of(marker + " blood"), List.of(1)))
-                .registerChineseZodiacProvider(chineseZodiacProvider(Locale.US, marker + " dragon"))
-                .registerZodiacProvider(zodiacProvider(Locale.US, marker + " aries"))
+                .register(Vocabulary.WEATHER, weatherProvider(Locale.US, marker + " weather"))
+                .register(Vocabulary.MEASUREMENT, measurementProvider(Locale.US, marker + " unit"))
+                .register(Vocabulary.FINANCIAL_TERM, financialTermProvider(Locale.US, marker + " term"))
+                .register(Vocabulary.RESTAURANT_TYPE, restaurantTypeProvider(Locale.US, marker + " restaurant"))
+                .register(Vocabulary.HOBBY, hobbyProvider(Locale.US, marker + " hobby"))
+                .register(Vocabulary.NATIONALITY, nationalityProvider(Locale.US, marker + " nationality"))
+                .register(Vocabulary.PRONOUN, pronounProvider(Locale.US, marker + "/pronoun"))
+                .register(Vocabulary.BLOOD_TYPE, bloodTypeProvider(Locale.US, List.of(marker + " blood"), List.of(1)))
+                .register(Vocabulary.CHINESE_ZODIAC, chineseZodiacProvider(Locale.US, marker + " dragon"))
+                .register(Vocabulary.ZODIAC, zodiacProvider(Locale.US, marker + " aries"))
                 .build();
     }
 

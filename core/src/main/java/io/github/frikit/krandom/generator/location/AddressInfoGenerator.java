@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.location;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -58,13 +59,14 @@ public final class AddressInfoGenerator implements Generator<AddressInfo> {
 
         DataRegistryContext registryContext = config.getRegistryContext();
         Locale locale = config.getLocale();
-        this.cities = registryContext.isCityRegistered(locale)
-                ? java.util.Objects.requireNonNull(registryContext.cityProvider(locale))
+        this.cities = registryContext.isRegistered(Vocabulary.CITY, locale)
+                ? java.util.Objects.requireNonNull(registryContext.provider(Vocabulary.CITY, locale))
                         .getCities()
                 : new String[0];
 
-        if (registryContext.isStateRegistered(locale)) {
-            StateDataProvider provider = java.util.Objects.requireNonNull(registryContext.stateProvider(locale));
+        if (registryContext.isRegistered(Vocabulary.STATE, locale)) {
+            StateDataProvider provider =
+                    java.util.Objects.requireNonNull(registryContext.provider(Vocabulary.STATE, locale));
             this.states = provider.getStates();
             this.stateAbbreviations = provider.getAbbreviations();
         } else {

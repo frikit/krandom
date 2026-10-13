@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -701,7 +702,7 @@ class StateGeneratorTest {
         Locale locale = Locale.of("zz", "ZZ");
         io.github.frikit.krandom.generator.DataRegistryContext context =
                 io.github.frikit.krandom.generator.DataRegistryContext.builder()
-                        .registerStateProvider(new StateDataProvider() {
+                        .register(Vocabulary.STATE, new StateDataProvider() {
 
                             @Override
                             public Locale getLocale() {

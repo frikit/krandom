@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.Vocabulary;
 import io.github.frikit.krandom.generator.object.ObjectModel;
 import io.github.frikit.krandom.generator.weather.WeatherDataProvider;
 import io.github.frikit.krandom.generator.weather.WeatherGenerator;
@@ -71,7 +72,7 @@ class JavaGradleUsageTest {
         };
         DataRegistryContext data = DataRegistryContext.builder()
                 .isolated()
-                .registerWeatherProvider(weather)
+                .register(Vocabulary.WEATHER, weather)
                 .build();
         GeneratorConfig config = GeneratorConfig.builder()
                 .locale(Locale.US)

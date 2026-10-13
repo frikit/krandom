@@ -5,18 +5,19 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.Locale;
 
 /**
  * Contract for a locale-specific gender-label data source.
  *
  * <p>Implement this interface and register an instance on a configuration-scoped context with
- * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerGenderProvider(GenderDataProvider)}
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#register(io.github.frikit.krandom.generator.Vocabulary, io.github.frikit.krandom.generator.LocaleDataProvider)}
  * to extend or override gender labels for any locale — including locales not built into the library.
  *
  * <pre>{@code
  * DataRegistryContext context = DataRegistryContext.builder()
- *     .registerGenderProvider(new GenderDataProvider() {
+ *     .register(Vocabulary.GENDER, new GenderDataProvider() {
  *         public Locale getLocale() { return Locale.of("ko", "KR"); }
  *         public String getMaleLabel()   { return "남성"; }
  *         public String getFemaleLabel() { return "여성"; }
@@ -32,7 +33,7 @@ import java.util.Locale;
  * <p>The built-in baseline is seeded by {@link GenderDataRegistry} from
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}.
  */
-public interface GenderDataProvider {
+public interface GenderDataProvider extends LocaleDataProvider {
 
     /**
      * The locale this provider supplies labels for.

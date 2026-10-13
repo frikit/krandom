@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -224,7 +225,7 @@ class StreetAddressGeneratorTest {
         Locale locale = Locale.of("qq", "QQ");
         DataRegistryContext context = DataRegistryContext.builder()
                 .isolated()
-                .registerStreetAddressProvider(new StreetAddressDataProvider() {
+                .register(Vocabulary.STREET_ADDRESS, new StreetAddressDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return locale;

@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.time.LocalDate;
 import java.time.MonthDay;
 import java.util.List;
@@ -74,7 +75,7 @@ public final class ZodiacGenerator implements Generator<String> {
     public ZodiacGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         DataRegistryContext registryContext = config.getRegistryContext();
-        ZodiacDataProvider provider = registryContext.zodiacProvider(config.getLocale());
+        ZodiacDataProvider provider = registryContext.provider(Vocabulary.ZODIAC, config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }

@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.text.Normalizer;
 import java.util.Locale;
 import org.junit.jupiter.api.DisplayName;
@@ -66,7 +67,7 @@ class ContactInfoGeneratorTest {
     @DisplayName("blank normalized name segments fall back to the generated email")
     void blankNormalizedNameSegmentsFallBackToGeneratedEmail() {
         DataRegistryContext context = DataRegistryContext.builder()
-                .registerFirstNameProvider(new FirstNameDataProvider() {
+                .register(Vocabulary.FIRST_NAME, new FirstNameDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return Locale.US;
@@ -82,7 +83,7 @@ class ContactInfoGeneratorTest {
                         return new String[] {"???"};
                     }
                 })
-                .registerLastNameProvider(new LastNameDataProvider() {
+                .register(Vocabulary.LAST_NAME, new LastNameDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return Locale.US;
@@ -93,7 +94,7 @@ class ContactInfoGeneratorTest {
                         return new String[] {"Valid"};
                     }
                 })
-                .registerGenderProvider(new GenderDataProvider() {
+                .register(Vocabulary.GENDER, new GenderDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return Locale.US;
@@ -126,7 +127,7 @@ class ContactInfoGeneratorTest {
     @DisplayName("blank normalized last names also fall back to the generated email")
     void blankNormalizedLastNameFallsBackToGeneratedEmail() {
         DataRegistryContext context = DataRegistryContext.builder()
-                .registerFirstNameProvider(new FirstNameDataProvider() {
+                .register(Vocabulary.FIRST_NAME, new FirstNameDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return Locale.US;
@@ -142,7 +143,7 @@ class ContactInfoGeneratorTest {
                         return new String[] {"Valid"};
                     }
                 })
-                .registerLastNameProvider(new LastNameDataProvider() {
+                .register(Vocabulary.LAST_NAME, new LastNameDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return Locale.US;
@@ -153,7 +154,7 @@ class ContactInfoGeneratorTest {
                         return new String[] {"???"};
                     }
                 })
-                .registerGenderProvider(new GenderDataProvider() {
+                .register(Vocabulary.GENDER, new GenderDataProvider() {
                     @Override
                     public Locale getLocale() {
                         return Locale.US;

@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.List;
 import java.util.Locale;
 
@@ -13,7 +14,7 @@ import java.util.Locale;
  *
  * <p>ABO/Rh frequencies differ by population, so blood types are weighted per locale. Implement this
  * interface and register an instance with
- * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerBloodTypeProvider(BloodTypeDataProvider)}
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#register(io.github.frikit.krandom.generator.Vocabulary, io.github.frikit.krandom.generator.LocaleDataProvider)}
  * to add or override a validated distribution for one configuration.
  * {@link BloodTypeDataRegistry} holds the built-in distributions served by
  * {@link io.github.frikit.krandom.generator.DataRegistryContext#globalDefault()}.
@@ -23,7 +24,7 @@ import java.util.Locale;
  *
  * <pre>{@code
  * DataRegistryContext context = DataRegistryContext.builder()
- *     .registerBloodTypeProvider(new BloodTypeDataProvider() {
+ *     .register(Vocabulary.BLOOD_TYPE, new BloodTypeDataProvider() {
  *         public Locale getLocale()        { return Locale.of("ko", "KR"); }
  *         public List<String> getTypes()   { return List.of("O+", "A+", "B+", "AB+"); }
  *         public List<Integer> getWeights(){ return List.of(27, 34, 27, 12); }
@@ -36,7 +37,7 @@ import java.util.Locale;
  * BloodTypeGenerator gen = new BloodTypeGenerator(config);
  * }</pre>
  */
-public interface BloodTypeDataProvider {
+public interface BloodTypeDataProvider extends LocaleDataProvider {
 
     /**
      * The locale this provider supplies a distribution for.

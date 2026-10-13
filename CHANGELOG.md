@@ -44,9 +44,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `default.txt` fallback; all 32 non-English native locales ship real translations of every
   display vocabulary (database column and directory names keep their English identifiers outside
   the previously localized languages). Like hobbies or zodiac signs, each concept resolves through
-  the configuration's `DataRegistryContext`, which gains `xProvider`, `isXRegistered`,
-  `xRegisteredKeys`, and `Builder#registerXProvider` for it, so scoped registrations apply and
-  isolated contexts never read the global registries.
+  the configuration's `DataRegistryContext` under its own `Vocabulary` key, so scoped registrations
+  apply and isolated contexts never read the global registries.
+- `Vocabulary<P>` keys for the 39 built-in vocabularies (`Vocabulary.all()`),
+  `Vocabulary.custom(name, providerType)` for consumer-defined vocabularies that live only in the
+  contexts they are registered in, and the `LocaleDataProvider` contract that every vocabulary
+  provider interface now extends.
 - `Locale` constructors for `IndustryGenerator`, `JobFieldGenerator`, `SeniorityGenerator`,
   `PositionGenerator`, `EducationalAttainmentGenerator`, `MaritalStatusGenerator` and
   `CompanyNameGenerator`, plus `Generators.ofX(Locale)` overloads for these and for job types,
@@ -117,6 +120,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Add `pre_commit_check.sh --fast`, module-boundary checks in the pre-commit gate, and JaCoCo
   reports for the integration modules; only `krandom-core` has the exact coverage gate and is
   uploaded to Codecov.
+- `DataRegistryContext` is addressed by `Vocabulary` key: `provider(Vocabulary, Locale)`,
+  `isRegistered(Vocabulary, Locale)`, `registeredKeys(Vocabulary)` and
+  `Builder#register(Vocabulary, provider)` replace the per-vocabulary methods (`cityProvider`,
+  `isCityRegistered`, `cityRegisteredKeys`, `Builder#registerCityProvider` and their siblings for
+  the other 38 vocabularies), which are deleted. Resolution order, validation rules and error
+  messages are unchanged, and `registerLocaleData` and `registerDataPack` remain.
 - Format Java with Palantir Java Format and Kotlin sources and Gradle scripts with ktlint through
   Spotless, with a shared `.editorconfig`; `spotlessCheck` runs as part of `check`. The reformat
   spreads statements over more lines, so the `spring-boot-starter` JaCoCo line floor moves from

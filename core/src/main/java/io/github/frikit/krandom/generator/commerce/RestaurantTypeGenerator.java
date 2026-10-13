@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.commerce;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -62,7 +63,7 @@ public final class RestaurantTypeGenerator implements Generator<String> {
     public RestaurantTypeGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         DataRegistryContext registryContext = config.getRegistryContext();
-        RestaurantTypeDataProvider provider = registryContext.restaurantTypeProvider(config.getLocale());
+        RestaurantTypeDataProvider provider = registryContext.provider(Vocabulary.RESTAURANT_TYPE, config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }

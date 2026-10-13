@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import io.github.frikit.krandom.generator.user.UniversityData;
 import io.github.frikit.krandom.generator.user.UniversityGenerator;
 import java.io.IOException;
@@ -76,11 +77,11 @@ class LocalDataPackTest {
         UniversityGenerator first = new UniversityGenerator(config);
         UniversityGenerator second = new UniversityGenerator(config);
 
-        assertTrue(context.isUniversityRegistered(Locale.forLanguageTag("en-US")));
+        assertTrue(context.isRegistered(Vocabulary.UNIVERSITY, Locale.forLanguageTag("en-US")));
         assertFalse(DataRegistryContext.builder()
                 .isolated()
                 .build()
-                .isUniversityRegistered(Locale.forLanguageTag("en-US")));
+                .isRegistered(Vocabulary.UNIVERSITY, Locale.forLanguageTag("en-US")));
         assertEquals(first.generate(), second.generate());
         assertEquals(2, first.getUniversityCount());
         assertEquals(Locale.forLanguageTag("en-US"), first.getLocale());

@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import io.github.frikit.krandom.generator.location.CityGenerator;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
 import io.github.frikit.krandom.generator.location.StateGenerator;
@@ -153,11 +154,11 @@ class LocaleDataBundleTest {
                 .registerLocaleData(bundle)
                 .build();
 
-        assertTrue(context.isFirstNameRegistered(locale));
-        assertTrue(context.isLastNameRegistered(locale));
-        assertFalse(context.isCityRegistered(locale));
-        assertFalse(context.isCountryRegistered(locale));
-        assertNotNull(context.firstNameProvider(locale));
+        assertTrue(context.isRegistered(Vocabulary.FIRST_NAME, locale));
+        assertTrue(context.isRegistered(Vocabulary.LAST_NAME, locale));
+        assertFalse(context.isRegistered(Vocabulary.CITY, locale));
+        assertFalse(context.isRegistered(Vocabulary.COUNTRY, locale));
+        assertNotNull(context.provider(Vocabulary.FIRST_NAME, locale));
     }
 
     @Test

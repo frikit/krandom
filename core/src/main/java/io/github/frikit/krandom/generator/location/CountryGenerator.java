@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.location;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -249,14 +250,14 @@ public final class CountryGenerator implements Generator<String> {
         DataRegistryContext registryContext = config.getRegistryContext();
 
         Locale locale = config.getLocale();
-        if (!registryContext.isCountryRegistered(locale)) {
+        if (!registryContext.isRegistered(Vocabulary.COUNTRY, locale)) {
             throw new UnsupportedOperationException("Locale " + locale + " is not supported. Registered locales: "
-                    + registryContext.countryRegisteredKeys());
+                    + registryContext.registeredKeys(Vocabulary.COUNTRY));
         }
 
         this.random = config.createRandom();
 
-        this.countries = java.util.Objects.requireNonNull(registryContext.countryProvider(locale))
+        this.countries = java.util.Objects.requireNonNull(registryContext.provider(Vocabulary.COUNTRY, locale))
                 .getCountries();
     }
 
@@ -506,7 +507,7 @@ public final class CountryGenerator implements Generator<String> {
      * @return {@code true} for all locales accepted by the constructor
      */
     public boolean isLocaleExplicitlySupported() {
-        return config.getRegistryContext().isCountryRegistered(config.getLocale());
+        return config.getRegistryContext().isRegistered(Vocabulary.COUNTRY, config.getLocale());
     }
 
     private String requireLocaleCountry() {

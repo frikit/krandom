@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.location;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.io.InputStream;
 import java.util.Locale;
 import java.util.Objects;
@@ -58,26 +59,28 @@ public final class StreetAddressGenerator implements Generator<String> {
         this.config = Objects.requireNonNull(config, "config must not be null");
         DataRegistryContext registryContext = config.getRegistryContext();
         Locale locale = config.getLocale();
-        if (!registryContext.isStreetAddressRegistered(locale)) {
+        if (!registryContext.isRegistered(Vocabulary.STREET_ADDRESS, locale)) {
             throw new UnsupportedOperationException("Locale " + locale + " is not supported. Registered locales: "
-                    + registryContext.streetAddressRegisteredKeys());
+                    + registryContext.registeredKeys(Vocabulary.STREET_ADDRESS));
         }
 
         this.random = config.createRandom();
 
         StreetAddressDataProvider provider =
-                java.util.Objects.requireNonNull(registryContext.streetAddressProvider(locale));
+                java.util.Objects.requireNonNull(registryContext.provider(Vocabulary.STREET_ADDRESS, locale));
         this.streetNames = provider.getStreetNames();
         this.streetTypesShort = provider.getStreetTypesShort();
         this.streetTypesLong = provider.getStreetTypesLong();
         this.secondaryUnits = loadSecondaryUnits(locale);
 
-        this.cityGenerator =
-                registryContext.isCityRegistered(locale) ? new CityGenerator(config.forChildStream("city")) : null;
-        this.stateGenerator =
-                registryContext.isStateRegistered(locale) ? new StateGenerator(config.forChildStream("state")) : null;
+        this.cityGenerator = registryContext.isRegistered(Vocabulary.CITY, locale)
+                ? new CityGenerator(config.forChildStream("city"))
+                : null;
+        this.stateGenerator = registryContext.isRegistered(Vocabulary.STATE, locale)
+                ? new StateGenerator(config.forChildStream("state"))
+                : null;
         this.postalCodeGenerator = new PostalCodeGenerator(config.forChildStream("postalCode"));
-        this.countryGenerator = registryContext.isCountryRegistered(locale)
+        this.countryGenerator = registryContext.isRegistered(Vocabulary.COUNTRY, locale)
                 ? new CountryGenerator(config.forChildStream("country"))
                 : null;
     }
@@ -211,6 +214,6 @@ public final class StreetAddressGenerator implements Generator<String> {
      * Returns true when configured locale is registered.
      */
     public boolean isLocaleExplicitlySupported() {
-        return config.getRegistryContext().isStreetAddressRegistered(config.getLocale());
+        return config.getRegistryContext().isRegistered(Vocabulary.STREET_ADDRESS, config.getLocale());
     }
 }

@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -58,13 +59,13 @@ public final class SuffixGenerator implements Generator<String> {
         DataRegistryContext registryContext = config.getRegistryContext();
 
         Locale locale = config.getLocale();
-        if (!registryContext.isSuffixRegistered(locale)) {
+        if (!registryContext.isRegistered(Vocabulary.SUFFIX, locale)) {
             throw new UnsupportedOperationException("Locale " + locale + " is not supported. Registered locales: "
-                    + registryContext.suffixRegisteredKeys());
+                    + registryContext.registeredKeys(Vocabulary.SUFFIX));
         }
 
         this.random = config.createRandom();
-        this.suffixes = java.util.Objects.requireNonNull(registryContext.suffixProvider(locale))
+        this.suffixes = java.util.Objects.requireNonNull(registryContext.provider(Vocabulary.SUFFIX, locale))
                 .getSuffixes();
     }
 
@@ -91,6 +92,6 @@ public final class SuffixGenerator implements Generator<String> {
      * Returns {@code true} if the configured locale has a registered suffix provider.
      */
     public boolean isLocaleExplicitlySupported() {
-        return config.getRegistryContext().isSuffixRegistered(config.getLocale());
+        return config.getRegistryContext().isRegistered(Vocabulary.SUFFIX, config.getLocale());
     }
 }

@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -69,7 +70,7 @@ public final class ProfessionGenerator implements Generator<String> {
         DataRegistryContext registryContext = config.getRegistryContext();
         this.random = config.createRandom();
 
-        ProfessionDataProvider provider = registryContext.professionProvider(config.getLocale());
+        ProfessionDataProvider provider = registryContext.provider(Vocabulary.PROFESSION, config.getLocale());
         if (provider == null) {
             throw new UnsupportedOperationException("Profession data is not supported for locale "
                     + config.getLocale()
@@ -148,7 +149,8 @@ public final class ProfessionGenerator implements Generator<String> {
      * Returns {@code true} if locale has exact profession provider (not just language fallback).
      */
     public boolean isLocaleExplicitlySupported() {
-        ProfessionDataProvider provider = config.getRegistryContext().professionProvider(config.getLocale());
+        ProfessionDataProvider provider =
+                config.getRegistryContext().provider(Vocabulary.PROFESSION, config.getLocale());
         return provider != null && localeKey(provider.getLocale()).equals(localeKey(config.getLocale()));
     }
 

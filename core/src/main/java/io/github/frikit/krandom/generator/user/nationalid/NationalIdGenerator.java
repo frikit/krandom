@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.user.nationalid;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -37,11 +38,11 @@ public final class NationalIdGenerator implements Generator<String> {
         this.config = Objects.requireNonNull(config, "config must not be null");
         Locale locale = config.getLocale();
         DataRegistryContext registryContext = config.getRegistryContext();
-        if (!registryContext.isNationalIdRegistered(locale)) {
+        if (!registryContext.isRegistered(Vocabulary.NATIONAL_ID, locale)) {
             throw new UnsupportedOperationException("Locale " + locale + " is not supported. Registered locales: "
-                    + registryContext.nationalIdRegisteredKeys());
+                    + registryContext.registeredKeys(Vocabulary.NATIONAL_ID));
         }
-        this.provider = java.util.Objects.requireNonNull(registryContext.nationalIdProvider(locale));
+        this.provider = java.util.Objects.requireNonNull(registryContext.provider(Vocabulary.NATIONAL_ID, locale));
         this.random = config.createRandom();
     }
 

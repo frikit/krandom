@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.text;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.List;
 import java.util.Locale;
 
@@ -15,7 +16,7 @@ import java.util.Locale;
  * {@link TextWordDataRegistry}; locales without built-in data fall back to the bundled English
  * {@code default.txt} data.
  */
-public interface TextWordDataProvider {
+public interface TextWordDataProvider extends LocaleDataProvider {
 
     /**
      * The locale this provider supplies text vocabulary words for.

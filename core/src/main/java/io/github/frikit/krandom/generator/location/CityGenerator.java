@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.location;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -49,14 +50,14 @@ public final class CityGenerator implements Generator<String> {
         DataRegistryContext registryContext = config.getRegistryContext();
 
         Locale locale = config.getLocale();
-        if (!registryContext.isCityRegistered(locale)) {
+        if (!registryContext.isRegistered(Vocabulary.CITY, locale)) {
             throw new UnsupportedOperationException("Locale " + locale + " is not supported. Registered locales: "
-                    + registryContext.cityRegisteredKeys());
+                    + registryContext.registeredKeys(Vocabulary.CITY));
         }
 
         this.random = config.createRandom();
 
-        this.cities = java.util.Objects.requireNonNull(registryContext.cityProvider(locale))
+        this.cities = java.util.Objects.requireNonNull(registryContext.provider(Vocabulary.CITY, locale))
                 .getCities();
     }
 
@@ -105,6 +106,6 @@ public final class CityGenerator implements Generator<String> {
      * @return {@code true} for all locales accepted by the constructor
      */
     public boolean isLocaleExplicitlySupported() {
-        return config.getRegistryContext().isCityRegistered(config.getLocale());
+        return config.getRegistryContext().isRegistered(Vocabulary.CITY, config.getLocale());
     }
 }

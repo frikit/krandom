@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.Locale;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
@@ -59,23 +60,24 @@ class UniversityGeneratorTest {
 
         assertThrows(NullPointerException.class, () -> new UniversityGenerator(null));
         assertThrows(UnsupportedOperationException.class, () -> new UniversityGenerator(missing));
-        assertFalse(DataRegistryContext.globalDefault().isUniversityRegistered(Locale.US));
-        assertTrue(
-                DataRegistryContext.globalDefault().universityRegisteredKeys().isEmpty());
+        assertFalse(DataRegistryContext.globalDefault().isRegistered(Vocabulary.UNIVERSITY, Locale.US));
+        assertTrue(DataRegistryContext.globalDefault()
+                .registeredKeys(Vocabulary.UNIVERSITY)
+                .isEmpty());
         assertThrows(
-                NullPointerException.class, () -> DataRegistryContext.builder().registerUniversityProvider(null));
+                NullPointerException.class, () -> DataRegistryContext.builder().register(Vocabulary.UNIVERSITY, null));
         assertThrows(
                 NullPointerException.class,
                 () -> DataRegistryContext.builder()
-                        .registerUniversityProvider(provider(null, new UniversityData[] {FIRST})));
+                        .register(Vocabulary.UNIVERSITY, provider(null, new UniversityData[] {FIRST})));
         assertThrows(
                 IllegalArgumentException.class,
                 () -> DataRegistryContext.builder()
-                        .registerUniversityProvider(provider(Locale.US, new UniversityData[0])));
+                        .register(Vocabulary.UNIVERSITY, provider(Locale.US, new UniversityData[0])));
         assertThrows(
                 IllegalArgumentException.class,
                 () -> DataRegistryContext.builder()
-                        .registerUniversityProvider(provider(Locale.US, new UniversityData[] {null})));
+                        .register(Vocabulary.UNIVERSITY, provider(Locale.US, new UniversityData[] {null})));
     }
 
     @Test
@@ -85,13 +87,13 @@ class UniversityGeneratorTest {
         UniversityDataProvider american = provider(Locale.US, new UniversityData[] {SECOND});
         DataRegistryContext context = DataRegistryContext.builder()
                 .isolated()
-                .registerUniversityProvider(english)
-                .registerUniversityProvider(american)
+                .register(Vocabulary.UNIVERSITY, english)
+                .register(Vocabulary.UNIVERSITY, american)
                 .build();
 
-        assertEquals(american, context.universityProvider(Locale.US));
-        assertEquals(english, context.universityProvider(Locale.UK));
-        assertEquals(Set.of("en", "en_US"), context.universityRegisteredKeys());
+        assertEquals(american, context.provider(Vocabulary.UNIVERSITY, Locale.US));
+        assertEquals(english, context.provider(Vocabulary.UNIVERSITY, Locale.UK));
+        assertEquals(Set.of("en", "en_US"), context.registeredKeys(Vocabulary.UNIVERSITY));
     }
 
     private static GeneratorConfig configuration(Locale locale, long seed) {
@@ -100,7 +102,7 @@ class UniversityGeneratorTest {
                 .seed(seed)
                 .registryContext(DataRegistryContext.builder()
                         .isolated()
-                        .registerUniversityProvider(provider(locale, new UniversityData[] {FIRST, SECOND}))
+                        .register(Vocabulary.UNIVERSITY, provider(locale, new UniversityData[] {FIRST, SECOND}))
                         .build())
                 .build();
     }

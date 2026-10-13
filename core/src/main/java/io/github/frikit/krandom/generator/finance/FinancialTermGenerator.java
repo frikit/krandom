@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.finance;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -62,7 +63,7 @@ public final class FinancialTermGenerator implements Generator<String> {
     public FinancialTermGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         DataRegistryContext registryContext = config.getRegistryContext();
-        FinancialTermDataProvider provider = registryContext.financialTermProvider(config.getLocale());
+        FinancialTermDataProvider provider = registryContext.provider(Vocabulary.FINANCIAL_TERM, config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }

@@ -5,18 +5,19 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.Locale;
 
 /**
  * Contract for a locale-specific title data source.
  *
  * <p>Implement this interface and register an instance on a configuration-scoped context with
- * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerTitleProvider(TitleDataProvider)}
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#register(io.github.frikit.krandom.generator.Vocabulary, io.github.frikit.krandom.generator.LocaleDataProvider)}
  * to extend or override title data for any locale — including locales not built into the library.
  *
  * <pre>{@code
  * DataRegistryContext context = DataRegistryContext.builder()
- *     .registerTitleProvider(new TitleDataProvider() {
+ *     .register(Vocabulary.TITLE, new TitleDataProvider() {
  *         public Locale getLocale() { return Locale.of("ko", "KR"); }
  *         public String[] getTitles() { return new String[]{"씨", "님", "박사", "교수"}; }
  *     })
@@ -32,7 +33,7 @@ import java.util.Locale;
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}. Custom registrations take
  * precedence over the built-in data for the same locale key.
  */
-public interface TitleDataProvider {
+public interface TitleDataProvider extends LocaleDataProvider {
 
     /**
      * The locale this provider supplies data for.
