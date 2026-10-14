@@ -6,7 +6,7 @@ generated-output compatibility promise relative to earlier releases: read the
 [changelog](CHANGELOG.md) before upgrading and adapt to changed or removed API when you adopt a new
 version.
 
-The latest stable release is `2.5.0`.
+The latest stable release is `2.6.0`.
 The repository development line is `2.6.0-SNAPSHOT`.
 
 ## Determinism
