@@ -2,7 +2,7 @@
 kotlin = "2.4.21"
 jacoco = "0.8.15"
 spotless = "8.10.4"
-palantir-java-format = "2.98.0"
+palantir-java-format = "2.102.0"
 ktlint = "1.8.0"
 commons-validator = "1.11.0"
 slf4j = "2.0.20"
