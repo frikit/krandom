@@ -151,6 +151,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Update the Instancio benchmark competitor to 6.1.0 and align the consumer examples with Kotlin
   2.4.20, Maven Surefire 3.6.0, sbt 1.13.0, and Mill 1.1.10. Refresh the GitHub Action pins
   (setup-java 6.0.1, Codecov 7.1.1, Coursier 3.0.3) and label every pin with its exact release.
+- Update the Gradle wrapper to 9.8.1, which fixes three high-severity daemon and repository
+  vulnerabilities (GHSA-mvvg-497x-hmj8, GHSA-xwqc-3h47-hg64, GHSA-j5m7-59rp-24f5), Kotlin to
+  2.4.21, Logback to 1.6.5, Spotless to 8.10.4, and the CycloneDX plugin to 3.5.1; align the
+  consumer examples with Kotlin 2.4.21 and refresh the GitHub Action pins (wrapper-validation
+  6.4.0, setup-graalvm 1.6.7, Coursier 3.0.4).
 - Seeded `@FakeRange` doubles and floats with `min >= max` fail with the JDK's
   `bound must be greater than origin` message, like unseeded ones.
 
