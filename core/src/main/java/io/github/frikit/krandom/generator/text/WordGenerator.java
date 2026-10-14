@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.text;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -20,8 +18,8 @@ import java.util.Random;
  */
 public final class WordGenerator implements Generator<String> {
 
-    private final Random            random;
-    private final Locale            locale;
+    private final Random random;
+    private final Locale locale;
     private final SyllableGenerator syllableGenerator;
 
     /**
@@ -98,8 +96,7 @@ public final class WordGenerator implements Generator<String> {
             throw new IllegalArgumentException("minWords must be positive, got: " + minWords);
         }
         if (maxWords < minWords) {
-            throw new IllegalArgumentException("maxWords must be >= minWords, got: "
-                                               + maxWords + " < " + minWords);
+            throw new IllegalArgumentException("maxWords must be >= minWords, got: " + maxWords + " < " + minWords);
         }
         int count = minWords + random.nextInt(maxWords - minWords + 1);
         return generateWords(count);
@@ -167,7 +164,9 @@ public final class WordGenerator implements Generator<String> {
      * @param syllables optional syllable count (positive)
      * @param length    optional exact character length (positive)
      */
-    public record WordOptions(Integer syllables, Integer length) {
+    public record WordOptions(
+            @org.jspecify.annotations.Nullable Integer syllables,
+            @org.jspecify.annotations.Nullable Integer length) {
 
         public WordOptions {
             if (syllables != null && syllables <= 0) {

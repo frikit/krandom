@@ -5,14 +5,13 @@
  */
 package io.github.frikit.krandom.generator;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 class ThreadLocalGeneratorTest {
 
@@ -50,7 +49,9 @@ class ThreadLocalGeneratorTest {
     void factoryCalledOncePerThread() throws InterruptedException {
         int[] callCount = {0};
         Generator<Integer> gen = Generators.threadLocal(() -> {
-            synchronized (callCount) { callCount[0]++; }
+            synchronized (callCount) {
+                callCount[0]++;
+            }
             return Generators.ofInt(1, 1000);
         });
 

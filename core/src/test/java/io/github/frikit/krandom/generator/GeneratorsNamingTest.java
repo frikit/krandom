@@ -5,12 +5,14 @@
  */
 package io.github.frikit.krandom.generator;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.user.AgeType;
 import io.github.frikit.krandom.generator.user.GenderGenerator;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URI;
@@ -29,12 +31,9 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 /**
  * Facade names must not differ only by letter case while returning different types, and the
@@ -66,24 +65,27 @@ class GeneratorsNamingTest {
         void urlObject() {
             URL url = Generators.ofUrlObject().generate();
             assertEquals("https", url.getProtocol());
-            assertEquals(render(Generators.ofUrlObject(seeded(5L)), URL::toString, 10),
-                         render(Generators.ofUrlObject(seeded(5L)), URL::toString, 10));
+            assertEquals(
+                    render(Generators.ofUrlObject(seeded(5L)), URL::toString, 10),
+                    render(Generators.ofUrlObject(seeded(5L)), URL::toString, 10));
         }
 
         @Test
         @DisplayName("ofUriObject returns java.net.URI values and honours configuration")
         void uriObject() {
             assertNotNull(Generators.ofUriObject().generate().getScheme());
-            assertEquals(render(Generators.ofUriObject(seeded(6L)), URI::toString, 10),
-                         render(Generators.ofUriObject(seeded(6L)), URI::toString, 10));
+            assertEquals(
+                    render(Generators.ofUriObject(seeded(6L)), URI::toString, 10),
+                    render(Generators.ofUriObject(seeded(6L)), URI::toString, 10));
         }
 
         @Test
         @DisplayName("ofTimeZoneObject returns legacy TimeZone values and honours configuration")
         void timeZoneObject() {
             assertInstanceOf(TimeZone.class, Generators.ofTimeZoneObject().generate());
-            assertEquals(render(Generators.ofTimeZoneObject(seeded(7L)), TimeZone::getID, 10),
-                         render(Generators.ofTimeZoneObject(seeded(7L)), TimeZone::getID, 10));
+            assertEquals(
+                    render(Generators.ofTimeZoneObject(seeded(7L)), TimeZone::getID, 10),
+                    render(Generators.ofTimeZoneObject(seeded(7L)), TimeZone::getID, 10));
         }
 
         @Test
@@ -96,8 +98,9 @@ class GeneratorsNamingTest {
         @Test
         @DisplayName("date-time namespace exposes the same legacy time-zone generator as the facade")
         void namespaceTimeZoneObject() {
-            assertEquals(render(Generators.ofTimeZoneObject(seeded(3L)), TimeZone::getID, 5),
-                         render(Generators.datetime(seeded(3L)).timeZoneObject(), TimeZone::getID, 5));
+            assertEquals(
+                    render(Generators.ofTimeZoneObject(seeded(3L)), TimeZone::getID, 5),
+                    render(Generators.datetime(seeded(3L)).timeZoneObject(), TimeZone::getID, 5));
         }
     }
 
@@ -121,13 +124,15 @@ class GeneratorsNamingTest {
 
         private void assertNoCaseTwins(Class<?> type, boolean staticMethods) {
             Map<String, TreeSet<String>> byLowerCase = Arrays.stream(type.getMethods())
-                .filter(method -> method.getDeclaringClass() == type)
-                .filter(method -> Modifier.isStatic(method.getModifiers()) == staticMethods)
-                .map(Method::getName)
-                .collect(Collectors.groupingBy(name -> name.toLowerCase(Locale.ROOT), TreeMap::new,
-                                               Collectors.toCollection(TreeSet::new)));
-            byLowerCase.forEach((lower, names) ->
-                assertEquals(1, names.size(), type.getSimpleName() + " has case twins " + names));
+                    .filter(method -> method.getDeclaringClass() == type)
+                    .filter(method -> Modifier.isStatic(method.getModifiers()) == staticMethods)
+                    .map(Method::getName)
+                    .collect(Collectors.groupingBy(
+                            name -> name.toLowerCase(Locale.ROOT),
+                            TreeMap::new,
+                            Collectors.toCollection(TreeSet::new)));
+            byLowerCase.forEach(
+                    (lower, names) -> assertEquals(1, names.size(), type.getSimpleName() + " has case twins " + names));
         }
     }
 
@@ -139,8 +144,16 @@ class GeneratorsNamingTest {
         @DisplayName("ofFirstName default, locale and config forms")
         void firstName() {
             assertFalse(Generators.ofFirstName().generate().isBlank());
-            assertEquals(Generators.person(seeded(1L).toBuilder().locale(Locale.GERMANY).build()).firstName().generateList(10),
-                         Generators.ofFirstName(seeded(1L).toBuilder().locale(Locale.GERMANY).build()).generateList(10));
+            assertEquals(
+                    Generators.person(seeded(1L).toBuilder()
+                                    .locale(Locale.GERMANY)
+                                    .build())
+                            .firstName()
+                            .generateList(10),
+                    Generators.ofFirstName(seeded(1L).toBuilder()
+                                    .locale(Locale.GERMANY)
+                                    .build())
+                            .generateList(10));
             assertEquals(Locale.JAPAN, Generators.ofFirstName(Locale.JAPAN).getLocale());
         }
 
@@ -148,8 +161,9 @@ class GeneratorsNamingTest {
         @DisplayName("ofLastName default, locale and config forms")
         void lastName() {
             assertFalse(Generators.ofLastName().generate().isBlank());
-            assertEquals(Generators.person(seeded(2L)).lastName().generateList(10),
-                         Generators.ofLastName(seeded(2L)).generateList(10));
+            assertEquals(
+                    Generators.person(seeded(2L)).lastName().generateList(10),
+                    Generators.ofLastName(seeded(2L)).generateList(10));
             assertEquals(Locale.FRANCE, Generators.ofLastName(Locale.FRANCE).getLocale());
         }
 
@@ -157,20 +171,24 @@ class GeneratorsNamingTest {
         @DisplayName("ofGender default, locale and config forms")
         void gender() {
             assertFalse(Generators.ofGender().generate().isBlank());
-            assertEquals(new GenderGenerator(Locale.GERMANY).getMaleLabel(),
-                         Generators.ofGender(Locale.GERMANY).getMaleLabel());
-            assertEquals(Generators.person(seeded(3L)).gender().generateList(10),
-                         Generators.ofGender(seeded(3L)).generateList(10));
+            assertEquals(
+                    new GenderGenerator(Locale.GERMANY).getMaleLabel(),
+                    Generators.ofGender(Locale.GERMANY).getMaleLabel());
+            assertEquals(
+                    Generators.person(seeded(3L)).gender().generateList(10),
+                    Generators.ofGender(seeded(3L)).generateList(10));
         }
 
         @Test
         @DisplayName("ofAge default, type and config forms")
         void age() {
             assertTrue(Generators.ofAge().generate() >= 0);
-            assertEquals(Generators.person(seeded(4L)).age().generateList(10),
-                         Generators.ofAge(seeded(4L)).generateList(10));
-            assertEquals(Generators.person(seeded(4L)).age(AgeType.SENIOR).generateList(10),
-                         Generators.ofAge(AgeType.SENIOR, seeded(4L)).generateList(10));
+            assertEquals(
+                    Generators.person(seeded(4L)).age().generateList(10),
+                    Generators.ofAge(seeded(4L)).generateList(10));
+            assertEquals(
+                    Generators.person(seeded(4L)).age(AgeType.SENIOR).generateList(10),
+                    Generators.ofAge(AgeType.SENIOR, seeded(4L)).generateList(10));
             int senior = Generators.ofAge(AgeType.SENIOR).generate();
             assertTrue(senior >= 65, "senior age " + senior);
         }
@@ -179,17 +197,20 @@ class GeneratorsNamingTest {
         @DisplayName("ofBirthday default, locale and config forms")
         void birthday() {
             assertInstanceOf(LocalDate.class, Generators.ofBirthday().generate());
-            assertEquals(Generators.person(seeded(5L)).birthday().generateList(10),
-                         Generators.ofBirthday(seeded(5L)).generateList(10));
-            assertInstanceOf(LocalDate.class, Generators.ofBirthday(Locale.GERMANY).generate());
+            assertEquals(
+                    Generators.person(seeded(5L)).birthday().generateList(10),
+                    Generators.ofBirthday(seeded(5L)).generateList(10));
+            assertInstanceOf(
+                    LocalDate.class, Generators.ofBirthday(Locale.GERMANY).generate());
         }
 
         @Test
         @DisplayName("ofCoordinates default, locale and config forms")
         void coordinates() {
             assertNotNull(Generators.ofCoordinates().generate());
-            assertEquals(render(Generators.location(seeded(6L)).coordinates(), String::valueOf, 5),
-                         render(Generators.ofCoordinates(seeded(6L)), String::valueOf, 5));
+            assertEquals(
+                    render(Generators.location(seeded(6L)).coordinates(), String::valueOf, 5),
+                    render(Generators.ofCoordinates(seeded(6L)), String::valueOf, 5));
             assertNotNull(Generators.ofCoordinates(Locale.JAPAN).generate());
         }
     }

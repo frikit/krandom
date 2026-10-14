@@ -21,11 +21,12 @@ import java.util.Optional;
  * @param testSafety whether the output is non-routable or otherwise suitable as a test fixture
  * @param safetyPolicy optional configuration policy that determines the safety contract
  */
-public record ProviderSafetyMetadata(ProviderValidity formatValidity,
-                                     ProviderValidity checksumValidity,
-                                     ProviderValidity semanticPlausibility,
-                                     ProviderTestSafety testSafety,
-                                     Optional<ProviderSafetyPolicy> safetyPolicy) {
+public record ProviderSafetyMetadata(
+        ProviderValidity formatValidity,
+        ProviderValidity checksumValidity,
+        ProviderValidity semanticPlausibility,
+        ProviderTestSafety testSafety,
+        Optional<ProviderSafetyPolicy> safetyPolicy) {
 
     /**
      * Creates metadata without a configuration-dependent safety policy.
@@ -35,10 +36,11 @@ public record ProviderSafetyMetadata(ProviderValidity formatValidity,
      * @param semanticPlausibility whether the output is semantically plausible
      * @param testSafety whether the output is suitable as a test fixture
      */
-    public ProviderSafetyMetadata(ProviderValidity formatValidity,
-                                  ProviderValidity checksumValidity,
-                                  ProviderValidity semanticPlausibility,
-                                  ProviderTestSafety testSafety) {
+    public ProviderSafetyMetadata(
+            ProviderValidity formatValidity,
+            ProviderValidity checksumValidity,
+            ProviderValidity semanticPlausibility,
+            ProviderTestSafety testSafety) {
         this(formatValidity, checksumValidity, semanticPlausibility, testSafety, Optional.empty());
     }
 
@@ -51,16 +53,18 @@ public record ProviderSafetyMetadata(ProviderValidity formatValidity,
      * @param testSafety whether the output is suitable as a test fixture
      * @param safetyPolicy policy that determines the safety contract
      */
-    public ProviderSafetyMetadata(ProviderValidity formatValidity,
-                                  ProviderValidity checksumValidity,
-                                  ProviderValidity semanticPlausibility,
-                                  ProviderTestSafety testSafety,
-                                  ProviderSafetyPolicy safetyPolicy) {
-        this(formatValidity,
-             checksumValidity,
-             semanticPlausibility,
-             testSafety,
-             Optional.of(Objects.requireNonNull(safetyPolicy, "safetyPolicy must not be null")));
+    public ProviderSafetyMetadata(
+            ProviderValidity formatValidity,
+            ProviderValidity checksumValidity,
+            ProviderValidity semanticPlausibility,
+            ProviderTestSafety testSafety,
+            ProviderSafetyPolicy safetyPolicy) {
+        this(
+                formatValidity,
+                checksumValidity,
+                semanticPlausibility,
+                testSafety,
+                Optional.of(Objects.requireNonNull(safetyPolicy, "safetyPolicy must not be null")));
     }
 
     public ProviderSafetyMetadata {
@@ -72,10 +76,11 @@ public record ProviderSafetyMetadata(ProviderValidity formatValidity,
     }
 
     public static ProviderSafetyMetadata unclassified() {
-        return new ProviderSafetyMetadata(ProviderValidity.UNCLASSIFIED,
-                                          ProviderValidity.UNCLASSIFIED,
-                                          ProviderValidity.UNCLASSIFIED,
-                                          ProviderTestSafety.UNCLASSIFIED);
+        return new ProviderSafetyMetadata(
+                ProviderValidity.UNCLASSIFIED,
+                ProviderValidity.UNCLASSIFIED,
+                ProviderValidity.UNCLASSIFIED,
+                ProviderTestSafety.UNCLASSIFIED);
     }
 
     /**

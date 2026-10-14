@@ -5,24 +5,20 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("NationalityGenerator")
 class NationalityGeneratorTest {
@@ -30,12 +26,32 @@ class NationalityGeneratorTest {
     private static final Locale RU = Locale.of("ru", "RU");
 
     private static final Set<String> EN = Set.of(
-        "American", "British", "French", "German", "Japanese", "Chinese",
-        "Brazilian", "Italian", "Spanish", "Russian", "Indian", "Canadian");
+            "American",
+            "British",
+            "French",
+            "German",
+            "Japanese",
+            "Chinese",
+            "Brazilian",
+            "Italian",
+            "Spanish",
+            "Russian",
+            "Indian",
+            "Canadian");
 
     private static final Set<String> RU_NATIONALITIES = Set.of(
-        "Американец", "Британец", "Француз", "Немец", "Японец", "Китаец",
-        "Бразилец", "Итальянец", "Испанец", "Русский", "Индиец", "Канадец");
+            "Американец",
+            "Британец",
+            "Француз",
+            "Немец",
+            "Японец",
+            "Китаец",
+            "Бразилец",
+            "Итальянец",
+            "Испанец",
+            "Русский",
+            "Индиец",
+            "Канадец");
 
     @RepeatedTest(200)
     @DisplayName("default generate() returns a valid English demonym")
@@ -46,7 +62,8 @@ class NationalityGeneratorTest {
     @Test
     @DisplayName("default generate() can surface every demonym over many draws")
     void generateCoversAll() {
-        NationalityGenerator gen = new NationalityGenerator(GeneratorConfig.builder().seed(5L).build());
+        NationalityGenerator gen =
+                new NationalityGenerator(GeneratorConfig.builder().seed(5L).build());
         Set<String> seen = new HashSet<>();
         for (int i = 0; i < 2000; i++) {
             seen.add(gen.generate());
@@ -72,8 +89,10 @@ class NationalityGeneratorTest {
     @Test
     @DisplayName("same seed is reproducible")
     void reproducible() {
-        List<String> a = new NationalityGenerator(GeneratorConfig.builder().seed(8L).build()).generateList(30);
-        List<String> b = new NationalityGenerator(GeneratorConfig.builder().seed(8L).build()).generateList(30);
+        List<String> a =
+                new NationalityGenerator(GeneratorConfig.builder().seed(8L).build()).generateList(30);
+        List<String> b =
+                new NationalityGenerator(GeneratorConfig.builder().seed(8L).build()).generateList(30);
         assertEquals(a, b);
     }
 
@@ -86,8 +105,7 @@ class NationalityGeneratorTest {
 
     @Nested
     @DisplayName("NationalityDataRegistry")
-    class Registry {
-    }
+    class Registry {}
 
     @Nested
     @DisplayName("Generators facade")
@@ -99,7 +117,8 @@ class NationalityGeneratorTest {
             assertTrue(EN.contains(Generators.ofNationality().generate()));
             assertTrue(RU_NATIONALITIES.contains(Generators.ofNationality(RU).generate()));
             assertTrue(EN.contains(
-                Generators.ofNationality(GeneratorConfig.builder().seed(1L).build()).generate()));
+                    Generators.ofNationality(GeneratorConfig.builder().seed(1L).build())
+                            .generate()));
         }
     }
 }

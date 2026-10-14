@@ -5,25 +5,22 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
-import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 @DisplayName("ObjectGenerator — parameterized nested objects")
 class ObjectGeneratorParameterizedObjectTest {
 
-    private static final GeneratorConfig CONFIG = GeneratorConfig.builder()
-                                                                  .seed(2212L)
-                                                                  .collectionSize(2, 2)
-                                                                  .build();
+    private static final GeneratorConfig CONFIG =
+            GeneratorConfig.builder().seed(2212L).collectionSize(2, 2).build();
 
     @Test
     @DisplayName("mutable fields retain nested class and record bindings")
@@ -62,8 +59,7 @@ class ObjectGeneratorParameterizedObjectTest {
     @DisplayName("unbounded child argument fails at the parent with its full signature")
     void unboundedChildArgumentFailsAtParent() {
         ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(UnboundedHolder.class, CONFIG).generate());
+                ObjectGenerationException.class, () -> new ObjectGenerator<>(UnboundedHolder.class, CONFIG).generate());
 
         var context = ex.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
@@ -75,8 +71,7 @@ class ObjectGeneratorParameterizedObjectTest {
     @DisplayName("raw generic child fails at the parent boundary")
     void rawGenericChildFailsAtParent() {
         ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(RawHolder.class, CONFIG).generate());
+                ObjectGenerationException.class, () -> new ObjectGenerator<>(RawHolder.class, CONFIG).generate());
 
         var context = ex.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
@@ -90,8 +85,7 @@ class ObjectGeneratorParameterizedObjectTest {
         List<T> values;
     }
 
-    record GenericRecord<T>(T value, List<T> values) {
-    }
+    record GenericRecord<T>(T value, List<T> values) {}
 
     static final class ParameterizedFields {
 
@@ -101,16 +95,14 @@ class ObjectGeneratorParameterizedObjectTest {
         List<Box<Long>> boxes;
     }
 
-    record ParameterizedRecord(Box<Integer> box, List<Box<String>> boxes) {
-    }
+    record ParameterizedRecord(Box<Integer> box, List<Box<String>> boxes) {}
 
     static class GenericHolder<T> {
 
         Box<T> box;
     }
 
-    static final class StringHolder extends GenericHolder<String> {
-    }
+    static final class StringHolder extends GenericHolder<String> {}
 
     static final class UnboundedHolder {
 

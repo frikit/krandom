@@ -5,11 +5,10 @@
  */
 package io.github.frikit.krandom.generator.location;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
-import java.security.SecureRandom;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -32,208 +31,204 @@ import java.util.Random;
  */
 public final class CountryGenerator implements Generator<String> {
 
-    private static final String[]            ISO_ALPHA2_CODES     = Locale.getISOCountries();
-    private static final String[]            ISO_NUMERIC_CODES    = {
+    private static final String[] ISO_ALPHA2_CODES = Locale.getISOCountries();
+    private static final String[] ISO_NUMERIC_CODES = {
         "036", "076", "156", "203", "250", "276", "356", "380", "392", "410",
         "528", "578", "616", "643", "682", "724", "752", "792", "826", "840"
     };
-    private static final Map<String, String> NUMERIC_BY_COUNTRY   = Map.ofEntries(
-        Map.entry("US", "840"),
-        Map.entry("GB", "826"),
-        Map.entry("AU", "036"),
-        Map.entry("DE", "276"),
-        Map.entry("FR", "250"),
-        Map.entry("ES", "724"),
-        Map.entry("IT", "380"),
-        Map.entry("BR", "076"),
-        Map.entry("JP", "392"),
-        Map.entry("CN", "156"),
-        Map.entry("NL", "528"),
-        Map.entry("PL", "616"),
-        Map.entry("RU", "643"),
-        Map.entry("KR", "410"),
-        Map.entry("TR", "792"),
-        Map.entry("SE", "752"),
-        Map.entry("NO", "578"),
-        Map.entry("CZ", "203"),
-        Map.entry("SA", "682"),
-        Map.entry("IN", "356"),
-        Map.entry("DK", "208"),
-        Map.entry("FI", "246"),
-        Map.entry("HU", "348"),
-        Map.entry("RO", "642"),
-        Map.entry("SK", "703"),
-        Map.entry("UA", "804"),
-        Map.entry("BG", "100"),
-        Map.entry("HR", "191"),
-        Map.entry("GR", "300"),
-        Map.entry("TH", "764"),
-        Map.entry("VN", "704"),
-        Map.entry("ID", "360"),
-        Map.entry("MY", "458"),
-        Map.entry("IL", "376"),
-        Map.entry("CA", "124"),
-        Map.entry("NZ", "554"),
-        Map.entry("IE", "372"),
-        Map.entry("ZA", "710"),
-        Map.entry("BE", "056"),
-        Map.entry("CH", "756"),
-        Map.entry("AT", "040"),
-        Map.entry("MX", "484"),
-        Map.entry("AR", "032"),
-        Map.entry("PT", "620"),
-        Map.entry("TW", "158")
-    );
-    private static final Map<String, String> CALLING_BY_COUNTRY   = orderedMap(
-        Map.entry("US", "+1"),
-        Map.entry("GB", "+44"),
-        Map.entry("AU", "+61"),
-        Map.entry("DE", "+49"),
-        Map.entry("FR", "+33"),
-        Map.entry("ES", "+34"),
-        Map.entry("IT", "+39"),
-        Map.entry("BR", "+55"),
-        Map.entry("JP", "+81"),
-        Map.entry("CN", "+86"),
-        Map.entry("NL", "+31"),
-        Map.entry("PL", "+48"),
-        Map.entry("RU", "+7"),
-        Map.entry("KR", "+82"),
-        Map.entry("TR", "+90"),
-        Map.entry("SE", "+46"),
-        Map.entry("NO", "+47"),
-        Map.entry("CZ", "+420"),
-        Map.entry("SA", "+966"),
-        Map.entry("IN", "+91"),
-        Map.entry("DK", "+45"),
-        Map.entry("FI", "+358"),
-        Map.entry("HU", "+36"),
-        Map.entry("RO", "+40"),
-        Map.entry("SK", "+421"),
-        Map.entry("UA", "+380"),
-        Map.entry("BG", "+359"),
-        Map.entry("HR", "+385"),
-        Map.entry("GR", "+30"),
-        Map.entry("TH", "+66"),
-        Map.entry("VN", "+84"),
-        Map.entry("ID", "+62"),
-        Map.entry("MY", "+60"),
-        Map.entry("IL", "+972"),
-        Map.entry("CA", "+1"),
-        Map.entry("NZ", "+64"),
-        Map.entry("IE", "+353"),
-        Map.entry("ZA", "+27"),
-        Map.entry("BE", "+32"),
-        Map.entry("CH", "+41"),
-        Map.entry("AT", "+43"),
-        Map.entry("MX", "+52"),
-        Map.entry("AR", "+54"),
-        Map.entry("PT", "+351"),
-        Map.entry("TW", "+886")
-    );
+    private static final Map<String, String> NUMERIC_BY_COUNTRY = Map.ofEntries(
+            Map.entry("US", "840"),
+            Map.entry("GB", "826"),
+            Map.entry("AU", "036"),
+            Map.entry("DE", "276"),
+            Map.entry("FR", "250"),
+            Map.entry("ES", "724"),
+            Map.entry("IT", "380"),
+            Map.entry("BR", "076"),
+            Map.entry("JP", "392"),
+            Map.entry("CN", "156"),
+            Map.entry("NL", "528"),
+            Map.entry("PL", "616"),
+            Map.entry("RU", "643"),
+            Map.entry("KR", "410"),
+            Map.entry("TR", "792"),
+            Map.entry("SE", "752"),
+            Map.entry("NO", "578"),
+            Map.entry("CZ", "203"),
+            Map.entry("SA", "682"),
+            Map.entry("IN", "356"),
+            Map.entry("DK", "208"),
+            Map.entry("FI", "246"),
+            Map.entry("HU", "348"),
+            Map.entry("RO", "642"),
+            Map.entry("SK", "703"),
+            Map.entry("UA", "804"),
+            Map.entry("BG", "100"),
+            Map.entry("HR", "191"),
+            Map.entry("GR", "300"),
+            Map.entry("TH", "764"),
+            Map.entry("VN", "704"),
+            Map.entry("ID", "360"),
+            Map.entry("MY", "458"),
+            Map.entry("IL", "376"),
+            Map.entry("CA", "124"),
+            Map.entry("NZ", "554"),
+            Map.entry("IE", "372"),
+            Map.entry("ZA", "710"),
+            Map.entry("BE", "056"),
+            Map.entry("CH", "756"),
+            Map.entry("AT", "040"),
+            Map.entry("MX", "484"),
+            Map.entry("AR", "032"),
+            Map.entry("PT", "620"),
+            Map.entry("TW", "158"));
+    private static final Map<String, String> CALLING_BY_COUNTRY = orderedMap(
+            Map.entry("US", "+1"),
+            Map.entry("GB", "+44"),
+            Map.entry("AU", "+61"),
+            Map.entry("DE", "+49"),
+            Map.entry("FR", "+33"),
+            Map.entry("ES", "+34"),
+            Map.entry("IT", "+39"),
+            Map.entry("BR", "+55"),
+            Map.entry("JP", "+81"),
+            Map.entry("CN", "+86"),
+            Map.entry("NL", "+31"),
+            Map.entry("PL", "+48"),
+            Map.entry("RU", "+7"),
+            Map.entry("KR", "+82"),
+            Map.entry("TR", "+90"),
+            Map.entry("SE", "+46"),
+            Map.entry("NO", "+47"),
+            Map.entry("CZ", "+420"),
+            Map.entry("SA", "+966"),
+            Map.entry("IN", "+91"),
+            Map.entry("DK", "+45"),
+            Map.entry("FI", "+358"),
+            Map.entry("HU", "+36"),
+            Map.entry("RO", "+40"),
+            Map.entry("SK", "+421"),
+            Map.entry("UA", "+380"),
+            Map.entry("BG", "+359"),
+            Map.entry("HR", "+385"),
+            Map.entry("GR", "+30"),
+            Map.entry("TH", "+66"),
+            Map.entry("VN", "+84"),
+            Map.entry("ID", "+62"),
+            Map.entry("MY", "+60"),
+            Map.entry("IL", "+972"),
+            Map.entry("CA", "+1"),
+            Map.entry("NZ", "+64"),
+            Map.entry("IE", "+353"),
+            Map.entry("ZA", "+27"),
+            Map.entry("BE", "+32"),
+            Map.entry("CH", "+41"),
+            Map.entry("AT", "+43"),
+            Map.entry("MX", "+52"),
+            Map.entry("AR", "+54"),
+            Map.entry("PT", "+351"),
+            Map.entry("TW", "+886"));
     private static final Map<String, String> CONTINENT_BY_COUNTRY = orderedMap(
-        Map.entry("US", "North America"),
-        Map.entry("GB", "Europe"),
-        Map.entry("AU", "Oceania"),
-        Map.entry("DE", "Europe"),
-        Map.entry("FR", "Europe"),
-        Map.entry("ES", "Europe"),
-        Map.entry("IT", "Europe"),
-        Map.entry("BR", "South America"),
-        Map.entry("JP", "Asia"),
-        Map.entry("CN", "Asia"),
-        Map.entry("NL", "Europe"),
-        Map.entry("PL", "Europe"),
-        Map.entry("RU", "Europe"),
-        Map.entry("KR", "Asia"),
-        Map.entry("TR", "Asia"),
-        Map.entry("SE", "Europe"),
-        Map.entry("NO", "Europe"),
-        Map.entry("CZ", "Europe"),
-        Map.entry("SA", "Asia"),
-        Map.entry("IN", "Asia"),
-        Map.entry("DK", "Europe"),
-        Map.entry("FI", "Europe"),
-        Map.entry("HU", "Europe"),
-        Map.entry("RO", "Europe"),
-        Map.entry("SK", "Europe"),
-        Map.entry("UA", "Europe"),
-        Map.entry("BG", "Europe"),
-        Map.entry("HR", "Europe"),
-        Map.entry("GR", "Europe"),
-        Map.entry("TH", "Asia"),
-        Map.entry("VN", "Asia"),
-        Map.entry("ID", "Asia"),
-        Map.entry("MY", "Asia"),
-        Map.entry("IL", "Asia"),
-        Map.entry("CA", "North America"),
-        Map.entry("NZ", "Oceania"),
-        Map.entry("IE", "Europe"),
-        Map.entry("ZA", "Africa"),
-        Map.entry("BE", "Europe"),
-        Map.entry("CH", "Europe"),
-        Map.entry("AT", "Europe"),
-        Map.entry("MX", "North America"),
-        Map.entry("AR", "South America"),
-        Map.entry("PT", "Europe"),
-        Map.entry("TW", "Asia")
-    );
-    private static final Map<String, String> TIMEZONE_BY_COUNTRY  = orderedMap(
-        Map.entry("US", "America/New_York"),
-        Map.entry("GB", "Europe/London"),
-        Map.entry("AU", "Australia/Sydney"),
-        Map.entry("DE", "Europe/Berlin"),
-        Map.entry("FR", "Europe/Paris"),
-        Map.entry("ES", "Europe/Madrid"),
-        Map.entry("IT", "Europe/Rome"),
-        Map.entry("BR", "America/Sao_Paulo"),
-        Map.entry("JP", "Asia/Tokyo"),
-        Map.entry("CN", "Asia/Shanghai"),
-        Map.entry("NL", "Europe/Amsterdam"),
-        Map.entry("PL", "Europe/Warsaw"),
-        Map.entry("RU", "Europe/Moscow"),
-        Map.entry("KR", "Asia/Seoul"),
-        Map.entry("TR", "Europe/Istanbul"),
-        Map.entry("SE", "Europe/Stockholm"),
-        Map.entry("NO", "Europe/Oslo"),
-        Map.entry("CZ", "Europe/Prague"),
-        Map.entry("SA", "Asia/Riyadh"),
-        Map.entry("IN", "Asia/Kolkata"),
-        Map.entry("DK", "Europe/Copenhagen"),
-        Map.entry("FI", "Europe/Helsinki"),
-        Map.entry("HU", "Europe/Budapest"),
-        Map.entry("RO", "Europe/Bucharest"),
-        Map.entry("SK", "Europe/Bratislava"),
-        Map.entry("UA", "Europe/Kyiv"),
-        Map.entry("BG", "Europe/Sofia"),
-        Map.entry("HR", "Europe/Zagreb"),
-        Map.entry("GR", "Europe/Athens"),
-        Map.entry("TH", "Asia/Bangkok"),
-        Map.entry("VN", "Asia/Ho_Chi_Minh"),
-        Map.entry("ID", "Asia/Jakarta"),
-        Map.entry("MY", "Asia/Kuala_Lumpur"),
-        Map.entry("IL", "Asia/Jerusalem"),
-        Map.entry("CA", "America/Toronto"),
-        Map.entry("NZ", "Pacific/Auckland"),
-        Map.entry("IE", "Europe/Dublin"),
-        Map.entry("ZA", "Africa/Johannesburg"),
-        Map.entry("BE", "Europe/Brussels"),
-        Map.entry("CH", "Europe/Zurich"),
-        Map.entry("AT", "Europe/Vienna"),
-        Map.entry("MX", "America/Mexico_City"),
-        Map.entry("AR", "America/Buenos_Aires"),
-        Map.entry("PT", "Europe/Lisbon"),
-        Map.entry("TW", "Asia/Taipei")
-    );
+            Map.entry("US", "North America"),
+            Map.entry("GB", "Europe"),
+            Map.entry("AU", "Oceania"),
+            Map.entry("DE", "Europe"),
+            Map.entry("FR", "Europe"),
+            Map.entry("ES", "Europe"),
+            Map.entry("IT", "Europe"),
+            Map.entry("BR", "South America"),
+            Map.entry("JP", "Asia"),
+            Map.entry("CN", "Asia"),
+            Map.entry("NL", "Europe"),
+            Map.entry("PL", "Europe"),
+            Map.entry("RU", "Europe"),
+            Map.entry("KR", "Asia"),
+            Map.entry("TR", "Asia"),
+            Map.entry("SE", "Europe"),
+            Map.entry("NO", "Europe"),
+            Map.entry("CZ", "Europe"),
+            Map.entry("SA", "Asia"),
+            Map.entry("IN", "Asia"),
+            Map.entry("DK", "Europe"),
+            Map.entry("FI", "Europe"),
+            Map.entry("HU", "Europe"),
+            Map.entry("RO", "Europe"),
+            Map.entry("SK", "Europe"),
+            Map.entry("UA", "Europe"),
+            Map.entry("BG", "Europe"),
+            Map.entry("HR", "Europe"),
+            Map.entry("GR", "Europe"),
+            Map.entry("TH", "Asia"),
+            Map.entry("VN", "Asia"),
+            Map.entry("ID", "Asia"),
+            Map.entry("MY", "Asia"),
+            Map.entry("IL", "Asia"),
+            Map.entry("CA", "North America"),
+            Map.entry("NZ", "Oceania"),
+            Map.entry("IE", "Europe"),
+            Map.entry("ZA", "Africa"),
+            Map.entry("BE", "Europe"),
+            Map.entry("CH", "Europe"),
+            Map.entry("AT", "Europe"),
+            Map.entry("MX", "North America"),
+            Map.entry("AR", "South America"),
+            Map.entry("PT", "Europe"),
+            Map.entry("TW", "Asia"));
+    private static final Map<String, String> TIMEZONE_BY_COUNTRY = orderedMap(
+            Map.entry("US", "America/New_York"),
+            Map.entry("GB", "Europe/London"),
+            Map.entry("AU", "Australia/Sydney"),
+            Map.entry("DE", "Europe/Berlin"),
+            Map.entry("FR", "Europe/Paris"),
+            Map.entry("ES", "Europe/Madrid"),
+            Map.entry("IT", "Europe/Rome"),
+            Map.entry("BR", "America/Sao_Paulo"),
+            Map.entry("JP", "Asia/Tokyo"),
+            Map.entry("CN", "Asia/Shanghai"),
+            Map.entry("NL", "Europe/Amsterdam"),
+            Map.entry("PL", "Europe/Warsaw"),
+            Map.entry("RU", "Europe/Moscow"),
+            Map.entry("KR", "Asia/Seoul"),
+            Map.entry("TR", "Europe/Istanbul"),
+            Map.entry("SE", "Europe/Stockholm"),
+            Map.entry("NO", "Europe/Oslo"),
+            Map.entry("CZ", "Europe/Prague"),
+            Map.entry("SA", "Asia/Riyadh"),
+            Map.entry("IN", "Asia/Kolkata"),
+            Map.entry("DK", "Europe/Copenhagen"),
+            Map.entry("FI", "Europe/Helsinki"),
+            Map.entry("HU", "Europe/Budapest"),
+            Map.entry("RO", "Europe/Bucharest"),
+            Map.entry("SK", "Europe/Bratislava"),
+            Map.entry("UA", "Europe/Kyiv"),
+            Map.entry("BG", "Europe/Sofia"),
+            Map.entry("HR", "Europe/Zagreb"),
+            Map.entry("GR", "Europe/Athens"),
+            Map.entry("TH", "Asia/Bangkok"),
+            Map.entry("VN", "Asia/Ho_Chi_Minh"),
+            Map.entry("ID", "Asia/Jakarta"),
+            Map.entry("MY", "Asia/Kuala_Lumpur"),
+            Map.entry("IL", "Asia/Jerusalem"),
+            Map.entry("CA", "America/Toronto"),
+            Map.entry("NZ", "Pacific/Auckland"),
+            Map.entry("IE", "Europe/Dublin"),
+            Map.entry("ZA", "Africa/Johannesburg"),
+            Map.entry("BE", "Europe/Brussels"),
+            Map.entry("CH", "Europe/Zurich"),
+            Map.entry("AT", "Europe/Vienna"),
+            Map.entry("MX", "America/Mexico_City"),
+            Map.entry("AR", "America/Buenos_Aires"),
+            Map.entry("PT", "Europe/Lisbon"),
+            Map.entry("TW", "Asia/Taipei"));
     // Random selection indexes these declaration-ordered snapshots; Map.of/Map.ofEntries iteration
     // order is randomized per JVM and must never feed seeded output.
-    private static final List<String>        CALLING_CODES        = List.copyOf(CALLING_BY_COUNTRY.values());
-    private static final List<String>        CONTINENTS           = List.copyOf(CONTINENT_BY_COUNTRY.values());
-    private static final List<String>        TIMEZONES            = List.copyOf(TIMEZONE_BY_COUNTRY.values());
+    private static final List<String> CALLING_CODES = List.copyOf(CALLING_BY_COUNTRY.values());
+    private static final List<String> CONTINENTS = List.copyOf(CONTINENT_BY_COUNTRY.values());
+    private static final List<String> TIMEZONES = List.copyOf(TIMEZONE_BY_COUNTRY.values());
 
     private final GeneratorConfig config;
-    private final Random          random;
-    private final String[]        countries;
+    private final Random random;
+    private final String[] countries;
 
     /**
      * Creates a generator using default configuration ({@link Locale#US}).
@@ -255,15 +250,15 @@ public final class CountryGenerator implements Generator<String> {
         DataRegistryContext registryContext = config.getRegistryContext();
 
         Locale locale = config.getLocale();
-        if (!registryContext.isCountryRegistered(locale)) {
-            throw new UnsupportedOperationException(
-                "Locale " + locale + " is not supported. Registered locales: " +
-                registryContext.countryRegisteredKeys());
+        if (!registryContext.isRegistered(Vocabulary.COUNTRY, locale)) {
+            throw new UnsupportedOperationException("Locale " + locale + " is not supported. Registered locales: "
+                    + registryContext.registeredKeys(Vocabulary.COUNTRY));
         }
 
         this.random = config.createRandom();
 
-        this.countries = registryContext.countryProvider(locale).getCountries();
+        this.countries = java.util.Objects.requireNonNull(registryContext.provider(Vocabulary.COUNTRY, locale))
+                .getCountries();
     }
 
     /**
@@ -399,7 +394,8 @@ public final class CountryGenerator implements Generator<String> {
         try {
             return Locale.of("", countryCode).getISO3Country();
         } catch (MissingResourceException ex) {
-            throw new UnsupportedOperationException("Alpha-3 country code not available for locale country: " + countryCode, ex);
+            throw new UnsupportedOperationException(
+                    "Alpha-3 country code not available for locale country: " + countryCode, ex);
         }
     }
 
@@ -412,7 +408,8 @@ public final class CountryGenerator implements Generator<String> {
         String countryCode = requireLocaleCountry();
         String numeric = NUMERIC_BY_COUNTRY.get(countryCode);
         if (numeric == null) {
-            throw new UnsupportedOperationException("Numeric country code not available for locale country: " + countryCode);
+            throw new UnsupportedOperationException(
+                    "Numeric country code not available for locale country: " + countryCode);
         }
         return numeric;
     }
@@ -510,14 +507,13 @@ public final class CountryGenerator implements Generator<String> {
      * @return {@code true} for all locales accepted by the constructor
      */
     public boolean isLocaleExplicitlySupported() {
-        return config.getRegistryContext().isCountryRegistered(config.getLocale());
+        return config.getRegistryContext().isRegistered(Vocabulary.COUNTRY, config.getLocale());
     }
 
     private String requireLocaleCountry() {
         String countryCode = config.getLocale().getCountry();
         if (countryCode.isBlank()) {
-            throw new UnsupportedOperationException(
-                "Locale " + config.getLocale() + " has no country component");
+            throw new UnsupportedOperationException("Locale " + config.getLocale() + " has no country component");
         }
         return countryCode;
     }

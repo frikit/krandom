@@ -5,15 +5,6 @@
  */
 package io.github.frikit.krandom.generator.network;
 
-import org.apache.commons.validator.routines.InetAddressValidator;
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Field;
-import java.util.Random;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -21,6 +12,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.lang.reflect.Field;
+import java.util.Random;
+import org.apache.commons.validator.routines.InetAddressValidator;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Network extension generators")
 class NetworkExtensionsTest {
@@ -30,13 +29,14 @@ class NetworkExtensionsTest {
     @Test
     @DisplayName("IPv4 private/public/cidr generation works")
     void ipv4ExtendedMethods() {
-        IPv4Generator gen = new IPv4Generator(GeneratorConfig.builder().seed(42L).build());
+        IPv4Generator gen =
+                new IPv4Generator(GeneratorConfig.builder().seed(42L).build());
 
         String privateIp = gen.generatePrivate();
         assertTrue(VALIDATOR.isValidInet4Address(privateIp));
         assertTrue(privateIp.startsWith("10.")
-                   || privateIp.startsWith("192.168.")
-                   || privateIp.matches("172\\.(1[6-9]|2\\d|3[01])\\..*"));
+                || privateIp.startsWith("192.168.")
+                || privateIp.matches("172\\.(1[6-9]|2\\d|3[01])\\..*"));
 
         String publicIp = gen.generatePublic();
         assertTrue(VALIDATOR.isValidInet4Address(publicIp));
@@ -113,7 +113,8 @@ class NetworkExtensionsTest {
     @Test
     @DisplayName("IPv4 public branch covers both 172 second-octet paths")
     void ipv4Public172SecondOctetBranchCoverage() throws Exception {
-        IPv4Generator trueBranch = new IPv4Generator(GeneratorConfig.builder().seed(1L).build());
+        IPv4Generator trueBranch =
+                new IPv4Generator(GeneratorConfig.builder().seed(1L).build());
         Field randomField = IPv4Generator.class.getDeclaredField("random");
         randomField.setAccessible(true);
         randomField.set(trueBranch, new Random() {
@@ -137,7 +138,8 @@ class NetworkExtensionsTest {
         int secondTrue = Integer.parseInt(trueBranch.generatePublic().split("\\.")[1]);
         assertTrue(secondTrue < 16);
 
-        IPv4Generator falseBranch = new IPv4Generator(GeneratorConfig.builder().seed(1L).build());
+        IPv4Generator falseBranch =
+                new IPv4Generator(GeneratorConfig.builder().seed(1L).build());
         randomField.set(falseBranch, new Random() {
 
             private int call;
@@ -163,7 +165,8 @@ class NetworkExtensionsTest {
     @Test
     @DisplayName("IPv4 public covers 192.* branch with second-octet remap")
     void ipv4Public192SecondOctetRemap() throws Exception {
-        IPv4Generator generator = new IPv4Generator(GeneratorConfig.builder().seed(1L).build());
+        IPv4Generator generator =
+                new IPv4Generator(GeneratorConfig.builder().seed(1L).build());
         Field randomField = IPv4Generator.class.getDeclaredField("random");
         randomField.setAccessible(true);
         randomField.set(generator, new Random() {
@@ -190,7 +193,8 @@ class NetworkExtensionsTest {
     @Test
     @DisplayName("IPv4 public covers 192.* branch without second-octet remap")
     void ipv4Public192SecondOctetNoRemap() throws Exception {
-        IPv4Generator generator = new IPv4Generator(GeneratorConfig.builder().seed(1L).build());
+        IPv4Generator generator =
+                new IPv4Generator(GeneratorConfig.builder().seed(1L).build());
         Field randomField = IPv4Generator.class.getDeclaredField("random");
         randomField.setAccessible(true);
         randomField.set(generator, new Random() {
@@ -230,7 +234,8 @@ class NetworkExtensionsTest {
     @DisplayName("Port generator emits expected ranges")
     void portRanges() {
         assertNotNull(new PortGenerator().generate());
-        PortGenerator gen = new PortGenerator(GeneratorConfig.builder().seed(11L).build());
+        PortGenerator gen =
+                new PortGenerator(GeneratorConfig.builder().seed(11L).build());
         int any = Integer.parseInt(gen.generate());
         int system = Integer.parseInt(gen.generateSystemPort());
         int registered = Integer.parseInt(gen.generateRegisteredPort());
@@ -245,7 +250,8 @@ class NetworkExtensionsTest {
     @DisplayName("Slug generator emits URL-safe values and slugify normalizes")
     void slugGenerator() {
         assertNotNull(new SlugGenerator().generate());
-        SlugGenerator gen = new SlugGenerator(GeneratorConfig.builder().seed(22L).build());
+        SlugGenerator gen =
+                new SlugGenerator(GeneratorConfig.builder().seed(22L).build());
         String slug = gen.generate();
         assertTrue(slug.matches("[a-z0-9]+(-[a-z0-9]+)+"));
         assertEquals("hello-world-2026", gen.slugify("  Hello, World! 2026  "));
@@ -257,7 +263,8 @@ class NetworkExtensionsTest {
     @DisplayName("User agent generator supports browser and bot modes")
     void userAgentGenerator() {
         assertNotNull(new UserAgentGenerator().generate());
-        UserAgentGenerator gen = new UserAgentGenerator(GeneratorConfig.builder().seed(33L).build());
+        UserAgentGenerator gen =
+                new UserAgentGenerator(GeneratorConfig.builder().seed(33L).build());
         String browser = gen.generate();
         String bot = gen.generateBot();
         assertTrue(browser.startsWith("Mozilla/5.0"));

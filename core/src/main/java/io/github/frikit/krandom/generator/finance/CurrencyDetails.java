@@ -13,11 +13,4 @@ package io.github.frikit.krandom.generator.finance;
  * @param symbol      currency symbol
  * @param numericCode currency numeric code
  */
-public record CurrencyDetails(
-    String shortCode,
-    String longName,
-    String symbol,
-    String numericCode
-) {
-
-}
+public record CurrencyDetails(String shortCode, String longName, String symbol, String numericCode) {}

@@ -5,7 +5,18 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import jakarta.validation.constraints.Size;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
@@ -18,14 +29,7 @@ import io.github.frikit.krandom.generator.locale.LocaleDataBundle;
 import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
-import org.slf4j.LoggerFactory;
-
+import jakarta.validation.constraints.Size;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -38,14 +42,9 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 @DisplayName("SemanticCoherenceAdjuster")
 class SemanticCoherenceAdjusterTest {
@@ -67,8 +66,8 @@ class SemanticCoherenceAdjusterTest {
         assertNull(SemanticCoherenceAdjuster.slugFragment(null));
         assertEquals("alicesmith", SemanticCoherenceAdjuster.slugFragment("Alice Smith"));
         assertNull(SemanticCoherenceAdjuster.slugFragment("ÄÖÜ"));
-        assertEquals("alice.smith1@example.com",
-                     SemanticCoherenceAdjuster.uniquifyString("alice.smith@example.com", 1));
+        assertEquals(
+                "alice.smith1@example.com", SemanticCoherenceAdjuster.uniquifyString("alice.smith@example.com", 1));
         assertEquals("fullName1", SemanticCoherenceAdjuster.uniquifyString("fullName", 1));
     }
 
@@ -78,7 +77,8 @@ class SemanticCoherenceAdjusterTest {
         ManualNameHolder nameHolder = new ManualNameHolder();
         nameHolder.firstName = "Alice";
         nameHolder.lastName = "Smith";
-        assertEquals("alice.smith", SemanticCoherenceAdjuster.emailLocalPart(slotMap(nameHolder, "firstName", "lastName")));
+        assertEquals(
+                "alice.smith", SemanticCoherenceAdjuster.emailLocalPart(slotMap(nameHolder, "firstName", "lastName")));
 
         ManualNameHolder prince = new ManualNameHolder();
         prince.fullName = "Prince";
@@ -110,24 +110,28 @@ class SemanticCoherenceAdjusterTest {
 
         Instant instant = Instant.parse("2026-04-20T12:34:56Z");
         assertSame(instant, SemanticCoherenceAdjuster.fromInstant(instant, Instant.class));
-        assertEquals(LocalDate.of(2026, 4, 20),
-                     SemanticCoherenceAdjuster.fromInstant(instant, LocalDate.class));
-        assertEquals(LocalDateTime.of(2026, 4, 20, 12, 34, 56),
-                     SemanticCoherenceAdjuster.fromInstant(instant, LocalDateTime.class));
-        assertEquals(OffsetDateTime.ofInstant(instant, ZoneOffset.UTC),
-                     SemanticCoherenceAdjuster.fromInstant(instant, OffsetDateTime.class));
-        assertEquals(ZonedDateTime.ofInstant(instant, ZoneOffset.UTC),
-                     SemanticCoherenceAdjuster.fromInstant(instant, ZonedDateTime.class));
-        assertEquals(java.util.Date.from(instant),
-                     SemanticCoherenceAdjuster.fromInstant(instant, java.util.Date.class));
-        assertEquals(java.sql.Date.valueOf(LocalDate.of(2026, 4, 20)),
-                     SemanticCoherenceAdjuster.fromInstant(instant, java.sql.Date.class));
-        assertEquals(java.sql.Timestamp.from(instant),
-                     SemanticCoherenceAdjuster.fromInstant(instant, java.sql.Timestamp.class));
+        assertEquals(LocalDate.of(2026, 4, 20), SemanticCoherenceAdjuster.fromInstant(instant, LocalDate.class));
+        assertEquals(
+                LocalDateTime.of(2026, 4, 20, 12, 34, 56),
+                SemanticCoherenceAdjuster.fromInstant(instant, LocalDateTime.class));
+        assertEquals(
+                OffsetDateTime.ofInstant(instant, ZoneOffset.UTC),
+                SemanticCoherenceAdjuster.fromInstant(instant, OffsetDateTime.class));
+        assertEquals(
+                ZonedDateTime.ofInstant(instant, ZoneOffset.UTC),
+                SemanticCoherenceAdjuster.fromInstant(instant, ZonedDateTime.class));
+        assertEquals(
+                java.util.Date.from(instant), SemanticCoherenceAdjuster.fromInstant(instant, java.util.Date.class));
+        assertEquals(
+                java.sql.Date.valueOf(LocalDate.of(2026, 4, 20)),
+                SemanticCoherenceAdjuster.fromInstant(instant, java.sql.Date.class));
+        assertEquals(
+                java.sql.Timestamp.from(instant),
+                SemanticCoherenceAdjuster.fromInstant(instant, java.sql.Timestamp.class));
 
         assertEquals(instant, SemanticCoherenceAdjuster.toInstant(instant));
-        assertEquals(Instant.parse("2026-04-20T00:00:00Z"),
-                     SemanticCoherenceAdjuster.toInstant(LocalDate.of(2026, 4, 20)));
+        assertEquals(
+                Instant.parse("2026-04-20T00:00:00Z"), SemanticCoherenceAdjuster.toInstant(LocalDate.of(2026, 4, 20)));
         assertEquals(instant, SemanticCoherenceAdjuster.toInstant(LocalDateTime.ofInstant(instant, ZoneOffset.UTC)));
         assertEquals(instant, SemanticCoherenceAdjuster.toInstant(OffsetDateTime.ofInstant(instant, ZoneOffset.UTC)));
         assertEquals(instant, SemanticCoherenceAdjuster.toInstant(ZonedDateTime.ofInstant(instant, ZoneOffset.UTC)));
@@ -135,8 +139,9 @@ class SemanticCoherenceAdjusterTest {
         assertNull(SemanticCoherenceAdjuster.toInstant(123L));
 
         java.sql.Date sqlDate = java.sql.Date.valueOf(LocalDate.of(2026, 1, 2));
-        assertEquals(LocalDate.of(2026, 1, 2).atStartOfDay().toInstant(ZoneOffset.UTC),
-                     SemanticCoherenceAdjuster.toInstant(sqlDate));
+        assertEquals(
+                LocalDate.of(2026, 1, 2).atStartOfDay().toInstant(ZoneOffset.UTC),
+                SemanticCoherenceAdjuster.toInstant(sqlDate));
         assertNull(SemanticCoherenceAdjuster.toInstant(java.sql.Time.valueOf("10:15:30")));
 
         assertNull(SemanticCoherenceAdjuster.fromInstant(instant, String.class));
@@ -146,10 +151,8 @@ class SemanticCoherenceAdjusterTest {
     @DisplayName("age and status utility methods cover conversion and fallback branches")
     void ageAndStatusUtilityMethodsCoverConversionAndFallbackBranches() throws Exception {
         Instant instant = Instant.parse("2026-04-20T12:34:56Z");
-        assertEquals(LocalDate.of(2026, 4, 20),
-                     SemanticCoherenceAdjuster.toLocalDate(LocalDate.of(2026, 4, 20)));
-        assertEquals(LocalDate.of(2026, 4, 20),
-                     SemanticCoherenceAdjuster.toLocalDate(java.util.Date.from(instant)));
+        assertEquals(LocalDate.of(2026, 4, 20), SemanticCoherenceAdjuster.toLocalDate(LocalDate.of(2026, 4, 20)));
+        assertEquals(LocalDate.of(2026, 4, 20), SemanticCoherenceAdjuster.toLocalDate(java.util.Date.from(instant)));
         assertNull(SemanticCoherenceAdjuster.toLocalDate("bad-date"));
 
         assertEquals(42, SemanticCoherenceAdjuster.toInteger(42));
@@ -194,76 +197,59 @@ class SemanticCoherenceAdjusterTest {
 
         assertEquals("ACTIVE", SemanticCoherenceAdjuster.statusValueFor(true, String.class));
         assertEquals("INACTIVE", SemanticCoherenceAdjuster.statusValueFor(false, String.class));
-        assertEquals(ManualLifecycleState.ACTIVE,
-                     SemanticCoherenceAdjuster.statusValueFor(true,
-                                  ManualLifecycleState.class));
-        assertEquals(ManualLifecycleState.DISABLED,
-                     SemanticCoherenceAdjuster.statusValueFor(false,
-                                  ManualLifecycleState.class));
+        assertEquals(
+                ManualLifecycleState.ACTIVE,
+                SemanticCoherenceAdjuster.statusValueFor(true, ManualLifecycleState.class));
+        assertEquals(
+                ManualLifecycleState.DISABLED,
+                SemanticCoherenceAdjuster.statusValueFor(false, ManualLifecycleState.class));
         assertNull(SemanticCoherenceAdjuster.statusValueFor(true, Integer.class));
-        assertNull(SemanticCoherenceAdjuster.statusValueFor(true,
-                                PendingOnlyLifecycleState.class));
+        assertNull(SemanticCoherenceAdjuster.statusValueFor(true, PendingOnlyLifecycleState.class));
     }
 
     @Test
     @DisplayName("money and currency utility methods cover parsing and formatting branches")
     void moneyAndCurrencyUtilityMethodsCoverParsingAndFormattingBranches() throws Exception {
-        assertEquals(new BigDecimal("12.35"),
-                     SemanticCoherenceAdjuster.moneyValue("USD 12.345"));
-        assertEquals(new BigDecimal("42.00"),
-                     SemanticCoherenceAdjuster.moneyValue(42));
-        assertEquals(new BigDecimal("42.00"),
-                     SemanticCoherenceAdjuster.moneyValue(BigInteger.valueOf(42)));
-        assertEquals(new BigDecimal("7.50"),
-                     SemanticCoherenceAdjuster.moneyValue(7.5d));
+        assertEquals(new BigDecimal("12.35"), SemanticCoherenceAdjuster.moneyValue("USD 12.345"));
+        assertEquals(new BigDecimal("42.00"), SemanticCoherenceAdjuster.moneyValue(42));
+        assertEquals(new BigDecimal("42.00"), SemanticCoherenceAdjuster.moneyValue(BigInteger.valueOf(42)));
+        assertEquals(new BigDecimal("7.50"), SemanticCoherenceAdjuster.moneyValue(7.5d));
         assertNull(SemanticCoherenceAdjuster.moneyValue("not-money"));
         assertNull(SemanticCoherenceAdjuster.moneyValue(LocalDate.now()));
 
-        assertEquals("USD",
-                     SemanticCoherenceAdjuster.currencyCode(io.github.frikit.krandom.generator.finance.Currency.USD));
-        assertEquals("EUR",
-                     SemanticCoherenceAdjuster.currencyCode(java.util.Currency.getInstance("EUR")));
+        assertEquals(
+                "USD", SemanticCoherenceAdjuster.currencyCode(io.github.frikit.krandom.generator.finance.Currency.USD));
+        assertEquals("EUR", SemanticCoherenceAdjuster.currencyCode(java.util.Currency.getInstance("EUR")));
         assertEquals("SAR", SemanticCoherenceAdjuster.currencyCode("sar"));
         assertEquals("BHD", SemanticCoherenceAdjuster.currencyCode("bhd"));
         assertNull(SemanticCoherenceAdjuster.currencyCode(123));
         assertNull(SemanticCoherenceAdjuster.currencyCode("   "));
         assertNull(SemanticCoherenceAdjuster.currencyCode("not-a-currency"));
 
-        assertEquals("USD 12.35",
-                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), String.class, "USD"));
-        assertEquals("12.35",
-                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), String.class, null));
-        assertEquals(new BigDecimal("12.35"),
-                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), BigDecimal.class, "USD"));
-        assertEquals(BigInteger.valueOf(12),
-                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), BigInteger.class, "USD"));
-        assertEquals((byte) 12,
-                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), byte.class, "USD"));
-        assertEquals((byte) 12,
-                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Byte.class, "USD"));
-        assertEquals((short) 12,
-                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Short.class, "USD"));
-        assertEquals((short) 12,
-                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), short.class, "USD"));
-        assertEquals(12,
-                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Integer.class, "USD"));
-        assertEquals(12,
-                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), int.class, "USD"));
-        assertEquals(12L,
-                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Long.class, "USD"));
-        assertEquals(12L,
-                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), long.class, "USD"));
-        assertEquals(12.35f,
-                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Float.class, "USD"));
-        assertEquals(12.35f,
-                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), float.class, "USD"));
-        assertEquals(12.35d,
-                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Double.class, "USD"));
-        assertEquals(12.35d,
-                     SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), double.class, "USD"));
+        assertEquals(
+                "USD 12.35", SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), String.class, "USD"));
+        assertEquals("12.35", SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), String.class, null));
+        assertEquals(
+                new BigDecimal("12.35"),
+                SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), BigDecimal.class, "USD"));
+        assertEquals(
+                BigInteger.valueOf(12),
+                SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), BigInteger.class, "USD"));
+        assertEquals((byte) 12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), byte.class, "USD"));
+        assertEquals((byte) 12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Byte.class, "USD"));
+        assertEquals((short) 12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Short.class, "USD"));
+        assertEquals((short) 12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), short.class, "USD"));
+        assertEquals(12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Integer.class, "USD"));
+        assertEquals(12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), int.class, "USD"));
+        assertEquals(12L, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Long.class, "USD"));
+        assertEquals(12L, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), long.class, "USD"));
+        assertEquals(12.35f, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Float.class, "USD"));
+        assertEquals(12.35f, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), float.class, "USD"));
+        assertEquals(12.35d, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Double.class, "USD"));
+        assertEquals(12.35d, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), double.class, "USD"));
         assertNull(SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), LocalDate.class, "USD"));
-        assertEquals(new BigDecimal("1.00"),
-                     SemanticCoherenceAdjuster.assignMoney(null, new BigDecimal("1.00"), "USD"));
+        assertEquals(
+                new BigDecimal("1.00"), SemanticCoherenceAdjuster.assignMoney(null, new BigDecimal("1.00"), "USD"));
 
         ManualMoneyHolder nullMoneyHolder = new ManualMoneyHolder();
         SemanticCoherenceAdjuster.Slot priceSlot = rawSlot(nullMoneyHolder, "price");
@@ -271,16 +257,19 @@ class SemanticCoherenceAdjusterTest {
 
         UnsupportedMoneyTarget unsupportedMoneyTarget = new UnsupportedMoneyTarget();
         SemanticCoherenceAdjuster.Slot unsupportedSlot = rawSlot(unsupportedMoneyTarget, "value");
-        assertEquals(new BigDecimal("2.00"),
-                     SemanticCoherenceAdjuster.assignMoney(unsupportedSlot, new BigDecimal("2.00"), "USD"));
+        assertEquals(
+                new BigDecimal("2.00"),
+                SemanticCoherenceAdjuster.assignMoney(unsupportedSlot, new BigDecimal("2.00"), "USD"));
         assertNull(unsupportedMoneyTarget.value);
 
-        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
+        SemanticCoherenceAdjuster adjuster =
+                new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
         ManualStringMoneyHolder stringHolder = new ManualStringMoneyHolder();
         SemanticCoherenceAdjuster.Slot stringPriceSlot = rawSlot(stringHolder, "price");
         assertFalse((Boolean) adjuster.shouldFormatMoneyString(new BigDecimal("1.00"), null, true));
         assertFalse((Boolean) adjuster.shouldFormatMoneyString(null, stringPriceSlot, true));
-        assertFalse((Boolean) adjuster.shouldFormatMoneyString(new BigDecimal("1.00"), rawSlot(new ManualMoneyHolder(), "price"), true));
+        assertFalse((Boolean) adjuster.shouldFormatMoneyString(
+                new BigDecimal("1.00"), rawSlot(new ManualMoneyHolder(), "price"), true));
 
         assertFalse((Boolean) SemanticCoherenceAdjuster.isLessThan(new BigDecimal("1.00"), null));
     }
@@ -288,11 +277,11 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("structural-only mode leaves class instances and record args untouched")
     void structuralOnlyModeLeavesClassInstancesAndRecordArgsUntouched() throws Exception {
-        SemanticCoherenceAdjuster adjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
-                                                               .semanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                               .build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .semanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                        .build(),
+                new UniqueFieldTracker());
 
         ManualNameHolder instance = new ManualNameHolder();
         instance.firstName = "Ada";
@@ -302,7 +291,7 @@ class SemanticCoherenceAdjusterTest {
         assertEquals("unchanged", instance.fullName);
 
         ManualRecord record = new ManualRecord("Ada", "Lovelace", "unchanged");
-        Object[] args = { record.firstName(), record.lastName(), record.fullName() };
+        Object[] args = {record.firstName(), record.lastName(), record.fullName()};
         Field[] fields = {
             ManualRecord.class.getDeclaredField("firstName"),
             ManualRecord.class.getDeclaredField("lastName"),
@@ -315,18 +304,20 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("manual instances derive domain, url, email, and full name")
     void manualInstancesDeriveDomainUrlEmailAndFullName() throws Exception {
-        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
+        SemanticCoherenceAdjuster adjuster =
+                new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
 
         ManualCoherenceHolder company = new ManualCoherenceHolder();
         company.companyName = "Acme Labs";
-        adjuster.adjustInstance(ManualCoherenceHolder.class, company, declaredFields(ManualCoherenceHolder.class), true);
+        adjuster.adjustInstance(
+                ManualCoherenceHolder.class, company, declaredFields(ManualCoherenceHolder.class), true);
         assertEquals("acmelabs.com", company.domain);
         assertEquals("https://www.acmelabs.com", company.url);
         assertEquals("hello@acmelabs.com", company.companyEmail);
         assertEquals("https://www.acmelabs.com", company.companyUrl);
 
         SemanticCoherenceAdjuster emailAdjuster =
-            new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
+                new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
         ManualEmailHolder fromEmail = new ManualEmailHolder();
         fromEmail.firstName = "Ada";
         fromEmail.lastName = "Lovelace";
@@ -335,7 +326,7 @@ class SemanticCoherenceAdjusterTest {
         assertEquals("ada.lovelace@widgets.test", fromEmail.email);
 
         SemanticCoherenceAdjuster urlAdjuster =
-            new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
+                new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
         ManualEmailHolder fromUrl = new ManualEmailHolder();
         fromUrl.firstName = "Ada";
         fromUrl.lastName = "Lovelace";
@@ -344,15 +335,16 @@ class SemanticCoherenceAdjusterTest {
         assertEquals("ada.lovelace@widgets.test", fromUrl.email);
 
         SemanticCoherenceAdjuster fallbackAdjuster =
-            new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
+                new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
         ManualEmailHolder fallback = new ManualEmailHolder();
         fallback.firstName = "Ada";
         fallback.lastName = "Lovelace";
-        fallbackAdjuster.adjustInstance(ManualEmailHolder.class, fallback, declaredFields(ManualEmailHolder.class), true);
+        fallbackAdjuster.adjustInstance(
+                ManualEmailHolder.class, fallback, declaredFields(ManualEmailHolder.class), true);
         assertEquals("ada.lovelace@example.com", fallback.email);
 
         SemanticCoherenceAdjuster nameAdjuster =
-            new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
+                new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
         ManualNameHolder fromNames = new ManualNameHolder();
         fromNames.firstName = "Ada";
         fromNames.lastName = "Lovelace";
@@ -364,11 +356,11 @@ class SemanticCoherenceAdjusterTest {
     @DisplayName("manual instances align locale country and monetary fields")
     void manualInstancesAlignLocaleCountryAndMonetaryFields() throws Exception {
         long generationSeed = 41L;
-        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(),
-                                                                           new UniqueFieldTracker(),
-                                                                           generationSeed);
+        SemanticCoherenceAdjuster adjuster =
+                new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker(), generationSeed);
         AddressInfo expectedAddress = new AddressInfoGenerator(
-            GeneratorConfig.builder().seed(generationSeed).build()).generate();
+                        GeneratorConfig.builder().seed(generationSeed).build())
+                .generate();
 
         ManualAddressHolder address = new ManualAddressHolder();
         address.city = "Dallas";
@@ -394,7 +386,8 @@ class SemanticCoherenceAdjusterTest {
         ManualStringMoneyHolder stringMoney = new ManualStringMoneyHolder();
         stringMoney.currencyCode = "usd";
         stringMoney.price = "7.5";
-        adjuster.adjustInstance(ManualStringMoneyHolder.class, stringMoney, declaredFields(ManualStringMoneyHolder.class), true);
+        adjuster.adjustInstance(
+                ManualStringMoneyHolder.class, stringMoney, declaredFields(ManualStringMoneyHolder.class), true);
         assertEquals("USD 7.50", stringMoney.price);
         assertEquals("USD 7.50", stringMoney.amount);
         assertEquals("USD 7.50", stringMoney.balance);
@@ -403,40 +396,46 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("company contact fallback paths derive from self, companion fields, and company fallback inputs")
     void companyContactFallbackPathsDeriveFromSelfCompanionFieldsAndCompanyFallbackInputs() throws Exception {
-        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(),
-                                                                           new UniqueFieldTracker());
+        SemanticCoherenceAdjuster adjuster =
+                new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
 
         ManualCompanyContactHolder fromOwnEmail = new ManualCompanyContactHolder();
         fromOwnEmail.companyEmail = "legacy@widgets.test";
-        adjuster.adjustInstance(ManualCompanyContactHolder.class, fromOwnEmail,
-                                declaredFields(ManualCompanyContactHolder.class), true);
+        adjuster.adjustInstance(
+                ManualCompanyContactHolder.class, fromOwnEmail, declaredFields(ManualCompanyContactHolder.class), true);
         assertEquals("hello@widgets.test", fromOwnEmail.companyEmail);
 
         ManualCompanyContactHolder fromCompanyUrl = new ManualCompanyContactHolder();
         fromCompanyUrl.companyUrl = "https://www.widgets.test/path";
-        adjuster.adjustInstance(ManualCompanyContactHolder.class, fromCompanyUrl,
-                                declaredFields(ManualCompanyContactHolder.class), true);
+        adjuster.adjustInstance(
+                ManualCompanyContactHolder.class,
+                fromCompanyUrl,
+                declaredFields(ManualCompanyContactHolder.class),
+                true);
         assertEquals("hello@widgets.test", fromCompanyUrl.companyEmail);
         assertEquals("https://www.widgets.test", fromCompanyUrl.companyUrl);
 
         ManualCompanyContactHolder fromOwnUrl = new ManualCompanyContactHolder();
         fromOwnUrl.companyUrl = "https://www.widgets.test/old";
-        adjuster.adjustInstance(ManualCompanyContactHolder.class, fromOwnUrl,
-                                declaredFields(ManualCompanyContactHolder.class), true);
+        adjuster.adjustInstance(
+                ManualCompanyContactHolder.class, fromOwnUrl, declaredFields(ManualCompanyContactHolder.class), true);
         assertEquals("https://www.widgets.test", fromOwnUrl.companyUrl);
 
         ManualCompanyContactHolder fromCompanyEmail = new ManualCompanyContactHolder();
         fromCompanyEmail.companyEmail = "hello@widgets.test";
-        adjuster.adjustInstance(ManualCompanyContactHolder.class, fromCompanyEmail,
-                                declaredFields(ManualCompanyContactHolder.class), true);
+        adjuster.adjustInstance(
+                ManualCompanyContactHolder.class,
+                fromCompanyEmail,
+                declaredFields(ManualCompanyContactHolder.class),
+                true);
         assertEquals("https://www.widgets.test", fromCompanyEmail.companyUrl);
 
         ManualCompanyContactHolder unresolved = new ManualCompanyContactHolder();
         unresolved.companyName = "株式会社";
         unresolved.companyEmail = "";
         unresolved.companyUrl = "";
-        adjuster.adjustInstance(ManualCompanyContactHolder.class, unresolved,
-                                declaredFields(ManualCompanyContactHolder.class), true);
+        adjuster.adjustInstance(
+                ManualCompanyContactHolder.class, unresolved, declaredFields(ManualCompanyContactHolder.class), true);
         assertEquals("", unresolved.companyEmail);
         assertEquals("", unresolved.companyUrl);
     }
@@ -444,29 +443,35 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("generic email falls back to company name when full-name slugs are unavailable")
     void genericEmailFallsBackToCompanyNameWhenFullNameSlugsAreUnavailable() throws Exception {
-        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(),
-                                                                           new UniqueFieldTracker());
+        SemanticCoherenceAdjuster adjuster =
+                new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
 
         ManualCompanyFallbackEmailHolder singleWord = new ManualCompanyFallbackEmailHolder();
         singleWord.fullName = "株式会社";
         singleWord.companyName = "Acme Labs";
-        adjuster.adjustInstance(ManualCompanyFallbackEmailHolder.class, singleWord,
-                                declaredFields(ManualCompanyFallbackEmailHolder.class), true);
+        adjuster.adjustInstance(
+                ManualCompanyFallbackEmailHolder.class,
+                singleWord,
+                declaredFields(ManualCompanyFallbackEmailHolder.class),
+                true);
         assertEquals("hello@acmelabs.com", singleWord.email);
 
         ManualCompanyFallbackEmailHolder multiWord = new ManualCompanyFallbackEmailHolder();
         multiWord.fullName = "株式会社 株式会社";
         multiWord.companyName = "Widgets Co";
-        adjuster.adjustInstance(ManualCompanyFallbackEmailHolder.class, multiWord,
-                                declaredFields(ManualCompanyFallbackEmailHolder.class), true);
+        adjuster.adjustInstance(
+                ManualCompanyFallbackEmailHolder.class,
+                multiWord,
+                declaredFields(ManualCompanyFallbackEmailHolder.class),
+                true);
         assertEquals("hello@widgetsco.com", multiWord.email);
     }
 
     @Test
     @DisplayName("manual money holders backfill missing amount from price")
     void manualMoneyHoldersBackfillMissingAmountFromPrice() throws Exception {
-        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(),
-                                                                           new UniqueFieldTracker());
+        SemanticCoherenceAdjuster adjuster =
+                new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
 
         ManualMoneyHolder money = new ManualMoneyHolder();
         money.currencyCode = "usd";
@@ -479,9 +484,9 @@ class SemanticCoherenceAdjusterTest {
     @DisplayName("protected company contact fields are left untouched")
     void protectedCompanyContactFieldsAreLeftUntouched() throws Exception {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-            .override(ManualCompanyContactHolder.class, "companyEmail", () -> "ignored@example.test")
-            .override(ManualCompanyContactHolder.class, "companyUrl", () -> "https://ignored.example.test")
-            .build();
+                .override(ManualCompanyContactHolder.class, "companyEmail", () -> "ignored@example.test")
+                .override(ManualCompanyContactHolder.class, "companyUrl", () -> "https://ignored.example.test")
+                .build();
         SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(config, new UniqueFieldTracker());
 
         ManualCompanyContactHolder holder = new ManualCompanyContactHolder();
@@ -489,8 +494,8 @@ class SemanticCoherenceAdjusterTest {
         holder.companyEmail = "legacy@widgets.test";
         holder.companyUrl = "https://portal.widgets.test";
 
-        adjuster.adjustInstance(ManualCompanyContactHolder.class, holder,
-                                declaredFields(ManualCompanyContactHolder.class), true);
+        adjuster.adjustInstance(
+                ManualCompanyContactHolder.class, holder, declaredFields(ManualCompanyContactHolder.class), true);
 
         assertEquals("legacy@widgets.test", holder.companyEmail);
         assertEquals("https://portal.widgets.test", holder.companyUrl);
@@ -500,8 +505,8 @@ class SemanticCoherenceAdjusterTest {
     @DisplayName("protected amount slots skip price backfill")
     void protectedAmountSlotsSkipPriceBackfill() throws Exception {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-            .override(ManualMoneyHolder.class, "amount", () -> new BigDecimal("1.00"))
-            .build();
+                .override(ManualMoneyHolder.class, "amount", () -> new BigDecimal("1.00"))
+                .build();
         SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(config, new UniqueFieldTracker());
 
         ManualMoneyHolder money = new ManualMoneyHolder();
@@ -517,126 +522,119 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("address and money coherence cover null-locale and protected fallback branches")
     void addressAndMoneyCoherenceCoverNullLocaleAndProtectedFallbackBranches() throws Exception {
-        SemanticCoherenceAdjuster defaultAdjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(),
-                                                                                  new UniqueFieldTracker());
+        SemanticCoherenceAdjuster defaultAdjuster =
+                new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
 
         ManualAddressHolder noAddressSignals = new ManualAddressHolder();
         noAddressSignals.country = "France";
-        defaultAdjuster.adjustInstance(ManualAddressHolder.class, noAddressSignals,
-                                       declaredFields(ManualAddressHolder.class), true);
+        defaultAdjuster.adjustInstance(
+                ManualAddressHolder.class, noAddressSignals, declaredFields(ManualAddressHolder.class), true);
         assertEquals("France", noAddressSignals.country);
 
         StreetOnlyAddressHolder streetOnly = new StreetOnlyAddressHolder();
         streetOnly.streetAddress = "1 Main Street";
         streetOnly.country = "France";
-        defaultAdjuster.adjustInstance(StreetOnlyAddressHolder.class, streetOnly,
-                                       declaredFields(StreetOnlyAddressHolder.class), true);
+        defaultAdjuster.adjustInstance(
+                StreetOnlyAddressHolder.class, streetOnly, declaredFields(StreetOnlyAddressHolder.class), true);
         assertEquals("United States", streetOnly.country);
 
-        SemanticCoherenceAdjuster languageOnlyAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
-                                                               .generatorConfig(GeneratorConfig.builder()
-                                                                                               .locale(Locale.ENGLISH)
-                                                                                               .build())
-                                                               .build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster languageOnlyAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .generatorConfig(
+                                GeneratorConfig.builder().locale(Locale.ENGLISH).build())
+                        .build(),
+                new UniqueFieldTracker());
         ManualAddressHolder languageOnly = new ManualAddressHolder();
         languageOnly.city = "London";
         languageOnly.country = "France";
-        languageOnlyAdjuster.adjustInstance(ManualAddressHolder.class, languageOnly,
-                                            declaredFields(ManualAddressHolder.class), true);
+        languageOnlyAdjuster.adjustInstance(
+                ManualAddressHolder.class, languageOnly, declaredFields(ManualAddressHolder.class), true);
         assertEquals("France", languageOnly.country);
 
-        SemanticCoherenceAdjuster unregisteredLocaleAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
-                                                               .generatorConfig(GeneratorConfig.builder()
-                                                                                               .locale(Locale.of("zz", "US"))
-                                                                                               .build())
-                                                               .build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster unregisteredLocaleAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .generatorConfig(GeneratorConfig.builder()
+                                .locale(Locale.of("zz", "US"))
+                                .build())
+                        .build(),
+                new UniqueFieldTracker());
         ManualAddressHolder unregisteredLocale = new ManualAddressHolder();
         unregisteredLocale.city = "Nowhere";
         unregisteredLocale.country = "France";
-        unregisteredLocaleAdjuster.adjustInstance(ManualAddressHolder.class, unregisteredLocale,
-                                                  declaredFields(ManualAddressHolder.class), true);
+        unregisteredLocaleAdjuster.adjustInstance(
+                ManualAddressHolder.class, unregisteredLocale, declaredFields(ManualAddressHolder.class), true);
         assertEquals("France", unregisteredLocale.country);
 
         ManualMoneyHolder derivedPrice = new ManualMoneyHolder();
         derivedPrice.amount = new BigDecimal("12.50");
-        defaultAdjuster.adjustInstance(ManualMoneyHolder.class, derivedPrice, declaredFields(ManualMoneyHolder.class), true);
+        defaultAdjuster.adjustInstance(
+                ManualMoneyHolder.class, derivedPrice, declaredFields(ManualMoneyHolder.class), true);
         assertEquals(new BigDecimal("12.50"), derivedPrice.price);
         assertEquals(new BigDecimal("12.50"), derivedPrice.amount);
         assertEquals(new BigDecimal("12.50"), derivedPrice.balance);
 
-        SemanticCoherenceAdjuster protectedAmountAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
-                                                               .override(ManualMoneyHolder.class, "amount",
-                                                                         () -> new BigDecimal("50.00"))
-                                                               .build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster protectedAmountAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .override(ManualMoneyHolder.class, "amount", () -> new BigDecimal("50.00"))
+                        .build(),
+                new UniqueFieldTracker());
         ManualMoneyHolder protectedAmount = new ManualMoneyHolder();
         protectedAmount.price = new BigDecimal("80.00");
         protectedAmount.amount = new BigDecimal("50.00");
-        protectedAmountAdjuster.adjustInstance(ManualMoneyHolder.class, protectedAmount,
-                                               declaredFields(ManualMoneyHolder.class), true);
+        protectedAmountAdjuster.adjustInstance(
+                ManualMoneyHolder.class, protectedAmount, declaredFields(ManualMoneyHolder.class), true);
         assertEquals(new BigDecimal("50.00"), protectedAmount.price);
         assertEquals(new BigDecimal("50.00"), protectedAmount.amount);
 
-        SemanticCoherenceAdjuster protectedBalanceAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
-                                                               .override(ManualMoneyHolder.class, "balance",
-                                                                         () -> new BigDecimal("40.00"))
-                                                               .build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster protectedBalanceAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .override(ManualMoneyHolder.class, "balance", () -> new BigDecimal("40.00"))
+                        .build(),
+                new UniqueFieldTracker());
         ManualMoneyHolder protectedBalance = new ManualMoneyHolder();
         protectedBalance.amount = new BigDecimal("80.00");
         protectedBalance.balance = new BigDecimal("40.00");
-        protectedBalanceAdjuster.adjustInstance(ManualMoneyHolder.class, protectedBalance,
-                                                declaredFields(ManualMoneyHolder.class), true);
+        protectedBalanceAdjuster.adjustInstance(
+                ManualMoneyHolder.class, protectedBalance, declaredFields(ManualMoneyHolder.class), true);
         assertEquals(new BigDecimal("40.00"), protectedBalance.amount);
         assertEquals(new BigDecimal("40.00"), protectedBalance.balance);
 
-        SemanticCoherenceAdjuster protectedMissingAmountAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
-                                                               .override(ManualMoneyHolder.class, "amount",
-                                                                         () -> new BigDecimal("25.00"))
-                                                               .build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster protectedMissingAmountAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .override(ManualMoneyHolder.class, "amount", () -> new BigDecimal("25.00"))
+                        .build(),
+                new UniqueFieldTracker());
         ManualMoneyHolder protectedMissingAmount = new ManualMoneyHolder();
         protectedMissingAmount.price = new BigDecimal("25.00");
-        protectedMissingAmountAdjuster.adjustInstance(ManualMoneyHolder.class, protectedMissingAmount,
-                                                      declaredFields(ManualMoneyHolder.class), true);
+        protectedMissingAmountAdjuster.adjustInstance(
+                ManualMoneyHolder.class, protectedMissingAmount, declaredFields(ManualMoneyHolder.class), true);
         assertNull(protectedMissingAmount.amount);
 
-        SemanticCoherenceAdjuster fullyProtectedPriceAmountAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
-                                                               .override(ManualMoneyHolder.class, "price",
-                                                                         () -> new BigDecimal("80.00"))
-                                                               .override(ManualMoneyHolder.class, "amount",
-                                                                         () -> new BigDecimal("50.00"))
-                                                               .build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster fullyProtectedPriceAmountAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .override(ManualMoneyHolder.class, "price", () -> new BigDecimal("80.00"))
+                        .override(ManualMoneyHolder.class, "amount", () -> new BigDecimal("50.00"))
+                        .build(),
+                new UniqueFieldTracker());
         ManualMoneyHolder fullyProtectedPriceAmount = new ManualMoneyHolder();
         fullyProtectedPriceAmount.price = new BigDecimal("80.00");
         fullyProtectedPriceAmount.amount = new BigDecimal("50.00");
-        fullyProtectedPriceAmountAdjuster.adjustInstance(ManualMoneyHolder.class, fullyProtectedPriceAmount,
-                                                         declaredFields(ManualMoneyHolder.class), true);
+        fullyProtectedPriceAmountAdjuster.adjustInstance(
+                ManualMoneyHolder.class, fullyProtectedPriceAmount, declaredFields(ManualMoneyHolder.class), true);
         assertEquals(new BigDecimal("80.00"), fullyProtectedPriceAmount.price);
         assertEquals(new BigDecimal("50.00"), fullyProtectedPriceAmount.amount);
 
-        SemanticCoherenceAdjuster fullyProtectedAmountBalanceAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
-                                                               .override(ManualMoneyHolder.class, "amount",
-                                                                         () -> new BigDecimal("80.00"))
-                                                               .override(ManualMoneyHolder.class, "balance",
-                                                                         () -> new BigDecimal("40.00"))
-                                                               .build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster fullyProtectedAmountBalanceAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .override(ManualMoneyHolder.class, "amount", () -> new BigDecimal("80.00"))
+                        .override(ManualMoneyHolder.class, "balance", () -> new BigDecimal("40.00"))
+                        .build(),
+                new UniqueFieldTracker());
         ManualMoneyHolder fullyProtectedAmountBalance = new ManualMoneyHolder();
         fullyProtectedAmountBalance.amount = new BigDecimal("80.00");
         fullyProtectedAmountBalance.balance = new BigDecimal("40.00");
-        fullyProtectedAmountBalanceAdjuster.adjustInstance(ManualMoneyHolder.class, fullyProtectedAmountBalance,
-                                                           declaredFields(ManualMoneyHolder.class), true);
+        fullyProtectedAmountBalanceAdjuster.adjustInstance(
+                ManualMoneyHolder.class, fullyProtectedAmountBalance, declaredFields(ManualMoneyHolder.class), true);
         assertEquals(new BigDecimal("80.00"), fullyProtectedAmountBalance.amount);
         assertEquals(new BigDecimal("40.00"), fullyProtectedAmountBalance.balance);
     }
@@ -646,20 +644,18 @@ class SemanticCoherenceAdjusterTest {
     void addressCoherenceCachesOneSnapshotAndSkipsBlankGeneratedComponents() throws Exception {
         Locale locale = Locale.of("qa", "US");
         DataRegistryContext context = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerLocaleData(LocaleDataBundle.builder(locale)
-                                                                                             .countries("United States")
-                                                                                             .streetAddress(new String[] { "Elm" },
-                                                                                                            new String[] { "St" },
-                                                                                                            new String[] { "Street" })
-                                                                                             .build())
-                                                         .build();
+                .isolated()
+                .registerLocaleData(LocaleDataBundle.builder(locale)
+                        .countries("United States")
+                        .streetAddress(new String[] {"Elm"}, new String[] {"St"}, new String[] {"Street"})
+                        .build())
+                .build();
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .generatorConfig(GeneratorConfig.builder()
-                                                                                            .locale(locale)
-                                                                                            .registryContext(context)
-                                                                                            .build())
-                                                            .build();
+                .generatorConfig(GeneratorConfig.builder()
+                        .locale(locale)
+                        .registryContext(context)
+                        .build())
+                .build();
         SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(config, new UniqueFieldTracker(), 77L);
 
         ManualAddressHolder first = new ManualAddressHolder();
@@ -688,13 +684,15 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("overwrite rules and protections are respected")
     void overwriteRulesAndProtectionsAreRespected() throws Exception {
-        SemanticCoherenceAdjuster defaultAdjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
+        SemanticCoherenceAdjuster defaultAdjuster =
+                new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
 
         ManualNameHolder blankOnly = new ManualNameHolder();
         blankOnly.firstName = "Ada";
         blankOnly.lastName = "Lovelace";
         blankOnly.fullName = "   ";
-        defaultAdjuster.adjustInstance(ManualNameHolder.class, blankOnly, declaredFields(ManualNameHolder.class), false);
+        defaultAdjuster.adjustInstance(
+                ManualNameHolder.class, blankOnly, declaredFields(ManualNameHolder.class), false);
         assertEquals("Ada Lovelace", blankOnly.fullName);
 
         ManualNameHolder nullOnly = new ManualNameHolder();
@@ -707,85 +705,96 @@ class SemanticCoherenceAdjusterTest {
         protectedExisting.firstName = "Ada";
         protectedExisting.lastName = "Lovelace";
         protectedExisting.fullName = "Custom";
-        defaultAdjuster.adjustInstance(ManualNameHolder.class, protectedExisting, declaredFields(ManualNameHolder.class), false);
+        defaultAdjuster.adjustInstance(
+                ManualNameHolder.class, protectedExisting, declaredFields(ManualNameHolder.class), false);
         assertEquals("Custom", protectedExisting.fullName);
 
         ManualNameHolder missingFirst = new ManualNameHolder();
         missingFirst.lastName = "Lovelace";
-        defaultAdjuster.adjustInstance(ManualNameHolder.class, missingFirst, declaredFields(ManualNameHolder.class), true);
+        defaultAdjuster.adjustInstance(
+                ManualNameHolder.class, missingFirst, declaredFields(ManualNameHolder.class), true);
         assertNull(missingFirst.fullName);
 
         ManualNameHolder missingLast = new ManualNameHolder();
         missingLast.firstName = "Ada";
-        defaultAdjuster.adjustInstance(ManualNameHolder.class, missingLast, declaredFields(ManualNameHolder.class), true);
+        defaultAdjuster.adjustInstance(
+                ManualNameHolder.class, missingLast, declaredFields(ManualNameHolder.class), true);
         assertNull(missingLast.fullName);
 
         ManualTemporalHolder temporal = new ManualTemporalHolder();
         temporal.createdAt = LocalDateTime.of(2026, 4, 20, 12, 0);
         temporal.updatedAt = Instant.parse("2026-04-20T10:00:00Z");
-        defaultAdjuster.adjustInstance(ManualTemporalHolder.class, temporal, declaredFields(ManualTemporalHolder.class), false);
+        defaultAdjuster.adjustInstance(
+                ManualTemporalHolder.class, temporal, declaredFields(ManualTemporalHolder.class), false);
         assertEquals(LocalDateTime.of(2026, 4, 20, 12, 0), temporal.createdAt);
         assertEquals(Instant.parse("2026-04-20T10:00:00Z"), temporal.updatedAt);
 
         ManualTemporalHolder missingCreated = new ManualTemporalHolder();
         missingCreated.updatedAt = Instant.parse("2026-04-20T10:00:00Z");
-        defaultAdjuster.adjustInstance(ManualTemporalHolder.class, missingCreated, declaredFields(ManualTemporalHolder.class), true);
+        defaultAdjuster.adjustInstance(
+                ManualTemporalHolder.class, missingCreated, declaredFields(ManualTemporalHolder.class), true);
         assertNull(missingCreated.createdAt);
 
         ManualTemporalHolder missingUpdated = new ManualTemporalHolder();
         missingUpdated.createdAt = LocalDateTime.of(2026, 4, 20, 9, 0);
-        defaultAdjuster.adjustInstance(ManualTemporalHolder.class, missingUpdated, declaredFields(ManualTemporalHolder.class), true);
+        defaultAdjuster.adjustInstance(
+                ManualTemporalHolder.class, missingUpdated, declaredFields(ManualTemporalHolder.class), true);
         assertNull(missingUpdated.updatedAt);
 
         ManualTemporalHolder alreadyOrdered = new ManualTemporalHolder();
         alreadyOrdered.createdAt = LocalDateTime.of(2026, 4, 20, 9, 0);
         alreadyOrdered.updatedAt = Instant.parse("2026-04-20T10:00:00Z");
-        defaultAdjuster.adjustInstance(ManualTemporalHolder.class, alreadyOrdered, declaredFields(ManualTemporalHolder.class), true);
+        defaultAdjuster.adjustInstance(
+                ManualTemporalHolder.class, alreadyOrdered, declaredFields(ManualTemporalHolder.class), true);
         assertEquals(LocalDateTime.of(2026, 4, 20, 9, 0), alreadyOrdered.createdAt);
 
-        SemanticCoherenceAdjuster fieldOverrideAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
-                                                               .override(ManualNameHolder.class, "fullName", () -> "fixed")
-                                                               .build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster fieldOverrideAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .override(ManualNameHolder.class, "fullName", () -> "fixed")
+                        .build(),
+                new UniqueFieldTracker());
         ManualNameHolder fieldOverride = new ManualNameHolder();
         fieldOverride.firstName = "Ada";
         fieldOverride.lastName = "Lovelace";
-        fieldOverrideAdjuster.adjustInstance(ManualNameHolder.class, fieldOverride, declaredFields(ManualNameHolder.class), true);
+        fieldOverrideAdjuster.adjustInstance(
+                ManualNameHolder.class, fieldOverride, declaredFields(ManualNameHolder.class), true);
         assertNull(fieldOverride.fullName);
 
-        SemanticCoherenceAdjuster typeOverrideAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder().override(String.class, () -> "fixed").build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster typeOverrideAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .override(String.class, () -> "fixed")
+                        .build(),
+                new UniqueFieldTracker());
         ManualEmailHolder typeOverride = new ManualEmailHolder();
         typeOverride.firstName = "Ada";
         typeOverride.lastName = "Lovelace";
-        typeOverrideAdjuster.adjustInstance(ManualEmailHolder.class, typeOverride, declaredFields(ManualEmailHolder.class), true);
+        typeOverrideAdjuster.adjustInstance(
+                ManualEmailHolder.class, typeOverride, declaredFields(ManualEmailHolder.class), true);
         assertNull(typeOverride.email);
 
-        SemanticCoherenceAdjuster contextualTypeOverrideAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
-                                                               .override(String.class, ctx -> "fixed")
-                                                               .build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster contextualTypeOverrideAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .override(String.class, ctx -> "fixed")
+                        .build(),
+                new UniqueFieldTracker());
         ManualEmailHolder contextualTypeOverride = new ManualEmailHolder();
         contextualTypeOverride.firstName = "Ada";
         contextualTypeOverride.lastName = "Lovelace";
-        contextualTypeOverrideAdjuster.adjustInstance(ManualEmailHolder.class, contextualTypeOverride,
-                                                      declaredFields(ManualEmailHolder.class), true);
+        contextualTypeOverrideAdjuster.adjustInstance(
+                ManualEmailHolder.class, contextualTypeOverride, declaredFields(ManualEmailHolder.class), true);
         assertNull(contextualTypeOverride.email);
 
-        SemanticCoherenceAdjuster predicateOverrideAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
-                                                               .override(FieldPredicates.named("fullName"), () -> "fixed")
-                                                               .build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster predicateOverrideAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .override(FieldPredicates.named("fullName"), () -> "fixed")
+                        .build(),
+                new UniqueFieldTracker());
         ManualNameHolder predicateOverride = new ManualNameHolder();
         predicateOverride.firstName = "Ada";
         predicateOverride.lastName = "Lovelace";
         predicateOverride.fullName = "RAW";
-        predicateOverrideAdjuster.adjustInstance(ManualNameHolder.class, predicateOverride,
-                                                 declaredFields(ManualNameHolder.class), true);
+        predicateOverrideAdjuster.adjustInstance(
+                ManualNameHolder.class, predicateOverride, declaredFields(ManualNameHolder.class), true);
         assertEquals("RAW", predicateOverride.fullName);
 
         UrlOnlyHolder urlOnly = new UrlOnlyHolder();
@@ -796,7 +805,8 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("age and status coherence cover protected, missing, and unsupported fallback paths")
     void ageAndStatusCoherenceCoverProtectedMissingAndUnsupportedFallbackPaths() throws Exception {
-        SemanticCoherenceAdjuster defaultAdjuster = new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
+        SemanticCoherenceAdjuster defaultAdjuster =
+                new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
 
         ManualAgeHolder derivedAge = new ManualAgeHolder();
         derivedAge.birthDate = LocalDate.now().minusYears(33);
@@ -806,16 +816,20 @@ class SemanticCoherenceAdjusterTest {
         ManualAgeHolder noOverwriteConflict = new ManualAgeHolder();
         noOverwriteConflict.birthDate = LocalDate.now().minusYears(29);
         noOverwriteConflict.age = 17;
-        defaultAdjuster.adjustInstance(ManualAgeHolder.class, noOverwriteConflict, declaredFields(ManualAgeHolder.class), false);
+        defaultAdjuster.adjustInstance(
+                ManualAgeHolder.class, noOverwriteConflict, declaredFields(ManualAgeHolder.class), false);
         assertEquals(17, noOverwriteConflict.age);
         assertEquals(LocalDate.now().minusYears(29), noOverwriteConflict.birthDate);
 
-        SemanticCoherenceAdjuster protectedNullAgeAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder().override(ManualAgeHolder.class, "age", () -> 41).build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster protectedNullAgeAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .override(ManualAgeHolder.class, "age", () -> 41)
+                        .build(),
+                new UniqueFieldTracker());
         ManualAgeHolder protectedNullAge = new ManualAgeHolder();
         protectedNullAge.birthDate = LocalDate.now().minusYears(31);
-        protectedNullAgeAdjuster.adjustInstance(ManualAgeHolder.class, protectedNullAge, declaredFields(ManualAgeHolder.class), true);
+        protectedNullAgeAdjuster.adjustInstance(
+                ManualAgeHolder.class, protectedNullAge, declaredFields(ManualAgeHolder.class), true);
         assertNull(protectedNullAge.age);
         assertEquals(LocalDate.now().minusYears(31), protectedNullAge.birthDate);
 
@@ -825,30 +839,34 @@ class SemanticCoherenceAdjusterTest {
         defaultAdjuster.adjustInstance(ManualAgeHolder.class, matchingAge, declaredFields(ManualAgeHolder.class), true);
         assertEquals(29, matchingAge.age);
 
-        SemanticCoherenceAdjuster protectedAgeAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder().override(ManualAgeHolder.class, "age", () -> 42).build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster protectedAgeAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .override(ManualAgeHolder.class, "age", () -> 42)
+                        .build(),
+                new UniqueFieldTracker());
         ManualAgeHolder protectedAge = new ManualAgeHolder();
         protectedAge.birthDate = LocalDate.now().minusYears(20);
         protectedAge.age = 42;
-        protectedAgeAdjuster.adjustInstance(ManualAgeHolder.class, protectedAge, declaredFields(ManualAgeHolder.class), true);
+        protectedAgeAdjuster.adjustInstance(
+                ManualAgeHolder.class, protectedAge, declaredFields(ManualAgeHolder.class), true);
         assertEquals(42, protectedAge.age);
         assertEquals(LocalDate.now().minusYears(42), protectedAge.birthDate);
 
         ManualAgeHolder missingBirthDate = new ManualAgeHolder();
         missingBirthDate.age = 27;
-        defaultAdjuster.adjustInstance(ManualAgeHolder.class, missingBirthDate, declaredFields(ManualAgeHolder.class), true);
+        defaultAdjuster.adjustInstance(
+                ManualAgeHolder.class, missingBirthDate, declaredFields(ManualAgeHolder.class), true);
         assertEquals(LocalDate.now().minusYears(27), missingBirthDate.birthDate);
 
-        SemanticCoherenceAdjuster protectedBirthDateAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
-                                                               .override(ManualAgeHolder.class, "birthDate", () -> LocalDate.EPOCH)
-                                                               .build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster protectedBirthDateAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .override(ManualAgeHolder.class, "birthDate", () -> LocalDate.EPOCH)
+                        .build(),
+                new UniqueFieldTracker());
         ManualAgeHolder protectedBirthDate = new ManualAgeHolder();
         protectedBirthDate.age = 36;
-        protectedBirthDateAdjuster.adjustInstance(ManualAgeHolder.class, protectedBirthDate,
-                                                  declaredFields(ManualAgeHolder.class), true);
+        protectedBirthDateAdjuster.adjustInstance(
+                ManualAgeHolder.class, protectedBirthDate, declaredFields(ManualAgeHolder.class), true);
         assertNull(protectedBirthDate.birthDate);
         assertEquals(36, protectedBirthDate.age);
 
@@ -860,62 +878,84 @@ class SemanticCoherenceAdjusterTest {
         ManualStatusHolder alignedStatus = new ManualStatusHolder();
         alignedStatus.active = true;
         alignedStatus.status = "ENABLED";
-        defaultAdjuster.adjustInstance(ManualStatusHolder.class, alignedStatus, declaredFields(ManualStatusHolder.class), true);
+        defaultAdjuster.adjustInstance(
+                ManualStatusHolder.class, alignedStatus, declaredFields(ManualStatusHolder.class), true);
         assertEquals("ENABLED", alignedStatus.status);
 
         ManualStatusHolder rewrittenStatus = new ManualStatusHolder();
         rewrittenStatus.active = true;
         rewrittenStatus.status = "SUSPENDED";
-        defaultAdjuster.adjustInstance(ManualStatusHolder.class, rewrittenStatus, declaredFields(ManualStatusHolder.class), true);
+        defaultAdjuster.adjustInstance(
+                ManualStatusHolder.class, rewrittenStatus, declaredFields(ManualStatusHolder.class), true);
         assertEquals("ACTIVE", rewrittenStatus.status);
 
-        SemanticCoherenceAdjuster protectedStatusAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder().override(ManualStatusHolder.class, "status", () -> "fixed").build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster protectedStatusAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .override(ManualStatusHolder.class, "status", () -> "fixed")
+                        .build(),
+                new UniqueFieldTracker());
         ManualStatusHolder protectedStatus = new ManualStatusHolder();
         protectedStatus.active = true;
         protectedStatus.status = "SUSPENDED";
-        protectedStatusAdjuster.adjustInstance(ManualStatusHolder.class, protectedStatus, declaredFields(ManualStatusHolder.class), true);
+        protectedStatusAdjuster.adjustInstance(
+                ManualStatusHolder.class, protectedStatus, declaredFields(ManualStatusHolder.class), true);
         assertEquals("SUSPENDED", protectedStatus.status);
         assertFalse(protectedStatus.active);
 
         ManualStatusHolder protectedStatusWithoutOverwrite = new ManualStatusHolder();
         protectedStatusWithoutOverwrite.active = true;
         protectedStatusWithoutOverwrite.status = "SUSPENDED";
-        protectedStatusAdjuster.adjustInstance(ManualStatusHolder.class, protectedStatusWithoutOverwrite,
-                                              declaredFields(ManualStatusHolder.class), false);
+        protectedStatusAdjuster.adjustInstance(
+                ManualStatusHolder.class,
+                protectedStatusWithoutOverwrite,
+                declaredFields(ManualStatusHolder.class),
+                false);
         assertTrue(protectedStatusWithoutOverwrite.active);
         assertEquals("SUSPENDED", protectedStatusWithoutOverwrite.status);
 
         ManualNullableStatusHolder derivedActive = new ManualNullableStatusHolder();
         derivedActive.status = "ACTIVE";
-        defaultAdjuster.adjustInstance(ManualNullableStatusHolder.class, derivedActive, declaredFields(ManualNullableStatusHolder.class), true);
+        defaultAdjuster.adjustInstance(
+                ManualNullableStatusHolder.class,
+                derivedActive,
+                declaredFields(ManualNullableStatusHolder.class),
+                true);
         assertEquals(Boolean.TRUE, derivedActive.active);
 
         ManualNullableStatusHolder unknownStatus = new ManualNullableStatusHolder();
         unknownStatus.status = "PENDING";
-        defaultAdjuster.adjustInstance(ManualNullableStatusHolder.class, unknownStatus, declaredFields(ManualNullableStatusHolder.class), true);
+        defaultAdjuster.adjustInstance(
+                ManualNullableStatusHolder.class,
+                unknownStatus,
+                declaredFields(ManualNullableStatusHolder.class),
+                true);
         assertNull(unknownStatus.active);
 
-        SemanticCoherenceAdjuster protectedActiveAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder().override(ManualNullableStatusHolder.class, "active", () -> Boolean.FALSE)
-                                                               .build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster protectedActiveAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .override(ManualNullableStatusHolder.class, "active", () -> Boolean.FALSE)
+                        .build(),
+                new UniqueFieldTracker());
         ManualNullableStatusHolder protectedActive = new ManualNullableStatusHolder();
         protectedActive.status = "ACTIVE";
-        protectedActiveAdjuster.adjustInstance(ManualNullableStatusHolder.class, protectedActive,
-                                               declaredFields(ManualNullableStatusHolder.class), true);
+        protectedActiveAdjuster.adjustInstance(
+                ManualNullableStatusHolder.class,
+                protectedActive,
+                declaredFields(ManualNullableStatusHolder.class),
+                true);
         assertNull(protectedActive.active);
 
         ManualEnumStatusHolder enumStatus = new ManualEnumStatusHolder();
         enumStatus.active = false;
-        defaultAdjuster.adjustInstance(ManualEnumStatusHolder.class, enumStatus, declaredFields(ManualEnumStatusHolder.class), true);
+        defaultAdjuster.adjustInstance(
+                ManualEnumStatusHolder.class, enumStatus, declaredFields(ManualEnumStatusHolder.class), true);
         assertEquals(ManualLifecycleState.DISABLED, enumStatus.status);
 
         ManualOpaqueStatusHolder opaqueStatus = new ManualOpaqueStatusHolder();
         opaqueStatus.active = true;
         opaqueStatus.status = 7;
-        defaultAdjuster.adjustInstance(ManualOpaqueStatusHolder.class, opaqueStatus, declaredFields(ManualOpaqueStatusHolder.class), true);
+        defaultAdjuster.adjustInstance(
+                ManualOpaqueStatusHolder.class, opaqueStatus, declaredFields(ManualOpaqueStatusHolder.class), true);
         assertEquals(7, opaqueStatus.status);
         assertTrue(opaqueStatus.active);
     }
@@ -930,8 +970,9 @@ class SemanticCoherenceAdjusterTest {
         relaxed.email = "ANNOTATED";
 
         SemanticCoherenceAdjuster relaxedAdjuster =
-            new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
-        relaxedAdjuster.adjustInstance(ProtectedSemanticHolder.class, relaxed, declaredFields(ProtectedSemanticHolder.class), true);
+                new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
+        relaxedAdjuster.adjustInstance(
+                ProtectedSemanticHolder.class, relaxed, declaredFields(ProtectedSemanticHolder.class), true);
         assertEquals("RAW", relaxed.fullName);
         assertEquals("ANNOTATED", relaxed.email);
 
@@ -941,12 +982,13 @@ class SemanticCoherenceAdjusterTest {
         strict.fullName = "RAW";
         strict.email = "ANNOTATED";
 
-        SemanticCoherenceAdjuster strictAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
-                                                               .semanticMode(ObjectGenerationSemanticMode.STRICT)
-                                                               .build(),
-                                          new UniqueFieldTracker());
-        strictAdjuster.adjustInstance(ProtectedSemanticHolder.class, strict, declaredFields(ProtectedSemanticHolder.class), true);
+        SemanticCoherenceAdjuster strictAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .semanticMode(ObjectGenerationSemanticMode.STRICT)
+                        .build(),
+                new UniqueFieldTracker());
+        strictAdjuster.adjustInstance(
+                ProtectedSemanticHolder.class, strict, declaredFields(ProtectedSemanticHolder.class), true);
         assertEquals("Ada Lovelace", strict.fullName);
         assertEquals("ada.lovelace@example.com", strict.email);
     }
@@ -954,42 +996,45 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("timestamp fallback and uniqueness branches are exercised")
     void timestampFallbackAndUniquenessBranchesAreExercised() throws Exception {
-        SemanticCoherenceAdjuster updatedProtectedAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder()
-                                                               .override(ManualTemporalHolder.class, "updatedAt", () -> Instant.EPOCH)
-                                                               .build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster updatedProtectedAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .override(ManualTemporalHolder.class, "updatedAt", () -> Instant.EPOCH)
+                        .build(),
+                new UniqueFieldTracker());
         ManualTemporalHolder temporal = new ManualTemporalHolder();
         temporal.createdAt = LocalDateTime.of(2026, 4, 20, 12, 0);
         temporal.updatedAt = Instant.parse("2026-04-20T10:00:00Z");
-        updatedProtectedAdjuster.adjustInstance(ManualTemporalHolder.class, temporal, declaredFields(ManualTemporalHolder.class), true);
+        updatedProtectedAdjuster.adjustInstance(
+                ManualTemporalHolder.class, temporal, declaredFields(ManualTemporalHolder.class), true);
         assertEquals(LocalDateTime.ofInstant(temporal.updatedAt, ZoneOffset.UTC), temporal.createdAt);
 
-        SemanticCoherenceAdjuster emailAliasAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder().uniqueFields("emailaddress").build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster emailAliasAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder().uniqueFields("emailaddress").build(), new UniqueFieldTracker());
         EmailAliasHolder firstAlias = new EmailAliasHolder();
         firstAlias.firstName = "Ada";
         firstAlias.lastName = "Lovelace";
-        emailAliasAdjuster.adjustInstance(EmailAliasHolder.class, firstAlias, declaredFields(EmailAliasHolder.class), true);
+        emailAliasAdjuster.adjustInstance(
+                EmailAliasHolder.class, firstAlias, declaredFields(EmailAliasHolder.class), true);
         EmailAliasHolder secondAlias = new EmailAliasHolder();
         secondAlias.firstName = "Ada";
         secondAlias.lastName = "Lovelace";
-        emailAliasAdjuster.adjustInstance(EmailAliasHolder.class, secondAlias, declaredFields(EmailAliasHolder.class), true);
+        emailAliasAdjuster.adjustInstance(
+                EmailAliasHolder.class, secondAlias, declaredFields(EmailAliasHolder.class), true);
         assertEquals("ada.lovelace@example.com", firstAlias.emailAddress);
         assertEquals("ada.lovelace1@example.com", secondAlias.emailAddress);
 
-        SemanticCoherenceAdjuster uniqueFullNameAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder().uniqueFields("fullname").build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster uniqueFullNameAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder().uniqueFields("fullname").build(), new UniqueFieldTracker());
         ManualNameHolder firstName = new ManualNameHolder();
         firstName.firstName = "Ada";
         firstName.lastName = "Lovelace";
-        uniqueFullNameAdjuster.adjustInstance(ManualNameHolder.class, firstName, declaredFields(ManualNameHolder.class), true);
+        uniqueFullNameAdjuster.adjustInstance(
+                ManualNameHolder.class, firstName, declaredFields(ManualNameHolder.class), true);
         ManualNameHolder secondName = new ManualNameHolder();
         secondName.firstName = "Ada";
         secondName.lastName = "Lovelace";
-        uniqueFullNameAdjuster.adjustInstance(ManualNameHolder.class, secondName, declaredFields(ManualNameHolder.class), true);
+        uniqueFullNameAdjuster.adjustInstance(
+                ManualNameHolder.class, secondName, declaredFields(ManualNameHolder.class), true);
         assertEquals("Ada Lovelace", firstName.fullName);
         assertEquals("Ada Lovelace1", secondName.fullName);
     }
@@ -997,17 +1042,16 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("internal uniqueness helpers cover null and alias branches")
     void internalUniquenessHelpersCoverNullAndAliasBranches() throws Exception {
-        SemanticCoherenceAdjuster aliasAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder().uniqueFields("emailaddress").build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster aliasAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder().uniqueFields("emailaddress").build(), new UniqueFieldTracker());
         assertTrue((Boolean) aliasAdjuster.isUniqueField("email", "email"));
 
-        SemanticCoherenceAdjuster semanticAdjuster =
-            new SemanticCoherenceAdjuster(ObjectGeneratorConfig.builder().uniqueFields("email").build(),
-                                          new UniqueFieldTracker());
+        SemanticCoherenceAdjuster semanticAdjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder().uniqueFields("email").build(), new UniqueFieldTracker());
         assertTrue((Boolean) semanticAdjuster.isUniqueField("customField", "email"));
 
-        SemanticCoherenceAdjuster.Slot slot = slotMap(new ManualEmailHolder(), "email").get("email");
+        SemanticCoherenceAdjuster.Slot slot =
+                slotMap(new ManualEmailHolder(), "email").get("email");
         assertNull(semanticAdjuster.applyUniqueness(slot, "email", null));
     }
 
@@ -1016,8 +1060,8 @@ class SemanticCoherenceAdjusterTest {
     void reflectionSlotsWrapReadAndWriteFailures() throws Exception {
         PrivateValueHolder privateHolder = new PrivateValueHolder();
         Field privateField = PrivateValueHolder.class.getDeclaredField("value");
-        SemanticCoherenceAdjuster.Slot slot =
-            new SemanticCoherenceAdjuster.ReflectionSlot(PrivateValueHolder.class, privateField, privateHolder, false, 3);
+        SemanticCoherenceAdjuster.Slot slot = new SemanticCoherenceAdjuster.ReflectionSlot(
+                PrivateValueHolder.class, privateField, privateHolder, false, 3);
 
         ObjectGenerationException readException = assertThrows(ObjectGenerationException.class, slot::getValue);
         GenerationFailureContext readContext = readException.getContext().orElseThrow();
@@ -1027,15 +1071,15 @@ class SemanticCoherenceAdjusterTest {
         assertEquals(String.class.getTypeName(), readContext.declaredType());
         assertEquals(3, readContext.depth());
 
-        SemanticCoherenceAdjuster.Slot lenientReadSlot =
-            new SemanticCoherenceAdjuster.ReflectionSlot(PrivateValueHolder.class, privateField, privateHolder, true, 3);
+        SemanticCoherenceAdjuster.Slot lenientReadSlot = new SemanticCoherenceAdjuster.ReflectionSlot(
+                PrivateValueHolder.class, privateField, privateHolder, true, 3);
         assertNull(lenientReadSlot.getValue());
 
         Field publicField = PublicValueHolder.class.getDeclaredField("value");
         SemanticCoherenceAdjuster.Slot strictSlot = new SemanticCoherenceAdjuster.ReflectionSlot(
-            PublicValueHolder.class, publicField, new PublicValueHolder(), false, 4);
+                PublicValueHolder.class, publicField, new PublicValueHolder(), false, 4);
         ObjectGenerationException writeException =
-            assertThrows(ObjectGenerationException.class, () -> strictSlot.setValue(123));
+                assertThrows(ObjectGenerationException.class, () -> strictSlot.setValue(123));
         GenerationFailureContext writeContext = writeException.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.ASSIGNMENT, writeContext.category());
         assertEquals(GenerationOperation.ALIGN_SEMANTICS, writeContext.operation());
@@ -1045,7 +1089,7 @@ class SemanticCoherenceAdjusterTest {
 
         PublicValueHolder ignored = new PublicValueHolder();
         SemanticCoherenceAdjuster.Slot lenientSlot =
-            new SemanticCoherenceAdjuster.ReflectionSlot(PublicValueHolder.class, publicField, ignored, true, 4);
+                new SemanticCoherenceAdjuster.ReflectionSlot(PublicValueHolder.class, publicField, ignored, true, 4);
         assertDoesNotThrow(() -> lenientSlot.setValue(123));
         assertEquals("ok", ignored.value);
     }
@@ -1057,11 +1101,11 @@ class SemanticCoherenceAdjusterTest {
         GenerationFailureListener listener = diagnostics::add;
         Field privateField = PrivateValueHolder.class.getDeclaredField("value");
         SemanticCoherenceAdjuster.Slot readSlot = new SemanticCoherenceAdjuster.ReflectionSlot(
-            PrivateValueHolder.class, privateField, new PrivateValueHolder(), true, 3, listener);
+                PrivateValueHolder.class, privateField, new PrivateValueHolder(), true, 3, listener);
 
         Field publicField = PublicValueHolder.class.getDeclaredField("value");
         SemanticCoherenceAdjuster.Slot writeSlot = new SemanticCoherenceAdjuster.ReflectionSlot(
-            PublicValueHolder.class, publicField, new PublicValueHolder(), true, 4, listener);
+                PublicValueHolder.class, publicField, new PublicValueHolder(), true, 4, listener);
 
         Logger logger = (Logger) LoggerFactory.getLogger(ObjectGenerationFailurePolicy.class);
         ListAppender<ILoggingEvent> appender = new ListAppender<>();
@@ -1073,15 +1117,19 @@ class SemanticCoherenceAdjusterTest {
             assertNull(readSlot.getValue());
             assertDoesNotThrow(() -> writeSlot.setValue(123));
 
-            List<String> messages = appender.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
+            List<String> messages = appender.list.stream()
+                    .map(ILoggingEvent::getFormattedMessage)
+                    .toList();
             assertTrue(messages.stream().anyMatch(message -> message.contains("PrivateValueHolder.value")));
             assertTrue(messages.stream().anyMatch(message -> message.contains("PublicValueHolder.value")));
-            assertFalse(messages.stream().anyMatch(message -> message.contains("hidden")
-                                                               || message.contains("ok")
-                                                               || message.contains("123")));
+            assertFalse(messages.stream()
+                    .anyMatch(message ->
+                            message.contains("hidden") || message.contains("ok") || message.contains("123")));
             assertEquals(
-                List.of("PrivateValueHolder.value", "PublicValueHolder.value"),
-                diagnostics.stream().map(diagnostic -> diagnostic.context().path()).toList());
+                    List.of("PrivateValueHolder.value", "PublicValueHolder.value"),
+                    diagnostics.stream()
+                            .map(diagnostic -> diagnostic.context().path())
+                            .toList());
         } finally {
             logger.detachAppender(appender);
             logger.setLevel(previousLevel);
@@ -1093,7 +1141,7 @@ class SemanticCoherenceAdjusterTest {
     }
 
     private static Map<String, SemanticCoherenceAdjuster.Slot> slotMap(Object instance, String... fieldNames)
-        throws Exception {
+            throws Exception {
         Map<String, SemanticCoherenceAdjuster.Slot> slots = new java.util.LinkedHashMap<>();
         for (String fieldName : fieldNames) {
             String semanticKey = FieldGeneratorResolver.semanticKeyForFieldName(fieldName);
@@ -1135,13 +1183,13 @@ class SemanticCoherenceAdjusterTest {
     static class ManualTemporalHolder {
 
         LocalDateTime createdAt;
-        Instant       updatedAt;
+        Instant updatedAt;
     }
 
     static class ManualAgeHolder {
 
         LocalDate birthDate;
-        Integer   age;
+        Integer age;
     }
 
     static class EmailAliasHolder {
@@ -1159,18 +1207,18 @@ class SemanticCoherenceAdjusterTest {
     static class ManualStatusHolder {
 
         boolean active;
-        String  status;
+        String status;
     }
 
     static class ManualNullableStatusHolder {
 
         Boolean active;
-        String  status;
+        String status;
     }
 
     static class ManualEnumStatusHolder {
 
-        boolean              active;
+        boolean active;
         ManualLifecycleState status;
     }
 
@@ -1185,15 +1233,13 @@ class SemanticCoherenceAdjusterTest {
         String firstName;
         String lastName;
 
-        @Size(min = 3, max = 3)
-        String fullName;
+        @Size(min = 3, max = 3) String fullName;
 
         @Randomizer(AnnotatedValueGenerator.class)
         String email;
     }
 
-    record ManualRecord(String firstName, String lastName, String fullName) {
-    }
+    record ManualRecord(String firstName, String lastName, String fullName) {}
 
     static class PrivateValueHolder {
 
@@ -1240,7 +1286,7 @@ class SemanticCoherenceAdjusterTest {
 
     static class ManualMoneyHolder {
 
-        String     currencyCode;
+        String currencyCode;
         BigDecimal price;
         BigDecimal amount;
         BigDecimal balance;

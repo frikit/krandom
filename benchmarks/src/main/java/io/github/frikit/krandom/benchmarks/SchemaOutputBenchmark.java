@@ -9,6 +9,12 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
 import io.github.frikit.krandom.generator.schema.Field;
 import io.github.frikit.krandom.generator.schema.Schema;
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -18,13 +24,6 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
-
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
@@ -42,10 +41,8 @@ public class SchemaOutputBenchmark {
         public final CountingAppendable csvSink = new CountingAppendable();
 
         public SchemaState() {
-            GeneratorConfig config = GeneratorConfig.builder()
-                                                   .locale(Locale.US)
-                                                   .seed(7L)
-                                                   .build();
+            GeneratorConfig config =
+                    GeneratorConfig.builder().locale(Locale.US).seed(7L).build();
             Field field = Generators.ofField(config);
             Map<String, io.github.frikit.krandom.generator.schema.SchemaValueProvider> fields = new LinkedHashMap<>();
             fields.put("orderId", field.bind("code.uuid"));

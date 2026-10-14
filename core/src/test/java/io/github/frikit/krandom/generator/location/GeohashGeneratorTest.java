@@ -5,17 +5,16 @@
  */
 package io.github.frikit.krandom.generator.location;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("GeohashGenerator")
 class GeohashGeneratorTest {
@@ -25,7 +24,9 @@ class GeohashGeneratorTest {
     void encodeMatchesKnownExamples() {
         assertEquals("ezs42", GeohashGenerator.encode(42.6, -5.6, 5));
         assertEquals("u4pruydqqvj", GeohashGenerator.encode(57.64911, 10.40744, 11));
-        assertEquals(GeohashGenerator.DEFAULT_PRECISION, GeohashGenerator.encode(42.6, -5.6).length());
+        assertEquals(
+                GeohashGenerator.DEFAULT_PRECISION,
+                GeohashGenerator.encode(42.6, -5.6).length());
     }
 
     @Test
@@ -37,14 +38,10 @@ class GeohashGeneratorTest {
     @Test
     @DisplayName("seeded generation is reproducible")
     void seededGenerationIsReproducible() {
-        GeohashGenerator first = new GeohashGenerator(8, GeneratorConfig.builder()
-            .locale(Locale.GERMANY)
-            .seed(44L)
-            .build());
-        GeohashGenerator second = new GeohashGenerator(8, GeneratorConfig.builder()
-            .locale(Locale.GERMANY)
-            .seed(44L)
-            .build());
+        GeohashGenerator first = new GeohashGenerator(
+                8, GeneratorConfig.builder().locale(Locale.GERMANY).seed(44L).build());
+        GeohashGenerator second = new GeohashGenerator(
+                8, GeneratorConfig.builder().locale(Locale.GERMANY).seed(44L).build());
 
         for (int i = 0; i < 20; i++) {
             assertEquals(first.generate(), second.generate());

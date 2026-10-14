@@ -18,12 +18,12 @@ import org.junit.jupiter.api.Test
  * primary-constructor adapter.
  */
 class DataClassExclusionTest {
-
     @Test
     fun excludedNullableConstructorPropertyIsNullAndNestedSameNamedPropertyIsGenerated() {
-        val customer = krandom<ExcludedDataCustomer> {
-            exclude(ExcludedDataCustomer::name)
-        }
+        val customer =
+            krandom<ExcludedDataCustomer> {
+                exclude(ExcludedDataCustomer::name)
+            }
 
         assertNull(customer.name, "an excluded nullable constructor property must receive null")
         assertFalse(customer.company.name.isBlank(), "exclusions are scoped to the root type")
@@ -31,24 +31,28 @@ class DataClassExclusionTest {
 
     @Test
     fun excludedOptionalConstructorPropertyKeepsItsDefault() {
-        val customer = krandom<ExcludedDataCustomer> {
-            exclude(ExcludedDataCustomer::tier)
-        }
+        val customer =
+            krandom<ExcludedDataCustomer> {
+                exclude(ExcludedDataCustomer::tier)
+            }
 
         assertEquals("standard", customer.tier, "an excluded optional constructor property keeps its default")
     }
 
     @Test
     fun excludedRequiredNonNullConstructorPropertyFailsClearly() {
-        val failure = assertThrows(ObjectGenerationException::class.java) {
-            krandom<ExcludedDataCompany> {
-                exclude(ExcludedDataCompany::name)
+        val failure =
+            assertThrows(ObjectGenerationException::class.java) {
+                krandom<ExcludedDataCompany> {
+                    exclude(ExcludedDataCompany::name)
+                }
             }
-        }
 
         assertTrue(
-            generateSequence<Throwable>(failure) { it.cause }.any { it.message.orEmpty().contains("required and not nullable") },
-            "the failure must name the excluded required parameter: $failure"
+            generateSequence<Throwable>(
+                failure,
+            ) { it.cause }.any { it.message.orEmpty().contains("required and not nullable") },
+            "the failure must name the excluded required parameter: $failure",
         )
     }
 }
@@ -56,7 +60,9 @@ class DataClassExclusionTest {
 data class ExcludedDataCustomer(
     val name: String?,
     val company: ExcludedDataCompany,
-    val tier: String = "standard"
+    val tier: String = "standard",
 )
 
-data class ExcludedDataCompany(val name: String)
+data class ExcludedDataCompany(
+    val name: String,
+)

@@ -7,10 +7,8 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
 
@@ -25,7 +23,7 @@ public final class AvatarUrlGenerator implements Generator<String> {
         "https://ui-avatars.com/api/?name=%s&size=%d"
     };
 
-    private final Random            random;
+    private final Random random;
     private final UsernameGenerator usernameGenerator;
 
     public AvatarUrlGenerator() {

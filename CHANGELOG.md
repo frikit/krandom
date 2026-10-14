@@ -44,9 +44,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `default.txt` fallback; all 32 non-English native locales ship real translations of every
   display vocabulary (database column and directory names keep their English identifiers outside
   the previously localized languages). Like hobbies or zodiac signs, each concept resolves through
-  the configuration's `DataRegistryContext`, which gains `xProvider`, `isXRegistered`,
-  `xRegisteredKeys`, and `Builder#registerXProvider` for it, so scoped registrations apply and
-  isolated contexts never read the global registries.
+  the configuration's `DataRegistryContext` under its own `Vocabulary` key, so scoped registrations
+  apply and isolated contexts never read the global registries.
+- `Vocabulary<P>` keys for the 39 built-in vocabularies (`Vocabulary.all()`),
+  `Vocabulary.custom(name, providerType)` for consumer-defined vocabularies that live only in the
+  contexts they are registered in, and the `LocaleDataProvider` contract that every vocabulary
+  provider interface now extends.
 - `Locale` constructors for `IndustryGenerator`, `JobFieldGenerator`, `SeniorityGenerator`,
   `PositionGenerator`, `EducationalAttainmentGenerator`, `MaritalStatusGenerator` and
   `CompanyNameGenerator`, plus `Generators.ofX(Locale)` overloads for these and for job types,
@@ -108,9 +111,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   native-image smoke test in CI.
 - Group Dependabot minor/patch Gradle and GitHub Actions updates, cover the consumer examples, and
   add `scripts/update_verification_metadata.sh` for regenerating dependency checksums.
+- Compile `krandom-core` main sources with NullAway (JSpecify mode) through Error Prone, so the
+  `@NullMarked` and `@Nullable` contracts are verified instead of documented; no other Error Prone
+  check is enabled and test sources are not checked.
+- Add `scripts/fix_dependabot_pr.sh`, which records the verification metadata for a Dependabot
+  pull request in a temporary worktree under every JDK in `KRANDOM_METADATA_JDKS` and commits it
+  on the branch, leaving the diff review and the push to the maintainer.
 - Add `pre_commit_check.sh --fast`, module-boundary checks in the pre-commit gate, and JaCoCo
   reports for the integration modules; only `krandom-core` has the exact coverage gate and is
   uploaded to Codecov.
+- `DataRegistryContext` is addressed by `Vocabulary` key: `provider(Vocabulary, Locale)`,
+  `isRegistered(Vocabulary, Locale)`, `registeredKeys(Vocabulary)` and
+  `Builder#register(Vocabulary, provider)` replace the per-vocabulary methods (`cityProvider`,
+  `isCityRegistered`, `cityRegisteredKeys`, `Builder#registerCityProvider` and their siblings for
+  the other 38 vocabularies), which are deleted. Resolution order, validation rules and error
+  messages are unchanged, and `registerLocaleData` and `registerDataPack` remain.
+- Format Java with Palantir Java Format and Kotlin sources and Gradle scripts with ktlint through
+  Spotless, with a shared `.editorconfig`; `spotlessCheck` runs as part of `check`. The reformat
+  spreads statements over more lines, so the `spring-boot-starter` JaCoCo line floor moves from
+  0.96 to 0.95; the tested code is unchanged. The one-time reformat commit is listed in
+  `.git-blame-ignore-revs`.
+- The Jakarta Validation API is now a compile-only dependency of `krandom-core` (`requires static`
+  in the module descriptor) instead of a transitive runtime dependency. Consumers that rely on
+  constraint-aware generation add `jakarta.validation:jakarta.validation-api` themselves; without
+  it, constraints are ignored and plain values are generated.
+- Enforce per-module JaCoCo line and branch floors for the integration modules (`jackson`,
+  `junit`, `spring-boot-starter`, `kotest-extensions`, `kotlin-dsl`) at the values measured when
+  the floors were introduced, so their coverage cannot regress silently.
 - Email output defaults to `EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS`: `EmailGenerator` and the
   contact, person, and profile payloads built on it use only `example.com`, `example.net`, and
   `example.org`, and `CompanyEmailGenerator` uses the reserved `.test` top-level domain, so staging
@@ -124,6 +151,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Update the Instancio benchmark competitor to 6.1.0 and align the consumer examples with Kotlin
   2.4.20, Maven Surefire 3.6.0, sbt 1.13.0, and Mill 1.1.10. Refresh the GitHub Action pins
   (setup-java 6.0.1, Codecov 7.1.1, Coursier 3.0.3) and label every pin with its exact release.
+- Update the Gradle wrapper to 9.8.1, which fixes three high-severity daemon and repository
+  vulnerabilities (GHSA-mvvg-497x-hmj8, GHSA-xwqc-3h47-hg64, GHSA-j5m7-59rp-24f5), Kotlin to
+  2.4.21, Logback to 1.6.5, Spotless to 8.10.4, and the CycloneDX plugin to 3.5.1; align the
+  consumer examples with Kotlin 2.4.21 and refresh the GitHub Action pins (wrapper-validation
+  6.4.0, setup-graalvm 1.6.7, Coursier 3.0.4).
 - Seeded `@FakeRange` doubles and floats with `min >= max` fail with the JDK's
   `bound must be greater than origin` message, like unseeded ones.
 
@@ -163,6 +195,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- `EnumSet` and `EnumMap` members are generated as real `EnumSet` and `EnumMap` instances. Before,
+  an `EnumMap` field was silently left `null` in every mode without notifying the failure listener,
+  and an `EnumSet` record component failed with a raw `IllegalArgumentException`.
+- A concrete collection subtype without a usable no-argument constructor is reported through the
+  failure policy: strict mode throws a contextual `CONSTRUCTION` failure, lenient mode returns
+  `null` and notifies the listener. Previously the member was silently `null` in both modes.
+- A value that a record's canonical constructor or a class's single declared constructor cannot
+  accept (for example a by-name override of the wrong type) is a contextual `CONSTRUCTION` failure
+  instead of a raw `IllegalArgumentException`.
+- Constructor parameters of a class built through its single declared constructor are resolved by
+  parameter name when the class was compiled with `-parameters`: by-name overrides, exclusions
+  (`objectExcludeField` by parameter name, whether or not a field backs it, or `@Exclude` on the
+  backing field), and semantic providers such as `firstName` or `email` now apply, and
+  `ObjectFieldStreamPolicy.INDEPENDENT` keys the parameter stream by name. Without compiled
+  parameter names the positional `constructorArg<index>` keys remain and also become the
+  `INDEPENDENT` stream identity, which was previously the bare index. Seeded output for
+  constructor-built classes therefore changes in both cases. `GeneratorConfig` gains
+  `isObjectFieldNameExcluded(String)`.
 - A JUnit configuration created for `@BeforeAll` or constructor injection no longer leaks into test
   methods, so a method-level `@KrandomSeed` applies and the reported seed reproduces the failure.
 - Kotlin DSL rules on fields inherited from a superclass now apply instead of being ignored.
@@ -288,6 +338,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Documentation
 
+- Link the Javadoc API reference on javadoc.io from the README and the docs site, and align
+  `SECURITY.md` with the single-maintained-release policy in `VERSIONING.md`.
 - State that `krandom-jackson` targets Jackson 2.x while Spring Boot 4 defaults to Jackson 3, and
   document replay commands, clock semantics, class-scoped JUnit configurations, and `@KrandomTest`
   bean inclusion.

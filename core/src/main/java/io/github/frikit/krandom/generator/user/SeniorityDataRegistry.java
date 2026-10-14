@@ -6,12 +6,11 @@
 package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Global, read-only registry mapping locales to {@link SeniorityDataProvider} instances.
@@ -26,11 +25,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class SeniorityDataRegistry {
 
-    private static final List<String> REQUIRED_RESOURCE_DIRECTORIES = List.of(
-        "krandom/seniorities/");
+    private static final List<String> REQUIRED_RESOURCE_DIRECTORIES = List.of("krandom/seniorities/");
 
-    private static final ConcurrentHashMap<String, SeniorityDataProvider> REGISTRY =
-        new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, SeniorityDataProvider> REGISTRY = new ConcurrentHashMap<>();
 
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
@@ -40,8 +37,7 @@ public final class SeniorityDataRegistry {
         }
     }
 
-    private SeniorityDataRegistry() {
-    }
+    private SeniorityDataRegistry() {}
 
     /**
      * Returns {@code true} if the registry contains an entry for the given locale.
@@ -93,7 +89,8 @@ public final class SeniorityDataRegistry {
 
     static boolean hasBuiltInResources(String resourcePrefix) {
         return REQUIRED_RESOURCE_DIRECTORIES.stream()
-            .allMatch(directory -> SeniorityDataRegistry.class.getResource("/" + directory + resourcePrefix + ".txt") != null);
+                .allMatch(directory ->
+                        SeniorityDataRegistry.class.getResource("/" + directory + resourcePrefix + ".txt") != null);
     }
 
     private static void putProvider(SeniorityDataProvider provider) {

@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.schema;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.RecordComponent;
@@ -18,8 +17,7 @@ import java.lang.reflect.RecordComponent;
  */
 final class SchemaRecordAccess {
 
-    private SchemaRecordAccess() {
-    }
+    private SchemaRecordAccess() {}
 
     static Object read(Object record, RecordComponent component, String path) {
         Method accessor = component.getAccessor();
@@ -33,18 +31,16 @@ final class SchemaRecordAccess {
         }
     }
 
-    private static SchemaGenerationException failure(Object record,
-                                                     RecordComponent component,
-                                                     String path,
-                                                     Throwable cause) {
+    private static SchemaGenerationException failure(
+            Object record, RecordComponent component, String path, Throwable cause) {
         GenerationFailureContext context = new GenerationFailureContext(
-            GenerationFailureCategory.REFLECTION,
-            GenerationOperation.READ,
-            path,
-            record.getClass(),
-            component.getGenericType().getTypeName(),
-            -1,
-            -1);
+                GenerationFailureCategory.REFLECTION,
+                GenerationOperation.READ,
+                path,
+                record.getClass(),
+                component.getGenericType().getTypeName(),
+                -1,
+                -1);
         return new SchemaGenerationException(context, cause);
     }
 }

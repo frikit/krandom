@@ -5,6 +5,12 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
@@ -16,40 +22,31 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Size;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import org.hibernate.validator.HibernateValidator;
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 @DisplayName("Bean Validation normalization")
 class BeanValidationNormalizationTest {
 
-    private static final Validator VALIDATOR =
-        Validation.byProvider(HibernateValidator.class)
-                  .configure()
-                  .messageInterpolator(new ParameterMessageInterpolator())
-                  .buildValidatorFactory()
-                  .getValidator();
+    private static final Validator VALIDATOR = Validation.byProvider(HibernateValidator.class)
+            .configure()
+            .messageInterpolator(new ParameterMessageInterpolator())
+            .buildValidatorFactory()
+            .getValidator();
 
     private static final GeneratorConfig REQUIRED_CONFIG = GeneratorConfig.builder()
-                                                                           .seed(2301L)
-                                                                           .collectionSize(0, 0)
-                                                                           .objectNullProbability(1.0)
-                                                                           .objectOptionalEmptyProbability(1.0)
-                                                                           .objectSemanticMode(
-                                                                               ObjectGenerationSemanticMode.STRICT)
-                                                                           .build();
+            .seed(2301L)
+            .collectionSize(0, 0)
+            .objectNullProbability(1.0)
+            .objectOptionalEmptyProbability(1.0)
+            .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+            .build();
 
     @Test
     @DisplayName("required and non-empty constraints override null and empty defaults")
@@ -90,8 +87,7 @@ class BeanValidationNormalizationTest {
     @DisplayName("null-only and required constraints fail with field context")
     void nullAndRequiredConflictFailsContextually() {
         ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(NullAndRequiredFixture.class).generate());
+                ObjectGenerationException.class, () -> new ObjectGenerator<>(NullAndRequiredFixture.class).generate());
 
         assertConflict(ex, "NullAndRequiredFixture.value", String.class.getTypeName());
     }
@@ -100,8 +96,7 @@ class BeanValidationNormalizationTest {
     @DisplayName("inverted size range fails before generating a value")
     void invertedSizeRangeFailsContextually() {
         ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(InvertedSizeFixture.class).generate());
+                ObjectGenerationException.class, () -> new ObjectGenerator<>(InvertedSizeFixture.class).generate());
 
         assertConflict(ex, "InvertedSizeFixture.values", "java.util.List<java.lang.String>");
     }
@@ -110,8 +105,8 @@ class BeanValidationNormalizationTest {
     @DisplayName("not-empty intersected with max zero fails before generation")
     void notEmptyAndZeroMaxFailContextually() {
         ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(EmptyIntersectionFixture.class).generate());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(EmptyIntersectionFixture.class).generate());
 
         assertConflict(ex, "EmptyIntersectionFixture.value", String.class.getTypeName());
     }
@@ -120,8 +115,7 @@ class BeanValidationNormalizationTest {
     @DisplayName("null on a primitive fails before returning an invalid fixture")
     void nullPrimitiveFailsContextually() {
         ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(NullPrimitiveFixture.class).generate());
+                ObjectGenerationException.class, () -> new ObjectGenerator<>(NullPrimitiveFixture.class).generate());
 
         assertConflict(ex, "NullPrimitiveFixture.value", int.class.getTypeName());
     }
@@ -130,21 +124,18 @@ class BeanValidationNormalizationTest {
     @DisplayName("not-empty on an unsupported target fails contextually")
     void notEmptyUnsupportedTargetFailsContextually() {
         ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(UnsupportedNotEmptyFixture.class).generate());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(UnsupportedNotEmptyFixture.class).generate());
 
-        assertConflict(
-            ex,
-            "UnsupportedNotEmptyFixture.value",
-            "java.util.Optional<java.lang.String>");
+        assertConflict(ex, "UnsupportedNotEmptyFixture.value", "java.util.Optional<java.lang.String>");
     }
 
     @Test
     @DisplayName("not-blank on a non-text target fails contextually")
     void notBlankUnsupportedTargetFailsContextually() {
         ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(UnsupportedNotBlankFixture.class).generate());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(UnsupportedNotBlankFixture.class).generate());
 
         assertConflict(ex, "UnsupportedNotBlankFixture.value", Integer.class.getTypeName());
     }
@@ -154,14 +145,16 @@ class BeanValidationNormalizationTest {
     void lenientConflictReturnsDefaultAndEmitsDiagnostic() {
         AtomicReference<GenerationFailureDiagnostic> observed = new AtomicReference<>();
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectIgnoreErrors(true)
-                                                .generationFailureListener(observed::set)
-                                                .build();
+                .objectIgnoreErrors(true)
+                .generationFailureListener(observed::set)
+                .build();
 
         NullAndRequiredFixture value = new ObjectGenerator<>(NullAndRequiredFixture.class, config).generate();
 
         assertNull(value.value);
-        assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, observed.get().context().category());
+        assertEquals(
+                GenerationFailureCategory.UNSUPPORTED_TYPE,
+                observed.get().context().category());
         assertEquals("NullAndRequiredFixture.value", observed.get().context().path());
     }
 
@@ -175,72 +168,56 @@ class BeanValidationNormalizationTest {
 
     static final class RequiredFixture {
 
-        @NotNull
-        String required;
+        @NotNull String required;
 
-        @NotEmpty
-        String text;
+        @NotEmpty String text;
 
-        @NotEmpty
-        List<String> values;
+        @NotEmpty List<String> values;
 
-        @NotEmpty
-        Map<String, Integer> mapping;
+        @NotEmpty Map<String, Integer> mapping;
 
-        @NotEmpty
-        String[] array;
+        @NotEmpty String[] array;
 
-        @NotBlank
-        String nonBlank;
+        @NotBlank String nonBlank;
 
-        @NotNull
-        Optional<String> optional;
+        @NotNull Optional<String> optional;
     }
 
-    record RequiredRecord(@NotNull String required, @NotEmpty List<String> values) {
-    }
+    record RequiredRecord(
+            @NotNull String required, @NotEmpty List<String> values) {}
 
     static final class SizedSemanticFixture {
 
-        @Size(min = 2, max = 2)
-        String email;
+        @Size(min = 2, max = 2) String email;
     }
 
     static final class NullAndRequiredFixture {
 
-        @Null
-        @NotNull
-        String value;
+        @Null @NotNull String value;
     }
 
     static final class InvertedSizeFixture {
 
-        @Size(min = 5, max = 2)
-        List<String> values;
+        @Size(min = 5, max = 2) List<String> values;
     }
 
     static final class EmptyIntersectionFixture {
 
-        @NotEmpty
-        @Size(max = 0)
-        String value;
+        @NotEmpty @Size(max = 0) String value;
     }
 
     static final class NullPrimitiveFixture {
 
-        @Null
-        int value;
+        @Null int value;
     }
 
     static final class UnsupportedNotEmptyFixture {
 
-        @NotEmpty
-        Optional<String> value;
+        @NotEmpty Optional<String> value;
     }
 
     static final class UnsupportedNotBlankFixture {
 
-        @NotBlank
-        Integer value;
+        @NotBlank Integer value;
     }
 }

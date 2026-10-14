@@ -5,12 +5,17 @@
  */
 package io.github.frikit.krandom.generator;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.commerce.RestaurantTypeDataRegistry;
+import io.github.frikit.krandom.generator.finance.FinancialTermDataRegistry;
 import io.github.frikit.krandom.generator.location.CityDataRegistry;
 import io.github.frikit.krandom.generator.location.CountryDataRegistry;
 import io.github.frikit.krandom.generator.location.StateDataRegistry;
 import io.github.frikit.krandom.generator.location.StreetAddressDataRegistry;
-import io.github.frikit.krandom.generator.finance.FinancialTermDataRegistry;
 import io.github.frikit.krandom.generator.measurement.MeasurementDataRegistry;
 import io.github.frikit.krandom.generator.user.BloodTypeDataRegistry;
 import io.github.frikit.krandom.generator.user.ChineseZodiacDataRegistry;
@@ -19,17 +24,11 @@ import io.github.frikit.krandom.generator.user.NationalityDataRegistry;
 import io.github.frikit.krandom.generator.user.PronounDataRegistry;
 import io.github.frikit.krandom.generator.user.TitleDataRegistry;
 import io.github.frikit.krandom.generator.weather.WeatherDataRegistry;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.Function;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * Read-only contract of the global registries after the v2 removal of process-wide mutation:
@@ -40,50 +39,92 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("Global registry read APIs")
 class GlobalRegistryReadApiTest {
 
-    private record ReadApi(String name,
-                           Function<Locale, Boolean> isRegistered,
-                           Function<Locale, Object> forLocale,
-                           Set<String> registeredKeys) {
-    }
+    private record ReadApi(
+            String name,
+            Function<Locale, Boolean> isRegistered,
+            Function<Locale, Object> forLocale,
+            Set<String> registeredKeys) {}
 
     private static java.util.List<ReadApi> readApis() {
         return java.util.List.of(
-            new ReadApi("weather", WeatherDataRegistry::isRegistered,
-                WeatherDataRegistry::forLocale, WeatherDataRegistry.registeredKeys()),
-            new ReadApi("restaurantType", RestaurantTypeDataRegistry::isRegistered,
-                RestaurantTypeDataRegistry::forLocale, RestaurantTypeDataRegistry.registeredKeys()),
-            new ReadApi("financialTerm", FinancialTermDataRegistry::isRegistered,
-                FinancialTermDataRegistry::forLocale, FinancialTermDataRegistry.registeredKeys()),
-            new ReadApi("measurement", MeasurementDataRegistry::isRegistered,
-                MeasurementDataRegistry::forLocale, MeasurementDataRegistry.registeredKeys()),
-            new ReadApi("pronoun", PronounDataRegistry::isRegistered,
-                PronounDataRegistry::forLocale, PronounDataRegistry.registeredKeys()),
-            new ReadApi("hobby", HobbyDataRegistry::isRegistered,
-                HobbyDataRegistry::forLocale, HobbyDataRegistry.registeredKeys()),
-            new ReadApi("nationality", NationalityDataRegistry::isRegistered,
-                NationalityDataRegistry::forLocale, NationalityDataRegistry.registeredKeys()),
-            new ReadApi("chineseZodiac", ChineseZodiacDataRegistry::isRegistered,
-                ChineseZodiacDataRegistry::forLocale, ChineseZodiacDataRegistry.registeredKeys()),
-            new ReadApi("title", TitleDataRegistry::isRegistered,
-                TitleDataRegistry::forLocale, TitleDataRegistry.registeredKeys()),
-            new ReadApi("bloodType", BloodTypeDataRegistry::isRegistered,
-                BloodTypeDataRegistry::forLocale, BloodTypeDataRegistry.registeredKeys()),
-            new ReadApi("country", CountryDataRegistry::isRegistered,
-                CountryDataRegistry::forLocale, CountryDataRegistry.registeredKeys()),
-            new ReadApi("city", CityDataRegistry::isRegistered,
-                CityDataRegistry::forLocale, CityDataRegistry.registeredKeys()),
-            new ReadApi("state", StateDataRegistry::isRegistered,
-                StateDataRegistry::forLocale, StateDataRegistry.registeredKeys()),
-            new ReadApi("streetAddress", StreetAddressDataRegistry::isRegistered,
-                StreetAddressDataRegistry::forLocale, StreetAddressDataRegistry.registeredKeys()));
+                new ReadApi(
+                        "weather",
+                        WeatherDataRegistry::isRegistered,
+                        WeatherDataRegistry::forLocale,
+                        WeatherDataRegistry.registeredKeys()),
+                new ReadApi(
+                        "restaurantType",
+                        RestaurantTypeDataRegistry::isRegistered,
+                        RestaurantTypeDataRegistry::forLocale,
+                        RestaurantTypeDataRegistry.registeredKeys()),
+                new ReadApi(
+                        "financialTerm",
+                        FinancialTermDataRegistry::isRegistered,
+                        FinancialTermDataRegistry::forLocale,
+                        FinancialTermDataRegistry.registeredKeys()),
+                new ReadApi(
+                        "measurement",
+                        MeasurementDataRegistry::isRegistered,
+                        MeasurementDataRegistry::forLocale,
+                        MeasurementDataRegistry.registeredKeys()),
+                new ReadApi(
+                        "pronoun",
+                        PronounDataRegistry::isRegistered,
+                        PronounDataRegistry::forLocale,
+                        PronounDataRegistry.registeredKeys()),
+                new ReadApi(
+                        "hobby",
+                        HobbyDataRegistry::isRegistered,
+                        HobbyDataRegistry::forLocale,
+                        HobbyDataRegistry.registeredKeys()),
+                new ReadApi(
+                        "nationality",
+                        NationalityDataRegistry::isRegistered,
+                        NationalityDataRegistry::forLocale,
+                        NationalityDataRegistry.registeredKeys()),
+                new ReadApi(
+                        "chineseZodiac",
+                        ChineseZodiacDataRegistry::isRegistered,
+                        ChineseZodiacDataRegistry::forLocale,
+                        ChineseZodiacDataRegistry.registeredKeys()),
+                new ReadApi(
+                        "title",
+                        TitleDataRegistry::isRegistered,
+                        TitleDataRegistry::forLocale,
+                        TitleDataRegistry.registeredKeys()),
+                new ReadApi(
+                        "bloodType",
+                        BloodTypeDataRegistry::isRegistered,
+                        BloodTypeDataRegistry::forLocale,
+                        BloodTypeDataRegistry.registeredKeys()),
+                new ReadApi(
+                        "country",
+                        CountryDataRegistry::isRegistered,
+                        CountryDataRegistry::forLocale,
+                        CountryDataRegistry.registeredKeys()),
+                new ReadApi(
+                        "city",
+                        CityDataRegistry::isRegistered,
+                        CityDataRegistry::forLocale,
+                        CityDataRegistry.registeredKeys()),
+                new ReadApi(
+                        "state",
+                        StateDataRegistry::isRegistered,
+                        StateDataRegistry::forLocale,
+                        StateDataRegistry.registeredKeys()),
+                new ReadApi(
+                        "streetAddress",
+                        StreetAddressDataRegistry::isRegistered,
+                        StreetAddressDataRegistry::forLocale,
+                        StreetAddressDataRegistry.registeredKeys()));
     }
 
     private static Locale seededCountryLocale(ReadApi api) {
         String key = api.registeredKeys().stream()
-            .filter(k -> k.contains("_"))
-            .sorted()
-            .findFirst()
-            .orElseThrow(() -> new AssertionError(api.name() + " seeded no country-level key"));
+                .filter(k -> k.contains("_"))
+                .sorted()
+                .findFirst()
+                .orElseThrow(() -> new AssertionError(api.name() + " seeded no country-level key"));
         String[] parts = key.split("_", 2);
         return Locale.of(parts[0], parts[1]);
     }
@@ -125,8 +166,9 @@ class GlobalRegistryReadApiTest {
     void registeredKeySnapshotsContainLanguageFallbacks() {
         for (ReadApi api : readApis()) {
             Locale seeded = seededCountryLocale(api);
-            assertTrue(api.registeredKeys().contains(seeded.getLanguage()),
-                () -> api.name() + " must seed the language fallback for " + seeded);
+            assertTrue(
+                    api.registeredKeys().contains(seeded.getLanguage()),
+                    () -> api.name() + " must seed the language fallback for " + seeded);
         }
     }
 }

@@ -5,30 +5,29 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.core.model.PersonWithCollections;
-import io.github.frikit.krandom.generator.core.model.Status;
-import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
-import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
-import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.core.model.PersonWithCollections;
+import io.github.frikit.krandom.generator.core.model.Status;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectGenerator — collection auto-population")
 class ObjectGeneratorCollectionTest {
@@ -103,8 +102,7 @@ class ObjectGeneratorCollectionTest {
     @DisplayName("raw List field fails with the complete field path and signature")
     void rawListFieldFailsWithContext() {
         ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(WithRawList.class).generate());
+                ObjectGenerationException.class, () -> new ObjectGenerator<>(WithRawList.class).generate());
         var context = ex.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
         assertEquals("WithRawList.items", context.path());
@@ -115,9 +113,8 @@ class ObjectGeneratorCollectionTest {
     @Test
     @DisplayName("raw Map field fails instead of silently returning an empty map")
     void rawMapFieldFailsWithContext() {
-        ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(WithRawMap.class).generate());
+        ObjectGenerationException ex =
+                assertThrows(ObjectGenerationException.class, () -> new ObjectGenerator<>(WithRawMap.class).generate());
         assertEquals("WithRawMap.data", ex.getContext().orElseThrow().path());
     }
 
@@ -125,8 +122,7 @@ class ObjectGeneratorCollectionTest {
     @DisplayName("raw generic object fields fail with complete field context")
     void rawGenericObjectFieldFailsWithContext() {
         ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(WithRawGenericObject.class).generate());
+                ObjectGenerationException.class, () -> new ObjectGenerator<>(WithRawGenericObject.class).generate());
 
         var context = ex.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
@@ -139,14 +135,16 @@ class ObjectGeneratorCollectionTest {
     void lenientRawListReturnsNullAndEmitsDiagnostic() {
         AtomicReference<GenerationFailureDiagnostic> observed = new AtomicReference<>();
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectIgnoreErrors(true)
-                                                .generationFailureListener(observed::set)
-                                                .build();
+                .objectIgnoreErrors(true)
+                .generationFailureListener(observed::set)
+                .build();
 
         WithRawList value = new ObjectGenerator<>(WithRawList.class, config).generate();
 
         assertNull(value.items);
-        assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, observed.get().context().category());
+        assertEquals(
+                GenerationFailureCategory.UNSUPPORTED_TYPE,
+                observed.get().context().category());
         assertEquals("WithRawList.items", observed.get().context().path());
     }
 
@@ -155,9 +153,9 @@ class ObjectGeneratorCollectionTest {
     void lenientRawContainersReturnNullAndEmitDiagnostics() {
         List<GenerationFailureDiagnostic> observed = new ArrayList<>();
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectIgnoreErrors(true)
-                                                .generationFailureListener(observed::add)
-                                                .build();
+                .objectIgnoreErrors(true)
+                .generationFailureListener(observed::add)
+                .build();
 
         WithRawContainers value = new ObjectGenerator<>(WithRawContainers.class, config).generate();
 
@@ -165,8 +163,8 @@ class ObjectGeneratorCollectionTest {
         assertNull(value.data);
         assertNull(value.optional);
         assertEquals(3, observed.size());
-        assertTrue(observed.stream().allMatch(
-            diagnostic -> diagnostic.context().category() == GenerationFailureCategory.UNSUPPORTED_TYPE));
+        assertTrue(observed.stream()
+                .allMatch(diagnostic -> diagnostic.context().category() == GenerationFailureCategory.UNSUPPORTED_TYPE));
     }
 
     @Test
@@ -199,8 +197,8 @@ class ObjectGeneratorCollectionTest {
     @DisplayName("unbounded wildcard fails with the parent container signature")
     void unboundedWildcardFailsWithParentSignature() {
         ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(WithUnboundedWildcardList.class).generate());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(WithUnboundedWildcardList.class).generate());
         var context = ex.getContext().orElseThrow();
         assertEquals("WithUnboundedWildcardList.items", context.path());
         assertEquals("java.util.List<?>", context.declaredType());
@@ -210,16 +208,14 @@ class ObjectGeneratorCollectionTest {
     @DisplayName("map generation bounds retries when an override produces null keys")
     void mapGenerationBoundsNullKeyRetries() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .generatorConfig(
-                                                                GeneratorConfig.builder().collectionSize(2, 2).build())
-                                                            .override(String.class, () -> null)
-                                                            .build();
+                .generatorConfig(GeneratorConfig.builder().collectionSize(2, 2).build())
+                .override(String.class, () -> null)
+                .build();
 
         NullKeyMapHolder value = new ObjectGenerator<>(NullKeyMapHolder.class, config).generate();
 
         assertTrue(value.data.isEmpty());
     }
-
 
     @SuppressWarnings("rawtypes")
     static class WithRawList {
@@ -256,9 +252,7 @@ class ObjectGeneratorCollectionTest {
         TwoArgumentList<String, Integer> items;
     }
 
-    static final class TwoArgumentList<E, M> extends ArrayList<E> {
-    }
-
+    static final class TwoArgumentList<E, M> extends ArrayList<E> {}
 
     static class WithWildcardList {
 

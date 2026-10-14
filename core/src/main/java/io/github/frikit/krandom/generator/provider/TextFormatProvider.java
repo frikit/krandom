@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.provider;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.base.RegexGenerator;
 import io.github.frikit.krandom.generator.text.TemplateStringGenerator;
-
 import java.util.Objects;
 import java.util.Random;
 
@@ -19,11 +18,11 @@ public final class TextFormatProvider {
 
     private static final int PRINTABLE_ASCII_MIN = 33;
     private static final int PRINTABLE_ASCII_MAX = 126;
-    private static final int LOWER_ALPHA_SIZE    = 26;
-    private static final char[] HEX_DIGITS        = "0123456789abcdef".toCharArray();
+    private static final int LOWER_ALPHA_SIZE = 26;
+    private static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
 
     private final TemplateStringGenerator templateGenerator;
-    private final Random                  random;
+    private final Random random;
 
     /**
      * Creates formatting helpers with default configuration.
@@ -119,7 +118,10 @@ public final class TextFormatProvider {
      */
     public String regexify(String pattern) {
         Objects.requireNonNull(pattern, "pattern must not be null");
-        return new RegexGenerator(pattern, GeneratorConfig.builder().seed(random.nextLong()).build()).generate();
+        return new RegexGenerator(
+                        pattern,
+                        GeneratorConfig.builder().seed(random.nextLong()).build())
+                .generate();
     }
 
     /**

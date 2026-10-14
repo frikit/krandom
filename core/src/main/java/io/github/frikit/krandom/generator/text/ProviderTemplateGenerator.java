@@ -10,7 +10,6 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.provider.TextFormatProvider;
 import io.github.frikit.krandom.generator.schema.FieldLookup;
 import io.github.frikit.krandom.generator.schema.SchemaContext;
-
 import java.util.Objects;
 import java.util.Random;
 
@@ -23,11 +22,11 @@ import java.util.Random;
  */
 public final class ProviderTemplateGenerator implements Generator<String> {
 
-    private final String             template;
-    private final FieldLookup        lookup;
+    private final String template;
+    private final FieldLookup lookup;
     private final TextFormatProvider textFormat;
-    private final GeneratorConfig    config;
-    private final Random             contextRandom;
+    private final GeneratorConfig config;
+    private final Random contextRandom;
     private int recordIndex;
 
     /**
@@ -56,9 +55,10 @@ public final class ProviderTemplateGenerator implements Generator<String> {
      * @param lookup   lookup used to resolve provider tokens
      */
     public ProviderTemplateGenerator(String template, FieldLookup lookup) {
-        this(template,
-             lookup,
-             Objects.requireNonNull(lookup, "lookup must not be null").getConfig());
+        this(
+                template,
+                lookup,
+                Objects.requireNonNull(lookup, "lookup must not be null").getConfig());
     }
 
     /**

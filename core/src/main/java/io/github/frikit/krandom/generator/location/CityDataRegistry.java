@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.location;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -45,7 +44,7 @@ public final class CityDataRegistry {
      * @param locale the locale
      * @return the provider, or {@code null} if none is registered or locale is null
      */
-    public static CityDataProvider forLocale(Locale locale) {
+    public static @org.jspecify.annotations.Nullable CityDataProvider forLocale(Locale locale) {
         return RegistryLookup.findWithFallback(providers, locale);
     }
 
@@ -67,7 +66,6 @@ public final class CityDataRegistry {
     public static Set<String> registeredKeys() {
         return Set.copyOf(providers.keySet());
     }
-
 
     private static void registerProvider(CityDataProvider provider) {
         Objects.requireNonNull(provider, "provider must not be null");

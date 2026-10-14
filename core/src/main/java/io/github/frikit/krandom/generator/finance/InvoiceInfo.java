@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.finance;
 import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.user.CompanyInfo;
 import io.github.frikit.krandom.generator.user.PersonInfo;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -29,18 +28,15 @@ import java.time.LocalDate;
  * @param billingAddress billing address payload
  */
 public record InvoiceInfo(
-    String invoiceNumber,
-    String orderNumber,
-    String status,
-    LocalDate issuedOn,
-    LocalDate dueOn,
-    String currencyCode,
-    BigDecimal subtotal,
-    BigDecimal tax,
-    BigDecimal total,
-    CompanyInfo seller,
-    PersonInfo customer,
-    AddressInfo billingAddress
-) {
-
-}
+        String invoiceNumber,
+        String orderNumber,
+        String status,
+        LocalDate issuedOn,
+        LocalDate dueOn,
+        String currencyCode,
+        BigDecimal subtotal,
+        BigDecimal tax,
+        BigDecimal total,
+        CompanyInfo seller,
+        PersonInfo customer,
+        AddressInfo billingAddress) {}

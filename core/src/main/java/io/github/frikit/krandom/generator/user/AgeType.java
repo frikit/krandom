@@ -17,7 +17,6 @@ package io.github.frikit.krandom.generator.user;
  * </ul>
  */
 public enum AgeType {
-
     CHILD(1, 12),
     TEEN(13, 19),
     ADULT(18, 65),

@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.List;
 import java.util.Locale;
 
@@ -13,12 +14,12 @@ import java.util.Locale;
  *
  * <p>Each entry is a {@code subject/object} pair (e.g. {@code "they/them"}, {@code "он/его"}). Implement
  * this interface and register an instance with
- * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerPronounProvider(PronounDataProvider)}
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#register(io.github.frikit.krandom.generator.Vocabulary, io.github.frikit.krandom.generator.LocaleDataProvider)}
  * to add or override validated pronoun sets for one configuration. {@link PronounDataRegistry}
  * holds the built-in pronoun sets served by
  * {@link io.github.frikit.krandom.generator.DataRegistryContext#globalDefault()}.
  */
-public interface PronounDataProvider {
+public interface PronounDataProvider extends LocaleDataProvider {
 
     /**
      * The locale this provider supplies pronoun sets for.

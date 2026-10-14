@@ -5,9 +5,14 @@
  */
 package io.github.frikit.krandom.generator.datetime;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -15,13 +20,7 @@ import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
 class DateGeneratorTest {
 
@@ -55,8 +54,7 @@ class DateGeneratorTest {
         DateGenerator generator = new DateGenerator();
         for (int i = 0; i < 100; i++) {
             LocalDate date = generator.generate();
-            assertTrue(date.getYear() >= 1970 && date.getYear() <= 2100,
-                       "Year out of range: " + date.getYear());
+            assertTrue(date.getYear() >= 1970 && date.getYear() <= 2100, "Year out of range: " + date.getYear());
         }
     }
 
@@ -83,13 +81,13 @@ class DateGeneratorTest {
 
     @Test
     void testGenerateWithDayHandlesFebruary() {
-        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(42L).build());
+        DateGenerator generator =
+                new DateGenerator(GeneratorConfig.builder().seed(42L).build());
         // Test with day 30 - should be capped to February's max
         for (int i = 0; i < 50; i++) {
             LocalDate date = generator.generateWithDay(30);
             if (date.getMonthValue() == 2) {
-                assertTrue(date.getDayOfMonth() <= 29,
-                           "February day should be <= 29: " + date);
+                assertTrue(date.getDayOfMonth() <= 29, "February day should be <= 29: " + date);
             }
         }
     }
@@ -99,8 +97,7 @@ class DateGeneratorTest {
         DateGenerator generator = new DateGenerator();
         String dateStr = generator.generateString();
         assertNotNull(dateStr);
-        assertTrue(dateStr.matches("\\d{4}-\\d{2}-\\d{2}"),
-                   "Expected ISO format: " + dateStr);
+        assertTrue(dateStr.matches("\\d{4}-\\d{2}-\\d{2}"), "Expected ISO format: " + dateStr);
     }
 
     @Test
@@ -108,8 +105,7 @@ class DateGeneratorTest {
         DateGenerator generator = new DateGenerator();
         String dateStr = generator.generateAmerican();
         assertNotNull(dateStr);
-        assertTrue(dateStr.matches("\\d{2}/\\d{2}/\\d{4}"),
-                   "Expected MM/DD/YYYY format: " + dateStr);
+        assertTrue(dateStr.matches("\\d{2}/\\d{2}/\\d{4}"), "Expected MM/DD/YYYY format: " + dateStr);
     }
 
     @Test
@@ -117,19 +113,17 @@ class DateGeneratorTest {
         DateGenerator generator = new DateGenerator();
         String dateStr = generator.generateEuropean();
         assertNotNull(dateStr);
-        assertTrue(dateStr.matches("\\d{2}/\\d{2}/\\d{4}"),
-                   "Expected DD/MM/YYYY format: " + dateStr);
+        assertTrue(dateStr.matches("\\d{2}/\\d{2}/\\d{4}"), "Expected DD/MM/YYYY format: " + dateStr);
     }
 
     @Test
     void testAmericanVsEuropeanFormat() {
-        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(123L).build());
+        DateGenerator generator =
+                new DateGenerator(GeneratorConfig.builder().seed(123L).build());
         LocalDate date = generator.generate();
 
-        String american = String.format("%02d/%02d/%04d",
-                                        date.getMonthValue(), date.getDayOfMonth(), date.getYear());
-        String european = String.format("%02d/%02d/%04d",
-                                        date.getDayOfMonth(), date.getMonthValue(), date.getYear());
+        String american = String.format("%02d/%02d/%04d", date.getMonthValue(), date.getDayOfMonth(), date.getYear());
+        String european = String.format("%02d/%02d/%04d", date.getDayOfMonth(), date.getMonthValue(), date.getYear());
 
         // Verify month and day positions are swapped
         String[] americanParts = american.split("/");
@@ -162,17 +156,22 @@ class DateGeneratorTest {
 
     @Test
     void testGenerateMonthName() {
-        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().locale(Locale.US).build());
+        DateGenerator generator =
+                new DateGenerator(GeneratorConfig.builder().locale(Locale.US).build());
         String monthName = generator.generateMonthName();
         assertNotNull(monthName);
-        assertTrue(monthName.matches("January|February|March|April|May|June|July|August|September|October|November|December"),
-                   "Invalid month name: " + monthName);
+        assertTrue(
+                monthName.matches(
+                        "January|February|March|April|May|June|July|August|September|October|November|December"),
+                "Invalid month name: " + monthName);
     }
 
     @Test
     void testGenerateMonthNameWithLocale() {
-        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(123L).locale(Locale.US).build());
-        DateGenerator sameSeed = new DateGenerator(GeneratorConfig.builder().seed(123L).locale(Locale.US).build());
+        DateGenerator generator = new DateGenerator(
+                GeneratorConfig.builder().seed(123L).locale(Locale.US).build());
+        DateGenerator sameSeed = new DateGenerator(
+                GeneratorConfig.builder().seed(123L).locale(Locale.US).build());
         String usName = generator.generateMonthName(Locale.US);
         String frName = sameSeed.generateMonthName(Locale.FRANCE);
 
@@ -192,16 +191,19 @@ class DateGeneratorTest {
         DateGenerator generator = new DateGenerator();
         long timestamp = generator.generateTimestamp();
         assertTrue(timestamp > 0, "Timestamp should be positive");
-        long minTimestamp = LocalDate.of(1970, 1, 1).atStartOfDay(ZoneId.systemDefault()).toEpochSecond();
-        long maxTimestamp = LocalDate.of(2100, 12, 31).atStartOfDay(ZoneId.systemDefault()).toEpochSecond();
-        assertTrue(timestamp >= minTimestamp && timestamp <= maxTimestamp,
-                   "Timestamp out of range: " + timestamp);
+        long minTimestamp =
+                LocalDate.of(1970, 1, 1).atStartOfDay(ZoneId.systemDefault()).toEpochSecond();
+        long maxTimestamp =
+                LocalDate.of(2100, 12, 31).atStartOfDay(ZoneId.systemDefault()).toEpochSecond();
+        assertTrue(timestamp >= minTimestamp && timestamp <= maxTimestamp, "Timestamp out of range: " + timestamp);
     }
 
     @Test
     void testGenerateUnixTimeAlias() {
-        DateGenerator timestampGenerator = new DateGenerator(GeneratorConfig.builder().seed(800L).build());
-        DateGenerator unixGenerator = new DateGenerator(GeneratorConfig.builder().seed(800L).build());
+        DateGenerator timestampGenerator =
+                new DateGenerator(GeneratorConfig.builder().seed(800L).build());
+        DateGenerator unixGenerator =
+                new DateGenerator(GeneratorConfig.builder().seed(800L).build());
         assertEquals(timestampGenerator.generateTimestamp(), unixGenerator.generateUnixTime());
     }
 
@@ -215,8 +217,10 @@ class DateGeneratorTest {
 
     @Test
     void testSeededGeneratorProducesSameResults() {
-        DateGenerator gen1 = new DateGenerator(GeneratorConfig.builder().seed(42L).build());
-        DateGenerator gen2 = new DateGenerator(GeneratorConfig.builder().seed(42L).build());
+        DateGenerator gen1 =
+                new DateGenerator(GeneratorConfig.builder().seed(42L).build());
+        DateGenerator gen2 =
+                new DateGenerator(GeneratorConfig.builder().seed(42L).build());
 
         assertEquals(gen1.generate(), gen2.generate());
         assertEquals(gen1.generate(), gen2.generate());
@@ -225,8 +229,10 @@ class DateGeneratorTest {
 
     @Test
     void testSeededYearProducesSameResults() {
-        DateGenerator gen1 = new DateGenerator(GeneratorConfig.builder().seed(999L).build());
-        DateGenerator gen2 = new DateGenerator(GeneratorConfig.builder().seed(999L).build());
+        DateGenerator gen1 =
+                new DateGenerator(GeneratorConfig.builder().seed(999L).build());
+        DateGenerator gen2 =
+                new DateGenerator(GeneratorConfig.builder().seed(999L).build());
 
         assertEquals(gen1.generateYear(), gen2.generateYear());
         assertEquals(gen1.generateYear(), gen2.generateYear());
@@ -234,8 +240,10 @@ class DateGeneratorTest {
 
     @Test
     void testSeededMonthProducesSameResults() {
-        DateGenerator gen1 = new DateGenerator(GeneratorConfig.builder().seed(777L).build());
-        DateGenerator gen2 = new DateGenerator(GeneratorConfig.builder().seed(777L).build());
+        DateGenerator gen1 =
+                new DateGenerator(GeneratorConfig.builder().seed(777L).build());
+        DateGenerator gen2 =
+                new DateGenerator(GeneratorConfig.builder().seed(777L).build());
 
         assertEquals(gen1.generateMonth(), gen2.generateMonth());
         assertEquals(gen1.generateMonth(), gen2.generateMonth());
@@ -243,8 +251,10 @@ class DateGeneratorTest {
 
     @Test
     void testDifferentSeedsProduceDifferentResults() {
-        DateGenerator gen1 = new DateGenerator(GeneratorConfig.builder().seed(100L).build());
-        DateGenerator gen2 = new DateGenerator(GeneratorConfig.builder().seed(200L).build());
+        DateGenerator gen1 =
+                new DateGenerator(GeneratorConfig.builder().seed(100L).build());
+        DateGenerator gen2 =
+                new DateGenerator(GeneratorConfig.builder().seed(200L).build());
 
         assertNotEquals(gen1.generate(), gen2.generate());
     }
@@ -281,7 +291,8 @@ class DateGeneratorTest {
 
     @Test
     void testGenerateAllMonthNames() {
-        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().locale(Locale.US).build());
+        DateGenerator generator =
+                new DateGenerator(GeneratorConfig.builder().locale(Locale.US).build());
         Set<String> monthNames = new HashSet<>();
         for (int i = 0; i < 200; i++) {
             monthNames.add(generator.generateMonthName());
@@ -323,8 +334,10 @@ class DateGeneratorTest {
 
     @Test
     void testTimestampIsReproducible() {
-        DateGenerator gen1 = new DateGenerator(GeneratorConfig.builder().seed(555L).build());
-        DateGenerator gen2 = new DateGenerator(GeneratorConfig.builder().seed(555L).build());
+        DateGenerator gen1 =
+                new DateGenerator(GeneratorConfig.builder().seed(555L).build());
+        DateGenerator gen2 =
+                new DateGenerator(GeneratorConfig.builder().seed(555L).build());
 
         assertEquals(gen1.generateTimestamp(), gen2.generateTimestamp());
     }
@@ -332,7 +345,8 @@ class DateGeneratorTest {
     @Test
     void testTimestampUsesConfiguredClockZone() {
         Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("America/Los_Angeles"));
-        GeneratorConfig config = GeneratorConfig.builder().seed(556L).clock(clock).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().seed(556L).clock(clock).build();
         LocalDate generatedDate = new DateGenerator(config).generate();
 
         long expected = generatedDate.atStartOfDay(clock.getZone()).toEpochSecond();
@@ -341,7 +355,8 @@ class DateGeneratorTest {
 
     @Test
     void testYearRangeCoversEntireRange() {
-        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(123L).build());
+        DateGenerator generator =
+                new DateGenerator(GeneratorConfig.builder().seed(123L).build());
         int min = Integer.MAX_VALUE;
         int max = Integer.MIN_VALUE;
 
@@ -362,8 +377,7 @@ class DateGeneratorTest {
         for (int i = 0; i < 20; i++) {
             LocalDate date = generator.generateWithYear(2020); // Leap year
             if (date.getMonthValue() == 2) {
-                assertTrue(date.getDayOfMonth() <= 29,
-                           "February in leap year should have <= 29 days");
+                assertTrue(date.getDayOfMonth() <= 29, "February in leap year should have <= 29 days");
             }
         }
     }
@@ -375,8 +389,7 @@ class DateGeneratorTest {
         for (int i = 0; i < 20; i++) {
             LocalDate date = generator.generateWithYear(2019); // Non-leap year
             if (date.getMonthValue() == 2) {
-                assertTrue(date.getDayOfMonth() <= 28,
-                           "February in non-leap year should have <= 28 days");
+                assertTrue(date.getDayOfMonth() <= 28, "February in non-leap year should have <= 28 days");
             }
         }
     }
@@ -384,7 +397,8 @@ class DateGeneratorTest {
     @Test
     void testFutureProducesFutureDates() {
         Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
-        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(101L).clock(clock).build());
+        DateGenerator generator = new DateGenerator(
+                GeneratorConfig.builder().seed(101L).clock(clock).build());
         LocalDate today = LocalDate.now(clock);
         for (int i = 0; i < 50; i++) {
             assertTrue(generator.future().isAfter(today));
@@ -394,7 +408,8 @@ class DateGeneratorTest {
     @Test
     void testFutureWithMaxDaysRange() {
         Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
-        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(202L).clock(clock).build());
+        DateGenerator generator = new DateGenerator(
+                GeneratorConfig.builder().seed(202L).clock(clock).build());
         LocalDate start = LocalDate.now(clock).plusDays(1);
         LocalDate end = start.plusDays(30);
         for (int i = 0; i < 50; i++) {
@@ -407,7 +422,8 @@ class DateGeneratorTest {
     @Test
     void testPastProducesPastDates() {
         Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
-        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(303L).clock(clock).build());
+        DateGenerator generator = new DateGenerator(
+                GeneratorConfig.builder().seed(303L).clock(clock).build());
         LocalDate today = LocalDate.now(clock);
         for (int i = 0; i < 50; i++) {
             assertTrue(generator.past().isBefore(today));
@@ -417,7 +433,8 @@ class DateGeneratorTest {
     @Test
     void testPastWithMaxDaysRange() {
         Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
-        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(404L).clock(clock).build());
+        DateGenerator generator = new DateGenerator(
+                GeneratorConfig.builder().seed(404L).clock(clock).build());
         LocalDate end = LocalDate.now(clock).minusDays(1);
         LocalDate start = end.minusDays(30);
         for (int i = 0; i < 50; i++) {
@@ -429,7 +446,8 @@ class DateGeneratorTest {
 
     @Test
     void testBetweenWithinBounds() {
-        DateGenerator generator = new DateGenerator(GeneratorConfig.builder().seed(505L).build());
+        DateGenerator generator =
+                new DateGenerator(GeneratorConfig.builder().seed(505L).build());
         LocalDate min = LocalDate.of(2020, 1, 1);
         LocalDate max = LocalDate.of(2020, 12, 31);
         for (int i = 0; i < 50; i++) {
@@ -453,7 +471,8 @@ class DateGeneratorTest {
         assertThrows(IllegalArgumentException.class, () -> generator.past(0));
         assertThrows(NullPointerException.class, () -> generator.between(null, LocalDate.now()));
         assertThrows(NullPointerException.class, () -> generator.between(LocalDate.now(), null));
-        assertThrows(IllegalArgumentException.class,
-                     () -> generator.between(LocalDate.of(2025, 1, 2), LocalDate.of(2025, 1, 1)));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> generator.between(LocalDate.of(2025, 1, 2), LocalDate.of(2025, 1, 1)));
     }
 }

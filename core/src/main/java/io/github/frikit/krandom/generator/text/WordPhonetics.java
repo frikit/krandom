@@ -8,6 +8,4 @@ package io.github.frikit.krandom.generator.text;
 /**
  * Locale phonetic profile used by {@link WordGenerator}.
  */
-record WordPhonetics(String[] onsets, String[] nuclei, String[] codas) {
-
-}
+record WordPhonetics(String[] onsets, String[] nuclei, String[] codas) {}

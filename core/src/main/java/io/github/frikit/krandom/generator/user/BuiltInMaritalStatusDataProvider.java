@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.util.List;
 import java.util.Locale;
 
@@ -27,7 +26,8 @@ final class BuiltInMaritalStatusDataProvider implements MaritalStatusDataProvide
 
     BuiltInMaritalStatusDataProvider(Locale locale, String resourcePrefix) {
         this.locale = locale;
-        this.maritalStatuses = List.of(LocaleTextResourceLoader.load("krandom/marital_statuses/" + resourcePrefix + ".txt"));
+        this.maritalStatuses =
+                List.of(LocaleTextResourceLoader.load("krandom/marital_statuses/" + resourcePrefix + ".txt"));
     }
 
     @Override

@@ -22,75 +22,58 @@ public class PersonWithAllConstraints {
 
     // ── int / Integer sign constraints ───────────────────────────────────────
 
-    @Positive
-    int positiveInt;
+    @Positive int positiveInt;
 
-    @PositiveOrZero
-    int posOrZeroInt;
+    @PositiveOrZero int posOrZeroInt;
 
-    @Negative
-    int negativeInt;
+    @Negative int negativeInt;
 
-    @NegativeOrZero
-    int negOrZeroInt;
+    @NegativeOrZero int negOrZeroInt;
 
     /**
      * @Min only — no @Max on int
      */
-    @Min(5)
-    int minOnlyInt;
+    @Min(5) int minOnlyInt;
 
     /**
      * @Max only — no @Min on int
      */
-    @Max(100)
-    int maxOnlyInt;
+    @Max(100) int maxOnlyInt;
 
     /**
      * Boxed Integer with @Min + @Max to exercise the Integer branch
      */
-    @Min(1)
-    @Max(50)
-    Integer boxedInt;
+    @Min(1) @Max(50) Integer boxedInt;
 
     // ── long / Long sign constraints ──────────────────────────────────────────
 
-    @PositiveOrZero
-    long posOrZeroLong;
+    @PositiveOrZero long posOrZeroLong;
 
-    @Negative
-    long negativeLong;
+    @Negative long negativeLong;
 
-    @NegativeOrZero
-    long negOrZeroLong;
+    @NegativeOrZero long negOrZeroLong;
 
     /**
      * @Min + @Max on long
      */
-    @Min(10)
-    @Max(1000)
-    long minMaxLong;
+    @Min(10) @Max(1000) long minMaxLong;
 
     /**
      * @Min only on long
      */
-    @Min(5)
-    long minOnlyLong;
+    @Min(5) long minOnlyLong;
 
     /**
      * @Max only on long
      */
-    @Max(200)
-    long maxOnlyLong;
+    @Max(200) long maxOnlyLong;
 
     /**
      * Boxed Long with @Positive to exercise the Long branch
      */
-    @Positive
-    Long boxedLong;
+    @Positive Long boxedLong;
 
-    public PersonWithAllConstraints() {
-    }
+    public PersonWithAllConstraints() {}
 
     public int getPositiveInt() {
         return positiveInt;

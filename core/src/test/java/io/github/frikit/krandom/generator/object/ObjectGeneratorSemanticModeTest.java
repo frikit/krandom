@@ -5,16 +5,16 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import jakarta.validation.constraints.Negative;
-import io.github.frikit.krandom.generator.Generator;
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import jakarta.validation.constraints.Negative;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectGenerator semantic modes")
 class ObjectGeneratorSemanticModeTest {
@@ -30,8 +30,8 @@ class ObjectGeneratorSemanticModeTest {
     @DisplayName("strict mode lets semantic field matching override @Randomizer")
     void strictModeLetsSemanticWin() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
-                                                .build();
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                .build();
         AnnotatedEmailHolder value = new ObjectGenerator<>(AnnotatedEmailHolder.class, config).generate();
         assertNotEquals("ANNOTATED", value.email);
         assertTrue(value.email.contains("@"));
@@ -41,8 +41,8 @@ class ObjectGeneratorSemanticModeTest {
     @DisplayName("structural-only mode disables semantic field matching")
     void structuralOnlyModeDisablesSemanticMatching() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                .build();
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .build();
         PlainEmailHolder value = new ObjectGenerator<>(PlainEmailHolder.class, config).generate();
         assertFalse(value.email.contains("@"));
     }
@@ -58,8 +58,8 @@ class ObjectGeneratorSemanticModeTest {
     @DisplayName("strict mode keeps Bean Validation ahead of semantic typed defaults")
     void strictModeKeepsBeanValidationAheadOfSemanticDefaults() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
-                                                .build();
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                .build();
         NegativeAccountIdHolder value = new ObjectGenerator<>(NegativeAccountIdHolder.class, config).generate();
         assertTrue(value.accountId < 0);
     }
@@ -77,8 +77,7 @@ class ObjectGeneratorSemanticModeTest {
 
     static class NegativeAccountIdHolder {
 
-        @Negative
-        long accountId;
+        @Negative long accountId;
     }
 
     public static class AnnotatedValueGenerator implements Generator<String> {

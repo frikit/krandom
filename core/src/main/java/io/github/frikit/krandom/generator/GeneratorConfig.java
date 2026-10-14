@@ -5,26 +5,24 @@
  */
 package io.github.frikit.krandom.generator;
 
-import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import io.github.frikit.krandom.generator.extension.KRandomExtensionRegistry;
 import io.github.frikit.krandom.generator.extension.KRandomModule;
+import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
+import io.github.frikit.krandom.generator.object.ObjectFieldStreamPolicy;
+import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
+import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
 import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
-import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
-import io.github.frikit.krandom.generator.object.ObjectFieldStreamPolicy;
-import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
-import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.nio.charset.StandardCharsets;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.LocalDate;
@@ -42,6 +40,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Configuration whose value fields are immutable after construction.
@@ -71,53 +70,55 @@ public final class GeneratorConfig {
      * Stable algorithm ID used to derive {@code long} seeds from string seeds.
      */
     public static final String STRING_SEED_DERIVATION = "fnv1a64-v1";
-    public static final int    DEFAULT_OBJECT_MAX_DEPTH = 5;
-    public static final int    DEFAULT_OBJECT_POOL_SIZE = 10;
-    private static final int   DEFAULT_OBJECT_UNIQUENESS_ATTEMPTS = 256;
+
+    public static final int DEFAULT_OBJECT_MAX_DEPTH = 5;
+    public static final int DEFAULT_OBJECT_POOL_SIZE = 10;
+    private static final int DEFAULT_OBJECT_UNIQUENESS_ATTEMPTS = 256;
 
     private static final long FNV1A_64_OFFSET_BASIS = 0xcbf29ce484222325L;
-    private static final long FNV1A_64_PRIME        = 0x100000001b3L;
+    private static final long FNV1A_64_PRIME = 0x100000001b3L;
     private static final GenerationFailureListener NO_FAILURE_LISTENER = diagnostic -> {};
 
     private final OptionalLong seed;
     private final Optional<String> stringSeed;
-    private final Charset      charset;
-    private final int          minStringLength;
-    private final int          maxStringLength;
-    private final int          minCollectionSize;
-    private final int          maxCollectionSize;
-    private final int          objectMaxDepth;
-    private final int          objectPoolSize;
-    private final boolean      objectOverrideDefaultInitialization;
+    private final Charset charset;
+    private final int minStringLength;
+    private final int maxStringLength;
+    private final int minCollectionSize;
+    private final int maxCollectionSize;
+    private final int objectMaxDepth;
+    private final int objectPoolSize;
+    private final boolean objectOverrideDefaultInitialization;
     private final ObjectConstructionPolicy objectConstructionPolicy;
-    private final boolean      objectIgnoreErrors;
+    private final boolean objectIgnoreErrors;
     private final GenerationFailureListener generationFailureListener;
-    private final LocalDate    objectDateMin;
-    private final LocalDate    objectDateMax;
+    private final @Nullable LocalDate objectDateMin;
+    private final @Nullable LocalDate objectDateMax;
     private final ObjectGenerationSemanticMode objectSemanticMode;
     private final ObjectFieldStreamPolicy objectFieldStreamPolicy;
     private final SemanticFieldRegistry objectSemanticRegistry;
-    private final double       objectNullProbability;
-    private final double       objectOptionalEmptyProbability;
-    private final Set<String>  objectUniqueFieldNames;
-    private final int          objectUniquenessMaxAttempts;
-    private final Map<Class<?>, Generator<?>>           objectTypeOverrides;
-    private final Map<String, Generator<?>>             objectFieldOverrides;
+    private final double objectNullProbability;
+    private final double objectOptionalEmptyProbability;
+    private final Set<String> objectUniqueFieldNames;
+    private final int objectUniquenessMaxAttempts;
+    private final Map<Class<?>, Generator<?>> objectTypeOverrides;
+    private final Map<String, Generator<?>> objectFieldOverrides;
     private final Map<Class<?>, ContextualGenerator<?>> objectContextualTypeOverrides;
-    private final Map<String, ContextualGenerator<?>>   objectContextualFieldOverrides;
-    private final List<FieldGeneratorOverride>          objectPredicateFieldOverrides;
+    private final Map<String, ContextualGenerator<?>> objectContextualFieldOverrides;
+    private final List<FieldGeneratorOverride> objectPredicateFieldOverrides;
     private final List<ContextualFieldGeneratorOverride> objectContextualPredicateFieldOverrides;
-    private final List<Predicate<Field>>                objectExclusionPredicates;
-    private final List<Predicate<Class<?>>>             objectTypeExclusionPredicates;
-    private final Map<Class<?>, Class<?>>               objectSubtypes;
-    private final Locale       locale;
-    private final Random       random;
-    private final Supplier<Random> randomFactory;
+    private final List<Predicate<Field>> objectExclusionPredicates;
+    private final java.util.Set<String> objectExcludedFieldNames;
+    private final List<Predicate<Class<?>>> objectTypeExclusionPredicates;
+    private final Map<Class<?>, Class<?>> objectSubtypes;
+    private final Locale locale;
+    private final @Nullable Random random;
+    private final @Nullable Supplier<Random> randomFactory;
     private final DataRegistryContext registryContext;
-    private final Clock        clock;
-    private final boolean      secureRandom;
-    private final String       generationProfile;
-    private final String       safetyPolicy;
+    private final Clock clock;
+    private final boolean secureRandom;
+    private final String generationProfile;
+    private final String safetyPolicy;
     private final PaymentCardSafetyPolicy paymentCardSafetyPolicy;
     private final BankingSafetyPolicy bankingSafetyPolicy;
     private final BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy;
@@ -128,7 +129,7 @@ public final class GeneratorConfig {
     private final IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy;
     private final EmailDomainPolicy emailDomainPolicy;
     private final ChildStreamPolicy childStreamPolicy;
-    private final String       providerDatasetVersion;
+    private final String providerDatasetVersion;
     private final List<KRandomModule> modules;
     private final KRandomExtensionRegistry extensionRegistry;
 
@@ -159,13 +160,19 @@ public final class GeneratorConfig {
         this.objectUniquenessMaxAttempts = b.objectUniquenessMaxAttempts;
         this.objectTypeOverrides = Collections.unmodifiableMap(new HashMap<>(b.objectTypeOverrides));
         this.objectFieldOverrides = Collections.unmodifiableMap(new HashMap<>(b.objectFieldOverrides));
-        this.objectContextualTypeOverrides = Collections.unmodifiableMap(new HashMap<>(b.objectContextualTypeOverrides));
-        this.objectContextualFieldOverrides = Collections.unmodifiableMap(new HashMap<>(b.objectContextualFieldOverrides));
-        this.objectPredicateFieldOverrides = Collections.unmodifiableList(new ArrayList<>(b.objectPredicateFieldOverrides));
+        this.objectContextualTypeOverrides =
+                Collections.unmodifiableMap(new HashMap<>(b.objectContextualTypeOverrides));
+        this.objectContextualFieldOverrides =
+                Collections.unmodifiableMap(new HashMap<>(b.objectContextualFieldOverrides));
+        this.objectPredicateFieldOverrides =
+                Collections.unmodifiableList(new ArrayList<>(b.objectPredicateFieldOverrides));
         this.objectContextualPredicateFieldOverrides =
-            Collections.unmodifiableList(new ArrayList<>(b.objectContextualPredicateFieldOverrides));
+                Collections.unmodifiableList(new ArrayList<>(b.objectContextualPredicateFieldOverrides));
         this.objectExclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.objectExclusionPredicates));
-        this.objectTypeExclusionPredicates = Collections.unmodifiableList(new ArrayList<>(b.objectTypeExclusionPredicates));
+        this.objectExcludedFieldNames =
+                Collections.unmodifiableSet(new java.util.LinkedHashSet<>(b.objectExcludedFieldNames));
+        this.objectTypeExclusionPredicates =
+                Collections.unmodifiableList(new ArrayList<>(b.objectTypeExclusionPredicates));
         this.objectSubtypes = Collections.unmodifiableMap(new HashMap<>(b.objectSubtypes));
         this.locale = b.locale;
         this.random = b.random;
@@ -257,7 +264,9 @@ public final class GeneratorConfig {
         if (childStreamPolicy == ChildStreamPolicy.LEGACY) {
             return this;
         }
-        return toBuilder().seed(GenerationRecipe.deriveChildSeed(seed.getAsLong(), streamName)).build();
+        return toBuilder()
+                .seed(GenerationRecipe.deriveChildSeed(seed.getAsLong(), streamName))
+                .build();
     }
 
     // ── Accessors ─────────────────────────────────────────────────────────────
@@ -490,14 +499,14 @@ public final class GeneratorConfig {
     /**
      * Earliest date used for object-generated temporal fields, or {@code null} for built-in defaults.
      */
-    public LocalDate getObjectDateMin() {
+    public @Nullable LocalDate getObjectDateMin() {
         return objectDateMin;
     }
 
     /**
      * Latest date used for object-generated temporal fields, or {@code null} for built-in defaults.
      */
-    public LocalDate getObjectDateMax() {
+    public @Nullable LocalDate getObjectDateMax() {
         return objectDateMax;
     }
 
@@ -627,6 +636,17 @@ public final class GeneratorConfig {
     }
 
     /**
+     * Returns {@code true} if {@link Builder#objectExcludeField(String)} excluded {@code name}.
+     *
+     * <p>Unlike {@link #shouldObjectExclude(Field)}, this answers for members that no field backs,
+     * such as constructor parameters.
+     */
+    public boolean isObjectFieldNameExcluded(String name) {
+        Objects.requireNonNull(name, "name must not be null");
+        return objectExcludedFieldNames.contains(name);
+    }
+
+    /**
      * Locale for locale-aware generators (names, addresses, etc.). Default: {@link Locale#US}.
      */
     public Locale getLocale() {
@@ -707,55 +727,46 @@ public final class GeneratorConfig {
             return Optional.empty();
         }
         GenerationRecipe.Builder recipe = GenerationRecipe.builder()
-                                                            .libraryVersion(GenerationRecipe.currentLibraryVersion())
-                                                            .seed(seed.getAsLong())
-                                                            .locale(locale)
-                                                            .clock(clock.instant(), clock.getZone())
-                                                            .profile(generationProfile)
-                                                            .safetyPolicy(safetyPolicy)
-                                                            .constructionPolicy(objectConstructionPolicy)
-                                                            .providerDatasetVersion(providerDatasetVersion)
-                                                            .setting("payment.card-safety-policy",
-                                                                     paymentCardSafetyPolicy.name())
-                                                            .setting("banking.safety-policy", bankingSafetyPolicy.name())
-                                                            .setting("business-tax-identifier.safety-policy",
-                                                                     businessTaxIdentifierSafetyPolicy.name())
-                                                            .setting("crypto-address.safety-policy",
-                                                                     cryptoAddressSafetyPolicy.name())
-                                                            .setting("securities-identifier.safety-policy",
-                                                                     securitiesIdentifierSafetyPolicy.name())
-                                                            .setting("phone-number.safety-policy",
-                                                                     phoneNumberSafetyPolicy.name())
-                                                            .setting("national-id.safety-policy",
-                                                                     nationalIdSafetyPolicy.name())
-                                                            .setting("identity-document.safety-policy",
-                                                                     identityDocumentSafetyPolicy.name())
-                                                            .setting("email.domain-policy", emailDomainPolicy.name())
-                                                            .setting("charset", charset.name())
-                                                            .setting("string.min", Integer.toString(minStringLength))
-                                                            .setting("string.max", Integer.toString(maxStringLength))
-                                                            .setting("collection.min", Integer.toString(minCollectionSize))
-                                                            .setting("collection.max", Integer.toString(maxCollectionSize))
-                                                            .setting("object.max-depth", Integer.toString(objectMaxDepth))
-                                                            .setting("object.pool-size", Integer.toString(objectPoolSize))
-                                                            .setting("object.override-default-initialization",
-                                                                     Boolean.toString(objectOverrideDefaultInitialization))
-                                                            .setting("object.ignore-errors", Boolean.toString(objectIgnoreErrors))
-                                                            .setting("object.semantic-mode", objectSemanticMode.name())
-                                                            .setting("object.null-probability",
-                                                                     Double.toString(objectNullProbability))
-                                                            .setting("object.optional-empty-probability",
-                                                                     Double.toString(objectOptionalEmptyProbability))
-                                                            .setting("object.unique-fields",
-                                                                     String.join(",", objectUniqueFieldNames))
-                                                            .setting("object.uniqueness-max-attempts",
-                                                                     Integer.toString(objectUniquenessMaxAttempts));
+                .libraryVersion(GenerationRecipe.currentLibraryVersion())
+                .seed(seed.getAsLong())
+                .locale(locale)
+                .clock(clock.instant(), clock.getZone())
+                .profile(generationProfile)
+                .safetyPolicy(safetyPolicy)
+                .constructionPolicy(objectConstructionPolicy)
+                .providerDatasetVersion(providerDatasetVersion)
+                .setting("payment.card-safety-policy", paymentCardSafetyPolicy.name())
+                .setting("banking.safety-policy", bankingSafetyPolicy.name())
+                .setting("business-tax-identifier.safety-policy", businessTaxIdentifierSafetyPolicy.name())
+                .setting("crypto-address.safety-policy", cryptoAddressSafetyPolicy.name())
+                .setting("securities-identifier.safety-policy", securitiesIdentifierSafetyPolicy.name())
+                .setting("phone-number.safety-policy", phoneNumberSafetyPolicy.name())
+                .setting("national-id.safety-policy", nationalIdSafetyPolicy.name())
+                .setting("identity-document.safety-policy", identityDocumentSafetyPolicy.name())
+                .setting("email.domain-policy", emailDomainPolicy.name())
+                .setting("charset", charset.name())
+                .setting("string.min", Integer.toString(minStringLength))
+                .setting("string.max", Integer.toString(maxStringLength))
+                .setting("collection.min", Integer.toString(minCollectionSize))
+                .setting("collection.max", Integer.toString(maxCollectionSize))
+                .setting("object.max-depth", Integer.toString(objectMaxDepth))
+                .setting("object.pool-size", Integer.toString(objectPoolSize))
+                .setting(
+                        "object.override-default-initialization", Boolean.toString(objectOverrideDefaultInitialization))
+                .setting("object.ignore-errors", Boolean.toString(objectIgnoreErrors))
+                .setting("object.semantic-mode", objectSemanticMode.name())
+                .setting("object.null-probability", Double.toString(objectNullProbability))
+                .setting("object.optional-empty-probability", Double.toString(objectOptionalEmptyProbability))
+                .setting("object.unique-fields", String.join(",", objectUniqueFieldNames))
+                .setting("object.uniqueness-max-attempts", Integer.toString(objectUniquenessMaxAttempts));
         if (stringSeed.isPresent()) {
             recipe.seedText(stringSeed.get());
         }
         if (objectDateMin != null) {
             recipe.setting("object.date-min", objectDateMin.toString())
-                  .setting("object.date-max", Objects.requireNonNull(objectDateMax).toString());
+                    .setting(
+                            "object.date-max",
+                            Objects.requireNonNull(objectDateMax).toString());
         }
         if (objectFieldStreamPolicy != ObjectFieldStreamPolicy.LEGACY) {
             recipe.setting("object.field-stream-policy", objectFieldStreamPolicy.name());
@@ -777,10 +788,10 @@ public final class GeneratorConfig {
         // Builder validation makes a present seed mutually exclusive with caller-owned and secure
         // sources, so seed ownership is the only random-source condition required here.
         return seed.isPresent()
-            && registryContext == DataRegistryContext.globalDefault()
-            && extensionRegistry.getModuleIds().isEmpty()
-            && objectSemanticRegistry == SemanticFieldRegistry.defaults()
-            && hasNoCustomObjectGenerationState();
+                && registryContext == DataRegistryContext.globalDefault()
+                && extensionRegistry.getModuleIds().isEmpty()
+                && objectSemanticRegistry == SemanticFieldRegistry.defaults()
+                && hasNoCustomObjectGenerationState();
     }
 
     private boolean hasNoCustomObjectGenerationState() {
@@ -840,77 +851,74 @@ public final class GeneratorConfig {
         return ownerType.getName() + "." + fieldName;
     }
 
-    private record FieldGeneratorOverride(Predicate<Field> predicate, Generator<?> generator) {
-    }
+    private record FieldGeneratorOverride(Predicate<Field> predicate, Generator<?> generator) {}
 
-    private record ContextualFieldGeneratorOverride(Predicate<Field> predicate, ContextualGenerator<?> generator) {
-    }
+    private record ContextualFieldGeneratorOverride(Predicate<Field> predicate, ContextualGenerator<?> generator) {}
 
     // ── Builder ───────────────────────────────────────────────────────────────
 
-
     public static final class Builder {
 
-        private OptionalLong      numericSeed       = OptionalLong.empty();
-        private Optional<String>  stringSeed        = Optional.empty();
-        private Charset           charset           = StandardCharsets.US_ASCII;
-        private int               minStringLength   = 5;
-        private int               maxStringLength   = 20;
-        private int               minCollectionSize = 1;
-        private int               maxCollectionSize = 10;
-        private int               objectMaxDepth    = DEFAULT_OBJECT_MAX_DEPTH;
-        private int               objectPoolSize    = DEFAULT_OBJECT_POOL_SIZE;
-        private boolean           objectOverrideDefaultInitialization;
+        private OptionalLong numericSeed = OptionalLong.empty();
+        private Optional<String> stringSeed = Optional.empty();
+        private Charset charset = StandardCharsets.US_ASCII;
+        private int minStringLength = 5;
+        private int maxStringLength = 20;
+        private int minCollectionSize = 1;
+        private int maxCollectionSize = 10;
+        private int objectMaxDepth = DEFAULT_OBJECT_MAX_DEPTH;
+        private int objectPoolSize = DEFAULT_OBJECT_POOL_SIZE;
+        private boolean objectOverrideDefaultInitialization;
         private ObjectConstructionPolicy objectConstructionPolicy = ObjectConstructionPolicy.SAFE_CONSTRUCTORS;
-        private boolean           objectIgnoreErrors;
+        private boolean objectIgnoreErrors;
         private GenerationFailureListener generationFailureListener = NO_FAILURE_LISTENER;
-        private LocalDate         objectDateMin;
-        private LocalDate         objectDateMax;
+        private @Nullable LocalDate objectDateMin;
+        private @Nullable LocalDate objectDateMax;
         private ObjectGenerationSemanticMode objectSemanticMode = ObjectGenerationSemanticMode.RELAXED;
         private ObjectFieldStreamPolicy objectFieldStreamPolicy = ObjectFieldStreamPolicy.LEGACY;
         private SemanticFieldRegistry objectSemanticRegistry = SemanticFieldRegistry.defaults();
-        private double            objectNullProbability;
-        private double            objectOptionalEmptyProbability;
+        private double objectNullProbability;
+        private double objectOptionalEmptyProbability;
         // A List keeps the declaration order; Set.of iteration order is randomized per JVM and
         // would make the serialized default recipe differ between runs.
-        private Set<String>       objectUniqueFieldNames = new LinkedHashSet<>(
-            List.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id"));
-        private int               objectUniquenessMaxAttempts = DEFAULT_OBJECT_UNIQUENESS_ATTEMPTS;
-        private final Map<Class<?>, Generator<?>>           objectTypeOverrides           = new HashMap<>();
-        private final Map<String, Generator<?>>             objectFieldOverrides          = new HashMap<>();
+        private Set<String> objectUniqueFieldNames =
+                new LinkedHashSet<>(List.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id"));
+        private int objectUniquenessMaxAttempts = DEFAULT_OBJECT_UNIQUENESS_ATTEMPTS;
+        private final Map<Class<?>, Generator<?>> objectTypeOverrides = new HashMap<>();
+        private final Map<String, Generator<?>> objectFieldOverrides = new HashMap<>();
         private final Map<Class<?>, ContextualGenerator<?>> objectContextualTypeOverrides = new HashMap<>();
-        private final Map<String, ContextualGenerator<?>>   objectContextualFieldOverrides = new HashMap<>();
-        private final List<FieldGeneratorOverride>          objectPredicateFieldOverrides = new ArrayList<>();
+        private final Map<String, ContextualGenerator<?>> objectContextualFieldOverrides = new HashMap<>();
+        private final List<FieldGeneratorOverride> objectPredicateFieldOverrides = new ArrayList<>();
         private final List<ContextualFieldGeneratorOverride> objectContextualPredicateFieldOverrides =
-            new ArrayList<>();
-        private final List<Predicate<Field>>                objectExclusionPredicates     = new ArrayList<>();
-        private final List<Predicate<Class<?>>>             objectTypeExclusionPredicates = new ArrayList<>();
-        private final Map<Class<?>, Class<?>>               objectSubtypes                = new HashMap<>();
-        private Locale            locale            = Locale.US;
-        private Random            random;
-        private Supplier<Random>  randomFactory;
+                new ArrayList<>();
+        private final List<Predicate<Field>> objectExclusionPredicates = new ArrayList<>();
+        private final java.util.Set<String> objectExcludedFieldNames = new java.util.LinkedHashSet<>();
+        private final List<Predicate<Class<?>>> objectTypeExclusionPredicates = new ArrayList<>();
+        private final Map<Class<?>, Class<?>> objectSubtypes = new HashMap<>();
+        private Locale locale = Locale.US;
+        private @Nullable Random random;
+        private @Nullable Supplier<Random> randomFactory;
         private DataRegistryContext registryContext = DataRegistryContext.globalDefault();
-        private Clock             clock             = Clock.systemDefaultZone();
-        private boolean           secureRandom;
-        private String            generationProfile = GenerationRecipe.CUSTOM_PROFILE;
-        private String            safetyPolicy = GenerationRecipe.LEGACY_UNCLASSIFIED_SAFETY_POLICY;
+        private Clock clock = Clock.systemDefaultZone();
+        private boolean secureRandom;
+        private String generationProfile = GenerationRecipe.CUSTOM_PROFILE;
+        private String safetyPolicy = GenerationRecipe.LEGACY_UNCLASSIFIED_SAFETY_POLICY;
         private PaymentCardSafetyPolicy paymentCardSafetyPolicy = PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE;
         private BankingSafetyPolicy bankingSafetyPolicy = BankingSafetyPolicy.DISABLED;
         private BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy =
-            BusinessTaxIdentifierSafetyPolicy.DISABLED;
+                BusinessTaxIdentifierSafetyPolicy.DISABLED;
         private CryptoAddressSafetyPolicy cryptoAddressSafetyPolicy = CryptoAddressSafetyPolicy.DISABLED;
         private SecuritiesIdentifierSafetyPolicy securitiesIdentifierSafetyPolicy =
-            SecuritiesIdentifierSafetyPolicy.DISABLED;
+                SecuritiesIdentifierSafetyPolicy.DISABLED;
         private PhoneNumberSafetyPolicy phoneNumberSafetyPolicy = PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE;
         private NationalIdSafetyPolicy nationalIdSafetyPolicy = NationalIdSafetyPolicy.DISABLED;
         private IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy = IdentityDocumentSafetyPolicy.DISABLED;
         private EmailDomainPolicy emailDomainPolicy = EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS;
         private ChildStreamPolicy childStreamPolicy = ChildStreamPolicy.LEGACY;
-        private String            providerDatasetVersion = GenerationRecipe.BUILTIN_PROVIDER_DATASET_VERSION;
+        private String providerDatasetVersion = GenerationRecipe.BUILTIN_PROVIDER_DATASET_VERSION;
         private final List<KRandomModule> modules = new ArrayList<>();
 
-        private Builder() {
-        }
+        private Builder() {}
 
         private Builder(GeneratorConfig source) {
             this.numericSeed = source.seed;
@@ -942,6 +950,7 @@ public final class GeneratorConfig {
             this.objectPredicateFieldOverrides.addAll(source.objectPredicateFieldOverrides);
             this.objectContextualPredicateFieldOverrides.addAll(source.objectContextualPredicateFieldOverrides);
             this.objectExclusionPredicates.addAll(source.objectExclusionPredicates);
+            this.objectExcludedFieldNames.addAll(source.objectExcludedFieldNames);
             this.objectTypeExclusionPredicates.addAll(source.objectTypeExclusionPredicates);
             this.objectSubtypes.putAll(source.objectSubtypes);
             this.locale = source.locale;
@@ -977,11 +986,13 @@ public final class GeneratorConfig {
          */
         public Builder install(KRandomModule module) {
             KRandomModule contribution = Objects.requireNonNull(module, "module must not be null");
-            String id = Objects.requireNonNull(contribution.id(), "module id must not be null").trim();
+            String id = Objects.requireNonNull(contribution.id(), "module id must not be null")
+                    .trim();
             if (id.isEmpty() || id.indexOf('\n') >= 0 || id.indexOf('\r') >= 0) {
                 throw new IllegalArgumentException("module id must be a non-blank single-line value");
             }
-            boolean alreadyInstalled = modules.stream().anyMatch(existing -> id.equals(existing.id().trim()));
+            boolean alreadyInstalled = modules.stream()
+                    .anyMatch(existing -> id.equals(existing.id().trim()));
             if (alreadyInstalled) {
                 throw new IllegalArgumentException("Module already installed: " + id);
             }
@@ -1126,8 +1137,8 @@ public final class GeneratorConfig {
          * Selects how non-record classes are constructed. The default invokes constructors safely.
          */
         public Builder objectConstructionPolicy(ObjectConstructionPolicy objectConstructionPolicy) {
-            this.objectConstructionPolicy = Objects.requireNonNull(
-                objectConstructionPolicy, "objectConstructionPolicy must not be null");
+            this.objectConstructionPolicy =
+                    Objects.requireNonNull(objectConstructionPolicy, "objectConstructionPolicy must not be null");
             return this;
         }
 
@@ -1151,8 +1162,8 @@ public final class GeneratorConfig {
          * replay identity. It never receives generated field values or the throwable itself.
          */
         public Builder generationFailureListener(GenerationFailureListener generationFailureListener) {
-            this.generationFailureListener = Objects.requireNonNull(
-                generationFailureListener, "generationFailureListener must not be null");
+            this.generationFailureListener =
+                    Objects.requireNonNull(generationFailureListener, "generationFailureListener must not be null");
             return this;
         }
 
@@ -1171,11 +1182,11 @@ public final class GeneratorConfig {
             Objects.requireNonNull(implementationType, "implementationType must not be null");
             if (!declaredType.isAssignableFrom(implementationType)) {
                 throw new IllegalArgumentException("implementationType " + implementationType.getName()
-                                                   + " is not assignable to " + declaredType.getName());
+                        + " is not assignable to " + declaredType.getName());
             }
             if (implementationType.isInterface() || Modifier.isAbstract(implementationType.getModifiers())) {
-                throw new IllegalArgumentException("implementationType must be a concrete class, got: "
-                                                   + implementationType.getName());
+                throw new IllegalArgumentException(
+                        "implementationType must be a concrete class, got: " + implementationType.getName());
             }
             objectSubtypes.put(declaredType, implementationType);
             return this;
@@ -1257,7 +1268,7 @@ public final class GeneratorConfig {
          */
         public Builder objectOptionalEmptyProbability(double objectOptionalEmptyProbability) {
             this.objectOptionalEmptyProbability =
-                requireProbability("objectOptionalEmptyProbability", objectOptionalEmptyProbability);
+                    requireProbability("objectOptionalEmptyProbability", objectOptionalEmptyProbability);
             return this;
         }
 
@@ -1309,8 +1320,14 @@ public final class GeneratorConfig {
 
         /**
          * Register a field-level override for object generation.
+         *
+         * <p>{@code fieldName} names a field, a record component, or a constructor parameter of
+         * {@code ownerType}. Constructor parameters match by name only when the owner was compiled
+         * with {@code -parameters}; otherwise they are addressed by position as
+         * {@code constructorArg0}, {@code constructorArg1}, and so on.
          */
-        public <T extends @Nullable Object> Builder objectOverride(Class<?> ownerType, String fieldName, Generator<T> generator) {
+        public <T extends @Nullable Object> Builder objectOverride(
+                Class<?> ownerType, String fieldName, Generator<T> generator) {
             Objects.requireNonNull(ownerType, "ownerType must not be null");
             Objects.requireNonNull(fieldName, "fieldName must not be null");
             Objects.requireNonNull(generator, "generator must not be null");
@@ -1373,10 +1390,12 @@ public final class GeneratorConfig {
         }
 
         /**
-         * Exclude all object fields whose name equals {@code name}.
+         * Exclude all object fields whose name equals {@code name}, and constructor parameters of
+         * that name even when no field backs them.
          */
         public Builder objectExcludeField(String name) {
             Objects.requireNonNull(name, "name must not be null");
+            objectExcludedFieldNames.add(name);
             return objectExclude(field -> field.getName().equals(name));
         }
 
@@ -1442,8 +1461,8 @@ public final class GeneratorConfig {
          * @return this builder
          */
         public Builder paymentCardSafetyPolicy(PaymentCardSafetyPolicy paymentCardSafetyPolicy) {
-            this.paymentCardSafetyPolicy = Objects.requireNonNull(
-                paymentCardSafetyPolicy, "paymentCardSafetyPolicy must not be null");
+            this.paymentCardSafetyPolicy =
+                    Objects.requireNonNull(paymentCardSafetyPolicy, "paymentCardSafetyPolicy must not be null");
             return this;
         }
 
@@ -1458,8 +1477,8 @@ public final class GeneratorConfig {
          * @return this builder
          */
         public Builder bankingSafetyPolicy(BankingSafetyPolicy bankingSafetyPolicy) {
-            this.bankingSafetyPolicy = Objects.requireNonNull(
-                bankingSafetyPolicy, "bankingSafetyPolicy must not be null");
+            this.bankingSafetyPolicy =
+                    Objects.requireNonNull(bankingSafetyPolicy, "bankingSafetyPolicy must not be null");
             return this;
         }
 
@@ -1474,9 +1493,9 @@ public final class GeneratorConfig {
          * @return this builder
          */
         public Builder businessTaxIdentifierSafetyPolicy(
-            BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy) {
+                BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy) {
             this.businessTaxIdentifierSafetyPolicy = Objects.requireNonNull(
-                businessTaxIdentifierSafetyPolicy, "businessTaxIdentifierSafetyPolicy must not be null");
+                    businessTaxIdentifierSafetyPolicy, "businessTaxIdentifierSafetyPolicy must not be null");
             return this;
         }
 
@@ -1491,8 +1510,8 @@ public final class GeneratorConfig {
          * @return this builder
          */
         public Builder cryptoAddressSafetyPolicy(CryptoAddressSafetyPolicy cryptoAddressSafetyPolicy) {
-            this.cryptoAddressSafetyPolicy = Objects.requireNonNull(
-                cryptoAddressSafetyPolicy, "cryptoAddressSafetyPolicy must not be null");
+            this.cryptoAddressSafetyPolicy =
+                    Objects.requireNonNull(cryptoAddressSafetyPolicy, "cryptoAddressSafetyPolicy must not be null");
             return this;
         }
 
@@ -1507,9 +1526,9 @@ public final class GeneratorConfig {
          * @return this builder
          */
         public Builder securitiesIdentifierSafetyPolicy(
-            SecuritiesIdentifierSafetyPolicy securitiesIdentifierSafetyPolicy) {
+                SecuritiesIdentifierSafetyPolicy securitiesIdentifierSafetyPolicy) {
             this.securitiesIdentifierSafetyPolicy = Objects.requireNonNull(
-                securitiesIdentifierSafetyPolicy, "securitiesIdentifierSafetyPolicy must not be null");
+                    securitiesIdentifierSafetyPolicy, "securitiesIdentifierSafetyPolicy must not be null");
             return this;
         }
 
@@ -1525,8 +1544,8 @@ public final class GeneratorConfig {
          * @return this builder
          */
         public Builder phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy phoneNumberSafetyPolicy) {
-            this.phoneNumberSafetyPolicy = Objects.requireNonNull(
-                phoneNumberSafetyPolicy, "phoneNumberSafetyPolicy must not be null");
+            this.phoneNumberSafetyPolicy =
+                    Objects.requireNonNull(phoneNumberSafetyPolicy, "phoneNumberSafetyPolicy must not be null");
             return this;
         }
 
@@ -1541,8 +1560,8 @@ public final class GeneratorConfig {
          * @return this builder
          */
         public Builder nationalIdSafetyPolicy(NationalIdSafetyPolicy nationalIdSafetyPolicy) {
-            this.nationalIdSafetyPolicy = Objects.requireNonNull(
-                nationalIdSafetyPolicy, "nationalIdSafetyPolicy must not be null");
+            this.nationalIdSafetyPolicy =
+                    Objects.requireNonNull(nationalIdSafetyPolicy, "nationalIdSafetyPolicy must not be null");
             return this;
         }
 
@@ -1558,7 +1577,7 @@ public final class GeneratorConfig {
          */
         public Builder identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy) {
             this.identityDocumentSafetyPolicy = Objects.requireNonNull(
-                identityDocumentSafetyPolicy, "identityDocumentSafetyPolicy must not be null");
+                    identityDocumentSafetyPolicy, "identityDocumentSafetyPolicy must not be null");
             return this;
         }
 
@@ -1630,13 +1649,14 @@ public final class GeneratorConfig {
             configuredSources += secureRandom ? 1 : 0;
             if (configuredSources > 1) {
                 throw new IllegalStateException(
-                    "Configure only one random source: seed, random, randomFactory, or secureRandom");
+                        "Configure only one random source: seed, random, randomFactory, or secureRandom");
             }
             if (objectFieldStreamPolicy == ObjectFieldStreamPolicy.INDEPENDENT
-                && effectiveSeed(numericSeed, stringSeed).isEmpty()) {
+                    && effectiveSeed(numericSeed, stringSeed).isEmpty()) {
                 throw new IllegalStateException("Independent object field streams require a numeric or textual seed");
             }
-            if (childStreamPolicy == ChildStreamPolicy.INDEPENDENT && effectiveSeed(numericSeed, stringSeed).isEmpty()) {
+            if (childStreamPolicy == ChildStreamPolicy.INDEPENDENT
+                    && effectiveSeed(numericSeed, stringSeed).isEmpty()) {
                 throw new IllegalStateException("Independent child streams require a numeric or textual seed");
             }
             return new GeneratorConfig(this);

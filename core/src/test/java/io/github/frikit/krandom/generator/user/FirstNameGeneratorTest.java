@@ -5,24 +5,23 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.locale.SupportedLocale;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("FirstNameGenerator")
 class FirstNameGeneratorTest {
@@ -54,8 +53,7 @@ class FirstNameGeneratorTest {
         Collections.addAll(allUS, provider.getMaleFirstNames());
         Collections.addAll(allUS, provider.getFemaleFirstNames());
         for (int i = 0; i < 50; i++) {
-            assertTrue(allUS.contains(gen.generate()),
-                       "Generated name not in EN_US list: " + gen.generate());
+            assertTrue(allUS.contains(gen.generate()), "Generated name not in EN_US list: " + gen.generate());
         }
     }
 
@@ -67,8 +65,7 @@ class FirstNameGeneratorTest {
         FirstNameGenerator gen = new FirstNameGenerator(Locale.US);
         Set<String> maleNames = Set.of(new BuiltInFirstNameDataProvider(SupportedLocale.EN_US).getMaleFirstNames());
         for (int i = 0; i < 50; i++) {
-            assertTrue(maleNames.contains(gen.generate(Gender.MALE)),
-                       "Generated name not in male list");
+            assertTrue(maleNames.contains(gen.generate(Gender.MALE)), "Generated name not in male list");
         }
     }
 
@@ -78,8 +75,7 @@ class FirstNameGeneratorTest {
         FirstNameGenerator gen = new FirstNameGenerator(Locale.US);
         Set<String> femaleNames = Set.of(new BuiltInFirstNameDataProvider(SupportedLocale.EN_US).getFemaleFirstNames());
         for (int i = 0; i < 50; i++) {
-            assertTrue(femaleNames.contains(gen.generate(Gender.FEMALE)),
-                       "Generated name not in female list");
+            assertTrue(femaleNames.contains(gen.generate(Gender.FEMALE)), "Generated name not in female list");
         }
     }
 
@@ -169,14 +165,18 @@ class FirstNameGeneratorTest {
     @DisplayName("getMaleNameCount() matches the locale's male array length")
     void getMaleNameCount() {
         FirstNameGenerator gen = new FirstNameGenerator(Locale.US);
-        assertEquals(new BuiltInFirstNameDataProvider(SupportedLocale.EN_US).getMaleFirstNames().length, gen.getMaleNameCount());
+        assertEquals(
+                new BuiltInFirstNameDataProvider(SupportedLocale.EN_US).getMaleFirstNames().length,
+                gen.getMaleNameCount());
     }
 
     @Test
     @DisplayName("getFemaleNameCount() matches the locale's female array length")
     void getFemaleNameCount() {
         FirstNameGenerator gen = new FirstNameGenerator(Locale.US);
-        assertEquals(new BuiltInFirstNameDataProvider(SupportedLocale.EN_US).getFemaleFirstNames().length, gen.getFemaleNameCount());
+        assertEquals(
+                new BuiltInFirstNameDataProvider(SupportedLocale.EN_US).getFemaleFirstNames().length,
+                gen.getFemaleNameCount());
     }
 
     @Test
@@ -190,8 +190,7 @@ class FirstNameGeneratorTest {
     @Test
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
-        assertThrows(UnsupportedOperationException.class,
-                     () -> new FirstNameGenerator(Locale.of("xx", "YY")));
+        assertThrows(UnsupportedOperationException.class, () -> new FirstNameGenerator(Locale.of("xx", "YY")));
     }
 
     // ── generateList / stream ─────────────────────────────────────────────────
@@ -216,8 +215,9 @@ class FirstNameGeneratorTest {
     @Test
     @DisplayName("LocaleTextResourceLoader throws when resource path does not exist")
     void nameResourceLoaderThrowsForMissingResource() {
-        assertThrows(IllegalStateException.class,
-                     () -> LocaleTextResourceLoader.load("krandom/names/nonexistent_locale.txt"));
+        assertThrows(
+                IllegalStateException.class,
+                () -> LocaleTextResourceLoader.load("krandom/names/nonexistent_locale.txt"));
     }
 
     // ── LocaleTextResourceLoader ──────────────────────────────────────────────
@@ -259,7 +259,6 @@ class FirstNameGeneratorTest {
             assertFalse(female.isEmpty(), "Empty female for " + supportedLocale);
         }
     }
-
 
     @Nested
     @DisplayName("FirstNameDataRegistry extensibility")

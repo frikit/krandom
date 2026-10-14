@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Record SHA-256 checksums in gradle/verification-metadata.xml for every Gradle task graph that CI,
 # the release workflow, and scripts/pre_commit_check.sh run. Dependabot cannot regenerate the file,
-# so its dependency updates fail verification until a maintainer checks out the update branch, runs
-# this script, reviews the diff (docs/development/dependency-reproducibility.md), and pushes it.
+# so its dependency updates fail verification until a maintainer runs this script on the update
+# branch (scripts/fix_dependabot_pr.sh does that under each JDK in a temporary worktree), reviews
+# the diff (docs/development/dependency-reproducibility.md), and pushes it.
 #
 # Usage: ./scripts/update_verification_metadata.sh
 #

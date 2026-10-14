@@ -12,7 +12,7 @@ import io.github.frikit.krandom.generator.object.exception.ObjectGenerationExcep
 public final class ClosedConsumer {
 
     private static final String REQUIRED_DIRECTIVE =
-        "opens io.github.frikit.krandom.examples.jpms.closedconsumer to io.github.frikit.krandom;";
+            "opens io.github.frikit.krandom.examples.jpms.closedconsumer to io.github.frikit.krandom;";
 
     private ClosedConsumer() {}
 

@@ -29,7 +29,9 @@ import java.util.regex.Pattern;
  */
 public final class FieldPredicates {
 
-    private FieldPredicates() { /* static utility */ }
+    private FieldPredicates() {
+        /* static utility */
+    }
 
     /**
      * Returns a predicate that matches fields whose name equals {@code name}.

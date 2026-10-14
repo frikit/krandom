@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.List;
 import java.util.Locale;
 
@@ -13,7 +14,7 @@ import java.util.Locale;
  *
  * <p>The date boundaries of the tropical zodiac are universal; only the sign <em>names</em> differ by
  * language. Implement this interface and register an instance with
- * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerZodiacProvider(ZodiacDataProvider)}
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#register(io.github.frikit.krandom.generator.Vocabulary, io.github.frikit.krandom.generator.LocaleDataProvider)}
  * to add or override validated localized sign names for one configuration.
  * {@link ZodiacDataRegistry} holds the built-in sign names served by
  * {@link io.github.frikit.krandom.generator.DataRegistryContext#globalDefault()}.
@@ -23,7 +24,7 @@ import java.util.Locale;
  * Capricorn, Aquarius, Pisces]}.
  *
  */
-public interface ZodiacDataProvider {
+public interface ZodiacDataProvider extends LocaleDataProvider {
 
     /**
      * The locale this provider supplies sign names for.

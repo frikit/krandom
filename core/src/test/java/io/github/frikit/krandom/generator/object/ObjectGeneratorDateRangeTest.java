@@ -5,27 +5,25 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.core.model.PersonWithDateTimes;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.github.frikit.krandom.generator.core.model.PersonWithDateTimes;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 @DisplayName("ObjectGenerator — global date range configuration")
 class ObjectGeneratorDateRangeTest {
 
-    private static final LocalDate MIN     = LocalDate.of(2020, 1, 1);
-    private static final LocalDate MAX     = LocalDate.of(2023, 12, 31);
-    private static final int       SAMPLES = 50;
+    private static final LocalDate MIN = LocalDate.of(2020, 1, 1);
+    private static final LocalDate MAX = LocalDate.of(2023, 12, 31);
+    private static final int SAMPLES = 50;
 
-    private final ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                                      .dateRange(MIN, MAX)
-                                                                      .build();
+    private final ObjectGeneratorConfig config =
+            ObjectGeneratorConfig.builder().dateRange(MIN, MAX).build();
 
     @Test
     @DisplayName("LocalDate field is within configured range")
@@ -75,7 +73,8 @@ class ObjectGeneratorDateRangeTest {
     @Test
     @DisplayName("dateRange(min > max) throws IllegalArgumentException")
     void invalidRangeThrows() {
-        assertThrows(IllegalArgumentException.class,
-                     () -> ObjectGeneratorConfig.builder().dateRange(MAX, MIN).build());
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> ObjectGeneratorConfig.builder().dateRange(MAX, MIN).build());
     }
 }

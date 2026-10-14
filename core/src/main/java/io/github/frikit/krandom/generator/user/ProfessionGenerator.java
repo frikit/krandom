@@ -5,11 +5,10 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
-import java.security.SecureRandom;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -28,8 +27,8 @@ import java.util.Random;
 public final class ProfessionGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
-    private final Random          random;
-    private final ProfessionData  data;
+    private final Random random;
+    private final ProfessionData data;
 
     /**
      * Uses {@link GeneratorConfig#defaults()} — locale defaults to {@link Locale#US}.
@@ -71,12 +70,11 @@ public final class ProfessionGenerator implements Generator<String> {
         DataRegistryContext registryContext = config.getRegistryContext();
         this.random = config.createRandom();
 
-        ProfessionDataProvider provider = registryContext.professionProvider(config.getLocale());
+        ProfessionDataProvider provider = registryContext.provider(Vocabulary.PROFESSION, config.getLocale());
         if (provider == null) {
-            throw new UnsupportedOperationException(
-                "Profession data is not supported for locale "
-                + config.getLocale()
-                + " (" + localeKey(config.getLocale()) + ")");
+            throw new UnsupportedOperationException("Profession data is not supported for locale "
+                    + config.getLocale()
+                    + " (" + localeKey(config.getLocale()) + ")");
         }
         this.data = ProfessionData.of(provider.getProfessions(), provider.getWeights());
     }
@@ -151,16 +149,16 @@ public final class ProfessionGenerator implements Generator<String> {
      * Returns {@code true} if locale has exact profession provider (not just language fallback).
      */
     public boolean isLocaleExplicitlySupported() {
-        ProfessionDataProvider provider = config.getRegistryContext().professionProvider(config.getLocale());
+        ProfessionDataProvider provider =
+                config.getRegistryContext().provider(Vocabulary.PROFESSION, config.getLocale());
         return provider != null && localeKey(provider.getLocale()).equals(localeKey(config.getLocale()));
     }
-
 
     private static final class ProfessionData {
 
         private final String[] professions;
-        private final int[]    cumulativeWeights;
-        private final int      totalWeight;
+        private final int[] cumulativeWeights;
+        private final int totalWeight;
 
         private ProfessionData(String[] professions, int[] cumulativeWeights, int totalWeight) {
             this.professions = professions;

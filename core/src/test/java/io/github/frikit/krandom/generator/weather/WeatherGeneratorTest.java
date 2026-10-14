@@ -5,24 +5,20 @@
  */
 package io.github.frikit.krandom.generator.weather;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("WeatherGenerator")
 class WeatherGeneratorTest {
@@ -30,12 +26,32 @@ class WeatherGeneratorTest {
     private static final Locale RU = Locale.of("ru", "RU");
 
     private static final Set<String> EN = Set.of(
-        "Sunny", "Clear", "Cloudy", "Overcast", "Rainy", "Drizzle",
-        "Thunderstorm", "Snowy", "Windy", "Foggy", "Humid", "Stormy");
+            "Sunny",
+            "Clear",
+            "Cloudy",
+            "Overcast",
+            "Rainy",
+            "Drizzle",
+            "Thunderstorm",
+            "Snowy",
+            "Windy",
+            "Foggy",
+            "Humid",
+            "Stormy");
 
     private static final Set<String> RU_CONDITIONS = Set.of(
-        "Солнечно", "Ясно", "Облачно", "Пасмурно", "Дождливо", "Морось",
-        "Гроза", "Снежно", "Ветрено", "Туманно", "Влажно", "Штормово");
+            "Солнечно",
+            "Ясно",
+            "Облачно",
+            "Пасмурно",
+            "Дождливо",
+            "Морось",
+            "Гроза",
+            "Снежно",
+            "Ветрено",
+            "Туманно",
+            "Влажно",
+            "Штормово");
 
     @RepeatedTest(200)
     @DisplayName("default generate() returns a valid English condition")
@@ -46,7 +62,8 @@ class WeatherGeneratorTest {
     @Test
     @DisplayName("default generate() can surface every condition over many draws")
     void generateCoversAll() {
-        WeatherGenerator gen = new WeatherGenerator(GeneratorConfig.builder().seed(5L).build());
+        WeatherGenerator gen =
+                new WeatherGenerator(GeneratorConfig.builder().seed(5L).build());
         Set<String> seen = new HashSet<>();
         for (int i = 0; i < 2000; i++) {
             seen.add(gen.generate());
@@ -86,8 +103,7 @@ class WeatherGeneratorTest {
 
     @Nested
     @DisplayName("WeatherDataRegistry")
-    class Registry {
-    }
+    class Registry {}
 
     @Nested
     @DisplayName("Generators facade")
@@ -99,7 +115,8 @@ class WeatherGeneratorTest {
             assertTrue(EN.contains(Generators.ofWeather().generate()));
             assertTrue(RU_CONDITIONS.contains(Generators.ofWeather(RU).generate()));
             assertTrue(EN.contains(
-                Generators.ofWeather(GeneratorConfig.builder().seed(1L).build()).generate()));
+                    Generators.ofWeather(GeneratorConfig.builder().seed(1L).build())
+                            .generate()));
         }
     }
 }

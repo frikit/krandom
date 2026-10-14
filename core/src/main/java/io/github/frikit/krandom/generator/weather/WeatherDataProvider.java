@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.weather;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.List;
 import java.util.Locale;
 
@@ -12,12 +13,12 @@ import java.util.Locale;
  * Contract for a locale-specific list of weather-condition names.
  *
  * <p>Implement this interface and register an instance on a configuration-scoped context with
- * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerWeatherProvider(WeatherDataProvider)}
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#register(io.github.frikit.krandom.generator.Vocabulary, io.github.frikit.krandom.generator.LocaleDataProvider)}
  * to add or override the weather vocabulary for any locale. {@link WeatherDataRegistry} holds the
  * built-in vocabulary served by
  * {@link io.github.frikit.krandom.generator.DataRegistryContext#globalDefault()}.
  */
-public interface WeatherDataProvider {
+public interface WeatherDataProvider extends LocaleDataProvider {
 
     /**
      * The locale this provider supplies condition names for.

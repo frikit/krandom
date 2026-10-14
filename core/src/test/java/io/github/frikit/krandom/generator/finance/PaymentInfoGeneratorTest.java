@@ -5,21 +5,20 @@
  */
 package io.github.frikit.krandom.generator.finance;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Method;
-import java.math.BigDecimal;
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("PaymentInfoGenerator")
 class PaymentInfoGeneratorTest {
@@ -53,10 +52,8 @@ class PaymentInfoGeneratorTest {
     @Test
     @DisplayName("seeded generation is reproducible")
     void seededGeneration() {
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.CANADA)
-                                                .seed(42L)
-                                                .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.CANADA).seed(42L).build();
 
         PaymentInfoGenerator one = new PaymentInfoGenerator(config);
         PaymentInfoGenerator two = new PaymentInfoGenerator(config);
@@ -68,7 +65,7 @@ class PaymentInfoGeneratorTest {
     @DisplayName("method and settlement branches are exercised")
     void branchCoverage() {
         PaymentInfoGenerator generator = new PaymentInfoGenerator(
-            GeneratorConfig.builder().locale(Locale.US).seed(9L).build());
+                GeneratorConfig.builder().locale(Locale.US).seed(9L).build());
         boolean sawCard = false;
         boolean sawBank = false;
         boolean sawSettled = false;
@@ -92,7 +89,7 @@ class PaymentInfoGeneratorTest {
     @DisplayName("bank methods use opaque references when banking identifiers are disabled")
     void bankMethodsUseOpaqueReferencesWhenBankingIsDisabled() {
         PaymentInfoGenerator generator = new PaymentInfoGenerator(
-            GeneratorConfig.builder().locale(Locale.US).seed(17L).build());
+                GeneratorConfig.builder().locale(Locale.US).seed(17L).build());
         boolean sawBankMethod = false;
 
         for (int i = 0; i < 192; i++) {
@@ -110,11 +107,10 @@ class PaymentInfoGeneratorTest {
     @DisplayName("explicit banking compatibility output retains a masked account reference")
     void explicitBankingCompatibilityOutputRetainsMaskedReference() {
         PaymentInfoGenerator generator = new PaymentInfoGenerator(GeneratorConfig.builder()
-                                                                                  .locale(Locale.US)
-                                                                                  .seed(19L)
-                                                                                  .bankingSafetyPolicy(
-                                                                                      BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                                                  .build());
+                .locale(Locale.US)
+                .seed(19L)
+                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build());
         boolean sawBankMethod = false;
 
         for (int i = 0; i < 192; i++) {

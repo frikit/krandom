@@ -5,23 +5,21 @@
  */
 package io.github.frikit.krandom.generator.games.coin;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.Generator;
+import java.util.EnumSet;
+import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
-import java.util.EnumSet;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 @DisplayName("CoinGenerator")
 class CoinGeneratorTest {
 
     private static final EnumSet<CoinResult> VALID = EnumSet.of(CoinResult.HEAD, CoinResult.TAIL);
-
 
     @Nested
     @DisplayName("generate()")
@@ -42,7 +40,6 @@ class CoinGeneratorTest {
             assertEquals(VALID, seen, "Expected both HEAD and TAIL to appear");
         }
     }
-
 
     @Nested
     @DisplayName("flip(n)")
@@ -70,10 +67,11 @@ class CoinGeneratorTest {
         @Test
         @DisplayName("flip(MAX_ALLOWED_SIZE) returns exactly MAX_ALLOWED_SIZE results")
         void exactlyMax() {
-            assertEquals(CoinGenerator.MAX_ALLOWED_SIZE, new CoinGenerator().flip(CoinGenerator.MAX_ALLOWED_SIZE).size());
+            assertEquals(
+                    CoinGenerator.MAX_ALLOWED_SIZE,
+                    new CoinGenerator().flip(CoinGenerator.MAX_ALLOWED_SIZE).size());
         }
     }
-
 
     @Nested
     @DisplayName("Generator<CoinResult> interface")
@@ -101,7 +99,6 @@ class CoinGeneratorTest {
             assertTrue(value.equals("head") || value.equals("tail"));
         }
     }
-
 
     @Nested
     @DisplayName("CoinResult enum")

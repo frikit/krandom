@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
  * <p>Locales whose country has no entry resolve to {@link #DEFAULT}.
  */
 enum IbanCountryFormat {
-
     AT("5!n11!n"),
     BE("3!n7!n2!n", BbanNationalRules::belgium),
     BG("4!a4!n2!n8!c"),
@@ -62,12 +61,12 @@ enum IbanCountryFormat {
     /** IBAN country used for locales whose country has no IBAN format: Germany. */
     static final IbanCountryFormat DEFAULT = DE;
 
-    private static final String DIGITS        = "0123456789";
-    private static final String LETTERS       = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final String DIGITS = "0123456789";
+    private static final String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final String ALPHANUMERICS = DIGITS + LETTERS;
 
-    private static final Map<String, IbanCountryFormat> BY_COUNTRY = Arrays.stream(values())
-        .collect(Collectors.toUnmodifiableMap(IbanCountryFormat::name, Function.identity()));
+    private static final Map<String, IbanCountryFormat> BY_COUNTRY =
+            Arrays.stream(values()).collect(Collectors.toUnmodifiableMap(IbanCountryFormat::name, Function.identity()));
 
     /** Applies a national rule in place; returns {@code false} when the payload must be redrawn. */
     @FunctionalInterface
@@ -76,7 +75,7 @@ enum IbanCountryFormat {
         boolean apply(char[] bban);
     }
 
-    private final String[]     alphabets;
+    private final String[] alphabets;
     private final NationalRule nationalRule;
 
     IbanCountryFormat(String bbanStructure) {

@@ -9,13 +9,12 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.file.FileExtensionGenerator;
 import io.github.frikit.krandom.generator.file.FileNameGenerator;
-
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Generates realistic URLs with customizable protocols, paths, and query parameters.
@@ -59,26 +58,52 @@ import java.util.Random;
  */
 public final class URLGenerator implements Generator<String> {
 
-    private static final String[] PROTOCOLS = {
-        "http", "https", "ftp", "ws", "wss"
-    };
+    private static final String[] PROTOCOLS = {"http", "https", "ftp", "ws", "wss"};
 
     private static final String[] PATH_SEGMENTS = {
-        "api", "v1", "v2", "admin", "user", "users", "posts", "data",
-        "files", "images", "docs", "about", "contact", "services",
-        "products", "items", "list", "details", "profile", "settings"
+        "api",
+        "v1",
+        "v2",
+        "admin",
+        "user",
+        "users",
+        "posts",
+        "data",
+        "files",
+        "images",
+        "docs",
+        "about",
+        "contact",
+        "services",
+        "products",
+        "items",
+        "list",
+        "details",
+        "profile",
+        "settings"
     };
 
     private static final String[] QUERY_PARAMS = {
-        "id", "page", "limit", "offset", "sort", "order", "filter",
-        "search", "q", "type", "category", "status", "format"
+        "id",
+        "page",
+        "limit",
+        "offset",
+        "sort",
+        "order",
+        "filter",
+        "search",
+        "q",
+        "type",
+        "category",
+        "status",
+        "format"
     };
 
-    private final GeneratorConfig        config;
-    private final Random                 random;
-    private final DomainGenerator        domainGenerator;
+    private final GeneratorConfig config;
+    private final Random random;
+    private final DomainGenerator domainGenerator;
     private final FileExtensionGenerator fileExtensionGenerator;
-    private final FileNameGenerator      fileNameGenerator;
+    private final FileNameGenerator fileNameGenerator;
 
     /**
      * Creates a URL generator with default configuration.
@@ -117,7 +142,7 @@ public final class URLGenerator implements Generator<String> {
         return value;
     }
 
-    private static String normalizeOptional(String value, String field) {
+    private static @Nullable String normalizeOptional(@Nullable String value, String field) {
         if (value == null) {
             return null;
         }
@@ -226,7 +251,8 @@ public final class URLGenerator implements Generator<String> {
      * @return URL containing the generated domain prefixed as {@code <prefix>.<domain>}
      */
     public String generateWithDomainPrefix(String domainPrefix) {
-        return generateWithOptions(new URLOptions(null, null, requireNonBlank(domainPrefix, "domainPrefix"), null, null, false));
+        return generateWithOptions(
+                new URLOptions(null, null, requireNonBlank(domainPrefix, "domainPrefix"), null, null, false));
     }
 
     /**
@@ -258,8 +284,10 @@ public final class URLGenerator implements Generator<String> {
     public String generateWithOptions(URLOptions options) {
         Objects.requireNonNull(options, "options must not be null");
 
-        String protocol = options.protocol() == null ? getRandomProtocol() : requireNonBlank(options.protocol(), "protocol");
-        String domain = options.domain() == null ? domainGenerator.generate() : requireNonBlank(options.domain(), "domain");
+        String protocol =
+                options.protocol() == null ? getRandomProtocol() : requireNonBlank(options.protocol(), "protocol");
+        String domain =
+                options.domain() == null ? domainGenerator.generate() : requireNonBlank(options.domain(), "domain");
         String prefix = normalizeOptional(options.domainPrefix(), "domainPrefix");
         String effectiveDomain = prefix == null ? domain : prefix + "." + domain;
 
@@ -378,9 +406,7 @@ public final class URLGenerator implements Generator<String> {
             if (i > 0) {
                 query.append("&");
             }
-            query.append(getRandomQueryParam())
-                 .append("=")
-                 .append(random.nextInt(1000));
+            query.append(getRandomQueryParam()).append("=").append(random.nextInt(1000));
         }
         return query.toString();
     }
@@ -414,13 +440,12 @@ public final class URLGenerator implements Generator<String> {
      * @param withQuery    whether query parameters should be appended
      */
     public record URLOptions(
-        String protocol,
-        String domain,
-        String domainPrefix,
-        String path,
-        String[] extensions,
-        boolean withQuery
-    ) {
+            @Nullable String protocol,
+            @Nullable String domain,
+            @Nullable String domainPrefix,
+            @Nullable String path,
+            String @Nullable [] extensions,
+            boolean withQuery) {
 
         /**
          * Convenience options with all optional fields unset and query disabled.

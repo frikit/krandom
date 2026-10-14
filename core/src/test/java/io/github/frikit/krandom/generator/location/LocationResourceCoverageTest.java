@@ -5,21 +5,19 @@
  */
 package io.github.frikit.krandom.generator.location;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
-
-import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Location resource and registry coverage")
 class LocationResourceCoverageTest {
@@ -50,7 +48,7 @@ class LocationResourceCoverageTest {
     @DisplayName("city loader reads test resource and rejects missing path")
     void cityLoader() {
         String[] cities = CityResourceLoader.load("krandom/cities/test_cities.txt");
-        assertArrayEquals(new String[] { "City One", "City Two", "City Three" }, cities);
+        assertArrayEquals(new String[] {"City One", "City Two", "City Three"}, cities);
         assertThrows(IllegalStateException.class, () -> CityResourceLoader.load("krandom/cities/missing.txt"));
     }
 
@@ -64,22 +62,23 @@ class LocationResourceCoverageTest {
     @DisplayName("country loader reads test resource and rejects missing path")
     void countryLoader() {
         String[] countries = CountryResourceLoader.load("krandom/countries/test_countries.txt");
-        assertArrayEquals(new String[] { "Country One", "Country Two", "Country Three" }, countries);
+        assertArrayEquals(new String[] {"Country One", "Country Two", "Country Three"}, countries);
         assertThrows(IllegalStateException.class, () -> CountryResourceLoader.load("krandom/countries/missing.txt"));
     }
 
     @Test
     @DisplayName("country loader wraps IO failures")
     void countryLoaderIoFailure() {
-        assertThrows(IllegalStateException.class, () -> CountryResourceLoader.load(closeFailingStream(), "broken-country"));
+        assertThrows(
+                IllegalStateException.class, () -> CountryResourceLoader.load(closeFailingStream(), "broken-country"));
     }
 
     @Test
     @DisplayName("state loader supports missing abbreviation lines")
     void stateLoaderMissingAbbreviation() {
         StateResourceLoader.StateData data = StateResourceLoader.load("krandom/states/test_states_missing_abbrev.txt");
-        assertArrayEquals(new String[] { "Alpha", "Beta", "Gamma" }, data.states);
-        assertArrayEquals(new String[] { "AL", "", "" }, data.abbreviations);
+        assertArrayEquals(new String[] {"Alpha", "Beta", "Gamma"}, data.states);
+        assertArrayEquals(new String[] {"AL", "", ""}, data.abbreviations);
     }
 
     @Test
@@ -97,15 +96,18 @@ class LocationResourceCoverageTest {
     @Test
     @DisplayName("street loader wraps IO failures")
     void streetLoaderIoFailure() {
-        assertThrows(IllegalStateException.class, () -> StreetAddressResourceLoader.load(closeFailingStream(), "broken-street"));
+        assertThrows(
+                IllegalStateException.class,
+                () -> StreetAddressResourceLoader.load(closeFailingStream(), "broken-street"));
     }
 
     @Test
     @DisplayName("street loader ignores comment lines")
     void streetLoaderIgnoresCommentLines() {
-        InputStream input = new java.io.ByteArrayInputStream("# comment\n\nMain Street\n".getBytes(StandardCharsets.UTF_8));
+        InputStream input =
+                new java.io.ByteArrayInputStream("# comment\n\nMain Street\n".getBytes(StandardCharsets.UTF_8));
 
-        assertArrayEquals(new String[] { "Main Street" }, StreetAddressResourceLoader.load(input, "commented-street"));
+        assertArrayEquals(new String[] {"Main Street"}, StreetAddressResourceLoader.load(input, "commented-street"));
     }
 
     @Test

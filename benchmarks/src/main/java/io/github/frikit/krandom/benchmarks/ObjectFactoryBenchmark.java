@@ -7,6 +7,8 @@ package io.github.frikit.krandom.benchmarks;
 
 import io.github.frikit.krandom.generator.Generators;
 import io.github.frikit.krandom.generator.object.ObjectGenerator;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -16,9 +18,6 @@ import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
-
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
@@ -30,9 +29,9 @@ public class ObjectFactoryBenchmark {
     @State(Scope.Thread)
     public static class GeneratorState {
         public final ObjectGenerator<BenchmarkFixtures.SimpleUser> directGenerator =
-            new ObjectGenerator<>(BenchmarkFixtures.SimpleUser.class);
+                new ObjectGenerator<>(BenchmarkFixtures.SimpleUser.class);
         public final ObjectGenerator<BenchmarkFixtures.SimpleUser> facadeGenerator =
-            Generators.ofObject(BenchmarkFixtures.SimpleUser.class);
+                Generators.ofObject(BenchmarkFixtures.SimpleUser.class);
     }
 
     @Benchmark

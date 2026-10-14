@@ -11,8 +11,7 @@ import io.github.frikit.krandom.jackson.KrandomJackson;
 /** Named-module consumer proving the krandom-jackson automatic module resolves and works. */
 public final class JacksonConsumer {
 
-    private JacksonConsumer() {
-    }
+    private JacksonConsumer() {}
 
     public static void main(String[] args) throws Exception {
         ObjectMapper mapper = KrandomJackson.newObjectMapper();

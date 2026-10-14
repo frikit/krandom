@@ -5,12 +5,11 @@
  */
 package io.github.frikit.krandom.generator;
 
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Type;
 import java.util.Objects;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides context about the field currently being generated.
@@ -26,10 +25,10 @@ import java.util.Optional;
  */
 public final class GenerationContext {
 
-    private final String   fieldName;
+    private final String fieldName;
     private final Class<?> ownerType;
-    private final int      depth;
-    private final String   path;
+    private final int depth;
+    private final String path;
     private final @Nullable Type declaredType;
     private final @Nullable AnnotatedElement declaration;
     private final @Nullable GeneratorConfig config;
@@ -49,13 +48,14 @@ public final class GenerationContext {
      * @param declaration reflected declaration, when available
      * @param config active generator configuration, when available
      */
-    public GenerationContext(String fieldName,
-                             Class<?> ownerType,
-                             int depth,
-                             String path,
-                             @Nullable Type declaredType,
-                             @Nullable AnnotatedElement declaration,
-                             @Nullable GeneratorConfig config) {
+    public GenerationContext(
+            String fieldName,
+            Class<?> ownerType,
+            int depth,
+            String path,
+            @Nullable Type declaredType,
+            @Nullable AnnotatedElement declaration,
+            @Nullable GeneratorConfig config) {
         this.fieldName = Objects.requireNonNull(fieldName, "fieldName must not be null");
         this.ownerType = Objects.requireNonNull(ownerType, "ownerType must not be null");
         if (depth < 0) {

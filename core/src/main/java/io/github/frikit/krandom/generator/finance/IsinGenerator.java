@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -20,10 +19,8 @@ public final class IsinGenerator implements Generator<String> {
     private static final String ALNUM = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
     private final GeneratorConfig config;
-    private final Random          random;
+    private final Random random;
     private final SecuritiesIdentifierSafetyPolicy safetyPolicy;
-
-
 
     /**
      * Creates a generator from explicit configuration.

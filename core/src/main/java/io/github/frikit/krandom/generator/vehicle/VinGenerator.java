@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.vehicle;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Objects;
 import java.util.Random;
 
@@ -25,8 +24,7 @@ import java.util.Random;
 public final class VinGenerator implements Generator<String> {
 
     /** Characters allowed in a VIN (excludes I, O, Q). */
-    private static final char[] ALLOWED =
-        "ABCDEFGHJKLMNPRSTUVWXYZ0123456789".toCharArray();
+    private static final char[] ALLOWED = "ABCDEFGHJKLMNPRSTUVWXYZ0123456789".toCharArray();
 
     /** Transliteration values for letters A–Z, indexed by {@code letter - 'A'} (I/O/Q unused). */
     private static final int[] LETTER_VALUES = {

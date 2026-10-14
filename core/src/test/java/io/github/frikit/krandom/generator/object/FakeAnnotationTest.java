@@ -5,15 +5,14 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.HashSet;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class FakeAnnotationTest {
 
@@ -179,8 +178,7 @@ class FakeAnnotationTest {
             ObjectGenerator<ContactForm> gen = new ObjectGenerator<>(ContactForm.class);
             ContactForm form = gen.generate();
             assertNotNull(form.contactEmail);
-            assertTrue(form.contactEmail.contains("@"),
-                "Expected email-like value but got: " + form.contactEmail);
+            assertTrue(form.contactEmail.contains("@"), "Expected email-like value but got: " + form.contactEmail);
         }
 
         @Test
@@ -267,11 +265,11 @@ class FakeAnnotationTest {
             ObjectGenerator<TypedFake> gen = new ObjectGenerator<>(TypedFake.class);
             for (int i = 0; i < 20; i++) {
                 TypedFake obj = gen.generate();
-                assertTrue(obj.ageField >= 18 && obj.ageField < 91,
-                    "Expected age in [18,91), got: " + obj.ageField);
+                assertTrue(obj.ageField >= 18 && obj.ageField < 91, "Expected age in [18,91), got: " + obj.ageField);
                 assertNotNull(obj.ageWrapper);
-                assertTrue(obj.ageWrapper >= 18 && obj.ageWrapper < 91,
-                    "Expected age wrapper in [18,91), got: " + obj.ageWrapper);
+                assertTrue(
+                        obj.ageWrapper >= 18 && obj.ageWrapper < 91,
+                        "Expected age wrapper in [18,91), got: " + obj.ageWrapper);
             }
         }
 
@@ -291,8 +289,7 @@ class FakeAnnotationTest {
             FakeAgeAsString obj = gen.generate();
             assertNotNull(obj.ageText);
             int parsedAge = Integer.parseInt(obj.ageText);
-            assertTrue(parsedAge >= 18 && parsedAge < 91,
-                "Expected age text in [18,91), got: " + parsedAge);
+            assertTrue(parsedAge >= 18 && parsedAge < 91, "Expected age text in [18,91), got: " + parsedAge);
         }
 
         @Test
@@ -315,8 +312,8 @@ class FakeAnnotationTest {
             ObjectGenerator<RangedFields> gen = new ObjectGenerator<>(RangedFields.class);
             for (int i = 0; i < 50; i++) {
                 RangedFields obj = gen.generate();
-                assertTrue(obj.quantity >= 1 && obj.quantity < 100,
-                    "Expected quantity in [1,100), got: " + obj.quantity);
+                assertTrue(
+                        obj.quantity >= 1 && obj.quantity < 100, "Expected quantity in [1,100), got: " + obj.quantity);
             }
         }
 
@@ -326,8 +323,9 @@ class FakeAnnotationTest {
             ObjectGenerator<RangedFields> gen = new ObjectGenerator<>(RangedFields.class);
             for (int i = 0; i < 50; i++) {
                 RangedFields obj = gen.generate();
-                assertTrue(obj.bigQuantity >= 0 && obj.bigQuantity < 10000,
-                    "Expected bigQuantity in [0,10000), got: " + obj.bigQuantity);
+                assertTrue(
+                        obj.bigQuantity >= 0 && obj.bigQuantity < 10000,
+                        "Expected bigQuantity in [0,10000), got: " + obj.bigQuantity);
             }
         }
 
@@ -337,8 +335,7 @@ class FakeAnnotationTest {
             ObjectGenerator<RangedFields> gen = new ObjectGenerator<>(RangedFields.class);
             for (int i = 0; i < 50; i++) {
                 RangedFields obj = gen.generate();
-                assertTrue(obj.price >= 0 && obj.price < 1000,
-                    "Expected price in [0,1000), got: " + obj.price);
+                assertTrue(obj.price >= 0 && obj.price < 1000, "Expected price in [0,1000), got: " + obj.price);
             }
         }
 
@@ -348,8 +345,7 @@ class FakeAnnotationTest {
             ObjectGenerator<RangedFields> gen = new ObjectGenerator<>(RangedFields.class);
             for (int i = 0; i < 50; i++) {
                 RangedFields obj = gen.generate();
-                assertTrue(obj.weight >= 0 && obj.weight < 500,
-                    "Expected weight in [0,500), got: " + obj.weight);
+                assertTrue(obj.weight >= 0 && obj.weight < 500, "Expected weight in [0,500), got: " + obj.weight);
             }
         }
 
@@ -359,8 +355,8 @@ class FakeAnnotationTest {
             ObjectGenerator<RangedFields> gen = new ObjectGenerator<>(RangedFields.class);
             for (int i = 0; i < 50; i++) {
                 RangedFields obj = gen.generate();
-                assertTrue(obj.smallNum >= 1 && obj.smallNum < 127,
-                    "Expected smallNum in [1,127), got: " + obj.smallNum);
+                assertTrue(
+                        obj.smallNum >= 1 && obj.smallNum < 127, "Expected smallNum in [1,127), got: " + obj.smallNum);
             }
         }
 
@@ -370,8 +366,7 @@ class FakeAnnotationTest {
             ObjectGenerator<RangedFields> gen = new ObjectGenerator<>(RangedFields.class);
             for (int i = 0; i < 50; i++) {
                 RangedFields obj = gen.generate();
-                assertTrue(obj.tinyNum >= 0 && obj.tinyNum < 10,
-                    "Expected tinyNum in [0,10), got: " + obj.tinyNum);
+                assertTrue(obj.tinyNum >= 0 && obj.tinyNum < 10, "Expected tinyNum in [0,10), got: " + obj.tinyNum);
             }
         }
 
@@ -382,8 +377,8 @@ class FakeAnnotationTest {
             for (int i = 0; i < 50; i++) {
                 RangedWrappers obj = gen.generate();
                 assertNotNull(obj.quantity);
-                assertTrue(obj.quantity >= 1 && obj.quantity < 100,
-                    "Expected quantity in [1,100), got: " + obj.quantity);
+                assertTrue(
+                        obj.quantity >= 1 && obj.quantity < 100, "Expected quantity in [1,100), got: " + obj.quantity);
             }
         }
 
@@ -394,8 +389,9 @@ class FakeAnnotationTest {
             for (int i = 0; i < 50; i++) {
                 RangedWrappers obj = gen.generate();
                 assertNotNull(obj.bigQuantity);
-                assertTrue(obj.bigQuantity >= 0 && obj.bigQuantity < 10000,
-                    "Expected bigQuantity in [0,10000), got: " + obj.bigQuantity);
+                assertTrue(
+                        obj.bigQuantity >= 0 && obj.bigQuantity < 10000,
+                        "Expected bigQuantity in [0,10000), got: " + obj.bigQuantity);
             }
         }
 
@@ -406,8 +402,7 @@ class FakeAnnotationTest {
             for (int i = 0; i < 50; i++) {
                 RangedWrappers obj = gen.generate();
                 assertNotNull(obj.price);
-                assertTrue(obj.price >= 0 && obj.price < 1000,
-                    "Expected price in [0,1000), got: " + obj.price);
+                assertTrue(obj.price >= 0 && obj.price < 1000, "Expected price in [0,1000), got: " + obj.price);
             }
         }
 
@@ -418,8 +413,7 @@ class FakeAnnotationTest {
             for (int i = 0; i < 50; i++) {
                 RangedWrappers obj = gen.generate();
                 assertNotNull(obj.weight);
-                assertTrue(obj.weight >= 0 && obj.weight < 500,
-                    "Expected weight in [0,500), got: " + obj.weight);
+                assertTrue(obj.weight >= 0 && obj.weight < 500, "Expected weight in [0,500), got: " + obj.weight);
             }
         }
 
@@ -430,8 +424,8 @@ class FakeAnnotationTest {
             for (int i = 0; i < 50; i++) {
                 RangedWrappers obj = gen.generate();
                 assertNotNull(obj.smallNum);
-                assertTrue(obj.smallNum >= 1 && obj.smallNum < 127,
-                    "Expected smallNum in [1,127), got: " + obj.smallNum);
+                assertTrue(
+                        obj.smallNum >= 1 && obj.smallNum < 127, "Expected smallNum in [1,127), got: " + obj.smallNum);
             }
         }
 
@@ -442,8 +436,7 @@ class FakeAnnotationTest {
             for (int i = 0; i < 50; i++) {
                 RangedWrappers obj = gen.generate();
                 assertNotNull(obj.tinyNum);
-                assertTrue(obj.tinyNum >= 0 && obj.tinyNum < 10,
-                    "Expected tinyNum in [0,10), got: " + obj.tinyNum);
+                assertTrue(obj.tinyNum >= 0 && obj.tinyNum < 10, "Expected tinyNum in [0,10), got: " + obj.tinyNum);
             }
         }
 
@@ -460,9 +453,8 @@ class FakeAnnotationTest {
         @DisplayName("respects seeded configuration")
         void respectsSeedConfig() {
             GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
-            ObjectGeneratorConfig objConfig = ObjectGeneratorConfig.builder()
-                .generatorConfig(config)
-                .build();
+            ObjectGeneratorConfig objConfig =
+                    ObjectGeneratorConfig.builder().generatorConfig(config).build();
             ObjectGenerator<RangedFields> gen = new ObjectGenerator<>(RangedFields.class, objConfig);
             RangedFields first = gen.generate();
 
@@ -477,9 +469,9 @@ class FakeAnnotationTest {
         @DisplayName("structural-only mode falls back to structural values for @Fake fields")
         void structuralOnlyModeIgnoresFakeSemantics() {
             GeneratorConfig structural = GeneratorConfig.builder()
-                .seed(3L)
-                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                .build();
+                    .seed(3L)
+                    .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                    .build();
             ContactForm form = new ObjectGenerator<>(ContactForm.class, structural).generate();
             assertNotNull(form.contactEmail);
             assertFalse(form.contactEmail.contains("@"), "structural text, not an email: " + form.contactEmail);
@@ -490,7 +482,9 @@ class FakeAnnotationTest {
         void defaultMaxNarrowsToFieldType() {
             for (long seed = 0; seed < 20; seed++) {
                 DefaultMaxRanges obj = new ObjectGenerator<>(
-                    DefaultMaxRanges.class, GeneratorConfig.builder().seed(seed).build()).generate();
+                                DefaultMaxRanges.class,
+                                GeneratorConfig.builder().seed(seed).build())
+                        .generate();
                 assertTrue(obj.quantity >= 1, "Expected quantity >= 1, got: " + obj.quantity);
                 assertTrue(obj.smallNum >= 1, "Expected smallNum >= 1, got: " + obj.smallNum);
                 assertTrue(obj.tinyNum >= 1, "Expected tinyNum >= 1, got: " + obj.tinyNum);
@@ -502,7 +496,9 @@ class FakeAnnotationTest {
         @DisplayName("minimum below the field type narrows to the type minimum")
         void wideNegativeMinimumNarrowsToFieldType() {
             WideNegativeRange obj = new ObjectGenerator<>(
-                WideNegativeRange.class, GeneratorConfig.builder().seed(7L).build()).generate();
+                            WideNegativeRange.class,
+                            GeneratorConfig.builder().seed(7L).build())
+                    .generate();
             assertTrue(obj.negative < 0, "Expected a negative int, got: " + obj.negative);
         }
 
@@ -511,7 +507,9 @@ class FakeAnnotationTest {
         void rangePastFieldTypeIncludesTypeMaximum() {
             for (long seed = 0; seed < 10; seed++) {
                 assertTypeMaximums(new ObjectGenerator<>(
-                    TypeMaximumRanges.class, GeneratorConfig.builder().seed(seed).build()).generate());
+                                TypeMaximumRanges.class,
+                                GeneratorConfig.builder().seed(seed).build())
+                        .generate());
             }
             assertTypeMaximums(new ObjectGenerator<>(TypeMaximumRanges.class).generate());
         }
@@ -528,7 +526,10 @@ class FakeAnnotationTest {
             Set<Byte> seen = new HashSet<>();
             for (long seed = 0; seed < 64; seed++) {
                 seen.add(new ObjectGenerator<>(
-                    ByteTopRange.class, GeneratorConfig.builder().seed(seed).build()).generate().top);
+                                ByteTopRange.class,
+                                GeneratorConfig.builder().seed(seed).build())
+                        .generate()
+                        .top);
             }
             assertEquals(Set.of((byte) 126, (byte) 127), seen);
         }

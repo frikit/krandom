@@ -5,21 +5,20 @@
  */
 package io.github.frikit.krandom.examples.e2e;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import io.github.frikit.krandom.examples.e2e.googlesignup.GoogleSignupForm;
 import io.github.frikit.krandom.examples.e2e.jobapplication.JobApplicationForm;
 import io.github.frikit.krandom.examples.e2e.spidregistration.SpidRegistrationForm;
 import io.github.frikit.krandom.jackson.KrandomJackson;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
 import java.util.Locale;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("End-to-end form examples")
 class E2eExamplesTest {
@@ -48,7 +47,8 @@ class E2eExamplesTest {
     void googleSignupBirthdayWithinAgeRange() throws Exception {
         for (long seed = 0; seed < 25; seed++) {
             JsonNode b = parse(GoogleSignupForm.toJson(seed)).get("birthday");
-            LocalDate dob = LocalDate.of(b.get("year").asInt(), b.get("month").asInt(), b.get("day").asInt());
+            LocalDate dob = LocalDate.of(
+                    b.get("year").asInt(), b.get("month").asInt(), b.get("day").asInt());
             int age = Period.between(dob, LocalDate.now()).getYears();
             assertTrue(age >= 18 && age <= 99, "seed " + seed + " produced age " + age);
         }
@@ -117,7 +117,8 @@ class E2eExamplesTest {
             int age = ageOf(p.get("birth").get("dateOfBirth").asText());
             assertTrue(age >= 18 && age <= 99, "seed " + seed + " age " + age);
             // The electronic ID card expires in the future.
-            LocalDate expiry = LocalDate.parse(p.get("idCard").get("expirationDate").asText());
+            LocalDate expiry =
+                    LocalDate.parse(p.get("idCard").get("expirationDate").asText());
             assertTrue(expiry.isAfter(LocalDate.now()), "seed " + seed + " expiry " + expiry);
             // Consents an applicant must affirm to activate the identity.
             assertTrue(p.get("consents").get("consentToDataProcessing").asBoolean());

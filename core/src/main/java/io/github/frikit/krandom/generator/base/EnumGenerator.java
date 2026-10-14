@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
-
 import java.util.Objects;
 import java.util.Random;
 import java.util.random.RandomGenerator;
@@ -25,7 +24,7 @@ import java.util.random.RandomGenerator;
  */
 public final class EnumGenerator<E extends Enum<E>> implements Generator<E> {
 
-    private final E[]             constants;
+    private final E[] constants;
     private final RandomGenerator random;
 
     /**
@@ -38,7 +37,7 @@ public final class EnumGenerator<E extends Enum<E>> implements Generator<E> {
     /**
      * Uses a seeded {@link Random} for reproducible output.
      */
-    public EnumGenerator(Class<E> enumClass, Long seed) {
+    public EnumGenerator(Class<E> enumClass, @org.jspecify.annotations.Nullable Long seed) {
         Objects.requireNonNull(enumClass, "enumClass must not be null");
         this.constants = enumClass.getEnumConstants();
         if (constants == null || constants.length == 0) {

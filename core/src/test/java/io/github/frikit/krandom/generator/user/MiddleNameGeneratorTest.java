@@ -5,18 +5,17 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("MiddleNameGenerator")
 class MiddleNameGeneratorTest {
@@ -34,7 +33,8 @@ class MiddleNameGeneratorTest {
         @Test
         @DisplayName("config constructor stores locale")
         void configLocale() {
-            GeneratorConfig cfg = GeneratorConfig.builder().locale(Locale.GERMANY).build();
+            GeneratorConfig cfg =
+                    GeneratorConfig.builder().locale(Locale.GERMANY).build();
             assertEquals(Locale.GERMANY, new MiddleNameGenerator(cfg).getLocale());
         }
 
@@ -52,7 +52,6 @@ class MiddleNameGeneratorTest {
             assertThrows(UnsupportedOperationException.class, () -> new MiddleNameGenerator(Locale.CHINA));
         }
     }
-
 
     @Nested
     @DisplayName("Generation")
@@ -106,7 +105,6 @@ class MiddleNameGeneratorTest {
         }
     }
 
-
     @Nested
     @DisplayName("Support checks")
     class SupportChecks {
@@ -134,4 +132,3 @@ class MiddleNameGeneratorTest {
         }
     }
 }
-

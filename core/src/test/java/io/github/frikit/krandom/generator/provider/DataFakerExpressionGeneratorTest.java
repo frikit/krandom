@@ -5,16 +5,16 @@
  */
 package io.github.frikit.krandom.generator.provider;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("DataFakerExpressionGenerator")
 class DataFakerExpressionGeneratorTest {
@@ -55,10 +55,10 @@ class DataFakerExpressionGeneratorTest {
     void deterministicWithSeed() {
         GeneratorConfig seeded = GeneratorConfig.builder().seed(7L).build();
 
-        String first = new DataFakerExpressionGenerator("#{Name.fullName} <#{Internet.emailAddress}>", seeded)
-            .generate();
-        String second = new DataFakerExpressionGenerator("#{Name.fullName} <#{Internet.emailAddress}>", seeded)
-            .generate();
+        String first =
+                new DataFakerExpressionGenerator("#{Name.fullName} <#{Internet.emailAddress}>", seeded).generate();
+        String second =
+                new DataFakerExpressionGenerator("#{Name.fullName} <#{Internet.emailAddress}>", seeded).generate();
 
         assertEquals(first, second);
     }
@@ -72,8 +72,8 @@ class DataFakerExpressionGeneratorTest {
     @Test
     @DisplayName("unknown tokens fail fast with the supported-expression list")
     void unknownTokenThrows() {
-        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                                                      () -> new DataFakerExpressionGenerator("#{Beer.name}"));
+        IllegalArgumentException error =
+                assertThrows(IllegalArgumentException.class, () -> new DataFakerExpressionGenerator("#{Beer.name}"));
 
         assertTrue(error.getMessage().contains("Unsupported DataFaker expression"));
         assertTrue(error.getMessage().contains("name.firstname"));
@@ -93,15 +93,15 @@ class DataFakerExpressionGeneratorTest {
     @DisplayName("null arguments are rejected")
     void nullArgumentsThrow() {
         assertThrows(NullPointerException.class, () -> new DataFakerExpressionGenerator(null));
-        assertThrows(NullPointerException.class,
-                     () -> new DataFakerExpressionGenerator("#{Name.firstName}", null));
+        assertThrows(NullPointerException.class, () -> new DataFakerExpressionGenerator("#{Name.firstName}", null));
     }
 
     @Test
     @DisplayName("Generators facade exposes both overloads")
     void facadeOverloads() {
         assertNotNull(Generators.ofDataFakerExpression("#{Address.city}").generate());
-        assertNotNull(Generators.ofDataFakerExpression("#{Address.city}",
-                                                       GeneratorConfig.builder().seed(3L).build()).generate());
+        assertNotNull(Generators.ofDataFakerExpression(
+                        "#{Address.city}", GeneratorConfig.builder().seed(3L).build())
+                .generate());
     }
 }

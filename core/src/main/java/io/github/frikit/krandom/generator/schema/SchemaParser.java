@@ -18,7 +18,6 @@ import io.github.frikit.krandom.generator.network.HostnameGenerator;
 import io.github.frikit.krandom.generator.network.IPv4Generator;
 import io.github.frikit.krandom.generator.network.IPv6Generator;
 import io.github.frikit.krandom.generator.network.URLGenerator;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -29,6 +28,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Parses JSON Schema (Draft 2020-12) or OpenAPI 3.x schema objects into krandom
@@ -76,18 +76,29 @@ import java.util.function.Function;
 public final class SchemaParser {
 
     private static final Set<String> UNSUPPORTED_KEYWORDS = Set.of(
-        "$dynamicRef", "$recursiveRef", "$ref",
-        "allOf", "anyOf", "oneOf", "not",
-        "if", "then", "else",
-        "contains", "prefixItems", "unevaluatedItems",
-        "dependentRequired", "dependentSchemas",
-        "patternProperties", "propertyNames", "unevaluatedProperties");
+            "$dynamicRef",
+            "$recursiveRef",
+            "$ref",
+            "allOf",
+            "anyOf",
+            "oneOf",
+            "not",
+            "if",
+            "then",
+            "else",
+            "contains",
+            "prefixItems",
+            "unevaluatedItems",
+            "dependentRequired",
+            "dependentSchemas",
+            "patternProperties",
+            "propertyNames",
+            "unevaluatedProperties");
 
-    private static final Set<String> SUPPORTED_TYPES = Set.of(
-        "string", "integer", "number", "boolean", "array", "object", "null");
+    private static final Set<String> SUPPORTED_TYPES =
+            Set.of("string", "integer", "number", "boolean", "array", "object", "null");
 
-    private SchemaParser() {
-    }
+    private SchemaParser() {}
 
     /**
      * Parses a JSON Schema object document into a {@link Schema} with default configuration.
@@ -114,18 +125,15 @@ public final class SchemaParser {
 
         Object type = jsonSchema.get("type");
         if (!"object".equals(type)) {
-            throw new IllegalArgumentException(
-                "Root JSON Schema must have \"type\": \"object\", got: " + type);
+            throw new IllegalArgumentException("Root JSON Schema must have \"type\": \"object\", got: " + type);
         }
 
         Object propertiesRaw = jsonSchema.get("properties");
         if (!(propertiesRaw instanceof Map<?, ?> propertiesMap)) {
-            throw new IllegalArgumentException(
-                "JSON Schema object must have a \"properties\" map");
+            throw new IllegalArgumentException("JSON Schema object must have a \"properties\" map");
         }
 
-        validateSupportedKeywords(jsonSchema, "$",
-                                  Collections.newSetFromMap(new IdentityHashMap<>()));
+        validateSupportedKeywords(jsonSchema, "$", Collections.newSetFromMap(new IdentityHashMap<>()));
 
         Field field = new Field(config);
         Map<String, SchemaValueProvider> providers = new LinkedHashMap<>();
@@ -135,8 +143,7 @@ public final class SchemaParser {
                 throw new IllegalArgumentException("Property keys must be strings");
             }
             if (!(entry.getValue() instanceof Map<?, ?> fieldSchemaRaw)) {
-                throw new IllegalArgumentException(
-                    "Property '" + fieldName + "' must have a schema object");
+                throw new IllegalArgumentException("Property '" + fieldName + "' must have a schema object");
             }
 
             @SuppressWarnings("unchecked")
@@ -158,17 +165,14 @@ public final class SchemaParser {
         return new Schema(config, providers);
     }
 
-    private static void validateSupportedKeywords(Map<?, ?> schema,
-                                                  String path,
-                                                  Set<Map<?, ?>> visiting) {
+    private static void validateSupportedKeywords(Map<?, ?> schema, String path, Set<Map<?, ?>> visiting) {
         if (!visiting.add(schema)) {
             throw new IllegalArgumentException("Recursive JSON Schema map is unsupported at " + path);
         }
         try {
             for (String keyword : UNSUPPORTED_KEYWORDS) {
                 if (schema.containsKey(keyword)) {
-                    throw new IllegalArgumentException(
-                        "Unsupported JSON Schema keyword '" + keyword + "' at " + path);
+                    throw new IllegalArgumentException("Unsupported JSON Schema keyword '" + keyword + "' at " + path);
                 }
             }
             validateSupportedShape(schema, path);
@@ -193,8 +197,7 @@ public final class SchemaParser {
         if (schema.containsKey("enum")) {
             Object enumValues = schema.get("enum");
             if (!(enumValues instanceof List<?> values) || values.isEmpty()) {
-                throw new IllegalArgumentException(
-                    "JSON Schema enum must be a non-empty list at " + path);
+                throw new IllegalArgumentException("JSON Schema enum must be a non-empty list at " + path);
             }
         }
 
@@ -221,7 +224,7 @@ public final class SchemaParser {
             }
             if (concreteTypes > 1) {
                 throw new IllegalArgumentException(
-                    "JSON Schema type lists may contain one concrete type plus null at " + path);
+                        "JSON Schema type lists may contain one concrete type plus null at " + path);
             }
         } else if (type != null) {
             throw new IllegalArgumentException("JSON Schema type must be a string or list at " + path);
@@ -259,10 +262,8 @@ public final class SchemaParser {
     }
 
     @SuppressWarnings("unchecked")
-    private static SchemaValueProvider resolveProvider(String fieldName,
-                                                       Map<String, Object> fieldSchema,
-                                                       Field field,
-                                                       GeneratorConfig config) {
+    private static SchemaValueProvider resolveProvider(
+            String fieldName, Map<String, Object> fieldSchema, Field field, GeneratorConfig config) {
         // const takes absolute priority
         if (fieldSchema.containsKey("const")) {
             Object constValue = fieldSchema.get("const");
@@ -291,11 +292,12 @@ public final class SchemaParser {
         };
     }
 
-    private static SchemaValueProvider resolveString(String fieldName,
-                                                      Map<String, Object> schema,
-                                                      String format,
-                                                      Field field,
-                                                      GeneratorConfig config) {
+    private static SchemaValueProvider resolveString(
+            String fieldName,
+            Map<String, Object> schema,
+            @Nullable String format,
+            Field field,
+            GeneratorConfig config) {
         // Explicit constraints win over field-name semantics: pattern first, then format, and
         // semantic values only when no length bounds are declared.
         String pattern = stringOrNull(schema.get("pattern"));
@@ -321,8 +323,9 @@ public final class SchemaParser {
         // Bounded string length
         // A missing bound defaults within the declared one: maxLength 2 alone must not keep a larger
         // configured minimum length.
-        int maxLength = intOrDefault(schema.get("maxLength"),
-                                     Math.max(config.getMaxStringLength(), intOrDefault(schema.get("minLength"), 0)));
+        int maxLength = intOrDefault(
+                schema.get("maxLength"),
+                Math.max(config.getMaxStringLength(), intOrDefault(schema.get("minLength"), 0)));
         int minLength = intOrDefault(schema.get("minLength"), Math.min(config.getMinStringLength(), maxLength));
         // Validate the bounds while parsing; values are built from the field's stream.
         StringGenerator.builder().minLength(minLength).maxLength(maxLength).build();
@@ -335,19 +338,20 @@ public final class SchemaParser {
         return new RegexGenerator(pattern, GeneratorConfig.builder().seed(seed).build()).generate();
     }
 
-    private static SchemaValueProvider resolveFormat(String format, GeneratorConfig config) {
-        Function<GeneratorConfig, Generator<?>> factory = switch (format) {
-            case "email" -> Generators::ofEmail;
-            case "uri", "url" -> URLGenerator::new;
-            case "uuid" -> UUIDGenerator::new;
-            case "date" -> DateGenerator::new;
-            case "date-time" -> LocalDateTimeGenerator::new;
-            case "time" -> TimeGenerator::new;
-            case "ipv4" -> IPv4Generator::new;
-            case "ipv6" -> IPv6Generator::new;
-            case "hostname" -> HostnameGenerator::new;
-            default -> null;
-        };
+    private static @Nullable SchemaValueProvider resolveFormat(String format, GeneratorConfig config) {
+        Function<GeneratorConfig, Generator<?>> factory =
+                switch (format) {
+                    case "email" -> Generators::ofEmail;
+                    case "uri", "url" -> URLGenerator::new;
+                    case "uuid" -> UUIDGenerator::new;
+                    case "date" -> DateGenerator::new;
+                    case "date-time" -> LocalDateTimeGenerator::new;
+                    case "time" -> TimeGenerator::new;
+                    case "ipv4" -> IPv4Generator::new;
+                    case "ipv6" -> IPv6Generator::new;
+                    case "hostname" -> HostnameGenerator::new;
+                    default -> null;
+                };
         if (factory == null) {
             return null;
         }
@@ -358,7 +362,10 @@ public final class SchemaParser {
         }
         // A seeded value comes from the field's own stream, so equal formats in different columns
         // differ and each value replays with its record.
-        return ctx -> factory.apply(config.toBuilder().seed(ctx.random().nextLong()).build()).generate().toString();
+        return ctx -> factory.apply(
+                        config.toBuilder().seed(ctx.random().nextLong()).build())
+                .generate()
+                .toString();
     }
 
     private static SchemaValueProvider resolveInteger(Map<String, Object> schema) {
@@ -405,8 +412,8 @@ public final class SchemaParser {
         }
         // Draws are half-open, so an inclusive maximum becomes the next representable double.
         double upperExclusive = schema.containsKey("exclusiveMaximum")
-                                ? doubleOrDefault(schema.get("exclusiveMaximum"), 1_000_000.0)
-                                : Math.nextUp(doubleOrDefault(schema.get("maximum"), 1_000_000.0));
+                ? doubleOrDefault(schema.get("exclusiveMaximum"), 1_000_000.0)
+                : Math.nextUp(doubleOrDefault(schema.get("maximum"), 1_000_000.0));
         if (lower >= upperExclusive) {
             throw emptyRange("number", schema);
         }
@@ -420,27 +427,22 @@ public final class SchemaParser {
     }
 
     @SuppressWarnings("unchecked")
-    private static SchemaValueProvider resolveArray(String fieldName,
-                                                     Map<String, Object> schema,
-                                                     Field field,
-                                                     GeneratorConfig config) {
+    private static SchemaValueProvider resolveArray(
+            String fieldName, Map<String, Object> schema, Field field, GeneratorConfig config) {
         int minItems = intOrDefault(schema.get("minItems"), config.getMinCollectionSize());
         int maxItems = intOrDefault(schema.get("maxItems"), config.getMaxCollectionSize());
 
         SchemaValueProvider itemProvider;
         Object itemsRaw = schema.get("items");
         if (itemsRaw instanceof Map<?, ?> itemSchema) {
-            itemProvider = resolveProvider(
-                fieldName + "[]", (Map<String, Object>) itemSchema, field, config);
+            itemProvider = resolveProvider(fieldName + "[]", (Map<String, Object>) itemSchema, field, config);
         } else {
             itemProvider = randomText(config);
         }
 
         SchemaValueProvider items = itemProvider;
         return ctx -> {
-            int size = minItems == maxItems
-                       ? minItems
-                       : minItems + ctx.random().nextInt(maxItems - minItems + 1);
+            int size = minItems == maxItems ? minItems : minItems + ctx.random().nextInt(maxItems - minItems + 1);
             List<Object> list = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
                 list.add(items.generate(ctx));
@@ -450,9 +452,8 @@ public final class SchemaParser {
     }
 
     @SuppressWarnings("unchecked")
-    private static SchemaValueProvider resolveNestedObject(Map<String, Object> schema,
-                                                            Field field,
-                                                            GeneratorConfig config) {
+    private static SchemaValueProvider resolveNestedObject(
+            Map<String, Object> schema, Field field, GeneratorConfig config) {
         Object propertiesRaw = schema.get("properties");
         if (!(propertiesRaw instanceof Map<?, ?> propertiesMap) || propertiesMap.isEmpty()) {
             return ctx -> Collections.emptyMap();
@@ -461,8 +462,7 @@ public final class SchemaParser {
         Map<String, SchemaValueProvider> nestedProviders = new LinkedHashMap<>();
         for (Map.Entry<?, ?> entry : propertiesMap.entrySet()) {
             if (entry.getKey() instanceof String name && entry.getValue() instanceof Map<?, ?> propSchema) {
-                nestedProviders.put(name,
-                    resolveProvider(name, (Map<String, Object>) propSchema, field, config));
+                nestedProviders.put(name, resolveProvider(name, (Map<String, Object>) propSchema, field, config));
             }
         }
 
@@ -475,9 +475,7 @@ public final class SchemaParser {
         };
     }
 
-    private static SchemaValueProvider resolveUntyped(String fieldName,
-                                                       Field field,
-                                                       GeneratorConfig config) {
+    private static SchemaValueProvider resolveUntyped(String fieldName, Field field, GeneratorConfig config) {
         SchemaValueProvider semantic = trySemanticResolve(fieldName, field);
         if (semantic != null) {
             return semantic;
@@ -492,14 +490,14 @@ public final class SchemaParser {
     /** Text drawn from the field's own stream, so seeded schemas replay and equal columns differ. */
     private static SchemaValueProvider text(int minLength, int maxLength) {
         return ctx -> StringGenerator.builder()
-                                     .minLength(minLength)
-                                     .maxLength(maxLength)
-                                     .seed(ctx.random().nextLong())
-                                     .build()
-                                     .generate();
+                .minLength(minLength)
+                .maxLength(maxLength)
+                .seed(ctx.random().nextLong())
+                .build()
+                .generate();
     }
 
-    private static SchemaValueProvider trySemanticResolve(String fieldName, Field field) {
+    private static @Nullable SchemaValueProvider trySemanticResolve(String fieldName, Field field) {
         // Normalize field name to potential schema reference
         String normalized = normalizeFieldName(fieldName);
 
@@ -520,12 +518,12 @@ public final class SchemaParser {
     private static String normalizeFieldName(String fieldName) {
         // Convert camelCase and snake_case to dot-notation for Field.bind()
         return fieldName
-            .replaceAll("([a-z])([A-Z])", "$1_$2")
-            .toLowerCase(Locale.ROOT)
-            .replace('_', '.');
+                .replaceAll("([a-z])([A-Z])", "$1_$2")
+                .toLowerCase(Locale.ROOT)
+                .replace('_', '.');
     }
 
-    private static String semanticReference(String normalized) {
+    private static @Nullable String semanticReference(String normalized) {
         // Only mappings whose normalized forms are NOT already registered as
         // FieldLookup aliases belong here. Aliases like "city", "state",
         // "country", "domain", "username", "email", "name", "url", "uuid"
@@ -567,25 +565,25 @@ public final class SchemaParser {
         return "";
     }
 
-    private static String stringOrNull(Object value) {
+    private static @Nullable String stringOrNull(@Nullable Object value) {
         return value instanceof String s ? s : null;
     }
 
-    private static int intOrDefault(Object value, int defaultValue) {
+    private static int intOrDefault(@Nullable Object value, int defaultValue) {
         if (value instanceof Number n) {
             return n.intValue();
         }
         return defaultValue;
     }
 
-    private static long longOrDefault(Object value, long defaultValue) {
+    private static long longOrDefault(@Nullable Object value, long defaultValue) {
         if (value instanceof Number n) {
             return n.longValue();
         }
         return defaultValue;
     }
 
-    private static double doubleOrDefault(Object value, double defaultValue) {
+    private static double doubleOrDefault(@Nullable Object value, double defaultValue) {
         if (value instanceof Number n) {
             return n.doubleValue();
         }

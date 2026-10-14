@@ -21,11 +21,11 @@ public class PersonWithExcludes {
 
     @Exclude
     private String password;
-    private String username;
-    private int    age;
 
-    public PersonWithExcludes() {
-    }
+    private String username;
+    private int age;
+
+    public PersonWithExcludes() {}
 
     public String getPassword() {
         return password;

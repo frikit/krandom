@@ -1,9 +1,15 @@
+/*
+ * Copyright (c) 2026 krandom contributors
+ *
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
 package io.github.frikit.krandom.examples
 
 import io.github.frikit.krandom.dsl.krandom
 import io.github.frikit.krandom.dsl.krandomList
-import io.github.frikit.krandom.generator.GeneratorConfig
 import io.github.frikit.krandom.generator.Generator
+import io.github.frikit.krandom.generator.GeneratorConfig
+import io.github.frikit.krandom.generator.`object`.ObjectFieldStreamPolicy
 import io.github.frikit.krandom.generator.provider.ProviderHub
 import io.github.frikit.krandom.generator.user.EmailGenerator
 import io.github.frikit.krandom.kotest.krandomArb
@@ -19,11 +25,12 @@ import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
 
 class KotlinMavenIntegrationUsageTest {
-
     @Test
     fun `kotest extension is consumable from maven`() {
-        val emails = krandomArb(GeneratorConfig.defaults()) { config -> EmailGenerator(config) }
-            .take(5).toList()
+        val emails =
+            krandomArb(GeneratorConfig.defaults()) { config -> EmailGenerator(config) }
+                .take(5)
+                .toList()
 
         assertEquals(5, emails.size)
         emails.forEach { email -> assertTrue(email.contains("@")) }
@@ -31,14 +38,16 @@ class KotlinMavenIntegrationUsageTest {
 
     @Test
     fun `kotlin dsl is consumable from maven`() {
-        val user = krandom<MavenDslUserFixture> {
-            rule("name") { "Ada Lovelace" }
-            rule("email") { "ada@example.test" }
-        }
-        val users = krandomList<MavenDslUserFixture>(3) {
-            rule("name") { "Grace Hopper" }
-            rule("email") { "grace@example.test" }
-        }
+        val user =
+            krandom<MavenDslUserFixture> {
+                rule("name") { "Ada Lovelace" }
+                rule("email") { "ada@example.test" }
+            }
+        val users =
+            krandomList<MavenDslUserFixture>(3) {
+                rule("name") { "Grace Hopper" }
+                rule("email") { "grace@example.test" }
+            }
 
         assertEquals("Ada Lovelace", user.name)
         assertEquals("ada@example.test", user.email)
@@ -51,29 +60,43 @@ class KotlinMavenIntegrationUsageTest {
 
     @Test
     fun `independent streams and snapshots work from published Kotlin artifacts`() {
-        val plain = krandomList<IntegrationStreamFixture>(5) {
-            config {
-                seed(42L)
-                objectFieldStreamPolicy(io.github.frikit.krandom.generator.`object`.ObjectFieldStreamPolicy.INDEPENDENT)
+        val plain =
+            krandomList<IntegrationStreamFixture>(5) {
+                config {
+                    seed(42L)
+                    objectFieldStreamPolicy(ObjectFieldStreamPolicy.INDEPENDENT)
+                }
             }
-        }
-        val custom = krandomList<IntegrationStreamFixture>(5) {
-            config {
-                seed(42L)
-                objectFieldStreamPolicy(io.github.frikit.krandom.generator.`object`.ObjectFieldStreamPolicy.INDEPENDENT)
+        val custom =
+            krandomList<IntegrationStreamFixture>(5) {
+                config {
+                    seed(42L)
+                    objectFieldStreamPolicy(ObjectFieldStreamPolicy.INDEPENDENT)
+                }
+                rule(IntegrationStreamFixture::name) { "fixed" }
             }
-            rule(IntegrationStreamFixture::name) { "fixed" }
-        }
         assertEquals(plain.map { it.age }, custom.map { it.age })
-        val session = GeneratorConfig.builder().seed(42L).build().snapshotClock()
-        assertEquals(session.clock, session.generationRecipe.orElseThrow().toGeneratorConfig().clock)
+        val session =
+            GeneratorConfig
+                .builder()
+                .seed(42L)
+                .build()
+                .snapshotClock()
+        assertEquals(
+            session.clock,
+            session.generationRecipe
+                .orElseThrow()
+                .toGeneratorConfig()
+                .clock,
+        )
     }
 
     @Test
     fun `spring starter is consumable from Kotlin Maven`() {
-        val runner = ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(KrandomAutoConfiguration::class.java))
-            .withPropertyValues("krandom.locale=en-US", "krandom.seed=42")
+        val runner =
+            ApplicationContextRunner()
+                .withConfiguration(AutoConfigurations.of(KrandomAutoConfiguration::class.java))
+                .withPropertyValues("krandom.locale=en-US", "krandom.seed=42")
 
         runner.run { context ->
             val config = context.getBean(GeneratorConfig::class.java)
@@ -81,7 +104,13 @@ class KotlinMavenIntegrationUsageTest {
             val factory = context.getBean(KrandomObjectFakerFactory::class.java)
 
             assertEquals(java.util.Locale.US, config.locale)
-            assertFalse(hub.get("person.email", Generator::class.java).generate().toString().isBlank())
+            assertFalse(
+                hub
+                    .get("person.email", Generator::class.java)
+                    .generate()
+                    .toString()
+                    .isBlank(),
+            )
             assertNotNull(factory.generator(KotlinSpringFixture::class.java).generate())
         }
     }
@@ -97,4 +126,7 @@ class KotlinSpringFixture {
     var email: String = ""
 }
 
-data class IntegrationStreamFixture(val name: String, val age: Int)
+data class IntegrationStreamFixture(
+    val name: String,
+    val age: Int,
+)

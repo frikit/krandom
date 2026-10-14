@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Objects;
 import java.util.Random;
 import java.util.random.RandomGenerator;
@@ -33,7 +32,7 @@ import java.util.random.RandomGenerator;
 public final class BooleanGenerator implements Generator<Boolean> {
 
     private final RandomGenerator random;
-    private final int             likelihood; // 0-100: probability of returning true
+    private final int likelihood; // 0-100: probability of returning true
 
     /**
      * Uses the default fast PRNG with 50% likelihood.
@@ -83,8 +82,7 @@ public final class BooleanGenerator implements Generator<Boolean> {
      */
     public BooleanGenerator withLikelihood(int likelihood) {
         if (likelihood < 0 || likelihood > 100) {
-            throw new IllegalArgumentException(
-                "Likelihood must be between 0 and 100, got: " + likelihood);
+            throw new IllegalArgumentException("Likelihood must be between 0 and 100, got: " + likelihood);
         }
         return new BooleanGenerator(this.random, likelihood);
     }

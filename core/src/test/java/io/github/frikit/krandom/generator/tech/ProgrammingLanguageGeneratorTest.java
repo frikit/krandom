@@ -5,20 +5,19 @@
  */
 package io.github.frikit.krandom.generator.tech;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ProgrammingLanguageGenerator")
 class ProgrammingLanguageGeneratorTest {
@@ -32,8 +31,8 @@ class ProgrammingLanguageGeneratorTest {
     @Test
     @DisplayName("generate() produces varied values over many draws")
     void generateVaried() {
-        ProgrammingLanguageGenerator gen =
-            new ProgrammingLanguageGenerator(GeneratorConfig.builder().seed(44L).build());
+        ProgrammingLanguageGenerator gen = new ProgrammingLanguageGenerator(
+                GeneratorConfig.builder().seed(44L).build());
         Set<String> seen = new HashSet<>();
         for (int i = 0; i < 1000; i++) {
             seen.add(gen.generate());
@@ -44,10 +43,12 @@ class ProgrammingLanguageGeneratorTest {
     @Test
     @DisplayName("same seed is reproducible")
     void reproducible() {
-        List<String> a =
-            new ProgrammingLanguageGenerator(GeneratorConfig.builder().seed(9L).build()).generateList(30);
-        List<String> b =
-            new ProgrammingLanguageGenerator(GeneratorConfig.builder().seed(9L).build()).generateList(30);
+        List<String> a = new ProgrammingLanguageGenerator(
+                        GeneratorConfig.builder().seed(9L).build())
+                .generateList(30);
+        List<String> b = new ProgrammingLanguageGenerator(
+                        GeneratorConfig.builder().seed(9L).build())
+                .generateList(30);
         assertEquals(a, b);
     }
 
@@ -61,7 +62,9 @@ class ProgrammingLanguageGeneratorTest {
     @DisplayName("facade ofProgrammingLanguage produces non-empty values")
     void facade() {
         assertFalse(Generators.ofProgrammingLanguage().generate().isEmpty());
-        assertFalse(Generators.ofProgrammingLanguage(GeneratorConfig.builder().seed(1L).build())
-                              .generate().isEmpty());
+        assertFalse(Generators.ofProgrammingLanguage(
+                        GeneratorConfig.builder().seed(1L).build())
+                .generate()
+                .isEmpty());
     }
 }

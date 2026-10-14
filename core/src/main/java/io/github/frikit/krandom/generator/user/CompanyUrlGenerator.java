@@ -8,8 +8,6 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.network.DomainGenerator;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -19,11 +17,11 @@ import java.util.Random;
  */
 public final class CompanyUrlGenerator implements Generator<String> {
 
-    private static final String[] PROTOCOLS = { "https", "http" };
+    private static final String[] PROTOCOLS = {"https", "http"};
 
-    private final DomainGenerator      domainGenerator;
+    private final DomainGenerator domainGenerator;
     private final CompanyNameGenerator companyNameGenerator;
-    private final Random               random;
+    private final Random random;
 
     /**
      * Creates a company URL generator with default configuration.

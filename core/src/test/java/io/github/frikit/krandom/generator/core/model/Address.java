@@ -12,18 +12,17 @@ package io.github.frikit.krandom.generator.core.model;
  */
 public class Address {
 
-    private String  street;
-    private int     houseNumber;
-    private byte    floor;
-    private short   postCode;
-    private long    geoId;
-    private double  latitude;
-    private float   longitude;
+    private String street;
+    private int houseNumber;
+    private byte floor;
+    private short postCode;
+    private long geoId;
+    private double latitude;
+    private float longitude;
     private boolean active;
-    private char    countryCode;
+    private char countryCode;
 
-    public Address() {
-    }
+    public Address() {}
 
     public String getStreet() {
         return street;

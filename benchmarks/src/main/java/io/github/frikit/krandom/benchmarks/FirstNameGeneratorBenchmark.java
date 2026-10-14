@@ -7,6 +7,8 @@ package io.github.frikit.krandom.benchmarks;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.user.FirstNameGenerator;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -20,9 +22,6 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
 
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Warmup(iterations = 2, time = 1)
@@ -32,18 +31,7 @@ public class FirstNameGeneratorBenchmark {
 
     @State(Scope.Benchmark)
     public static class LocaleState {
-        @Param({
-            "en_US",
-            "en_GB",
-            "en_AU",
-            "fr_FR",
-            "de_DE",
-            "ja_JP",
-            "es_ES",
-            "it_IT",
-            "pt_BR",
-            "zh_CN"
-        })
+        @Param({"en_US", "en_GB", "en_AU", "fr_FR", "de_DE", "ja_JP", "es_ES", "it_IT", "pt_BR", "zh_CN"})
         public String localeTag;
 
         public FirstNameGenerator generator;
@@ -53,8 +41,7 @@ public class FirstNameGeneratorBenchmark {
             String[] parts = localeTag.split("_");
             Locale locale = Locale.of(parts[0], parts[1]);
             generator = new FirstNameGenerator(
-                GeneratorConfig.builder().locale(locale).seed(7L).build()
-            );
+                    GeneratorConfig.builder().locale(locale).seed(7L).build());
         }
     }
 

@@ -5,26 +5,31 @@
  */
 package io.github.frikit.krandom.generator.tech;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("AwsGenerator")
 class AwsGeneratorTest {
 
     private static final Set<String> REGIONS = Set.of(
-        "us-east-1", "us-west-2", "eu-west-1", "eu-central-1",
-        "ap-southeast-1", "ap-northeast-1", "sa-east-1", "ca-central-1");
+            "us-east-1",
+            "us-west-2",
+            "eu-west-1",
+            "eu-central-1",
+            "ap-southeast-1",
+            "ap-northeast-1",
+            "sa-east-1",
+            "ca-central-1");
 
     @RepeatedTest(200)
     @DisplayName("generate and region return known AWS regions")
@@ -93,7 +98,7 @@ class AwsGeneratorTest {
     void facade() {
         assertTrue(REGIONS.contains(Generators.ofAws().generate()));
         assertEquals(
-            Generators.ofAws(GeneratorConfig.builder().seed(1L).build()).generateList(10),
-            Generators.ofAws(GeneratorConfig.builder().seed(1L).build()).generateList(10));
+                Generators.ofAws(GeneratorConfig.builder().seed(1L).build()).generateList(10),
+                Generators.ofAws(GeneratorConfig.builder().seed(1L).build()).generateList(10));
     }
 }

@@ -17,7 +17,7 @@ import java.util.Random;
  */
 public final class KoNationalIdProvider implements NationalIdProvider {
 
-    private static final int[] WEIGHTS = { 2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5 };
+    private static final int[] WEIGHTS = {2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5};
 
     @Override
     public Locale getLocale() {
@@ -39,10 +39,22 @@ public final class KoNationalIdProvider implements NationalIdProvider {
             digits[i] = random.nextInt(10);
         }
         digits[12] = computeCheckDigit(digits);
-        return String.format(Locale.ROOT, "%d%d%d%d%d%d-%d%d%d%d%d%d%d",
-                             digits[0], digits[1], digits[2], digits[3], digits[4], digits[5],
-                             digits[6], digits[7], digits[8], digits[9], digits[10], digits[11],
-                             digits[12]);
+        return String.format(
+                Locale.ROOT,
+                "%d%d%d%d%d%d-%d%d%d%d%d%d%d",
+                digits[0],
+                digits[1],
+                digits[2],
+                digits[3],
+                digits[4],
+                digits[5],
+                digits[6],
+                digits[7],
+                digits[8],
+                digits[9],
+                digits[10],
+                digits[11],
+                digits[12]);
     }
 
     static int computeCheckDigit(int[] digits) {

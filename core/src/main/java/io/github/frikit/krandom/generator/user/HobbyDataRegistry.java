@@ -5,13 +5,11 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Global registry mapping locales to {@link HobbyDataProvider} instances.
@@ -26,8 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class HobbyDataRegistry {
 
-    private static final ConcurrentHashMap<String, HobbyDataProvider> REGISTRY =
-        new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, HobbyDataProvider> REGISTRY = new ConcurrentHashMap<>();
 
     static {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
@@ -38,8 +35,7 @@ public final class HobbyDataRegistry {
         }
     }
 
-    private HobbyDataRegistry() {
-    }
+    private HobbyDataRegistry() {}
 
     /**
      * Returns {@code true} if the registry contains an entry for the given locale.
@@ -85,6 +81,6 @@ public final class HobbyDataRegistry {
         String lang = provider.getLocale().getLanguage();
         String country = provider.getLocale().getCountry();
         REGISTRY.put(lang + "_" + country, provider);
-            REGISTRY.putIfAbsent(lang, provider);
+        REGISTRY.putIfAbsent(lang, provider);
     }
 }

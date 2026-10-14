@@ -14,8 +14,7 @@ import java.time.LocalDate;
  */
 public final class BenchmarkFixtures {
 
-    private BenchmarkFixtures() {
-    }
+    private BenchmarkFixtures() {}
 
     public static final class Depth2Root {
         public Depth2Level1 level1;
@@ -105,31 +104,31 @@ public final class BenchmarkFixtures {
     }
 
     public static final class SemanticCustomer {
-        public String          id;
-        public String          firstName;
-        public String          lastName;
-        public String          fullName;
-        public String          email;
-        public String          username;
-        public String          phoneNumber;
-        public String          companyName;
-        public String          url;
-        public String          domain;
-        public String          status;
-        public boolean         active;
-        public LocalDate       birthDate;
-        public Instant         createdAt;
-        public BigDecimal      balance;
-        public String          currencyCode;
+        public String id;
+        public String firstName;
+        public String lastName;
+        public String fullName;
+        public String email;
+        public String username;
+        public String phoneNumber;
+        public String companyName;
+        public String url;
+        public String domain;
+        public String status;
+        public boolean active;
+        public LocalDate birthDate;
+        public Instant createdAt;
+        public BigDecimal balance;
+        public String currencyCode;
         public SemanticAddress address;
     }
 
     public static final class SemanticAddress {
-        public String     streetAddress;
-        public String     city;
-        public String     state;
-        public String     postalCode;
-        public String     country;
+        public String streetAddress;
+        public String city;
+        public String state;
+        public String postalCode;
+        public String country;
         public BigDecimal latitude;
         public BigDecimal longitude;
     }
@@ -139,11 +138,11 @@ public final class BenchmarkFixtures {
      * Kept intentionally simple so the benchmark measures library overhead, not model complexity.
      */
     public static final class ComparableUser {
-        public String  firstName;
-        public String  lastName;
-        public String  email;
-        public int     age;
-        public String  city;
-        public String  country;
+        public String firstName;
+        public String lastName;
+        public String email;
+        public int age;
+        public String city;
+        public String country;
     }
 }

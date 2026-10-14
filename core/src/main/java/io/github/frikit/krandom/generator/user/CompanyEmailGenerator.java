@@ -9,8 +9,6 @@ import io.github.frikit.krandom.generator.EmailDomainPolicy;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.network.DomainGenerator;
-
-import java.security.SecureRandom;
 import java.text.Normalizer;
 import java.util.Locale;
 import java.util.Objects;
@@ -29,12 +27,12 @@ public final class CompanyEmailGenerator implements Generator<String> {
 
     private static final String RESERVED_TLD = "test";
 
-    private final Random               random;
-    private final FirstNameGenerator   firstNameGenerator;
-    private final LastNameGenerator    lastNameGenerator;
+    private final Random random;
+    private final FirstNameGenerator firstNameGenerator;
+    private final LastNameGenerator lastNameGenerator;
     private final CompanyNameGenerator companyNameGenerator;
-    private final DomainGenerator      domainGenerator;
-    private final EmailDomainPolicy    emailDomainPolicy;
+    private final DomainGenerator domainGenerator;
+    private final EmailDomainPolicy emailDomainPolicy;
 
     public CompanyEmailGenerator() {
         this(GeneratorConfig.defaults());
@@ -56,9 +54,9 @@ public final class CompanyEmailGenerator implements Generator<String> {
 
     private static String normalize(String value) {
         String normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
-                                      .replaceAll("\\p{M}+", "")
-                                      .toLowerCase(Locale.ROOT)
-                                      .replaceAll("[^a-z0-9]", "");
+                .replaceAll("\\p{M}+", "")
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]", "");
         return normalized;
     }
 
@@ -80,9 +78,8 @@ public final class CompanyEmailGenerator implements Generator<String> {
         if (domainLabel.isBlank()) {
             domainLabel = domainGenerator.generateName();
         }
-        String tld = emailDomainPolicy == EmailDomainPolicy.REALISTIC_UNCLASSIFIED
-            ? domainGenerator.getTLD()
-            : RESERVED_TLD;
+        String tld =
+                emailDomainPolicy == EmailDomainPolicy.REALISTIC_UNCLASSIFIED ? domainGenerator.getTLD() : RESERVED_TLD;
         return localPart + "@" + domainLabel + "." + tld;
     }
 

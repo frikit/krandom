@@ -5,18 +5,17 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.core.model.Address;
-import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
-import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.core.model.Address;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import java.util.Optional;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectGenerator — Optional support")
 class ObjectGeneratorOptionalTest {
@@ -38,8 +37,8 @@ class ObjectGeneratorOptionalTest {
     @DisplayName("Optional becomes empty when nested generated value is null")
     void optionalEmptyWhenNestedValueNull() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .override(String.class, () -> null)
-                                                            .build();
+                .override(String.class, () -> null)
+                .build();
         OptionalHolder value = new ObjectGenerator<>(OptionalHolder.class, config).generate();
         assertNotNull(value.getName());
         assertTrue(value.getName().isEmpty());
@@ -49,8 +48,7 @@ class ObjectGeneratorOptionalTest {
     @DisplayName("raw Optional type fails with unsupported-type context")
     void rawOptionalFailsWithContext() {
         ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(RawOptionalHolder.class).generate());
+                ObjectGenerationException.class, () -> new ObjectGenerator<>(RawOptionalHolder.class).generate());
         var context = ex.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
         assertEquals("RawOptionalHolder.raw", context.path());
@@ -60,19 +58,17 @@ class ObjectGeneratorOptionalTest {
     @Test
     @DisplayName("optionalEmptyProbability(1.0) forces Optional.empty for typed fields")
     void optionalEmptyProbabilityForcesEmpty() {
-        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .optionalEmptyProbability(1.0)
-                                                            .build();
+        ObjectGeneratorConfig config =
+                ObjectGeneratorConfig.builder().optionalEmptyProbability(1.0).build();
         OptionalHolder value = new ObjectGenerator<>(OptionalHolder.class, config).generate();
         assertTrue(value.getName().isEmpty());
         assertTrue(value.getAge().isEmpty());
         assertTrue(value.getAddress().isEmpty());
     }
 
-
     static class OptionalHolder {
 
-        private Optional<String>  name;
+        private Optional<String> name;
         private Optional<Integer> age;
         private Optional<Address> address;
 
@@ -87,7 +83,6 @@ class ObjectGeneratorOptionalTest {
         Optional<Address> getAddress() {
             return address;
         }
-
     }
 
     static class RawOptionalHolder {

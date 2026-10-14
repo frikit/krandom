@@ -5,25 +5,24 @@
  */
 package io.github.frikit.krandom.generator.datetime;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 @DisplayName("Legacy date/time generators")
 class LegacyDateGeneratorsTest {
 
-    private static final LocalDate MIN            = LocalDate.of(2020, 1, 1);
-    private static final LocalDate MAX            = LocalDate.of(2020, 1, 3);
-    private static final long      MILLIS_PER_DAY = 24L * 60L * 60L * 1000L;
+    private static final LocalDate MIN = LocalDate.of(2020, 1, 1);
+    private static final LocalDate MAX = LocalDate.of(2020, 1, 3);
+    private static final long MILLIS_PER_DAY = 24L * 60L * 60L * 1000L;
 
     @Test
     @DisplayName("default constructors generate non-null values")
@@ -77,9 +76,17 @@ class LegacyDateGeneratorsTest {
         SqlTimestampGenerator sqlTimestampGenerator = new SqlTimestampGenerator(MIN, MAX);
 
         for (int i = 0; i < 50; i++) {
-            LocalDate utilDate = utilDateGenerator.generate().toInstant().atZone(ZoneOffset.UTC).toLocalDate();
+            LocalDate utilDate = utilDateGenerator
+                    .generate()
+                    .toInstant()
+                    .atZone(ZoneOffset.UTC)
+                    .toLocalDate();
             LocalDate sqlDate = sqlDateGenerator.generate().toLocalDate();
-            LocalDate sqlTimestamp = sqlTimestampGenerator.generate().toInstant().atZone(ZoneOffset.UTC).toLocalDate();
+            LocalDate sqlTimestamp = sqlTimestampGenerator
+                    .generate()
+                    .toInstant()
+                    .atZone(ZoneOffset.UTC)
+                    .toLocalDate();
 
             assertFalse(utilDate.isBefore(MIN));
             assertFalse(utilDate.isAfter(MAX));
@@ -93,8 +100,10 @@ class LegacyDateGeneratorsTest {
     @Test
     @DisplayName("SqlTimeGenerator stays within one day and supports seeded reproducibility")
     void sqlTimeGeneratorWithinDayAndSeeded() {
-        SqlTimeGenerator a = new SqlTimeGenerator(GeneratorConfig.builder().seed(42L).build());
-        SqlTimeGenerator b = new SqlTimeGenerator(GeneratorConfig.builder().seed(42L).build());
+        SqlTimeGenerator a =
+                new SqlTimeGenerator(GeneratorConfig.builder().seed(42L).build());
+        SqlTimeGenerator b =
+                new SqlTimeGenerator(GeneratorConfig.builder().seed(42L).build());
 
         long firstA = a.generate().getTime();
         long firstB = b.generate().getTime();

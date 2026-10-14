@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.system;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.time.Clock;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -20,9 +18,12 @@ import java.util.Random;
  */
 public final class ExceptionPayloadGenerator implements Generator<Map<String, String>> {
 
-    private static final String[] TYPES    = {
-        "IllegalStateException", "IllegalArgumentException", "RuntimeException",
-        "NullPointerException", "UnsupportedOperationException"
+    private static final String[] TYPES = {
+        "IllegalStateException",
+        "IllegalArgumentException",
+        "RuntimeException",
+        "NullPointerException",
+        "UnsupportedOperationException"
     };
     private static final String[] MESSAGES = {
         "Invalid state transition",
@@ -33,7 +34,7 @@ public final class ExceptionPayloadGenerator implements Generator<Map<String, St
     };
 
     private final Random random;
-    private final Clock  clock;
+    private final Clock clock;
 
     public ExceptionPayloadGenerator() {
         this(GeneratorConfig.defaults());

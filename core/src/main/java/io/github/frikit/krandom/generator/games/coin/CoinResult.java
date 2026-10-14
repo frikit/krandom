@@ -9,7 +9,6 @@ package io.github.frikit.krandom.generator.games.coin;
  * The two possible outcomes of a coin flip.
  */
 public enum CoinResult {
-
     HEAD("head"),
     TAIL("tail");
 

@@ -5,21 +5,20 @@
  */
 package io.github.frikit.krandom.generator;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Native-image reachability metadata")
 class NativeImageMetadataTest {
 
     private static final String METADATA_PATH =
-        "/META-INF/native-image/io.github.frikit/krandom/reachability-metadata.json";
+            "/META-INF/native-image/io.github.frikit/krandom/reachability-metadata.json";
 
     @Test
     @DisplayName("includes object reflection and classpath resource reachability")

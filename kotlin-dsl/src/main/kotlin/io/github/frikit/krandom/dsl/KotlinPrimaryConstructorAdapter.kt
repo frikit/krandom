@@ -24,18 +24,18 @@ import kotlin.reflect.jvm.jvmErasure
  * The bridge lives in the Kotlin module so `krandom-core` keeps no Kotlin runtime dependency.
  */
 class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
-
     override fun supports(type: Class<*>): Boolean {
         if (!type.isAnnotationPresent(Metadata::class.java)) {
             return false
         }
         val kotlinType = type.kotlin
-        if (kotlinType.objectInstance != null || kotlinType.isValue || kotlinType.isSealed
-            || Modifier.isAbstract(type.modifiers)) {
+        if (kotlinType.objectInstance != null || kotlinType.isValue || kotlinType.isSealed ||
+            Modifier.isAbstract(type.modifiers)
+        ) {
             return true
         }
-        return kotlinType.primaryConstructor != null
-            && type.declaredFields.any { field ->
+        return kotlinType.primaryConstructor != null &&
+            type.declaredFields.any { field ->
                 !Modifier.isStatic(field.modifiers) && !field.isSynthetic && Modifier.isFinal(field.modifiers)
             }
     }
@@ -45,41 +45,49 @@ class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
         kotlinType.objectInstance?.let { return it }
         if (kotlinType.isValue) {
             throw UnsupportedOperationException(
-                "Kotlin value classes are not supported for object generation; register a type override"
+                "Kotlin value classes are not supported for object generation; register a type override",
             )
         }
         if (kotlinType.isSealed || Modifier.isAbstract(context.type.modifiers)) {
             throw UnsupportedOperationException(
-                "Kotlin sealed and abstract types require a concrete type override"
+                "Kotlin sealed and abstract types require a concrete type override",
             )
         }
 
-        val constructor = kotlinType.primaryConstructor
-            ?: throw UnsupportedOperationException(
-                "Kotlin immutable type ${context.type.name} has no primary constructor"
-            )
+        val constructor =
+            kotlinType.primaryConstructor
+                ?: throw UnsupportedOperationException(
+                    "Kotlin immutable type ${context.type.name} has no primary constructor",
+                )
         val javaParameters = constructor.javaConstructor?.parameters.orEmpty()
         val arguments = LinkedHashMap<KParameter, Any?>()
         constructor.parameters
             .filter { parameter -> parameter.kind == KParameter.Kind.VALUE }
             .forEachIndexed { index, parameter ->
-                val name = parameter.name
-                    ?: throw UnsupportedOperationException(
-                        "Kotlin constructor parameter $index of ${context.type.name} has no stable name"
-                    )
+                val name =
+                    parameter.name
+                        ?: throw UnsupportedOperationException(
+                            "Kotlin constructor parameter $index of ${context.type.name} has no stable name",
+                        )
                 val rawType = parameter.type.jvmErasure.java
                 if (context.isExcluded(name)) {
                     // Exclusions win over overrides, as they do for fields.
                     when {
-                        parameter.isOptional -> return@forEachIndexed
+                        parameter.isOptional -> {
+                            return@forEachIndexed
+                        }
+
                         parameter.type.isMarkedNullable -> {
                             arguments[parameter] = null
                             return@forEachIndexed
                         }
-                        else -> throw IllegalStateException(
-                            "Excluded Kotlin constructor parameter '$name' of ${context.type.name} " +
-                                "is required and not nullable"
-                        )
+
+                        else -> {
+                            throw IllegalStateException(
+                                "Excluded Kotlin constructor parameter '$name' of ${context.type.name} " +
+                                    "is required and not nullable",
+                            )
+                        }
                     }
                 }
                 if (parameter.isOptional && !context.hasExplicitOverride(name, rawType)) {
@@ -89,7 +97,7 @@ class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
                 val value = context.generate(parameter.type.javaType, rawType, name, annotations)
                 if (!parameter.type.isMarkedNullable && value == null) {
                     throw IllegalStateException(
-                        "Kotlin non-null constructor parameter '$name' of ${context.type.name} resolved to null"
+                        "Kotlin non-null constructor parameter '$name' of ${context.type.name} resolved to null",
                     )
                 }
                 arguments[parameter] = value
@@ -97,7 +105,10 @@ class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
         return constructor.callBy(arguments)
     }
 
-    private fun propertyField(context: ObjectConstructionContext<*>, parameter: KParameter): AnnotatedElement? =
+    private fun propertyField(
+        context: ObjectConstructionContext<*>,
+        parameter: KParameter,
+    ): AnnotatedElement? =
         context.type.kotlin.memberProperties
             .firstOrNull { property -> property.name == parameter.name }
             ?.javaField
@@ -105,7 +116,7 @@ class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
     private fun annotationElement(
         context: ObjectConstructionContext<*>,
         parameter: KParameter,
-        javaParameter: AnnotatedElement?
+        javaParameter: AnnotatedElement?,
     ): AnnotatedElement? {
         val field = propertyField(context, parameter)
         return when {
@@ -118,7 +129,7 @@ class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
     private fun hasGenerationAnnotation(element: AnnotatedElement?): Boolean =
         element?.annotations?.any { annotation ->
             val typeName = annotation.annotationClass.java.name
-            typeName.startsWith("jakarta.validation.")
-                || typeName.startsWith("io.github.frikit.krandom.generator.object.")
+            typeName.startsWith("jakarta.validation.") ||
+                typeName.startsWith("io.github.frikit.krandom.generator.object.")
         } == true
 }

@@ -56,8 +56,20 @@ for value in \
 done
 
 SUPPORTED_LOCALE_FILE="${REPO_ROOT}/core/src/main/java/io/github/frikit/krandom/generator/locale/SupportedLocale.java"
-ACTUAL_TOTAL="$(grep -Ec '^    [A-Z]{2}_[A-Z]{2}\(' "${SUPPORTED_LOCALE_FILE}")"
-ACTUAL_FALLBACK="$(grep -Ec '^    [A-Z]{2}_[A-Z]{2}\("[a-z]+", "[A-Z]+",' "${SUPPORTED_LOCALE_FILE}")"
+# Count the enum constants, and those declared with more than the two native arguments (language and
+# country). Each declaration is joined before counting so the result does not depend on how the
+# formatter wraps the argument list.
+read -r ACTUAL_TOTAL ACTUAL_FALLBACK < <(awk '
+    /^    [A-Z][A-Z]_[A-Z][A-Z]\(/ { declaration = ""; collecting = 1 }
+    collecting {
+        declaration = declaration $0
+        if ($0 ~ /\)[,;][ \t]*$/) {
+            total++
+            if (gsub(/,/, ",", declaration) > 2) fallback++
+            collecting = 0
+        }
+    }
+    END { printf "%d %d\n", total, fallback }' "${SUPPORTED_LOCALE_FILE}")
 ACTUAL_NATIVE="$(( ACTUAL_TOTAL - ACTUAL_FALLBACK ))"
 
 [[ "${ACTUAL_TOTAL}" == "${LOCALE_VARIANT_COUNT}" ]] || fail "SupportedLocale has ${ACTUAL_TOTAL} variants, expected ${LOCALE_VARIANT_COUNT}"
@@ -100,8 +112,10 @@ CORE_MODULE_DESCRIPTOR="${REPO_ROOT}/core/src/main/java/module-info.java"
 OBJECT_GENERATION_GUIDE="${REPO_ROOT}/docs-site/guides/object-generation.md"
 grep -Fq "module ${CORE_MODULE_NAME} {" "${CORE_MODULE_DESCRIPTOR}" || fail "core module descriptor name changed"
 grep -Fq "opens com.example.fixtures.model to ${CORE_MODULE_NAME};" "${OBJECT_GENERATION_GUIDE}" || fail "object guide is missing the qualified opens contract"
-grep -Fq "opens io.github.frikit.krandom.examples.jpms.openconsumer to ${CORE_MODULE_NAME};" \
-    "${REPO_ROOT}/examples/java-jpms/open-consumer/src/main/java/module-info.java" || fail "JPMS open consumer does not exercise the documented core module name"
+# Palantir Java Format wraps a qualified `opens` directive after `to`, so collapse whitespace first.
+OPEN_CONSUMER_DESCRIPTOR="$(tr -s '[:space:]' ' ' < "${REPO_ROOT}/examples/java-jpms/open-consumer/src/main/java/module-info.java")"
+[[ "${OPEN_CONSUMER_DESCRIPTOR}" == *"opens io.github.frikit.krandom.examples.jpms.openconsumer to ${CORE_MODULE_NAME};"* ]] \
+    || fail "JPMS open consumer does not exercise the documented core module name"
 
 NATIVE_METADATA="${REPO_ROOT}/core/src/main/resources/META-INF/native-image/io.github.frikit/krandom/reachability-metadata.json"
 NATIVE_GUIDE="${REPO_ROOT}/docs-site/guides/native-image.md"

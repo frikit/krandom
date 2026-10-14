@@ -5,18 +5,17 @@
  */
 package io.github.frikit.krandom.generator.algorithms;
 
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.Generators;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("LuhnGenerator")
 class LuhnGeneratorTest {
@@ -82,8 +81,7 @@ class LuhnGeneratorTest {
     @Test
     @DisplayName("stream produces on-demand Luhn-valid values")
     void streamUsage() {
-        new LuhnGenerator().stream().limit(30)
-                           .forEach(v -> assertTrue(isValidLuhn(v), "Luhn check failed: " + v));
+        new LuhnGenerator().stream().limit(30).forEach(v -> assertTrue(isValidLuhn(v), "Luhn check failed: " + v));
     }
 
     @Test
@@ -113,7 +111,6 @@ class LuhnGeneratorTest {
                 sawZeroInPayload = true;
             }
         }
-        assertTrue(sawZeroInPayload,
-                   "Expected a 0 among payload digits over " + SAMPLES + " samples");
+        assertTrue(sawZeroInPayload, "Expected a 0 among payload digits over " + SAMPLES + " samples");
     }
 }

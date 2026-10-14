@@ -20,14 +20,11 @@ import io.github.frikit.krandom.generator.location.AddressInfo;
  * @param address     company address payload
  */
 public record CompanyInfo(
-    String name,
-    String industry,
-    String catchPhrase,
-    String buzzword,
-    String email,
-    String website,
-    String phone,
-    AddressInfo address
-) {
-
-}
+        String name,
+        String industry,
+        String catchPhrase,
+        String buzzword,
+        String email,
+        String website,
+        String phone,
+        AddressInfo address) {}

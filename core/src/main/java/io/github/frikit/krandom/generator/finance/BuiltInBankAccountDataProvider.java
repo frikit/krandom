@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import io.github.frikit.krandom.generator.user.LocaleTextResourceLoader;
-
 import java.util.List;
 import java.util.Locale;
 
@@ -29,8 +28,10 @@ final class BuiltInBankAccountDataProvider implements BankAccountDataProvider {
 
     BuiltInBankAccountDataProvider(Locale locale, String resourcePrefix) {
         this.locale = locale;
-        this.accountNames = List.of(LocaleTextResourceLoader.load("krandom/bank_accounts/account_names/" + resourcePrefix + ".txt"));
-        this.transactionTypes = List.of(LocaleTextResourceLoader.load("krandom/bank_accounts/transaction_types/" + resourcePrefix + ".txt"));
+        this.accountNames = List.of(
+                LocaleTextResourceLoader.load("krandom/bank_accounts/account_names/" + resourcePrefix + ".txt"));
+        this.transactionTypes = List.of(
+                LocaleTextResourceLoader.load("krandom/bank_accounts/transaction_types/" + resourcePrefix + ".txt"));
     }
 
     @Override

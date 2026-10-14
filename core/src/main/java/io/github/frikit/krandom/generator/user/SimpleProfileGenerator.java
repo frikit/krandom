@@ -8,8 +8,6 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.location.StreetAddressGenerator;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -19,12 +17,12 @@ import java.util.Random;
  */
 public final class SimpleProfileGenerator implements Generator<SimpleProfile> {
 
-    private final Random                 random;
-    private final UsernameGenerator      usernameGenerator;
-    private final FullNameGenerator      fullNameGenerator;
+    private final Random random;
+    private final UsernameGenerator usernameGenerator;
+    private final FullNameGenerator fullNameGenerator;
     private final StreetAddressGenerator addressGenerator;
-    private final EmailGenerator         emailGenerator;
-    private final BirthdayGenerator      birthdayGenerator;
+    private final EmailGenerator emailGenerator;
+    private final BirthdayGenerator birthdayGenerator;
 
     public SimpleProfileGenerator() {
         this(GeneratorConfig.defaults());
@@ -51,12 +49,11 @@ public final class SimpleProfileGenerator implements Generator<SimpleProfile> {
         String sex = gender == Gender.MALE ? "M" : "F";
 
         return new SimpleProfile(
-            usernameGenerator.generate(),
-            fullNameGenerator.generate(gender),
-            sex,
-            addressGenerator.generateFullAddress(),
-            emailGenerator.generate(),
-            birthdayGenerator.generate()
-        );
+                usernameGenerator.generate(),
+                fullNameGenerator.generate(gender),
+                sex,
+                addressGenerator.generateFullAddress(),
+                emailGenerator.generate(),
+                birthdayGenerator.generate());
     }
 }

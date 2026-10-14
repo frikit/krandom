@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.commerce;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import io.github.frikit.krandom.generator.user.LocaleTextResourceLoader;
-
 import java.util.List;
 import java.util.Locale;
 
@@ -23,8 +22,7 @@ final class BuiltInRestaurantTypeDataProvider implements RestaurantTypeDataProvi
     private final List<String> types;
 
     BuiltInRestaurantTypeDataProvider(SupportedLocale supportedLocale) {
-        this(supportedLocale.locale(),
-            "krandom/restaurant_types/" + supportedLocale.resourcePrefix() + ".txt");
+        this(supportedLocale.locale(), "krandom/restaurant_types/" + supportedLocale.resourcePrefix() + ".txt");
     }
 
     BuiltInRestaurantTypeDataProvider(Locale locale, String resourcePath) {

@@ -5,18 +5,6 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -24,14 +12,28 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.locale.SupportedLocale;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
 @DisplayName("ProfessionGenerator")
 class ProfessionGeneratorTest {
 
     private static final int SAMPLES = 100;
 
     private static void assertLanguageFallbackMatches(Locale fallbackLocale, Locale expectedBaseLocale) {
-        GeneratorConfig fallbackCfg = GeneratorConfig.builder().locale(fallbackLocale).seed(123456L).build();
-        GeneratorConfig baseCfg = GeneratorConfig.builder().locale(expectedBaseLocale).seed(123456L).build();
+        GeneratorConfig fallbackCfg =
+                GeneratorConfig.builder().locale(fallbackLocale).seed(123456L).build();
+        GeneratorConfig baseCfg = GeneratorConfig.builder()
+                .locale(expectedBaseLocale)
+                .seed(123456L)
+                .build();
         ProfessionGenerator fallbackGenerator = new ProfessionGenerator(fallbackCfg);
         ProfessionGenerator baseGenerator = new ProfessionGenerator(baseCfg);
 
@@ -46,11 +48,9 @@ class ProfessionGeneratorTest {
         }
     }
 
-
     @Nested
     @DisplayName("Built-in data")
     class BuiltInDataTests {
-
 
         @Test
         @DisplayName("all built-in locale providers have at least 40 professions")
@@ -144,9 +144,7 @@ class ProfessionGeneratorTest {
         @DisplayName("unsupported locale without language fallback throws")
         void unsupportedLocaleThrows() {
             UnsupportedOperationException ex = assertThrows(
-                UnsupportedOperationException.class,
-                () -> new ProfessionGenerator(Locale.of("am", "ET"))
-            );
+                    UnsupportedOperationException.class, () -> new ProfessionGenerator(Locale.of("am", "ET")));
             assertTrue(ex.getMessage().contains("am_ET"));
         }
 
@@ -158,8 +156,9 @@ class ProfessionGeneratorTest {
             for (int i = 0; i < SAMPLES; i++) {
                 seen.add(gen.generate());
             }
-            assertTrue(seen.stream().anyMatch(s -> s.codePoints().anyMatch(cp -> cp > 127)),
-                       "Expected at least one non-ASCII Japanese profession");
+            assertTrue(
+                    seen.stream().anyMatch(s -> s.codePoints().anyMatch(cp -> cp > 127)),
+                    "Expected at least one non-ASCII Japanese profession");
         }
 
         @Test
@@ -177,8 +176,10 @@ class ProfessionGeneratorTest {
         @Test
         @DisplayName("seeded generators produce identical ranked sequence")
         void seededRankedReproducibility() {
-            GeneratorConfig cfg1 = GeneratorConfig.builder().seed(77L).locale(Locale.GERMANY).build();
-            GeneratorConfig cfg2 = GeneratorConfig.builder().seed(77L).locale(Locale.GERMANY).build();
+            GeneratorConfig cfg1 =
+                    GeneratorConfig.builder().seed(77L).locale(Locale.GERMANY).build();
+            GeneratorConfig cfg2 =
+                    GeneratorConfig.builder().seed(77L).locale(Locale.GERMANY).build();
             ProfessionGenerator a = new ProfessionGenerator(cfg1);
             ProfessionGenerator b = new ProfessionGenerator(cfg2);
             for (int i = 0; i < SAMPLES; i++) {
@@ -187,19 +188,14 @@ class ProfessionGeneratorTest {
         }
     }
 
-
     @Nested
     @DisplayName("Custom data per instance")
     class CustomInstanceDataTests {
 
-
         @Test
         @DisplayName("custom professions constructor uses only provided set")
         void customProfessionsOnly() {
-            ProfessionGenerator generator = new ProfessionGenerator(
-                Locale.US,
-                new String[] { "A", "B", "C" }
-            );
+            ProfessionGenerator generator = new ProfessionGenerator(Locale.US, new String[] {"A", "B", "C"});
 
             for (int i = 0; i < SAMPLES; i++) {
                 assertTrue(Set.of("A", "B", "C").contains(generator.generate()));
@@ -210,12 +206,10 @@ class ProfessionGeneratorTest {
         @Test
         @DisplayName("custom professions+weights constructor supports ranked")
         void customProfessionsWithWeights() {
-            GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).seed(3L).build();
-            ProfessionGenerator generator = new ProfessionGenerator(
-                config,
-                new String[] { "Common", "Rare" },
-                new int[] { 100, 1 }
-            );
+            GeneratorConfig config =
+                    GeneratorConfig.builder().locale(Locale.US).seed(3L).build();
+            ProfessionGenerator generator =
+                    new ProfessionGenerator(config, new String[] {"Common", "Rare"}, new int[] {100, 1});
 
             Set<String> seen = new HashSet<>();
             for (int i = 0; i < SAMPLES; i++) {
@@ -227,56 +221,56 @@ class ProfessionGeneratorTest {
         @Test
         @DisplayName("custom constructor validates array lengths")
         void customArrayLengthValidation() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> new ProfessionGenerator(Locale.US, new String[] { "A" }, new int[] { 1, 2 }));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> new ProfessionGenerator(Locale.US, new String[] {"A"}, new int[] {1, 2}));
         }
 
         @Test
         @DisplayName("custom constructor validates empty profession list")
         void customEmptyValidation() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> new ProfessionGenerator(Locale.US, new String[0], new int[0]));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> new ProfessionGenerator(Locale.US, new String[0], new int[0]));
         }
 
         @Test
         @DisplayName("custom constructor rejects blank profession")
         void customBlankValidation() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> new ProfessionGenerator(Locale.US, new String[] { " ", "B" }, new int[] { 1, 1 }));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> new ProfessionGenerator(Locale.US, new String[] {" ", "B"}, new int[] {1, 1}));
         }
 
         @Test
         @DisplayName("custom constructor rejects null profession entry")
         void customNullProfessionValidation() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> new ProfessionGenerator(Locale.US, new String[] { null, "B" }, new int[] { 1, 1 }));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> new ProfessionGenerator(Locale.US, new String[] {null, "B"}, new int[] {1, 1}));
         }
 
         @Test
         @DisplayName("custom constructor rejects non-positive weight")
         void customWeightValidation() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> new ProfessionGenerator(Locale.US, new String[] { "A" }, new int[] { 0 }));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> new ProfessionGenerator(Locale.US, new String[] {"A"}, new int[] {0}));
         }
 
         @Test
         @DisplayName("locale + professions + weights constructor works")
         void customLocaleWeightsConstructorWorks() {
-            ProfessionGenerator generator = new ProfessionGenerator(
-                Locale.US,
-                new String[] { "Primary", "Secondary" },
-                new int[] { 5, 1 }
-            );
+            ProfessionGenerator generator =
+                    new ProfessionGenerator(Locale.US, new String[] {"Primary", "Secondary"}, new int[] {5, 1});
             assertNotNull(generator.generate());
             assertNotNull(generator.generateRanked());
         }
     }
 
-
     @Nested
     @DisplayName("Registry extensibility")
     class RegistryExtensibilityTests {
-
 
         @Test
         @DisplayName("isRegistered and forLocale null behavior")
@@ -312,15 +306,11 @@ class ProfessionGeneratorTest {
         @Test
         @DisplayName("isLocaleExplicitlySupported is false when using per-instance custom data")
         void explicitSupportWithInstanceCustomData() {
-            ProfessionGenerator generator = new ProfessionGenerator(
-                Locale.of("xx", "YY"),
-                new String[] { "Custom" },
-                new int[] { 1 }
-            );
+            ProfessionGenerator generator =
+                    new ProfessionGenerator(Locale.of("xx", "YY"), new String[] {"Custom"}, new int[] {1});
             assertFalse(generator.isLocaleExplicitlySupported());
         }
     }
-
 
     @Nested
     @DisplayName("Generators factory")

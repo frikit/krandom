@@ -5,39 +5,36 @@
  */
 package io.github.frikit.krandom.generator.text;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.HashSet;
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 @DisplayName("NextWordGenerator")
 class NextWordGeneratorTest {
 
-    private static final String[] CORPUS = { "the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog" };
+    private static final String[] CORPUS = {"the", "quick", "brown", "fox", "jumps", "over", "the", "lazy", "dog"};
 
     @Test
     @DisplayName("constructors validate inputs")
     void constructorValidation() {
         assertThrows(NullPointerException.class, () -> new NextWordGenerator((String[]) null));
         assertThrows(NullPointerException.class, () -> new NextWordGenerator(null, CORPUS));
-        assertThrows(IllegalArgumentException.class, () -> new NextWordGenerator(new String[] { "onlyone" }));
-        assertThrows(IllegalArgumentException.class, () -> new NextWordGenerator(new String[] { "ok", " " }));
+        assertThrows(IllegalArgumentException.class, () -> new NextWordGenerator(new String[] {"onlyone"}));
+        assertThrows(IllegalArgumentException.class, () -> new NextWordGenerator(new String[] {"ok", " "}));
     }
 
     @Test
     @DisplayName("constructor identifies the invalid corpus position")
     void constructorReportsInvalidCorpusPosition() {
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> new NextWordGenerator(new String[] { "ok", " " })
-        );
+        IllegalArgumentException exception =
+                assertThrows(IllegalArgumentException.class, () -> new NextWordGenerator(new String[] {"ok", " "}));
 
         assertEquals("corpusWords[1] must not be blank", exception.getMessage());
     }
@@ -45,7 +42,8 @@ class NextWordGeneratorTest {
     @Test
     @DisplayName("generate returns corpus word")
     void generateReturnsCorpusWord() {
-        NextWordGenerator gen = new NextWordGenerator(GeneratorConfig.builder().seed(1L).build(), CORPUS);
+        NextWordGenerator gen =
+                new NextWordGenerator(GeneratorConfig.builder().seed(1L).build(), CORPUS);
         String word = gen.generate();
         assertTrue(new HashSet<>(List.of(CORPUS)).contains(word));
     }
@@ -53,7 +51,8 @@ class NextWordGeneratorTest {
     @Test
     @DisplayName("generateNext follows known transitions")
     void generateNextFollowsTransition() {
-        NextWordGenerator gen = new NextWordGenerator(GeneratorConfig.builder().seed(2L).build(), CORPUS);
+        NextWordGenerator gen =
+                new NextWordGenerator(GeneratorConfig.builder().seed(2L).build(), CORPUS);
         // In this corpus, "quick" is followed only by "brown"
         assertEquals("brown", gen.generateNext("quick"));
     }
@@ -61,7 +60,8 @@ class NextWordGeneratorTest {
     @Test
     @DisplayName("generateNext unknown word falls back to starter")
     void generateNextUnknownFallback() {
-        NextWordGenerator gen = new NextWordGenerator(GeneratorConfig.builder().seed(3L).build(), CORPUS);
+        NextWordGenerator gen =
+                new NextWordGenerator(GeneratorConfig.builder().seed(3L).build(), CORPUS);
         String next = gen.generateNext("unknown");
         assertTrue(new HashSet<>(List.of(CORPUS)).contains(next));
     }
@@ -77,7 +77,8 @@ class NextWordGeneratorTest {
     @Test
     @DisplayName("generateWordSequence returns requested size")
     void generateWordSequenceCount() {
-        NextWordGenerator gen = new NextWordGenerator(GeneratorConfig.builder().seed(4L).build(), CORPUS);
+        NextWordGenerator gen =
+                new NextWordGenerator(GeneratorConfig.builder().seed(4L).build(), CORPUS);
         List<String> words = gen.generateWordSequence(7);
         assertEquals(7, words.size());
     }
@@ -92,7 +93,8 @@ class NextWordGeneratorTest {
     @Test
     @DisplayName("generateSentence format and word count")
     void generateSentenceFormat() {
-        NextWordGenerator gen = new NextWordGenerator(GeneratorConfig.builder().seed(5L).build(), CORPUS);
+        NextWordGenerator gen =
+                new NextWordGenerator(GeneratorConfig.builder().seed(5L).build(), CORPUS);
         String sentence = gen.generateSentence(5);
         assertTrue(Character.isUpperCase(sentence.charAt(0)));
         assertTrue(sentence.endsWith("."));

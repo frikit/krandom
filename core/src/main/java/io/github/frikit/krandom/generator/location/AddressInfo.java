@@ -23,19 +23,16 @@ package io.github.frikit.krandom.generator.location;
  * @param countryAbbr  country alpha-2 code
  */
 public record AddressInfo(
-    String address,
-    String street,
-    String streetNumber,
-    String streetName,
-    String streetSuffix,
-    String streetPrefix,
-    String streetUnit,
-    String city,
-    String state,
-    String stateAbbr,
-    String zip,
-    String country,
-    String countryAbbr
-) {
-
-}
+        String address,
+        String street,
+        String streetNumber,
+        String streetName,
+        String streetSuffix,
+        String streetPrefix,
+        String streetUnit,
+        String city,
+        String state,
+        String stateAbbr,
+        String zip,
+        String country,
+        String countryAbbr) {}

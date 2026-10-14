@@ -5,18 +5,17 @@
  */
 package io.github.frikit.krandom.generator.text;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import io.github.frikit.krandom.generator.schema.FieldLookup;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.schema.FieldLookup;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ProviderTemplateGenerator")
 class ProviderTemplateGeneratorTest {
@@ -25,8 +24,8 @@ class ProviderTemplateGeneratorTest {
     @DisplayName("resolves provider aliases and canonical tokens")
     void resolvesProviderAliasesAndCanonicalTokens() {
         ProviderTemplateGenerator generator = new ProviderTemplateGenerator(
-            "{firstname} {person.last_name} <{email}>",
-            GeneratorConfig.builder().locale(Locale.US).seed(12L).build());
+                "{firstname} {person.last_name} <{email}>",
+                GeneratorConfig.builder().locale(Locale.US).seed(12L).build());
 
         String value = generator.generate();
 
@@ -69,8 +68,7 @@ class ProviderTemplateGeneratorTest {
     @DisplayName("unknown or malformed tokens fail with useful errors")
     void unknownOrMalformedTokensFailWithUsefulErrors() {
         IllegalArgumentException unknown = assertThrows(
-            IllegalArgumentException.class,
-            () -> new ProviderTemplateGenerator("{missing.token}").generate());
+                IllegalArgumentException.class, () -> new ProviderTemplateGenerator("{missing.token}").generate());
         assertTrue(unknown.getMessage().contains("Unknown field reference"));
 
         assertThrows(IllegalArgumentException.class, () -> new ProviderTemplateGenerator("{ }").generate());
@@ -93,8 +91,10 @@ class ProviderTemplateGeneratorTest {
     void facadeExposesProviderTemplateGenerator() {
         assertNotNull(Generators.ofProviderTemplate("{firstname}").generate());
         assertNotNull(Generators.ofProviderTemplate("{firstname}", seeded(1L)).generate());
-        assertNotNull(Generators.ofProviderTemplate("{firstname}", GeneratorConfig.defaults()).generate());
-        assertNotNull(Generators.ofProviderTemplate("{firstname}", new FieldLookup(GeneratorConfig.defaults())).generate());
+        assertNotNull(Generators.ofProviderTemplate("{firstname}", GeneratorConfig.defaults())
+                .generate());
+        assertNotNull(Generators.ofProviderTemplate("{firstname}", new FieldLookup(GeneratorConfig.defaults()))
+                .generate());
     }
 
     @Test

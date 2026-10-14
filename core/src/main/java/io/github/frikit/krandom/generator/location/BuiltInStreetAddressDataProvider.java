@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.location;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.util.Locale;
 
 /**
@@ -14,7 +13,7 @@ import java.util.Locale;
  */
 final class BuiltInStreetAddressDataProvider implements StreetAddressDataProvider {
 
-    private final Locale   locale;
+    private final Locale locale;
     private final String[] streetNames;
     private final String[] streetTypesShort;
     private final String[] streetTypesLong;
@@ -23,8 +22,10 @@ final class BuiltInStreetAddressDataProvider implements StreetAddressDataProvide
         this.locale = supportedLocale.locale();
         String resourcePrefix = supportedLocale.resourcePrefix();
         this.streetNames = StreetAddressResourceLoader.load("krandom/streets/street_names/" + resourcePrefix + ".txt");
-        this.streetTypesShort = StreetAddressResourceLoader.load("krandom/streets/street_types_short/" + resourcePrefix + ".txt");
-        this.streetTypesLong = StreetAddressResourceLoader.load("krandom/streets/street_types_long/" + resourcePrefix + ".txt");
+        this.streetTypesShort =
+                StreetAddressResourceLoader.load("krandom/streets/street_types_short/" + resourcePrefix + ".txt");
+        this.streetTypesLong =
+                StreetAddressResourceLoader.load("krandom/streets/street_types_long/" + resourcePrefix + ".txt");
     }
 
     @Override

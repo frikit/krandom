@@ -5,32 +5,31 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.DataRegistryContext;
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.Vocabulary;
+import io.github.frikit.krandom.generator.locale.SupportedLocale;
+import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
 @DisplayName("FullNameGenerator")
 class FullNameGeneratorTest {
 
     private static final int SAMPLES = 50;
-
 
     @Nested
     @DisplayName("Constructors")
@@ -51,18 +50,17 @@ class FullNameGeneratorTest {
         @Test
         @DisplayName("config constructor stores locale from config")
         void configConstructor() {
-            GeneratorConfig cfg = GeneratorConfig.builder().locale(Locale.FRANCE).build();
+            GeneratorConfig cfg =
+                    GeneratorConfig.builder().locale(Locale.FRANCE).build();
             assertEquals(Locale.FRANCE, new FullNameGenerator(cfg).getLocale());
         }
 
         @Test
         @DisplayName("null config throws NullPointerException")
         void nullConfigThrows() {
-            assertThrows(NullPointerException.class,
-                         () -> new FullNameGenerator((GeneratorConfig) null));
+            assertThrows(NullPointerException.class, () -> new FullNameGenerator((GeneratorConfig) null));
         }
     }
-
 
     @Nested
     @DisplayName("generate()")
@@ -88,8 +86,7 @@ class FullNameGeneratorTest {
         void twoPartName() {
             for (int i = 0; i < SAMPLES; i++) {
                 String name = new FullNameGenerator().generate();
-                assertEquals(2, name.split(" ").length,
-                             "Expected two-part name: " + name);
+                assertEquals(2, name.split(" ").length, "Expected two-part name: " + name);
             }
         }
 
@@ -126,8 +123,7 @@ class FullNameGeneratorTest {
         @Test
         @DisplayName("null gender throws NullPointerException")
         void nullGenderThrows() {
-            assertThrows(NullPointerException.class,
-                         () -> new FullNameGenerator().generate((Gender) null));
+            assertThrows(NullPointerException.class, () -> new FullNameGenerator().generate((Gender) null));
         }
 
         @Test
@@ -202,7 +198,6 @@ class FullNameGeneratorTest {
         }
     }
 
-
     @Nested
     @DisplayName("NameOptions")
     class NameOptionsTests {
@@ -236,7 +231,8 @@ class FullNameGeneratorTest {
         @DisplayName("middleInitial option supports gender-specific generation")
         void middleInitialWithGender() {
             FullNameGenerator gen = new FullNameGenerator(Locale.US);
-            String name = gen.generate(new FullNameGenerator.NameOptions(false, true, false, false, false, Gender.MALE, null));
+            String name = gen.generate(
+                    new FullNameGenerator.NameOptions(false, true, false, false, false, Gender.MALE, null));
             String[] parts = name.split(" ");
             assertEquals(3, parts.length);
             assertTrue(parts[1].matches(".\\."));
@@ -265,7 +261,7 @@ class FullNameGeneratorTest {
         void repeatedGenerationReusesCachedLocaleHelpers() {
             FullNameGenerator gen = new FullNameGenerator(Locale.US);
             FullNameGenerator.NameOptions opts =
-                new FullNameGenerator.NameOptions(true, false, true, true, false, Gender.FEMALE, "en");
+                    new FullNameGenerator.NameOptions(true, false, true, true, false, Gender.FEMALE, "en");
 
             String first = gen.generate(opts);
             String second = gen.generate(opts);
@@ -278,8 +274,10 @@ class FullNameGeneratorTest {
         @DisplayName("gender option produces valid two-part name")
         void genderOption() {
             FullNameGenerator gen = new FullNameGenerator(Locale.US);
-            String male = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, Gender.MALE, null));
-            String female = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, Gender.FEMALE, null));
+            String male = gen.generate(
+                    new FullNameGenerator.NameOptions(false, false, false, false, false, Gender.MALE, null));
+            String female = gen.generate(
+                    new FullNameGenerator.NameOptions(false, false, false, false, false, Gender.FEMALE, null));
             assertEquals(2, male.split(" ").length);
             assertEquals(2, female.split(" ").length);
         }
@@ -307,7 +305,8 @@ class FullNameGeneratorTest {
         @Test
         @DisplayName("nationality option supports every SupportedLocale token")
         void nationalitySupportsEverySupportedLocaleToken() {
-            FullNameGenerator gen = new FullNameGenerator(GeneratorConfig.builder().seed(19L).build());
+            FullNameGenerator gen =
+                    new FullNameGenerator(GeneratorConfig.builder().seed(19L).build());
             for (SupportedLocale supportedLocale : SupportedLocale.values()) {
                 Locale locale = supportedLocale.locale();
                 assertNationalityTokenSupported(gen, locale.getLanguage());
@@ -322,28 +321,21 @@ class FullNameGeneratorTest {
         void nationalityPreservesScopedRegistryContext() {
             Locale scopedLocale = Locale.of("nl", "NL");
             DataRegistryContext registryContext = DataRegistryContext.builder()
-                                                                     .isolated()
-                                                                     .registerFirstNameProvider(
-                                                                         new StaticFirstNameProvider(Locale.US,
-                                                                                                     "RootFirst"))
-                                                                     .registerLastNameProvider(
-                                                                         new StaticLastNameProvider(Locale.US,
-                                                                                                    "RootLast"))
-                                                                     .registerFirstNameProvider(
-                                                                         new StaticFirstNameProvider(scopedLocale,
-                                                                                                     "ScopedFirst"))
-                                                                     .registerLastNameProvider(
-                                                                         new StaticLastNameProvider(scopedLocale,
-                                                                                                    "ScopedLast"))
-                                                                     .build();
+                    .isolated()
+                    .register(Vocabulary.FIRST_NAME, new StaticFirstNameProvider(Locale.US, "RootFirst"))
+                    .register(Vocabulary.LAST_NAME, new StaticLastNameProvider(Locale.US, "RootLast"))
+                    .register(Vocabulary.FIRST_NAME, new StaticFirstNameProvider(scopedLocale, "ScopedFirst"))
+                    .register(Vocabulary.LAST_NAME, new StaticLastNameProvider(scopedLocale, "ScopedLast"))
+                    .build();
             GeneratorConfig config = GeneratorConfig.builder()
-                                                    .locale(Locale.US)
-                                                    .registryContext(registryContext)
-                                                    .seed(123L)
-                                                    .build();
+                    .locale(Locale.US)
+                    .registryContext(registryContext)
+                    .seed(123L)
+                    .build();
             FullNameGenerator gen = new FullNameGenerator(config);
 
-            String name = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, "nl"));
+            String name =
+                    gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, "nl"));
 
             assertEquals("ScopedFirst ScopedLast", name);
         }
@@ -353,39 +345,22 @@ class FullNameGeneratorTest {
         void nationalityOptionHelpersPreserveScopedRegistryContext() {
             Locale scopedLocale = Locale.GERMANY;
             DataRegistryContext registryContext = DataRegistryContext.builder()
-                                                                     .isolated()
-                                                                     .registerFirstNameProvider(
-                                                                         new StaticFirstNameProvider(Locale.US,
-                                                                                                     "RootFirst"))
-                                                                     .registerLastNameProvider(
-                                                                         new StaticLastNameProvider(Locale.US,
-                                                                                                    "RootLast"))
-                                                                     .registerFirstNameProvider(
-                                                                         new StaticFirstNameProvider(scopedLocale,
-                                                                                                     "ScopedFirst"))
-                                                                     .registerLastNameProvider(
-                                                                         new StaticLastNameProvider(scopedLocale,
-                                                                                                    "ScopedLast"))
-                                                                     .registerTitleProvider(
-                                                                         new StaticTitleProvider(scopedLocale,
-                                                                                                 "ScopedTitle"))
-                                                                     .registerSuffixProvider(
-                                                                         new StaticSuffixProvider(scopedLocale,
-                                                                                                  "ScopedSuffix"))
-                                                                     .build();
+                    .isolated()
+                    .register(Vocabulary.FIRST_NAME, new StaticFirstNameProvider(Locale.US, "RootFirst"))
+                    .register(Vocabulary.LAST_NAME, new StaticLastNameProvider(Locale.US, "RootLast"))
+                    .register(Vocabulary.FIRST_NAME, new StaticFirstNameProvider(scopedLocale, "ScopedFirst"))
+                    .register(Vocabulary.LAST_NAME, new StaticLastNameProvider(scopedLocale, "ScopedLast"))
+                    .register(Vocabulary.TITLE, new StaticTitleProvider(scopedLocale, "ScopedTitle"))
+                    .register(Vocabulary.SUFFIX, new StaticSuffixProvider(scopedLocale, "ScopedSuffix"))
+                    .build();
             GeneratorConfig config = GeneratorConfig.builder()
-                                                    .locale(Locale.US)
-                                                    .registryContext(registryContext)
-                                                    .seed(123L)
-                                                    .build();
+                    .locale(Locale.US)
+                    .registryContext(registryContext)
+                    .seed(123L)
+                    .build();
             FullNameGenerator gen = new FullNameGenerator(config);
 
-            String name = gen.generate(new FullNameGenerator.NameOptions(true,
-                                                                         false,
-                                                                         true,
-                                                                         true,
-                                                                         false, null,
-                                                                         "de"));
+            String name = gen.generate(new FullNameGenerator.NameOptions(true, false, true, true, false, null, "de"));
 
             assertEquals("ScopedTitle ScopedFirst ScopedFirst ScopedLast ScopedSuffix", name);
         }
@@ -393,7 +368,8 @@ class FullNameGeneratorTest {
         @Test
         @DisplayName("seeded config supports nationality mapping through locale-specific config")
         void seededNationalityMapping() {
-            GeneratorConfig cfg = GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
+            GeneratorConfig cfg =
+                    GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
             FullNameGenerator gen = new FullNameGenerator(cfg);
 
             String de = gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, "de"));
@@ -408,9 +384,9 @@ class FullNameGeneratorTest {
         void blankNationalityThrows() {
             FullNameGenerator gen = new FullNameGenerator();
             IllegalArgumentException ex = assertThrows(
-                IllegalArgumentException.class,
-                () -> gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, " "))
-            );
+                    IllegalArgumentException.class,
+                    () -> gen.generate(
+                            new FullNameGenerator.NameOptions(false, false, false, false, false, null, " ")));
             assertTrue(ex.getMessage().contains("nationality"));
         }
 
@@ -419,9 +395,9 @@ class FullNameGeneratorTest {
         void unsupportedNationalityThrows() {
             FullNameGenerator gen = new FullNameGenerator();
             assertThrows(
-                UnsupportedOperationException.class,
-                () -> gen.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, "sw"))
-            );
+                    UnsupportedOperationException.class,
+                    () -> gen.generate(
+                            new FullNameGenerator.NameOptions(false, false, false, false, false, null, "sw")));
         }
 
         @Test
@@ -429,20 +405,23 @@ class FullNameGeneratorTest {
         void middleWithUnsupportedLocaleThrows() {
             FullNameGenerator gen = new FullNameGenerator();
             assertThrows(
-                UnsupportedOperationException.class,
-                () -> gen.generate(new FullNameGenerator.NameOptions(true, false, false, false, false, null, "es"))
-            );
+                    UnsupportedOperationException.class,
+                    () -> gen.generate(
+                            new FullNameGenerator.NameOptions(true, false, false, false, false, null, "es")));
         }
 
         @Test
         @DisplayName("reverse option places last name before first name")
         void reverseOption() {
-            GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).seed(77L).build();
+            GeneratorConfig config =
+                    GeneratorConfig.builder().locale(Locale.US).seed(77L).build();
             FullNameGenerator base = new FullNameGenerator(config);
             FullNameGenerator reversed = new FullNameGenerator(config);
 
-            String normal = base.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, null));
-            String reverse = reversed.generate(new FullNameGenerator.NameOptions(false, false, false, false, true, null, null));
+            String normal =
+                    base.generate(new FullNameGenerator.NameOptions(false, false, false, false, false, null, null));
+            String reverse =
+                    reversed.generate(new FullNameGenerator.NameOptions(false, false, false, false, true, null, null));
 
             String[] normalParts = normal.split(" ");
             String[] reverseParts = reverse.split(" ");
@@ -453,9 +432,11 @@ class FullNameGeneratorTest {
         @Test
         @DisplayName("reverse works with middle names")
         void reverseWithMiddleName() {
-            GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).seed(91L).build();
+            GeneratorConfig config =
+                    GeneratorConfig.builder().locale(Locale.US).seed(91L).build();
             FullNameGenerator generator = new FullNameGenerator(config);
-            String reverse = generator.generate(new FullNameGenerator.NameOptions(true, false, false, false, true, null, null));
+            String reverse =
+                    generator.generate(new FullNameGenerator.NameOptions(true, false, false, false, true, null, null));
             String[] parts = reverse.split(" ");
             assertEquals(3, parts.length);
             assertFalse(parts[0].isBlank());
@@ -464,7 +445,6 @@ class FullNameGeneratorTest {
             assertFalse(parts[2].endsWith("."), "Expected full middle name, not middle initial");
         }
     }
-
 
     @Nested
     @DisplayName("Locale support")
@@ -504,7 +484,6 @@ class FullNameGeneratorTest {
         }
     }
 
-
     @Nested
     @DisplayName("Seeded generation")
     class SeededTests {
@@ -534,7 +513,6 @@ class FullNameGeneratorTest {
         }
     }
 
-
     @Nested
     @DisplayName("Generators factory")
     class GeneratorsFactoryTest {
@@ -555,10 +533,8 @@ class FullNameGeneratorTest {
     @Test
     @DisplayName("nationality token registration ignores null and blank aliases")
     void nationalityTokenRegistrationIgnoresNullAndBlankAliases() throws Exception {
-        Method method = FullNameGenerator.class.getDeclaredMethod("registerNationalityToken",
-                                                                  Map.class,
-                                                                  String.class,
-                                                                  Locale.class);
+        Method method = FullNameGenerator.class.getDeclaredMethod(
+                "registerNationalityToken", Map.class, String.class, Locale.class);
         method.setAccessible(true);
         Map<String, Locale> tokens = new LinkedHashMap<>();
 
@@ -579,12 +555,12 @@ class FullNameGeneratorTest {
 
         @Override
         public String[] getMaleFirstNames() {
-            return new String[]{ name };
+            return new String[] {name};
         }
 
         @Override
         public String[] getFemaleFirstNames() {
-            return new String[]{ name };
+            return new String[] {name};
         }
     }
 
@@ -592,7 +568,7 @@ class FullNameGeneratorTest {
 
         @Override
         public String[] getLastNames() {
-            return new String[]{ name };
+            return new String[] {name};
         }
     }
 
@@ -600,7 +576,7 @@ class FullNameGeneratorTest {
 
         @Override
         public String[] getTitles() {
-            return new String[]{ title };
+            return new String[] {title};
         }
     }
 
@@ -608,7 +584,7 @@ class FullNameGeneratorTest {
 
         @Override
         public String[] getSuffixes() {
-            return new String[]{ suffix };
+            return new String[] {suffix};
         }
     }
 }

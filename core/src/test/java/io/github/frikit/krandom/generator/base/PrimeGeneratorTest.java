@@ -5,17 +5,16 @@
  */
 package io.github.frikit.krandom.generator.base;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.HashSet;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("PrimeGenerator")
 class PrimeGeneratorTest {
@@ -30,7 +29,6 @@ class PrimeGeneratorTest {
         }
         return true;
     }
-
 
     @Nested
     @DisplayName("Default Range")
@@ -59,11 +57,9 @@ class PrimeGeneratorTest {
         @DisplayName("should have 168 primes in default range")
         void shouldHaveCorrectPrimeCount() {
             PrimeGenerator generator = new PrimeGenerator();
-            assertEquals(168, generator.getPrimeCount(),
-                         "There are 168 primes less than 1000");
+            assertEquals(168, generator.getPrimeCount(), "There are 168 primes less than 1000");
         }
     }
-
 
     @Nested
     @DisplayName("Custom Range")
@@ -78,13 +74,11 @@ class PrimeGeneratorTest {
 
             for (int i = 0; i < 100; i++) {
                 int value = generator.generate();
-                assertTrue(expected.contains(value),
-                           "Value should be in {2,3,5,7,11,13,17,19}, got: " + value);
+                assertTrue(expected.contains(value), "Value should be in {2,3,5,7,11,13,17,19}, got: " + value);
                 generated.add(value);
             }
 
-            assertTrue(generated.size() >= 6,
-                       "Should generate most of the available primes");
+            assertTrue(generated.size() >= 6, "Should generate most of the available primes");
         }
 
         @Test
@@ -95,8 +89,7 @@ class PrimeGeneratorTest {
 
             for (int i = 0; i < 50; i++) {
                 int value = generator.generate();
-                assertTrue(expected.contains(value),
-                           "Value should be in {11,13,17,19,23,29}, got: " + value);
+                assertTrue(expected.contains(value), "Value should be in {11,13,17,19,23,29}, got: " + value);
             }
 
             assertEquals(6, generator.getPrimeCount());
@@ -112,11 +105,9 @@ class PrimeGeneratorTest {
                 assertTrue(value >= 1000 && value < 2000);
             }
 
-            assertEquals(135, generator.getPrimeCount(),
-                         "There are 135 primes in [1000, 2000)");
+            assertEquals(135, generator.getPrimeCount(), "There are 135 primes in [1000, 2000)");
         }
     }
-
 
     @Nested
     @DisplayName("Edge Cases")
@@ -125,16 +116,13 @@ class PrimeGeneratorTest {
         @Test
         @DisplayName("should throw when no primes exist in range")
         void shouldThrowWhenNoPrimesExist() {
-            assertThrows(IllegalStateException.class,
-                         () -> new PrimeGenerator(0, 2),
-                         "No primes in [0, 2)");
+            assertThrows(IllegalStateException.class, () -> new PrimeGenerator(0, 2), "No primes in [0, 2)");
         }
 
         @Test
         @DisplayName("should throw when range is [1, 2)")
         void shouldThrowForRangeOne() {
-            assertThrows(IllegalStateException.class,
-                         () -> new PrimeGenerator(1, 2));
+            assertThrows(IllegalStateException.class, () -> new PrimeGenerator(1, 2));
         }
 
         @Test
@@ -150,12 +138,10 @@ class PrimeGeneratorTest {
         @Test
         @DisplayName("min > max is rejected instead of swapped")
         void shouldHandleReversedBounds() {
-            IllegalArgumentException ex =
-                assertThrows(IllegalArgumentException.class, () -> new PrimeGenerator(20, 2));
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> new PrimeGenerator(20, 2));
             assertTrue(ex.getMessage().contains("min must be less than max"), ex.getMessage());
         }
     }
-
 
     @Nested
     @DisplayName("Seeded Generation")
@@ -168,8 +154,8 @@ class PrimeGeneratorTest {
             PrimeGenerator gen2 = new PrimeGenerator(2, 100, seeded(42L));
 
             for (int i = 0; i < 50; i++) {
-                assertEquals(gen1.generate(), gen2.generate(),
-                             "Generators with same seed should produce identical values");
+                assertEquals(
+                        gen1.generate(), gen2.generate(), "Generators with same seed should produce identical values");
             }
         }
 
@@ -192,7 +178,6 @@ class PrimeGeneratorTest {
             assertTrue(seq1.size() > 5 && seq2.size() > 5);
         }
     }
-
 
     @Nested
     @DisplayName("List Generation")

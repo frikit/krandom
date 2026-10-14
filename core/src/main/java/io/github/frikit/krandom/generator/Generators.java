@@ -31,6 +31,7 @@ import io.github.frikit.krandom.generator.base.RegexGenerator;
 import io.github.frikit.krandom.generator.base.ShortGenerator;
 import io.github.frikit.krandom.generator.base.StringGenerator;
 import io.github.frikit.krandom.generator.color.ColorGenerator;
+import io.github.frikit.krandom.generator.commerce.CnpjGenerator;
 import io.github.frikit.krandom.generator.commerce.CommerceGenerator;
 import io.github.frikit.krandom.generator.commerce.OrderInfoGenerator;
 import io.github.frikit.krandom.generator.commerce.ProductInfoGenerator;
@@ -40,11 +41,11 @@ import io.github.frikit.krandom.generator.database.DatabaseGenerator;
 import io.github.frikit.krandom.generator.datetime.CalendarGenerator;
 import io.github.frikit.krandom.generator.datetime.DateGenerator;
 import io.github.frikit.krandom.generator.datetime.DurationGenerator;
-import io.github.frikit.krandom.generator.datetime.OffsetDateTimeGenerator;
 import io.github.frikit.krandom.generator.datetime.InstantGenerator;
 import io.github.frikit.krandom.generator.datetime.LegacyTimeZoneGenerator;
 import io.github.frikit.krandom.generator.datetime.LocalDateTimeGenerator;
 import io.github.frikit.krandom.generator.datetime.MonthDayGenerator;
+import io.github.frikit.krandom.generator.datetime.OffsetDateTimeGenerator;
 import io.github.frikit.krandom.generator.datetime.OffsetTimeGenerator;
 import io.github.frikit.krandom.generator.datetime.PeriodGenerator;
 import io.github.frikit.krandom.generator.datetime.SqlDateGenerator;
@@ -66,8 +67,8 @@ import io.github.frikit.krandom.generator.file.MimeTypeGenerator;
 import io.github.frikit.krandom.generator.file.SemverGenerator;
 import io.github.frikit.krandom.generator.finance.AbaRoutingGenerator;
 import io.github.frikit.krandom.generator.finance.BankAccountGenerator;
-import io.github.frikit.krandom.generator.finance.BankInfoGenerator;
 import io.github.frikit.krandom.generator.finance.BankCountryGenerator;
+import io.github.frikit.krandom.generator.finance.BankInfoGenerator;
 import io.github.frikit.krandom.generator.finance.BankNameGenerator;
 import io.github.frikit.krandom.generator.finance.BankTypeGenerator;
 import io.github.frikit.krandom.generator.finance.BbanGenerator;
@@ -75,8 +76,6 @@ import io.github.frikit.krandom.generator.finance.BicGenerator;
 import io.github.frikit.krandom.generator.finance.CardExpirationGenerator;
 import io.github.frikit.krandom.generator.finance.CreditCardGenerator;
 import io.github.frikit.krandom.generator.finance.CreditCardInfoGenerator;
-import io.github.frikit.krandom.generator.finance.InvoiceInfoGenerator;
-import io.github.frikit.krandom.generator.finance.PaymentInfoGenerator;
 import io.github.frikit.krandom.generator.finance.CryptoAddressGenerator;
 import io.github.frikit.krandom.generator.finance.CurrencyGenerator;
 import io.github.frikit.krandom.generator.finance.CurrencyPairGenerator;
@@ -84,8 +83,10 @@ import io.github.frikit.krandom.generator.finance.CusipGenerator;
 import io.github.frikit.krandom.generator.finance.EinGenerator;
 import io.github.frikit.krandom.generator.finance.FinancialTermGenerator;
 import io.github.frikit.krandom.generator.finance.IbanGenerator;
+import io.github.frikit.krandom.generator.finance.InvoiceInfoGenerator;
 import io.github.frikit.krandom.generator.finance.IsinGenerator;
 import io.github.frikit.krandom.generator.finance.MoneyGenerator;
+import io.github.frikit.krandom.generator.finance.PaymentInfoGenerator;
 import io.github.frikit.krandom.generator.games.coin.CoinGenerator;
 import io.github.frikit.krandom.generator.games.dice.DiceGenerator;
 import io.github.frikit.krandom.generator.games.dice.DiceType;
@@ -95,6 +96,7 @@ import io.github.frikit.krandom.generator.identifier.IdentifierMaskGenerator;
 import io.github.frikit.krandom.generator.identifier.IsbnGenerator;
 import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
 import io.github.frikit.krandom.generator.identifier.UpcGenerator;
+import io.github.frikit.krandom.generator.locale.RandomLocaleGenerator;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.location.CityGenerator;
 import io.github.frikit.krandom.generator.location.CoordinatesGenerator;
@@ -104,7 +106,7 @@ import io.github.frikit.krandom.generator.location.PhoneNumberGenerator;
 import io.github.frikit.krandom.generator.location.PostalCodeGenerator;
 import io.github.frikit.krandom.generator.location.StateGenerator;
 import io.github.frikit.krandom.generator.location.StreetAddressGenerator;
-import io.github.frikit.krandom.generator.locale.RandomLocaleGenerator;
+import io.github.frikit.krandom.generator.measurement.MeasurementGenerator;
 import io.github.frikit.krandom.generator.namespace.CommerceGenerators;
 import io.github.frikit.krandom.generator.namespace.DateTimeGenerators;
 import io.github.frikit.krandom.generator.namespace.FinanceGenerators;
@@ -115,8 +117,8 @@ import io.github.frikit.krandom.generator.namespace.PersonGenerators;
 import io.github.frikit.krandom.generator.namespace.TextGenerators;
 import io.github.frikit.krandom.generator.network.DomainGenerator;
 import io.github.frikit.krandom.generator.network.HostnameGenerator;
-import io.github.frikit.krandom.generator.network.HttpMethodGenerator;
 import io.github.frikit.krandom.generator.network.HttpFixtureGenerator;
+import io.github.frikit.krandom.generator.network.HttpMethodGenerator;
 import io.github.frikit.krandom.generator.network.HttpStatusCodeGenerator;
 import io.github.frikit.krandom.generator.network.IPGenerator;
 import io.github.frikit.krandom.generator.network.IPv4Generator;
@@ -135,9 +137,9 @@ import io.github.frikit.krandom.generator.schema.Field;
 import io.github.frikit.krandom.generator.schema.FieldLookup;
 import io.github.frikit.krandom.generator.schema.Schema;
 import io.github.frikit.krandom.generator.schema.SchemaValueProvider;
+import io.github.frikit.krandom.generator.selection.FinitePoolGenerator;
 import io.github.frikit.krandom.generator.selection.PickGenerator;
 import io.github.frikit.krandom.generator.selection.PickSetGenerator;
-import io.github.frikit.krandom.generator.selection.FinitePoolGenerator;
 import io.github.frikit.krandom.generator.selection.RepeatGenerator;
 import io.github.frikit.krandom.generator.selection.SequenceGenerator;
 import io.github.frikit.krandom.generator.selection.ShuffleGenerator;
@@ -146,7 +148,12 @@ import io.github.frikit.krandom.generator.selection.WeightedGenerator;
 import io.github.frikit.krandom.generator.system.ExceptionPayloadGenerator;
 import io.github.frikit.krandom.generator.system.PlatformIdGenerator;
 import io.github.frikit.krandom.generator.system.VersionGenerator;
+import io.github.frikit.krandom.generator.tech.AwsGenerator;
+import io.github.frikit.krandom.generator.tech.AzureGenerator;
+import io.github.frikit.krandom.generator.tech.ComputerGenerator;
+import io.github.frikit.krandom.generator.tech.ProgrammingLanguageGenerator;
 import io.github.frikit.krandom.generator.text.LoremIpsumGenerator;
+import io.github.frikit.krandom.generator.text.NatoPhoneticGenerator;
 import io.github.frikit.krandom.generator.text.ParagraphGenerator;
 import io.github.frikit.krandom.generator.text.ProviderTemplateGenerator;
 import io.github.frikit.krandom.generator.text.SentenceGenerator;
@@ -158,9 +165,8 @@ import io.github.frikit.krandom.generator.user.AgeGenerator;
 import io.github.frikit.krandom.generator.user.AgeType;
 import io.github.frikit.krandom.generator.user.AvatarUrlGenerator;
 import io.github.frikit.krandom.generator.user.BirthdayGenerator;
-import io.github.frikit.krandom.generator.user.FirstNameGenerator;
-import io.github.frikit.krandom.generator.user.GenderGenerator;
-import io.github.frikit.krandom.generator.user.LastNameGenerator;
+import io.github.frikit.krandom.generator.user.BloodTypeGenerator;
+import io.github.frikit.krandom.generator.user.ChineseZodiacGenerator;
 import io.github.frikit.krandom.generator.user.CompanyBuzzwordGenerator;
 import io.github.frikit.krandom.generator.user.CompanyCatchPhraseGenerator;
 import io.github.frikit.krandom.generator.user.CompanyEmailGenerator;
@@ -168,62 +174,55 @@ import io.github.frikit.krandom.generator.user.CompanyInfoGenerator;
 import io.github.frikit.krandom.generator.user.CompanyNameGenerator;
 import io.github.frikit.krandom.generator.user.CompanyUrlGenerator;
 import io.github.frikit.krandom.generator.user.ContactInfoGenerator;
+import io.github.frikit.krandom.generator.user.DrivingLicenseGenerator;
 import io.github.frikit.krandom.generator.user.EducationalAttainmentGenerator;
 import io.github.frikit.krandom.generator.user.EmailGenerator;
+import io.github.frikit.krandom.generator.user.FirstNameGenerator;
 import io.github.frikit.krandom.generator.user.FullNameGenerator;
+import io.github.frikit.krandom.generator.user.GenderGenerator;
+import io.github.frikit.krandom.generator.user.HobbyGenerator;
 import io.github.frikit.krandom.generator.user.IndustryGenerator;
 import io.github.frikit.krandom.generator.user.JobFieldGenerator;
 import io.github.frikit.krandom.generator.user.JobInfoGenerator;
 import io.github.frikit.krandom.generator.user.JobTypeGenerator;
-import io.github.frikit.krandom.generator.commerce.CnpjGenerator;
-import io.github.frikit.krandom.generator.tech.ProgrammingLanguageGenerator;
-import io.github.frikit.krandom.generator.tech.AwsGenerator;
-import io.github.frikit.krandom.generator.tech.AzureGenerator;
-import io.github.frikit.krandom.generator.tech.ComputerGenerator;
-import io.github.frikit.krandom.generator.text.NatoPhoneticGenerator;
-import io.github.frikit.krandom.generator.user.HobbyGenerator;
-import io.github.frikit.krandom.generator.user.MbtiGenerator;
-import io.github.frikit.krandom.generator.vehicle.VehicleGenerator;
-import io.github.frikit.krandom.generator.vehicle.VinGenerator;
-import io.github.frikit.krandom.generator.measurement.MeasurementGenerator;
-import io.github.frikit.krandom.generator.weather.WeatherGenerator;
-import io.github.frikit.krandom.generator.user.BloodTypeGenerator;
-import io.github.frikit.krandom.generator.user.ChineseZodiacGenerator;
-import io.github.frikit.krandom.generator.user.PronounGenerator;
-import io.github.frikit.krandom.generator.user.ZodiacGenerator;
+import io.github.frikit.krandom.generator.user.LastNameGenerator;
 import io.github.frikit.krandom.generator.user.MaritalStatusGenerator;
-import io.github.frikit.krandom.generator.user.NationalityGenerator;
+import io.github.frikit.krandom.generator.user.MbtiGenerator;
 import io.github.frikit.krandom.generator.user.MiddleNameGenerator;
-import io.github.frikit.krandom.generator.user.PasswordGenerator;
+import io.github.frikit.krandom.generator.user.NationalityGenerator;
 import io.github.frikit.krandom.generator.user.PassportGenerator;
-import io.github.frikit.krandom.generator.user.DrivingLicenseGenerator;
+import io.github.frikit.krandom.generator.user.PasswordGenerator;
 import io.github.frikit.krandom.generator.user.PersonInfoGenerator;
 import io.github.frikit.krandom.generator.user.PositionGenerator;
 import io.github.frikit.krandom.generator.user.ProfessionGenerator;
 import io.github.frikit.krandom.generator.user.ProfileGenerator;
+import io.github.frikit.krandom.generator.user.PronounGenerator;
 import io.github.frikit.krandom.generator.user.SeniorityGenerator;
 import io.github.frikit.krandom.generator.user.SimpleProfileGenerator;
 import io.github.frikit.krandom.generator.user.SocialHandleGenerator;
 import io.github.frikit.krandom.generator.user.SocialProfileGenerator;
-import io.github.frikit.krandom.generator.user.UsernameGenerator;
 import io.github.frikit.krandom.generator.user.UniversityGenerator;
+import io.github.frikit.krandom.generator.user.UsernameGenerator;
+import io.github.frikit.krandom.generator.user.ZodiacGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator;
-
+import io.github.frikit.krandom.generator.vehicle.VehicleGenerator;
+import io.github.frikit.krandom.generator.vehicle.VinGenerator;
+import io.github.frikit.krandom.generator.weather.WeatherGenerator;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.Instant;
 import java.time.MonthDay;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.time.Period;
 import java.time.Year;
 import java.time.YearMonth;
-import java.time.Duration;
-import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -325,7 +324,9 @@ public final class Generators {
         REGISTRY.put(TimeZone.class, LegacyTimeZoneGenerator::new);
     }
 
-    private Generators() { /* static utility */ }
+    private Generators() {
+        /* static utility */
+    }
 
     /**
      * Returns a generator that always returns the same value.
@@ -2688,7 +2689,8 @@ public final class Generators {
      * fixtures.
      */
     public static NationalIdGenerator ofCpf() {
-        return ofNationalId(GeneratorConfig.builder().locale(Locale.of("pt", "BR")).build());
+        return ofNationalId(
+                GeneratorConfig.builder().locale(Locale.of("pt", "BR")).build());
     }
 
     /**
@@ -2700,7 +2702,8 @@ public final class Generators {
      */
     public static NationalIdGenerator ofCpf(GeneratorConfig config) {
         return ofNationalId(Objects.requireNonNull(config, "config must not be null").toBuilder()
-                                   .locale(Locale.of("pt", "BR")).build());
+                .locale(Locale.of("pt", "BR"))
+                .build());
     }
 
     /**
@@ -3146,9 +3149,7 @@ public final class Generators {
      * Returns a generator that produces structured commerce order payloads with an independent shipping address.
      */
     public static OrderInfoGenerator ofOrderInfo(
-        GeneratorConfig config,
-        AddressInfoGenerator shippingAddressGenerator
-    ) {
+            GeneratorConfig config, AddressInfoGenerator shippingAddressGenerator) {
         return new OrderInfoGenerator(config, shippingAddressGenerator);
     }
 
@@ -4283,20 +4284,20 @@ public final class Generators {
     /**
      * Returns a variable-length sequence generator with no null elements.
      */
-    public static <T> SequenceGenerator<T> sequence(List<? extends Generator<? extends T>> sources,
-                                                     int minLength,
-                                                     int maxLength) {
+    public static <T> SequenceGenerator<T> sequence(
+            List<? extends Generator<? extends T>> sources, int minLength, int maxLength) {
         return new SequenceGenerator<>(sources, minLength, maxLength);
     }
 
     /**
      * Returns a variable-length sequence generator with explicit configuration and null probability.
      */
-    public static <T> SequenceGenerator<T> sequence(GeneratorConfig config,
-                                                     List<? extends Generator<? extends T>> sources,
-                                                     int minLength,
-                                                     int maxLength,
-                                                     double nullProbability) {
+    public static <T> SequenceGenerator<T> sequence(
+            GeneratorConfig config,
+            List<? extends Generator<? extends T>> sources,
+            int minLength,
+            int maxLength,
+            double nullProbability) {
         return new SequenceGenerator<>(config, sources, minLength, maxLength, nullProbability);
     }
 
@@ -4394,9 +4395,8 @@ public final class Generators {
         Objects.requireNonNull(type, "type must not be null");
         Supplier<?> factory = REGISTRY.get(type);
         if (factory == null) {
-            throw new IllegalArgumentException(
-                "No built-in generator for type: " + type.getName() +
-                ". Register a custom Generator or use one of the of*() methods.");
+            throw new IllegalArgumentException("No built-in generator for type: " + type.getName()
+                    + ". Register a custom Generator or use one of the of*() methods.");
         }
         return (Generator<T>) factory.get();
     }
@@ -4430,80 +4430,112 @@ public final class Generators {
     /**
      * Returns a fluent namespace for person-related generators (names, emails, professions, etc.).
      */
-    public static PersonGenerators person() { return new PersonGenerators(); }
+    public static PersonGenerators person() {
+        return new PersonGenerators();
+    }
 
     /**
      * Returns a fluent namespace for person-related generators using the given config.
      */
-    public static PersonGenerators person(GeneratorConfig config) { return new PersonGenerators(config); }
+    public static PersonGenerators person(GeneratorConfig config) {
+        return new PersonGenerators(config);
+    }
 
     /**
      * Returns a fluent namespace for finance-related generators (cards, currencies, banks, etc.).
      */
-    public static FinanceGenerators finance() { return new FinanceGenerators(); }
+    public static FinanceGenerators finance() {
+        return new FinanceGenerators();
+    }
 
     /**
      * Returns a fluent namespace for finance-related generators using the given config.
      */
-    public static FinanceGenerators finance(GeneratorConfig config) { return new FinanceGenerators(config); }
+    public static FinanceGenerators finance(GeneratorConfig config) {
+        return new FinanceGenerators(config);
+    }
 
     /**
      * Returns a fluent namespace for location-related generators (cities, countries, addresses, etc.).
      */
-    public static LocationGenerators location() { return new LocationGenerators(); }
+    public static LocationGenerators location() {
+        return new LocationGenerators();
+    }
 
     /**
      * Returns a fluent namespace for location-related generators using the given config.
      */
-    public static LocationGenerators location(GeneratorConfig config) { return new LocationGenerators(config); }
+    public static LocationGenerators location(GeneratorConfig config) {
+        return new LocationGenerators(config);
+    }
 
     /**
      * Returns a fluent namespace for network-related generators (IPs, URLs, MAC addresses, etc.).
      */
-    public static NetworkGenerators network() { return new NetworkGenerators(); }
+    public static NetworkGenerators network() {
+        return new NetworkGenerators();
+    }
 
     /**
      * Returns a fluent namespace for network-related generators using the given config.
      */
-    public static NetworkGenerators network(GeneratorConfig config) { return new NetworkGenerators(config); }
+    public static NetworkGenerators network(GeneratorConfig config) {
+        return new NetworkGenerators(config);
+    }
 
     /**
      * Returns a fluent namespace for text-related generators (lorem ipsum, words, sentences, etc.).
      */
-    public static TextGenerators text() { return new TextGenerators(); }
+    public static TextGenerators text() {
+        return new TextGenerators();
+    }
 
     /**
      * Returns a fluent namespace for text-related generators using the given config.
      */
-    public static TextGenerators text(GeneratorConfig config) { return new TextGenerators(config); }
+    public static TextGenerators text(GeneratorConfig config) {
+        return new TextGenerators(config);
+    }
 
     /**
      * Returns a fluent namespace for commerce-related generators (products, orders, shipments).
      */
-    public static CommerceGenerators commerce() { return new CommerceGenerators(); }
+    public static CommerceGenerators commerce() {
+        return new CommerceGenerators();
+    }
 
     /**
      * Returns a fluent namespace for commerce-related generators using the given config.
      */
-    public static CommerceGenerators commerce(GeneratorConfig config) { return new CommerceGenerators(config); }
+    public static CommerceGenerators commerce(GeneratorConfig config) {
+        return new CommerceGenerators(config);
+    }
 
     /**
      * Returns a fluent namespace for identifier generators (UUID, ISBN, EAN, hashes, etc.).
      */
-    public static IdentifierGenerators identifier() { return new IdentifierGenerators(); }
+    public static IdentifierGenerators identifier() {
+        return new IdentifierGenerators();
+    }
 
     /**
      * Returns a fluent namespace for identifier generators using the given config.
      */
-    public static IdentifierGenerators identifier(GeneratorConfig config) { return new IdentifierGenerators(config); }
+    public static IdentifierGenerators identifier(GeneratorConfig config) {
+        return new IdentifierGenerators(config);
+    }
 
     /**
      * Returns a fluent namespace for date/time-related generators.
      */
-    public static DateTimeGenerators datetime() { return new DateTimeGenerators(); }
+    public static DateTimeGenerators datetime() {
+        return new DateTimeGenerators();
+    }
 
     /**
      * Returns a fluent namespace for date/time-related generators using the given config.
      */
-    public static DateTimeGenerators datetime(GeneratorConfig config) { return new DateTimeGenerators(config); }
+    public static DateTimeGenerators datetime(GeneratorConfig config) {
+        return new DateTimeGenerators(config);
+    }
 }

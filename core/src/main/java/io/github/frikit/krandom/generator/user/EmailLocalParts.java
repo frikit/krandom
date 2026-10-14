@@ -27,24 +27,23 @@ final class EmailLocalParts {
     private static final String ROMANIZED_NAMES = "krandom/names/romanized/";
     private static final String DEFAULT_ROMANIZED_PREFIX = "en_US";
     private static final Map<String, String> ROMANIZED_PREFIX_BY_LANGUAGE = Map.of(
-        "ja", "ja_JP", "zh", "zh_CN", "ko", "ko_KR", "ar", "ar_SA", "he", "he_IL", "hi", "hi_IN", "th", "th_TH");
+            "ja", "ja_JP", "zh", "zh_CN", "ko", "ko_KR", "ar", "ar_SA", "he", "he_IL", "hi", "hi_IN", "th", "th_TH");
 
     private static final Map<Integer, String> LATIN = table("ßss", "æae", "œoe", "øo", "łl", "đd", "ðd", "þth", "ıi");
     private static final Map<Integer, String> RUSSIAN = table(
-        "аa", "бb", "вv", "гg", "дd", "еe", "ёe", "жzh", "зz", "иi", "йy", "кk", "лl", "мm", "нn", "оo", "пp",
-        "рr", "сs", "тt", "уu", "фf", "хkh", "цts", "чch", "шsh", "щshch", "ъ", "ыy", "ь", "эe", "юyu", "яya");
-    private static final Map<Integer, String> UKRAINIAN = override(RUSSIAN, "гh", "ґg", "єie", "иy", "іi", "їi",
-                                                                   "йi", "юiu", "яia");
+            "аa", "бb", "вv", "гg", "дd", "еe", "ёe", "жzh", "зz", "иi", "йy", "кk", "лl", "мm", "нn", "оo", "пp", "рr",
+            "сs", "тt", "уu", "фf", "хkh", "цts", "чch", "шsh", "щshch", "ъ", "ыy", "ь", "эe", "юyu", "яya");
+    private static final Map<Integer, String> UKRAINIAN =
+            override(RUSSIAN, "гh", "ґg", "єie", "иy", "іi", "їi", "йi", "юiu", "яia");
     private static final Map<Integer, String> UKRAINIAN_WORD_INITIAL = table("єye", "їyi", "йy", "юyu", "яya");
     private static final Map<Integer, String> BULGARIAN = override(RUSSIAN, "хh", "щsht", "ъa", "ьy");
     private static final Map<Integer, String> GREEK = table(
-        "αa", "βv", "γg", "δd", "εe", "ζz", "ηi", "θth", "ιi", "κk", "λl", "μm", "νn", "ξx", "οo", "πp", "ρr",
-        "σs", "ςs", "τt", "υy", "φf", "χch", "ψps", "ωo");
+            "αa", "βv", "γg", "δd", "εe", "ζz", "ηi", "θth", "ιi", "κk", "λl", "μm", "νn", "ξx", "οo", "πp", "ρr", "σs",
+            "ςs", "τt", "υy", "φf", "χch", "ψps", "ωo");
     private static final Map<String, String> GREEK_DIGRAPHS = Map.of("ου", "ou", "αυ", "av", "ευ", "ev", "γγ", "ng");
     private static final Map<String, String[]> FALLBACK_NAMES = new ConcurrentHashMap<>();
 
-    private EmailLocalParts() {
-    }
+    private EmailLocalParts() {}
 
     /**
      * Returns the ASCII local-part token for one name, drawing a romanized fallback name from
@@ -70,7 +69,8 @@ final class EmailLocalParts {
             text = text.replace("ä", "ae").replace("ö", "oe").replace("ü", "ue");
         }
         String cyrillicFree = transliterateCyrillic(text, language);
-        String unmarked = Normalizer.normalize(cyrillicFree, Normalizer.Form.NFD).replaceAll("\\p{M}+", "");
+        String unmarked =
+                Normalizer.normalize(cyrillicFree, Normalizer.Form.NFD).replaceAll("\\p{M}+", "");
         return transliterateRemaining(unmarked);
     }
 
@@ -81,11 +81,12 @@ final class EmailLocalParts {
     }
 
     private static String transliterateCyrillic(String text, String language) {
-        Map<Integer, String> table = switch (language) {
-            case "uk" -> UKRAINIAN;
-            case "bg" -> BULGARIAN;
-            default -> RUSSIAN;
-        };
+        Map<Integer, String> table =
+                switch (language) {
+                    case "uk" -> UKRAINIAN;
+                    case "bg" -> BULGARIAN;
+                    default -> RUSSIAN;
+                };
         boolean ukrainian = "uk".equals(language);
         StringBuilder out = new StringBuilder(text.length() + 8);
         boolean wordStart = true;
@@ -127,7 +128,7 @@ final class EmailLocalParts {
         return out.toString();
     }
 
-    private static String mapCodePoint(int codePoint) {
+    private static @org.jspecify.annotations.Nullable String mapCodePoint(int codePoint) {
         if (codePoint < 0x80) {
             return Character.isLetterOrDigit(codePoint) ? Character.toString(codePoint) : "";
         }

@@ -5,13 +5,13 @@
  */
 package io.github.frikit.krandom.generator.file;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import org.junit.jupiter.api.Test;
 
 class FileExtensionGeneratorTest {
 
@@ -22,8 +22,10 @@ class FileExtensionGeneratorTest {
 
     @Test
     void seededReproducibility() {
-        FileExtensionGenerator a = new FileExtensionGenerator(GeneratorConfig.builder().seed(42L).build());
-        FileExtensionGenerator b = new FileExtensionGenerator(GeneratorConfig.builder().seed(42L).build());
+        FileExtensionGenerator a =
+                new FileExtensionGenerator(GeneratorConfig.builder().seed(42L).build());
+        FileExtensionGenerator b =
+                new FileExtensionGenerator(GeneratorConfig.builder().seed(42L).build());
         for (int i = 0; i < 20; i++) {
             assertEquals(a.generate(), b.generate());
         }
@@ -31,14 +33,16 @@ class FileExtensionGeneratorTest {
 
     @Test
     void generateFromNormalizesLeadingDot() {
-        FileExtensionGenerator generator = new FileExtensionGenerator(GeneratorConfig.builder().seed(1L).build());
+        FileExtensionGenerator generator =
+                new FileExtensionGenerator(GeneratorConfig.builder().seed(1L).build());
         String ext = generator.generateFrom(".json");
         assertEquals("json", ext);
     }
 
     @Test
     void generateFromWithoutLeadingDot() {
-        FileExtensionGenerator generator = new FileExtensionGenerator(GeneratorConfig.builder().seed(2L).build());
+        FileExtensionGenerator generator =
+                new FileExtensionGenerator(GeneratorConfig.builder().seed(2L).build());
         String ext = generator.generateFrom("json", "xml");
         assertTrue(ext.equals("json") || ext.equals("xml"));
     }

@@ -2,14 +2,13 @@
 
 ## Supported Versions
 
-Security fixes are issued for the latest released minor line. Older minor
-versions are best-effort.
+Only the latest release is maintained (see [VERSIONING.md](VERSIONING.md)). A security fix
+ships as a new release on the current line; earlier releases receive no fixes.
 
 | Version | Supported |
 | ------- | --------- |
-| latest minor (`x.y.*`) | Yes |
-| previous minor (`x.(y-1).*`) | Best effort |
-| earlier | No |
+| latest release | Yes |
+| earlier releases | No |
 
 ## Reporting a Vulnerability
 

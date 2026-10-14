@@ -5,21 +5,6 @@
  */
 package io.github.frikit.krandom.generator.user.nationalid;
 
-import io.github.frikit.krandom.generator.DataRegistryContext;
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.regex.Pattern;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -27,6 +12,21 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.DataRegistryContext;
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
+import io.github.frikit.krandom.generator.locale.SupportedLocale;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.regex.Pattern;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("NationalIdGenerator")
 class NationalIdGeneratorTest {
@@ -42,7 +42,12 @@ class NationalIdGeneratorTest {
                 continue;
             }
             assertTrue(NationalIdRegistry.isRegistered(locale), supportedLocale.name());
-            String nationalId = new NationalIdGenerator(GeneratorConfig.builder().locale(locale).seed(123L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate();
+            String nationalId = new NationalIdGenerator(GeneratorConfig.builder()
+                            .locale(locale)
+                            .seed(123L)
+                            .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                            .build())
+                    .generate();
             assertNotNull(nationalId, supportedLocale.name());
             assertFalse(nationalId.isBlank(), supportedLocale.name());
         }
@@ -51,10 +56,8 @@ class NationalIdGeneratorTest {
     @Test
     @DisplayName("default configured national-ID generation fails closed")
     void defaultConfiguredGenerationFailsClosed() {
-        NationalIdGenerator generator = new NationalIdGenerator(GeneratorConfig.builder()
-                                                                                .locale(Locale.US)
-                                                                                .seed(123L)
-                                                                                .build());
+        NationalIdGenerator generator = new NationalIdGenerator(
+                GeneratorConfig.builder().locale(Locale.US).seed(123L).build());
 
         IllegalStateException error = assertThrows(IllegalStateException.class, generator::generate);
 
@@ -65,11 +68,10 @@ class NationalIdGeneratorTest {
     @DisplayName("explicit realistic policy preserves prior compatibility output")
     void explicitRealisticPolicyPreservesCompatibilityOutput() {
         NationalIdGenerator generator = new NationalIdGenerator(GeneratorConfig.builder()
-                                                                                .locale(Locale.US)
-                                                                                .seed(123L)
-                                                                                .nationalIdSafetyPolicy(
-                                                                                    NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                                                .build());
+                .locale(Locale.US)
+                .seed(123L)
+                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build());
 
         assertNotNull(generator.generate());
     }
@@ -78,39 +80,45 @@ class NationalIdGeneratorTest {
     @DisplayName("additional SupportedLocale national IDs use documented fake formats")
     void additionalSupportedLocaleNationalIdFormats() {
         Map<Locale, Pattern> patterns = Map.ofEntries(
-            Map.entry(Locale.of("nl", "NL"), Pattern.compile("^\\d{9}$")),
-            Map.entry(Locale.of("pl", "PL"), Pattern.compile("^\\d{11}$")),
-            Map.entry(Locale.of("ru", "RU"), Pattern.compile("^\\d{3}-\\d{3}-\\d{3} \\d{2}$")),
-            Map.entry(Locale.of("ko", "KR"), Pattern.compile("^\\d{6}-\\d{7}$")),
-            Map.entry(Locale.of("tr", "TR"), Pattern.compile("^[1-9]\\d{10}$")),
-            Map.entry(Locale.of("sv", "SE"), Pattern.compile("^\\d{8}-\\d{4}$")),
-            Map.entry(Locale.of("nb", "NO"), Pattern.compile("^\\d{11}$")),
-            Map.entry(Locale.of("cs", "CZ"), Pattern.compile("^\\d{6}/\\d{4}$")),
-            Map.entry(Locale.of("ar", "SA"), Pattern.compile("^1\\d{9}$")),
-            Map.entry(Locale.of("hi", "IN"), Pattern.compile("^[2-9]\\d{11}$"))
-        );
+                Map.entry(Locale.of("nl", "NL"), Pattern.compile("^\\d{9}$")),
+                Map.entry(Locale.of("pl", "PL"), Pattern.compile("^\\d{11}$")),
+                Map.entry(Locale.of("ru", "RU"), Pattern.compile("^\\d{3}-\\d{3}-\\d{3} \\d{2}$")),
+                Map.entry(Locale.of("ko", "KR"), Pattern.compile("^\\d{6}-\\d{7}$")),
+                Map.entry(Locale.of("tr", "TR"), Pattern.compile("^[1-9]\\d{10}$")),
+                Map.entry(Locale.of("sv", "SE"), Pattern.compile("^\\d{8}-\\d{4}$")),
+                Map.entry(Locale.of("nb", "NO"), Pattern.compile("^\\d{11}$")),
+                Map.entry(Locale.of("cs", "CZ"), Pattern.compile("^\\d{6}/\\d{4}$")),
+                Map.entry(Locale.of("ar", "SA"), Pattern.compile("^1\\d{9}$")),
+                Map.entry(Locale.of("hi", "IN"), Pattern.compile("^[2-9]\\d{11}$")));
 
         for (Map.Entry<Locale, Pattern> entry : patterns.entrySet()) {
-            String nationalId = new NationalIdGenerator(GeneratorConfig.builder().locale(entry.getKey()).seed(123L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate();
+            String nationalId = new NationalIdGenerator(GeneratorConfig.builder()
+                            .locale(entry.getKey())
+                            .seed(123L)
+                            .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                            .build())
+                    .generate();
             assertTrue(entry.getValue().matcher(nationalId).matches(), entry.getKey() + ": " + nationalId);
         }
     }
 
     // ── US (SSN) ──────────────────────────────────────────────────────────────
 
-
     @Nested
     @DisplayName("US SSN")
     class UsTests {
 
-        private static final Pattern WITH_DASHES    = Pattern.compile("^\\d{3}-\\d{2}-\\d{4}$");
+        private static final Pattern WITH_DASHES = Pattern.compile("^\\d{3}-\\d{2}-\\d{4}$");
         private static final Pattern WITHOUT_DASHES = Pattern.compile("^\\d{9}$");
-        private static final Pattern LAST_FOUR      = Pattern.compile("^\\d{4}$");
+        private static final Pattern LAST_FOUR = Pattern.compile("^\\d{4}$");
 
         @Test
         @DisplayName("default format AAA-GG-SSSS")
         void defaultFormat() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.US) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.US)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 50; i++) {
                 assertTrue(WITH_DASHES.matcher(gen.generate()).matches());
             }
@@ -119,7 +127,10 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("valid ranges: area 001-899 (not 666), group 01-99, serial 0001-9999")
         void validRanges() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.US) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.US)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 String ssn = gen.generate();
                 String[] p = ssn.split("-");
@@ -134,7 +145,11 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("area 666 is never generated; areas below and above both appear")
         void area666NeverGenerated() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.US).seed(0L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.US)
+                    .seed(0L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             Set<String> areas = new HashSet<>();
             for (int i = 0; i < 5000; i++) {
                 areas.add(gen.generate().substring(0, 3));
@@ -170,26 +185,35 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("seeded generator produces reproducible output")
         void seededReproducibility() {
-            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.US).seed(42L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
-            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.US).seed(42L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.US)
+                    .seed(42L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
+            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.US)
+                    .seed(42L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             assertEquals(g1.generateList(30), g2.generateList(30));
         }
     }
 
     // ── GB (NI) ───────────────────────────────────────────────────────────────
 
-
     @Nested
     @DisplayName("GB National Insurance")
     class GbTests {
 
-        private static final Pattern NI_FORMAT =
-            Pattern.compile("^[A-Z]{2} \\d{2} \\d{2} \\d{2} [A-D]$");
+        private static final Pattern NI_FORMAT = Pattern.compile("^[A-Z]{2} \\d{2} \\d{2} \\d{2} [A-D]$");
 
         @Test
         @DisplayName("format: XX NN NN NN X")
         void format() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.UK) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.UK)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 String ni = gen.generate();
                 assertTrue(NI_FORMAT.matcher(ni).matches(), "Bad NI format: " + ni);
@@ -200,7 +224,11 @@ class NationalIdGeneratorTest {
         @DisplayName("disallowed prefixes never appear")
         void disallowedPrefixes() {
             Set<String> disallowed = Set.of("BG", "GB", "NK", "KN", "NT", "TN", "ZZ");
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.UK).seed(1L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.UK)
+                    .seed(1L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 10_000; i++) {
                 String prefix = gen.generate().substring(0, 2);
                 assertFalse(disallowed.contains(prefix), "Disallowed prefix: " + prefix);
@@ -211,7 +239,11 @@ class NationalIdGeneratorTest {
         @DisplayName("both disallowed-pair branch sides are covered over 10000 samples")
         void disallowedPairRetryBranch() {
             // By generating many, we statistically guarantee the retry loop is exercised.
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.UK).seed(77L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.UK)
+                    .seed(77L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             Set<String> prefixes = new HashSet<>();
             for (int i = 0; i < 10_000; i++) {
                 prefixes.add(gen.generate().substring(0, 2));
@@ -224,7 +256,11 @@ class NationalIdGeneratorTest {
         @DisplayName("suffix letter is always A, B, C, or D")
         void suffixLetter() {
             Set<Character> valid = Set.of('A', 'B', 'C', 'D');
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.UK).seed(2L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.UK)
+                    .seed(2L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 String ni = gen.generate();
                 char suffix = ni.charAt(ni.length() - 1);
@@ -235,14 +271,21 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("seeded generator produces reproducible output")
         void seededReproducibility() {
-            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.UK).seed(99L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
-            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.UK).seed(99L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.UK)
+                    .seed(99L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
+            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.UK)
+                    .seed(99L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             assertEquals(g1.generateList(20), g2.generateList(20));
         }
     }
 
     // ── AU (TFN) ──────────────────────────────────────────────────────────────
-
 
     @Nested
     @DisplayName("AU Tax File Number")
@@ -253,7 +296,10 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("format: NNN NNN NNN")
         void format() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.of("en", "AU")) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.of("en", "AU"))
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 assertTrue(TFN_FORMAT.matcher(gen.generate()).matches());
             }
@@ -262,7 +308,11 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("first digit is never 0")
         void firstDigitNonZero() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.of("en", "AU")).seed(3L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.of("en", "AU"))
+                    .seed(3L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 assertNotEquals('0', gen.generate().charAt(0));
             }
@@ -279,25 +329,37 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("generated TFNs have a weighted sum divisible by 11")
         void checksumValid() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.of("en", "AU")).seed(5L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.of("en", "AU"))
+                    .seed(5L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 String tfn = gen.generate();
-                assertTrue(NationalIdTier1ValidityTest.AuTaxFileNumber.isValid(tfn),
-                           "TFN weighted sum must be divisible by 11: " + tfn);
+                assertTrue(
+                        NationalIdTier1ValidityTest.AuTaxFileNumber.isValid(tfn),
+                        "TFN weighted sum must be divisible by 11: " + tfn);
             }
         }
 
         @Test
         @DisplayName("seeded generator produces reproducible output")
         void seededReproducibility() {
-            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.of("en", "AU")).seed(7L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
-            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.of("en", "AU")).seed(7L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.of("en", "AU"))
+                    .seed(7L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
+            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.of("en", "AU"))
+                    .seed(7L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             assertEquals(g1.generateList(20), g2.generateList(20));
         }
     }
 
     // ── FR (NIR) ──────────────────────────────────────────────────────────────
-
 
     @Nested
     @DisplayName("FR NIR")
@@ -309,7 +371,10 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("format: 15-digit string starting with 1 or 2")
         void format() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.FRANCE) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.FRANCE)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 assertTrue(NIR_FORMAT.matcher(gen.generate()).matches());
             }
@@ -318,7 +383,11 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("control key is in range [01, 97]")
         void controlKeyRange() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.FRANCE).seed(10L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.FRANCE)
+                    .seed(10L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 String nir = gen.generate();
                 int key = Integer.parseInt(nir.substring(13, 15));
@@ -329,7 +398,11 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("control key satisfies 97 - (N mod 97) formula")
         void controlKeyValid() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.FRANCE).seed(11L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.FRANCE)
+                    .seed(11L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 String nir = gen.generate();
                 long n13 = Long.parseLong(nir.substring(0, 13));
@@ -342,14 +415,21 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("seeded generator produces reproducible output")
         void seededReproducibility() {
-            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.FRANCE).seed(20L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
-            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.FRANCE).seed(20L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.FRANCE)
+                    .seed(20L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
+            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.FRANCE)
+                    .seed(20L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             assertEquals(g1.generateList(20), g2.generateList(20));
         }
     }
 
     // ── DE (Steuer-ID) ────────────────────────────────────────────────────────
-
 
     @Nested
     @DisplayName("DE Steuer-ID")
@@ -360,7 +440,10 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("format: 11 digits, first non-zero")
         void format() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.GERMANY) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.GERMANY)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 String id = gen.generate();
                 assertTrue(STEUER_FORMAT.matcher(id).matches(), "Bad format: " + id);
@@ -374,7 +457,11 @@ class NationalIdGeneratorTest {
             for (String sample : List.of("86095742719", "47036892816", "65929970489")) {
                 assertTrue(NationalIdTier1ValidityTest.DeSteuerId.isValid(sample), sample);
             }
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.GERMANY).seed(30L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.GERMANY)
+                    .seed(30L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 String id = gen.generate();
                 assertTrue(NationalIdTier1ValidityTest.DeSteuerId.isValid(id), "Invalid Steuer-ID: " + id);
@@ -384,14 +471,21 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("seeded generator produces reproducible output")
         void seededReproducibility() {
-            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.GERMANY).seed(40L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
-            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.GERMANY).seed(40L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.GERMANY)
+                    .seed(40L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
+            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.GERMANY)
+                    .seed(40L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             assertEquals(g1.generateList(20), g2.generateList(20));
         }
     }
 
     // ── JP (My Number) ────────────────────────────────────────────────────────
-
 
     @Nested
     @DisplayName("JP My Number")
@@ -402,7 +496,10 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("format: 12 digits, first non-zero")
         void format() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.JAPAN) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.JAPAN)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 String id = gen.generate();
                 assertTrue(MY_NUMBER_FORMAT.matcher(id).matches(), "Bad format: " + id);
@@ -414,7 +511,7 @@ class NationalIdGeneratorTest {
         void checkDigitQBelow10() {
             // Construct 11 digits where Q = 11 - (sum%11) < 10
             // Use digits all 0 except first=1: sum=1*6=6, Q=11-6=5 (<10)
-            int[] digits = { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            int[] digits = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
             int cd = JpNationalIdProvider.computeCheckDigit(digits);
             assertEquals(5, cd);
         }
@@ -441,7 +538,11 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("generated My Numbers always have valid check digit")
         void checksumValid() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.JAPAN).seed(50L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.JAPAN)
+                    .seed(50L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 String id = gen.generate();
                 assertTrue(NationalIdTier1ValidityTest.JpMyNumber.isValid(id), "Wrong check digit in: " + id);
@@ -451,27 +552,37 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("seeded generator produces reproducible output")
         void seededReproducibility() {
-            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.JAPAN).seed(55L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
-            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.JAPAN).seed(55L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.JAPAN)
+                    .seed(55L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
+            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.JAPAN)
+                    .seed(55L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             assertEquals(g1.generateList(20), g2.generateList(20));
         }
     }
 
     // ── ES (DNI) ──────────────────────────────────────────────────────────────
 
-
     @Nested
     @DisplayName("ES DNI")
     class EsTests {
 
-        private static final Pattern DNI_FORMAT      = Pattern.compile("^\\d{8}[A-Z]$");
+        private static final Pattern DNI_FORMAT = Pattern.compile("^\\d{8}[A-Z]$");
         private static final Pattern DNI_DASH_FORMAT = Pattern.compile("^\\d{8}-[A-Z]$");
-        private static final String  LETTER_MAP      = "TRWAGMYFPDXBNJZSQVHLCKE";
+        private static final String LETTER_MAP = "TRWAGMYFPDXBNJZSQVHLCKE";
 
         @Test
         @DisplayName("default format NNNNNNNNA")
         void defaultFormat() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.of("es", "ES")) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.of("es", "ES"))
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 assertTrue(DNI_FORMAT.matcher(gen.generate()).matches());
             }
@@ -490,7 +601,11 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("check letter is correct modulo 23")
         void checkLetterValid() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.of("es", "ES")).seed(60L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.of("es", "ES"))
+                    .seed(60L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 String dni = gen.generate();
                 int n = Integer.parseInt(dni.substring(0, 8));
@@ -502,14 +617,21 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("seeded generator produces reproducible output")
         void seededReproducibility() {
-            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.of("es", "ES")).seed(70L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
-            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.of("es", "ES")).seed(70L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.of("es", "ES"))
+                    .seed(70L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
+            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.of("es", "ES"))
+                    .seed(70L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             assertEquals(g1.generateList(20), g2.generateList(20));
         }
     }
 
     // ── IT (Codice Fiscale) ───────────────────────────────────────────────────
-
 
     @Nested
     @DisplayName("IT Codice Fiscale")
@@ -520,7 +642,10 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("format: 16 chars matching pattern")
         void format() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.ITALY) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.ITALY)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 String cf = gen.generate();
                 assertTrue(CF_FORMAT.matcher(cf).matches(), "Bad CF format: " + cf);
@@ -530,7 +655,11 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("day field: male 01-31, female 41-71 — both appear over 1000 samples")
         void dayBothGenders() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.ITALY).seed(80L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.ITALY)
+                    .seed(80L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             boolean seenMale = false, seenFemale = false;
             for (int i = 0; i < 1000; i++) {
                 String cf = gen.generate();
@@ -548,7 +677,11 @@ class NationalIdGeneratorTest {
         void monthCode() {
             Set<Character> validMonths = new HashSet<>();
             for (char c : "ABCDEHLMPRST".toCharArray()) validMonths.add(c);
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.ITALY).seed(81L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.ITALY)
+                    .seed(81L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 char month = gen.generate().charAt(8);
                 assertTrue(validMonths.contains(month), "Invalid month code: " + month);
@@ -558,26 +691,36 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("seeded generator produces reproducible output")
         void seededReproducibility() {
-            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.ITALY).seed(85L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
-            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.ITALY).seed(85L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.ITALY)
+                    .seed(85L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
+            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.ITALY)
+                    .seed(85L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             assertEquals(g1.generateList(20), g2.generateList(20));
         }
     }
 
     // ── BR (CPF) ──────────────────────────────────────────────────────────────
 
-
     @Nested
     @DisplayName("BR CPF")
     class BrTests {
 
         private static final Pattern CPF_FORMAT = Pattern.compile("^\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}$");
-        private static final Pattern CPF_PLAIN  = Pattern.compile("^\\d{11}$");
+        private static final Pattern CPF_PLAIN = Pattern.compile("^\\d{11}$");
 
         @Test
         @DisplayName("default format NNN.NNN.NNN-NN")
         void defaultFormat() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.of("pt", "BR")) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.of("pt", "BR"))
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 assertTrue(CPF_FORMAT.matcher(gen.generate()).matches());
             }
@@ -596,7 +739,11 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("verifier digits are correct")
         void verifierDigitsValid() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.of("pt", "BR")).seed(90L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.of("pt", "BR"))
+                    .seed(90L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 String cpf = gen.generate();
                 assertTrue(NationalIdTier1ValidityTest.BrCpf.isValid(cpf), "Wrong verifier digits in CPF: " + cpf);
@@ -614,21 +761,28 @@ class NationalIdGeneratorTest {
 
             // For sum%11=1: e.g., d[0]=1, startWeight=10 → 1*10=10 → 10%11=10 → 11-10=1 (normal)
             // Need sum%11=1: startWeight=1, d[0]=1: 1*1=1 → 1%11=1 → 11-1=10 ≥ 10 → 0
-            int[] one = { 1 };
+            int[] one = {1};
             assertEquals(0, BrNationalIdProvider.computeVerifier(one, 1)); // 11-1=10≥10→0
         }
 
         @Test
         @DisplayName("seeded generator produces reproducible output")
         void seededReproducibility() {
-            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.of("pt", "BR")).seed(95L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
-            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.of("pt", "BR")).seed(95L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.of("pt", "BR"))
+                    .seed(95L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
+            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.of("pt", "BR"))
+                    .seed(95L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             assertEquals(g1.generateList(20), g2.generateList(20));
         }
     }
 
     // ── CN (Resident ID) ──────────────────────────────────────────────────────
-
 
     @Nested
     @DisplayName("CN Resident ID")
@@ -639,7 +793,10 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("format: 18 chars, last may be X")
         void format() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.CHINA) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.CHINA)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 String id = gen.generate();
                 assertTrue(CN_FORMAT.matcher(id).matches(), "Bad CN ID format: " + id);
@@ -649,7 +806,11 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("region code is in range [100000, 658999]")
         void regionRange() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.CHINA).seed(100L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.CHINA)
+                    .seed(100L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 int region = Integer.parseInt(gen.generate().substring(0, 6));
                 assertTrue(region >= 100000 && region <= 658999, "Region out of range: " + region);
@@ -659,7 +820,11 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("birth year is in range [1940, 2005]")
         void birthYearRange() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.CHINA).seed(101L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.CHINA)
+                    .seed(101L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 int year = Integer.parseInt(gen.generate().substring(6, 10));
                 assertTrue(year >= 1940 && year <= 2005, "Year out of range: " + year);
@@ -671,24 +836,36 @@ class NationalIdGeneratorTest {
         void checkCharValid() {
             // GB 11643-1999 example quoted by Wikipedia "Resident Identity Card".
             assertTrue(NationalIdTier1ValidityTest.CnResidentIdentityNumber.isValid("11010519491231002X"));
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.CHINA).seed(102L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.CHINA)
+                    .seed(102L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             for (int i = 0; i < 200; i++) {
                 String id = gen.generate();
-                assertTrue(NationalIdTier1ValidityTest.CnResidentIdentityNumber.isValid(id), "Wrong check char in: " + id);
+                assertTrue(
+                        NationalIdTier1ValidityTest.CnResidentIdentityNumber.isValid(id), "Wrong check char in: " + id);
             }
         }
 
         @Test
         @DisplayName("seeded generator produces reproducible output")
         void seededReproducibility() {
-            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.CHINA).seed(110L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
-            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.CHINA).seed(110L) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.CHINA)
+                    .seed(110L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
+            NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.CHINA)
+                    .seed(110L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             assertEquals(g1.generateList(20), g2.generateList(20));
         }
     }
 
     // ── Registry / extensibility ──────────────────────────────────────────────
-
 
     @Nested
     @DisplayName("NationalIdRegistry")
@@ -697,7 +874,10 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("language-only fallback works; a foreign country never borrows the language's identifier")
         void languageOnlyFallback() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.ENGLISH) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.ENGLISH)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             assertNotNull(gen.generate());
             assertFalse(NationalIdRegistry.isRegistered(Locale.of("en", "ZZ")));
         }
@@ -706,8 +886,11 @@ class NationalIdGeneratorTest {
         @DisplayName("unsupported locale throws UnsupportedOperationException")
         void unsupportedLocaleThrows() {
             UnsupportedOperationException ex = assertThrows(
-                UnsupportedOperationException.class,
-                () -> new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.of("xx", "YY")) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()));
+                    UnsupportedOperationException.class,
+                    () -> new NationalIdGenerator(GeneratorConfig.builder()
+                            .locale(Locale.of("xx", "YY"))
+                            .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                            .build()));
             assertTrue(ex.getMessage().contains("not supported"));
         }
 
@@ -779,16 +962,17 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("getLocale() returns the configured locale")
         void getLocale() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.GERMANY) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.GERMANY)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             assertEquals(Locale.GERMANY, gen.getLocale());
         }
-
 
         @Test
         @DisplayName("null config constructor throws NullPointerException")
         void nullConfigThrows() {
-            assertThrows(NullPointerException.class,
-                         () -> new NationalIdGenerator((GeneratorConfig) null));
+            assertThrows(NullPointerException.class, () -> new NationalIdGenerator((GeneratorConfig) null));
         }
 
         @Test
@@ -796,26 +980,26 @@ class NationalIdGeneratorTest {
         void configConstructorUsesScopedContext() {
             Locale locale = Locale.CANADA;
             DataRegistryContext context = DataRegistryContext.builder()
-                                                             .isolated()
-                                                             .registerNationalIdProvider(new NationalIdProvider() {
-                                                                 @Override
-                                                                 public Locale getLocale() {
-                                                                     return locale;
-                                                                 }
+                    .isolated()
+                    .register(Vocabulary.NATIONAL_ID, new NationalIdProvider() {
+                        @Override
+                        public Locale getLocale() {
+                            return locale;
+                        }
 
-                                                                 @Override
-                                                                 public String generate(Random random) {
-                                                                     return "CA-ID";
-                                                                 }
-                                                             })
-                                                             .build();
+                        @Override
+                        public String generate(Random random) {
+                            return "CA-ID";
+                        }
+                    })
+                    .build();
 
             GeneratorConfig config = GeneratorConfig.builder()
-                                                    .locale(locale)
-                                                    .registryContext(context)
-                                                    .seed(7L)
-                                                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                    .build();
+                    .locale(locale)
+                    .registryContext(context)
+                    .seed(7L)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build();
             NationalIdGenerator generator = new NationalIdGenerator(config);
             assertEquals(locale, generator.getLocale());
             assertEquals("CA-ID", generator.generate());
@@ -825,19 +1009,22 @@ class NationalIdGeneratorTest {
         @DisplayName("config constructor fails when locale is not registered in scoped context")
         void configConstructorRejectsMissingLocale() {
             GeneratorConfig config = GeneratorConfig.builder()
-                                                    .locale(Locale.US)
-                                                    .registryContext(DataRegistryContext.builder().isolated().build())
-                                                    .build();
+                    .locale(Locale.US)
+                    .registryContext(DataRegistryContext.builder().isolated().build())
+                    .build();
 
-            UnsupportedOperationException ex = assertThrows(UnsupportedOperationException.class,
-                                                            () -> new NationalIdGenerator(config));
+            UnsupportedOperationException ex =
+                    assertThrows(UnsupportedOperationException.class, () -> new NationalIdGenerator(config));
             assertTrue(ex.getMessage().contains("Locale en_US is not supported"));
         }
 
         @Test
         @DisplayName("generateList returns correct count")
         void generateListCount() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.US) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.US)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             List<String> ids = gen.generateList(25);
             assertEquals(25, ids.size());
             ids.forEach(id -> assertNotNull(id));
@@ -846,7 +1033,10 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("stream generates continuous values")
         void streamGeneration() {
-            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder().locale(Locale.US) .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED) .build());
+            NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
+                    .locale(Locale.US)
+                    .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             List<String> ids = gen.stream().limit(20).toList();
             assertEquals(20, ids.size());
         }

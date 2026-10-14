@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import io.github.frikit.krandom.generator.user.LocaleTextResourceLoader;
-
 import java.util.List;
 import java.util.Locale;
 
@@ -23,8 +22,7 @@ final class BuiltInFinancialTermDataProvider implements FinancialTermDataProvide
     private final List<String> terms;
 
     BuiltInFinancialTermDataProvider(SupportedLocale supportedLocale) {
-        this(supportedLocale.locale(),
-            "krandom/financial_terms/" + supportedLocale.resourcePrefix() + ".txt");
+        this(supportedLocale.locale(), "krandom/financial_terms/" + supportedLocale.resourcePrefix() + ".txt");
     }
 
     BuiltInFinancialTermDataProvider(Locale locale, String resourcePath) {

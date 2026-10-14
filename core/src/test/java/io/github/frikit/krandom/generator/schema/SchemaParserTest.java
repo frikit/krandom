@@ -5,16 +5,6 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -22,6 +12,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("SchemaParser")
 class SchemaParserTest {
@@ -37,52 +36,48 @@ class SchemaParserTest {
         @Test
         @DisplayName("rejects null schema")
         void rejectsNullSchema() {
-            assertThrows(NullPointerException.class,
-                () -> SchemaParser.fromJsonSchema(null));
+            assertThrows(NullPointerException.class, () -> SchemaParser.fromJsonSchema(null));
         }
 
         @Test
         @DisplayName("rejects null config")
         void rejectsNullConfig() {
-            assertThrows(NullPointerException.class,
-                () -> SchemaParser.fromJsonSchema(Map.of(), null));
+            assertThrows(NullPointerException.class, () -> SchemaParser.fromJsonSchema(Map.of(), null));
         }
 
         @Test
         @DisplayName("rejects non-object type")
         void rejectsNonObjectType() {
-            var ex = assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(Map.of("type", "string")));
+            var ex = assertThrows(
+                    IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(Map.of("type", "string")));
             assertTrue(ex.getMessage().contains("\"type\": \"object\""));
         }
 
         @Test
         @DisplayName("rejects missing type")
         void rejectsMissingType() {
-            assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(Map.of("properties", Map.of())));
+            assertThrows(
+                    IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(Map.of("properties", Map.of())));
         }
 
         @Test
         @DisplayName("rejects missing properties")
         void rejectsMissingProperties() {
-            assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(Map.of("type", "object")));
+            assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(Map.of("type", "object")));
         }
 
         @Test
         @DisplayName("rejects non-map properties")
         void rejectsNonMapProperties() {
-            assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(
-                    Map.of("type", "object", "properties", "not-a-map")));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(Map.of("type", "object", "properties", "not-a-map")));
         }
 
         @Test
         @DisplayName("rejects empty properties")
         void rejectsEmptyProperties() {
-            assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(objectSchema(Map.of())));
+            assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(objectSchema(Map.of())));
         }
 
         @Test
@@ -93,8 +88,7 @@ class SchemaParserTest {
             Map<String, Object> schema = new HashMap<>();
             schema.put("type", "object");
             schema.put("properties", properties);
-            assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(schema));
+            assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(schema));
         }
 
         @Test
@@ -102,49 +96,52 @@ class SchemaParserTest {
         void rejectsNonMapPropertyValue() {
             Map<String, Object> properties = new HashMap<>();
             properties.put("name", "not-a-schema");
-            assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(objectSchema(properties)));
+            assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(objectSchema(properties)));
         }
 
         @Test
         @DisplayName("rejects a non-string format with its schema path")
         void rejectsNonStringFormat() {
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(objectSchema(
-                    Map.of("value", Map.of("type", "string", "format", 42)))));
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(
+                            objectSchema(Map.of("value", Map.of("type", "string", "format", 42)))));
             assertTrue(exception.getMessage().contains("$.properties.value"));
         }
 
         @Test
         @DisplayName("rejects unsupported type names with their schema path")
         void rejectsUnsupportedType() {
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(objectSchema(
-                    Map.of("value", Map.of("type", "binary")))));
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("value", Map.of("type", "binary")))));
             assertTrue(exception.getMessage().contains("$.properties.value"));
         }
 
         @Test
         @DisplayName("rejects type lists containing multiple concrete types")
         void rejectsMultipleConcreteTypes() {
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(objectSchema(
-                    Map.of("value", Map.of("type", List.of("string", "integer"))))));
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(
+                            objectSchema(Map.of("value", Map.of("type", List.of("string", "integer"))))));
             assertTrue(exception.getMessage().contains("$.properties.value"));
         }
 
         @Test
         @DisplayName("rejects references and composition keywords with their schema path")
         void rejectsUnsupportedReferencesAndCompositions() {
-            IllegalArgumentException reference = assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(objectSchema(
-                    Map.of("address", Map.of("$ref", "#/components/schemas/Address")))));
+            IllegalArgumentException reference = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(
+                            objectSchema(Map.of("address", Map.of("$ref", "#/components/schemas/Address")))));
             assertTrue(reference.getMessage().contains("$ref"));
             assertTrue(reference.getMessage().contains("$.properties.address"));
 
-            IllegalArgumentException composition = assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(objectSchema(
-                    Map.of("status", Map.of("allOf", List.of(Map.of("type", "string")))))));
+            IllegalArgumentException composition = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(objectSchema(
+                            Map.of("status", Map.of("allOf", List.of(Map.of("type", "string")))))));
             assertTrue(composition.getMessage().contains("allOf"));
             assertTrue(composition.getMessage().contains("$.properties.status"));
         }
@@ -152,9 +149,10 @@ class SchemaParserTest {
         @Test
         @DisplayName("rejects unsupported array items and cyclic schema maps with their path")
         void rejectsUnsupportedItemsAndCyclicMaps() {
-            IllegalArgumentException items = assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(objectSchema(
-                    Map.of("tags", Map.of("type", "array", "items", Map.of("oneOf", List.of()))))));
+            IllegalArgumentException items = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(objectSchema(
+                            Map.of("tags", Map.of("type", "array", "items", Map.of("oneOf", List.of()))))));
             assertTrue(items.getMessage().contains("oneOf"));
             assertTrue(items.getMessage().contains("$.properties.tags.items"));
 
@@ -163,8 +161,8 @@ class SchemaParserTest {
             recursive.put("type", "object");
             recursive.put("properties", properties);
             properties.put("self", recursive);
-            IllegalArgumentException cycle = assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(recursive));
+            IllegalArgumentException cycle =
+                    assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(recursive));
             assertTrue(cycle.getMessage().contains("Recursive JSON Schema map"));
             assertTrue(cycle.getMessage().contains("$.properties.self"));
         }
@@ -173,11 +171,16 @@ class SchemaParserTest {
         @DisplayName("accepts the JSON Schema control keywords emitted by krandom exports")
         void acceptsKrandomExportControlKeywords() {
             assertDoesNotThrow(() -> SchemaParser.fromJsonSchema(Map.of(
-                "$schema", "https://json-schema.org/draft/2020-12/schema",
-                "type", "object",
-                "additionalProperties", false,
-                "required", List.of("name"),
-                "properties", Map.of("name", Map.of("type", "string")))));
+                    "$schema",
+                    "https://json-schema.org/draft/2020-12/schema",
+                    "type",
+                    "object",
+                    "additionalProperties",
+                    false,
+                    "required",
+                    List.of("name"),
+                    "properties",
+                    Map.of("name", Map.of("type", "string")))));
         }
     }
 
@@ -188,8 +191,7 @@ class SchemaParserTest {
         @Test
         @DisplayName("generates plain strings")
         void plainString() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("data", Map.of("type", "string"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("data", Map.of("type", "string"))));
             Map<String, Object> record = schema.generate();
             assertInstanceOf(String.class, record.get("data"));
         }
@@ -197,8 +199,8 @@ class SchemaParserTest {
         @Test
         @DisplayName("respects minLength and maxLength")
         void boundedString() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("code", Map.of("type", "string", "minLength", 5, "maxLength", 5))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("code", Map.of("type", "string", "minLength", 5, "maxLength", 5))));
             for (int i = 0; i < 10; i++) {
                 String value = (String) schema.generate().get("code");
                 assertEquals(5, value.length());
@@ -209,8 +211,8 @@ class SchemaParserTest {
         @DisplayName("generates from regex pattern")
         void regexPattern() {
             // Use a non-semantic field name so pattern resolution in resolveString is exercised
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("code123", Map.of("type", "string", "pattern", "\\d{5}"))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("code123", Map.of("type", "string", "pattern", "\\d{5}"))));
             for (int i = 0; i < 10; i++) {
                 String value = (String) schema.generate().get("code123");
                 assertTrue(value.matches("\\d{5}"), "Expected 5 digits, got: " + value);
@@ -225,8 +227,7 @@ class SchemaParserTest {
             fieldSchema.put("type", "string");
             fieldSchema.put("pattern", "[A-Z]{3}");
             fieldSchema.put("format", "email");
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("xyzField", fieldSchema)));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("xyzField", fieldSchema)));
             String value = (String) schema.generate().get("xyzField");
             assertTrue(value.matches("[A-Z]{3}"), "Expected 3 uppercase, got: " + value);
         }
@@ -234,8 +235,8 @@ class SchemaParserTest {
         @Test
         @DisplayName("format: email")
         void formatEmail() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("mail", Map.of("type", "string", "format", "email"))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("mail", Map.of("type", "string", "format", "email"))));
             String value = (String) schema.generate().get("mail");
             assertTrue(value.contains("@"), "Expected email, got: " + value);
         }
@@ -243,8 +244,8 @@ class SchemaParserTest {
         @Test
         @DisplayName("format: uri")
         void formatUri() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("link", Map.of("type", "string", "format", "uri"))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("link", Map.of("type", "string", "format", "uri"))));
             String value = (String) schema.generate().get("link");
             assertNotNull(value);
             assertTrue(value.contains("://"), "Expected URI, got: " + value);
@@ -253,8 +254,8 @@ class SchemaParserTest {
         @Test
         @DisplayName("format: url alias")
         void formatUrl() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("link", Map.of("type", "string", "format", "url"))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("link", Map.of("type", "string", "format", "url"))));
             String value = (String) schema.generate().get("link");
             assertTrue(value.contains("://"), "Expected URL, got: " + value);
         }
@@ -262,29 +263,28 @@ class SchemaParserTest {
         @Test
         @DisplayName("format: uuid")
         void formatUuid() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("identifier", Map.of("type", "string", "format", "uuid"))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("identifier", Map.of("type", "string", "format", "uuid"))));
             String value = (String) schema.generate().get("identifier");
-            assertTrue(value.matches(
-                "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"),
-                "Expected UUID, got: " + value);
+            assertTrue(
+                    value.matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"),
+                    "Expected UUID, got: " + value);
         }
 
         @Test
         @DisplayName("format: date")
         void formatDate() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("dob", Map.of("type", "string", "format", "date"))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("dob", Map.of("type", "string", "format", "date"))));
             String value = (String) schema.generate().get("dob");
-            assertTrue(value.matches("\\d{4}-\\d{2}-\\d{2}"),
-                "Expected date, got: " + value);
+            assertTrue(value.matches("\\d{4}-\\d{2}-\\d{2}"), "Expected date, got: " + value);
         }
 
         @Test
         @DisplayName("format: date-time")
         void formatDateTime() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("ts", Map.of("type", "string", "format", "date-time"))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("ts", Map.of("type", "string", "format", "date-time"))));
             String value = (String) schema.generate().get("ts");
             assertNotNull(value);
             assertTrue(value.contains("T"), "Expected date-time, got: " + value);
@@ -293,28 +293,26 @@ class SchemaParserTest {
         @Test
         @DisplayName("format: time")
         void formatTime() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("clock", Map.of("type", "string", "format", "time"))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("clock", Map.of("type", "string", "format", "time"))));
             String value = (String) schema.generate().get("clock");
-            assertTrue(value.matches("\\d{2}:\\d{2}(:\\d{2}.*)?"),
-                "Expected time, got: " + value);
+            assertTrue(value.matches("\\d{2}:\\d{2}(:\\d{2}.*)?"), "Expected time, got: " + value);
         }
 
         @Test
         @DisplayName("format: ipv4")
         void formatIpv4() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("addr", Map.of("type", "string", "format", "ipv4"))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("addr", Map.of("type", "string", "format", "ipv4"))));
             String value = (String) schema.generate().get("addr");
-            assertTrue(value.matches("\\d+\\.\\d+\\.\\d+\\.\\d+"),
-                "Expected IPv4, got: " + value);
+            assertTrue(value.matches("\\d+\\.\\d+\\.\\d+\\.\\d+"), "Expected IPv4, got: " + value);
         }
 
         @Test
         @DisplayName("format: ipv6")
         void formatIpv6() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("addr6", Map.of("type", "string", "format", "ipv6"))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("addr6", Map.of("type", "string", "format", "ipv6"))));
             String value = (String) schema.generate().get("addr6");
             assertTrue(value.contains(":"), "Expected IPv6, got: " + value);
         }
@@ -322,8 +320,8 @@ class SchemaParserTest {
         @Test
         @DisplayName("format: hostname")
         void formatHostname() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("host", Map.of("type", "string", "format", "hostname"))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("host", Map.of("type", "string", "format", "hostname"))));
             String value = (String) schema.generate().get("host");
             assertTrue(value.contains("."), "Expected hostname, got: " + value);
         }
@@ -331,8 +329,8 @@ class SchemaParserTest {
         @Test
         @DisplayName("unknown format falls through to semantic or default string")
         void unknownFormat() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("data", Map.of("type", "string", "format", "unknown-custom"))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("data", Map.of("type", "string", "format", "unknown-custom"))));
             Object value = schema.generate().get("data");
             assertInstanceOf(String.class, value);
         }
@@ -345,8 +343,7 @@ class SchemaParserTest {
         @Test
         @DisplayName("generates integers with defaults")
         void defaultInteger() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("count", Map.of("type", "integer"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("count", Map.of("type", "integer"))));
             Object value = schema.generate().get("count");
             assertInstanceOf(Number.class, value);
         }
@@ -354,12 +351,11 @@ class SchemaParserTest {
         @Test
         @DisplayName("respects minimum and maximum")
         void boundedInteger() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("score", Map.of("type", "integer", "minimum", 10, "maximum", 20))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("score", Map.of("type", "integer", "minimum", 10, "maximum", 20))));
             for (int i = 0; i < 50; i++) {
                 int value = ((Number) schema.generate().get("score")).intValue();
-                assertTrue(value >= 10 && value <= 20,
-                    "Expected 10-20, got: " + value);
+                assertTrue(value >= 10 && value <= 20, "Expected 10-20, got: " + value);
             }
         }
 
@@ -367,12 +363,10 @@ class SchemaParserTest {
         @DisplayName("respects exclusiveMinimum and exclusiveMaximum")
         void exclusiveBounds() {
             Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("val", Map.of("type", "integer",
-                    "exclusiveMinimum", 0, "exclusiveMaximum", 3))));
+                    Map.of("val", Map.of("type", "integer", "exclusiveMinimum", 0, "exclusiveMaximum", 3))));
             for (int i = 0; i < 50; i++) {
                 int value = ((Number) schema.generate().get("val")).intValue();
-                assertTrue(value >= 1 && value <= 2,
-                    "Expected 1-2, got: " + value);
+                assertTrue(value >= 1 && value <= 2, "Expected 1-2, got: " + value);
             }
         }
 
@@ -387,8 +381,8 @@ class SchemaParserTest {
             Object value = schema.generate().get("big");
             assertInstanceOf(Number.class, value);
             long longVal = ((Number) value).longValue();
-            assertTrue(longVal >= bigMin && longVal <= bigMax,
-                "Expected " + bigMin + "-" + bigMax + ", got: " + longVal);
+            assertTrue(
+                    longVal >= bigMin && longVal <= bigMax, "Expected " + bigMin + "-" + bigMax + ", got: " + longVal);
         }
     }
 
@@ -399,8 +393,7 @@ class SchemaParserTest {
         @Test
         @DisplayName("generates doubles with defaults")
         void defaultNumber() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("price", Map.of("type", "number"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("price", Map.of("type", "number"))));
             Object value = schema.generate().get("price");
             assertInstanceOf(Number.class, value);
         }
@@ -408,12 +401,11 @@ class SchemaParserTest {
         @Test
         @DisplayName("respects minimum and maximum")
         void boundedNumber() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("rate", Map.of("type", "number", "minimum", 0.0, "maximum", 1.0))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("rate", Map.of("type", "number", "minimum", 0.0, "maximum", 1.0))));
             for (int i = 0; i < 50; i++) {
                 double value = ((Number) schema.generate().get("rate")).doubleValue();
-                assertTrue(value >= 0.0 && value <= 1.0,
-                    "Expected 0.0-1.0, got: " + value);
+                assertTrue(value >= 0.0 && value <= 1.0, "Expected 0.0-1.0, got: " + value);
             }
         }
 
@@ -421,12 +413,10 @@ class SchemaParserTest {
         @DisplayName("respects exclusiveMinimum and exclusiveMaximum")
         void exclusiveBounds() {
             Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("temp", Map.of("type", "number",
-                    "exclusiveMinimum", 0.0, "exclusiveMaximum", 100.0))));
+                    Map.of("temp", Map.of("type", "number", "exclusiveMinimum", 0.0, "exclusiveMaximum", 100.0))));
             for (int i = 0; i < 20; i++) {
                 double value = ((Number) schema.generate().get("temp")).doubleValue();
-                assertTrue(value > 0.0 && value < 100.0,
-                    "Expected >0 and <100, got: " + value);
+                assertTrue(value > 0.0 && value < 100.0, "Expected >0 and <100, got: " + value);
             }
         }
     }
@@ -438,8 +428,7 @@ class SchemaParserTest {
         @Test
         @DisplayName("generates booleans")
         void generateBoolean() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("active", Map.of("type", "boolean"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("active", Map.of("type", "boolean"))));
             Object value = schema.generate().get("active");
             assertInstanceOf(Boolean.class, value);
         }
@@ -452,8 +441,7 @@ class SchemaParserTest {
         @Test
         @DisplayName("generates null values")
         void generateNull() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("nothing", Map.of("type", "null"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("nothing", Map.of("type", "null"))));
             assertNull(schema.generate().get("nothing"));
         }
     }
@@ -465,8 +453,8 @@ class SchemaParserTest {
         @Test
         @DisplayName("const always returns the constant value")
         void constValue() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("status", Map.of("type", "string", "const", "active"))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("status", Map.of("type", "string", "const", "active"))));
             for (int i = 0; i < 10; i++) {
                 assertEquals("active", schema.generate().get("status"));
             }
@@ -479,8 +467,7 @@ class SchemaParserTest {
             fieldSchema.put("type", "string");
             fieldSchema.put("const", "fixed");
             fieldSchema.put("enum", List.of("a", "b", "c"));
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("val", fieldSchema)));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("val", fieldSchema)));
             assertEquals("fixed", schema.generate().get("val"));
         }
 
@@ -491,12 +478,10 @@ class SchemaParserTest {
             Map<String, Object> fieldSchema = new HashMap<>();
             fieldSchema.put("type", "string");
             fieldSchema.put("enum", options);
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("color", fieldSchema)));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("color", fieldSchema)));
             for (int i = 0; i < 20; i++) {
                 Object value = schema.generate().get("color");
-                assertTrue(options.contains(value),
-                    "Expected one of " + options + ", got: " + value);
+                assertTrue(options.contains(value), "Expected one of " + options + ", got: " + value);
             }
         }
 
@@ -506,8 +491,9 @@ class SchemaParserTest {
             Map<String, Object> fieldSchema = new HashMap<>();
             fieldSchema.put("type", "string");
             fieldSchema.put("enum", List.of());
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("data", fieldSchema))));
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("data", fieldSchema))));
             assertTrue(exception.getMessage().contains("$.properties.data"));
         }
     }
@@ -521,8 +507,7 @@ class SchemaParserTest {
         void typedItems() {
             Map<String, Object> items = Map.of("type", "integer", "minimum", 1, "maximum", 100);
             Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("scores", Map.of("type", "array", "items", items,
-                    "minItems", 3, "maxItems", 3))));
+                    Map.of("scores", Map.of("type", "array", "items", items, "minItems", 3, "maxItems", 3))));
             @SuppressWarnings("unchecked")
             List<Object> list = (List<Object>) schema.generate().get("scores");
             assertEquals(3, list.size());
@@ -534,8 +519,8 @@ class SchemaParserTest {
         @Test
         @DisplayName("defaults to string items when items not specified")
         void defaultItems() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("tags", Map.of("type", "array", "minItems", 2, "maxItems", 2))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("tags", Map.of("type", "array", "minItems", 2, "maxItems", 2))));
             @SuppressWarnings("unchecked")
             List<Object> list = (List<Object>) schema.generate().get("tags");
             assertEquals(2, list.size());
@@ -547,15 +532,13 @@ class SchemaParserTest {
         @Test
         @DisplayName("respects minItems and maxItems range")
         void itemCountRange() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("items", Map.of("type", "array",
-                    "items", Map.of("type", "string"),
-                    "minItems", 1, "maxItems", 5))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of(
+                    "items",
+                    Map.of("type", "array", "items", Map.of("type", "string"), "minItems", 1, "maxItems", 5))));
             for (int i = 0; i < 20; i++) {
                 @SuppressWarnings("unchecked")
                 List<Object> list = (List<Object>) schema.generate().get("items");
-                assertTrue(list.size() >= 1 && list.size() <= 5,
-                    "Expected 1-5 items, got: " + list.size());
+                assertTrue(list.size() >= 1 && list.size() <= 5, "Expected 1-5 items, got: " + list.size());
             }
         }
     }
@@ -568,13 +551,11 @@ class SchemaParserTest {
         @DisplayName("generates nested objects")
         void nestedObject() {
             Map<String, Object> addressProps = Map.of(
-                "street", Map.of("type", "string"),
-                "zip", Map.of("type", "string", "pattern", "\\d{5}"));
-            Map<String, Object> address = Map.of(
-                "type", "object", "properties", addressProps);
+                    "street", Map.of("type", "string"),
+                    "zip", Map.of("type", "string", "pattern", "\\d{5}"));
+            Map<String, Object> address = Map.of("type", "object", "properties", addressProps);
 
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("address", address)));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("address", address)));
             @SuppressWarnings("unchecked")
             Map<String, Object> nested = (Map<String, Object>) schema.generate().get("address");
             assertNotNull(nested);
@@ -585,8 +566,7 @@ class SchemaParserTest {
         @Test
         @DisplayName("nested object without properties returns empty map")
         void emptyNestedObject() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("meta", Map.of("type", "object"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("meta", Map.of("type", "object"))));
             @SuppressWarnings("unchecked")
             Map<String, Object> nested = (Map<String, Object>) schema.generate().get("meta");
             assertNotNull(nested);
@@ -596,8 +576,8 @@ class SchemaParserTest {
         @Test
         @DisplayName("nested object with empty properties returns empty map")
         void emptyPropertiesNestedObject() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("meta", Map.of("type", "object", "properties", Map.of()))));
+            Schema schema = SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("meta", Map.of("type", "object", "properties", Map.of()))));
             @SuppressWarnings("unchecked")
             Map<String, Object> nested = (Map<String, Object>) schema.generate().get("meta");
             assertNotNull(nested);
@@ -617,8 +597,7 @@ class SchemaParserTest {
             fieldSchema.put("nullable", true);
             // Use a single Schema and call generate() many times;
             // over 200 calls at ~50% probability we expect both null and non-null
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("data", fieldSchema)));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("data", fieldSchema)));
             boolean gotNull = false;
             boolean gotNonNull = false;
             for (int i = 0; i < 200 && !(gotNull && gotNonNull); i++) {
@@ -641,8 +620,7 @@ class SchemaParserTest {
         @Test
         @DisplayName("resolves firstName to person name")
         void firstName() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("firstName", Map.of("type", "string"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("firstName", Map.of("type", "string"))));
             String value = (String) schema.generate().get("firstName");
             assertNotNull(value);
             assertTrue(value.length() > 0);
@@ -651,8 +629,7 @@ class SchemaParserTest {
         @Test
         @DisplayName("resolves email to email address")
         void email() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("email", Map.of("type", "string"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("email", Map.of("type", "string"))));
             String value = (String) schema.generate().get("email");
             assertTrue(value.contains("@"), "Expected email, got: " + value);
         }
@@ -660,8 +637,7 @@ class SchemaParserTest {
         @Test
         @DisplayName("resolves city semantically")
         void city() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("city", Map.of("type", "string"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("city", Map.of("type", "string"))));
             String value = (String) schema.generate().get("city");
             assertNotNull(value);
             assertTrue(value.length() > 0);
@@ -670,8 +646,7 @@ class SchemaParserTest {
         @Test
         @DisplayName("resolves snake_case field names")
         void snakeCase() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("last_name", Map.of("type", "string"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("last_name", Map.of("type", "string"))));
             String value = (String) schema.generate().get("last_name");
             assertNotNull(value);
             assertTrue(value.length() > 0);
@@ -680,8 +655,7 @@ class SchemaParserTest {
         @Test
         @DisplayName("resolves camelCase field names")
         void camelCase() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("lastName", Map.of("type", "string"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("lastName", Map.of("type", "string"))));
             String value = (String) schema.generate().get("lastName");
             assertNotNull(value);
             assertTrue(value.length() > 0);
@@ -699,19 +673,17 @@ class SchemaParserTest {
             Schema schema = SchemaParser.fromJsonSchema(objectSchema(props));
             Map<String, Object> record = schema.generate();
             for (Map.Entry<String, Object> entry : record.entrySet()) {
-                assertNotNull(entry.getValue(),
-                    "Field '" + entry.getKey() + "' should not be null");
+                assertNotNull(entry.getValue(), "Field '" + entry.getKey() + "' should not be null");
                 assertInstanceOf(String.class, entry.getValue());
-                assertTrue(((String) entry.getValue()).length() > 0,
-                    "Field '" + entry.getKey() + "' should not be empty");
+                assertTrue(
+                        ((String) entry.getValue()).length() > 0, "Field '" + entry.getKey() + "' should not be empty");
             }
         }
 
         @Test
         @DisplayName("non-semantic field name falls back to generic string")
         void nonSemanticField() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("xyzAbcQwerty", Map.of("type", "string"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("xyzAbcQwerty", Map.of("type", "string"))));
             Object value = schema.generate().get("xyzAbcQwerty");
             assertInstanceOf(String.class, value);
         }
@@ -726,8 +698,7 @@ class SchemaParserTest {
         void firstNonNullType() {
             Map<String, Object> fieldSchema = new HashMap<>();
             fieldSchema.put("type", List.of("null", "integer"));
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("val", fieldSchema)));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("val", fieldSchema)));
             Object value = schema.generate().get("val");
             assertInstanceOf(Number.class, value);
         }
@@ -737,8 +708,7 @@ class SchemaParserTest {
         void allNullTypeList() {
             Map<String, Object> fieldSchema = new HashMap<>();
             fieldSchema.put("type", List.of("null"));
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("val", fieldSchema)));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("val", fieldSchema)));
             assertNull(schema.generate().get("val"));
         }
     }
@@ -750,8 +720,7 @@ class SchemaParserTest {
         @Test
         @DisplayName("field without type uses semantic resolution or string fallback")
         void noType() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("xyzUnknown", Map.of())));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("xyzUnknown", Map.of())));
             Object value = schema.generate().get("xyzUnknown");
             assertInstanceOf(String.class, value);
         }
@@ -760,8 +729,7 @@ class SchemaParserTest {
         @DisplayName("untyped field with semantic name resolves semantically")
         void untypedSemantic() {
             Map<String, Object> emptySchema = new HashMap<>();
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("email", emptySchema)));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("email", emptySchema)));
             String value = (String) schema.generate().get("email");
             assertTrue(value.contains("@"), "Expected email, got: " + value);
         }
@@ -774,8 +742,7 @@ class SchemaParserTest {
         @Test
         @DisplayName("fromOpenApi delegates to fromJsonSchema")
         void fromOpenApi() {
-            Schema schema = SchemaParser.fromOpenApi(objectSchema(
-                Map.of("data", Map.of("type", "string"))));
+            Schema schema = SchemaParser.fromOpenApi(objectSchema(Map.of("data", Map.of("type", "string"))));
             Object value = schema.generate().get("data");
             assertInstanceOf(String.class, value);
         }
@@ -784,8 +751,7 @@ class SchemaParserTest {
         @DisplayName("fromOpenApi with config delegates to fromJsonSchema")
         void fromOpenApiWithConfig() {
             GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
-            Schema schema = SchemaParser.fromOpenApi(objectSchema(
-                Map.of("data", Map.of("type", "string"))), config);
+            Schema schema = SchemaParser.fromOpenApi(objectSchema(Map.of("data", Map.of("type", "string"))), config);
             Object value = schema.generate().get("data");
             assertInstanceOf(String.class, value);
         }
@@ -799,8 +765,8 @@ class SchemaParserTest {
         @DisplayName("parsed schema generates non-null values consistently")
         void parsedSchemaGeneratesValues() {
             Map<String, Object> schemaMap = objectSchema(Map.of(
-                "label", Map.of("type", "string"),
-                "score", Map.of("type", "integer", "minimum", 1, "maximum", 100)));
+                    "label", Map.of("type", "string"),
+                    "score", Map.of("type", "integer", "minimum", 1, "maximum", 100)));
 
             Schema schema = SchemaParser.fromJsonSchema(schemaMap);
             for (int i = 0; i < 10; i++) {
@@ -808,8 +774,7 @@ class SchemaParserTest {
                 assertNotNull(record.get("label"));
                 assertInstanceOf(String.class, record.get("label"));
                 int score = ((Number) record.get("score")).intValue();
-                assertTrue(score >= 1 && score <= 100,
-                    "Expected 1-100, got: " + score);
+                assertTrue(score >= 1 && score <= 100, "Expected 1-100, got: " + score);
             }
         }
     }
@@ -822,11 +787,10 @@ class SchemaParserTest {
         @DisplayName("parses a full user schema with all types")
         void fullUserSchema() {
             Map<String, Object> addressProps = Map.of(
-                "street", Map.of("type", "string"),
-                "city", Map.of("type", "string"),
-                "zip", Map.of("type", "string", "pattern", "\\d{5}"));
-            Map<String, Object> address = Map.of(
-                "type", "object", "properties", addressProps);
+                    "street", Map.of("type", "string"),
+                    "city", Map.of("type", "string"),
+                    "zip", Map.of("type", "string", "pattern", "\\d{5}"));
+            Map<String, Object> address = Map.of("type", "object", "properties", addressProps);
 
             Map<String, Object> tagItems = Map.of("type", "string");
 
@@ -836,11 +800,9 @@ class SchemaParserTest {
             props.put("age", Map.of("type", "integer", "minimum", 18, "maximum", 65));
             props.put("score", Map.of("type", "number", "minimum", 0.0, "maximum", 100.0));
             props.put("active", Map.of("type", "boolean"));
-            props.put("tags", Map.of("type", "array", "items", tagItems,
-                "minItems", 1, "maxItems", 3));
+            props.put("tags", Map.of("type", "array", "items", tagItems, "minItems", 1, "maxItems", 3));
             props.put("address", address);
-            props.put("status", Map.of("type", "string", "enum",
-                List.of("active", "inactive", "pending")));
+            props.put("status", Map.of("type", "string", "enum", List.of("active", "inactive", "pending")));
             props.put("version", Map.of("type", "string", "const", "1.0"));
 
             Schema schema = SchemaParser.fromJsonSchema(objectSchema(props));
@@ -860,8 +822,7 @@ class SchemaParserTest {
             Map<String, Object> addr = (Map<String, Object>) record.get("address");
             assertNotNull(addr.get("street"));
             assertTrue(((String) addr.get("zip")).matches("\\d{5}"));
-            assertTrue(List.of("active", "inactive", "pending")
-                .contains(record.get("status")));
+            assertTrue(List.of("active", "inactive", "pending").contains(record.get("status")));
             assertEquals("1.0", record.get("version"));
         }
     }
@@ -873,8 +834,7 @@ class SchemaParserTest {
         @Test
         @DisplayName("single-arg fromJsonSchema uses default config")
         void defaultConfig() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("val", Map.of("type", "string"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("val", Map.of("type", "string"))));
             assertDoesNotThrow(schema::generate);
         }
     }
@@ -895,24 +855,21 @@ class SchemaParserTest {
         @Test
         @DisplayName("resolves phone and phoneNumber")
         void phoneNumber() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("phoneNumber", Map.of("type", "string"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("phoneNumber", Map.of("type", "string"))));
             assertInstanceOf(String.class, schema.generate().get("phoneNumber"));
         }
 
         @Test
         @DisplayName("resolves age")
         void age() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("age", Map.of("type", "string"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("age", Map.of("type", "string"))));
             assertNotNull(schema.generate().get("age"));
         }
 
         @Test
         @DisplayName("resolves state")
         void state() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("state", Map.of("type", "string"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("state", Map.of("type", "string"))));
             assertNotNull(schema.generate().get("state"));
         }
 
@@ -971,8 +928,7 @@ class SchemaParserTest {
         @Test
         @DisplayName("resolves website")
         void website() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("website", Map.of("type", "string"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("website", Map.of("type", "string"))));
             assertNotNull(schema.generate().get("website"));
         }
 
@@ -991,8 +947,7 @@ class SchemaParserTest {
         @Test
         @DisplayName("resolves domain")
         void domain() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("domain", Map.of("type", "string"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("domain", Map.of("type", "string"))));
             assertNotNull(schema.generate().get("domain"));
         }
 
@@ -1011,8 +966,7 @@ class SchemaParserTest {
         @Test
         @DisplayName("resolves emailAddress")
         void emailAddress() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("emailAddress", Map.of("type", "string"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("emailAddress", Map.of("type", "string"))));
             String value = (String) schema.generate().get("emailAddress");
             assertTrue(value.contains("@"), "Expected email, got: " + value);
         }
@@ -1020,16 +974,14 @@ class SchemaParserTest {
         @Test
         @DisplayName("resolves zipCode")
         void zipCode() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("zipCode", Map.of("type", "string"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("zipCode", Map.of("type", "string"))));
             assertNotNull(schema.generate().get("zipCode"));
         }
 
         @Test
         @DisplayName("resolves id semantically")
         void id() {
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("id", Map.of("type", "string"))));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("id", Map.of("type", "string"))));
             assertNotNull(schema.generate().get("id"));
         }
     }
@@ -1044,11 +996,9 @@ class SchemaParserTest {
             Map<String, Object> fieldSchema = new HashMap<>();
             fieldSchema.put("type", "string");
             fieldSchema.put("format", "custom-unknown");
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("email", fieldSchema)));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("email", fieldSchema)));
             String value = (String) schema.generate().get("email");
-            assertTrue(value.contains("@"),
-                "Expected semantic email resolution, got: " + value);
+            assertTrue(value.contains("@"), "Expected semantic email resolution, got: " + value);
         }
 
         @Test
@@ -1059,8 +1009,7 @@ class SchemaParserTest {
             fieldSchema.put("format", "custom-unknown");
             fieldSchema.put("minLength", 10);
             fieldSchema.put("maxLength", 10);
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("xyzData", fieldSchema)));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("xyzData", fieldSchema)));
             String value = (String) schema.generate().get("xyzData");
             assertEquals(10, value.length());
         }
@@ -1077,8 +1026,7 @@ class SchemaParserTest {
             fieldSchema.put("type", "integer");
             fieldSchema.put("minimum", Long.MAX_VALUE - 10);
             fieldSchema.put("maximum", Long.MAX_VALUE);
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("huge", fieldSchema)));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("huge", fieldSchema)));
             Object value = schema.generate().get("huge");
             assertInstanceOf(Number.class, value);
             long longVal = ((Number) value).longValue();
@@ -1094,13 +1042,13 @@ class SchemaParserTest {
             fieldSchema.put("type", "integer");
             fieldSchema.put("minimum", negMin);
             fieldSchema.put("maximum", negMax);
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("deep", fieldSchema)));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("deep", fieldSchema)));
             Object value = schema.generate().get("deep");
             assertInstanceOf(Number.class, value);
             long longVal = ((Number) value).longValue();
-            assertTrue(longVal >= negMin && longVal <= negMax,
-                "Expected " + negMin + " to " + negMax + ", got: " + longVal);
+            assertTrue(
+                    longVal >= negMin && longVal <= negMax,
+                    "Expected " + negMin + " to " + negMax + ", got: " + longVal);
         }
     }
 
@@ -1113,13 +1061,12 @@ class SchemaParserTest {
         void skipsNonConforming() {
             Map<Object, Object> mixedProps = new HashMap<>();
             mixedProps.put("valid", Map.of("type", "string"));
-            mixedProps.put(42, Map.of("type", "string"));  // non-string key
-            mixedProps.put("invalid", "not-a-map");          // non-map value
+            mixedProps.put(42, Map.of("type", "string")); // non-string key
+            mixedProps.put("invalid", "not-a-map"); // non-map value
             Map<String, Object> nested = new HashMap<>();
             nested.put("type", "object");
             nested.put("properties", mixedProps);
-            Schema schema = SchemaParser.fromJsonSchema(objectSchema(
-                Map.of("obj", nested)));
+            Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("obj", nested)));
             @SuppressWarnings("unchecked")
             Map<String, Object> result = (Map<String, Object>) schema.generate().get("obj");
             assertNotNull(result);
@@ -1137,8 +1084,9 @@ class SchemaParserTest {
         void emptyTypeList() {
             Map<String, Object> fieldSchema = new HashMap<>();
             fieldSchema.put("type", List.of());
-            assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("val", fieldSchema))));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("val", fieldSchema))));
         }
 
         @Test
@@ -1146,8 +1094,9 @@ class SchemaParserTest {
         void nonStringTypeList() {
             Map<String, Object> fieldSchema = new HashMap<>();
             fieldSchema.put("type", List.of(42, "string"));
-            assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("val", fieldSchema))));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("val", fieldSchema))));
         }
 
         @Test
@@ -1155,8 +1104,9 @@ class SchemaParserTest {
         void typeAsNumber() {
             Map<String, Object> fieldSchema = new HashMap<>();
             fieldSchema.put("type", 42);
-            assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("val", fieldSchema))));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("val", fieldSchema))));
         }
     }
 
@@ -1170,8 +1120,9 @@ class SchemaParserTest {
             Map<String, Object> fieldSchema = new HashMap<>();
             fieldSchema.put("type", "string");
             fieldSchema.put("enum", "not-a-list");
-            assertThrows(IllegalArgumentException.class,
-                () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("data", fieldSchema))));
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("data", fieldSchema))));
         }
     }
 
@@ -1184,8 +1135,10 @@ class SchemaParserTest {
         }
         GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
 
-        Map<String, Object> first = SchemaParser.fromJsonSchema(objectSchema(properties), config).generate();
-        Map<String, Object> second = SchemaParser.fromJsonSchema(objectSchema(properties), config).generate();
+        Map<String, Object> first =
+                SchemaParser.fromJsonSchema(objectSchema(properties), config).generate();
+        Map<String, Object> second =
+                SchemaParser.fromJsonSchema(objectSchema(properties), config).generate();
 
         assertEquals(first, second);
     }

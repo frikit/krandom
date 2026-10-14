@@ -29,9 +29,9 @@ import java.util.Set;
  */
 final class ObjectPool {
 
-    private final int                          maxCachedPerType;
-    private final Set<PoolKey>                 inProgress = new HashSet<>();
-    private final Map<PoolKey, Deque<Object>>  instances  = new HashMap<>();
+    private final int maxCachedPerType;
+    private final Set<PoolKey> inProgress = new HashSet<>();
+    private final Map<PoolKey, Deque<Object>> instances = new HashMap<>();
 
     ObjectPool() {
         this(ObjectGeneratorConfig.DEFAULT_OBJECT_POOL_SIZE);
@@ -95,7 +95,7 @@ final class ObjectPool {
      * @param type     the type that was constructed
      * @param instance the constructed instance; ignored if {@code null}
      */
-    void end(Class<?> type, Object instance) {
+    void end(Class<?> type, @org.jspecify.annotations.Nullable Object instance) {
         end(type, type.getTypeName(), instance);
     }
 
@@ -106,7 +106,7 @@ final class ObjectPool {
      * @param typeSignature resolved generic type signature
      * @param instance completed instance; ignored if {@code null}
      */
-    void end(Class<?> type, String typeSignature, Object instance) {
+    void end(Class<?> type, String typeSignature, @org.jspecify.annotations.Nullable Object instance) {
         PoolKey key = key(type, typeSignature);
         inProgress.remove(key);
         if (instance == null || maxCachedPerType == 0) {
@@ -126,7 +126,7 @@ final class ObjectPool {
      * @param type the type to look up
      * @return a cached instance, or {@code null}
      */
-    Object getCached(Class<?> type) {
+    @org.jspecify.annotations.Nullable Object getCached(Class<?> type) {
         return getCached(type, type.getTypeName());
     }
 
@@ -137,17 +137,16 @@ final class ObjectPool {
      * @param typeSignature resolved generic type signature
      * @return a cached instance, or {@code null}
      */
-    Object getCached(Class<?> type, String typeSignature) {
+    @org.jspecify.annotations.Nullable Object getCached(Class<?> type, String typeSignature) {
         Deque<Object> perType = instances.get(key(type, typeSignature));
         return perType == null ? null : perType.peekLast();
     }
 
     private static PoolKey key(Class<?> type, String typeSignature) {
         return new PoolKey(
-            Objects.requireNonNull(type, "type must not be null"),
-            Objects.requireNonNull(typeSignature, "typeSignature must not be null"));
+                Objects.requireNonNull(type, "type must not be null"),
+                Objects.requireNonNull(typeSignature, "typeSignature must not be null"));
     }
 
-    private record PoolKey(Class<?> type, String typeSignature) {
-    }
+    private record PoolKey(Class<?> type, String typeSignature) {}
 }

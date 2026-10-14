@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.algorithms;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

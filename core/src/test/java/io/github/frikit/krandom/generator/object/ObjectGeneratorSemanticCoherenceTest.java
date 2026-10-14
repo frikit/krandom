@@ -5,13 +5,16 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
@@ -21,12 +24,8 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Locale;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectGenerator semantic coherence")
 class ObjectGeneratorSemanticCoherenceTest {
@@ -41,6 +40,49 @@ class ObjectGeneratorSemanticCoherenceTest {
         assertEquals(value.domain, emailDomain(value.email));
         assertEquals("https://www." + value.domain, value.url);
         assertFalse(value.createdAt.toInstant(ZoneOffset.UTC).isAfter(value.updatedAt));
+    }
+
+    @Test
+    @DisplayName("a blank domain field is backfilled from the email domain")
+    void blankDomainFieldIsBackfilledFromEmail() {
+        BlankDomainHolder value = new ObjectGenerator<>(BlankDomainHolder.class).generate();
+
+        assertNotNull(value.email);
+        assertEquals(emailDomain(value.email), value.domain);
+    }
+
+    @Test
+    @DisplayName("an email-only type stays coherent without a domain field")
+    void emailOnlyTypeStaysCoherentWithoutDomainField() {
+        EmailOnly value = new ObjectGenerator<>(EmailOnly.class).generate();
+
+        assertTrue(value.email().contains("@"));
+    }
+
+    @Test
+    @DisplayName("an excluded blank domain field is left alone by coherence")
+    void excludedDomainFieldIsLeftAlone() {
+        GeneratorConfig config =
+                GeneratorConfig.builder().objectExcludeField("domain").build();
+
+        BlankDomainHolder value = new ObjectGenerator<>(BlankDomainHolder.class, config).generate();
+
+        assertEquals("", value.domain);
+        assertTrue(value.email.contains("@"));
+    }
+
+    @Test
+    @DisplayName("a blank domain field with an override is protected from coherence")
+    void overriddenBlankDomainIsProtected() {
+        // The initializer is kept, so the override never runs; the override still marks the field protected.
+        GeneratorConfig config = GeneratorConfig.builder()
+                .objectOverride(BlankDomainHolder.class, "domain", () -> "override.example")
+                .build();
+
+        BlankDomainHolder value = new ObjectGenerator<>(BlankDomainHolder.class, config).generate();
+
+        assertEquals("", value.domain);
+        assertTrue(value.email.contains("@"));
     }
 
     @Test
@@ -59,9 +101,8 @@ class ObjectGeneratorSemanticCoherenceTest {
     @DisplayName("explicit field overrides still win over semantic coherence")
     void explicitFieldOverridesStillWinOverSemanticCoherence() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .override(CoherentPerson.class, "email",
-                                                                      () -> "custom@example.org")
-                                                            .build();
+                .override(CoherentPerson.class, "email", () -> "custom@example.org")
+                .build();
 
         CoherentPerson value = new ObjectGenerator<>(CoherentPerson.class, config).generate();
 
@@ -82,10 +123,10 @@ class ObjectGeneratorSemanticCoherenceTest {
     @DisplayName("derived emails stay unique across one generator sequence")
     void derivedEmailsStayUniqueAcrossOneGeneratorSequence() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .override(FixedNamePerson.class, "firstName", () -> "Alice")
-                                                            .override(FixedNamePerson.class, "lastName", () -> "Smith")
-                                                            .override(FixedNamePerson.class, "domain", () -> "example.com")
-                                                            .build();
+                .override(FixedNamePerson.class, "firstName", () -> "Alice")
+                .override(FixedNamePerson.class, "lastName", () -> "Smith")
+                .override(FixedNamePerson.class, "domain", () -> "example.com")
+                .build();
 
         ObjectGenerator<FixedNamePerson> generator = new ObjectGenerator<>(FixedNamePerson.class, config);
 
@@ -102,7 +143,8 @@ class ObjectGeneratorSemanticCoherenceTest {
     @DisplayName("createdAt never lands after updatedAt across seeded sequences")
     void createdAtNeverLandsAfterUpdatedAtAcrossSeededSequences() {
         GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
-        ObjectGenerator<TemporalCoherenceHolder> generator = new ObjectGenerator<>(TemporalCoherenceHolder.class, config);
+        ObjectGenerator<TemporalCoherenceHolder> generator =
+                new ObjectGenerator<>(TemporalCoherenceHolder.class, config);
 
         for (int i = 0; i < 40; i++) {
             TemporalCoherenceHolder value = generator.generate();
@@ -114,8 +156,8 @@ class ObjectGeneratorSemanticCoherenceTest {
     @DisplayName("strict mode can still overwrite annotated targets through semantic coherence")
     void strictModeCanStillOverwriteAnnotatedTargetsThroughSemanticCoherence() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
-                                                .build();
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                .build();
 
         AnnotatedEmailPerson value = new ObjectGenerator<>(AnnotatedEmailPerson.class, config).generate();
 
@@ -127,7 +169,8 @@ class ObjectGeneratorSemanticCoherenceTest {
     @DisplayName("birthDate and age stay aligned")
     void birthDateAndAgeStayAligned() {
         Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
-        GeneratorConfig config = GeneratorConfig.builder().seed(53L).clock(clock).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().seed(53L).clock(clock).build();
         AgeCoherenceHolder value = new ObjectGenerator<>(AgeCoherenceHolder.class, config).generate();
 
         assertEquals((int) ChronoUnit.YEARS.between(value.dateOfBirth, LocalDate.now(clock)), value.ageYears);
@@ -137,13 +180,11 @@ class ObjectGeneratorSemanticCoherenceTest {
     @DisplayName("birthDate is rebuilt from overridden age when age is protected")
     void birthDateIsRebuiltFromProtectedAge() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .generatorConfig(GeneratorConfig.builder()
-                                                                                            .clock(Clock.fixed(
-                                                                                                Instant.parse("2026-06-04T12:00:00Z"),
-                                                                                                ZoneId.of("UTC")))
-                                                                                            .build())
-                                                            .override(AgeCoherenceHolder.class, "ageYears", () -> 42)
-                                                            .build();
+                .generatorConfig(GeneratorConfig.builder()
+                        .clock(Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC")))
+                        .build())
+                .override(AgeCoherenceHolder.class, "ageYears", () -> 42)
+                .build();
 
         AgeCoherenceHolder value = new ObjectGenerator<>(AgeCoherenceHolder.class, config).generate();
 
@@ -156,10 +197,9 @@ class ObjectGeneratorSemanticCoherenceTest {
     void explicitAgeAndBirthDateOverridesArePreserved() {
         LocalDate explicitBirthDate = LocalDate.of(2000, 1, 1);
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .override(AgeCoherenceHolder.class, "ageYears", () -> 42)
-                                                            .override(AgeCoherenceHolder.class, "dateOfBirth",
-                                                                      () -> explicitBirthDate)
-                                                            .build();
+                .override(AgeCoherenceHolder.class, "ageYears", () -> 42)
+                .override(AgeCoherenceHolder.class, "dateOfBirth", () -> explicitBirthDate)
+                .build();
 
         AgeCoherenceHolder value = new ObjectGenerator<>(AgeCoherenceHolder.class, config).generate();
 
@@ -172,9 +212,10 @@ class ObjectGeneratorSemanticCoherenceTest {
     void activeAndStringStatusStayAligned() {
         LifecycleCoherenceHolder value = new ObjectGenerator<>(LifecycleCoherenceHolder.class).generate();
 
-        assertTrue(value.isEnabled
-                   ? java.util.Set.of("ACTIVE", "ENABLED").contains(value.status)
-                   : java.util.Set.of("INACTIVE", "DISABLED", "SUSPENDED").contains(value.status));
+        assertTrue(
+                value.isEnabled
+                        ? java.util.Set.of("ACTIVE", "ENABLED").contains(value.status)
+                        : java.util.Set.of("INACTIVE", "DISABLED", "SUSPENDED").contains(value.status));
     }
 
     @Test
@@ -188,10 +229,14 @@ class ObjectGeneratorSemanticCoherenceTest {
     @Test
     @DisplayName("locale-backed address fields align to one seeded coherent address cluster")
     void localeBackedAddressFieldsAlignToOneSeededCoherentAddressCluster() {
-        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.GERMANY).seed(17L).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.GERMANY).seed(17L).build();
         long generationSeed = new java.util.Random(17L).nextLong();
-        AddressInfo expected = new AddressInfoGenerator(
-            GeneratorConfig.builder().locale(Locale.GERMANY).seed(generationSeed).build()).generate();
+        AddressInfo expected = new AddressInfoGenerator(GeneratorConfig.builder()
+                        .locale(Locale.GERMANY)
+                        .seed(generationSeed)
+                        .build())
+                .generate();
 
         AddressCoherenceHolder value = new ObjectGenerator<>(AddressCoherenceHolder.class, config).generate();
 
@@ -205,8 +250,8 @@ class ObjectGeneratorSemanticCoherenceTest {
     @DisplayName("explicit country overrides still win over address coherence")
     void explicitCountryOverridesStillWinOverAddressCoherence() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .override(AddressCoherenceHolder.class, "country", () -> "Canada")
-                                                            .build();
+                .override(AddressCoherenceHolder.class, "country", () -> "Canada")
+                .build();
 
         AddressCoherenceHolder value = new ObjectGenerator<>(AddressCoherenceHolder.class, config).generate();
 
@@ -217,9 +262,9 @@ class ObjectGeneratorSemanticCoherenceTest {
     @DisplayName("money fields stay ordered and string money fields derive formatted values")
     void moneyFieldsStayOrderedAndStringMoneyFieldsDeriveFormattedValues() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .override(StringMoneyHolder.class, "price", () -> "7.50")
-                                                            .override(StringMoneyHolder.class, "currencyCode", () -> "USD")
-                                                            .build();
+                .override(StringMoneyHolder.class, "price", () -> "7.50")
+                .override(StringMoneyHolder.class, "currencyCode", () -> "USD")
+                .build();
 
         StringMoneyHolder stringMoney = new ObjectGenerator<>(StringMoneyHolder.class, config).generate();
         OrderedMoneyHolder orderedMoney = new ObjectGenerator<>(OrderedMoneyHolder.class).generate();
@@ -252,25 +297,25 @@ class ObjectGeneratorSemanticCoherenceTest {
 
     static class CoherentPerson {
 
-        String        firstName;
-        String        lastName;
-        String        fullName;
-        String        email;
-        String        domain;
-        String        url;
+        String firstName;
+        String lastName;
+        String fullName;
+        String email;
+        String domain;
+        String url;
         LocalDateTime createdAt;
-        Instant       updatedAt;
+        Instant updatedAt;
     }
 
-    record CoherentPersonRecord(String firstName,
-                                String lastName,
-                                String fullName,
-                                String email,
-                                String domain,
-                                String url,
-                                LocalDateTime createdAt,
-                                Instant updatedAt) {
-    }
+    record CoherentPersonRecord(
+            String firstName,
+            String lastName,
+            String fullName,
+            String email,
+            String domain,
+            String url,
+            LocalDateTime createdAt,
+            Instant updatedAt) {}
 
     static class FixedNamePerson {
 
@@ -283,24 +328,24 @@ class ObjectGeneratorSemanticCoherenceTest {
     static class TemporalCoherenceHolder {
 
         LocalDateTime createdAt;
-        Instant       updatedAt;
+        Instant updatedAt;
     }
 
     static class AgeCoherenceHolder {
 
         LocalDate dateOfBirth;
-        int       ageYears;
+        int ageYears;
     }
 
     static class LifecycleCoherenceHolder {
 
         boolean isEnabled;
-        String  status;
+        String status;
     }
 
     static class EnumLifecycleCoherenceHolder {
 
-        boolean        isEnabled;
+        boolean isEnabled;
         LifecycleState status;
     }
 
@@ -352,4 +397,13 @@ class ObjectGeneratorSemanticCoherenceTest {
         DISABLED,
         PENDING
     }
+
+    static class BlankDomainHolder {
+
+        String email;
+        /** The safe construction policy keeps this initializer, so coherence sees a present but blank domain. */
+        String domain = "";
+    }
+
+    record EmailOnly(String email) {}
 }

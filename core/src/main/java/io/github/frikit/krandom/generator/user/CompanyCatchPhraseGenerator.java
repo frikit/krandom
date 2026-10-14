@@ -7,7 +7,7 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -23,13 +23,13 @@ import java.util.Random;
 public final class CompanyCatchPhraseGenerator implements Generator<String> {
 
     private static final CompanyCatchPhraseDataProvider DEFAULT_PROVIDER =
-        new BuiltInCompanyCatchPhraseDataProvider(Locale.ROOT, "default");
+            new BuiltInCompanyCatchPhraseDataProvider(Locale.ROOT, "default");
 
     private final List<String> adjectives;
     private final List<String> nouns;
     private final List<String> taglines;
-    private final String       format;
-    private final Random       random;
+    private final String format;
+    private final Random random;
 
     /**
      * Creates a catch-phrase generator with default configuration.
@@ -54,7 +54,8 @@ public final class CompanyCatchPhraseGenerator implements Generator<String> {
      */
     public CompanyCatchPhraseGenerator(GeneratorConfig config) {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
-        CompanyCatchPhraseDataProvider provider = effective.getRegistryContext().companyCatchPhraseProvider(effective.getLocale());
+        CompanyCatchPhraseDataProvider provider =
+                effective.getRegistryContext().provider(Vocabulary.COMPANY_CATCH_PHRASE, effective.getLocale());
         CompanyCatchPhraseDataProvider resolved = provider != null ? provider : DEFAULT_PROVIDER;
         this.adjectives = resolved.getAdjectives();
         this.nouns = resolved.getNouns();

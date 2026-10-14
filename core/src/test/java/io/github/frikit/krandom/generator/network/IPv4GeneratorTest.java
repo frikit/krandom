@@ -5,28 +5,26 @@
  */
 package io.github.frikit.krandom.generator.network;
 
-import org.apache.commons.validator.routines.InetAddressValidator;
-import io.github.frikit.krandom.generator.Generator;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.Generator;
+import java.util.List;
+import org.apache.commons.validator.routines.InetAddressValidator;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
+
 @DisplayName("IPv4Generator")
 class IPv4GeneratorTest {
 
     private static final InetAddressValidator VALIDATOR = InetAddressValidator.getInstance();
-    private static final int                  SAMPLES   = 500;
+    private static final int SAMPLES = 500;
 
     // ── RFC 791 format ────────────────────────────────────────────────────────
-
 
     @Nested
     @DisplayName("RFC 791 format")
@@ -57,15 +55,13 @@ class IPv4GeneratorTest {
             String ip = new IPv4Generator().generate();
             for (String part : ip.split("\\.")) {
                 if (part.length() > 1) {
-                    assertNotEquals('0', part.charAt(0),
-                                    "Leading zero in octet '" + part + "' of: " + ip);
+                    assertNotEquals('0', part.charAt(0), "Leading zero in octet '" + part + "' of: " + ip);
                 }
             }
         }
     }
 
     // ── First-octet range (unicast only, RFC 3171 / RFC 1112) ─────────────────
-
 
     @Nested
     @DisplayName("First-octet range")
@@ -76,17 +72,16 @@ class IPv4GeneratorTest {
         void firstOctetUnicast() {
             String ip = new IPv4Generator().generate();
             int octet1 = Integer.parseInt(ip.split("\\.")[0]);
-            assertTrue(octet1 >= 0 && octet1 <= 223,
-                       "First octet " + octet1 + " is outside [0, 223] in: " + ip);
+            assertTrue(octet1 >= 0 && octet1 <= 223, "First octet " + octet1 + " is outside [0, 223] in: " + ip);
         }
 
         @Test
         @DisplayName("first octet covers the full [0, 223] range over many samples")
         void firstOctetFullRange() {
             IPv4Generator gen = new IPv4Generator();
-            boolean seenLow = false;   // near 0
-            boolean seenHigh = false;  // near 223
-            boolean seenMid = false;   // near 128
+            boolean seenLow = false; // near 0
+            boolean seenHigh = false; // near 223
+            boolean seenMid = false; // near 128
             for (int i = 0; i < 50_000; i++) {
                 int octet1 = Integer.parseInt(gen.generate().split("\\.")[0]);
                 if (octet1 <= 5) seenLow = true;
@@ -101,7 +96,6 @@ class IPv4GeneratorTest {
     }
 
     // ── Remaining octets ──────────────────────────────────────────────────────
-
 
     @Nested
     @DisplayName("Octets 2-4 range [0, 255]")
@@ -142,7 +136,6 @@ class IPv4GeneratorTest {
 
     // ── Generator<String> interface ───────────────────────────────────────────
 
-
     @Nested
     @DisplayName("Generator<String> interface")
     class GeneratorInterface {
@@ -158,8 +151,8 @@ class IPv4GeneratorTest {
         @Test
         @DisplayName("stream() produces valid addresses")
         void stream() {
-            new IPv4Generator().stream().limit(50)
-                               .forEach(ip -> assertTrue(VALIDATOR.isValidInet4Address(ip), "Invalid: " + ip));
+            new IPv4Generator()
+                    .stream().limit(50).forEach(ip -> assertTrue(VALIDATOR.isValidInet4Address(ip), "Invalid: " + ip));
         }
 
         @Test
@@ -173,7 +166,6 @@ class IPv4GeneratorTest {
 
     // ── Seeded Generation ─────────────────────────────────────────────────────
 
-
     @Nested
     @DisplayName("Seeded generation")
     class SeededGeneration {
@@ -182,9 +174,13 @@ class IPv4GeneratorTest {
         @DisplayName("same seed produces same IP address")
         void sameSeedSameIP() {
             io.github.frikit.krandom.generator.GeneratorConfig config1 =
-                io.github.frikit.krandom.generator.GeneratorConfig.builder().seed(42L).build();
+                    io.github.frikit.krandom.generator.GeneratorConfig.builder()
+                            .seed(42L)
+                            .build();
             io.github.frikit.krandom.generator.GeneratorConfig config2 =
-                io.github.frikit.krandom.generator.GeneratorConfig.builder().seed(42L).build();
+                    io.github.frikit.krandom.generator.GeneratorConfig.builder()
+                            .seed(42L)
+                            .build();
 
             IPv4Generator gen1 = new IPv4Generator(config1);
             IPv4Generator gen2 = new IPv4Generator(config2);
@@ -197,10 +193,12 @@ class IPv4GeneratorTest {
         @Test
         @DisplayName("different seeds produce different IPs")
         void differentSeedsDifferentIPs() {
-            IPv4Generator gen1 = new IPv4Generator(
-                io.github.frikit.krandom.generator.GeneratorConfig.builder().seed(100L).build());
-            IPv4Generator gen2 = new IPv4Generator(
-                io.github.frikit.krandom.generator.GeneratorConfig.builder().seed(200L).build());
+            IPv4Generator gen1 = new IPv4Generator(io.github.frikit.krandom.generator.GeneratorConfig.builder()
+                    .seed(100L)
+                    .build());
+            IPv4Generator gen2 = new IPv4Generator(io.github.frikit.krandom.generator.GeneratorConfig.builder()
+                    .seed(200L)
+                    .build());
 
             assertNotEquals(gen1.generate(), gen2.generate());
         }
@@ -208,8 +206,9 @@ class IPv4GeneratorTest {
         @Test
         @DisplayName("null config throws NullPointerException")
         void nullConfigThrows() {
-            assertThrows(NullPointerException.class,
-                         () -> new IPv4Generator((io.github.frikit.krandom.generator.GeneratorConfig) null));
+            assertThrows(
+                    NullPointerException.class,
+                    () -> new IPv4Generator((io.github.frikit.krandom.generator.GeneratorConfig) null));
         }
     }
 }

@@ -5,10 +5,14 @@
  */
 package io.github.frikit.krandom.generator.finance;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -18,13 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class CardExpirationGeneratorTest {
 
@@ -81,7 +80,8 @@ class CardExpirationGeneratorTest {
     @Test
     void testConfiguredClockControlsRelativeDateRange() {
         Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
-        GeneratorConfig config = GeneratorConfig.builder().seed(42L).clock(clock).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().seed(42L).clock(clock).build();
         CardExpirationGenerator gen = new CardExpirationGenerator(config, DateRange.FUTURE);
 
         YearMonth now = YearMonth.now(clock);
@@ -93,14 +93,12 @@ class CardExpirationGeneratorTest {
 
     @Test
     void testNullConfig() {
-        assertThrows(NullPointerException.class,
-                     () -> new CardExpirationGenerator((GeneratorConfig) null));
+        assertThrows(NullPointerException.class, () -> new CardExpirationGenerator((GeneratorConfig) null));
     }
 
     @Test
     void testNullDateRange() {
-        assertThrows(NullPointerException.class,
-                     () -> new CardExpirationGenerator((DateRange) null));
+        assertThrows(NullPointerException.class, () -> new CardExpirationGenerator((DateRange) null));
     }
 
     // Basic Generation Tests
@@ -140,8 +138,7 @@ class CardExpirationGeneratorTest {
         for (int i = 0; i < 100; i++) {
             String expiry = pastGen.generate();
             YearMonth expiryDate = parseExpiryDate(expiry);
-            assertTrue(expiryDate.isBefore(now),
-                       "PAST generator should produce dates in the past: " + expiry);
+            assertTrue(expiryDate.isBefore(now), "PAST generator should produce dates in the past: " + expiry);
         }
     }
 
@@ -153,8 +150,7 @@ class CardExpirationGeneratorTest {
         for (int i = 0; i < 100; i++) {
             String expiry = futureGen.generate();
             YearMonth expiryDate = parseExpiryDate(expiry);
-            assertTrue(expiryDate.isAfter(now),
-                       "FUTURE generator should produce dates in the future: " + expiry);
+            assertTrue(expiryDate.isAfter(now), "FUTURE generator should produce dates in the future: " + expiry);
         }
     }
 
@@ -222,8 +218,9 @@ class CardExpirationGeneratorTest {
         for (int i = 0; i < 100; i++) {
             String expiry = futureGen.generate();
             YearMonth expiryDate = parseExpiryDate(expiry);
-            assertTrue(expiryDate.isAfter(now) || expiryDate.equals(now.plusMonths(1)),
-                       "Future-only generator should produce dates in the future: " + expiry);
+            assertTrue(
+                    expiryDate.isAfter(now) || expiryDate.equals(now.plusMonths(1)),
+                    "Future-only generator should produce dates in the future: " + expiry);
         }
     }
 
@@ -290,8 +287,7 @@ class CardExpirationGeneratorTest {
 
         // Year (YY) should typically be 24-29 for near future
         // Month should be 01-12
-        assertTrue(secondPart >= 1 && secondPart <= 12,
-                   "Second part should be month (01-12) for JP locale");
+        assertTrue(secondPart >= 1 && secondPart <= 12, "Second part should be month (01-12) for JP locale");
     }
 
     @Test
@@ -387,8 +383,7 @@ class CardExpirationGeneratorTest {
         assertNotNull(year);
         assertTrue(year.matches("\\d{4}"), "Full year should be 4 digits");
         int yearValue = Integer.parseInt(year);
-        assertTrue(yearValue >= 2024 && yearValue <= 2035,
-                   "Year should be in reasonable range for card expiry");
+        assertTrue(yearValue >= 2024 && yearValue <= 2035, "Year should be in reasonable range for card expiry");
     }
 
     @Test
@@ -412,8 +407,7 @@ class CardExpirationGeneratorTest {
         for (int i = 0; i < 50; i++) {
             String yearStr = futureGen.getYear(true);
             int year = Integer.parseInt(yearStr);
-            assertTrue(year >= currentYear,
-                       "Future-only generator should produce current or future years");
+            assertTrue(year >= currentYear, "Future-only generator should produce current or future years");
         }
     }
 
@@ -514,8 +508,7 @@ class CardExpirationGeneratorTest {
         for (int i = 0; i < 100; i++) {
             String month = generator.getMonth();
             assertEquals(2, month.length(), "Month should always be 2 digits");
-            assertTrue(month.charAt(0) == '0' || month.charAt(0) == '1',
-                       "Month first digit should be 0 or 1");
+            assertTrue(month.charAt(0) == '0' || month.charAt(0) == '1', "Month first digit should be 0 or 1");
         }
     }
 
@@ -546,8 +539,7 @@ class CardExpirationGeneratorTest {
         for (int i = 0; i < 100; i++) {
             String expiry = futureGen.generate();
             YearMonth expiryDate = parseExpiryDate(expiry);
-            assertTrue(expiryDate.isAfter(now),
-                       "Future-only should never generate current or past dates");
+            assertTrue(expiryDate.isAfter(now), "Future-only should never generate current or past dates");
         }
     }
 

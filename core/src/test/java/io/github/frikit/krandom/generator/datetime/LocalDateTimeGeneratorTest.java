@@ -5,20 +5,19 @@
  */
 package io.github.frikit.krandom.generator.datetime;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.time.Clock;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("LocalDateTimeGenerator")
 class LocalDateTimeGeneratorTest {
@@ -37,8 +36,7 @@ class LocalDateTimeGeneratorTest {
         LocalDateTimeGenerator gen = new LocalDateTimeGenerator();
         for (int i = 0; i < SAMPLES; i++) {
             int year = gen.generate().getYear();
-            assertTrue(year >= 1970 && year <= 2100,
-                       "year out of range: " + year);
+            assertTrue(year >= 1970 && year <= 2100, "year out of range: " + year);
         }
     }
 
@@ -69,8 +67,7 @@ class LocalDateTimeGeneratorTest {
         LocalDateTimeGenerator g1 = new LocalDateTimeGenerator(cfg);
         LocalDateTimeGenerator g2 = new LocalDateTimeGenerator(cfg);
         for (int i = 0; i < 20; i++) {
-            assertEquals(g1.generate(), g2.generate(),
-                         "seeded generators must produce identical output");
+            assertEquals(g1.generate(), g2.generate(), "seeded generators must produce identical output");
         }
     }
 
@@ -91,7 +88,8 @@ class LocalDateTimeGeneratorTest {
     @Test
     @DisplayName("between(start,end) returns value in inclusive range")
     void between() {
-        LocalDateTimeGenerator gen = new LocalDateTimeGenerator(GeneratorConfig.builder().seed(91L).build());
+        LocalDateTimeGenerator gen =
+                new LocalDateTimeGenerator(GeneratorConfig.builder().seed(91L).build());
         LocalDateTime start = LocalDateTime.of(2020, 1, 1, 0, 0, 0);
         LocalDateTime end = LocalDateTime.of(2020, 1, 2, 0, 0, 0);
         for (int i = 0; i < 40; i++) {
@@ -108,7 +106,8 @@ class LocalDateTimeGeneratorTest {
     @Test
     @DisplayName("before(reference) and after(reference) obey strict bounds")
     void beforeAfter() {
-        LocalDateTimeGenerator gen = new LocalDateTimeGenerator(GeneratorConfig.builder().seed(92L).build());
+        LocalDateTimeGenerator gen =
+                new LocalDateTimeGenerator(GeneratorConfig.builder().seed(92L).build());
         LocalDateTime ref = LocalDateTime.of(2050, 1, 1, 0, 0, 0);
         for (int i = 0; i < 40; i++) {
             assertTrue(gen.before(ref).isBefore(ref));
@@ -116,16 +115,15 @@ class LocalDateTimeGeneratorTest {
         }
         assertThrows(NullPointerException.class, () -> gen.before(null));
         assertThrows(NullPointerException.class, () -> gen.after(null));
-        assertThrows(IllegalArgumentException.class,
-                     () -> gen.before(LocalDateTime.of(1970, 1, 1, 0, 0, 0)));
-        assertThrows(IllegalArgumentException.class,
-                     () -> gen.after(LocalDateTime.of(2100, 12, 31, 23, 59, 59)));
+        assertThrows(IllegalArgumentException.class, () -> gen.before(LocalDateTime.of(1970, 1, 1, 0, 0, 0)));
+        assertThrows(IllegalArgumentException.class, () -> gen.after(LocalDateTime.of(2100, 12, 31, 23, 59, 59)));
     }
 
     @Test
     @DisplayName("generateIso8601 returns UTC offset date-time")
     void iso8601Format() {
-        String value = new LocalDateTimeGenerator(GeneratorConfig.builder().seed(93L).build()).generateIso8601();
+        String value =
+                new LocalDateTimeGenerator(GeneratorConfig.builder().seed(93L).build()).generateIso8601();
         assertTrue(value.endsWith("Z") || value.matches(".*[+-]\\d{2}:\\d{2}$"));
         assertTrue(value.contains("T"));
     }
@@ -134,7 +132,8 @@ class LocalDateTimeGeneratorTest {
     @DisplayName("future/past helpers obey relative ranges")
     void futurePast() {
         Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
-        LocalDateTimeGenerator gen = new LocalDateTimeGenerator(GeneratorConfig.builder().seed(94L).clock(clock).build());
+        LocalDateTimeGenerator gen = new LocalDateTimeGenerator(
+                GeneratorConfig.builder().seed(94L).clock(clock).build());
         LocalDateTime now = LocalDateTime.now(clock);
         assertTrue(gen.future().isAfter(now));
         assertTrue(gen.past().isBefore(now));

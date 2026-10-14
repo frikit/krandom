@@ -5,18 +5,19 @@
  */
 package io.github.frikit.krandom.generator.location;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.Locale;
 
 /**
  * Contract for a locale-specific country name data source.
  *
  * <p>Implement this interface and register an instance on a configuration-scoped context with
- * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerCountryProvider(CountryDataProvider)}
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#register(io.github.frikit.krandom.generator.Vocabulary, io.github.frikit.krandom.generator.LocaleDataProvider)}
  * to extend or override country data for any locale — including locales not built into the library.
  *
  * <pre>{@code
  * DataRegistryContext context = DataRegistryContext.builder()
- *     .registerCountryProvider(new CountryDataProvider() {
+ *     .register(Vocabulary.COUNTRY, new CountryDataProvider() {
  *         public Locale getLocale() { return Locale.of("ko", "KR"); }
  *         public String[] getCountries() { return new String[]{"미국", "독일", "프랑스"}; }
  *     })
@@ -32,7 +33,7 @@ import java.util.Locale;
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}. Custom registrations take
  * precedence over the built-in data for the same locale key.
  */
-public interface CountryDataProvider {
+public interface CountryDataProvider extends LocaleDataProvider {
 
     /**
      * The locale this provider supplies country names for.

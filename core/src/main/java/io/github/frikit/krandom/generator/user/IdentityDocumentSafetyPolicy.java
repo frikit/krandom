@@ -22,9 +22,8 @@ public enum IdentityDocumentSafetyPolicy {
 
     void requireRealisticOutput() {
         if (this == DISABLED) {
-            throw new IllegalStateException(
-                "Identity-document generation is disabled by default; select "
-                + "identityDocumentSafetyPolicy(REALISTIC_UNCLASSIFIED) only for isolated fixtures");
+            throw new IllegalStateException("Identity-document generation is disabled by default; select "
+                    + "identityDocumentSafetyPolicy(REALISTIC_UNCLASSIFIED) only for isolated fixtures");
         }
     }
 }

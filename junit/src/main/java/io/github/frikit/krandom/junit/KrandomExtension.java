@@ -5,18 +5,8 @@
  */
 package io.github.frikit.krandom.junit;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.GenerationRecipe;
-import org.junit.jupiter.api.extension.BeforeEachCallback;
-import org.junit.jupiter.api.extension.ExtensionConfigurationException;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
-import org.junit.jupiter.api.extension.ParameterContext;
-import org.junit.jupiter.api.extension.ParameterResolver;
-import org.junit.jupiter.api.extension.TestWatcher;
-import org.junit.platform.commons.support.AnnotationSupport;
-import org.jspecify.annotations.Nullable;
-
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Base64;
@@ -28,6 +18,15 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.StringJoiner;
 import java.util.function.Function;
+import org.jspecify.annotations.Nullable;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionConfigurationException;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
+import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.ParameterResolver;
+import org.junit.jupiter.api.extension.TestWatcher;
+import org.junit.platform.commons.support.AnnotationSupport;
 
 /**
  * JUnit 5 extension that fixes the kRandom seed per test and reports it on failure.
@@ -154,7 +153,7 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
 
         private GenerationRecipe recipe() {
             return config.getGenerationRecipe()
-                         .orElseThrow(() -> new IllegalStateException("test replay configuration has no recipe"));
+                    .orElseThrow(() -> new IllegalStateException("test replay configuration has no recipe"));
         }
     }
 
@@ -163,15 +162,12 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
      * by every context would let a test method silently reuse a configuration that an enclosing
      * class context created for {@code @BeforeAll} or constructor injection.
      */
-    private record ContextKey(String uniqueId) {
-    }
+    private record ContextKey(String uniqueId) {}
 
-    private record ConfiguredValue(String value, String source) {
-    }
+    private record ConfiguredValue(String value, String source) {}
 
     /** The class-scoped configuration of one enclosing test class. */
-    private record ClassScope(Class<?> testClass, SeedInfo info) {
-    }
+    private record ClassScope(Class<?> testClass, SeedInfo info) {}
 
     /**
      * Resolves constructor parameters against the test method, so constructor-injected
@@ -218,58 +214,76 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
         System.err.println(failureMessage(context, info, recipe, serialized));
     }
 
-    private static String failureMessage(ExtensionContext context,
-                                         SeedInfo info,
-                                         GenerationRecipe recipe,
-                                         String serialized) {
+    private static String failureMessage(
+            ExtensionContext context, SeedInfo info, GenerationRecipe recipe, String serialized) {
         StringBuilder message = new StringBuilder();
         if (info.pinned()) {
-            message.append("krandom: test '%s' failed with pinned seed %d."
-                .formatted(context.getDisplayName(), info.seed()));
+            message.append(
+                    "krandom: test '%s' failed with pinned seed %d.".formatted(context.getDisplayName(), info.seed()));
         } else {
-            message.append("krandom: test '%s' failed with seed %d. Annotate it with @KrandomSeed(%dL) to reproduce this run."
-                .formatted(context.getDisplayName(), info.seed(), info.seed()));
+            message.append(
+                    "krandom: test '%s' failed with seed %d. Annotate it with @KrandomSeed(%dL) to reproduce this run."
+                            .formatted(context.getDisplayName(), info.seed(), info.seed()));
         }
         message.append(System.lineSeparator()).append(clockLine(info.clockSource(), recipe));
         StringJoiner classRecipes = new StringJoiner(",");
         for (ClassScope scope : classScopes(context)) {
             message.append(System.lineSeparator()).append(classScopedLine(scope));
             classRecipes.add(classKey(scope.testClass()) + "=base64:"
-                             + encode(scope.info().recipe().serializeForDiagnostics()));
+                    + encode(scope.info().recipe().serializeForDiagnostics()));
         }
         String encoded = encode(serialized);
         String testClass = replayTestClassName(context);
         message.append(System.lineSeparator()).append("Replay with Gradle: ");
         if (classRecipes.length() > 0) {
-            message.append(CLASS_REPLAY_RECIPE_ENVIRONMENT).append("='").append(classRecipes).append("' ");
+            message.append(CLASS_REPLAY_RECIPE_ENVIRONMENT)
+                    .append("='")
+                    .append(classRecipes)
+                    .append("' ");
         }
-        message.append(REPLAY_RECIPE_ENVIRONMENT).append("=base64:").append(encoded)
-               .append(" ./gradlew test --tests '").append(testClass).append("' --rerun")
-               .append(System.lineSeparator())
-               .append("Replay with Maven: mvn test -Dtest='").append(testClass).append("' -D")
-               .append(REPLAY_RECIPE_PROPERTY).append("=base64:").append(encoded);
+        message.append(REPLAY_RECIPE_ENVIRONMENT)
+                .append("=base64:")
+                .append(encoded)
+                .append(" ./gradlew test --tests '")
+                .append(testClass)
+                .append("' --rerun")
+                .append(System.lineSeparator())
+                .append("Replay with Maven: mvn test -Dtest='")
+                .append(testClass)
+                .append("' -D")
+                .append(REPLAY_RECIPE_PROPERTY)
+                .append("=base64:")
+                .append(encoded);
         if (classRecipes.length() > 0) {
-            message.append(" -D").append(CLASS_REPLAY_RECIPE_PROPERTY).append("='").append(classRecipes).append('\'');
+            message.append(" -D")
+                    .append(CLASS_REPLAY_RECIPE_PROPERTY)
+                    .append("='")
+                    .append(classRecipes)
+                    .append('\'');
         }
         message.append(System.lineSeparator())
-               .append("Replay recipe:")
-               .append(System.lineSeparator())
-               .append(serialized);
+                .append("Replay recipe:")
+                .append(System.lineSeparator())
+                .append(serialized);
         return message.toString();
     }
 
     private static String encode(String serializedRecipe) {
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(serializedRecipe.getBytes(StandardCharsets.UTF_8));
+        return Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(serializedRecipe.getBytes(StandardCharsets.UTF_8));
     }
 
     private static String clockLine(ClockSource source, GenerationRecipe recipe) {
         String clock = recipe.getClockInstant() + " (" + recipe.getClockZone().getId() + ")";
         return switch (source) {
-            case LIVE -> "krandom: recipe clock " + clock + " was read when the failure was reported; the test ran"
-                         + " with a live clock, so time-relative data may not replay exactly. Set "
-                         + SNAPSHOT_CLOCK_PROPERTY + "=true for time-sensitive tests.";
-            case SNAPSHOT -> "krandom: recipe clock " + clock + " was captured before parameter injection"
-                             + " (" + SNAPSHOT_CLOCK_PROPERTY + "=true); generation used this instant.";
+            case LIVE ->
+                "krandom: recipe clock " + clock + " was read when the failure was reported; the test ran"
+                        + " with a live clock, so time-relative data may not replay exactly. Set "
+                        + SNAPSHOT_CLOCK_PROPERTY + "=true for time-sensitive tests.";
+            case SNAPSHOT ->
+                "krandom: recipe clock " + clock + " was captured before parameter injection" + " ("
+                        + SNAPSHOT_CLOCK_PROPERTY + "=true); generation used this instant.";
             case RECIPE -> "krandom: recipe clock " + clock + " was fixed by the replay recipe.";
         };
     }
@@ -291,13 +305,13 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
 
     private static String classScopedLine(ClassScope scope) {
         SeedInfo classInfo = scope.info();
-        String prefix = "krandom: class-scoped configuration of '" + scope.testClass().getSimpleName()
-                        + "' (@BeforeAll/@AfterAll or PER_CLASS constructor parameters)";
+        String prefix = "krandom: class-scoped configuration of '"
+                + scope.testClass().getSimpleName() + "' (@BeforeAll/@AfterAll or PER_CLASS constructor parameters)";
         return classInfo.pinned()
-            ? prefix + " used pinned seed " + classInfo.seed() + "."
-            : prefix + " used seed " + classInfo.seed() + "; the replay commands restore it. To pin it in source,"
-              + " annotate that class with @KrandomSeed(" + classInfo.seed() + "L) and keep the test's own"
-              + " @KrandomSeed.";
+                ? prefix + " used pinned seed " + classInfo.seed() + "."
+                : prefix + " used seed " + classInfo.seed() + "; the replay commands restore it. To pin it in source,"
+                        + " annotate that class with @KrandomSeed(" + classInfo.seed() + "L) and keep the test's own"
+                        + " @KrandomSeed.";
     }
 
     /** Names a test class in class replay recipes; canonical names contain no shell-sensitive {@code $}. */
@@ -319,9 +333,9 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
             parent = current.getParent();
         }
         return current.getTestClass()
-                      .or(context::getTestClass)
-                      .map(Class::getName)
-                      .orElse("<test class>");
+                .or(context::getTestClass)
+                .map(Class::getName)
+                .orElse("<test class>");
     }
 
     /**
@@ -330,9 +344,8 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
      */
     private SeedInfo seedInfo(ExtensionContext context) {
         return context.getStore(NAMESPACE)
-                      .computeIfAbsent(new ContextKey(context.getUniqueId()),
-                                       key -> computeSeedInfo(context),
-                                       SeedInfo.class);
+                .computeIfAbsent(
+                        new ContextKey(context.getUniqueId()), key -> computeSeedInfo(context), SeedInfo.class);
     }
 
     /** Returns the configuration stored for this exact context, never one of an ancestor. */
@@ -350,17 +363,18 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     }
 
     private boolean snapshotClock(ExtensionContext context) {
-        Optional<ConfiguredValue> configured = configuredValue(
-            context, SNAPSHOT_CLOCK_PROPERTY, SNAPSHOT_CLOCK_ENVIRONMENT);
+        Optional<ConfiguredValue> configured =
+                configuredValue(context, SNAPSHOT_CLOCK_PROPERTY, SNAPSHOT_CLOCK_ENVIRONMENT);
         if (configured.isEmpty()) {
             return false;
         }
         return switch (configured.get().value()) {
             case "true" -> true;
             case "false" -> false;
-            default -> throw new ExtensionConfigurationException(
-                SNAPSHOT_CLOCK_PROPERTY + " must be true or false, got '" + configured.get().value()
-                    + "' from " + configured.get().source());
+            default ->
+                throw new ExtensionConfigurationException(SNAPSHOT_CLOCK_PROPERTY + " must be true or false, got '"
+                        + configured.get().value() + "' from "
+                        + configured.get().source());
         };
     }
 
@@ -371,13 +385,13 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
                 return classReplay.get();
             }
         }
-        Optional<ConfiguredValue> recipeOverride = configuredValue(
-            context, REPLAY_RECIPE_PROPERTY, REPLAY_RECIPE_ENVIRONMENT);
-        Optional<ConfiguredValue> seedOverride = configuredValue(
-            context, REPLAY_SEED_PROPERTY, REPLAY_SEED_ENVIRONMENT);
+        Optional<ConfiguredValue> recipeOverride =
+                configuredValue(context, REPLAY_RECIPE_PROPERTY, REPLAY_RECIPE_ENVIRONMENT);
+        Optional<ConfiguredValue> seedOverride =
+                configuredValue(context, REPLAY_SEED_PROPERTY, REPLAY_SEED_ENVIRONMENT);
         if (recipeOverride.isPresent() && seedOverride.isPresent()) {
-            throw new ExtensionConfigurationException(
-                "Configure only one replay override: " + recipeOverride.get().source() + " or "
+            throw new ExtensionConfigurationException("Configure only one replay override: "
+                    + recipeOverride.get().source() + " or "
                     + seedOverride.get().source());
         }
         if (recipeOverride.isPresent()) {
@@ -389,22 +403,20 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
 
         Optional<KrandomSeed> annotation = findSeedAnnotation(context);
         if (annotation.isEmpty()) {
-            return new SeedInfo(GeneratorConfig.builder().seed(UNPINNED_SEEDS.nextLong()).build(), false,
-                                ClockSource.LIVE);
+            return new SeedInfo(
+                    GeneratorConfig.builder().seed(UNPINNED_SEEDS.nextLong()).build(), false, ClockSource.LIVE);
         }
         KrandomSeed seed = annotation.get();
         boolean hasValue = seed.value() != KrandomSeed.UNSET;
         boolean hasText = !seed.text().isEmpty();
         if (hasValue && hasText) {
-            throw new ExtensionConfigurationException(
-                    "@KrandomSeed must set either value or text, not both");
+            throw new ExtensionConfigurationException("@KrandomSeed must set either value or text, not both");
         }
         if (hasValue) {
             return new SeedInfo(GeneratorConfig.builder().seed(seed.value()).build(), true, ClockSource.LIVE);
         }
         if (!hasText) {
-            throw new ExtensionConfigurationException(
-                    "@KrandomSeed requires a numeric value or a non-blank text seed");
+            throw new ExtensionConfigurationException("@KrandomSeed requires a numeric value or a non-blank text seed");
         }
         if (seed.text().isBlank()) {
             throw new ExtensionConfigurationException("@KrandomSeed text seed must not be blank");
@@ -435,15 +447,16 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
 
     /** Returns the class replay recipe listed for the test class of this class context, if any. */
     private Optional<SeedInfo> classRecipeInfo(ExtensionContext context) {
-        Optional<ConfiguredValue> configured = configuredValue(
-            context, CLASS_REPLAY_RECIPE_PROPERTY, CLASS_REPLAY_RECIPE_ENVIRONMENT);
+        Optional<ConfiguredValue> configured =
+                configuredValue(context, CLASS_REPLAY_RECIPE_PROPERTY, CLASS_REPLAY_RECIPE_ENVIRONMENT);
         if (configured.isEmpty()) {
             return Optional.empty();
         }
         String recipe = classRecipes(configured.get()).get(classKey(context.getRequiredTestClass()));
         return recipe == null
-               ? Optional.empty()
-               : Optional.of(recipeInfo(new ConfiguredValue(recipe, configured.get().source())));
+                ? Optional.empty()
+                : Optional.of(
+                        recipeInfo(new ConfiguredValue(recipe, configured.get().source())));
     }
 
     /** Parses {@code <test class>=base64:<recipe>} entries separated by commas. */
@@ -454,10 +467,10 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
             String entry = entries[i];
             int separator = entry.indexOf('=');
             boolean wellFormed = separator > 0 && entry.startsWith("base64:", separator + 1);
-            if (!wellFormed || recipes.putIfAbsent(entry.substring(0, separator), entry.substring(separator + 1)) != null) {
-                throw new ExtensionConfigurationException(
-                    "Invalid " + configured.source() + " entry " + (i + 1) + ": expected unique"
-                    + " <test class>=base64:<recipe> entries separated by commas");
+            if (!wellFormed
+                    || recipes.putIfAbsent(entry.substring(0, separator), entry.substring(separator + 1)) != null) {
+                throw new ExtensionConfigurationException("Invalid " + configured.source() + " entry " + (i + 1)
+                        + ": expected unique" + " <test class>=base64:<recipe> entries separated by commas");
             }
         }
         return recipes;
@@ -465,7 +478,8 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
 
     private static SeedInfo recipeInfo(ConfiguredValue override) {
         try {
-            GeneratorConfig config = GenerationRecipe.parse(decodeRecipe(override.value())).toGeneratorConfig();
+            GeneratorConfig config =
+                    GenerationRecipe.parse(decodeRecipe(override.value())).toGeneratorConfig();
             return new SeedInfo(config, true, ClockSource.RECIPE);
         } catch (IllegalArgumentException exception) {
             throw new ExtensionConfigurationException("Invalid " + override.source() + " replay recipe", exception);
@@ -482,7 +496,9 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
 
     private static SeedInfo numericSeedInfo(ConfiguredValue override) {
         try {
-            GeneratorConfig config = GeneratorConfig.builder().seed(Long.parseLong(override.value())).build();
+            GeneratorConfig config = GeneratorConfig.builder()
+                    .seed(Long.parseLong(override.value()))
+                    .build();
             return new SeedInfo(config, true, ClockSource.LIVE);
         } catch (NumberFormatException exception) {
             throw new ExtensionConfigurationException("Invalid " + override.source() + " numeric seed", exception);

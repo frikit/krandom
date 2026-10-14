@@ -33,7 +33,7 @@ import java.util.Random;
  */
 public final class ItNationalIdProvider implements NationalIdProvider {
 
-    private static final String CONSONANTS  = "BCDFGHJKLMNPQRSTVWXYZ";
+    private static final String CONSONANTS = "BCDFGHJKLMNPQRSTVWXYZ";
     private static final String MONTH_CODES = "ABCDEHLMPRST";
 
     // Odd-position values for A–Z (0-indexed by alphabet position)
@@ -44,8 +44,7 @@ public final class ItNationalIdProvider implements NationalIdProvider {
     /**
      * Creates a provider for Italian Codice Fiscale numbers.
      */
-    public ItNationalIdProvider() {
-    }
+    public ItNationalIdProvider() {}
 
     private static String randomConsonants(Random random, int count) {
         StringBuilder sb = new StringBuilder(count);
@@ -108,8 +107,8 @@ public final class ItNationalIdProvider implements NationalIdProvider {
         char muniLetter = (char) ('A' + random.nextInt(26));
         int muniDigits = random.nextInt(1000);
 
-        String first15 = String.format(Locale.ROOT, "%s%s%02d%c%02d%c%03d",
-                                       surname, firstName, year, monthCode, day, muniLetter, muniDigits);
+        String first15 = String.format(
+                Locale.ROOT, "%s%s%02d%c%02d%c%03d", surname, firstName, year, monthCode, day, muniLetter, muniDigits);
 
         char checkChar = computeCheckChar(first15);
         return first15 + checkChar;

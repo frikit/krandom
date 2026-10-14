@@ -5,10 +5,10 @@
  */
 package io.github.frikit.krandom.generator.finance;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -31,7 +31,7 @@ import java.util.Random;
 public final class FinancialTermGenerator implements Generator<String> {
 
     private static final FinancialTermDataProvider DEFAULT_PROVIDER =
-        new BuiltInFinancialTermDataProvider(Locale.ROOT, "krandom/financial_terms/default.txt");
+            new BuiltInFinancialTermDataProvider(Locale.ROOT, "krandom/financial_terms/default.txt");
 
     private final List<String> terms;
     private final Random random;
@@ -50,7 +50,9 @@ public final class FinancialTermGenerator implements Generator<String> {
      *               exists; must not be {@code null}
      */
     public FinancialTermGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -61,7 +63,7 @@ public final class FinancialTermGenerator implements Generator<String> {
     public FinancialTermGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         DataRegistryContext registryContext = config.getRegistryContext();
-        FinancialTermDataProvider provider = registryContext.financialTermProvider(config.getLocale());
+        FinancialTermDataProvider provider = registryContext.provider(Vocabulary.FINANCIAL_TERM, config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }

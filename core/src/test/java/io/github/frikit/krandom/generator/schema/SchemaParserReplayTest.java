@@ -5,18 +5,17 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * Seeded JSON Schema generation must replay, and explicit schema constraints must win over
@@ -25,21 +24,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SchemaParserReplayTest {
 
     private static final Map<String, Object> MIXED = Map.of(
-        "type", "object",
-        "properties", Map.of(
-            "count", Map.of("type", "integer", "minimum", 0, "maximum", 1_000_000),
-            "big", Map.of("type", "integer", "minimum", 0, "maximum", 9_000_000_000L),
-            "huge", Map.of("type", "integer", "minimum", 0, "maximum", Long.MAX_VALUE),
-            "anyLong", Map.of("type", "integer", "minimum", Long.MIN_VALUE, "maximum", Long.MAX_VALUE),
-            "ratio", Map.of("type", "number", "minimum", 0, "maximum", 1),
-            "flag", Map.of("type", "boolean"),
-            "code", Map.of("type", "string", "pattern", "[A-Z]{4}"),
-            "anything", Map.of(),
-            "tags", Map.of("type", "array", "minItems", 2, "maxItems", 2)));
+            "type",
+            "object",
+            "properties",
+            Map.of(
+                    "count", Map.of("type", "integer", "minimum", 0, "maximum", 1_000_000),
+                    "big", Map.of("type", "integer", "minimum", 0, "maximum", 9_000_000_000L),
+                    "huge", Map.of("type", "integer", "minimum", 0, "maximum", Long.MAX_VALUE),
+                    "anyLong", Map.of("type", "integer", "minimum", Long.MIN_VALUE, "maximum", Long.MAX_VALUE),
+                    "ratio", Map.of("type", "number", "minimum", 0, "maximum", 1),
+                    "flag", Map.of("type", "boolean"),
+                    "code", Map.of("type", "string", "pattern", "[A-Z]{4}"),
+                    "anything", Map.of(),
+                    "tags", Map.of("type", "array", "minItems", 2, "maxItems", 2)));
 
     private static List<Map<String, Object>> records(Map<String, Object> jsonSchema, long seed, int count) {
-        return SchemaParser.fromJsonSchema(jsonSchema, GeneratorConfig.builder().seed(seed).build())
-                           .generateBatch(count);
+        return SchemaParser.fromJsonSchema(
+                        jsonSchema, GeneratorConfig.builder().seed(seed).build())
+                .generateBatch(count);
     }
 
     private static Map<String, Object> single(String name, Map<String, Object> property) {
@@ -57,8 +59,8 @@ class SchemaParserReplayTest {
     @Test
     @DisplayName("exclusiveMinimum excludes the bound even when it is not zero")
     void exclusiveMinimumIsExclusive() {
-        Map<String, Object> schema = single("x", Map.of(
-            "type", "number", "exclusiveMinimum", 1.0, "maximum", 1.0000000000000004));
+        Map<String, Object> schema =
+                single("x", Map.of("type", "number", "exclusiveMinimum", 1.0, "maximum", 1.0000000000000004));
         for (Map<String, Object> record : records(schema, 3L, 500)) {
             assertTrue(((Number) record.get("x")).doubleValue() > 1.0, "value must be above 1.0: " + record);
         }
@@ -75,14 +77,22 @@ class SchemaParserReplayTest {
     @DisplayName("empty number and integer ranges fail while parsing")
     void emptyRangesFailWhileParsing() {
         GeneratorConfig config = GeneratorConfig.builder().seed(1L).build();
-        assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(
-            single("x", Map.of("type", "number", "exclusiveMinimum", 1.0, "maximum", 1.0)), config));
-        assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(
-            single("x", Map.of("type", "integer", "minimum", 5, "maximum", 4)), config));
-        assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(
-            single("x", Map.of("type", "integer", "exclusiveMinimum", Long.MAX_VALUE)), config));
-        assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(
-            single("x", Map.of("type", "integer", "exclusiveMaximum", Long.MIN_VALUE)), config));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> SchemaParser.fromJsonSchema(
+                        single("x", Map.of("type", "number", "exclusiveMinimum", 1.0, "maximum", 1.0)), config));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> SchemaParser.fromJsonSchema(
+                        single("x", Map.of("type", "integer", "minimum", 5, "maximum", 4)), config));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> SchemaParser.fromJsonSchema(
+                        single("x", Map.of("type", "integer", "exclusiveMinimum", Long.MAX_VALUE)), config));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> SchemaParser.fromJsonSchema(
+                        single("x", Map.of("type", "integer", "exclusiveMaximum", Long.MIN_VALUE)), config));
     }
 
     @Test
@@ -94,10 +104,12 @@ class SchemaParserReplayTest {
         }
         properties.add(Map.of("type", "string", "minLength", 8, "maxLength", 12));
         for (Map<String, Object> property : properties) {
-            Map<String, Object> schema = Map.of(
-                "type", "object", "properties", Map.of("left", property, "right", property));
+            Map<String, Object> schema =
+                    Map.of("type", "object", "properties", Map.of("left", property, "right", property));
             List<Map<String, Object>> batch = records(schema, 11L, 20);
-            long repeated = batch.stream().filter(record -> record.get("left").equals(record.get("right"))).count();
+            long repeated = batch.stream()
+                    .filter(record -> record.get("left").equals(record.get("right")))
+                    .count();
             assertTrue(repeated < 3, "columns repeat each other for " + property + ": " + batch);
         }
     }
@@ -108,8 +120,11 @@ class SchemaParserReplayTest {
         Map<String, Object> id = Map.of("type", "string", "format", "uuid");
         Map<String, Object> code = Map.of("type", "string", "minLength", 4, "maxLength", 6);
         Map<String, Object> base = Map.of("type", "object", "properties", Map.of("id", id, "code", code));
-        Map<String, Object> wider = Map.of("type", "object", "properties", Map.of(
-            "id", id, "code", code, "contact", Map.of("type", "string", "format", "email")));
+        Map<String, Object> wider = Map.of(
+                "type",
+                "object",
+                "properties",
+                Map.of("id", id, "code", code, "contact", Map.of("type", "string", "format", "email")));
         List<Map<String, Object>> first = records(base, 21L, 10);
         assertEquals(first, records(base, 21L, 10));
         List<Map<String, Object>> withContact = records(wider, 21L, 10);

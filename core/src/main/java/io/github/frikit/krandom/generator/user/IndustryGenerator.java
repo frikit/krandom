@@ -7,7 +7,7 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -24,7 +24,7 @@ import java.util.Random;
 public final class IndustryGenerator implements Generator<String> {
 
     private static final IndustryDataProvider DEFAULT_PROVIDER =
-        new BuiltInIndustryDataProvider(Locale.ROOT, "default");
+            new BuiltInIndustryDataProvider(Locale.ROOT, "default");
 
     private final List<String> industries;
     private final Random random;
@@ -42,7 +42,9 @@ public final class IndustryGenerator implements Generator<String> {
      * @param locale locale whose industry names to use; must not be {@code null}
      */
     public IndustryGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -52,7 +54,7 @@ public final class IndustryGenerator implements Generator<String> {
      */
     public IndustryGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        IndustryDataProvider provider = config.getRegistryContext().industryProvider(config.getLocale());
+        IndustryDataProvider provider = config.getRegistryContext().provider(Vocabulary.INDUSTRY, config.getLocale());
         this.industries = (provider != null ? provider : DEFAULT_PROVIDER).getIndustries();
         this.random = config.createRandom();
     }

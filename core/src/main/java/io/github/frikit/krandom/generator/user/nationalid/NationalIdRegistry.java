@@ -5,13 +5,11 @@
  */
 package io.github.frikit.krandom.generator.user.nationalid;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Global registry mapping locales to {@link NationalIdProvider} instances.
@@ -40,53 +38,50 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class NationalIdRegistry {
 
-    private static final ConcurrentHashMap<String, NationalIdProvider> REGISTRY =
-        new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<String, NationalIdProvider> BY_COUNTRY =
-        new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, NationalIdProvider> REGISTRY = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, NationalIdProvider> BY_COUNTRY = new ConcurrentHashMap<>();
 
     static {
         List.of(
-            new UsNationalIdProvider(),
-            new GbNationalIdProvider(),
-            new AuNationalIdProvider(),
-            new FrNationalIdProvider(),
-            new DeNationalIdProvider(),
-            new JpNationalIdProvider(),
-            new EsNationalIdProvider(),
-            new ItNationalIdProvider(),
-            new BrNationalIdProvider(),
-            new CnNationalIdProvider(),
-            new NlNationalIdProvider(),
-            new PlNationalIdProvider(),
-            new RuNationalIdProvider(),
-            new KoNationalIdProvider(),
-            new TrNationalIdProvider(),
-            new SvNationalIdProvider(),
-            new NbNationalIdProvider(),
-            new CsNationalIdProvider(),
-            new ArSaNationalIdProvider(),
-            new HiInNationalIdProvider(),
-            new DaDkNationalIdProvider(),
-            new FiFiNationalIdProvider(),
-            new HuHuNationalIdProvider(),
-            new RoRoNationalIdProvider(),
-            new SkSkNationalIdProvider(),
-            new UkUaNationalIdProvider(),
-            new BgBgNationalIdProvider(),
-            new HrHrNationalIdProvider(),
-            new ElGrNationalIdProvider(),
-            new ThThNationalIdProvider(),
-            new ViVnNationalIdProvider(),
-            new IdIdNationalIdProvider(),
-            new MsMyNationalIdProvider(),
-            new HeIlNationalIdProvider(),
-            new CaEsNationalIdProvider()
-        ).forEach(NationalIdRegistry::seedInternal);
+                        new UsNationalIdProvider(),
+                        new GbNationalIdProvider(),
+                        new AuNationalIdProvider(),
+                        new FrNationalIdProvider(),
+                        new DeNationalIdProvider(),
+                        new JpNationalIdProvider(),
+                        new EsNationalIdProvider(),
+                        new ItNationalIdProvider(),
+                        new BrNationalIdProvider(),
+                        new CnNationalIdProvider(),
+                        new NlNationalIdProvider(),
+                        new PlNationalIdProvider(),
+                        new RuNationalIdProvider(),
+                        new KoNationalIdProvider(),
+                        new TrNationalIdProvider(),
+                        new SvNationalIdProvider(),
+                        new NbNationalIdProvider(),
+                        new CsNationalIdProvider(),
+                        new ArSaNationalIdProvider(),
+                        new HiInNationalIdProvider(),
+                        new DaDkNationalIdProvider(),
+                        new FiFiNationalIdProvider(),
+                        new HuHuNationalIdProvider(),
+                        new RoRoNationalIdProvider(),
+                        new SkSkNationalIdProvider(),
+                        new UkUaNationalIdProvider(),
+                        new BgBgNationalIdProvider(),
+                        new HrHrNationalIdProvider(),
+                        new ElGrNationalIdProvider(),
+                        new ThThNationalIdProvider(),
+                        new ViVnNationalIdProvider(),
+                        new IdIdNationalIdProvider(),
+                        new MsMyNationalIdProvider(),
+                        new HeIlNationalIdProvider(),
+                        new CaEsNationalIdProvider())
+                .forEach(NationalIdRegistry::seedInternal);
     }
 
-    private NationalIdRegistry() {
-    }
+    private NationalIdRegistry() {}
 
     /**
      * Returns {@code true} if {@link #forLocale(Locale)} resolves a provider for the given locale.

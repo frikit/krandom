@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.object;
 
 import io.github.frikit.krandom.generator.provider.ProviderCatalog;
-
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -26,9 +25,9 @@ public final class SemanticFieldRegistry {
 
     private static final SemanticFieldRegistry DEFAULTS = buildDefaults();
 
-    private final Map<String, String>      keysByAlias;
+    private final Map<String, String> keysByAlias;
     private final Map<String, Set<String>> aliasesByKey;
-    private final Map<String, String>      providerNamesByKey;
+    private final Map<String, String> providerNamesByKey;
 
     private SemanticFieldRegistry(Builder builder) {
         this.keysByAlias = Collections.unmodifiableMap(new LinkedHashMap<>(builder.keysByAlias));
@@ -69,7 +68,7 @@ public final class SemanticFieldRegistry {
      * @param fieldName field name to look up
      * @return canonical semantic key, or {@code null} when no alias matches
      */
-    public String semanticKeyForFieldName(String fieldName) {
+    public @org.jspecify.annotations.Nullable String semanticKeyForFieldName(String fieldName) {
         return keysByAlias.get(normalizeFieldName(fieldName));
     }
 
@@ -89,7 +88,7 @@ public final class SemanticFieldRegistry {
      * @param semanticKey canonical or aliased semantic key
      * @return provider name, or {@code null} when the key is not provider-backed
      */
-    public String semanticProviderNameFor(String semanticKey) {
+    public @org.jspecify.annotations.Nullable String semanticProviderNameFor(String semanticKey) {
         return providerNamesByKey.get(canonicalKeyFor(semanticKey));
     }
 
@@ -99,48 +98,59 @@ public final class SemanticFieldRegistry {
 
     private static SemanticFieldRegistry buildDefaults() {
         Builder registry = builder()
-            .alias("firstname", "firstname", "givenname")
-            .alias("lastname", "lastname", "surname", "familyname")
-            .alias("fullname", "fullname", "displayname")
-            .alias("email", "email", "emailaddress")
-            .alias("username", "username", "userhandle")
-            .alias("phone", "phone", "phonenumber", "mobile", "mobilephone", "telephone")
-            .alias("streetaddress", "street", "streetaddress", "addressline1")
-            .alias("city", "city", "town")
-            .alias("state", "state", "province", "region")
-            .alias("postalcode", "postalcode", "postcode", "zipcode", "zip")
-            .alias("country", "country", "countryname")
-            .alias("companyname", "company", "companyname", "organization", "organisation")
-            .alias("industry", "industry", "sector")
-            .alias("companyemail", "companyemail", "businessemail", "corporateemail")
-            .alias("companyurl", "companyurl", "companywebsite", "businesswebsite")
-            .alias("password", "password", "passcode")
-            .alias("url", "url", "website", "homepage", "link")
-            .alias("domain", "domain", "hostname")
-            .alias("currency", "currency", "currencycode")
-            .alias("uuid", "uuid", "guid")
-            .alias("createdat", "createdat", "createdon", "createddate", "createdtimestamp", "creationdate")
-            .alias("updatedat", "updatedat", "updatedon", "updateddate", "updatedtimestamp", "lastupdated", "modifiedat", "modifiedon")
-            .alias("birthdate", "birthdate", "dateofbirth", "dob", "birthday", "bornon")
-            .alias("age", "age", "ageyears", "yearsold")
-            .alias("amount", "amount", "totalamount", "subtotal", "paymentamount")
-            .alias("balance", "balance", "accountbalance", "currentbalance")
-            .alias("price", "price", "unitprice", "cost")
-            .alias("id", "id", "userid", "accountid", "orderid", "customerid", "productid", "geoid", "identifier")
-            .alias("active", "active", "isactive", "enabled", "isenabled")
-            .alias("status", "status", "accountstatus", "orderstatus")
-            .alias("latitude", "latitude", "lat")
-            .alias("longitude", "longitude", "lon", "lng");
+                .alias("firstname", "firstname", "givenname")
+                .alias("lastname", "lastname", "surname", "familyname")
+                .alias("fullname", "fullname", "displayname")
+                .alias("email", "email", "emailaddress")
+                .alias("username", "username", "userhandle")
+                .alias("phone", "phone", "phonenumber", "mobile", "mobilephone", "telephone")
+                .alias("streetaddress", "street", "streetaddress", "addressline1")
+                .alias("city", "city", "town")
+                .alias("state", "state", "province", "region")
+                .alias("postalcode", "postalcode", "postcode", "zipcode", "zip")
+                .alias("country", "country", "countryname")
+                .alias("companyname", "company", "companyname", "organization", "organisation")
+                .alias("industry", "industry", "sector")
+                .alias("companyemail", "companyemail", "businessemail", "corporateemail")
+                .alias("companyurl", "companyurl", "companywebsite", "businesswebsite")
+                .alias("password", "password", "passcode")
+                .alias("url", "url", "website", "homepage", "link")
+                .alias("domain", "domain", "hostname")
+                .alias("currency", "currency", "currencycode")
+                .alias("uuid", "uuid", "guid")
+                .alias("createdat", "createdat", "createdon", "createddate", "createdtimestamp", "creationdate")
+                .alias(
+                        "updatedat",
+                        "updatedat",
+                        "updatedon",
+                        "updateddate",
+                        "updatedtimestamp",
+                        "lastupdated",
+                        "modifiedat",
+                        "modifiedon")
+                .alias("birthdate", "birthdate", "dateofbirth", "dob", "birthday", "bornon")
+                .alias("age", "age", "ageyears", "yearsold")
+                .alias("amount", "amount", "totalamount", "subtotal", "paymentamount")
+                .alias("balance", "balance", "accountbalance", "currentbalance")
+                .alias("price", "price", "unitprice", "cost")
+                .alias("id", "id", "userid", "accountid", "orderid", "customerid", "productid", "geoid", "identifier")
+                .alias("active", "active", "isactive", "enabled", "isenabled")
+                .alias("status", "status", "accountstatus", "orderstatus")
+                .alias("latitude", "latitude", "lat")
+                .alias("longitude", "longitude", "lon", "lng");
 
-        ProviderCatalog.builtIns().forEach(descriptor ->
-            descriptor.getSemanticKeys().forEach(semanticKey -> registry.provider(semanticKey, descriptor.getKey())));
+        ProviderCatalog.builtIns()
+                .forEach(descriptor -> descriptor
+                        .getSemanticKeys()
+                        .forEach(semanticKey -> registry.provider(semanticKey, descriptor.getKey())));
         return registry.build();
     }
 
     private static Map<String, Set<String>> buildAliasesByKey(Map<String, String> keysByAlias) {
         Map<String, Set<String>> aliases = new LinkedHashMap<>();
         for (Map.Entry<String, String> entry : keysByAlias.entrySet()) {
-            aliases.computeIfAbsent(entry.getValue(), ignored -> new LinkedHashSet<>()).add(entry.getKey());
+            aliases.computeIfAbsent(entry.getValue(), ignored -> new LinkedHashSet<>())
+                    .add(entry.getKey());
         }
         Map<String, Set<String>> unmodifiable = new LinkedHashMap<>();
         for (Map.Entry<String, Set<String>> entry : aliases.entrySet()) {
@@ -179,11 +189,10 @@ public final class SemanticFieldRegistry {
      */
     public static final class Builder {
 
-        private final Map<String, String> keysByAlias        = new LinkedHashMap<>();
+        private final Map<String, String> keysByAlias = new LinkedHashMap<>();
         private final Map<String, String> providerNamesByKey = new LinkedHashMap<>();
 
-        private Builder() {
-        }
+        private Builder() {}
 
         private Builder(SemanticFieldRegistry source) {
             keysByAlias.putAll(source.keysByAlias);

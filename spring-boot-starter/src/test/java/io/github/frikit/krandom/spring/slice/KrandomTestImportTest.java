@@ -5,6 +5,9 @@
  */
 package io.github.frikit.krandom.spring.slice;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+
 import io.github.frikit.krandom.spring.KrandomObjectFakerFactory;
 import io.github.frikit.krandom.spring.KrandomTest;
 import org.junit.jupiter.api.DisplayName;
@@ -12,9 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 
 @KrandomTest
 @Import(FixtureService.class)

@@ -5,12 +5,14 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import jakarta.validation.constraints.Size;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.finance.Currency;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.time.Instant;
@@ -21,11 +23,8 @@ import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectGenerator typed semantics")
 class ObjectGeneratorTypedSemanticTest {
@@ -44,7 +43,8 @@ class ObjectGeneratorTypedSemanticTest {
         assertTrue(!value.created_at.toLocalDate().isAfter(today));
 
         Instant latestAllowed = today.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC);
-        assertTrue(!value.updatedTimestamp.isBefore(today.minusYears(10).atStartOfDay().toInstant(ZoneOffset.UTC)));
+        assertTrue(!value.updatedTimestamp.isBefore(
+                today.minusYears(10).atStartOfDay().toInstant(ZoneOffset.UTC)));
         assertTrue(value.updatedTimestamp.isBefore(latestAllowed));
 
         assertNotNull(value.totalAmount);
@@ -63,9 +63,10 @@ class ObjectGeneratorTypedSemanticTest {
         assertTrue(value.accountId > 0);
         assertTrue(value.lat >= 24.5 && value.lat <= 49.0);
         assertTrue(value.lon >= -125.0 && value.lon <= -66.0);
-        assertTrue(value.isEnabled
-                   ? Set.of("ACTIVE", "ENABLED").contains(value.status)
-                   : Set.of("INACTIVE", "DISABLED", "SUSPENDED").contains(value.status));
+        assertTrue(
+                value.isEnabled
+                        ? Set.of("ACTIVE", "ENABLED").contains(value.status)
+                        : Set.of("INACTIVE", "DISABLED", "SUSPENDED").contains(value.status));
     }
 
     @Test
@@ -83,10 +84,10 @@ class ObjectGeneratorTypedSemanticTest {
     @DisplayName("structural-only mode disables typed semantic defaults")
     void structuralOnlyModeDisablesTypedSemanticDefaults() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.US)
-                                                .seed(42L)
-                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                .build();
+                .locale(Locale.US)
+                .seed(42L)
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .build();
 
         BusinessSemantics value = new ObjectGenerator<>(BusinessSemantics.class, config).generate();
 
@@ -100,9 +101,8 @@ class ObjectGeneratorTypedSemanticTest {
         LocalDate min = LocalDate.of(2021, 1, 1);
         LocalDate max = LocalDate.of(2021, 12, 31);
 
-        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .dateRange(min, max)
-                                                            .build();
+        ObjectGeneratorConfig config =
+                ObjectGeneratorConfig.builder().dateRange(min, max).build();
 
         BusinessSemantics value = new ObjectGenerator<>(BusinessSemantics.class, config).generate();
 
@@ -110,24 +110,25 @@ class ObjectGeneratorTypedSemanticTest {
         assertFalse(value.dateOfBirth.isAfter(max));
         assertFalse(value.created_at.toLocalDate().isBefore(min));
         assertFalse(value.created_at.toLocalDate().isAfter(max));
-        assertFalse(value.updatedTimestamp.atOffset(ZoneOffset.UTC).toLocalDate().isBefore(min));
-        assertFalse(value.updatedTimestamp.atOffset(ZoneOffset.UTC).toLocalDate().isAfter(max));
+        assertFalse(
+                value.updatedTimestamp.atOffset(ZoneOffset.UTC).toLocalDate().isBefore(min));
+        assertFalse(
+                value.updatedTimestamp.atOffset(ZoneOffset.UTC).toLocalDate().isAfter(max));
     }
 
     @Test
     @DisplayName("status enums prefer common business lifecycle constants")
     void statusEnumsPreferCommonLifecycleConstants() {
         EnumBackedStatusHolder value = new ObjectGenerator<>(EnumBackedStatusHolder.class).generate();
-        assertTrue(Set.of(LifecycleStatus.ACTIVE, LifecycleStatus.PENDING, LifecycleStatus.SUSPENDED).contains(value.status));
+        assertTrue(Set.of(LifecycleStatus.ACTIVE, LifecycleStatus.PENDING, LifecycleStatus.SUSPENDED)
+                .contains(value.status));
     }
 
     @Test
     @DisplayName("unsupported locale currency semantics fall back to generated codes")
     void unsupportedLocaleCurrencySemanticsFallBack() {
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.ROOT)
-                                                .seed(17L)
-                                                .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.ROOT).seed(17L).build();
 
         BusinessSemantics value = new ObjectGenerator<>(BusinessSemantics.class, config).generate();
         assertNotNull(value.currencyCode);
@@ -210,19 +211,19 @@ class ObjectGeneratorTypedSemanticTest {
 
     static class BusinessSemantics {
 
-        LocalDate     dateOfBirth;
-        int           ageYears;
+        LocalDate dateOfBirth;
+        int ageYears;
         LocalDateTime created_at;
-        Instant       updatedTimestamp;
-        BigDecimal    totalAmount;
-        BigDecimal    accountBalance;
-        double        unitPrice;
-        Currency      currencyCode;
-        long          accountId;
-        double        lat;
-        double        lon;
-        boolean       isEnabled;
-        String        status;
+        Instant updatedTimestamp;
+        BigDecimal totalAmount;
+        BigDecimal accountBalance;
+        double unitPrice;
+        Currency currencyCode;
+        long accountId;
+        double lat;
+        double lon;
+        boolean isEnabled;
+        String status;
     }
 
     static class EnumBackedStatusHolder {
@@ -232,11 +233,11 @@ class ObjectGeneratorTypedSemanticTest {
 
     static class ExtendedTypedSemantics {
 
-        String             accountId;
+        String accountId;
         java.util.Currency currencyCode;
-        OffsetDateTime     createdAt;
-        Float              latitude;
-        BigDecimal         longitude;
+        OffsetDateTime createdAt;
+        Float latitude;
+        BigDecimal longitude;
     }
 
     static class PrimitiveLongAgeSemantics {
@@ -279,8 +280,7 @@ class ObjectGeneratorTypedSemanticTest {
 
     static class ValidatedSemanticString {
 
-        @Size(min = 40, max = 40)
-        String username;
+        @Size(min = 40, max = 40) String username;
     }
 
     enum LifecycleStatus {

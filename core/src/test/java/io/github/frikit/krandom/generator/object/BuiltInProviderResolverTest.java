@@ -5,14 +5,14 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.user.FirstNameGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("BuiltInProviderResolver")
 class BuiltInProviderResolverTest {
@@ -23,11 +23,11 @@ class BuiltInProviderResolverTest {
         GeneratorConfig config = GeneratorConfig.builder().seed(7L).build();
 
         assertInstanceOf(
-            FirstNameGenerator.class,
-            BuiltInProviderResolver.provider("person.first_name", config, FirstNameGenerator.class));
+                FirstNameGenerator.class,
+                BuiltInProviderResolver.provider("person.first_name", config, FirstNameGenerator.class));
         assertInstanceOf(
-            FirstNameGenerator.class,
-            BuiltInProviderResolver.provider("first_name", config, FirstNameGenerator.class));
+                FirstNameGenerator.class,
+                BuiltInProviderResolver.provider("first_name", config, FirstNameGenerator.class));
     }
 
     @Test
@@ -35,8 +35,12 @@ class BuiltInProviderResolverTest {
     void seededCreationRemainsDeterministic() {
         GeneratorConfig config = GeneratorConfig.builder().seed(7L).build();
 
-        String first = BuiltInProviderResolver.generator("person.first_name", config).generate().toString();
-        String second = BuiltInProviderResolver.generator("person.first_name", config).generate().toString();
+        String first = BuiltInProviderResolver.generator("person.first_name", config)
+                .generate()
+                .toString();
+        String second = BuiltInProviderResolver.generator("person.first_name", config)
+                .generate()
+                .toString();
 
         assertEquals(first, second);
     }
@@ -45,7 +49,7 @@ class BuiltInProviderResolverTest {
     @DisplayName("unknown provider names fail with useful context")
     void unknownProviderFails() {
         assertThrows(
-            IllegalArgumentException.class,
-            () -> BuiltInProviderResolver.generator("missing.provider", GeneratorConfig.defaults()));
+                IllegalArgumentException.class,
+                () -> BuiltInProviderResolver.generator("missing.provider", GeneratorConfig.defaults()));
     }
 }

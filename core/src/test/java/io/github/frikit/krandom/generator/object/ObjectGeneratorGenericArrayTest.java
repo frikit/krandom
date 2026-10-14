@@ -5,28 +5,25 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
-import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
-import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 @DisplayName("ObjectGenerator — generic arrays")
 class ObjectGeneratorGenericArrayTest {
 
-    private static final GeneratorConfig CONFIG = GeneratorConfig.builder()
-                                                                  .seed(2211L)
-                                                                  .collectionSize(2, 2)
-                                                                  .build();
+    private static final GeneratorConfig CONFIG =
+            GeneratorConfig.builder().seed(2211L).collectionSize(2, 2).build();
 
     @Test
     @DisplayName("inherited scalar array uses its concrete component binding")
@@ -81,8 +78,8 @@ class ObjectGeneratorGenericArrayTest {
     @DisplayName("unbound array component fails at the parent path with its full signature")
     void unboundArrayComponentFailsAtParentPath() {
         ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(UnboundArrayFixture.class, CONFIG).generate());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(UnboundArrayFixture.class, CONFIG).generate());
 
         var context = ex.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
@@ -95,14 +92,16 @@ class ObjectGeneratorGenericArrayTest {
     void lenientUnboundArrayDiscardsWholeValue() {
         AtomicReference<GenerationFailureDiagnostic> observed = new AtomicReference<>();
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectIgnoreErrors(true)
-                                                .generationFailureListener(observed::set)
-                                                .build();
+                .objectIgnoreErrors(true)
+                .generationFailureListener(observed::set)
+                .build();
 
         UnboundArrayFixture<?> value = new ObjectGenerator<>(UnboundArrayFixture.class, config).generate();
 
         assertNull(value.values);
-        assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, observed.get().context().category());
+        assertEquals(
+                GenerationFailureCategory.UNSUPPORTED_TYPE,
+                observed.get().context().category());
         assertEquals("UnboundArrayFixture.values", observed.get().context().path());
         assertEquals("T[]", observed.get().context().declaredType());
     }
@@ -112,22 +111,18 @@ class ObjectGeneratorGenericArrayTest {
         T[] values;
     }
 
-    static final class StringArrayFixture extends GenericArrayFixture<String> {
-    }
+    static final class StringArrayFixture extends GenericArrayFixture<String> {}
 
-    static class NestedArrayFixture<U> extends GenericArrayFixture<List<U>> {
-    }
+    static class NestedArrayFixture<U> extends GenericArrayFixture<List<U>> {}
 
-    static final class IntegerListArrayFixture extends NestedArrayFixture<Integer> {
-    }
+    static final class IntegerListArrayFixture extends NestedArrayFixture<Integer> {}
 
     static final class ParameterizedArrayFixture {
 
         List<String>[] values;
     }
 
-    record ParameterizedArrayRecord(List<Integer>[] values) {
-    }
+    record ParameterizedArrayRecord(List<Integer>[] values) {}
 
     static final class UnboundArrayFixture<T> {
 

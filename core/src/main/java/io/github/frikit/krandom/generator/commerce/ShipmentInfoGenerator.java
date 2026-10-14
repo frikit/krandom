@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.commerce;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -21,19 +20,13 @@ import java.util.Random;
  */
 public final class ShipmentInfoGenerator implements Generator<ShipmentInfo> {
 
-    private static final String[] CARRIERS = {
-        "UPS", "FedEx", "USPS", "DHL", "Royal Mail"
-    };
-    private static final String[] SERVICE_LEVELS = {
-        "STANDARD", "EXPRESS", "TWO_DAY", "OVERNIGHT", "ECONOMY"
-    };
-    private static final String[] SHIPMENT_STATUSES = {
-        "SHIPPED", "IN_TRANSIT", "OUT_FOR_DELIVERY", "DELIVERED"
-    };
+    private static final String[] CARRIERS = {"UPS", "FedEx", "USPS", "DHL", "Royal Mail"};
+    private static final String[] SERVICE_LEVELS = {"STANDARD", "EXPRESS", "TWO_DAY", "OVERNIGHT", "ECONOMY"};
+    private static final String[] SHIPMENT_STATUSES = {"SHIPPED", "IN_TRANSIT", "OUT_FOR_DELIVERY", "DELIVERED"};
 
-    private final GeneratorConfig    config;
-    private final Random             random;
-    private final UUIDGenerator      uuidGenerator;
+    private final GeneratorConfig config;
+    private final Random random;
+    private final UUIDGenerator uuidGenerator;
     private final OrderInfoGenerator orderInfoGenerator;
 
     /**
@@ -49,7 +42,9 @@ public final class ShipmentInfoGenerator implements Generator<ShipmentInfo> {
      * @param locale locale to use
      */
     public ShipmentInfoGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -71,26 +66,23 @@ public final class ShipmentInfoGenerator implements Generator<ShipmentInfo> {
         String status = SHIPMENT_STATUSES[random.nextInt(SHIPMENT_STATUSES.length)];
         LocalDate shippedOn = order.orderedOn().plusDays(random.nextInt(0, 3));
         LocalDate estimatedDeliveryOn = shippedOn.plusDays(random.nextInt(1, 8));
-        LocalDate deliveredOn = "DELIVERED".equals(status)
-            ? estimatedDeliveryOn.plusDays(random.nextInt(-1, 2))
-            : null;
+        LocalDate deliveredOn = "DELIVERED".equals(status) ? estimatedDeliveryOn.plusDays(random.nextInt(-1, 2)) : null;
         BigDecimal weightKg = BigDecimal.valueOf((0.2 + (random.nextDouble() * 4.8)) * Math.max(1, order.quantity()))
-                                        .setScale(2, RoundingMode.HALF_UP);
+                .setScale(2, RoundingMode.HALF_UP);
 
         return new ShipmentInfo(
-            prefixedId("SHP"),
-            order.orderNumber(),
-            carrier,
-            SERVICE_LEVELS[random.nextInt(SERVICE_LEVELS.length)],
-            trackingNumber(carrier),
-            status,
-            shippedOn,
-            estimatedDeliveryOn,
-            deliveredOn,
-            weightKg,
-            order.customer(),
-            order.shippingAddress()
-        );
+                prefixedId("SHP"),
+                order.orderNumber(),
+                carrier,
+                SERVICE_LEVELS[random.nextInt(SERVICE_LEVELS.length)],
+                trackingNumber(carrier),
+                status,
+                shippedOn,
+                estimatedDeliveryOn,
+                deliveredOn,
+                weightKg,
+                order.customer(),
+                order.shippingAddress());
     }
 
     /**

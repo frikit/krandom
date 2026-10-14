@@ -5,18 +5,6 @@
  */
 package io.github.frikit.krandom.generator.location;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -24,6 +12,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
+import io.github.frikit.krandom.generator.locale.SupportedLocale;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("CountryGenerator")
 class CountryGeneratorTest {
@@ -92,7 +91,8 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("current-country helpers throw when locale has no country")
     void currentCountryHelpersNoCountry() {
-        CountryGenerator languageOnly = new CountryGenerator(GeneratorConfig.builder().locale(Locale.ENGLISH).build());
+        CountryGenerator languageOnly = new CountryGenerator(
+                GeneratorConfig.builder().locale(Locale.ENGLISH).build());
         assertThrows(UnsupportedOperationException.class, languageOnly::currentCountry);
         assertThrows(UnsupportedOperationException.class, languageOnly::currentCountryCode);
         assertThrows(UnsupportedOperationException.class, languageOnly::currentCountryCodeAlpha3);
@@ -133,11 +133,20 @@ class CountryGeneratorTest {
         }
 
         assertEquals(List.of("+64", "+49", "+966", "+886", "+1", "+380", "+34", "+32"), callingCodes);
-        assertEquals(List.of("Oceania", "Europe", "Asia", "Asia", "North America", "Europe", "Europe", "Europe"),
-                     continents);
-        assertEquals(List.of("Pacific/Auckland", "Europe/Berlin", "Asia/Riyadh", "Asia/Taipei",
-                             "America/New_York", "Europe/Kyiv", "Europe/Madrid", "Europe/Brussels"),
-                     timezones);
+        assertEquals(
+                List.of("Oceania", "Europe", "Asia", "Asia", "North America", "Europe", "Europe", "Europe"),
+                continents);
+        assertEquals(
+                List.of(
+                        "Pacific/Auckland",
+                        "Europe/Berlin",
+                        "Asia/Riyadh",
+                        "Asia/Taipei",
+                        "America/New_York",
+                        "Europe/Kyiv",
+                        "Europe/Madrid",
+                        "Europe/Brussels"),
+                timezones);
     }
 
     @Test
@@ -318,8 +327,10 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("seeded generator produces reproducible results")
     void seededReproducibility() {
-        GeneratorConfig config1 = GeneratorConfig.builder().locale(Locale.GERMANY).seed(42L).build();
-        GeneratorConfig config2 = GeneratorConfig.builder().locale(Locale.GERMANY).seed(42L).build();
+        GeneratorConfig config1 =
+                GeneratorConfig.builder().locale(Locale.GERMANY).seed(42L).build();
+        GeneratorConfig config2 =
+                GeneratorConfig.builder().locale(Locale.GERMANY).seed(42L).build();
 
         CountryGenerator gen1 = new CountryGenerator(config1);
         CountryGenerator gen2 = new CountryGenerator(config2);
@@ -385,8 +396,7 @@ class CountryGeneratorTest {
     void countryCountPositive() {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             CountryGenerator gen = new CountryGenerator(supportedLocale.locale());
-            assertTrue(gen.getCountryCount() > 0,
-                       "Locale " + supportedLocale.locale() + " should have countries");
+            assertTrue(gen.getCountryCount() > 0, "Locale " + supportedLocale.locale() + " should have countries");
         }
     }
 
@@ -403,10 +413,8 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
-        UnsupportedOperationException ex = assertThrows(
-            UnsupportedOperationException.class,
-            () -> new CountryGenerator(Locale.of("xx", "YY"))
-        );
+        UnsupportedOperationException ex =
+                assertThrows(UnsupportedOperationException.class, () -> new CountryGenerator(Locale.of("xx", "YY")));
 
         assertTrue(ex.getMessage().contains("not supported"));
         assertTrue(ex.getMessage().contains("xx_YY"));
@@ -415,15 +423,13 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("null config throws NullPointerException")
     void nullConfigThrows() {
-        assertThrows(NullPointerException.class,
-                     () -> new CountryGenerator((GeneratorConfig) null));
+        assertThrows(NullPointerException.class, () -> new CountryGenerator((GeneratorConfig) null));
     }
 
     @Test
     @DisplayName("null locale throws NullPointerException")
     void nullLocaleThrows() {
-        assertThrows(NullPointerException.class,
-                     () -> new CountryGenerator((Locale) null));
+        assertThrows(NullPointerException.class, () -> new CountryGenerator((Locale) null));
     }
 
     @Test
@@ -522,9 +528,7 @@ class CountryGeneratorTest {
     @DisplayName("CountryResourceLoader throws for missing resource")
     void resourceLoaderThrowsForMissingFile() {
         IllegalStateException ex = assertThrows(
-            IllegalStateException.class,
-            () -> CountryResourceLoader.load("krandom/countries/nonexistent.txt")
-        );
+                IllegalStateException.class, () -> CountryResourceLoader.load("krandom/countries/nonexistent.txt"));
         assertTrue(ex.getMessage().contains("Country resource not found"));
     }
 
@@ -533,22 +537,24 @@ class CountryGeneratorTest {
     void currentCountryCodesUnsupportedForContextScopedCountry() {
         Locale locale = Locale.of("en", "ZZ");
         io.github.frikit.krandom.generator.DataRegistryContext context =
-            io.github.frikit.krandom.generator.DataRegistryContext.builder()
-                .registerCountryProvider(new CountryDataProvider() {
+                io.github.frikit.krandom.generator.DataRegistryContext.builder()
+                        .register(Vocabulary.COUNTRY, new CountryDataProvider() {
 
-                    @Override
-                    public Locale getLocale() {
-                        return locale;
-                    }
+                            @Override
+                            public Locale getLocale() {
+                                return locale;
+                            }
 
-                    @Override
-                    public String[] getCountries() {
-                        return new String[] { "Nowhere" };
-                    }
-                })
-                .build();
-        CountryGenerator generator = new CountryGenerator(
-            GeneratorConfig.builder().locale(locale).registryContext(context).build());
+                            @Override
+                            public String[] getCountries() {
+                                return new String[] {"Nowhere"};
+                            }
+                        })
+                        .build();
+        CountryGenerator generator = new CountryGenerator(GeneratorConfig.builder()
+                .locale(locale)
+                .registryContext(context)
+                .build());
 
         assertThrows(UnsupportedOperationException.class, generator::currentCountryCodeAlpha3);
         assertThrows(UnsupportedOperationException.class, generator::currentCountryCodeNumeric);

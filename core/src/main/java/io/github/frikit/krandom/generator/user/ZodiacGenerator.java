@@ -5,10 +5,10 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.time.LocalDate;
 import java.time.MonthDay;
 import java.util.List;
@@ -34,7 +34,7 @@ import java.util.Random;
 public final class ZodiacGenerator implements Generator<String> {
 
     private static final ZodiacDataProvider DEFAULT_PROVIDER =
-        new BuiltInZodiacDataProvider(Locale.ROOT, "krandom/zodiac/default.txt");
+            new BuiltInZodiacDataProvider(Locale.ROOT, "krandom/zodiac/default.txt");
 
     /** First day (inclusive) on which each month's later sign begins, indexed by month - 1. */
     private static final int[] CUTOFF = {20, 19, 21, 20, 21, 21, 23, 23, 23, 23, 22, 22};
@@ -62,7 +62,9 @@ public final class ZodiacGenerator implements Generator<String> {
      *               exists; must not be {@code null}
      */
     public ZodiacGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -73,7 +75,7 @@ public final class ZodiacGenerator implements Generator<String> {
     public ZodiacGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         DataRegistryContext registryContext = config.getRegistryContext();
-        ZodiacDataProvider provider = registryContext.zodiacProvider(config.getLocale());
+        ZodiacDataProvider provider = registryContext.provider(Vocabulary.ZODIAC, config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }
@@ -112,8 +114,8 @@ public final class ZodiacGenerator implements Generator<String> {
         Objects.requireNonNull(monthDay, "monthDay must not be null");
         int idx = monthDay.getMonthValue() - 1;
         int signIndex = monthDay.getDayOfMonth() >= CUTOFF[idx]
-            ? SIGN_INDEX_FROM_CUTOFF[idx]
-            : SIGN_INDEX_FROM_CUTOFF[(idx + 11) % 12];
+                ? SIGN_INDEX_FROM_CUTOFF[idx]
+                : SIGN_INDEX_FROM_CUTOFF[(idx + 11) % 12];
         return signs.get(signIndex);
     }
 }

@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.jackson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.util.Objects;
 
 /**
@@ -17,8 +16,7 @@ import java.util.Objects;
  */
 public final class KrandomJackson {
 
-    private KrandomJackson() {
-    }
+    private KrandomJackson() {}
 
     /**
      * Registers krandom's Jackson module with an existing mapper.

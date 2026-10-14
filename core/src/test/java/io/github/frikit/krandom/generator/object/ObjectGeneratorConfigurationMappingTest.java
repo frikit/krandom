@@ -5,20 +5,6 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import io.github.frikit.krandom.generator.core.model.CircularNode;
-import io.github.frikit.krandom.generator.core.model.Person;
-import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.List;
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -28,6 +14,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.core.model.CircularNode;
+import io.github.frikit.krandom.generator.core.model.Person;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("object generator configuration mapping")
 class ObjectGeneratorConfigurationMappingTest {
@@ -51,30 +50,32 @@ class ObjectGeneratorConfigurationMappingTest {
     @DisplayName("charset and string length constrain generated strings")
     void charsetAndStringLengthConstrainStringFields() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .charset(StandardCharsets.US_ASCII)
-                                                .stringLength(8, 8)
-                                                .seed(123L)
-                                                .build();
+                .charset(StandardCharsets.US_ASCII)
+                .stringLength(8, 8)
+                .seed(123L)
+                .build();
 
         StringHolder holder = Generators.ofObject(StringHolder.class, config).generate();
 
         assertNotNull(holder.randomText);
         assertEquals(8, holder.randomText.length());
         assertFalse(holder.randomText.isBlank());
-        holder.randomText.chars()
-                         .forEach(ch -> assertTrue(StandardCharsets.US_ASCII.newEncoder().canEncode((char) ch)));
+        holder.randomText
+                .chars()
+                .forEach(ch -> assertTrue(StandardCharsets.US_ASCII.newEncoder().canEncode((char) ch)));
     }
 
     @Test
     @DisplayName("collection size controls arrays, collections, and maps")
     void collectionSizeControlsContainerFields() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .collectionSize(1, 1)
-                                                .stringLength(4, 4)
-                                                .seed(99L)
-                                                .build();
+                .collectionSize(1, 1)
+                .stringLength(4, 4)
+                .seed(99L)
+                .build();
 
-        ContainerHolder holder = Generators.ofObject(ContainerHolder.class, config).generate();
+        ContainerHolder holder =
+                Generators.ofObject(ContainerHolder.class, config).generate();
 
         assertNotNull(holder.tags);
         assertEquals(1, holder.tags.length);
@@ -89,15 +90,13 @@ class ObjectGeneratorConfigurationMappingTest {
     @Test
     @DisplayName("object pool and max depth control recursive object graphs")
     void objectPoolAndDepthControlObjectGraphs() {
-        GeneratorConfig poolConfig = GeneratorConfig.builder()
-                                                    .objectPoolSize(0)
-                                                    .build();
-        CircularNode node = assertDoesNotThrow(() -> Generators.ofObject(CircularNode.class, poolConfig).generate());
+        GeneratorConfig poolConfig = GeneratorConfig.builder().objectPoolSize(0).build();
+        CircularNode node = assertDoesNotThrow(
+                () -> Generators.ofObject(CircularNode.class, poolConfig).generate());
         assertNotNull(node);
 
-        GeneratorConfig depthConfig = GeneratorConfig.builder()
-                                                     .objectMaxDepth(1)
-                                                     .build();
+        GeneratorConfig depthConfig =
+                GeneratorConfig.builder().objectMaxDepth(1).build();
         DepthRoot root = Generators.ofObject(DepthRoot.class, depthConfig).generate();
         assertNotNull(root.middle);
         assertNull(root.middle.leaf);
@@ -108,9 +107,9 @@ class ObjectGeneratorConfigurationMappingTest {
     void objectDateRangeConstrainsDateFields() {
         LocalDate exactDate = LocalDate.of(2024, 5, 10);
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectDateRange(exactDate, exactDate)
-                                                .seed(7L)
-                                                .build();
+                .objectDateRange(exactDate, exactDate)
+                .seed(7L)
+                .build();
 
         DateHolder holder = Generators.ofObject(DateHolder.class, config).generate();
 
@@ -122,8 +121,8 @@ class ObjectGeneratorConfigurationMappingTest {
     void localTimeFieldUsesExplicitOverride() {
         LocalTime exactTime = LocalTime.of(9, 30);
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectOverride(LocalTime.class, () -> exactTime)
-                                                .build();
+                .objectOverride(LocalTime.class, () -> exactTime)
+                .build();
 
         TimeHolder holder = Generators.ofObject(TimeHolder.class, config).generate();
 
@@ -134,37 +133,40 @@ class ObjectGeneratorConfigurationMappingTest {
     @DisplayName("ignore errors flag suppresses generation failures")
     void ignoreErrorsFlagSuppressesGenerationFailures() {
         GeneratorConfig ignoreConfig = GeneratorConfig.builder()
-                                                      .objectIgnoreErrors(true)
-                                                      .stringLength(5, 5)
-                                                      .build();
+                .objectIgnoreErrors(true)
+                .stringLength(5, 5)
+                .build();
 
-        ErrorHolder holder = Generators.ofObject(ErrorHolder.class, ignoreConfig).generate();
+        ErrorHolder holder =
+                Generators.ofObject(ErrorHolder.class, ignoreConfig).generate();
         assertNull(holder.nested);
         assertNotNull(holder.randomText);
 
-        GeneratorConfig strictConfig = GeneratorConfig.builder()
-                                                      .objectIgnoreErrors(false)
-                                                      .build();
-        assertThrows(ObjectGenerationException.class,
-                     () -> Generators.ofObject(ErrorHolder.class, strictConfig).generate());
+        GeneratorConfig strictConfig =
+                GeneratorConfig.builder().objectIgnoreErrors(false).build();
+        assertThrows(
+                ObjectGenerationException.class,
+                () -> Generators.ofObject(ErrorHolder.class, strictConfig).generate());
     }
 
     @Test
     @DisplayName("default initialization setting controls existing field values")
     void defaultInitializationSettingControlsExistingFieldValues() {
         GeneratorConfig preserveConfig = GeneratorConfig.builder()
-                                                        .stringLength(4, 4)
-                                                        .objectOverrideDefaultInitialization(false)
-                                                        .build();
-        InitializedHolder preserved = Generators.ofObject(InitializedHolder.class, preserveConfig).generate();
+                .stringLength(4, 4)
+                .objectOverrideDefaultInitialization(false)
+                .build();
+        InitializedHolder preserved =
+                Generators.ofObject(InitializedHolder.class, preserveConfig).generate();
         assertEquals("preset-value", preserved.randomText);
         assertNotNull(preserved.blankText);
 
         GeneratorConfig overwriteConfig = GeneratorConfig.builder()
-                                                         .stringLength(4, 4)
-                                                         .objectOverrideDefaultInitialization(true)
-                                                         .build();
-        InitializedHolder overwritten = Generators.ofObject(InitializedHolder.class, overwriteConfig).generate();
+                .stringLength(4, 4)
+                .objectOverrideDefaultInitialization(true)
+                .build();
+        InitializedHolder overwritten =
+                Generators.ofObject(InitializedHolder.class, overwriteConfig).generate();
         assertNotEquals("preset-value", overwritten.randomText);
         assertEquals(4, overwritten.randomText.length());
     }
@@ -173,9 +175,7 @@ class ObjectGeneratorConfigurationMappingTest {
     @DisplayName("direct-field object population bypasses setters")
     void directFieldObjectPopulationBypassesSetters() {
         SetterTrap.setterCalled = false;
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .stringLength(3, 3)
-                                                .build();
+        GeneratorConfig config = GeneratorConfig.builder().stringLength(3, 3).build();
 
         SetterTrap trap = Generators.ofObject(SetterTrap.class, config).generate();
 
@@ -188,24 +188,25 @@ class ObjectGeneratorConfigurationMappingTest {
     @DisplayName("abstract fields use explicit type overrides")
     void abstractFieldsUseExplicitTypeOverride() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectOverride(PaymentMethod.class, CardPayment::new)
-                                                .build();
+                .objectOverride(PaymentMethod.class, CardPayment::new)
+                .build();
 
-        AbstractTypeHolder holder = Generators.ofObject(AbstractTypeHolder.class, config).generate();
+        AbstractTypeHolder holder =
+                Generators.ofObject(AbstractTypeHolder.class, config).generate();
 
         assertInstanceOf(CardPayment.class, holder.paymentMethod);
     }
 
     private List<Object> personSnapshot(Person person) {
         return List.of(
-            person.getFirstName(),
-            person.getLastName(),
-            person.getAge(),
-            person.getSalary(),
-            person.isActive(),
-            person.getStatus(),
-            person.getAddress().getStreet(),
-            person.getAddress().getHouseNumber());
+                person.getFirstName(),
+                person.getLastName(),
+                person.getAge(),
+                person.getSalary(),
+                person.isActive(),
+                person.getStatus(),
+                person.getAddress().getStreet(),
+                person.getAddress().getHouseNumber());
     }
 
     static class StringHolder {
@@ -215,8 +216,8 @@ class ObjectGeneratorConfigurationMappingTest {
 
     static class ContainerHolder {
 
-        String[]             tags;
-        List<String>         values;
+        String[] tags;
+        List<String> values;
         Map<String, Integer> attributes;
     }
 
@@ -248,7 +249,7 @@ class ObjectGeneratorConfigurationMappingTest {
     static class ErrorHolder {
 
         ExplodingNested nested;
-        String          randomText;
+        String randomText;
     }
 
     static class ExplodingNested {
@@ -267,7 +268,7 @@ class ObjectGeneratorConfigurationMappingTest {
     static class SetterTrap {
 
         static boolean setterCalled;
-        String         value;
+        String value;
 
         public void setValue(String value) {
             setterCalled = true;
@@ -275,11 +276,9 @@ class ObjectGeneratorConfigurationMappingTest {
         }
     }
 
-    interface PaymentMethod {
-    }
+    interface PaymentMethod {}
 
-    static class CardPayment implements PaymentMethod {
-    }
+    static class CardPayment implements PaymentMethod {}
 
     static class AbstractTypeHolder {
 

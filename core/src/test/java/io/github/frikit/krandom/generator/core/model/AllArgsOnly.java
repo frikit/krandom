@@ -12,7 +12,7 @@ package io.github.frikit.krandom.generator.core.model;
 public class AllArgsOnly {
 
     private String name;
-    private int    age;
+    private int age;
 
     public AllArgsOnly(String name, int age) {
         this.name = name;

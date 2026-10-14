@@ -7,6 +7,7 @@ package io.github.frikit.krandom.benchmarks;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.base.RegexGenerator;
+import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -17,8 +18,6 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
 
-import java.util.concurrent.TimeUnit;
-
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Warmup(iterations = 2, time = 1)
@@ -28,7 +27,8 @@ public class RegexGeneratorBenchmark {
 
     private static final String SIMPLE_PATTERN = "\\d{3}-\\d{2}-\\d{4}";
     private static final String COMPLEX_PATTERN = "([A-Z]{2}|[A-Z]{3})-\\d{4}-(yes|no|maybe)-[a-z]{3,8}";
-    private static final GeneratorConfig SEEDED = GeneratorConfig.builder().seed(7L).build();
+    private static final GeneratorConfig SEEDED =
+            GeneratorConfig.builder().seed(7L).build();
 
     @State(Scope.Benchmark)
     public static class RegexState {

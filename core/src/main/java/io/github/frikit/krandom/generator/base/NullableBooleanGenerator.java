@@ -7,11 +7,9 @@ package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.jspecify.annotations.Nullable;
-
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Generates nullable booleans (true/false/null).

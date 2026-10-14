@@ -5,20 +5,19 @@
  */
 package io.github.frikit.krandom.generator.system;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("System generators")
 class SystemGeneratorsTest {
@@ -26,7 +25,8 @@ class SystemGeneratorsTest {
     @Test
     @DisplayName("version generator delegates semver variants")
     void version() {
-        VersionGenerator generator = new VersionGenerator(GeneratorConfig.builder().seed(21L).build());
+        VersionGenerator generator =
+                new VersionGenerator(GeneratorConfig.builder().seed(21L).build());
         assertTrue(generator.generate().matches("\\d+\\.\\d+\\.\\d+"));
         assertTrue(generator.generateStable().matches("\\d+\\.\\d+\\.\\d+"));
         assertTrue(generator.generatePrerelease().matches("\\d+\\.\\d+\\.\\d+-(alpha|beta|rc)\\.\\d+"));
@@ -36,7 +36,8 @@ class SystemGeneratorsTest {
     @Test
     @DisplayName("platform id generator returns expected families")
     void platformId() {
-        PlatformIdGenerator generator = new PlatformIdGenerator(GeneratorConfig.builder().seed(5L).build());
+        PlatformIdGenerator generator =
+                new PlatformIdGenerator(GeneratorConfig.builder().seed(5L).build());
         String platform = generator.generatePlatform();
         String arch = generator.generateArchitecture();
         String full = generator.generatePlatformId();
@@ -51,8 +52,8 @@ class SystemGeneratorsTest {
     void exceptionPayload() {
         Instant instant = Instant.parse("2026-06-04T12:00:00Z");
         Clock clock = Clock.fixed(instant, ZoneId.of("UTC"));
-        ExceptionPayloadGenerator generator =
-            new ExceptionPayloadGenerator(GeneratorConfig.builder().seed(9L).clock(clock).build());
+        ExceptionPayloadGenerator generator = new ExceptionPayloadGenerator(
+                GeneratorConfig.builder().seed(9L).clock(clock).build());
         Map<String, String> payload = generator.generate();
         assertEquals(4, payload.size());
         assertTrue(payload.containsKey("type"));

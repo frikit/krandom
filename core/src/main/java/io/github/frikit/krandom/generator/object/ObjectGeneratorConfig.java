@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.object;
 import io.github.frikit.krandom.generator.ContextualGenerator;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -29,12 +28,12 @@ import java.util.function.Predicate;
  */
 final class ObjectGeneratorConfig {
 
-    static final int DEFAULT_MAX_DEPTH        = GeneratorConfig.DEFAULT_OBJECT_MAX_DEPTH;
+    static final int DEFAULT_MAX_DEPTH = GeneratorConfig.DEFAULT_OBJECT_MAX_DEPTH;
     static final int DEFAULT_OBJECT_POOL_SIZE = GeneratorConfig.DEFAULT_OBJECT_POOL_SIZE;
 
     private final GeneratorConfig generatorConfig;
 
-    private volatile Boolean portableRecipe;
+    private volatile @org.jspecify.annotations.Nullable Boolean portableRecipe;
 
     private ObjectGeneratorConfig(GeneratorConfig generatorConfig) {
         this.generatorConfig = Objects.requireNonNull(generatorConfig, "generatorConfig must not be null");
@@ -127,11 +126,11 @@ final class ObjectGeneratorConfig {
         return generatorConfig.getObjectUniquenessMaxAttempts();
     }
 
-    public LocalDate getDateMin() {
+    public @org.jspecify.annotations.Nullable LocalDate getDateMin() {
         return generatorConfig.getObjectDateMin();
     }
 
-    public LocalDate getDateMax() {
+    public @org.jspecify.annotations.Nullable LocalDate getDateMax() {
         return generatorConfig.getObjectDateMax();
     }
 
@@ -179,8 +178,8 @@ final class ObjectGeneratorConfig {
      */
     public static final class Builder {
 
-        private GeneratorConfig                             rootConfig;
-        private GeneratorConfig.Builder                     rootBuilder;
+        private GeneratorConfig rootConfig;
+        private GeneratorConfig.@org.jspecify.annotations.Nullable Builder rootBuilder;
         private final List<Consumer<GeneratorConfig.Builder>> localOperations = new ArrayList<>();
 
         private Builder(GeneratorConfig generatorConfig) {

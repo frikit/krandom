@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.network;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -22,30 +21,29 @@ import java.util.Random;
 public final class HttpFixtureGenerator implements Generator<HttpFixture> {
 
     private static final Map<Integer, String> REASONS = Map.ofEntries(
-        Map.entry(100, "Continue"),
-        Map.entry(200, "OK"),
-        Map.entry(201, "Created"),
-        Map.entry(202, "Accepted"),
-        Map.entry(204, "No Content"),
-        Map.entry(301, "Moved Permanently"),
-        Map.entry(302, "Found"),
-        Map.entry(304, "Not Modified"),
-        Map.entry(400, "Bad Request"),
-        Map.entry(401, "Unauthorized"),
-        Map.entry(403, "Forbidden"),
-        Map.entry(404, "Not Found"),
-        Map.entry(409, "Conflict"),
-        Map.entry(422, "Unprocessable Content"),
-        Map.entry(429, "Too Many Requests"),
-        Map.entry(500, "Internal Server Error"),
-        Map.entry(502, "Bad Gateway"),
-        Map.entry(503, "Service Unavailable")
-    );
+            Map.entry(100, "Continue"),
+            Map.entry(200, "OK"),
+            Map.entry(201, "Created"),
+            Map.entry(202, "Accepted"),
+            Map.entry(204, "No Content"),
+            Map.entry(301, "Moved Permanently"),
+            Map.entry(302, "Found"),
+            Map.entry(304, "Not Modified"),
+            Map.entry(400, "Bad Request"),
+            Map.entry(401, "Unauthorized"),
+            Map.entry(403, "Forbidden"),
+            Map.entry(404, "Not Found"),
+            Map.entry(409, "Conflict"),
+            Map.entry(422, "Unprocessable Content"),
+            Map.entry(429, "Too Many Requests"),
+            Map.entry(500, "Internal Server Error"),
+            Map.entry(502, "Bad Gateway"),
+            Map.entry(503, "Service Unavailable"));
     private static final Integer[] STATUS_CODES = {
         100, 200, 201, 202, 204, 301, 302, 304, 400, 401, 403, 404, 409, 422, 429, 500, 502, 503
     };
-    private static final String[] METHODS = { "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS" };
-    private static final String[] VERSIONS = { "HTTP/1.0", "HTTP/1.1", "HTTP/2", "HTTP/3" };
+    private static final String[] METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"};
+    private static final String[] VERSIONS = {"HTTP/1.0", "HTTP/1.1", "HTTP/2", "HTTP/3"};
     private static final String[] REQUEST_HEADERS = {
         "Accept", "Accept-Language", "Authorization", "Content-Type", "Host", "Origin", "User-Agent"
     };
@@ -53,10 +51,17 @@ public final class HttpFixtureGenerator implements Generator<HttpFixture> {
         "Cache-Control", "Content-Length", "Content-Type", "ETag", "Location", "Retry-After", "Vary"
     };
     private static final String[] CONTENT_TYPES = {
-        "application/json", "application/xml", "text/html", "text/plain", "text/csv",
-        "application/javascript", "text/css", "application/graphql", "text/markdown"
+        "application/json",
+        "application/xml",
+        "text/html",
+        "text/plain",
+        "text/csv",
+        "application/javascript",
+        "text/css",
+        "application/graphql",
+        "text/markdown"
     };
-    private static final String[] CONTENT_ENCODINGS = { "identity", "gzip", "br", "deflate" };
+    private static final String[] CONTENT_ENCODINGS = {"identity", "gzip", "br", "deflate"};
     private static final String[] USER_AGENTS = {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36",
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4) AppleWebKit/605.1.15 Version/17.4 Safari/605.1.15",
@@ -86,15 +91,15 @@ public final class HttpFixtureGenerator implements Generator<HttpFixture> {
         String contentType = next(CONTENT_TYPES);
         String version = next(VERSIONS);
         return new HttpFixture(
-            next(METHODS),
-            version,
-            status(),
-            next(REQUEST_HEADERS),
-            next(RESPONSE_HEADERS),
-            contentType,
-            next(CONTENT_ENCODINGS),
-            next(USER_AGENTS),
-            responseBody(contentType));
+                next(METHODS),
+                version,
+                status(),
+                next(REQUEST_HEADERS),
+                next(RESPONSE_HEADERS),
+                contentType,
+                next(CONTENT_ENCODINGS),
+                next(USER_AGENTS),
+                responseBody(contentType));
     }
 
     /**
@@ -104,7 +109,8 @@ public final class HttpFixtureGenerator implements Generator<HttpFixture> {
      */
     public HttpStatus status() {
         int code = next(STATUS_CODES);
-        return new HttpStatus(code, REASONS.get(code));
+        // Every entry of STATUS_CODES has a reason phrase.
+        return new HttpStatus(code, Objects.requireNonNull(REASONS.get(code)));
     }
 
     /**

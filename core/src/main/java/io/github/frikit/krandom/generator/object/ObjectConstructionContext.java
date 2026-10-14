@@ -5,11 +5,10 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Type;
 import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Resolver context passed to an {@link ObjectConstructionAdapter}.
@@ -26,10 +25,7 @@ public final class ObjectConstructionContext<T> {
     @FunctionalInterface
     interface ValueResolver {
 
-        Object generate(Type genericType,
-                        Class<?> rawType,
-                        String memberName,
-                        @Nullable AnnotatedElement element);
+        @Nullable Object generate(Type genericType, Class<?> rawType, String memberName, @Nullable AnnotatedElement element);
     }
 
     @FunctionalInterface
@@ -44,28 +40,29 @@ public final class ObjectConstructionContext<T> {
         boolean isExcluded(String memberName);
     }
 
-    private final Class<T>              type;
-    private final String                path;
-    private final Class<?>              ownerType;
-    private final int                   depth;
-    private final ValueResolver         valueResolver;
+    private final Class<T> type;
+    private final String path;
+    private final Class<?> ownerType;
+    private final int depth;
+    private final ValueResolver valueResolver;
     private final ExplicitOverrideLookup explicitOverrideLookup;
-    private final ExclusionLookup       exclusionLookup;
+    private final ExclusionLookup exclusionLookup;
 
-    ObjectConstructionContext(Class<T> type,
-                              String path,
-                              Class<?> ownerType,
-                              int depth,
-                              ValueResolver valueResolver,
-                              ExplicitOverrideLookup explicitOverrideLookup,
-                              ExclusionLookup exclusionLookup) {
+    ObjectConstructionContext(
+            Class<T> type,
+            String path,
+            Class<?> ownerType,
+            int depth,
+            ValueResolver valueResolver,
+            ExplicitOverrideLookup explicitOverrideLookup,
+            ExclusionLookup exclusionLookup) {
         this.type = Objects.requireNonNull(type, "type must not be null");
         this.path = Objects.requireNonNull(path, "path must not be null");
         this.ownerType = Objects.requireNonNull(ownerType, "ownerType must not be null");
         this.depth = depth;
         this.valueResolver = Objects.requireNonNull(valueResolver, "valueResolver must not be null");
-        this.explicitOverrideLookup = Objects.requireNonNull(
-            explicitOverrideLookup, "explicitOverrideLookup must not be null");
+        this.explicitOverrideLookup =
+                Objects.requireNonNull(explicitOverrideLookup, "explicitOverrideLookup must not be null");
         this.exclusionLookup = Objects.requireNonNull(exclusionLookup, "exclusionLookup must not be null");
     }
 
@@ -106,15 +103,13 @@ public final class ObjectConstructionContext<T> {
      * @param element parameter/property annotations, or {@code null} when unavailable
      * @return generated parameter value
      */
-    public @Nullable Object generate(Type genericType,
-                                     Class<?> rawType,
-                                     String memberName,
-                                     @Nullable AnnotatedElement element) {
+    public @Nullable Object generate(
+            Type genericType, Class<?> rawType, String memberName, @Nullable AnnotatedElement element) {
         return valueResolver.generate(
-            Objects.requireNonNull(genericType, "genericType must not be null"),
-            Objects.requireNonNull(rawType, "rawType must not be null"),
-            Objects.requireNonNull(memberName, "memberName must not be null"),
-            element);
+                Objects.requireNonNull(genericType, "genericType must not be null"),
+                Objects.requireNonNull(rawType, "rawType must not be null"),
+                Objects.requireNonNull(memberName, "memberName must not be null"),
+                element);
     }
 
     /**
@@ -125,8 +120,8 @@ public final class ObjectConstructionContext<T> {
      */
     public boolean hasExplicitOverride(String memberName, Class<?> rawType) {
         return explicitOverrideLookup.hasExplicitOverride(
-            Objects.requireNonNull(memberName, "memberName must not be null"),
-            Objects.requireNonNull(rawType, "rawType must not be null"));
+                Objects.requireNonNull(memberName, "memberName must not be null"),
+                Objects.requireNonNull(rawType, "rawType must not be null"));
     }
 
     /**

@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.network;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -19,9 +17,31 @@ import java.util.Random;
 public final class SlugGenerator implements Generator<String> {
 
     private static final String[] WORDS = {
-        "quick", "brown", "fox", "lazy", "dog", "modern", "cloud", "data", "api", "user",
-        "profile", "settings", "secure", "simple", "smart", "alpha", "beta", "release",
-        "guide", "tutorial", "platform", "service", "digital", "network", "system"
+        "quick",
+        "brown",
+        "fox",
+        "lazy",
+        "dog",
+        "modern",
+        "cloud",
+        "data",
+        "api",
+        "user",
+        "profile",
+        "settings",
+        "secure",
+        "simple",
+        "smart",
+        "alpha",
+        "beta",
+        "release",
+        "guide",
+        "tutorial",
+        "platform",
+        "service",
+        "digital",
+        "network",
+        "system"
     };
 
     private final Random random;

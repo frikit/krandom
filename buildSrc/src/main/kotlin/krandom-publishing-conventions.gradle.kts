@@ -22,31 +22,40 @@ plugins {
 
 apply(plugin = "com.gradleup.nmcp")
 
-val moduleDescriptions = mapOf(
-    "bom" to "kRandom bill of materials for aligning all published kRandom module versions.",
-    "core" to "kRandom core: Java 21 random and fake-data generation toolkit with seedable generators, locale-aware data, ObjectGenerator/ObjectFaker, and Schema export.",
-    "jackson" to "Jackson serialization integration for kRandom generators (databind module wiring on top of krandom-core).",
-    "junit" to "JUnit Jupiter extension for kRandom — per-test seed management with @KrandomSeed pinning, seeded GeneratorConfig parameter injection, and failure-seed reporting for reproducible test runs.",
-    "spring-boot-starter" to "Spring Boot 4.x auto-configuration for kRandom — registers GeneratorConfig, ProviderHub, and KrandomObjectFakerFactory beans driven by krandom.* application properties.",
-    "kotest-extensions" to "Kotest Arb adapters for kRandom generators, enabling property-based testing on top of krandom-core.",
-    "kotlin-dsl" to "Kotlin DSL builder for kRandom object-generation rules — fluent fixture configuration on top of krandom-core."
-)
-val moduleNames = mapOf(
-    "core" to "io.github.frikit.krandom",
-    "jackson" to "io.github.frikit.krandom.jackson",
-    "junit" to "io.github.frikit.krandom.junit",
-    "spring-boot-starter" to "io.github.frikit.krandom.spring.boot.starter",
-    "kotest-extensions" to "io.github.frikit.krandom.kotest",
-    "kotlin-dsl" to "io.github.frikit.krandom.kotlin.dsl"
-)
+val moduleDescriptions =
+    mapOf(
+        "bom" to "kRandom bill of materials for aligning all published kRandom module versions.",
+        "core" to
+            "kRandom core: Java 21 random and fake-data generation toolkit with seedable generators, locale-aware data, ObjectGenerator/ObjectFaker, and Schema export.",
+        "jackson" to
+            "Jackson serialization integration for kRandom generators (databind module wiring on top of krandom-core).",
+        "junit" to
+            "JUnit Jupiter extension for kRandom — per-test seed management with @KrandomSeed pinning, seeded GeneratorConfig parameter injection, and failure-seed reporting for reproducible test runs.",
+        "spring-boot-starter" to
+            "Spring Boot 4.x auto-configuration for kRandom — registers GeneratorConfig, ProviderHub, and KrandomObjectFakerFactory beans driven by krandom.* application properties.",
+        "kotest-extensions" to
+            "Kotest Arb adapters for kRandom generators, enabling property-based testing on top of krandom-core.",
+        "kotlin-dsl" to
+            "Kotlin DSL builder for kRandom object-generation rules — fluent fixture configuration on top of krandom-core.",
+    )
+val moduleNames =
+    mapOf(
+        "core" to "io.github.frikit.krandom",
+        "jackson" to "io.github.frikit.krandom.jackson",
+        "junit" to "io.github.frikit.krandom.junit",
+        "spring-boot-starter" to "io.github.frikit.krandom.spring.boot.starter",
+        "kotest-extensions" to "io.github.frikit.krandom.kotest",
+        "kotlin-dsl" to "io.github.frikit.krandom.kotlin.dsl",
+    )
 
 afterEvaluate {
-    val componentName = when {
-        components.names.contains("java") -> "java"
-        components.names.contains("kotlin") -> "kotlin"
-        components.names.contains("javaPlatform") -> "javaPlatform"
-        else -> null
-    }
+    val componentName =
+        when {
+            components.names.contains("java") -> "java"
+            components.names.contains("kotlin") -> "kotlin"
+            components.names.contains("javaPlatform") -> "javaPlatform"
+            else -> null
+        }
     if (componentName == null || project.name !in moduleDescriptions.keys) {
         return@afterEvaluate
     }
@@ -67,7 +76,7 @@ afterEvaluate {
             manifest {
                 attributes(
                     "Automatic-Module-Name" to moduleNames.getValue(project.name),
-                    "Implementation-Version" to project.version
+                    "Implementation-Version" to project.version,
                 )
             }
         }

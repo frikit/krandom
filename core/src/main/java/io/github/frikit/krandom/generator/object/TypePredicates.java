@@ -16,7 +16,9 @@ import java.util.function.Predicate;
  */
 public final class TypePredicates {
 
-    private TypePredicates() { /* static utility */ }
+    private TypePredicates() {
+        /* static utility */
+    }
 
     /**
      * Returns a predicate that matches classes whose fully qualified name equals {@code name}.

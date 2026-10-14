@@ -6,9 +6,8 @@
 package io.github.frikit.krandom.generator.datetime;
 
 import io.github.frikit.krandom.generator.Generator;
-import io.github.frikit.krandom.generator.Seedable;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
+import io.github.frikit.krandom.generator.Seedable;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.Random;
@@ -21,7 +20,7 @@ public final class SqlDateGenerator implements Generator<java.sql.Date>, Seedabl
     private static final LocalDate DEFAULT_MIN = LocalDate.of(1970, 1, 1);
     private static final LocalDate DEFAULT_MAX = LocalDate.of(2100, 12, 31);
 
-    private final Random    random;
+    private final Random random;
     private final LocalDate min;
     private final LocalDate max;
 

@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.network;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -18,7 +16,7 @@ import java.util.Random;
  */
 public final class UriGenerator implements Generator<String> {
 
-    private final Random       random;
+    private final Random random;
     private final URLGenerator urlGenerator;
 
     public UriGenerator() {

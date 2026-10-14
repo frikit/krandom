@@ -5,18 +5,19 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.Locale;
 
 /**
  * Contract for a locale-specific first-name data source.
  *
  * <p>Implement this interface and register an instance on a configuration-scoped context with
- * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#registerFirstNameProvider(FirstNameDataProvider)}
+ * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder#register(io.github.frikit.krandom.generator.Vocabulary, io.github.frikit.krandom.generator.LocaleDataProvider)}
  * to extend or override first-name data for any locale — including locales not built into the library.
  *
  * <pre>{@code
  * DataRegistryContext context = DataRegistryContext.builder()
- *     .registerFirstNameProvider(new FirstNameDataProvider() {
+ *     .register(Vocabulary.FIRST_NAME, new FirstNameDataProvider() {
  *         public Locale getLocale() { return Locale.of("ko", "KR"); }
  *         public String[] getMaleFirstNames()   { return new String[]{"민준", "서준", "예준"}; }
  *         public String[] getFemaleFirstNames() { return new String[]{"서연", "서윤", "지우"}; }
@@ -32,7 +33,7 @@ import java.util.Locale;
  * <p>The built-in baseline is seeded by {@link FirstNameDataRegistry} from
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}.
  */
-public interface FirstNameDataProvider {
+public interface FirstNameDataProvider extends LocaleDataProvider {
 
     /**
      * The locale this provider supplies data for.

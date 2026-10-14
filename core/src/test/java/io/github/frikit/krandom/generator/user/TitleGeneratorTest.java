@@ -5,18 +5,6 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -24,6 +12,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.locale.SupportedLocale;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("TitleGenerator")
 class TitleGeneratorTest {
@@ -75,16 +72,15 @@ class TitleGeneratorTest {
         // UK titles may include nobility
         assertTrue(titles.size() > 5);
         // UK style without periods or with special titles
-        assertTrue(titles.stream().anyMatch(t ->
-                                                t.equals("Mr") || t.equals("Sir") || t.equals("Lord") || t.equals("Dame")));
+        assertTrue(titles.stream()
+                .anyMatch(t -> t.equals("Mr") || t.equals("Sir") || t.equals("Lord") || t.equals("Dame")));
     }
 
     @Test
     @DisplayName("German locale generates German titles")
     void germanLocaleTitles() {
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.GERMANY)
-                                                .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.GERMANY).build();
         TitleGenerator gen = new TitleGenerator(config);
 
         assertEquals(Locale.GERMANY, gen.getLocale());
@@ -129,15 +125,11 @@ class TitleGeneratorTest {
     @Test
     @DisplayName("seeded generator produces reproducible results")
     void seededReproducibility() {
-        GeneratorConfig config1 = GeneratorConfig.builder()
-                                                 .locale(Locale.US)
-                                                 .seed(12345L)
-                                                 .build();
+        GeneratorConfig config1 =
+                GeneratorConfig.builder().locale(Locale.US).seed(12345L).build();
 
-        GeneratorConfig config2 = GeneratorConfig.builder()
-                                                 .locale(Locale.US)
-                                                 .seed(12345L)
-                                                 .build();
+        GeneratorConfig config2 =
+                GeneratorConfig.builder().locale(Locale.US).seed(12345L).build();
 
         TitleGenerator gen1 = new TitleGenerator(config1);
         TitleGenerator gen2 = new TitleGenerator(config2);
@@ -151,13 +143,9 @@ class TitleGeneratorTest {
     @Test
     @DisplayName("different seeds produce different sequences")
     void differentSeeds() {
-        GeneratorConfig config1 = GeneratorConfig.builder()
-                                                 .seed(111L)
-                                                 .build();
+        GeneratorConfig config1 = GeneratorConfig.builder().seed(111L).build();
 
-        GeneratorConfig config2 = GeneratorConfig.builder()
-                                                 .seed(222L)
-                                                 .build();
+        GeneratorConfig config2 = GeneratorConfig.builder().seed(222L).build();
 
         TitleGenerator gen1 = new TitleGenerator(config1);
         TitleGenerator gen2 = new TitleGenerator(config2);
@@ -187,10 +175,8 @@ class TitleGeneratorTest {
     void unsupportedLocaleThrowsException() {
         Locale unsupported = Locale.of("xx", "YY");
 
-        UnsupportedOperationException exception = assertThrows(
-            UnsupportedOperationException.class,
-            () -> new TitleGenerator(unsupported)
-        );
+        UnsupportedOperationException exception =
+                assertThrows(UnsupportedOperationException.class, () -> new TitleGenerator(unsupported));
 
         assertTrue(exception.getMessage().contains("not supported"));
         assertTrue(exception.getMessage().contains("xx_YY"));
@@ -227,9 +213,7 @@ class TitleGeneratorTest {
     void streamGeneration() {
         TitleGenerator gen = new TitleGenerator();
 
-        List<String> titles = gen.stream()
-                                 .limit(25)
-                                 .toList();
+        List<String> titles = gen.stream().limit(25).toList();
 
         assertEquals(25, titles.size());
         titles.forEach(title -> {
@@ -261,17 +245,13 @@ class TitleGeneratorTest {
     @Test
     @DisplayName("constructor rejects null config")
     void nullConfigRejected() {
-        assertThrows(NullPointerException.class, () ->
-            new TitleGenerator((GeneratorConfig) null)
-        );
+        assertThrows(NullPointerException.class, () -> new TitleGenerator((GeneratorConfig) null));
     }
 
     @Test
     @DisplayName("constructor rejects null locale")
     void nullLocaleRejected() {
-        assertThrows(NullPointerException.class, () ->
-            new TitleGenerator((Locale) null)
-        );
+        assertThrows(NullPointerException.class, () -> new TitleGenerator((Locale) null));
     }
 
     @Test
@@ -279,8 +259,7 @@ class TitleGeneratorTest {
     void titleCountPositive() {
         for (SupportedLocale supportedLocale : SupportedLocale.values()) {
             TitleGenerator gen = new TitleGenerator(supportedLocale.locale());
-            assertTrue(gen.getTitleCount() > 0,
-                       "Locale " + supportedLocale.locale() + " should have titles");
+            assertTrue(gen.getTitleCount() > 0, "Locale " + supportedLocale.locale() + " should have titles");
         }
     }
 

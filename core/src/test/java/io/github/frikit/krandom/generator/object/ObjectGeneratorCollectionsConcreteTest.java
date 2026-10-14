@@ -5,9 +5,17 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -25,14 +33,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.concurrent.CopyOnWriteArrayList;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectGenerator — concrete queue/sorted collections")
 class ObjectGeneratorCollectionsConcreteTest {
@@ -82,8 +84,8 @@ class ObjectGeneratorCollectionsConcreteTest {
     @Test
     @DisplayName("custom concrete collection subtypes are instantiated and assigned")
     void customConcreteCollectionSubtypesAreAssigned() {
-        CustomCollectionsHolder value = assertDoesNotThrow(
-            () -> new ObjectGenerator<>(CustomCollectionsHolder.class).generate());
+        CustomCollectionsHolder value =
+                assertDoesNotThrow(() -> new ObjectGenerator<>(CustomCollectionsHolder.class).generate());
         assertNotNull(value.customList);
         assertNotNull(value.customSet);
         assertNotNull(value.customQueue);
@@ -99,7 +101,7 @@ class ObjectGeneratorCollectionsConcreteTest {
         assertFalse(value.customMap.isEmpty());
         assertTrue(value.customMap.size() <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
         assertTrue(value.customSet.size() > 0
-                   && value.customSet.size() <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
+                && value.customSet.size() <= FieldGeneratorResolver.DEFAULT_MAX_ELEMENT_COUNT);
         value.customList.forEach(item -> assertTrue(item instanceof String));
         value.customSet.forEach(item -> assertTrue(item instanceof String));
         value.customQueue.forEach(item -> assertTrue(item instanceof String));
@@ -110,57 +112,66 @@ class ObjectGeneratorCollectionsConcreteTest {
     }
 
     @Test
-    @DisplayName("non-constructible concrete map subtype resolves to null without throwing")
-    void nonConstructibleConcreteMapSubtypeResolvesToNull() {
-        NonConstructibleMapHolder value = assertDoesNotThrow(
-            () -> new ObjectGenerator<>(NonConstructibleMapHolder.class).generate());
+    @DisplayName("non-constructible concrete map subtype fails contextually in strict mode")
+    void nonConstructibleConcreteMapSubtypeFailsContextually() {
+        ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(NonConstructibleMapHolder.class).generate());
+
+        var context = error.getContext().orElseThrow();
+        assertEquals(GenerationFailureCategory.CONSTRUCTION, context.category());
+        assertEquals("NonConstructibleMapHolder.customMap", context.path());
+        assertTrue(error.getCause() instanceof UnsupportedOperationException);
+    }
+
+    @Test
+    @DisplayName("non-constructible concrete map subtype resolves to null in lenient mode")
+    void nonConstructibleConcreteMapSubtypeResolvesToNullWhenLenient() {
+        GeneratorConfig config =
+                GeneratorConfig.builder().objectIgnoreErrors(true).build();
+        NonConstructibleMapHolder value =
+                assertDoesNotThrow(() -> new ObjectGenerator<>(NonConstructibleMapHolder.class, config).generate());
         assertNull(value.customMap);
     }
 
-
     static class ConcreteCollectionsHolder {
 
-        ArrayList<String>            arrayList;
-        Vector<String>               vector;
-        Stack<String>                stack;
+        ArrayList<String> arrayList;
+        Vector<String> vector;
+        Stack<String> stack;
         CopyOnWriteArrayList<String> copyOnWriteArrayList;
-        ArrayDeque<String>           arrayDeque;
-        PriorityQueue<String>        priorityQueue;
-        TreeSet<String>              treeSet;
-        TreeMap<String, Integer>     treeMap;
-        LinkedList<String>           linkedList;
+        ArrayDeque<String> arrayDeque;
+        PriorityQueue<String> priorityQueue;
+        TreeSet<String> treeSet;
+        TreeMap<String, Integer> treeMap;
+        LinkedList<String> linkedList;
     }
-
 
     static class InterfaceCollectionsHolder {
 
-        Queue<String>                 queue;
-        SortedSet<String>             sortedSet;
-        NavigableSet<String>          navigableSet;
-        SortedMap<String, Integer>    sortedMap;
+        Queue<String> queue;
+        SortedSet<String> sortedSet;
+        NavigableSet<String> navigableSet;
+        SortedMap<String, Integer> sortedMap;
         NavigableMap<String, Integer> navigableMap;
-        Map<String, Integer>          plainMap;
+        Map<String, Integer> plainMap;
     }
 
     static class CustomCollectionsHolder {
 
-        CustomStringList   customList;
-        CustomStringSet    customSet;
-        CustomStringQueue  customQueue;
+        CustomStringList customList;
+        CustomStringSet customSet;
+        CustomStringQueue customQueue;
         CustomStringIntMap customMap;
     }
 
-    static final class CustomStringList extends ArrayList<String> {
-    }
+    static final class CustomStringList extends ArrayList<String> {}
 
-    static final class CustomStringSet extends LinkedHashSet<String> {
-    }
+    static final class CustomStringSet extends LinkedHashSet<String> {}
 
-    static final class CustomStringQueue extends ArrayDeque<String> {
-    }
+    static final class CustomStringQueue extends ArrayDeque<String> {}
 
-    static final class CustomStringIntMap extends LinkedHashMap<String, Integer> {
-    }
+    static final class CustomStringIntMap extends LinkedHashMap<String, Integer> {}
 
     static class NonConstructibleMapHolder {
 
@@ -169,7 +180,6 @@ class ObjectGeneratorCollectionsConcreteTest {
 
     static final class NoDefaultCtorLinkedHashMap extends LinkedHashMap<String, Integer> {
 
-        private NoDefaultCtorLinkedHashMap(String ignored) {
-        }
+        private NoDefaultCtorLinkedHashMap(String ignored) {}
     }
 }

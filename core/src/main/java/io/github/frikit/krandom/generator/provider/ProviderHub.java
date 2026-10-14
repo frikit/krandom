@@ -9,13 +9,12 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.GeneratorProfile;
 import io.github.frikit.krandom.generator.selection.UniqueGenerator;
-
-import java.util.function.BiPredicate;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiPredicate;
 
 /**
  * Mimesis-style generic provider hub with alias-based lookup and runtime registration.
@@ -29,10 +28,10 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class ProviderHub {
 
-    private final GeneratorConfig              config;
-    private final GeneratorProfile             profile;
+    private final GeneratorConfig config;
+    private final GeneratorProfile profile;
     private final Map<String, ProviderFactory> providers = new ConcurrentHashMap<>();
-    private final Map<String, String>          aliases   = new ConcurrentHashMap<>();
+    private final Map<String, String> aliases = new ConcurrentHashMap<>();
 
     /**
      * Creates provider hub with default configuration.
@@ -75,9 +74,10 @@ public final class ProviderHub {
      * @param profile profile template used to construct config
      */
     public ProviderHub(Locale locale, GeneratorProfile profile) {
-        this(Objects.requireNonNull(profile, "profile must not be null")
-                    .createConfig(Objects.requireNonNull(locale, "locale must not be null")),
-             profile);
+        this(
+                Objects.requireNonNull(profile, "profile must not be null")
+                        .createConfig(Objects.requireNonNull(locale, "locale must not be null")),
+                profile);
     }
 
     /**
@@ -110,7 +110,8 @@ public final class ProviderHub {
      */
     public Object get(String name) {
         String canonical = resolveName(name);
-        ProviderFactory factory = providers.get(canonical);
+        // resolveName only returns names that are registered.
+        ProviderFactory factory = Objects.requireNonNull(providers.get(canonical), canonical);
         return factory.create(config);
     }
 
@@ -126,8 +127,8 @@ public final class ProviderHub {
         Objects.requireNonNull(type, "type must not be null");
         Object provider = get(name);
         if (!type.isInstance(provider)) {
-            throw new IllegalArgumentException("Provider '" + name + "' is "
-                                               + provider.getClass().getName() + ", not " + type.getName());
+            throw new IllegalArgumentException(
+                    "Provider '" + name + "' is " + provider.getClass().getName() + ", not " + type.getName());
         }
         return type.cast(provider);
     }
@@ -283,8 +284,9 @@ public final class ProviderHub {
      * Wraps a generator so repeated calls return comparator-distinct values.
      */
     public <T> UniqueGenerator<T> unique(Generator<T> source, BiPredicate<T, T> comparator) {
-        return new UniqueGenerator<>(Objects.requireNonNull(source, "source must not be null"),
-                                     Objects.requireNonNull(comparator, "comparator must not be null"));
+        return new UniqueGenerator<>(
+                Objects.requireNonNull(source, "source must not be null"),
+                Objects.requireNonNull(comparator, "comparator must not be null"));
     }
 
     private String resolveName(String name) {
@@ -294,8 +296,8 @@ public final class ProviderHub {
         }
         String canonical = aliases.get(key);
         if (canonical == null) {
-            throw new IllegalArgumentException("Unknown provider '" + name + "'. "
-                                               + "Known providers: " + providerNames() + ", aliases: " + aliases.keySet());
+            throw new IllegalArgumentException("Unknown provider '" + name + "'. " + "Known providers: "
+                    + providerNames() + ", aliases: " + aliases.keySet());
         }
         return canonical;
     }

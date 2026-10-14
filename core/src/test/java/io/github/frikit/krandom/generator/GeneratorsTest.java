@@ -5,6 +5,12 @@
  */
 package io.github.frikit.krandom.generator;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import io.github.frikit.krandom.generator.algorithms.FibonacciGenerator;
 import io.github.frikit.krandom.generator.algorithms.LuhnGenerator;
 import io.github.frikit.krandom.generator.base.BooleanGenerator;
@@ -41,8 +47,8 @@ import io.github.frikit.krandom.generator.file.FilePathGenerator;
 import io.github.frikit.krandom.generator.file.MimeTypeGenerator;
 import io.github.frikit.krandom.generator.file.SemverGenerator;
 import io.github.frikit.krandom.generator.finance.AbaRoutingGenerator;
-import io.github.frikit.krandom.generator.finance.BankInfoGenerator;
 import io.github.frikit.krandom.generator.finance.BankCountryGenerator;
+import io.github.frikit.krandom.generator.finance.BankInfoGenerator;
 import io.github.frikit.krandom.generator.finance.BankNameGenerator;
 import io.github.frikit.krandom.generator.finance.BankTypeGenerator;
 import io.github.frikit.krandom.generator.finance.BbanGenerator;
@@ -50,15 +56,15 @@ import io.github.frikit.krandom.generator.finance.BicGenerator;
 import io.github.frikit.krandom.generator.finance.CardExpirationGenerator;
 import io.github.frikit.krandom.generator.finance.CreditCardGenerator;
 import io.github.frikit.krandom.generator.finance.CreditCardInfoGenerator;
-import io.github.frikit.krandom.generator.finance.InvoiceInfoGenerator;
-import io.github.frikit.krandom.generator.finance.PaymentInfoGenerator;
 import io.github.frikit.krandom.generator.finance.CurrencyGenerator;
 import io.github.frikit.krandom.generator.finance.CurrencyPairGenerator;
 import io.github.frikit.krandom.generator.finance.CusipGenerator;
 import io.github.frikit.krandom.generator.finance.EinGenerator;
 import io.github.frikit.krandom.generator.finance.IbanGenerator;
+import io.github.frikit.krandom.generator.finance.InvoiceInfoGenerator;
 import io.github.frikit.krandom.generator.finance.IsinGenerator;
 import io.github.frikit.krandom.generator.finance.MoneyGenerator;
+import io.github.frikit.krandom.generator.finance.PaymentInfoGenerator;
 import io.github.frikit.krandom.generator.games.coin.CoinGenerator;
 import io.github.frikit.krandom.generator.games.dice.DiceGenerator;
 import io.github.frikit.krandom.generator.games.dice.DiceType;
@@ -122,21 +128,11 @@ import io.github.frikit.krandom.generator.user.SocialProfileGenerator;
 import io.github.frikit.krandom.generator.user.UsernameGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Generators factory")
 class GeneratorsTest {
@@ -361,8 +357,9 @@ class GeneratorsTest {
     @Test
     @DisplayName("ofString(builder) returns StringGenerator")
     void ofStringBuilder() {
-        assertInstanceOf(StringGenerator.class,
-                         Generators.ofString(StringGenerator.builder().length(5)));
+        assertInstanceOf(
+                StringGenerator.class,
+                Generators.ofString(StringGenerator.builder().length(5)));
     }
 
     @Test
@@ -640,7 +637,8 @@ class GeneratorsTest {
     @Test
     @DisplayName("locale and config overloads exist for common locale-aware facade factories")
     void localeAndConfigOverloadsForCommonFacadeFactories() {
-        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.GERMANY).seed(11L).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.GERMANY).seed(11L).build();
 
         assertInstanceOf(FullNameGenerator.class, Generators.ofFullName());
         assertInstanceOf(FullNameGenerator.class, Generators.ofFullName(Locale.GERMANY));
@@ -706,8 +704,10 @@ class GeneratorsTest {
     void ofMiddleName() {
         assertInstanceOf(MiddleNameGenerator.class, Generators.ofMiddleName());
         assertInstanceOf(MiddleNameGenerator.class, Generators.ofMiddleName(Locale.US));
-        assertInstanceOf(MiddleNameGenerator.class,
-                         Generators.ofMiddleName(GeneratorConfig.builder().locale(Locale.US).seed(11L).build()));
+        assertInstanceOf(
+                MiddleNameGenerator.class,
+                Generators.ofMiddleName(
+                        GeneratorConfig.builder().locale(Locale.US).seed(11L).build()));
     }
 
     @Test
@@ -783,24 +783,28 @@ class GeneratorsTest {
     @Test
     @DisplayName("seeded ofNationalId(config) fails closed while the explicit policy is reproducible")
     void ofNationalIdSeeded() {
-        GeneratorConfig defaults = GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
+        GeneratorConfig defaults =
+                GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
         NationalIdGenerator a = Generators.ofNationalId(defaults);
         NationalIdGenerator b = Generators.ofNationalId(defaults);
         assertThrows(IllegalStateException.class, a::generate);
         assertThrows(IllegalStateException.class, b::generate);
 
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.US)
-                                                .seed(42L)
-                                                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                .build();
-        assertEquals(Generators.ofNationalId(config).generate(), Generators.ofNationalId(config).generate());
+                .locale(Locale.US)
+                .seed(42L)
+                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
+        assertEquals(
+                Generators.ofNationalId(config).generate(),
+                Generators.ofNationalId(config).generate());
     }
 
     @Test
     @DisplayName("ofNationalId(config) respects config locale")
     void ofNationalIdConfig() {
-        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.GERMANY).seed(11L).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.GERMANY).seed(11L).build();
         NationalIdGenerator generator = Generators.ofNationalId(config);
         assertEquals(Locale.GERMANY, generator.getLocale());
     }
@@ -811,17 +815,21 @@ class GeneratorsTest {
         assertInstanceOf(Field.class, Generators.ofField());
         Field field = Generators.ofField(Locale.US);
         assertInstanceOf(Field.class, field);
-        assertInstanceOf(Field.class,
-                         Generators.ofField(GeneratorConfig.builder().locale(Locale.CANADA).seed(2L).build()));
-        assertInstanceOf(Field.class,
-                         Generators.ofField(new FieldLookup(GeneratorConfig.builder().locale(Locale.FRANCE).build())));
-        Map<String, SchemaValueProvider> fields = Map.of(
-            "name", field.bind("person.full_name")
-        );
+        assertInstanceOf(
+                Field.class,
+                Generators.ofField(
+                        GeneratorConfig.builder().locale(Locale.CANADA).seed(2L).build()));
+        assertInstanceOf(
+                Field.class,
+                Generators.ofField(new FieldLookup(
+                        GeneratorConfig.builder().locale(Locale.FRANCE).build())));
+        Map<String, SchemaValueProvider> fields = Map.of("name", field.bind("person.full_name"));
         assertInstanceOf(Schema.class, Generators.ofSchema(fields));
         assertInstanceOf(Schema.class, Generators.ofSchema(Locale.US, fields));
-        assertInstanceOf(Schema.class,
-                         Generators.ofSchema(GeneratorConfig.builder().locale(Locale.US).seed(1L).build(), fields));
+        assertInstanceOf(
+                Schema.class,
+                Generators.ofSchema(
+                        GeneratorConfig.builder().locale(Locale.US).seed(1L).build(), fields));
     }
 
     @Test
@@ -829,24 +837,31 @@ class GeneratorsTest {
     void providerHubFactories() {
         assertInstanceOf(ProviderHub.class, Generators.ofProviderHub());
         assertInstanceOf(ProviderHub.class, Generators.ofProviderHub(Locale.US));
-        assertInstanceOf(ProviderHub.class,
-                         Generators.ofProviderHub(GeneratorConfig.builder().locale(Locale.US).seed(1L).build()));
+        assertInstanceOf(
+                ProviderHub.class,
+                Generators.ofProviderHub(
+                        GeneratorConfig.builder().locale(Locale.US).seed(1L).build()));
         assertInstanceOf(ProviderHub.class, Generators.ofProviderHub(GeneratorProfile.FAST));
         assertInstanceOf(ProviderHub.class, Generators.ofProviderHub(Locale.US, GeneratorProfile.STRICT));
-        assertInstanceOf(ProviderHub.class,
-                         Generators.ofProviderHub(GeneratorConfig.builder().locale(Locale.US).build(),
-                                                 GeneratorProfile.REALISTIC));
+        assertInstanceOf(
+                ProviderHub.class,
+                Generators.ofProviderHub(
+                        GeneratorConfig.builder().locale(Locale.US).build(), GeneratorProfile.REALISTIC));
     }
 
     @Test
     @DisplayName("object factories return corresponding object generator")
     void objectFactories() {
         assertInstanceOf(ObjectGenerator.class, Generators.ofObject(SimplePojo.class));
-        assertInstanceOf(ObjectGenerator.class,
-                         Generators.ofObject(SimplePojo.class, GeneratorConfig.builder().seed(7L).build()));
+        assertInstanceOf(
+                ObjectGenerator.class,
+                Generators.ofObject(
+                        SimplePojo.class, GeneratorConfig.builder().seed(7L).build()));
         assertInstanceOf(ObjectFaker.class, Generators.ofObjectFaker(SimplePojo.class));
-        assertInstanceOf(ObjectFaker.class,
-                         Generators.ofObjectFaker(SimplePojo.class, GeneratorConfig.builder().seed(7L).build()));
+        assertInstanceOf(
+                ObjectFaker.class,
+                Generators.ofObjectFaker(
+                        SimplePojo.class, GeneratorConfig.builder().seed(7L).build()));
     }
 
     @Test
@@ -858,16 +873,18 @@ class GeneratorsTest {
         assertInstanceOf(OrderInfoGenerator.class, Generators.ofOrderInfo());
         assertInstanceOf(OrderInfoGenerator.class, Generators.ofOrderInfo(Locale.US));
         assertInstanceOf(OrderInfoGenerator.class, Generators.ofOrderInfo(GeneratorConfig.defaults()));
-        assertInstanceOf(OrderInfoGenerator.class,
-                         Generators.ofOrderInfo(GeneratorConfig.defaults(),
-                                                new AddressInfoGenerator(GeneratorConfig.defaults())));
+        assertInstanceOf(
+                OrderInfoGenerator.class,
+                Generators.ofOrderInfo(
+                        GeneratorConfig.defaults(), new AddressInfoGenerator(GeneratorConfig.defaults())));
         assertInstanceOf(ShipmentInfoGenerator.class, Generators.ofShipmentInfo());
         assertInstanceOf(ShipmentInfoGenerator.class, Generators.ofShipmentInfo(Locale.US));
         assertInstanceOf(ShipmentInfoGenerator.class, Generators.ofShipmentInfo(GeneratorConfig.defaults()));
         assertInstanceOf(CurrencyGenerator.class, Generators.ofCurrency());
         assertInstanceOf(CurrencyPairGenerator.class, Generators.ofCurrencyPair());
-        assertInstanceOf(CurrencyPairGenerator.class,
-                         Generators.ofCurrencyPair(GeneratorConfig.builder().seed(11L).build()));
+        assertInstanceOf(
+                CurrencyPairGenerator.class,
+                Generators.ofCurrencyPair(GeneratorConfig.builder().seed(11L).build()));
         assertInstanceOf(MoneyGenerator.class, Generators.ofMoney());
         assertInstanceOf(CardExpirationGenerator.class, Generators.ofCardExpiration());
         assertInstanceOf(CreditCardGenerator.class, Generators.ofCreditCard());

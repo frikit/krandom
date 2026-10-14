@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.location;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Objects;
 
 /**
@@ -33,7 +32,7 @@ public final class GeohashGenerator implements Generator<String> {
     private static final char[] BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz".toCharArray();
 
     private final CoordinatesGenerator coordinates;
-    private final int                  precision;
+    private final int precision;
 
     /**
      * Creates a geohash generator with default precision and configuration.
@@ -149,14 +148,14 @@ public final class GeohashGenerator implements Generator<String> {
     private static void validatePrecision(int precision) {
         if (precision < MIN_PRECISION || precision > MAX_PRECISION) {
             throw new IllegalArgumentException(
-                "precision must be between " + MIN_PRECISION + " and " + MAX_PRECISION + ", got: " + precision);
+                    "precision must be between " + MIN_PRECISION + " and " + MAX_PRECISION + ", got: " + precision);
         }
     }
 
     private static void validateCoordinate(double value, double min, double max, String name) {
         if (!Double.isFinite(value) || value < min || value > max) {
-            throw new IllegalArgumentException(name + " must be finite and between " + min + " and " + max
-                                               + ", got: " + value);
+            throw new IllegalArgumentException(
+                    name + " must be finite and between " + min + " and " + max + ", got: " + value);
         }
     }
 }

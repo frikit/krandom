@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.util.List;
 import java.util.Locale;
 
@@ -30,10 +29,14 @@ final class BuiltInCompanyCatchPhraseDataProvider implements CompanyCatchPhraseD
 
     BuiltInCompanyCatchPhraseDataProvider(Locale locale, String resourcePrefix) {
         this.locale = locale;
-        this.adjectives = List.of(LocaleTextResourceLoader.load("krandom/company_catch_phrases/adjectives/" + resourcePrefix + ".txt"));
-        this.nouns = List.of(LocaleTextResourceLoader.load("krandom/company_catch_phrases/nouns/" + resourcePrefix + ".txt"));
-        this.taglines = List.of(LocaleTextResourceLoader.load("krandom/company_catch_phrases/taglines/" + resourcePrefix + ".txt"));
-        String[] formats = LocaleTextResourceLoader.load("krandom/company_catch_phrases/formats/" + resourcePrefix + ".txt");
+        this.adjectives = List.of(
+                LocaleTextResourceLoader.load("krandom/company_catch_phrases/adjectives/" + resourcePrefix + ".txt"));
+        this.nouns = List.of(
+                LocaleTextResourceLoader.load("krandom/company_catch_phrases/nouns/" + resourcePrefix + ".txt"));
+        this.taglines = List.of(
+                LocaleTextResourceLoader.load("krandom/company_catch_phrases/taglines/" + resourcePrefix + ".txt"));
+        String[] formats =
+                LocaleTextResourceLoader.load("krandom/company_catch_phrases/formats/" + resourcePrefix + ".txt");
         this.format = formats[0];
     }
 

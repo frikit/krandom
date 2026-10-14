@@ -6,9 +6,8 @@
 package io.github.frikit.krandom.generator.datetime;
 
 import io.github.frikit.krandom.generator.Generator;
-import io.github.frikit.krandom.generator.Seedable;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
+import io.github.frikit.krandom.generator.Seedable;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -81,13 +80,14 @@ public final class DateGenerator implements Generator<LocalDate>, Seedable {
     private static final int MIN_YEAR = 1970;
     private static final int MAX_YEAR = 2100;
     private final GeneratorConfig config;
-    private final Random          random;
-    private final Clock           clock;
+    private final Random random;
+    private final Clock clock;
     /**
      * Non-null only when constructed via the bounded constructor.
      */
-    private final LocalDate rangeMin;
-    private final LocalDate rangeMax;
+    private final @org.jspecify.annotations.Nullable LocalDate rangeMin;
+
+    private final @org.jspecify.annotations.Nullable LocalDate rangeMax;
 
     /**
      * Creates a date generator with default configuration.
@@ -136,7 +136,7 @@ public final class DateGenerator implements Generator<LocalDate>, Seedable {
     public LocalDate generate() {
         if (rangeMin != null) {
             long lo = rangeMin.toEpochDay();
-            long hi = rangeMax.toEpochDay();
+            long hi = Objects.requireNonNull(rangeMax).toEpochDay();
             return LocalDate.ofEpochDay(lo + random.nextLong(hi - lo + 1));
         }
         int year = generateYear();
@@ -200,8 +200,7 @@ public final class DateGenerator implements Generator<LocalDate>, Seedable {
      */
     public String generateAmerican() {
         LocalDate date = generate();
-        return String.format(Locale.ROOT, "%02d/%02d/%04d",
-                             date.getMonthValue(), date.getDayOfMonth(), date.getYear());
+        return String.format(Locale.ROOT, "%02d/%02d/%04d", date.getMonthValue(), date.getDayOfMonth(), date.getYear());
     }
 
     /**
@@ -211,8 +210,7 @@ public final class DateGenerator implements Generator<LocalDate>, Seedable {
      */
     public String generateEuropean() {
         LocalDate date = generate();
-        return String.format(Locale.ROOT, "%02d/%02d/%04d",
-                             date.getDayOfMonth(), date.getMonthValue(), date.getYear());
+        return String.format(Locale.ROOT, "%02d/%02d/%04d", date.getDayOfMonth(), date.getMonthValue(), date.getYear());
     }
 
     /**
@@ -239,8 +237,8 @@ public final class DateGenerator implements Generator<LocalDate>, Seedable {
         long width = (long) max - min;
         // Ranges of at most Integer.MAX_VALUE values keep the legacy draw; wider ones would overflow.
         return width < Integer.MAX_VALUE
-               ? min + random.nextInt((int) width + 1)
-               : (int) random.nextLong(min, (long) max + 1);
+                ? min + random.nextInt((int) width + 1)
+                : (int) random.nextLong(min, (long) max + 1);
     }
 
     /**
@@ -376,7 +374,7 @@ public final class DateGenerator implements Generator<LocalDate>, Seedable {
         Objects.requireNonNull(toInclusive, "toInclusive must not be null");
         if (fromInclusive.isAfter(toInclusive)) {
             throw new IllegalArgumentException(
-                "fromInclusive must be <= toInclusive, got: " + fromInclusive + " > " + toInclusive);
+                    "fromInclusive must be <= toInclusive, got: " + fromInclusive + " > " + toInclusive);
         }
 
         long days = ChronoUnit.DAYS.between(fromInclusive, toInclusive);

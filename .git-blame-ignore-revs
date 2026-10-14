@@ -1,0 +1,6 @@
+# Commits that only reformatted code. Run once so local `git blame` skips them:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+# GitHub's blame view reads this file automatically.
+
+# style: reformat Java and Kotlin sources with Palantir Java Format and ktlint
+43127760600a865b2d12c6cdd473c3d51f911335

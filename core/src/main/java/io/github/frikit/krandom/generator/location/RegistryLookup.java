@@ -30,7 +30,8 @@ final class RegistryLookup {
         }
     }
 
-    static <T> T findWithFallback(Map<String, T> registry, Locale locale) {
+    static <T> @org.jspecify.annotations.Nullable T findWithFallback(
+            Map<String, T> registry, @org.jspecify.annotations.Nullable Locale locale) {
         if (locale == null) {
             return null;
         }

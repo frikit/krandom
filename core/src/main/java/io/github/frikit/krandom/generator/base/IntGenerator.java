@@ -58,6 +58,6 @@ public final class IntGenerator extends AbstractBoundedGenerator<Integer> {
     @Override
     public Integer generate(Integer min, Integer max) {
         validate(min, max);
-                return random.nextInt(min, max);
+        return random.nextInt(min, max);
     }
 }

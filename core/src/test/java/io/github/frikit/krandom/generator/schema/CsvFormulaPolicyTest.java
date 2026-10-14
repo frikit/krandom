@@ -5,23 +5,21 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * CSV output keeps values unchanged by default and neutralizes spreadsheet formulas on request.
  */
 class CsvFormulaPolicyTest {
 
-    public record Row(String text, int number) {
-    }
+    public record Row(String text, int number) {}
 
     private static Schema schema() {
         Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
@@ -41,7 +39,8 @@ class CsvFormulaPolicyTest {
     void defaultPreservesCells() {
         String csv = schema().toCsv(1);
         assertEquals(schema().toCsv(1, CsvFormulaPolicy.PRESERVE), csv);
-        assertEquals("=cmd,plus,minus,at,tab,cr,plain,empty", csv.lines().findFirst().orElseThrow());
+        assertEquals(
+                "=cmd,plus,minus,at,tab,cr,plain,empty", csv.lines().findFirst().orElseThrow());
     }
 
     @Test
@@ -61,8 +60,11 @@ class CsvFormulaPolicyTest {
         fields.put("number", Row::number);
         SchemaProjection<Row> projection = SchemaProjection.of(fields);
         List<Row> rows = List.of(new Row("=1+1", -2));
-        assertEquals(List.of("text,number", "'=1+1,-2"),
-                     projection.toCsv(rows, CsvFormulaPolicy.NEUTRALIZE).lines().toList());
-        assertEquals(List.of("text,number", "=1+1,-2"), projection.toCsv(rows).lines().toList());
+        assertEquals(
+                List.of("text,number", "'=1+1,-2"),
+                projection.toCsv(rows, CsvFormulaPolicy.NEUTRALIZE).lines().toList());
+        assertEquals(
+                List.of("text,number", "=1+1,-2"),
+                projection.toCsv(rows).lines().toList());
     }
 }

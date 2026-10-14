@@ -28,20 +28,21 @@ public final class PasswordPolicy {
     /** Default punctuation symbols. */
     public static final String SYMBOLS = "!@#$%^&*()-_=+[]{};:,.?";
 
-    private final int                 minLength;
-    private final int                 maxLength;
-    private final List<Requirement>   requirements;
-    private final String              alphabet;
+    private final int minLength;
+    private final int maxLength;
+    private final List<Requirement> requirements;
+    private final String alphabet;
 
     private PasswordPolicy(Builder builder) {
         this.minLength = builder.minLength;
         this.maxLength = builder.maxLength;
         this.requirements = List.copyOf(builder.requirements);
         this.alphabet = alphabetFor(requirements);
-        int requiredCharacters = requirements.stream().mapToInt(Requirement::minimumCount).sum();
+        int requiredCharacters =
+                requirements.stream().mapToInt(Requirement::minimumCount).sum();
         if (requiredCharacters > minLength) {
             throw new IllegalArgumentException(
-                "required character count must be <= minLength, got: " + requiredCharacters + " > " + minLength);
+                    "required character count must be <= minLength, got: " + requiredCharacters + " > " + minLength);
         }
     }
 
@@ -97,7 +98,7 @@ public final class PasswordPolicy {
     static final class Requirement {
 
         private final String symbols;
-        private final int    minimumCount;
+        private final int minimumCount;
 
         Requirement(String symbols, int minimumCount) {
             this.symbols = symbols;
@@ -118,12 +119,11 @@ public final class PasswordPolicy {
      */
     public static final class Builder {
 
-        private int               minLength = 8;
-        private int               maxLength = 16;
+        private int minLength = 8;
+        private int maxLength = 16;
         private final List<Requirement> requirements = new ArrayList<>();
 
-        private Builder() {
-        }
+        private Builder() {}
 
         /**
          * Sets a fixed password length.

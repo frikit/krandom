@@ -21,9 +21,8 @@ public enum CryptoAddressSafetyPolicy {
 
     void requireRealisticOutput() {
         if (this == DISABLED) {
-            throw new IllegalStateException(
-                "Crypto-address generation is disabled by default; select "
-                + "cryptoAddressSafetyPolicy(REALISTIC_UNCLASSIFIED) only for isolated fixtures");
+            throw new IllegalStateException("Crypto-address generation is disabled by default; select "
+                    + "cryptoAddressSafetyPolicy(REALISTIC_UNCLASSIFIED) only for isolated fixtures");
         }
     }
 }

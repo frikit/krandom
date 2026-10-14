@@ -5,25 +5,24 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.ContextualGenerator;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
 import io.github.frikit.krandom.generator.provider.ConflictPolicy;
 import io.github.frikit.krandom.generator.provider.ProviderHub;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("object generator extension model")
 class ObjectGeneratorExtensionModelTest {
@@ -32,11 +31,12 @@ class ObjectGeneratorExtensionModelTest {
     @DisplayName("type override accepts Generator implementations")
     void typeOverrideAcceptsGeneratorImplementation() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                .objectOverride(String.class, new FixedStringGenerator("type-randomizer"))
-                                                .build();
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .objectOverride(String.class, new FixedStringGenerator("type-randomizer"))
+                .build();
 
-        ExtensionFixture fixture = Generators.ofObject(ExtensionFixture.class, config).generate();
+        ExtensionFixture fixture =
+                Generators.ofObject(ExtensionFixture.class, config).generate();
 
         assertEquals("type-randomizer", fixture.name);
         assertEquals("type-randomizer", fixture.accessToken);
@@ -47,14 +47,13 @@ class ObjectGeneratorExtensionModelTest {
     @DisplayName("contextual override receives field metadata")
     void contextualOverrideReceivesFieldMetadata() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                .objectOverride(String.class,
-                                                    (ContextualGenerator<String>) ctx ->
-                                                        ctx.getOwnerType().getSimpleName() + ":"
-                                                        + ctx.getFieldName() + ":" + ctx.getDepth())
-                                                .build();
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .objectOverride(String.class, (ContextualGenerator<String>)
+                        ctx -> ctx.getOwnerType().getSimpleName() + ":" + ctx.getFieldName() + ":" + ctx.getDepth())
+                .build();
 
-        ExtensionFixture fixture = Generators.ofObject(ExtensionFixture.class, config).generate();
+        ExtensionFixture fixture =
+                Generators.ofObject(ExtensionFixture.class, config).generate();
 
         assertEquals("ExtensionFixture:name:0", fixture.name);
         assertEquals("NestedExtension:nestedCode:1", fixture.nested.nestedCode);
@@ -68,19 +67,19 @@ class ObjectGeneratorExtensionModelTest {
         AtomicReference<Field> declaration = new AtomicReference<>();
         AtomicReference<GeneratorConfig> observedConfig = new AtomicReference<>();
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.CANADA)
-                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                .objectOverride(NestedExtension.class, "nestedCode",
-                                                    (ContextualGenerator<String>) ctx -> {
-                                                        path.set(ctx.getPath());
-                                                        declaredType.set(ctx.getDeclaredType().orElseThrow());
-                                                        declaration.set((Field) ctx.getDeclaration().orElseThrow());
-                                                        observedConfig.set(ctx.getConfig().orElseThrow());
-                                                        return "rich-context";
-                                                    })
-                                                .build();
+                .locale(Locale.CANADA)
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .objectOverride(NestedExtension.class, "nestedCode", (ContextualGenerator<String>) ctx -> {
+                    path.set(ctx.getPath());
+                    declaredType.set(ctx.getDeclaredType().orElseThrow());
+                    declaration.set((Field) ctx.getDeclaration().orElseThrow());
+                    observedConfig.set(ctx.getConfig().orElseThrow());
+                    return "rich-context";
+                })
+                .build();
 
-        ExtensionFixture fixture = Generators.ofObject(ExtensionFixture.class, config).generate();
+        ExtensionFixture fixture =
+                Generators.ofObject(ExtensionFixture.class, config).generate();
 
         assertEquals("rich-context", fixture.nested.nestedCode);
         assertEquals("ExtensionFixture.nested.nestedCode", path.get());
@@ -93,12 +92,13 @@ class ObjectGeneratorExtensionModelTest {
     @DisplayName("predicate field override applies to matching fields")
     void predicateFieldOverrideAppliesToMatchingFields() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                .objectOverride(FieldPredicates.nameMatches(".*Token"),
-                                                                new FixedStringGenerator("predicate-randomizer"))
-                                                .build();
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .objectOverride(
+                        FieldPredicates.nameMatches(".*Token"), new FixedStringGenerator("predicate-randomizer"))
+                .build();
 
-        ExtensionFixture fixture = Generators.ofObject(ExtensionFixture.class, config).generate();
+        ExtensionFixture fixture =
+                Generators.ofObject(ExtensionFixture.class, config).generate();
 
         assertEquals("predicate-randomizer", fixture.accessToken);
         assertEquals("predicate-randomizer", fixture.refreshToken);
@@ -109,15 +109,13 @@ class ObjectGeneratorExtensionModelTest {
     @DisplayName("contextual predicate override receives owner, field, and depth")
     void contextualPredicateOverrideReceivesGenerationContext() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                .objectOverride(
-                                                    FieldPredicates.nameMatches(".*Code"),
-                                                    (ContextualGenerator<String>) ctx ->
-                                                        ctx.getOwnerType().getSimpleName() + ":"
-                                                        + ctx.getFieldName() + ":" + ctx.getDepth())
-                                                .build();
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .objectOverride(FieldPredicates.nameMatches(".*Code"), (ContextualGenerator<String>)
+                        ctx -> ctx.getOwnerType().getSimpleName() + ":" + ctx.getFieldName() + ":" + ctx.getDepth())
+                .build();
 
-        ExtensionFixture fixture = Generators.ofObject(ExtensionFixture.class, config).generate();
+        ExtensionFixture fixture =
+                Generators.ofObject(ExtensionFixture.class, config).generate();
 
         assertEquals("ExtensionFixture:rootCode:0", fixture.rootCode);
         assertEquals("NestedExtension:nestedCode:1", fixture.nested.nestedCode);
@@ -127,13 +125,13 @@ class ObjectGeneratorExtensionModelTest {
     @DisplayName("predicate field override wins over type override")
     void predicateFieldOverrideWinsOverTypeOverride() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                .objectOverride(String.class, new FixedStringGenerator("type"))
-                                                .objectOverride(FieldPredicates.nameMatches(".*Token"),
-                                                                new FixedStringGenerator("predicate"))
-                                                .build();
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .objectOverride(String.class, new FixedStringGenerator("type"))
+                .objectOverride(FieldPredicates.nameMatches(".*Token"), new FixedStringGenerator("predicate"))
+                .build();
 
-        ExtensionFixture fixture = Generators.ofObject(ExtensionFixture.class, config).generate();
+        ExtensionFixture fixture =
+                Generators.ofObject(ExtensionFixture.class, config).generate();
 
         assertEquals("predicate", fixture.accessToken);
         assertEquals("predicate", fixture.refreshToken);
@@ -144,14 +142,13 @@ class ObjectGeneratorExtensionModelTest {
     @DisplayName("exact field override wins over predicate field override")
     void exactFieldOverrideWinsOverPredicateFieldOverride() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                .objectOverride(FieldPredicates.ofType(String.class),
-                                                                new FixedStringGenerator("predicate"))
-                                                .objectOverride(ExtensionFixture.class, "accessToken",
-                                                                new FixedStringGenerator("exact"))
-                                                .build();
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .objectOverride(FieldPredicates.ofType(String.class), new FixedStringGenerator("predicate"))
+                .objectOverride(ExtensionFixture.class, "accessToken", new FixedStringGenerator("exact"))
+                .build();
 
-        ExtensionFixture fixture = Generators.ofObject(ExtensionFixture.class, config).generate();
+        ExtensionFixture fixture =
+                Generators.ofObject(ExtensionFixture.class, config).generate();
 
         assertEquals("exact", fixture.accessToken);
         assertEquals("predicate", fixture.refreshToken);
@@ -162,20 +159,25 @@ class ObjectGeneratorExtensionModelTest {
     @DisplayName("ProviderHub registrations can supply object overrides")
     @SuppressWarnings("unchecked")
     void providerHubRegistrationsCanSupplyObjectOverrides() {
-        ProviderHub hub = new ProviderHub(GeneratorConfig.builder().locale(Locale.UK).build());
-        hub.register("tokens.session", cfg -> (Generator<String>) () -> "session-" + cfg.getLocale().getCountry());
+        ProviderHub hub =
+                new ProviderHub(GeneratorConfig.builder().locale(Locale.UK).build());
+        hub.register("tokens.session", cfg ->
+                (Generator<String>) () -> "session-" + cfg.getLocale().getCountry());
         hub.registerAlias("session_token", "tokens.session");
-        hub.register("tokens.session",
-                     cfg -> (Generator<String>) () -> "replacement-" + cfg.getLocale().getCountry(),
-                     ConflictPolicy.REPLACE);
+        hub.register(
+                "tokens.session",
+                cfg -> (Generator<String>)
+                        () -> "replacement-" + cfg.getLocale().getCountry(),
+                ConflictPolicy.REPLACE);
 
         Generator<String> sessionToken = hub.get("session_token", Generator.class);
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                .objectOverride(ExtensionFixture.class, "accessToken", sessionToken)
-                                                .build();
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .objectOverride(ExtensionFixture.class, "accessToken", sessionToken)
+                .build();
 
-        ExtensionFixture fixture = Generators.ofObject(ExtensionFixture.class, config).generate();
+        ExtensionFixture fixture =
+                Generators.ofObject(ExtensionFixture.class, config).generate();
 
         assertEquals("replacement-GB", fixture.accessToken);
     }
@@ -184,12 +186,12 @@ class ObjectGeneratorExtensionModelTest {
     @DisplayName("special construction uses explicit object overrides")
     void specialConstructionUsesExplicitObjectOverrides() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                .objectOverride(ExternalId.class,
-                                                                () -> new ExternalId("factory-like-id"))
-                                                .build();
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .objectOverride(ExternalId.class, () -> new ExternalId("factory-like-id"))
+                .build();
 
-        FactoryFixture fixture = Generators.ofObject(FactoryFixture.class, config).generate();
+        FactoryFixture fixture =
+                Generators.ofObject(FactoryFixture.class, config).generate();
 
         assertEquals("factory-like-id", fixture.externalId.value);
         assertNotNull(fixture.allArgsOnly);
@@ -199,16 +201,15 @@ class ObjectGeneratorExtensionModelTest {
     @DisplayName("object config predicate overrides can be exported to GeneratorConfig")
     void objectConfigPredicateOverridesExportToGeneratorConfig() {
         ObjectGeneratorConfig objectConfig = ObjectGeneratorConfig.builder()
-                                                                  .semanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                                  .override(FieldPredicates.named("accessToken"),
-                                                                            new FixedStringGenerator("local"))
-                                                                  .override(FieldPredicates.named("rootCode"),
-                                                                            (ContextualGenerator<String>) ctx ->
-                                                                                "ctx-" + ctx.getFieldName())
-                                                                  .build();
+                .semanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .override(FieldPredicates.named("accessToken"), new FixedStringGenerator("local"))
+                .override(FieldPredicates.named("rootCode"), (ContextualGenerator<String>)
+                        ctx -> "ctx-" + ctx.getFieldName())
+                .build();
 
         GeneratorConfig rootConfig = objectConfig.toGeneratorConfig();
-        ExtensionFixture fixture = Generators.ofObject(ExtensionFixture.class, rootConfig).generate();
+        ExtensionFixture fixture =
+                Generators.ofObject(ExtensionFixture.class, rootConfig).generate();
 
         assertEquals("local", fixture.accessToken);
         assertEquals("ctx-rootCode", fixture.rootCode);
@@ -218,13 +219,11 @@ class ObjectGeneratorExtensionModelTest {
     @DisplayName("object-scoped predicate overrides apply without exporting to GeneratorConfig")
     void objectConfigPredicateOverridesApplyLocally() {
         ObjectGeneratorConfig objectConfig = ObjectGeneratorConfig.builder()
-                                                                  .semanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                                  .override(FieldPredicates.named("accessToken"),
-                                                                            new FixedStringGenerator("local"))
-                                                                  .override(FieldPredicates.named("rootCode"),
-                                                                            (ContextualGenerator<String>) ctx ->
-                                                                                "ctx-" + ctx.getDepth())
-                                                                  .build();
+                .semanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .override(FieldPredicates.named("accessToken"), new FixedStringGenerator("local"))
+                .override(
+                        FieldPredicates.named("rootCode"), (ContextualGenerator<String>) ctx -> "ctx-" + ctx.getDepth())
+                .build();
 
         ExtensionFixture fixture = new ObjectGenerator<>(ExtensionFixture.class, objectConfig).generate();
 
@@ -237,11 +236,9 @@ class ObjectGeneratorExtensionModelTest {
     void predicateOverrideAccessorsFallBackWhenLocalPredicatesDoNotMatch() throws NoSuchFieldException {
         Field nameField = ExtensionFixture.class.getDeclaredField("name");
         ObjectGeneratorConfig objectConfig = ObjectGeneratorConfig.builder()
-                                                                  .override(FieldPredicates.named("missing"),
-                                                                            new FixedStringGenerator("local"))
-                                                                  .override(FieldPredicates.named("alsoMissing"),
-                                                                            (ContextualGenerator<String>) ctx -> "ctx")
-                                                                  .build();
+                .override(FieldPredicates.named("missing"), new FixedStringGenerator("local"))
+                .override(FieldPredicates.named("alsoMissing"), (ContextualGenerator<String>) ctx -> "ctx")
+                .build();
 
         assertTrue(objectConfig.getFieldPredicateOverride(nameField).isEmpty());
         assertTrue(objectConfig.getContextualFieldPredicateOverride(nameField).isEmpty());
@@ -251,29 +248,25 @@ class ObjectGeneratorExtensionModelTest {
     @DisplayName("predicate overrides protect values from semantic coherence rewrites")
     void predicateOverridesProtectValuesFromSemanticCoherenceRewrites() {
         GeneratorConfig plainConfig = GeneratorConfig.builder()
-                                                     .objectOverride(NameCoherenceFixture.class, "firstName",
-                                                                     new FixedStringGenerator("Alice"))
-                                                     .objectOverride(NameCoherenceFixture.class, "lastName",
-                                                                     new FixedStringGenerator("Smith"))
-                                                     .objectOverride(FieldPredicates.named("fullName"),
-                                                                     new FixedStringGenerator("Manual Name"))
-                                                     .build();
+                .objectOverride(NameCoherenceFixture.class, "firstName", new FixedStringGenerator("Alice"))
+                .objectOverride(NameCoherenceFixture.class, "lastName", new FixedStringGenerator("Smith"))
+                .objectOverride(FieldPredicates.named("fullName"), new FixedStringGenerator("Manual Name"))
+                .build();
 
-        NameCoherenceFixture plain = Generators.ofObject(NameCoherenceFixture.class, plainConfig).generate();
+        NameCoherenceFixture plain =
+                Generators.ofObject(NameCoherenceFixture.class, plainConfig).generate();
 
         assertEquals("Manual Name", plain.fullName);
 
         GeneratorConfig contextualConfig = GeneratorConfig.builder()
-                                                          .objectOverride(NameCoherenceFixture.class, "firstName",
-                                                                          new FixedStringGenerator("Alice"))
-                                                          .objectOverride(NameCoherenceFixture.class, "lastName",
-                                                                          new FixedStringGenerator("Smith"))
-                                                          .objectOverride(FieldPredicates.named("fullName"),
-                                                                          (ContextualGenerator<String>) ctx ->
-                                                                              "Manual " + ctx.getFieldName())
-                                                          .build();
+                .objectOverride(NameCoherenceFixture.class, "firstName", new FixedStringGenerator("Alice"))
+                .objectOverride(NameCoherenceFixture.class, "lastName", new FixedStringGenerator("Smith"))
+                .objectOverride(FieldPredicates.named("fullName"), (ContextualGenerator<String>)
+                        ctx -> "Manual " + ctx.getFieldName())
+                .build();
 
-        NameCoherenceFixture contextual = Generators.ofObject(NameCoherenceFixture.class, contextualConfig).generate();
+        NameCoherenceFixture contextual = Generators.ofObject(NameCoherenceFixture.class, contextualConfig)
+                .generate();
 
         assertEquals("Manual fullName", contextual.fullName);
     }
@@ -285,24 +278,27 @@ class ObjectGeneratorExtensionModelTest {
         ContextualGenerator<String> contextualGenerator = ctx -> "x";
         Predicate<Field> predicate = FieldPredicates.named("name");
 
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().objectOverride((Predicate<Field>) null, generator));
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().objectOverride(predicate, (Generator<String>) null));
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().objectOverride((Predicate<Field>) null, contextualGenerator));
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().objectOverride(predicate, (ContextualGenerator<String>) null));
+        assertThrows(
+                NullPointerException.class,
+                () -> GeneratorConfig.builder().objectOverride((Predicate<Field>) null, generator));
+        assertThrows(
+                NullPointerException.class,
+                () -> GeneratorConfig.builder().objectOverride(predicate, (Generator<String>) null));
+        assertThrows(
+                NullPointerException.class,
+                () -> GeneratorConfig.builder().objectOverride((Predicate<Field>) null, contextualGenerator));
+        assertThrows(
+                NullPointerException.class,
+                () -> GeneratorConfig.builder().objectOverride(predicate, (ContextualGenerator<String>) null));
 
         ObjectGeneratorConfig.Builder objectBuilder = ObjectGeneratorConfig.builder();
-        assertThrows(NullPointerException.class,
-                     () -> objectBuilder.override((Predicate<Field>) null, generator));
-        assertThrows(NullPointerException.class,
-                     () -> objectBuilder.override(predicate, (Generator<String>) null));
-        assertThrows(NullPointerException.class,
-                     () -> objectBuilder.override((Predicate<Field>) null, contextualGenerator));
-        assertThrows(NullPointerException.class,
-                     () -> objectBuilder.override(predicate, (ContextualGenerator<String>) null));
+        assertThrows(NullPointerException.class, () -> objectBuilder.override((Predicate<Field>) null, generator));
+        assertThrows(NullPointerException.class, () -> objectBuilder.override(predicate, (Generator<String>) null));
+        assertThrows(
+                NullPointerException.class, () -> objectBuilder.override((Predicate<Field>) null, contextualGenerator));
+        assertThrows(
+                NullPointerException.class,
+                () -> objectBuilder.override(predicate, (ContextualGenerator<String>) null));
 
         GeneratorConfig rootConfig = GeneratorConfig.defaults();
         ObjectGeneratorConfig objectConfig = ObjectGeneratorConfig.builder().build();
@@ -328,10 +324,10 @@ class ObjectGeneratorExtensionModelTest {
 
     static class ExtensionFixture {
 
-        String          name;
-        String          accessToken;
-        String          refreshToken;
-        String          rootCode;
+        String name;
+        String accessToken;
+        String refreshToken;
+        String rootCode;
         NestedExtension nested;
     }
 
@@ -349,7 +345,7 @@ class ObjectGeneratorExtensionModelTest {
 
     static class FactoryFixture {
 
-        ExternalId  externalId;
+        ExternalId externalId;
         AllArgsOnly allArgsOnly;
     }
 

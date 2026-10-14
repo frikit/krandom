@@ -20,9 +20,7 @@ public enum GeneratorProfile {
         @Override
         public GeneratorConfig.Builder applyToBuilder(GeneratorConfig.Builder builder) {
             Objects.requireNonNull(builder, "builder");
-            return builder.seed(1L)
-                          .stringLength(3, 12)
-                          .collectionSize(1, 6);
+            return builder.seed(1L).stringLength(3, 12).collectionSize(1, 6);
         }
     },
 
@@ -33,8 +31,7 @@ public enum GeneratorProfile {
         @Override
         public GeneratorConfig.Builder applyToBuilder(GeneratorConfig.Builder builder) {
             Objects.requireNonNull(builder, "builder");
-            return builder.stringLength(5, 24)
-                          .collectionSize(1, 12);
+            return builder.stringLength(5, 24).collectionSize(1, 12);
         }
     },
 
@@ -45,9 +42,7 @@ public enum GeneratorProfile {
         @Override
         public GeneratorConfig.Builder applyToBuilder(GeneratorConfig.Builder builder) {
             Objects.requireNonNull(builder, "builder");
-            return builder.seed(0L)
-                          .stringLength(3, 10)
-                          .collectionSize(0, 5);
+            return builder.seed(0L).stringLength(3, 10).collectionSize(0, 5);
         }
     };
 
@@ -60,14 +55,18 @@ public enum GeneratorProfile {
      * Creates a new config for this profile with default locale.
      */
     public GeneratorConfig createConfig() {
-        return applyToBuilder(GeneratorConfig.builder()).generationProfile(name()).build();
+        return applyToBuilder(GeneratorConfig.builder())
+                .generationProfile(name())
+                .build();
     }
 
     /**
      * Creates a new config for this profile and locale.
      */
     public GeneratorConfig createConfig(Locale locale) {
-        return applyToBuilder(GeneratorConfig.builder().locale(locale)).generationProfile(name()).build();
+        return applyToBuilder(GeneratorConfig.builder().locale(locale))
+                .generationProfile(name())
+                .build();
     }
 
     /**

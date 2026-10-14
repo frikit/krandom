@@ -5,21 +5,20 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.core.model.PersonWithExcludes;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
+import io.github.frikit.krandom.generator.core.model.PersonWithExcludes;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Modifier;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectGenerator — field exclusion")
 class ObjectGeneratorExclusionTest {
@@ -35,9 +34,8 @@ class ObjectGeneratorExclusionTest {
     @Test
     @DisplayName("excludeField(name) suppresses population of the named field")
     void excludeFieldByName() {
-        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .excludeField("username")
-                                                            .build();
+        ObjectGeneratorConfig config =
+                ObjectGeneratorConfig.builder().excludeField("username").build();
         PersonWithExcludes p = new ObjectGenerator<>(PersonWithExcludes.class, config).generate();
         assertNull(p.getUsername(), "excluded-by-name field must remain null");
     }
@@ -45,9 +43,8 @@ class ObjectGeneratorExclusionTest {
     @Test
     @DisplayName("excludeField(name) does not suppress other fields")
     void excludeFieldByNameDoesNotAffectOthers() {
-        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .excludeField("username")
-                                                            .build();
+        ObjectGeneratorConfig config =
+                ObjectGeneratorConfig.builder().excludeField("username").build();
         // password is @Exclude so it is null; age is a primitive (not excluded here)
         PersonWithExcludes p = new ObjectGenerator<>(PersonWithExcludes.class, config).generate();
         assertNull(p.getPassword(), "@Exclude field must still be null");
@@ -58,9 +55,8 @@ class ObjectGeneratorExclusionTest {
     @Test
     @DisplayName("excludeType(String.class) sets all String fields to null")
     void excludeTypeString() {
-        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .excludeType(String.class)
-                                                            .build();
+        ObjectGeneratorConfig config =
+                ObjectGeneratorConfig.builder().excludeType(String.class).build();
         PersonWithExcludes p = new ObjectGenerator<>(PersonWithExcludes.class, config).generate();
         assertNull(p.getPassword(), "String field must be null (excluded by type)");
         assertNull(p.getUsername(), "String field must be null (excluded by type)");
@@ -72,8 +68,8 @@ class ObjectGeneratorExclusionTest {
     @DisplayName("excludeType(TypePredicates.inPackage(...)) suppresses matching package types")
     void excludeTypeByPackagePredicate() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .excludeType(TypePredicates.inPackage("java.time"))
-                                                            .build();
+                .excludeType(TypePredicates.inPackage("java.time"))
+                .build();
         PackageTypeExclusionTarget target = new ObjectGenerator<>(PackageTypeExclusionTarget.class, config).generate();
         assertNull(target.getDate(), "java.time type should be excluded");
         assertNotNull(target.getTitle(), "non-matching package type must still be populated");
@@ -83,8 +79,8 @@ class ObjectGeneratorExclusionTest {
     @DisplayName("exclude(FieldPredicates.named(...)) suppresses the matching field")
     void excludeViaCustomPredicate() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .exclude(FieldPredicates.named("username"))
-                                                            .build();
+                .exclude(FieldPredicates.named("username"))
+                .build();
         PersonWithExcludes p = new ObjectGenerator<>(PersonWithExcludes.class, config).generate();
         assertNull(p.getUsername(), "field matched by predicate must be null");
     }
@@ -95,8 +91,8 @@ class ObjectGeneratorExclusionTest {
     @DisplayName("exclude(FieldPredicates.isAnnotatedWith(...)) suppresses annotated fields")
     void excludeViaAnnotationPredicate() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .exclude(FieldPredicates.isAnnotatedWith(LegacyField.class))
-                                                            .build();
+                .exclude(FieldPredicates.isAnnotatedWith(LegacyField.class))
+                .build();
         AnnotationPredicateTarget target = new ObjectGenerator<>(AnnotationPredicateTarget.class, config).generate();
         assertNull(target.getLegacyValue(), "annotated field must be excluded");
         assertNotNull(target.getActiveValue(), "non-annotated field must be populated");
@@ -106,8 +102,8 @@ class ObjectGeneratorExclusionTest {
     @DisplayName("exclude(FieldPredicates.hasModifiers(...)) suppresses fields by modifiers")
     void excludeViaModifierPredicate() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .exclude(FieldPredicates.hasModifiers(Modifier.PRIVATE))
-                                                            .build();
+                .exclude(FieldPredicates.hasModifiers(Modifier.PRIVATE))
+                .build();
         ModifierPredicateTarget target = new ObjectGenerator<>(ModifierPredicateTarget.class, config).generate();
         assertNull(target.getHidden(), "private field must be excluded");
         assertNotNull(target.getVisible(), "non-private field must still be populated");
@@ -119,8 +115,8 @@ class ObjectGeneratorExclusionTest {
     @DisplayName("exclude(predicate.and(...)) supports AND composition")
     void excludeViaAndComposition() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .exclude(FieldPredicates.named("hidden").and(FieldPredicates.hasModifiers(Modifier.PRIVATE)))
-                                                            .build();
+                .exclude(FieldPredicates.named("hidden").and(FieldPredicates.hasModifiers(Modifier.PRIVATE)))
+                .build();
         ModifierPredicateTarget target = new ObjectGenerator<>(ModifierPredicateTarget.class, config).generate();
         assertNull(target.getHidden(), "AND predicate should exclude matching private hidden field");
         assertNotNull(target.getVisible(), "AND predicate should not exclude non-matching field");
@@ -130,8 +126,8 @@ class ObjectGeneratorExclusionTest {
     @DisplayName("exclude(predicate.or(...)) supports OR composition")
     void excludeViaOrComposition() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .exclude(FieldPredicates.named("hidden").or(FieldPredicates.named("visible")))
-                                                            .build();
+                .exclude(FieldPredicates.named("hidden").or(FieldPredicates.named("visible")))
+                .build();
         ModifierPredicateTarget target = new ObjectGenerator<>(ModifierPredicateTarget.class, config).generate();
         assertNull(target.getHidden(), "OR predicate should exclude hidden");
         assertNull(target.getVisible(), "OR predicate should exclude visible");
@@ -141,8 +137,8 @@ class ObjectGeneratorExclusionTest {
     @DisplayName("exclude(predicate.negate()) supports NOT composition")
     void excludeViaNegateComposition() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .exclude(FieldPredicates.named("hidden").negate())
-                                                            .build();
+                .exclude(FieldPredicates.named("hidden").negate())
+                .build();
         ModifierPredicateTarget target = new ObjectGenerator<>(ModifierPredicateTarget.class, config).generate();
         assertNotNull(target.getHidden(), "negated predicate should keep the original match");
         assertNull(target.getVisible(), "negated predicate should exclude non-matching field");
@@ -152,8 +148,8 @@ class ObjectGeneratorExclusionTest {
     @DisplayName("FieldPredicates.inClass — predicate returns true for fields in the target class")
     void inClassPredicateTrueForTargetClassFields() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .exclude(FieldPredicates.inClass(PersonWithExcludes.class))
-                                                            .build();
+                .exclude(FieldPredicates.inClass(PersonWithExcludes.class))
+                .build();
         PersonWithExcludes p = new ObjectGenerator<>(PersonWithExcludes.class, config).generate();
         // All fields in PersonWithExcludes are excluded → non-primitives are null
         assertNull(p.getUsername(), "inClass excludes fields declared in the target class");
@@ -164,8 +160,8 @@ class ObjectGeneratorExclusionTest {
     void inClassPredicateFalseForOtherClassFields() {
         // inClass(String.class) never matches PersonWithExcludes fields → username is populated
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .exclude(FieldPredicates.inClass(String.class))
-                                                            .build();
+                .exclude(FieldPredicates.inClass(String.class))
+                .build();
         PersonWithExcludes p = new ObjectGenerator<>(PersonWithExcludes.class, config).generate();
         assertNotNull(p.getUsername(), "inClass(other) must not exclude fields from a different class");
     }
@@ -174,9 +170,9 @@ class ObjectGeneratorExclusionTest {
     @DisplayName("combining excludeField and excludeType excludes the union of fields")
     void combinedExclusions() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .excludeField("username")
-                                                            .excludeType(String.class) // covers password as well
-                                                            .build();
+                .excludeField("username")
+                .excludeType(String.class) // covers password as well
+                .build();
         PersonWithExcludes p = new ObjectGenerator<>(PersonWithExcludes.class, config).generate();
         assertNull(p.getUsername(), "username must be null");
         assertNull(p.getPassword(), "password must be null");
@@ -184,11 +180,11 @@ class ObjectGeneratorExclusionTest {
 
     // ── FieldPredicates.inClass ───────────────────────────────────────────────
 
-
     static class AnnotationPredicateTarget {
 
         @LegacyField
         private String legacyValue;
+
         private String activeValue;
 
         String getLegacyValue() {
@@ -202,9 +198,7 @@ class ObjectGeneratorExclusionTest {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
-    @interface LegacyField {
-    }
-
+    @interface LegacyField {}
 
     static class ModifierPredicateTarget {
 
@@ -222,11 +216,10 @@ class ObjectGeneratorExclusionTest {
 
     // ── Multiple exclusions combined ──────────────────────────────────────────
 
-
     static class PackageTypeExclusionTarget {
 
         java.time.LocalDate date;
-        String              title;
+        String title;
 
         java.time.LocalDate getDate() {
             return date;
@@ -239,25 +232,20 @@ class ObjectGeneratorExclusionTest {
 
     // ── Record component exclusion (covers defaultForType branches) ───────────
 
-
     /**
      * Record with every primitive type plus String as @Exclude components.
      * Exercises every branch of ObjectGenerator.defaultForType().
      */
     record AllTypesRecord(
-        @Exclude boolean flag,
-        @Exclude byte byteVal,
-        @Exclude short shortVal,
-        @Exclude int intVal,
-        @Exclude long longVal,
-        @Exclude float floatVal,
-        @Exclude double doubleVal,
-        @Exclude char charVal,
-        @Exclude String stringVal
-    ) {
-
-    }
-
+            @Exclude boolean flag,
+            @Exclude byte byteVal,
+            @Exclude short shortVal,
+            @Exclude int intVal,
+            @Exclude long longVal,
+            @Exclude float floatVal,
+            @Exclude double doubleVal,
+            @Exclude char charVal,
+            @Exclude String stringVal) {}
 
     @Nested
     @DisplayName("Record component @Exclude — defaultForType coverage")

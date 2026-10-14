@@ -5,6 +5,13 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.Generator;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Max;
@@ -13,10 +20,6 @@ import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
-import io.github.frikit.krandom.generator.Generator;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.RecordComponent;
 import java.math.BigDecimal;
@@ -34,12 +37,8 @@ import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Random;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("BeanValidationSupport")
 class BeanValidationSupportTest {
@@ -98,47 +97,57 @@ class BeanValidationSupportTest {
         String decimalText = (String) generatorFor("decimalText", String.class).generate();
         assertEquals(0, new BigDecimal(decimalText).compareTo(new BigDecimal("1.25")));
 
-        String decimalMaxText = (String) generatorFor("decimalMaxText", String.class).generate();
+        String decimalMaxText =
+                (String) generatorFor("decimalMaxText", String.class).generate();
         assertTrue(new BigDecimal(decimalMaxText).compareTo(new BigDecimal("9.50")) <= 0);
 
-        BigDecimal exclusiveMin = (BigDecimal) generatorFor("exclusiveMin", BigDecimal.class).generate();
+        BigDecimal exclusiveMin =
+                (BigDecimal) generatorFor("exclusiveMin", BigDecimal.class).generate();
         assertTrue(exclusiveMin.compareTo(new BigDecimal("1.00")) > 0);
 
-        BigDecimal exclusiveMax = (BigDecimal) generatorFor("exclusiveMax", BigDecimal.class).generate();
+        BigDecimal exclusiveMax =
+                (BigDecimal) generatorFor("exclusiveMax", BigDecimal.class).generate();
         assertTrue(exclusiveMax.compareTo(new BigDecimal("5.00")) < 0);
 
-        BigDecimal decimalMinWithMax = (BigDecimal) generatorFor("decimalMinWithMax", BigDecimal.class).generate();
+        BigDecimal decimalMinWithMax =
+                (BigDecimal) generatorFor("decimalMinWithMax", BigDecimal.class).generate();
         assertTrue(decimalMinWithMax.compareTo(new BigDecimal("1.00")) >= 0);
         assertTrue(decimalMinWithMax.compareTo(new BigDecimal("2.00")) <= 0);
 
-        BigDecimal decimalMaxWithMin = (BigDecimal) generatorFor("decimalMaxWithMin", BigDecimal.class).generate();
+        BigDecimal decimalMaxWithMin =
+                (BigDecimal) generatorFor("decimalMaxWithMin", BigDecimal.class).generate();
         assertTrue(decimalMaxWithMin.compareTo(new BigDecimal("1.00")) >= 0);
         assertTrue(decimalMaxWithMin.compareTo(new BigDecimal("2.00")) <= 0);
 
         assertThrows(
-            BeanValidationSupport.ConstraintConflictException.class,
-            () -> generatorFor("invertedDecimal", BigDecimal.class));
+                BeanValidationSupport.ConstraintConflictException.class,
+                () -> generatorFor("invertedDecimal", BigDecimal.class));
 
         assertEquals(5L, generatorFor("exactLong", long.class).generate());
         assertThrows(
-            BeanValidationSupport.ConstraintConflictException.class,
-            () -> generatorFor("nullPrimitive", int.class));
+                BeanValidationSupport.ConstraintConflictException.class,
+                () -> generatorFor("nullPrimitive", int.class));
         assertTrue((Byte) generatorFor("boxedByte", Byte.class).generate() <= (byte) 10);
         assertTrue((Short) generatorFor("boxedShort", Short.class).generate() >= (short) 3);
         assertTrue((Long) generatorFor("boxedLong", Long.class).generate() >= 5L);
         assertTrue(((Number) generatorFor("boundedNumber", Number.class).generate()).longValue() >= 5L);
-        assertEquals(BigInteger.valueOf(5L), generatorFor("exactBigInteger", BigInteger.class).generate());
+        assertEquals(
+                BigInteger.valueOf(5L),
+                generatorFor("exactBigInteger", BigInteger.class).generate());
         assertThrows(
-            BeanValidationSupport.ConstraintConflictException.class,
-            () -> generatorFor("invertedBigInteger", BigInteger.class));
-        assertTrue(((BigInteger) generatorFor("positiveBigInteger", BigInteger.class).generate()).signum() > 0);
+                BeanValidationSupport.ConstraintConflictException.class,
+                () -> generatorFor("invertedBigInteger", BigInteger.class));
+        assertTrue(((BigInteger) generatorFor("positiveBigInteger", BigInteger.class)
+                                .generate())
+                        .signum()
+                > 0);
         assertTrue((Float) generatorFor("positivePrimitiveFloat", float.class).generate() > 0.0f);
         assertTrue((Float) generatorFor("positiveFloat", Float.class).generate() > 0.0f);
         assertEquals(2.0d, (Double) generatorFor("exactDouble", Double.class).generate());
         assertTrue((Double) generatorFor("negativeDouble", Double.class).generate() < 0.0d);
         assertThrows(
-            BeanValidationSupport.ConstraintConflictException.class,
-            () -> generatorFor("numericUnsupported", Object.class));
+                BeanValidationSupport.ConstraintConflictException.class,
+                () -> generatorFor("numericUnsupported", Object.class));
         assertNull(generatorFor("unconstrained", Object.class));
     }
 
@@ -160,8 +169,8 @@ class BeanValidationSupportTest {
         assertNotNull(generatorFor("pastYearMonth", YearMonth.class).generate());
         assertNotNull(generatorFor("futureMonthDay", MonthDay.class).generate());
         assertThrows(
-            BeanValidationSupport.ConstraintConflictException.class,
-            () -> generatorFor("futureUnsupported", Object.class));
+                BeanValidationSupport.ConstraintConflictException.class,
+                () -> generatorFor("futureUnsupported", Object.class));
     }
 
     @Test
@@ -169,26 +178,31 @@ class BeanValidationSupportTest {
     void temporalConstraintsUseClock() throws Exception {
         Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("Asia/Tokyo"));
         ZonedDateTime zoned = (ZonedDateTime) BeanValidationSupport.constraintGeneratorFor(
-            field("futureZonedDateTime"), ZonedDateTime.class, new Random(1L), clock).generate();
+                        field("futureZonedDateTime"), ZonedDateTime.class, new Random(1L), clock)
+                .generate();
         OffsetTime offsetTime = (OffsetTime) BeanValidationSupport.constraintGeneratorFor(
-            field("futureOffsetTime"), OffsetTime.class, new Random(1L), clock).generate();
-        Year futureYear = (Year) BeanValidationSupport.constraintGeneratorFor(
-            field("futureYear"), Year.class, new Random(1L), clock).generate();
+                        field("futureOffsetTime"), OffsetTime.class, new Random(1L), clock)
+                .generate();
+        Year futureYear = (Year)
+                BeanValidationSupport.constraintGeneratorFor(field("futureYear"), Year.class, new Random(1L), clock)
+                        .generate();
 
         assertEquals(clock.getZone(), zoned.getZone());
         assertTrue(zoned.toInstant().isAfter(clock.instant()));
         assertEquals(OffsetDateTime.now(clock).getOffset(), offsetTime.getOffset());
         assertEquals(Year.now(clock).plusYears(1), futureYear);
-        assertThrows(NullPointerException.class,
-                     () -> BeanValidationSupport.constraintGeneratorFor(
-                         field("futureYear"), Year.class, new Random(1L), null));
+        assertThrows(
+                NullPointerException.class,
+                () -> BeanValidationSupport.constraintGeneratorFor(
+                        field("futureYear"), Year.class, new Random(1L), null));
     }
 
     @Test
     @DisplayName("finds record component and interface accessor annotations")
     void recordAndInterfaceAccessorAnnotations() throws Exception {
         RecordComponent component = ComponentSample.class.getRecordComponents()[0];
-        Generator<?> recordGenerator = BeanValidationSupport.constraintGeneratorFor(component, String.class, new Random(1L));
+        Generator<?> recordGenerator =
+                BeanValidationSupport.constraintGeneratorFor(component, String.class, new Random(1L));
         assertNotNull(recordGenerator);
         assertEquals(2, ((String) recordGenerator.generate()).length());
 
@@ -199,7 +213,7 @@ class BeanValidationSupportTest {
         assertNull(generatorFor("parameterizedAccessorText", String.class));
 
         assertNull(BeanValidationSupport.constraintGeneratorFor(
-            Sample.class.getDeclaredMethod("plainMethod"), String.class, new Random(1L)));
+                Sample.class.getDeclaredMethod("plainMethod"), String.class, new Random(1L)));
     }
 
     private static Field field(String name) throws NoSuchFieldException {
@@ -210,165 +224,110 @@ class BeanValidationSupportTest {
         return BeanValidationSupport.constraintGeneratorFor(field(fieldName), rawType, new Random(1L));
     }
 
-
     interface InterfaceSizedText {
 
-        @Size(min = 4, max = 4)
-        String getInterfaceSizedText();
+        @Size(min = 4, max = 4) String getInterfaceSizedText();
 
-        @Size(min = 8, max = 8)
-        String getParameterizedAccessorText(String prefix);
+        @Size(min = 8, max = 8) String getParameterizedAccessorText(String prefix);
     }
 
     record ComponentSample(@Size(min = 2, max = 2) String code) {}
 
     static final class Sample implements InterfaceSizedText {
 
-        @Size(min = 2, max = 4)
-        String sizedText;
+        @Size(min = 2, max = 4) String sizedText;
 
-        @DecimalMin("1.5")
-        BigDecimal decimalMinOnly;
+        @DecimalMin("1.5") BigDecimal decimalMinOnly;
 
         String getterSizedText;
 
-        @Null
-        String nullOnly;
+        @Null String nullOnly;
 
-        @Size(min = 0, max = 0)
-        String emptyText;
+        @Size(min = 0, max = 0) String emptyText;
 
-        @Size(min = 1)
-        String unboundedText;
+        @Size(min = 1) String unboundedText;
 
-        @Min(5)
-        @Max(7)
-        String numericText;
+        @Min(5) @Max(7) String numericText;
 
-        @DecimalMin("1.25")
-        @jakarta.validation.constraints.DecimalMax("1.25")
-        String decimalText;
+        @DecimalMin("1.25") @jakarta.validation.constraints.DecimalMax("1.25") String decimalText;
 
-        @jakarta.validation.constraints.DecimalMax("9.50")
-        String decimalMaxText;
+        @jakarta.validation.constraints.DecimalMax("9.50") String decimalMaxText;
 
-        @DecimalMin(value = "1.00", inclusive = false)
-        BigDecimal exclusiveMin;
+        @DecimalMin(value = "1.00", inclusive = false) BigDecimal exclusiveMin;
 
-        @jakarta.validation.constraints.DecimalMax(value = "5.00", inclusive = false)
-        BigDecimal exclusiveMax;
+        @jakarta.validation.constraints.DecimalMax(value = "5.00", inclusive = false) BigDecimal exclusiveMax;
 
-        @DecimalMin("1.00")
-        @Max(2)
-        BigDecimal decimalMinWithMax;
+        @DecimalMin("1.00") @Max(2) BigDecimal decimalMinWithMax;
 
-        @Min(1)
-        @jakarta.validation.constraints.DecimalMax("2.00")
-        BigDecimal decimalMaxWithMin;
+        @Min(1) @jakarta.validation.constraints.DecimalMax("2.00") BigDecimal decimalMaxWithMin;
 
-        @DecimalMin("4.00")
-        @jakarta.validation.constraints.DecimalMax("3.00")
-        BigDecimal invertedDecimal;
+        @DecimalMin("4.00") @jakarta.validation.constraints.DecimalMax("3.00") BigDecimal invertedDecimal;
 
-        @Min(5)
-        @Max(5)
-        long exactLong;
+        @Min(5) @Max(5) long exactLong;
 
-        @Null
-        int nullPrimitive;
+        @Null int nullPrimitive;
 
-        @Min(5)
-        @Max(5)
-        BigInteger exactBigInteger;
+        @Min(5) @Max(5) BigInteger exactBigInteger;
 
-        @Min(4)
-        @Max(3)
-        BigInteger invertedBigInteger;
+        @Min(4) @Max(3) BigInteger invertedBigInteger;
 
-        @Max(10)
-        Byte boxedByte;
+        @Max(10) Byte boxedByte;
 
-        @Min(3)
-        Short boxedShort;
+        @Min(3) Short boxedShort;
 
-        @Min(5)
-        Long boxedLong;
+        @Min(5) Long boxedLong;
 
-        @Min(5)
-        Number boundedNumber;
+        @Min(5) Number boundedNumber;
 
-        @Positive
-        BigInteger positiveBigInteger;
+        @Positive BigInteger positiveBigInteger;
 
-        @Positive
-        float positivePrimitiveFloat;
+        @Positive float positivePrimitiveFloat;
 
-        @Positive
-        Float positiveFloat;
+        @Positive Float positiveFloat;
 
-        @Min(2)
-        @Max(2)
-        Double exactDouble;
+        @Min(2) @Max(2) Double exactDouble;
 
-        @jakarta.validation.constraints.Negative
-        Double negativeDouble;
+        @jakarta.validation.constraints.Negative Double negativeDouble;
 
-        @Min(1)
-        Object numericUnsupported;
+        @Min(1) Object numericUnsupported;
 
         Object unconstrained;
 
-        @Future
-        LocalDateTime futureLocalDateTime;
+        @Future LocalDateTime futureLocalDateTime;
 
-        @Past
-        LocalDateTime pastLocalDateTime;
+        @Past LocalDateTime pastLocalDateTime;
 
-        @Future
-        ZonedDateTime futureZonedDateTime;
+        @Future ZonedDateTime futureZonedDateTime;
 
-        @Future
-        OffsetDateTime futureOffsetDateTime;
+        @Future OffsetDateTime futureOffsetDateTime;
 
-        @Future
-        java.sql.Date futureSqlDate;
+        @Future java.sql.Date futureSqlDate;
 
-        @Future
-        Timestamp futureTimestamp;
+        @Future Timestamp futureTimestamp;
 
-        @Future
-        LocalTime futureLocalTime;
+        @Future LocalTime futureLocalTime;
 
-        @Past
-        LocalTime pastLocalTime;
+        @Past LocalTime pastLocalTime;
 
-        @Future
-        OffsetTime futureOffsetTime;
+        @Future OffsetTime futureOffsetTime;
 
-        @Future
-        Year futureYear;
+        @Future Year futureYear;
 
-        @Past
-        Year pastYear;
+        @Past Year pastYear;
 
-        @Future
-        YearMonth futureYearMonth;
+        @Future YearMonth futureYearMonth;
 
-        @Past
-        YearMonth pastYearMonth;
+        @Past YearMonth pastYearMonth;
 
-        @Future
-        MonthDay futureMonthDay;
+        @Future MonthDay futureMonthDay;
 
-        @Future
-        Object futureUnsupported;
+        @Future Object futureUnsupported;
 
         String interfaceSizedText;
 
         String parameterizedAccessorText;
 
-        @Size(min = 3, max = 5)
-        String getGetterSizedText() {
+        @Size(min = 3, max = 5) String getGetterSizedText() {
             return getterSizedText;
         }
 

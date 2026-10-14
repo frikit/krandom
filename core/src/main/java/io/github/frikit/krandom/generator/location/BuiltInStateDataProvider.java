@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.location;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.util.Locale;
 
 /**
@@ -14,14 +13,15 @@ import java.util.Locale;
  */
 final class BuiltInStateDataProvider implements StateDataProvider {
 
-    private final Locale   locale;
+    private final Locale locale;
     private final String[] states;
     private final String[] abbreviations;
 
     BuiltInStateDataProvider(SupportedLocale supportedLocale) {
         this.locale = supportedLocale.locale();
         String resourcePrefix = supportedLocale.resourcePrefix();
-        StateResourceLoader.StateData data = StateResourceLoader.load("krandom/states/" + resourcePrefix + "_states.txt");
+        StateResourceLoader.StateData data =
+                StateResourceLoader.load("krandom/states/" + resourcePrefix + "_states.txt");
         this.states = data.states;
         this.abbreviations = data.abbreviations;
     }

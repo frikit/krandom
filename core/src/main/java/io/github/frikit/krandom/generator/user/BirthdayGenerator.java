@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -49,30 +48,29 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
     private static final int DEFAULT_MIN = 1;
     private static final int DEFAULT_MAX = 100;
 
-    private static final DateTimeFormatter STRING_FORMAT   = DateTimeFormatter.ofPattern("M/d/yyyy");
+    private static final DateTimeFormatter STRING_FORMAT = DateTimeFormatter.ofPattern("M/d/yyyy");
     private static final DateTimeFormatter AMERICAN_FORMAT = DateTimeFormatter.ofPattern("MM/dd/yyyy");
 
     private static final Map<String, DateTimeFormatter> LOCALE_FORMATTERS = Map.ofEntries(
-        Map.entry("en_US", DateTimeFormatter.ofPattern("M/d/yyyy")),
-        Map.entry("en_GB", DateTimeFormatter.ofPattern("d/M/yyyy")),
-        Map.entry("en_AU", DateTimeFormatter.ofPattern("d/M/yyyy")),
-        Map.entry("fr_FR", DateTimeFormatter.ofPattern("d/M/yyyy")),
-        Map.entry("de_DE", DateTimeFormatter.ofPattern("d.M.yyyy")),
-        Map.entry("de", DateTimeFormatter.ofPattern("d.M.yyyy")),
-        Map.entry("ja_JP", DateTimeFormatter.ofPattern("yyyy/M/d")),
-        Map.entry("ja", DateTimeFormatter.ofPattern("yyyy/M/d")),
-        Map.entry("es_ES", DateTimeFormatter.ofPattern("d/M/yyyy")),
-        Map.entry("it_IT", DateTimeFormatter.ofPattern("d/M/yyyy")),
-        Map.entry("pt_BR", DateTimeFormatter.ofPattern("d/M/yyyy")),
-        Map.entry("zh_CN", DateTimeFormatter.ofPattern("yyyy年M月d日")),
-        Map.entry("zh", DateTimeFormatter.ofPattern("yyyy年M月d日"))
-    );
+            Map.entry("en_US", DateTimeFormatter.ofPattern("M/d/yyyy")),
+            Map.entry("en_GB", DateTimeFormatter.ofPattern("d/M/yyyy")),
+            Map.entry("en_AU", DateTimeFormatter.ofPattern("d/M/yyyy")),
+            Map.entry("fr_FR", DateTimeFormatter.ofPattern("d/M/yyyy")),
+            Map.entry("de_DE", DateTimeFormatter.ofPattern("d.M.yyyy")),
+            Map.entry("de", DateTimeFormatter.ofPattern("d.M.yyyy")),
+            Map.entry("ja_JP", DateTimeFormatter.ofPattern("yyyy/M/d")),
+            Map.entry("ja", DateTimeFormatter.ofPattern("yyyy/M/d")),
+            Map.entry("es_ES", DateTimeFormatter.ofPattern("d/M/yyyy")),
+            Map.entry("it_IT", DateTimeFormatter.ofPattern("d/M/yyyy")),
+            Map.entry("pt_BR", DateTimeFormatter.ofPattern("d/M/yyyy")),
+            Map.entry("zh_CN", DateTimeFormatter.ofPattern("yyyy年M月d日")),
+            Map.entry("zh", DateTimeFormatter.ofPattern("yyyy年M月d日")));
 
     private final Random random;
-    private final int    minAge;
-    private final int    maxAge;
-    private final Locale locale;
-    private final Clock  clock;
+    private final int minAge;
+    private final int maxAge;
+    private final @org.jspecify.annotations.Nullable Locale locale;
+    private final Clock clock;
 
     // ── Default-format constructors ───────────────────────────────────────────
 
@@ -98,10 +96,7 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      * @param type the age category; must not be {@code null}
      */
     public BirthdayGenerator(AgeType type) {
-        this(Objects.requireNonNull(type, "type must not be null").getMinAge(),
-             type.getMaxAge(),
-             new Random(),
-             null);
+        this(Objects.requireNonNull(type, "type must not be null").getMinAge(), type.getMaxAge(), new Random(), null);
     }
 
     /**
@@ -111,9 +106,7 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      * @param config generator configuration; must not be {@code null}
      */
     public BirthdayGenerator(AgeType type, GeneratorConfig config) {
-        this(Objects.requireNonNull(type, "type must not be null").getMinAge(),
-             type.getMaxAge(),
-             config);
+        this(Objects.requireNonNull(type, "type must not be null").getMinAge(), type.getMaxAge(), config);
     }
 
     /**
@@ -134,11 +127,12 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      * @param config generator configuration; must not be {@code null}
      */
     public BirthdayGenerator(int minAge, int maxAge, GeneratorConfig config) {
-        this(minAge,
-             maxAge,
-             Objects.requireNonNull(config, "config must not be null").createRandom(),
-             config.getLocale(),
-             config.getClock());
+        this(
+                minAge,
+                maxAge,
+                Objects.requireNonNull(config, "config must not be null").createRandom(),
+                config.getLocale(),
+                config.getClock());
     }
 
     // ── Locale-aware constructors ─────────────────────────────────────────────
@@ -150,8 +144,7 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      *               must not be {@code null}
      */
     public BirthdayGenerator(Locale locale) {
-        this(DEFAULT_MIN, DEFAULT_MAX, new Random(),
-             Objects.requireNonNull(locale, "locale must not be null"));
+        this(DEFAULT_MIN, DEFAULT_MAX, new Random(), Objects.requireNonNull(locale, "locale must not be null"));
     }
 
     /**
@@ -162,10 +155,11 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      *               must not be {@code null}
      */
     public BirthdayGenerator(AgeType type, Locale locale) {
-        this(Objects.requireNonNull(type, "type must not be null").getMinAge(),
-             type.getMaxAge(),
-             new Random(),
-             Objects.requireNonNull(locale, "locale must not be null"));
+        this(
+                Objects.requireNonNull(type, "type must not be null").getMinAge(),
+                type.getMaxAge(),
+                new Random(),
+                Objects.requireNonNull(locale, "locale must not be null"));
     }
 
     /**
@@ -177,23 +171,23 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      *               must not be {@code null}
      */
     public BirthdayGenerator(int minAge, int maxAge, Locale locale) {
-        this(minAge, maxAge, new Random(),
-             Objects.requireNonNull(locale, "locale must not be null"));
+        this(minAge, maxAge, new Random(), Objects.requireNonNull(locale, "locale must not be null"));
     }
 
     // ── Private constructors ──────────────────────────────────────────────────
 
-    private BirthdayGenerator(int minAge, int maxAge, Random random, Locale locale) {
+    private BirthdayGenerator(int minAge, int maxAge, Random random, @org.jspecify.annotations.Nullable Locale locale) {
         this(minAge, maxAge, random, locale, GeneratorConfig.defaults().getClock());
     }
 
-    private BirthdayGenerator(int minAge, int maxAge, Random random, Locale locale, Clock clock) {
+    private BirthdayGenerator(
+            int minAge, int maxAge, Random random, @org.jspecify.annotations.Nullable Locale locale, Clock clock) {
         if (minAge < 0) {
             throw new IllegalArgumentException("minAge must be >= 0, got: " + minAge);
         }
         if (maxAge < minAge) {
             throw new IllegalArgumentException(
-                "maxAge must be >= minAge, got: minAge=" + minAge + ", maxAge=" + maxAge);
+                    "maxAge must be >= minAge, got: minAge=" + minAge + ", maxAge=" + maxAge);
         }
         this.minAge = minAge;
         this.maxAge = maxAge;
@@ -269,7 +263,7 @@ public final class BirthdayGenerator implements Generator<LocalDate> {
      *
      * @return the locale, or {@code null}
      */
-    public Locale getLocale() {
+    public @org.jspecify.annotations.Nullable Locale getLocale() {
         return locale;
     }
 }

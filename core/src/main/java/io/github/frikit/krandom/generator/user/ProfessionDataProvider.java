@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.Locale;
 
 /**
@@ -13,7 +14,7 @@ import java.util.Locale;
  * <p>Implement and register via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder} to
  * override built-in profession data for a locale or add support for new locales.
  */
-public interface ProfessionDataProvider {
+public interface ProfessionDataProvider extends LocaleDataProvider {
 
     /**
      * @return non-null locale this provider serves.

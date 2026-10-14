@@ -6,10 +6,9 @@
 package io.github.frikit.krandom.generator.provider;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -23,11 +22,11 @@ import java.util.Set;
  */
 public final class ProviderDescriptor<T> {
 
-    private final String            key;
-    private final Class<T>          providerType;
-    private final ProviderFactory   factory;
-    private final List<String>      aliases;
-    private final Set<String>       semanticKeys;
+    private final String key;
+    private final Class<T> providerType;
+    private final ProviderFactory factory;
+    private final List<String> aliases;
+    private final Set<String> semanticKeys;
     private final ProviderSafetyMetadata safetyMetadata;
     private final List<ProviderSchemaProjection<T>> schemaProjections;
 
@@ -44,36 +43,39 @@ public final class ProviderDescriptor<T> {
         return new Builder<>(key, providerType, factory);
     }
 
-    ProviderDescriptor(String key,
-                       Class<T> providerType,
-                       ProviderFactory factory,
-                       List<String> aliases,
-                       Set<String> semanticKeys,
-                       List<ProviderSchemaProjection<T>> schemaProjections) {
-        this(key,
-             providerType,
-             factory,
-             aliases,
-             semanticKeys,
-             ProviderSafetyMetadata.unclassified(),
-             schemaProjections);
+    ProviderDescriptor(
+            String key,
+            Class<T> providerType,
+            ProviderFactory factory,
+            List<String> aliases,
+            Set<String> semanticKeys,
+            List<ProviderSchemaProjection<T>> schemaProjections) {
+        this(
+                key,
+                providerType,
+                factory,
+                aliases,
+                semanticKeys,
+                ProviderSafetyMetadata.unclassified(),
+                schemaProjections);
     }
 
-    ProviderDescriptor(String key,
-                       Class<T> providerType,
-                       ProviderFactory factory,
-                       List<String> aliases,
-                       Set<String> semanticKeys,
-                       ProviderSafetyMetadata safetyMetadata,
-                       List<ProviderSchemaProjection<T>> schemaProjections) {
+    ProviderDescriptor(
+            String key,
+            Class<T> providerType,
+            ProviderFactory factory,
+            List<String> aliases,
+            Set<String> semanticKeys,
+            ProviderSafetyMetadata safetyMetadata,
+            List<ProviderSchemaProjection<T>> schemaProjections) {
         this.key = Objects.requireNonNull(key, "key must not be null");
         this.providerType = Objects.requireNonNull(providerType, "providerType must not be null");
         this.factory = Objects.requireNonNull(factory, "factory must not be null");
         this.aliases = List.copyOf(Objects.requireNonNull(aliases, "aliases must not be null"));
         this.semanticKeys = Set.copyOf(Objects.requireNonNull(semanticKeys, "semanticKeys must not be null"));
         this.safetyMetadata = Objects.requireNonNull(safetyMetadata, "safetyMetadata must not be null");
-        this.schemaProjections = List.copyOf(
-            Objects.requireNonNull(schemaProjections, "schemaProjections must not be null"));
+        this.schemaProjections =
+                List.copyOf(Objects.requireNonNull(schemaProjections, "schemaProjections must not be null"));
     }
 
     /**
@@ -147,23 +149,11 @@ public final class ProviderDescriptor<T> {
     }
 
     ProviderDescriptor<T> withSchemaProjections(List<ProviderSchemaProjection<T>> projections) {
-        return new ProviderDescriptor<>(key,
-                                        providerType,
-                                        factory,
-                                        aliases,
-                                        semanticKeys,
-                                        safetyMetadata,
-                                        projections);
+        return new ProviderDescriptor<>(key, providerType, factory, aliases, semanticKeys, safetyMetadata, projections);
     }
 
     ProviderDescriptor<T> withSafetyMetadata(ProviderSafetyMetadata metadata) {
-        return new ProviderDescriptor<>(key,
-                                        providerType,
-                                        factory,
-                                        aliases,
-                                        semanticKeys,
-                                        metadata,
-                                        schemaProjections);
+        return new ProviderDescriptor<>(key, providerType, factory, aliases, semanticKeys, metadata, schemaProjections);
     }
 
     /**
@@ -241,17 +231,19 @@ public final class ProviderDescriptor<T> {
                 throw new IllegalArgumentException("alias duplicates provider key: " + key);
             }
             List<ProviderSchemaProjection<T>> projections = schemaProjections.stream()
-                .map(projection -> projection.getSafetyMetadata().isUnclassified() && !safetyMetadata.isUnclassified()
-                                   ? projection.withSafetyMetadata(safetyMetadata)
-                                   : projection)
-                .toList();
-            return new ProviderDescriptor<>(key,
-                                            providerType,
-                                            factory,
-                                            List.copyOf(aliases),
-                                            Set.copyOf(semanticKeys),
-                                            safetyMetadata,
-                                            projections);
+                    .map(projection ->
+                            projection.getSafetyMetadata().isUnclassified() && !safetyMetadata.isUnclassified()
+                                    ? projection.withSafetyMetadata(safetyMetadata)
+                                    : projection)
+                    .toList();
+            return new ProviderDescriptor<>(
+                    key,
+                    providerType,
+                    factory,
+                    List.copyOf(aliases),
+                    Set.copyOf(semanticKeys),
+                    safetyMetadata,
+                    projections);
         }
 
         private static void addNames(Set<String> target, String name, String... values) {

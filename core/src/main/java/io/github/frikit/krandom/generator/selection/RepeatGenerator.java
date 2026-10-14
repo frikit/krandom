@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.selection;
 
 import io.github.frikit.krandom.generator.Generator;
-
 import java.util.List;
 import java.util.Objects;
 
@@ -18,7 +17,7 @@ import java.util.Objects;
 public final class RepeatGenerator<T> implements Generator<List<T>> {
 
     private final Generator<T> source;
-    private final int          count;
+    private final int count;
 
     /**
      * Creates a repeat generator.
@@ -39,4 +38,3 @@ public final class RepeatGenerator<T> implements Generator<List<T>> {
         return source.generateList(count);
     }
 }
-

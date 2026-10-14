@@ -9,7 +9,6 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
-
 import java.util.Locale;
 import java.util.Objects;
 
@@ -18,10 +17,10 @@ import java.util.Objects;
  */
 public final class PersonInfoGenerator implements Generator<PersonInfo> {
 
-    private final GeneratorConfig      config;
+    private final GeneratorConfig config;
     private final ContactInfoGenerator contactInfoGenerator;
     private final AddressInfoGenerator addressInfoGenerator;
-    private final PasswordGenerator    passwordGenerator;
+    private final PasswordGenerator passwordGenerator;
 
     /**
      * Creates a person-info generator using default configuration ({@link Locale#US}).
@@ -36,7 +35,9 @@ public final class PersonInfoGenerator implements Generator<PersonInfo> {
      * @param locale locale to use
      */
     public PersonInfoGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**

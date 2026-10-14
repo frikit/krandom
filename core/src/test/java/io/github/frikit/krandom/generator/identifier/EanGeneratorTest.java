@@ -5,17 +5,16 @@
  */
 package io.github.frikit.krandom.generator.identifier;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("EanGenerator")
 class EanGeneratorTest {
@@ -23,7 +22,8 @@ class EanGeneratorTest {
     @Test
     @DisplayName("generates ean8 and ean13 variants")
     void variants() {
-        EanGenerator generator = new EanGenerator(GeneratorConfig.builder().seed(3L).build());
+        EanGenerator generator =
+                new EanGenerator(GeneratorConfig.builder().seed(3L).build());
         assertTrue(generator.generateEan8().matches("\\d{8}"));
         assertTrue(generator.generateEan13().matches("\\d{13}"));
         boolean saw8 = false;
@@ -70,8 +70,8 @@ class EanGeneratorTest {
         Method method = EanGenerator.class.getDeclaredMethod("generateWithLength", int.class, String.class);
         method.setAccessible(true);
 
-        InvocationTargetException thrown = assertThrows(InvocationTargetException.class,
-                                                        () -> method.invoke(generator, 9, null));
+        InvocationTargetException thrown =
+                assertThrows(InvocationTargetException.class, () -> method.invoke(generator, 9, null));
         assertInstanceOf(IllegalArgumentException.class, thrown.getCause());
     }
 }

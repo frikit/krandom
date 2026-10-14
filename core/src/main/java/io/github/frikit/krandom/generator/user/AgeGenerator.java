@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Objects;
 import java.util.Random;
 
@@ -31,8 +30,8 @@ public final class AgeGenerator implements Generator<Integer> {
     private static final int DEFAULT_MAX = 100;
 
     private final Random random;
-    private final int    minAge;
-    private final int    maxAge;
+    private final int minAge;
+    private final int maxAge;
 
     /**
      * Generates ages in the full range [1, 100].
@@ -54,9 +53,7 @@ public final class AgeGenerator implements Generator<Integer> {
      * @param type the age category; must not be {@code null}
      */
     public AgeGenerator(AgeType type) {
-        this(Objects.requireNonNull(type, "type must not be null").getMinAge(),
-             type.getMaxAge(),
-             new Random());
+        this(Objects.requireNonNull(type, "type must not be null").getMinAge(), type.getMaxAge(), new Random());
     }
 
     /**
@@ -66,9 +63,7 @@ public final class AgeGenerator implements Generator<Integer> {
      * @param config generator configuration; must not be {@code null}
      */
     public AgeGenerator(AgeType type, GeneratorConfig config) {
-        this(Objects.requireNonNull(type, "type must not be null").getMinAge(),
-             type.getMaxAge(),
-             config);
+        this(Objects.requireNonNull(type, "type must not be null").getMinAge(), type.getMaxAge(), config);
     }
 
     /**
@@ -89,7 +84,10 @@ public final class AgeGenerator implements Generator<Integer> {
      * @param config generator configuration; must not be {@code null}
      */
     public AgeGenerator(int minAge, int maxAge, GeneratorConfig config) {
-        this(minAge, maxAge, Objects.requireNonNull(config, "config must not be null").createRandom());
+        this(
+                minAge,
+                maxAge,
+                Objects.requireNonNull(config, "config must not be null").createRandom());
     }
 
     private AgeGenerator(int minAge, int maxAge, Random random) {
@@ -98,7 +96,7 @@ public final class AgeGenerator implements Generator<Integer> {
         }
         if (maxAge < minAge) {
             throw new IllegalArgumentException(
-                "maxAge must be >= minAge, got: minAge=" + minAge + ", maxAge=" + maxAge);
+                    "maxAge must be >= minAge, got: minAge=" + minAge + ", maxAge=" + maxAge);
         }
         this.minAge = minAge;
         this.maxAge = maxAge;
@@ -110,9 +108,7 @@ public final class AgeGenerator implements Generator<Integer> {
         int width = maxAge - minAge;
         // minAge >= 0, so only the full range [0, Integer.MAX_VALUE] overflows width + 1; an
         // unsigned shift of one random int covers its 2^31 values uniformly.
-        return width == Integer.MAX_VALUE
-               ? random.nextInt() >>> 1
-               : minAge + random.nextInt(width + 1);
+        return width == Integer.MAX_VALUE ? random.nextInt() >>> 1 : minAge + random.nextInt(width + 1);
     }
 
     /**

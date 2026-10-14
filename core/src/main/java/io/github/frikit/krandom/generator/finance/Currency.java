@@ -5,9 +5,8 @@
  */
 package io.github.frikit.krandom.generator.finance;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.Locale;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Enumeration of major world currencies conforming to ISO 4217 standards.

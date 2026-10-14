@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.selection;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
@@ -20,9 +19,9 @@ import java.util.Random;
 public final class WeightedGenerator<T> implements Generator<T> {
 
     private final List<T> values;
-    private final int[]   cumulativeWeights;
-    private final int     totalWeight;
-    private final Random  random;
+    private final int[] cumulativeWeights;
+    private final int totalWeight;
+    private final Random random;
 
     /**
      * Creates a weighted generator backed by the default fast PRNG.
@@ -42,7 +41,10 @@ public final class WeightedGenerator<T> implements Generator<T> {
      * @param config generator configuration; must not be {@code null}
      */
     public WeightedGenerator(List<T> values, List<Integer> weights, GeneratorConfig config) {
-        this(values, weights, Objects.requireNonNull(config, "config must not be null").createRandom());
+        this(
+                values,
+                weights,
+                Objects.requireNonNull(config, "config must not be null").createRandom());
     }
 
     private WeightedGenerator(List<T> values, List<Integer> weights, Random random) {
@@ -53,7 +55,7 @@ public final class WeightedGenerator<T> implements Generator<T> {
         }
         if (values.size() != weights.size()) {
             throw new IllegalArgumentException(
-                "values and weights must have the same size, got: " + values.size() + " and " + weights.size());
+                    "values and weights must have the same size, got: " + values.size() + " and " + weights.size());
         }
         this.values = List.copyOf(values);
         this.random = Objects.requireNonNull(random, "random must not be null");

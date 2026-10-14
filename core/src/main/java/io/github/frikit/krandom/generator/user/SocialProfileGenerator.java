@@ -8,8 +8,6 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.text.SentenceGenerator;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -19,21 +17,21 @@ import java.util.Random;
  */
 public final class SocialProfileGenerator implements Generator<SocialProfile> {
 
-    private static final String[] PLATFORMS = {
-        "x", "instagram", "github", "linkedin", "tiktok", "youtube"
-    };
+    private static final String[] PLATFORMS = {"x", "instagram", "github", "linkedin", "tiktok", "youtube"};
 
-    private final Random                random;
+    private final Random random;
     private final SocialHandleGenerator handleGenerator;
-    private final FullNameGenerator     fullNameGenerator;
-    private final SentenceGenerator     sentenceGenerator;
+    private final FullNameGenerator fullNameGenerator;
+    private final SentenceGenerator sentenceGenerator;
 
     public SocialProfileGenerator() {
         this(GeneratorConfig.defaults());
     }
 
     public SocialProfileGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     public SocialProfileGenerator(GeneratorConfig config) {

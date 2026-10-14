@@ -15,7 +15,6 @@ import io.github.frikit.krandom.generator.schema.Schema;
 import io.github.frikit.krandom.generator.schema.SchemaValueProvider;
 import io.github.frikit.krandom.generator.user.EmailGenerator;
 import io.github.frikit.krandom.generator.user.FirstNameGenerator;
-
 import java.text.NumberFormat;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -28,56 +27,63 @@ import java.util.Map;
  */
 public final class GenerationProfileRunner {
 
-    private static final int[] RUN_SIZES = { 1_000, 10_000, 100_000, 1_000_000, 10_000_000 };
+    private static final int[] RUN_SIZES = {1_000, 10_000, 100_000, 1_000_000, 10_000_000};
     private static final NumberFormat US_INT_FORMAT = NumberFormat.getIntegerInstance(Locale.US);
 
-    private GenerationProfileRunner() {
-    }
+    private GenerationProfileRunner() {}
 
     public static void main(String[] args) {
         System.out.println("kRandom macro profile");
         System.out.println("====================");
 
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.US)
-                                                .seed(7L)
-                                                .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.US).seed(7L).build();
         GeneratorConfig structuralObjectConfig = GeneratorConfig.builder()
-                                                                .locale(Locale.US)
-                                                                .seed(7L)
-                                                                .objectMaxDepth(4)
-                                                                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
-                                                                .objectNullProbability(0.0)
-                                                                .objectOptionalEmptyProbability(0.0)
-                                                                .build();
+                .locale(Locale.US)
+                .seed(7L)
+                .objectMaxDepth(4)
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                .objectNullProbability(0.0)
+                .objectOptionalEmptyProbability(0.0)
+                .build();
         GeneratorConfig relaxedObjectConfig = GeneratorConfig.builder()
-                                                             .locale(Locale.US)
-                                                             .seed(7L)
-                                                             .objectMaxDepth(4)
-                                                             .objectSemanticMode(ObjectGenerationSemanticMode.RELAXED)
-                                                             .objectNullProbability(0.0)
-                                                             .objectOptionalEmptyProbability(0.0)
-                                                             .build();
+                .locale(Locale.US)
+                .seed(7L)
+                .objectMaxDepth(4)
+                .objectSemanticMode(ObjectGenerationSemanticMode.RELAXED)
+                .objectNullProbability(0.0)
+                .objectOptionalEmptyProbability(0.0)
+                .build();
         GeneratorConfig semanticObjectConfig = GeneratorConfig.builder()
-                                                              .locale(Locale.US)
-                                                              .seed(7L)
-                                                              .objectMaxDepth(4)
-                                                              .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
-                                                              .objectNullProbability(0.0)
-                                                              .objectOptionalEmptyProbability(0.0)
-                                                              .objectUniqueFields("id", "email", "username")
-                                                              .objectUniquenessMaxAttempts(2_000)
-                                                              .build();
+                .locale(Locale.US)
+                .seed(7L)
+                .objectMaxDepth(4)
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                .objectNullProbability(0.0)
+                .objectOptionalEmptyProbability(0.0)
+                .objectUniqueFields("id", "email", "username")
+                .objectUniquenessMaxAttempts(2_000)
+                .build();
         Schema schema = benchmarkSchema(config);
         CountingAppendable jsonlSink = new CountingAppendable();
         CountingAppendable csvSink = new CountingAppendable();
 
         profileCase("first-name", new FirstNameGenerator(config));
-        profileCase("regex-ssn", new RegexGenerator("\\d{3}-\\d{2}-\\d{4}", GeneratorConfig.builder().seed(7L).build()));
+        profileCase(
+                "regex-ssn",
+                new RegexGenerator(
+                        "\\d{3}-\\d{2}-\\d{4}",
+                        GeneratorConfig.builder().seed(7L).build()));
         profileCase("object-simple-user", Generators.ofObject(BenchmarkFixtures.SimpleUser.class));
-        profileCase("object-structural-customer", Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, structuralObjectConfig));
-        profileCase("object-relaxed-customer", Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, relaxedObjectConfig));
-        profileCase("object-semantic-customer", Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, semanticObjectConfig));
+        profileCase(
+                "object-structural-customer",
+                Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, structuralObjectConfig));
+        profileCase(
+                "object-relaxed-customer",
+                Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, relaxedObjectConfig));
+        profileCase(
+                "object-semantic-customer",
+                Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, semanticObjectConfig));
         profileCase("unique-email", Generators.unique(new EmailGenerator(config), 2_000));
         profileTask("schema-batch-250", () -> schema.generateBatch(250));
         profileTask("schema-jsonl-stream-250", () -> writeJsonLines(schema, jsonlSink, 250));

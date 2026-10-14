@@ -5,12 +5,13 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -18,10 +19,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("object generator exclusions and declarative rules")
 class ObjectGeneratorRuleMappingTest {
@@ -30,8 +29,8 @@ class ObjectGeneratorRuleMappingTest {
     @DisplayName("FieldPredicates.nameMatches(...) excludes matching fields in nested object graphs")
     void regexFieldPredicateExcludesNestedFields() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectExclude(FieldPredicates.nameMatches(".*Secret"))
-                                                .build();
+                .objectExclude(FieldPredicates.nameMatches(".*Secret"))
+                .build();
 
         SecretRoot root = Generators.ofObject(SecretRoot.class, config).generate();
 
@@ -46,8 +45,8 @@ class ObjectGeneratorRuleMappingTest {
     @DisplayName("FieldPredicates.inClass(...) excludes inherited fields declared by the base class")
     void declaringClassPredicateExcludesInheritedFields() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectExclude(FieldPredicates.inClass(BaseSecret.class))
-                                                .build();
+                .objectExclude(FieldPredicates.inClass(BaseSecret.class))
+                .build();
 
         ChildSecret child = Generators.ofObject(ChildSecret.class, config).generate();
 
@@ -59,12 +58,12 @@ class ObjectGeneratorRuleMappingTest {
     @DisplayName("TypePredicates helpers can drive object type exclusions")
     void typePredicatesDriveTypeExclusions() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectExcludeType(
-                                                    TypePredicates.named(LocalDate.class.getName())
-                                                                  .or(TypePredicates.isArray()))
-                                                .build();
+                .objectExcludeType(
+                        TypePredicates.named(LocalDate.class.getName()).or(TypePredicates.isArray()))
+                .build();
 
-        TypePredicateTarget target = Generators.ofObject(TypePredicateTarget.class, config).generate();
+        TypePredicateTarget target =
+                Generators.ofObject(TypePredicateTarget.class, config).generate();
 
         assertNull(target.createdOn);
         assertNull(target.tags);
@@ -75,11 +74,12 @@ class ObjectGeneratorRuleMappingTest {
     @DisplayName("TypePredicates.isAssignableFrom(...) excludes abstract/interface fields")
     void assignabilityPredicateExcludesInterfaceField() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectOverride(PaymentMethod.class, CardPayment::new)
-                                                .objectExcludeType(TypePredicates.isAssignableFrom(CardPayment.class))
-                                                .build();
+                .objectOverride(PaymentMethod.class, CardPayment::new)
+                .objectExcludeType(TypePredicates.isAssignableFrom(CardPayment.class))
+                .build();
 
-        AbstractTypeTarget target = Generators.ofObject(AbstractTypeTarget.class, config).generate();
+        AbstractTypeTarget target =
+                Generators.ofObject(AbstractTypeTarget.class, config).generate();
 
         assertNull(target.paymentMethod);
         assertNotNull(target.title);
@@ -88,7 +88,8 @@ class ObjectGeneratorRuleMappingTest {
     @Test
     @DisplayName("@Exclude excludes annotated fields")
     void excludeAnnotationExcludesAnnotatedFields() {
-        AnnotatedExcludeTarget target = Generators.ofObject(AnnotatedExcludeTarget.class).generate();
+        AnnotatedExcludeTarget target =
+                Generators.ofObject(AnnotatedExcludeTarget.class).generate();
 
         assertNull(target.password);
         assertNotNull(target.username);
@@ -97,28 +98,30 @@ class ObjectGeneratorRuleMappingTest {
     @Test
     @DisplayName("@RandomizerArgument converts constructor argument types")
     void randomizerArgumentConvertsConstructorArgumentTypes() {
-        ArgumentConversionTarget target = Generators.ofObject(ArgumentConversionTarget.class).generate();
+        ArgumentConversionTarget target =
+                Generators.ofObject(ArgumentConversionTarget.class).generate();
 
         assertEquals(
-            "active=true|count=17|ratio=2.5|bigInteger=12345678901234567890|bigDecimal=19.95"
-            + "|utilDate=2024-05-10T11:12:13|sqlDate=2024-05-11|sqlTime=09:30:00"
-            + "|timestamp=2024-05-12 13:14:15.0|localDate=2024-05-13|localTime=10:15:30"
-            + "|localDateTime=2024-05-14T16:17:18|numbers=[1, 2, 3]|words=[red, blue]",
-            target.summary);
+                "active=true|count=17|ratio=2.5|bigInteger=12345678901234567890|bigDecimal=19.95"
+                        + "|utilDate=2024-05-10T11:12:13|sqlDate=2024-05-11|sqlTime=09:30:00"
+                        + "|timestamp=2024-05-12 13:14:15.0|localDate=2024-05-13|localTime=10:15:30"
+                        + "|localDateTime=2024-05-14T16:17:18|numbers=[1, 2, 3]|words=[red, blue]",
+                target.summary);
     }
 
     @Test
     @DisplayName("@RandomizerArgument converts empty array constructor arguments")
     void randomizerArgumentConvertsEmptyArrayArguments() {
-        EmptyArrayArgumentTarget target = Generators.ofObject(EmptyArrayArgumentTarget.class).generate();
+        EmptyArrayArgumentTarget target =
+                Generators.ofObject(EmptyArrayArgumentTarget.class).generate();
 
         assertEquals("[]", target.summary);
     }
 
     static class SecretRoot {
 
-        String      rootSecret;
-        String      visibleValue;
+        String rootSecret;
+        String visibleValue;
         SecretChild child;
     }
 
@@ -141,26 +144,25 @@ class ObjectGeneratorRuleMappingTest {
     static class TypePredicateTarget {
 
         LocalDate createdOn;
-        String[]  tags;
-        String    title;
+        String[] tags;
+        String title;
     }
 
-    interface PaymentMethod {
-    }
+    interface PaymentMethod {}
 
-    static class CardPayment implements PaymentMethod {
-    }
+    static class CardPayment implements PaymentMethod {}
 
     static class AbstractTypeTarget {
 
         PaymentMethod paymentMethod;
-        String        title;
+        String title;
     }
 
     static class AnnotatedExcludeTarget {
 
         @Exclude
         String password;
+
         String username;
     }
 
@@ -196,34 +198,35 @@ class ObjectGeneratorRuleMappingTest {
         private final String summary;
 
         @SuppressWarnings("checkstyle:ParameterNumber")
-        public ArgumentSummaryGenerator(boolean active,
-                                        long count,
-                                        double ratio,
-                                        BigInteger bigInteger,
-                                        BigDecimal bigDecimal,
-                                        java.util.Date utilDate,
-                                        java.sql.Date sqlDate,
-                                        java.sql.Time sqlTime,
-                                        java.sql.Timestamp timestamp,
-                                        LocalDate localDate,
-                                        LocalTime localTime,
-                                        LocalDateTime localDateTime,
-                                        int[] numbers,
-                                        String[] words) {
+        public ArgumentSummaryGenerator(
+                boolean active,
+                long count,
+                double ratio,
+                BigInteger bigInteger,
+                BigDecimal bigDecimal,
+                java.util.Date utilDate,
+                java.sql.Date sqlDate,
+                java.sql.Time sqlTime,
+                java.sql.Timestamp timestamp,
+                LocalDate localDate,
+                LocalTime localTime,
+                LocalDateTime localDateTime,
+                int[] numbers,
+                String[] words) {
             this.summary = "active=" + active
-                           + "|count=" + count
-                           + "|ratio=" + ratio
-                           + "|bigInteger=" + bigInteger
-                           + "|bigDecimal=" + bigDecimal.toPlainString()
-                           + "|utilDate=" + LocalDateTime.ofInstant(utilDate.toInstant(), ZoneOffset.UTC)
-                           + "|sqlDate=" + sqlDate
-                           + "|sqlTime=" + sqlTime
-                           + "|timestamp=" + timestamp
-                           + "|localDate=" + localDate
-                           + "|localTime=" + localTime
-                           + "|localDateTime=" + localDateTime
-                           + "|numbers=" + Arrays.toString(numbers)
-                           + "|words=" + Arrays.toString(words);
+                    + "|count=" + count
+                    + "|ratio=" + ratio
+                    + "|bigInteger=" + bigInteger
+                    + "|bigDecimal=" + bigDecimal.toPlainString()
+                    + "|utilDate=" + LocalDateTime.ofInstant(utilDate.toInstant(), ZoneOffset.UTC)
+                    + "|sqlDate=" + sqlDate
+                    + "|sqlTime=" + sqlTime
+                    + "|timestamp=" + timestamp
+                    + "|localDate=" + localDate
+                    + "|localTime=" + localTime
+                    + "|localDateTime=" + localDateTime
+                    + "|numbers=" + Arrays.toString(numbers)
+                    + "|words=" + Arrays.toString(words);
         }
 
         @Override

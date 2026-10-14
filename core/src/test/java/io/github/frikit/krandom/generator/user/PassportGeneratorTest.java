@@ -5,17 +5,16 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("PassportGenerator")
 class PassportGeneratorTest {
@@ -23,7 +22,10 @@ class PassportGeneratorTest {
     @RepeatedTest(200)
     @DisplayName("realistic policy produces the generic passport format")
     void formatMatches() {
-        String passport = new PassportGenerator(GeneratorConfig.builder() .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED) .build()).generate();
+        String passport = new PassportGenerator(GeneratorConfig.builder()
+                        .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                        .build())
+                .generate();
         assertTrue(passport.matches("[A-Z][0-9]{8}"), passport);
     }
 
@@ -38,8 +40,7 @@ class PassportGeneratorTest {
     @Test
     @DisplayName("configured generation fails closed by default")
     void configuredGenerationFailsClosedByDefault() {
-        assertThrows(IllegalStateException.class,
-                     () -> new PassportGenerator(GeneratorConfig.defaults()).generate());
+        assertThrows(IllegalStateException.class, () -> new PassportGenerator(GeneratorConfig.defaults()).generate());
         assertThrows(IllegalStateException.class, () -> Generators.ofPassport().generate());
     }
 
@@ -55,14 +56,14 @@ class PassportGeneratorTest {
         assertThrows(IllegalStateException.class, () -> Generators.ofPassport().generate());
         assertTrue(Generators.ofPassport(realisticConfig(1L)).generate().matches("[A-Z][0-9]{8}"));
         assertEquals(
-            Generators.ofPassport(realisticConfig(1L)).generateList(10),
-            Generators.ofPassport(realisticConfig(1L)).generateList(10));
+                Generators.ofPassport(realisticConfig(1L)).generateList(10),
+                Generators.ofPassport(realisticConfig(1L)).generateList(10));
     }
 
     private static GeneratorConfig realisticConfig(long seed) {
         return GeneratorConfig.builder()
-                              .seed(seed)
-                              .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                              .build();
+                .seed(seed)
+                .identityDocumentSafetyPolicy(IdentityDocumentSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
     }
 }

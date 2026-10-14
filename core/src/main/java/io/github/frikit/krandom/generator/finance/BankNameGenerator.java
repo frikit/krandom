@@ -7,7 +7,7 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -23,22 +23,24 @@ import java.util.Random;
 public final class BankNameGenerator implements Generator<String> {
 
     private static final BankNameDataProvider DEFAULT_PROVIDER =
-        new BuiltInBankNameDataProvider(Locale.ROOT, "default");
+            new BuiltInBankNameDataProvider(Locale.ROOT, "default");
 
     private final List<String> bankNames;
-    private final Random       random;
+    private final Random random;
 
     public BankNameGenerator() {
         this(GeneratorConfig.defaults());
     }
 
     public BankNameGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     public BankNameGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
-        BankNameDataProvider provider = config.getRegistryContext().bankNameProvider(config.getLocale());
+        BankNameDataProvider provider = config.getRegistryContext().provider(Vocabulary.BANK_NAME, config.getLocale());
         this.bankNames = (provider != null ? provider : DEFAULT_PROVIDER).getBankNames();
         this.random = config.createRandom();
     }

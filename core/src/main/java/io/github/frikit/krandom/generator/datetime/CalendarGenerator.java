@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.datetime;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -41,9 +40,9 @@ public final class CalendarGenerator implements Generator<Calendar> {
         ZONE_IDS = Collections.unmodifiableList(zones);
     }
 
-    private final Random    random;
-    private final LocalDate rangeMin;
-    private final LocalDate rangeMax;
+    private final Random random;
+    private final @org.jspecify.annotations.Nullable LocalDate rangeMin;
+    private final @org.jspecify.annotations.Nullable LocalDate rangeMax;
 
     /**
      * Creates a calendar generator with default configuration.
@@ -82,7 +81,10 @@ public final class CalendarGenerator implements Generator<Calendar> {
         this(config, min, max);
     }
 
-    private CalendarGenerator(GeneratorConfig config, LocalDate min, LocalDate max) {
+    private CalendarGenerator(
+            GeneratorConfig config,
+            @org.jspecify.annotations.Nullable LocalDate min,
+            @org.jspecify.annotations.Nullable LocalDate max) {
         Objects.requireNonNull(config, "config must not be null");
         if ((min == null) != (max == null)) {
             throw new IllegalArgumentException("min and max must both be provided or both be null");
@@ -122,8 +124,8 @@ public final class CalendarGenerator implements Generator<Calendar> {
     }
 
     private LocalDate generateRangeDate() {
-        long lo = rangeMin.toEpochDay();
-        long hi = rangeMax.toEpochDay();
+        long lo = java.util.Objects.requireNonNull(rangeMin).toEpochDay();
+        long hi = java.util.Objects.requireNonNull(rangeMax).toEpochDay();
         return LocalDate.ofEpochDay(lo + random.nextLong(hi - lo + 1));
     }
 }

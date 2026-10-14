@@ -17,8 +17,7 @@ import java.util.Random;
 public final class NlNationalIdProvider implements NationalIdProvider {
 
     private static final int[][] CHECK_PAIRS = {
-        { 0, 0 }, { 0, 1 }, { 0, 2 }, { 0, 3 }, { 0, 4 }, { 0, 5 },
-        { 0, 6 }, { 0, 7 }, { 0, 8 }, { 0, 9 }, { 1, 1 }
+        {0, 0}, {0, 1}, {0, 2}, {0, 3}, {0, 4}, {0, 5}, {0, 6}, {0, 7}, {0, 8}, {0, 9}, {1, 1}
     };
 
     @Override
@@ -34,16 +33,26 @@ public final class NlNationalIdProvider implements NationalIdProvider {
             digits[i] = random.nextInt(10);
         }
         int residue = (9 * digits[0]
-                       + 8 * digits[1]
-                       + 7 * digits[2]
-                       + 6 * digits[3]
-                       + 5 * digits[4]
-                       + 4 * digits[5]
-                       + 3 * digits[6]) % 11;
+                        + 8 * digits[1]
+                        + 7 * digits[2]
+                        + 6 * digits[3]
+                        + 5 * digits[4]
+                        + 4 * digits[5]
+                        + 3 * digits[6])
+                % 11;
         digits[7] = CHECK_PAIRS[residue][0];
         digits[8] = CHECK_PAIRS[residue][1];
-        return String.format(Locale.ROOT, "%d%d%d%d%d%d%d%d%d",
-                             digits[0], digits[1], digits[2], digits[3], digits[4],
-                             digits[5], digits[6], digits[7], digits[8]);
+        return String.format(
+                Locale.ROOT,
+                "%d%d%d%d%d%d%d%d%d",
+                digits[0],
+                digits[1],
+                digits[2],
+                digits[3],
+                digits[4],
+                digits[5],
+                digits[6],
+                digits[7],
+                digits[8]);
     }
 }

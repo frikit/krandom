@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.Objects;
@@ -91,8 +89,8 @@ public final class MoneyGenerator implements Generator<String> {
      */
     public MoneyGenerator(Locale locale) {
         this(GeneratorConfig.builder()
-                            .locale(Objects.requireNonNull(locale, "locale must not be null"))
-                            .build());
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     // ── Locale-aware generate() ───────────────────────────────────────────────

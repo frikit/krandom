@@ -5,13 +5,13 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("PropertyPath")
 class PropertyPathTest {
@@ -56,8 +56,8 @@ class PropertyPathTest {
     @DisplayName("rejects arbitrary lambdas because they do not identify a property")
     void rejectsArbitraryLambdas() {
         IllegalArgumentException failure = assertThrows(
-            IllegalArgumentException.class,
-            () -> PropertyPath.of((PropertySelector<Person, String>) person -> normalizedName(person)));
+                IllegalArgumentException.class,
+                () -> PropertyPath.of((PropertySelector<Person, String>) person -> normalizedName(person)));
 
         assertTrue(failure.getMessage().contains("method reference"));
     }
@@ -79,8 +79,8 @@ class PropertyPathTest {
             }
         };
 
-        IllegalArgumentException failure = assertThrows(
-            IllegalArgumentException.class, () -> PropertyPath.of(selector));
+        IllegalArgumentException failure =
+                assertThrows(IllegalArgumentException.class, () -> PropertyPath.of(selector));
 
         assertTrue(failure.getMessage().contains("unbound accessor method reference"));
     }
@@ -118,8 +118,8 @@ class PropertyPathTest {
             }
         };
 
-        IllegalArgumentException failure = assertThrows(
-            IllegalArgumentException.class, () -> PropertyPath.of(selector));
+        IllegalArgumentException failure =
+                assertThrows(IllegalArgumentException.class, () -> PropertyPath.of(selector));
 
         assertEquals("broken metadata", failure.getCause().getMessage());
     }
@@ -174,6 +174,5 @@ class PropertyPathTest {
         }
     }
 
-    record Address(String city) {
-    }
+    record Address(String city) {}
 }

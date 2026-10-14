@@ -5,18 +5,17 @@
  */
 package io.github.frikit.krandom.generator.base;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 /**
  * Comprehensive test suite for {@link StringGenerator}.
@@ -45,10 +44,8 @@ class StringGeneratorTest {
 
             for (int i = 0; i < 50; i++) {
                 String s = generator.generate();
-                assertTrue(s.length() >= 5 && s.length() <= 20,
-                           "Length should be 5-20, got: " + s.length());
-                assertTrue(s.chars().allMatch(Character::isLetter),
-                           "Should contain only letters, got: " + s);
+                assertTrue(s.length() >= 5 && s.length() <= 20, "Length should be 5-20, got: " + s.length());
+                assertTrue(s.chars().allMatch(Character::isLetter), "Should contain only letters, got: " + s);
             }
         }
 
@@ -59,10 +56,8 @@ class StringGeneratorTest {
 
             for (int i = 0; i < 50; i++) {
                 String s = generator.generate();
-                assertTrue(s.length() >= 2 && s.length() <= 4,
-                           "Length should be 2-4, got: " + s.length());
-                assertTrue(s.chars().allMatch(Character::isLetter),
-                           "Should contain only letters, got: " + s);
+                assertTrue(s.length() >= 2 && s.length() <= 4, "Length should be 2-4, got: " + s.length());
+                assertTrue(s.chars().allMatch(Character::isLetter), "Should contain only letters, got: " + s);
             }
         }
 
@@ -74,8 +69,7 @@ class StringGeneratorTest {
             for (int i = 0; i < 50; i++) {
                 String s = generator.generate();
                 assertTrue(s.length() >= 5 && s.length() <= 20);
-                assertTrue(s.chars().allMatch(Character::isDigit),
-                           "Should contain only digits, got: " + s);
+                assertTrue(s.chars().allMatch(Character::isDigit), "Should contain only digits, got: " + s);
             }
         }
 
@@ -87,8 +81,9 @@ class StringGeneratorTest {
             for (int i = 0; i < 50; i++) {
                 String s = generator.generate();
                 assertTrue(s.length() >= 5 && s.length() <= 20);
-                assertTrue(s.chars().allMatch(Character::isLetterOrDigit),
-                           "Should contain only letters or digits, got: " + s);
+                assertTrue(
+                        s.chars().allMatch(Character::isLetterOrDigit),
+                        "Should contain only letters or digits, got: " + s);
             }
         }
 
@@ -109,7 +104,6 @@ class StringGeneratorTest {
         }
     }
 
-
     @Nested
     @DisplayName("Custom Pool - Variable Length")
     class CustomPoolVariableLength {
@@ -121,10 +115,10 @@ class StringGeneratorTest {
 
             for (int i = 0; i < 50; i++) {
                 String s = vowels.generate();
-                assertTrue(s.length() >= 5 && s.length() <= 20,
-                           "Length should be 5-20, got: " + s.length());
-                assertTrue(s.chars().allMatch(c -> "aeiou".indexOf((char) c) >= 0),
-                           "Should contain only vowels, got: " + s);
+                assertTrue(s.length() >= 5 && s.length() <= 20, "Length should be 5-20, got: " + s.length());
+                assertTrue(
+                        s.chars().allMatch(c -> "aeiou".indexOf((char) c) >= 0),
+                        "Should contain only vowels, got: " + s);
             }
         }
 
@@ -136,8 +130,9 @@ class StringGeneratorTest {
             for (int i = 0; i < 50; i++) {
                 String s = hex.generate();
                 assertTrue(s.length() >= 5 && s.length() <= 20);
-                assertTrue(s.chars().allMatch(c -> "0123456789ABCDEF".indexOf((char) c) >= 0),
-                           "Should contain only hex digits, got: " + s);
+                assertTrue(
+                        s.chars().allMatch(c -> "0123456789ABCDEF".indexOf((char) c) >= 0),
+                        "Should contain only hex digits, got: " + s);
             }
         }
 
@@ -149,26 +144,22 @@ class StringGeneratorTest {
             for (int i = 0; i < 30; i++) {
                 String s = binary.generate();
                 assertTrue(s.length() >= 5 && s.length() <= 20);
-                assertTrue(s.chars().allMatch(c -> c == '0' || c == '1'),
-                           "Should contain only 0 or 1, got: " + s);
+                assertTrue(s.chars().allMatch(c -> c == '0' || c == '1'), "Should contain only 0 or 1, got: " + s);
             }
         }
 
         @Test
         @DisplayName("pool(String) should reject null")
         void poolShouldRejectNull() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> StringGenerator.pool(null));
+            assertThrows(IllegalArgumentException.class, () -> StringGenerator.pool(null));
         }
 
         @Test
         @DisplayName("pool(String) should reject empty string")
         void poolShouldRejectEmptyString() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> StringGenerator.pool(""));
+            assertThrows(IllegalArgumentException.class, () -> StringGenerator.pool(""));
         }
     }
-
 
     @Nested
     @DisplayName("Custom Pool - Fixed Length")
@@ -182,8 +173,9 @@ class StringGeneratorTest {
             for (int i = 0; i < 50; i++) {
                 String s = gen.generate();
                 assertEquals(8, s.length(), "Should always be 8 characters");
-                assertTrue(s.chars().allMatch(c -> "ABC123".indexOf((char) c) >= 0),
-                           "Should contain only pool characters, got: " + s);
+                assertTrue(
+                        s.chars().allMatch(c -> "ABC123".indexOf((char) c) >= 0),
+                        "Should contain only pool characters, got: " + s);
             }
         }
 
@@ -212,27 +204,22 @@ class StringGeneratorTest {
         @Test
         @DisplayName("pool(String, length) should reject null characters")
         void poolWithLengthShouldRejectNull() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> StringGenerator.pool(null, 10));
+            assertThrows(IllegalArgumentException.class, () -> StringGenerator.pool(null, 10));
         }
 
         @Test
         @DisplayName("pool(String, length) should reject empty characters")
         void poolWithLengthShouldRejectEmpty() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> StringGenerator.pool("", 10));
+            assertThrows(IllegalArgumentException.class, () -> StringGenerator.pool("", 10));
         }
 
         @Test
         @DisplayName("pool(String, length) should reject length < 1")
         void poolWithLengthShouldRejectInvalidLength() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> StringGenerator.pool("abc", 0));
-            assertThrows(IllegalArgumentException.class,
-                         () -> StringGenerator.pool("abc", -1));
+            assertThrows(IllegalArgumentException.class, () -> StringGenerator.pool("abc", 0));
+            assertThrows(IllegalArgumentException.class, () -> StringGenerator.pool("abc", -1));
         }
     }
-
 
     @Nested
     @DisplayName("Custom Pool - Min/Max Length")
@@ -247,8 +234,7 @@ class StringGeneratorTest {
             for (int i = 0; i < 100; i++) {
                 String s = gen.generate();
                 lengths.add(s.length());
-                assertTrue(s.length() >= 4 && s.length() <= 8,
-                           "Length should be 4-8, got: " + s.length());
+                assertTrue(s.length() >= 4 && s.length() <= 8, "Length should be 4-8, got: " + s.length());
                 assertTrue(s.chars().allMatch(c -> "ABCD".indexOf((char) c) >= 0));
             }
 
@@ -269,34 +255,28 @@ class StringGeneratorTest {
         @Test
         @DisplayName("pool(String, min, max) should reject null")
         void poolMinMaxShouldRejectNull() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> StringGenerator.pool(null, 1, 10));
+            assertThrows(IllegalArgumentException.class, () -> StringGenerator.pool(null, 1, 10));
         }
 
         @Test
         @DisplayName("pool(String, min, max) should reject empty")
         void poolMinMaxShouldRejectEmpty() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> StringGenerator.pool("", 1, 10));
+            assertThrows(IllegalArgumentException.class, () -> StringGenerator.pool("", 1, 10));
         }
 
         @Test
         @DisplayName("pool(String, min, max) should reject invalid min")
         void poolMinMaxShouldRejectInvalidMin() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> StringGenerator.pool("abc", 0, 10));
-            assertThrows(IllegalArgumentException.class,
-                         () -> StringGenerator.pool("abc", -1, 10));
+            assertThrows(IllegalArgumentException.class, () -> StringGenerator.pool("abc", 0, 10));
+            assertThrows(IllegalArgumentException.class, () -> StringGenerator.pool("abc", -1, 10));
         }
 
         @Test
         @DisplayName("pool(String, min, max) should reject max < min")
         void poolMinMaxShouldRejectMaxLessThanMin() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> StringGenerator.pool("abc", 10, 5));
+            assertThrows(IllegalArgumentException.class, () -> StringGenerator.pool("abc", 10, 5));
         }
     }
-
 
     @Nested
     @DisplayName("Builder Pattern")
@@ -306,9 +286,9 @@ class StringGeneratorTest {
         @DisplayName("builder with fixed length")
         void builderWithFixedLength() {
             StringGenerator gen = StringGenerator.builder()
-                                                 .length(10)
-                                                 .charGenerator(CharGenerator.digits())
-                                                 .build();
+                    .length(10)
+                    .charGenerator(CharGenerator.digits())
+                    .build();
 
             for (int i = 0; i < 20; i++) {
                 String s = gen.generate();
@@ -321,10 +301,10 @@ class StringGeneratorTest {
         @DisplayName("builder with min and max length")
         void builderWithMinMaxLength() {
             StringGenerator gen = StringGenerator.builder()
-                                                 .minLength(3)
-                                                 .maxLength(7)
-                                                 .charGenerator(CharGenerator.letters())
-                                                 .build();
+                    .minLength(3)
+                    .maxLength(7)
+                    .charGenerator(CharGenerator.letters())
+                    .build();
 
             for (int i = 0; i < 50; i++) {
                 String s = gen.generate();
@@ -337,14 +317,10 @@ class StringGeneratorTest {
         @DisplayName("builder with seeded generation")
         void builderWithSeed() {
             long seed = 42L;
-            StringGenerator gen1 = StringGenerator.builder()
-                                                  .length(10)
-                                                  .seed(seed)
-                                                  .build();
-            StringGenerator gen2 = StringGenerator.builder()
-                                                  .length(10)
-                                                  .seed(seed)
-                                                  .build();
+            StringGenerator gen1 =
+                    StringGenerator.builder().length(10).seed(seed).build();
+            StringGenerator gen2 =
+                    StringGenerator.builder().length(10).seed(seed).build();
 
             List<String> list1 = gen1.generateList(50);
             List<String> list2 = gen2.generateList(50);
@@ -359,54 +335,54 @@ class StringGeneratorTest {
             String s = gen.generate();
 
             assertEquals(10, s.length());
-            assertTrue(s.chars().allMatch(Character::isLetter),
-                       "Default should be letters");
+            assertTrue(s.chars().allMatch(Character::isLetter), "Default should be letters");
         }
 
         @Test
         @DisplayName("builder should reject null charGenerator")
         void builderShouldRejectNullCharGenerator() {
-            assertThrows(NullPointerException.class,
-                         () -> StringGenerator.builder().charGenerator(null));
+            assertThrows(
+                    NullPointerException.class, () -> StringGenerator.builder().charGenerator(null));
         }
 
         @Test
         @DisplayName("builder should reject length < 1")
         void builderShouldRejectInvalidLength() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> StringGenerator.builder().length(0).build());
-            assertThrows(IllegalArgumentException.class,
-                         () -> StringGenerator.builder().length(-1).build());
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> StringGenerator.builder().length(0).build());
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> StringGenerator.builder().length(-1).build());
         }
 
         @Test
         @DisplayName("builder should reject minLength < 1")
         void builderShouldRejectInvalidMinLength() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> StringGenerator.builder().minLength(0).build());
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> StringGenerator.builder().minLength(0).build());
         }
 
         @Test
         @DisplayName("builder should reject maxLength < 1")
         void builderShouldRejectInvalidMaxLength() {
-            assertThrows(IllegalArgumentException.class,
-                         () -> StringGenerator.builder().maxLength(0).build());
+            assertThrows(
+                    IllegalArgumentException.class,
+                    () -> StringGenerator.builder().maxLength(0).build());
         }
 
         @Test
         @DisplayName("builder should reject maxLength < minLength")
         void builderShouldRejectMaxLessThanMin() {
-            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                                                       () -> StringGenerator.builder()
-                                                                            .minLength(10)
-                                                                            .maxLength(5)
-                                                                            .build());
+            IllegalArgumentException ex = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> StringGenerator.builder().minLength(10).maxLength(5).build());
 
             assertTrue(ex.getMessage().contains("maxLength"));
             assertTrue(ex.getMessage().contains("minLength"));
         }
     }
-
 
     @Nested
     @DisplayName("Seeded Generation")
@@ -417,17 +393,17 @@ class StringGeneratorTest {
         void seededGeneratorsShouldBeDeterministic() {
             long seed = 123L;
             StringGenerator gen1 = StringGenerator.builder()
-                                                  .charGenerator(CharGenerator.alphanumeric())
-                                                  .minLength(8)
-                                                  .maxLength(12)
-                                                  .seed(seed)
-                                                  .build();
+                    .charGenerator(CharGenerator.alphanumeric())
+                    .minLength(8)
+                    .maxLength(12)
+                    .seed(seed)
+                    .build();
             StringGenerator gen2 = StringGenerator.builder()
-                                                  .charGenerator(CharGenerator.alphanumeric())
-                                                  .minLength(8)
-                                                  .maxLength(12)
-                                                  .seed(seed)
-                                                  .build();
+                    .charGenerator(CharGenerator.alphanumeric())
+                    .minLength(8)
+                    .maxLength(12)
+                    .seed(seed)
+                    .build();
 
             List<String> list1 = gen1.generateList(100);
             List<String> list2 = gen2.generateList(100);
@@ -438,14 +414,10 @@ class StringGeneratorTest {
         @Test
         @DisplayName("different seeds should produce different strings")
         void differentSeedsShouldProduceDifferentStrings() {
-            StringGenerator gen1 = StringGenerator.builder()
-                                                  .length(20)
-                                                  .seed(111L)
-                                                  .build();
-            StringGenerator gen2 = StringGenerator.builder()
-                                                  .length(20)
-                                                  .seed(222L)
-                                                  .build();
+            StringGenerator gen1 =
+                    StringGenerator.builder().length(20).seed(111L).build();
+            StringGenerator gen2 =
+                    StringGenerator.builder().length(20).seed(222L).build();
 
             List<String> list1 = gen1.generateList(50);
             List<String> list2 = gen2.generateList(50);
@@ -457,14 +429,13 @@ class StringGeneratorTest {
         @DisplayName("seeded generator preserves digits-only char source")
         void seededGeneratorPreservesDigits() {
             StringGenerator gen = StringGenerator.builder()
-                                                 .charGenerator(CharGenerator.digits())
-                                                 .length(24)
-                                                 .seed(42L)
-                                                 .build();
+                    .charGenerator(CharGenerator.digits())
+                    .length(24)
+                    .seed(42L)
+                    .build();
 
             for (String s : gen.generateList(40)) {
-                assertTrue(s.chars().allMatch(Character::isDigit),
-                           "Expected digits-only output, got: " + s);
+                assertTrue(s.chars().allMatch(Character::isDigit), "Expected digits-only output, got: " + s);
             }
         }
 
@@ -472,18 +443,18 @@ class StringGeneratorTest {
         @DisplayName("seeded generator preserves custom pool char source")
         void seededGeneratorPreservesCustomPool() {
             StringGenerator gen = StringGenerator.builder()
-                                                 .charGenerator(CharGenerator.pool("XYZ"))
-                                                 .length(30)
-                                                 .seed(7L)
-                                                 .build();
+                    .charGenerator(CharGenerator.pool("XYZ"))
+                    .length(30)
+                    .seed(7L)
+                    .build();
 
             for (String s : gen.generateList(40)) {
-                assertTrue(s.chars().allMatch(c -> "XYZ".indexOf((char) c) >= 0),
-                           "Expected custom-pool output, got: " + s);
+                assertTrue(
+                        s.chars().allMatch(c -> "XYZ".indexOf((char) c) >= 0),
+                        "Expected custom-pool output, got: " + s);
             }
         }
     }
-
 
     @Nested
     @DisplayName("Integration Tests")
@@ -494,14 +465,11 @@ class StringGeneratorTest {
         void shouldWorkWithStreamOperations() {
             StringGenerator gen = StringGenerator.pool("ABC", 5);
 
-            List<String> strings = gen.stream()
-                                      .limit(50)
-                                      .toList();
+            List<String> strings = gen.stream().limit(50).toList();
 
             assertEquals(50, strings.size());
             assertTrue(strings.stream().allMatch(s -> s.length() == 5));
-            assertTrue(strings.stream().allMatch(s ->
-                                                     s.chars().allMatch(c -> "ABC".indexOf((char) c) >= 0)));
+            assertTrue(strings.stream().allMatch(s -> s.chars().allMatch(c -> "ABC".indexOf((char) c) >= 0)));
         }
 
         @Test
@@ -511,8 +479,7 @@ class StringGeneratorTest {
             List<String> strings = gen.generateList(100);
 
             assertEquals(100, strings.size());
-            assertTrue(strings.stream().allMatch(s ->
-                                                     s.chars().allMatch(Character::isDigit)));
+            assertTrue(strings.stream().allMatch(s -> s.chars().allMatch(Character::isDigit)));
         }
 
         @Test
@@ -531,7 +498,6 @@ class StringGeneratorTest {
         }
     }
 
-
     @Nested
     @DisplayName("Edge Cases")
     class EdgeCases {
@@ -549,9 +515,9 @@ class StringGeneratorTest {
         @DisplayName("very long strings should work")
         void veryLongStringsShouldWork() {
             StringGenerator gen = StringGenerator.builder()
-                                                 .length(1000)
-                                                 .charGenerator(CharGenerator.digits())
-                                                 .build();
+                    .length(1000)
+                    .charGenerator(CharGenerator.digits())
+                    .build();
             String s = gen.generate();
 
             assertEquals(1000, s.length());

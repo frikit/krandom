@@ -7,7 +7,7 @@ package io.github.frikit.krandom.generator.text;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -27,10 +27,10 @@ import java.util.Set;
 public final class TextGenerator implements Generator<String> {
 
     private static final TextWordDataProvider DEFAULT_PROVIDER =
-        new BuiltInTextWordDataProvider(Locale.ROOT, "default");
+            new BuiltInTextWordDataProvider(Locale.ROOT, "default");
 
-    private final Random       random;
-    private final Locale       locale;
+    private final Random random;
+    private final Locale locale;
     private final List<String> localeWords;
 
     public TextGenerator() {
@@ -45,7 +45,7 @@ public final class TextGenerator implements Generator<String> {
         Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.createRandom();
-        TextWordDataProvider provider = config.getRegistryContext().textWordProvider(locale);
+        TextWordDataProvider provider = config.getRegistryContext().provider(Vocabulary.TEXT_WORD, locale);
         this.localeWords = (provider != null ? provider : DEFAULT_PROVIDER).getWords();
     }
 
@@ -71,14 +71,11 @@ public final class TextGenerator implements Generator<String> {
 
     public String generate(TextOptions options) {
         Objects.requireNonNull(options, "options must not be null");
-        List<String> vocabulary = options.extWordList() == null || options.extWordList().isEmpty()
-                                  ? localeWords
-                                  : options.extWordList();
+        List<String> vocabulary =
+                options.extWordList() == null || options.extWordList().isEmpty() ? localeWords : options.extWordList();
 
         int targetChars = Math.max(1, options.maxChars());
-        int wordCount = options.variableWordCount()
-                        ? 4 + random.nextInt(10)
-                        : 8;
+        int wordCount = options.variableWordCount() ? 4 + random.nextInt(10) : 8;
 
         List<String> words = pickWords(vocabulary, wordCount, options.uniqueWords());
         StringBuilder out = new StringBuilder(targetChars + 8);
@@ -130,13 +127,11 @@ public final class TextGenerator implements Generator<String> {
         return new ArrayList<>(selected);
     }
 
-
     public record TextOptions(
-        int maxChars,
-        List<String> extWordList,
-        boolean uniqueWords,
-        boolean variableWordCount
-    ) {
+            int maxChars,
+            @org.jspecify.annotations.Nullable List<String> extWordList,
+            boolean uniqueWords,
+            boolean variableWordCount) {
 
         public TextOptions {
             if (maxChars <= 0) {

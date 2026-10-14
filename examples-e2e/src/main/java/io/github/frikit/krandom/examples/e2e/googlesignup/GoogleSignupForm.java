@@ -10,7 +10,6 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.object.ObjectFaker;
 import io.github.frikit.krandom.generator.user.BirthdayGenerator;
 import io.github.frikit.krandom.jackson.KrandomJackson;
-
 import java.time.LocalDate;
 import java.util.Locale;
 
@@ -30,8 +29,7 @@ public final class GoogleSignupForm {
     /** This registration form is demonstrated with the UK locale. */
     public static final Locale DEFAULT_LOCALE = Locale.UK;
 
-    private GoogleSignupForm() {
-    }
+    private GoogleSignupForm() {}
 
     /** The JSON body the signup page submits. */
     public record SignupPayload(
@@ -45,16 +43,15 @@ public final class GoogleSignupForm {
             String phoneNumber,
             String recoveryEmail,
             String country,
-            boolean agreeToTerms) {
-    }
+            boolean agreeToTerms) {}
 
     /** Google splits the date of birth into three separate select boxes. */
-    public record Birthday(int year, int month, int day) {
-    }
+    public record Birthday(int year, int month, int day) {}
 
     /** Fills the whole payload in one call, reproducibly for a given locale and seed. */
     public static SignupPayload fake(Locale locale, long seed) {
-        GeneratorConfig config = GeneratorConfig.builder().locale(locale).seed(seed).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(locale).seed(seed).build();
 
         // Constrain the date of birth to an 18..99-year-old using min/max age bounds.
         BirthdayGenerator dateOfBirth = new BirthdayGenerator(18, 99, config);

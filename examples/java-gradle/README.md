@@ -26,7 +26,7 @@ mutation method. The test suite includes the same working example:
 ```java
 DataRegistryContext data = DataRegistryContext.builder()
     .isolated()
-    .registerWeatherProvider(customWeather)
+    .register(Vocabulary.WEATHER, customWeather)
     .build();
 
 GeneratorConfig config = GeneratorConfig.builder()

@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.location;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.io.InputStream;
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -21,7 +20,7 @@ import java.util.Set;
  */
 final class BuiltInCountryDataProvider implements CountryDataProvider {
 
-    private final Locale   locale;
+    private final Locale locale;
     private final String[] countries;
 
     BuiltInCountryDataProvider(SupportedLocale supportedLocale) {

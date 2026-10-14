@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.util.List;
 import java.util.Locale;
 
@@ -22,8 +21,7 @@ final class BuiltInNationalityDataProvider implements NationalityDataProvider {
     private final List<String> nationalities;
 
     BuiltInNationalityDataProvider(SupportedLocale supportedLocale) {
-        this(supportedLocale.locale(),
-            "krandom/nationalities/" + supportedLocale.resourcePrefix() + ".txt");
+        this(supportedLocale.locale(), "krandom/nationalities/" + supportedLocale.resourcePrefix() + ".txt");
     }
 
     BuiltInNationalityDataProvider(Locale locale, String resourcePath) {

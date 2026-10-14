@@ -5,15 +5,14 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectModel")
 class ObjectModelTest {
@@ -22,11 +21,12 @@ class ObjectModelTest {
     @DisplayName("replays reusable configuration into fresh fakers")
     void replaysConfigurationIntoFreshFakers() {
         ObjectModel<User> model = ObjectModel.of(User.class)
-            .configure(faker -> faker
-                .ruleFor(User::getFirstName, () -> "Ada")
-                .ruleFor(User::getLastName, () -> "Lovelace")
-                .ruleFor(User::getEmail,
-                    user -> user.firstName.toLowerCase() + "." + user.lastName.toLowerCase() + "@example.com"));
+                .configure(faker -> faker.ruleFor(User::getFirstName, () -> "Ada")
+                        .ruleFor(User::getLastName, () -> "Lovelace")
+                        .ruleFor(
+                                User::getEmail,
+                                user -> user.firstName.toLowerCase() + "." + user.lastName.toLowerCase()
+                                        + "@example.com"));
 
         assertEquals("ada.lovelace@example.com", model.generate().email);
         assertEquals("ada.lovelace@example.com", model.generate().email);
@@ -46,13 +46,11 @@ class ObjectModelTest {
     @DisplayName("models compose in order")
     void modelsComposeInOrder() {
         ObjectModel<User> names = ObjectModel.of(User.class)
-            .configure(faker -> faker
-                .ruleFor(User::getFirstName, () -> "Ada")
-                .ruleFor(User::getLastName, () -> "Lovelace"));
+                .configure(faker ->
+                        faker.ruleFor(User::getFirstName, () -> "Ada").ruleFor(User::getLastName, () -> "Lovelace"));
         ObjectModel<User> email = ObjectModel.of(User.class)
-            .configure(faker -> faker.ruleFor(
-                User::getEmail,
-                user -> user.firstName.toLowerCase() + "@example.com"));
+                .configure(
+                        faker -> faker.ruleFor(User::getEmail, user -> user.firstName.toLowerCase() + "@example.com"));
 
         User generated = names.and(email).generate();
 
@@ -64,8 +62,8 @@ class ObjectModelTest {
     @DisplayName("typed include is retained by a reusable model")
     void typedIncludeIsRetained() {
         User generated = ObjectModel.of(User.class)
-            .configure(faker -> faker.include(User::getFirstName))
-            .generate();
+                .configure(faker -> faker.include(User::getFirstName))
+                .generate();
 
         assertNotNull(generated.firstName);
         assertNull(generated.lastName);
@@ -76,8 +74,8 @@ class ObjectModelTest {
     @DisplayName("accepts explicit generator configuration")
     void acceptsExplicitGeneratorConfiguration() {
         GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
-        ObjectModel<User> model = ObjectModel.of(User.class)
-            .configure(faker -> faker.ruleFor(User::getFirstName, () -> "Ada"));
+        ObjectModel<User> model =
+                ObjectModel.of(User.class).configure(faker -> faker.ruleFor(User::getFirstName, () -> "Ada"));
 
         assertEquals("Ada", model.faker(config).generate().firstName);
         assertEquals("Ada", model.generate(config).firstName);

@@ -6,32 +6,22 @@
 package io.github.frikit.krandom.generator.locale;
 
 import io.github.frikit.krandom.generator.DataRegistryContext;
+import io.github.frikit.krandom.generator.Vocabulary;
 import io.github.frikit.krandom.generator.location.CityDataProvider;
-import io.github.frikit.krandom.generator.location.CityDataRegistry;
 import io.github.frikit.krandom.generator.location.CountryDataProvider;
-import io.github.frikit.krandom.generator.location.CountryDataRegistry;
 import io.github.frikit.krandom.generator.location.StateDataProvider;
-import io.github.frikit.krandom.generator.location.StateDataRegistry;
 import io.github.frikit.krandom.generator.location.StreetAddressDataProvider;
-import io.github.frikit.krandom.generator.location.StreetAddressDataRegistry;
 import io.github.frikit.krandom.generator.user.FirstNameDataProvider;
-import io.github.frikit.krandom.generator.user.FirstNameDataRegistry;
 import io.github.frikit.krandom.generator.user.GenderDataProvider;
-import io.github.frikit.krandom.generator.user.GenderDataRegistry;
 import io.github.frikit.krandom.generator.user.LastNameDataProvider;
-import io.github.frikit.krandom.generator.user.LastNameDataRegistry;
 import io.github.frikit.krandom.generator.user.ProfessionDataProvider;
-import io.github.frikit.krandom.generator.user.ProfessionDataRegistry;
 import io.github.frikit.krandom.generator.user.SuffixDataProvider;
-import io.github.frikit.krandom.generator.user.SuffixDataRegistry;
 import io.github.frikit.krandom.generator.user.TitleDataProvider;
-import io.github.frikit.krandom.generator.user.TitleDataRegistry;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
-import io.github.frikit.krandom.generator.user.nationalid.NationalIdRegistry;
-
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Immutable application-level locale pack for registering multiple locale datasets in one step.
@@ -56,24 +46,24 @@ import java.util.Objects;
  */
 public final class LocaleDataBundle {
 
-    private final Locale           locale;
-    private final String[]         maleFirstNames;
-    private final String[]         femaleFirstNames;
-    private final String[]         lastNames;
-    private final String           maleLabel;
-    private final String           femaleLabel;
-    private final String[]         titles;
-    private final String[]         suffixes;
-    private final String[]         professions;
-    private final int[]            professionWeights;
-    private final String[]         cities;
-    private final String[]         states;
-    private final String[]         stateAbbreviations;
-    private final String[]         countries;
-    private final String[]         streetNames;
-    private final String[]         streetTypesShort;
-    private final String[]         streetTypesLong;
-    private final NationalIdProvider nationalIdProvider;
+    private final Locale locale;
+    private final String @Nullable [] maleFirstNames;
+    private final String @Nullable [] femaleFirstNames;
+    private final String @Nullable [] lastNames;
+    private final @Nullable String maleLabel;
+    private final @Nullable String femaleLabel;
+    private final String @Nullable [] titles;
+    private final String @Nullable [] suffixes;
+    private final String @Nullable [] professions;
+    private final int @Nullable [] professionWeights;
+    private final String @Nullable [] cities;
+    private final String @Nullable [] states;
+    private final String @Nullable [] stateAbbreviations;
+    private final String @Nullable [] countries;
+    private final String @Nullable [] streetNames;
+    private final String @Nullable [] streetTypesShort;
+    private final String @Nullable [] streetTypesLong;
+    private final @Nullable NationalIdProvider nationalIdProvider;
 
     private LocaleDataBundle(Builder builder) {
         this.locale = builder.locale;
@@ -116,41 +106,40 @@ public final class LocaleDataBundle {
     public DataRegistryContext.Builder applyTo(DataRegistryContext.Builder builder) {
         Objects.requireNonNull(builder, "builder must not be null");
         if (hasFirstNames()) {
-            builder.registerFirstNameProvider(firstNameProvider());
+            builder.register(Vocabulary.FIRST_NAME, firstNameProvider());
         }
         if (hasLastNames()) {
-            builder.registerLastNameProvider(lastNameProvider());
+            builder.register(Vocabulary.LAST_NAME, lastNameProvider());
         }
         if (hasGenderLabels()) {
-            builder.registerGenderProvider(genderProvider());
+            builder.register(Vocabulary.GENDER, genderProvider());
         }
         if (hasTitles()) {
-            builder.registerTitleProvider(titleProvider());
+            builder.register(Vocabulary.TITLE, titleProvider());
         }
         if (hasSuffixes()) {
-            builder.registerSuffixProvider(suffixProvider());
+            builder.register(Vocabulary.SUFFIX, suffixProvider());
         }
         if (hasProfessions()) {
-            builder.registerProfessionProvider(professionProvider());
+            builder.register(Vocabulary.PROFESSION, professionProvider());
         }
         if (hasCities()) {
-            builder.registerCityProvider(cityProvider());
+            builder.register(Vocabulary.CITY, cityProvider());
         }
         if (hasStates()) {
-            builder.registerStateProvider(stateProvider());
+            builder.register(Vocabulary.STATE, stateProvider());
         }
         if (hasCountries()) {
-            builder.registerCountryProvider(countryProvider());
+            builder.register(Vocabulary.COUNTRY, countryProvider());
         }
         if (hasStreetAddress()) {
-            builder.registerStreetAddressProvider(streetAddressProvider());
+            builder.register(Vocabulary.STREET_ADDRESS, streetAddressProvider());
         }
         if (nationalIdProvider != null) {
-            builder.registerNationalIdProvider(nationalIdProvider);
+            builder.register(Vocabulary.NATIONAL_ID, nationalIdProvider);
         }
         return builder;
     }
-
 
     private boolean hasFirstNames() {
         return maleFirstNames != null;
@@ -201,12 +190,12 @@ public final class LocaleDataBundle {
 
             @Override
             public String[] getMaleFirstNames() {
-                return maleFirstNames.clone();
+                return Objects.requireNonNull(maleFirstNames).clone();
             }
 
             @Override
             public String[] getFemaleFirstNames() {
-                return femaleFirstNames.clone();
+                return Objects.requireNonNull(femaleFirstNames).clone();
             }
         };
     }
@@ -220,7 +209,7 @@ public final class LocaleDataBundle {
 
             @Override
             public String[] getLastNames() {
-                return lastNames.clone();
+                return Objects.requireNonNull(lastNames).clone();
             }
         };
     }
@@ -234,12 +223,12 @@ public final class LocaleDataBundle {
 
             @Override
             public String getMaleLabel() {
-                return maleLabel;
+                return Objects.requireNonNull(maleLabel);
             }
 
             @Override
             public String getFemaleLabel() {
-                return femaleLabel;
+                return Objects.requireNonNull(femaleLabel);
             }
         };
     }
@@ -253,7 +242,7 @@ public final class LocaleDataBundle {
 
             @Override
             public String[] getTitles() {
-                return titles.clone();
+                return Objects.requireNonNull(titles).clone();
             }
         };
     }
@@ -267,7 +256,7 @@ public final class LocaleDataBundle {
 
             @Override
             public String[] getSuffixes() {
-                return suffixes.clone();
+                return Objects.requireNonNull(suffixes).clone();
             }
         };
     }
@@ -281,12 +270,12 @@ public final class LocaleDataBundle {
 
             @Override
             public String[] getProfessions() {
-                return professions.clone();
+                return Objects.requireNonNull(professions).clone();
             }
 
             @Override
             public int[] getWeights() {
-                return professionWeights.clone();
+                return Objects.requireNonNull(professionWeights).clone();
             }
         };
     }
@@ -300,7 +289,7 @@ public final class LocaleDataBundle {
 
             @Override
             public String[] getCities() {
-                return cities.clone();
+                return Objects.requireNonNull(cities).clone();
             }
         };
     }
@@ -314,12 +303,12 @@ public final class LocaleDataBundle {
 
             @Override
             public String[] getStates() {
-                return states.clone();
+                return Objects.requireNonNull(states).clone();
             }
 
             @Override
             public String[] getAbbreviations() {
-                return stateAbbreviations.clone();
+                return Objects.requireNonNull(stateAbbreviations).clone();
             }
         };
     }
@@ -333,7 +322,7 @@ public final class LocaleDataBundle {
 
             @Override
             public String[] getCountries() {
-                return countries.clone();
+                return Objects.requireNonNull(countries).clone();
             }
         };
     }
@@ -347,22 +336,22 @@ public final class LocaleDataBundle {
 
             @Override
             public String[] getStreetNames() {
-                return streetNames.clone();
+                return Objects.requireNonNull(streetNames).clone();
             }
 
             @Override
             public String[] getStreetTypesShort() {
-                return streetTypesShort.clone();
+                return Objects.requireNonNull(streetTypesShort).clone();
             }
 
             @Override
             public String[] getStreetTypesLong() {
-                return streetTypesLong.clone();
+                return Objects.requireNonNull(streetTypesLong).clone();
             }
         };
     }
 
-    private static String[] cloneOrNull(String[] values) {
+    private static String @Nullable [] cloneOrNull(String @Nullable [] values) {
         return values == null ? null : values.clone();
     }
 
@@ -373,23 +362,23 @@ public final class LocaleDataBundle {
 
         private final Locale locale;
 
-        private String[]         maleFirstNames;
-        private String[]         femaleFirstNames;
-        private String[]         lastNames;
-        private String           maleLabel;
-        private String           femaleLabel;
-        private String[]         titles;
-        private String[]         suffixes;
-        private String[]         professions;
-        private int[]            professionWeights;
-        private String[]         cities;
-        private String[]         states;
-        private String[]         stateAbbreviations;
-        private String[]         countries;
-        private String[]         streetNames;
-        private String[]         streetTypesShort;
-        private String[]         streetTypesLong;
-        private NationalIdProvider nationalIdProvider;
+        private String @Nullable [] maleFirstNames;
+        private String @Nullable [] femaleFirstNames;
+        private String @Nullable [] lastNames;
+        private @Nullable String maleLabel;
+        private @Nullable String femaleLabel;
+        private String @Nullable [] titles;
+        private String @Nullable [] suffixes;
+        private String @Nullable [] professions;
+        private int @Nullable [] professionWeights;
+        private String @Nullable [] cities;
+        private String @Nullable [] states;
+        private String @Nullable [] stateAbbreviations;
+        private String @Nullable [] countries;
+        private String @Nullable [] streetNames;
+        private String @Nullable [] streetTypesShort;
+        private String @Nullable [] streetTypesLong;
+        private @Nullable NationalIdProvider nationalIdProvider;
 
         private Builder(Locale locale) {
             this.locale = Objects.requireNonNull(locale, "locale must not be null");

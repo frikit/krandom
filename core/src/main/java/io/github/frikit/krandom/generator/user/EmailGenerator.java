@@ -8,8 +8,6 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.EmailDomainPolicy;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
@@ -97,11 +95,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class EmailGenerator implements Generator<String> {
 
-    private static final String[] SAFE_DOMAINS = {
-        "example.com",
-        "example.org",
-        "example.net"
-    };
+    private static final String[] SAFE_DOMAINS = {"example.com", "example.org", "example.net"};
 
     private static final String[] POPULAR_DOMAINS = {
         "gmail.com",
@@ -118,19 +112,19 @@ public final class EmailGenerator implements Generator<String> {
         "qq.com"
     };
 
-    private static final String[] POPULAR_DOMAINS_DE = { "gmx.de", "web.de", "gmail.com", "outlook.com" };
-    private static final String[] POPULAR_DOMAINS_FR = { "orange.fr", "laposte.net", "gmail.com", "outlook.com" };
-    private static final String[] POPULAR_DOMAINS_ES = { "hotmail.es", "gmail.com", "outlook.com", "yahoo.com" };
-    private static final String[] POPULAR_DOMAINS_IT = { "libero.it", "gmail.com", "outlook.com", "yahoo.com" };
-    private static final String[] POPULAR_DOMAINS_PT = { "uol.com.br", "bol.com.br", "gmail.com", "outlook.com" };
-    private static final String[] POPULAR_DOMAINS_JA = { "yahoo.co.jp", "gmail.com", "outlook.com" };
-    private static final String[] POPULAR_DOMAINS_ZH = { "qq.com", "163.com", "126.com", "gmail.com" };
+    private static final String[] POPULAR_DOMAINS_DE = {"gmx.de", "web.de", "gmail.com", "outlook.com"};
+    private static final String[] POPULAR_DOMAINS_FR = {"orange.fr", "laposte.net", "gmail.com", "outlook.com"};
+    private static final String[] POPULAR_DOMAINS_ES = {"hotmail.es", "gmail.com", "outlook.com", "yahoo.com"};
+    private static final String[] POPULAR_DOMAINS_IT = {"libero.it", "gmail.com", "outlook.com", "yahoo.com"};
+    private static final String[] POPULAR_DOMAINS_PT = {"uol.com.br", "bol.com.br", "gmail.com", "outlook.com"};
+    private static final String[] POPULAR_DOMAINS_JA = {"yahoo.co.jp", "gmail.com", "outlook.com"};
+    private static final String[] POPULAR_DOMAINS_ZH = {"qq.com", "163.com", "126.com", "gmail.com"};
 
-    private final GeneratorConfig    config;
-    private final Random             random;
+    private final GeneratorConfig config;
+    private final Random random;
     private final FirstNameGenerator firstNameGenerator;
-    private final LastNameGenerator  lastNameGenerator;
-    private final Set<String>        issuedEmails;
+    private final LastNameGenerator lastNameGenerator;
+    private final Set<String> issuedEmails;
 
     /**
      * Creates an email generator with default configuration (US locale).
@@ -271,9 +265,9 @@ public final class EmailGenerator implements Generator<String> {
     public String getFreeEmailProvider() {
         if (config.getEmailDomainPolicy() != EmailDomainPolicy.REALISTIC_UNCLASSIFIED) {
             throw new IllegalStateException(
-                "Free-email provider domains are real mailbox providers and are disabled by default; "
-                + "enable them only for isolated fixtures with GeneratorConfig.builder()"
-                + ".emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED).build()");
+                    "Free-email provider domains are real mailbox providers and are disabled by default; "
+                            + "enable them only for isolated fixtures with GeneratorConfig.builder()"
+                            + ".emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED).build()");
         }
         return getRandomFreeDomain();
     }
@@ -379,23 +373,24 @@ public final class EmailGenerator implements Generator<String> {
      */
     private String getRandomDomain() {
         String[] domains = config.getEmailDomainPolicy() == EmailDomainPolicy.REALISTIC_UNCLASSIFIED
-            ? POPULAR_DOMAINS
-            : SAFE_DOMAINS;
+                ? POPULAR_DOMAINS
+                : SAFE_DOMAINS;
         return domains[random.nextInt(domains.length)];
     }
 
     private String getRandomFreeDomain() {
         String language = config.getLocale().getLanguage();
-        String[] providers = switch (language) {
-            case "de" -> POPULAR_DOMAINS_DE;
-            case "fr" -> POPULAR_DOMAINS_FR;
-            case "es" -> POPULAR_DOMAINS_ES;
-            case "it" -> POPULAR_DOMAINS_IT;
-            case "pt" -> POPULAR_DOMAINS_PT;
-            case "ja" -> POPULAR_DOMAINS_JA;
-            case "zh" -> POPULAR_DOMAINS_ZH;
-            default -> POPULAR_DOMAINS;
-        };
+        String[] providers =
+                switch (language) {
+                    case "de" -> POPULAR_DOMAINS_DE;
+                    case "fr" -> POPULAR_DOMAINS_FR;
+                    case "es" -> POPULAR_DOMAINS_ES;
+                    case "it" -> POPULAR_DOMAINS_IT;
+                    case "pt" -> POPULAR_DOMAINS_PT;
+                    case "ja" -> POPULAR_DOMAINS_JA;
+                    case "zh" -> POPULAR_DOMAINS_ZH;
+                    default -> POPULAR_DOMAINS;
+                };
         return providers[random.nextInt(providers.length)];
     }
 

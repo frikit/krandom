@@ -14,12 +14,4 @@ package io.github.frikit.krandom.generator.user;
  * @param type       employment type
  * @param profession profession/job name
  */
-public record JobInfo(
-    String descriptor,
-    String level,
-    String title,
-    String type,
-    String profession
-) {
-
-}
+public record JobInfo(String descriptor, String level, String title, String type, String profession) {}

@@ -5,10 +5,10 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -30,7 +30,7 @@ import java.util.Random;
 public final class HobbyGenerator implements Generator<String> {
 
     private static final HobbyDataProvider DEFAULT_PROVIDER =
-        new BuiltInHobbyDataProvider(Locale.ROOT, "krandom/hobbies/default.txt");
+            new BuiltInHobbyDataProvider(Locale.ROOT, "krandom/hobbies/default.txt");
 
     private final List<String> hobbies;
     private final Random random;
@@ -49,7 +49,9 @@ public final class HobbyGenerator implements Generator<String> {
      *               exists; must not be {@code null}
      */
     public HobbyGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -60,7 +62,7 @@ public final class HobbyGenerator implements Generator<String> {
     public HobbyGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         DataRegistryContext registryContext = config.getRegistryContext();
-        HobbyDataProvider provider = registryContext.hobbyProvider(config.getLocale());
+        HobbyDataProvider provider = registryContext.provider(Vocabulary.HOBBY, config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }

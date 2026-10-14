@@ -5,23 +5,22 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.locale.SupportedLocale;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("LastNameGenerator")
 class LastNameGeneratorTest {
@@ -50,8 +49,7 @@ class LastNameGeneratorTest {
         LastNameGenerator gen = new LastNameGenerator(Locale.US);
         Set<String> usExpected = Set.of(new BuiltInLastNameDataProvider(SupportedLocale.EN_US).getLastNames());
         for (int i = 0; i < 50; i++) {
-            assertTrue(usExpected.contains(gen.generate()),
-                       "Generated name not in EN_US list: " + gen.generate());
+            assertTrue(usExpected.contains(gen.generate()), "Generated name not in EN_US list: " + gen.generate());
         }
     }
 
@@ -113,7 +111,8 @@ class LastNameGeneratorTest {
     @DisplayName("getLastNameCount() matches the locale's array length")
     void getLastNameCount() {
         LastNameGenerator gen = new LastNameGenerator(Locale.US);
-        assertEquals(new BuiltInLastNameDataProvider(SupportedLocale.EN_US).getLastNames().length, gen.getLastNameCount());
+        assertEquals(
+                new BuiltInLastNameDataProvider(SupportedLocale.EN_US).getLastNames().length, gen.getLastNameCount());
     }
 
     @Test
@@ -127,8 +126,7 @@ class LastNameGeneratorTest {
     @Test
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
-        assertThrows(UnsupportedOperationException.class,
-                     () -> new LastNameGenerator(Locale.of("xx", "YY")));
+        assertThrows(UnsupportedOperationException.class, () -> new LastNameGenerator(Locale.of("xx", "YY")));
     }
 
     // ── generateList / stream ─────────────────────────────────────────────────
@@ -173,7 +171,6 @@ class LastNameGeneratorTest {
             assertTrue(seen.size() > 1, "No variety for " + supportedLocale);
         }
     }
-
 
     @Nested
     @DisplayName("LastNameDataRegistry extensibility")

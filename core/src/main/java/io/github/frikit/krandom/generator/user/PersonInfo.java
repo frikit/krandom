@@ -15,11 +15,4 @@ import io.github.frikit.krandom.generator.location.AddressInfo;
  * @param username username
  * @param password password generated with default policy
  */
-public record PersonInfo(
-    ContactInfo contact,
-    AddressInfo address,
-    String username,
-    String password
-) {
-
-}
+public record PersonInfo(ContactInfo contact, AddressInfo address, String username, String password) {}

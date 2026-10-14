@@ -41,13 +41,18 @@ java -version   # must report 21+
 - **Coverage**: `krandom-core` enforces exact 100% line, branch, instruction, method, class, and
   complexity coverage via JaCoCo; its report is uploaded to Codecov. New core code must be covered
   by tests. The integration modules (`jackson`, `junit`, `spring-boot-starter`, `kotest-extensions`,
-  and `kotlin-dsl`) generate JaCoCo reports in `<module>/build/reports/jacoco/test` without a
-  coverage gate; the pre-commit summary prints their line and branch coverage. New integration
-  code still needs behavior tests.
+  and `kotlin-dsl`) generate JaCoCo reports in `<module>/build/reports/jacoco/test` and enforce
+  per-module line and branch floors (`integrationCoverageFloors` in the root `build.gradle.kts`,
+  set to the values measured when the floors were introduced); the pre-commit summary prints their
+  line and branch coverage. Raise a module's floor when you add tests; new integration code still
+  needs behavior tests.
 - **Mutation testing**: deterministic, safety-sensitive, object, and schema paths must retain at
   least an 85% mutation score and 98% mutated-class line coverage. Expand targets incrementally
   around meaningful branching, review survivors by behavior, and do not treat 100% as a goal when
   equivalent or implementation-only mutations remain.
+- **Nullness**: every `krandom-core` package is `@NullMarked` (JSpecify), and `compileJava` runs
+  NullAway in JSpecify mode through Error Prone, so a missing `@Nullable` or a possible `null`
+  dereference fails compilation. Test sources are not checked.
 - **Module boundaries**: `scripts/verify_module_boundaries.sh` requires a unique JPMS module name
   for every published jar and rejects packages split across published jars.
 - **Release SBOMs**: `./gradlew verifyReleaseSboms` generates and validates the CycloneDX JSON and XML
@@ -58,7 +63,13 @@ java -version   # must report 21+
 - **Dependency integrity**: dependencies resolve against reviewed SHA-256 checksums in
   `gradle/verification-metadata.xml`; see [dependency reproducibility](docs/development/dependency-reproducibility.md)
   for updating it, including for Dependabot pull requests.
-- **Formatting**: Spotless enforces consistent formatting and MIT license headers. Run `./gradlew spotlessApply` to fix formatting issues.
+- **Formatting**: Spotless formats Java with [Palantir Java Format](https://github.com/palantir/palantir-java-format)
+  and Kotlin sources and Gradle scripts with [ktlint](https://pinterest.github.io/ktlint/), and applies
+  the MIT license header; `.editorconfig` carries the shared indentation and 120-column line length.
+  Run `./gradlew spotlessApply` before committing. `spotlessCheck` is part of `check`, so the
+  pre-commit gate and CI reject unformatted code. The one-time reformat commit is listed in
+  `.git-blame-ignore-revs`; run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once so
+  local `git blame` skips it (GitHub's blame view reads the file automatically).
 - **Tests**: all tests must pass. Java modules use JUnit Jupiter; Kotlin modules use Kotest.
 
 CI additionally builds on Java 21 and 25, requires the GraalVM native-image smoke test, and runs every
@@ -70,6 +81,9 @@ These scripts are run by hand; none of them is part of the pre-commit gate.
 
 - `scripts/update_verification_metadata.sh` records checksums for every CI and pre-commit task
   graph after a dependency update.
+- `scripts/fix_dependabot_pr.sh <pull-request-number>` runs that update for a Dependabot branch in
+  a temporary worktree under the JDKs in `KRANDOM_METADATA_JDKS` and commits the result; see
+  [dependency reproducibility](docs/development/dependency-reproducibility.md).
 - `scripts/upgrade_latest_gradle.sh` moves the Gradle wrapper to the latest release with its pinned
   distribution checksum; Dependabot normally proposes wrapper updates.
 - `scripts/verify_examples_local.sh` publishes the snapshot to Maven local and runs the consumer

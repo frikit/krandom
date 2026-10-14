@@ -5,11 +5,10 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
-import java.security.SecureRandom;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -25,8 +24,8 @@ import java.util.Random;
 public final class TitleGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
-    private final Random          random;
-    private final String[]        titles;
+    private final Random random;
+    private final String[] titles;
 
     public TitleGenerator() {
         this(GeneratorConfig.defaults());
@@ -37,15 +36,15 @@ public final class TitleGenerator implements Generator<String> {
         DataRegistryContext registryContext = config.getRegistryContext();
 
         Locale locale = config.getLocale();
-        if (!registryContext.isTitleRegistered(locale)) {
-            throw new UnsupportedOperationException(
-                "Locale " + locale + " is not supported. Registered locales: " +
-                registryContext.titleRegisteredKeys());
+        if (!registryContext.isRegistered(Vocabulary.TITLE, locale)) {
+            throw new UnsupportedOperationException("Locale " + locale + " is not supported. Registered locales: "
+                    + registryContext.registeredKeys(Vocabulary.TITLE));
         }
 
         this.random = config.createRandom();
 
-        this.titles = registryContext.titleProvider(locale).getTitles();
+        this.titles = java.util.Objects.requireNonNull(registryContext.provider(Vocabulary.TITLE, locale))
+                .getTitles();
     }
 
     public TitleGenerator(Locale locale) {
@@ -66,6 +65,6 @@ public final class TitleGenerator implements Generator<String> {
     }
 
     public boolean isLocaleExplicitlySupported() {
-        return config.getRegistryContext().isTitleRegistered(config.getLocale());
+        return config.getRegistryContext().isRegistered(Vocabulary.TITLE, config.getLocale());
     }
 }

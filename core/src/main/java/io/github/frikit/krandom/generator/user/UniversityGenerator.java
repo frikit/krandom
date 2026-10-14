@@ -8,7 +8,7 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -23,8 +23,8 @@ import java.util.Random;
  */
 public final class UniversityGenerator implements Generator<UniversityData> {
 
-    private final GeneratorConfig  config;
-    private final Random           random;
+    private final GeneratorConfig config;
+    private final Random random;
     private final UniversityData[] universities;
 
     /**
@@ -38,11 +38,11 @@ public final class UniversityGenerator implements Generator<UniversityData> {
         this.config = Objects.requireNonNull(config, "config must not be null");
         DataRegistryContext context = config.getRegistryContext();
         Locale locale = config.getLocale();
-        UniversityDataProvider provider = context.universityProvider(locale);
+        UniversityDataProvider provider = context.provider(Vocabulary.UNIVERSITY, locale);
         if (provider == null) {
             throw new UnsupportedOperationException(
-                "Locale " + locale + " has no local university data pack. Registered locales: "
-                + context.universityRegisteredKeys());
+                    "Locale " + locale + " has no local university data pack. Registered locales: "
+                            + context.registeredKeys(Vocabulary.UNIVERSITY));
         }
         this.random = config.createRandom();
         this.universities = provider.getUniversities();
@@ -127,6 +127,6 @@ public final class UniversityGenerator implements Generator<UniversityData> {
      * @return true when a local pack is registered
      */
     public boolean isLocaleExplicitlySupported() {
-        return config.getRegistryContext().isUniversityRegistered(config.getLocale());
+        return config.getRegistryContext().isRegistered(Vocabulary.UNIVERSITY, config.getLocale());
     }
 }

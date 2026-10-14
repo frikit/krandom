@@ -5,19 +5,18 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.core.model.CircularNode;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.core.model.CircularNode;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectGenerator — circular reference handling")
 class ObjectGeneratorCircularRefTest {
@@ -37,8 +36,8 @@ class ObjectGeneratorCircularRefTest {
     @DisplayName("generating a self-referential type does not throw StackOverflowError")
     void doesNotStackOverflow() {
         assertDoesNotThrow(
-            () -> new ObjectGenerator<>(CircularNode.class).generate(),
-            "CircularNode must be generated without stack overflow");
+                () -> new ObjectGenerator<>(CircularNode.class).generate(),
+                "CircularNode must be generated without stack overflow");
     }
 
     @Test
@@ -82,9 +81,8 @@ class ObjectGeneratorCircularRefTest {
     @Test
     @DisplayName("objectPoolSize(0) still prevents stack overflow via in-progress cycle detection")
     void zeroSizedObjectPoolStillPreventsOverflow() {
-        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .objectPoolSize(0)
-                                                            .build();
+        ObjectGeneratorConfig config =
+                ObjectGeneratorConfig.builder().objectPoolSize(0).build();
         assertDoesNotThrow(() -> new ObjectGenerator<>(CircularNode.class, config).generate());
     }
 
@@ -99,7 +97,8 @@ class ObjectGeneratorCircularRefTest {
         Set<CircularNode> firstNodes = collectChainNodes(first, 16);
         Set<CircularNode> secondNodes = collectChainNodes(second, 16);
 
-        assertTrue(Collections.disjoint(firstNodes, secondNodes),
-                   "separate generate() calls must not share node identities");
+        assertTrue(
+                Collections.disjoint(firstNodes, secondNodes),
+                "separate generate() calls must not share node identities");
     }
 }

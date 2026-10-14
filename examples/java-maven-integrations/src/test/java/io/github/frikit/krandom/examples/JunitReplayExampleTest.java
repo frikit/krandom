@@ -1,15 +1,18 @@
+/*
+ * Copyright (c) 2026 krandom contributors
+ *
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
 package io.github.frikit.krandom.examples;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
 import io.github.frikit.krandom.junit.KrandomExtension;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.platform.engine.reporting.ReportEntry;
-import org.junit.platform.testkit.engine.EngineExecutionResults;
-import org.junit.platform.testkit.engine.EngineTestKit;
-
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -18,11 +21,12 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.platform.engine.reporting.ReportEntry;
+import org.junit.platform.testkit.engine.EngineExecutionResults;
+import org.junit.platform.testkit.engine.EngineTestKit;
 
 /**
  * Runs an unpinned failing test, copies the replay value that krandom-junit prints for Maven,
@@ -31,7 +35,7 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass
 class JunitReplayExampleTest {
 
     private static final Pattern MAVEN_REPLAY =
-        Pattern.compile("mvn test -Dtest='([^']+)' -Dkrandom\\.junit\\.recipe=(base64:[A-Za-z0-9_-]+)");
+            Pattern.compile("mvn test -Dtest='([^']+)' -Dkrandom\\.junit\\.recipe=(base64:[A-Za-z0-9_-]+)");
 
     @Test
     void printedMavenReplayCommandReproducesTheFailingData() {
@@ -65,19 +69,19 @@ class JunitReplayExampleTest {
 
     private static EngineExecutionResults run(Map<String, String> configurationParameters) {
         return EngineTestKit.engine("junit-jupiter")
-                            .selectors(selectClass(CheckoutFixture.class))
-                            .configurationParameter("junit.jupiter.conditions.deactivate", "org.junit.*DisabledCondition")
-                            .configurationParameters(configurationParameters)
-                            .execute();
+                .selectors(selectClass(CheckoutFixture.class))
+                .configurationParameter("junit.jupiter.conditions.deactivate", "org.junit.*DisabledCondition")
+                .configurationParameters(configurationParameters)
+                .execute();
     }
 
     private static String reportedSeed(EngineExecutionResults results) {
         return results.allEvents().reportingEntryPublished().stream()
-                      .map(event -> event.getRequiredPayload(ReportEntry.class).getKeyValuePairs())
-                      .filter(entries -> entries.containsKey(KrandomExtension.REPORT_ENTRY_KEY))
-                      .map(entries -> entries.get(KrandomExtension.REPORT_ENTRY_KEY))
-                      .findFirst()
-                      .orElseThrow();
+                .map(event -> event.getRequiredPayload(ReportEntry.class).getKeyValuePairs())
+                .filter(entries -> entries.containsKey(KrandomExtension.REPORT_ENTRY_KEY))
+                .map(entries -> entries.get(KrandomExtension.REPORT_ENTRY_KEY))
+                .findFirst()
+                .orElseThrow();
     }
 
     /** A realistic unpinned test that fails; executed only through EngineTestKit above. */

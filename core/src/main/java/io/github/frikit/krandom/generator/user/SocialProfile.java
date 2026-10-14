@@ -14,11 +14,4 @@ package io.github.frikit.krandom.generator.user;
  * @param displayName display name
  * @param bio        short biography line
  */
-public record SocialProfile(
-    String platform,
-    String handle,
-    String profileUrl,
-    String displayName,
-    String bio
-) {
-}
+public record SocialProfile(String platform, String handle, String profileUrl, String displayName, String bio) {}

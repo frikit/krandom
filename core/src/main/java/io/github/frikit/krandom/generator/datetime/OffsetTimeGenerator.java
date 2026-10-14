@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.datetime;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Seedable;
-
 import java.time.LocalTime;
 import java.time.OffsetTime;
 import java.time.ZoneOffset;
@@ -21,7 +20,7 @@ import java.util.Random;
 public final class OffsetTimeGenerator implements Generator<OffsetTime>, Seedable {
 
     private static final int MIN_OFFSET_SECONDS = -18 * 60 * 60;
-    private static final int MAX_OFFSET_SECONDS =  18 * 60 * 60;
+    private static final int MAX_OFFSET_SECONDS = 18 * 60 * 60;
 
     private final Random random;
 
@@ -36,11 +35,8 @@ public final class OffsetTimeGenerator implements Generator<OffsetTime>, Seedabl
 
     @Override
     public OffsetTime generate() {
-        LocalTime time = LocalTime.of(
-            random.nextInt(24),
-            random.nextInt(60),
-            random.nextInt(60),
-            random.nextInt(1_000_000_000));
+        LocalTime time =
+                LocalTime.of(random.nextInt(24), random.nextInt(60), random.nextInt(60), random.nextInt(1_000_000_000));
         ZoneOffset offset = ZoneOffset.ofTotalSeconds(random.nextInt(MIN_OFFSET_SECONDS, MAX_OFFSET_SECONDS + 1));
         return OffsetTime.of(time, offset);
     }

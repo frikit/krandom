@@ -7,7 +7,7 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -22,25 +22,26 @@ import java.util.Random;
  */
 public final class JobTypeGenerator implements Generator<String> {
 
-    private static final JobTypeDataProvider DEFAULT_PROVIDER =
-        new BuiltInJobTypeDataProvider(Locale.ROOT, "default");
+    private static final JobTypeDataProvider DEFAULT_PROVIDER = new BuiltInJobTypeDataProvider(Locale.ROOT, "default");
 
     private final GeneratorConfig config;
-    private final Random          random;
-    private final List<String>    jobTypes;
+    private final Random random;
+    private final List<String> jobTypes;
 
     public JobTypeGenerator() {
         this(GeneratorConfig.defaults());
     }
 
     public JobTypeGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     public JobTypeGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
-        JobTypeDataProvider provider = config.getRegistryContext().jobTypeProvider(config.getLocale());
+        JobTypeDataProvider provider = config.getRegistryContext().provider(Vocabulary.JOB_TYPE, config.getLocale());
         this.jobTypes = (provider != null ? provider : DEFAULT_PROVIDER).getJobTypes();
     }
 

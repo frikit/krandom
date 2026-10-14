@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.commerce;
 
 import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.user.PersonInfo;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -29,19 +28,16 @@ import java.time.LocalDate;
  * @param shippingAddress shipping address payload
  */
 public record OrderInfo(
-    String orderNumber,
-    String status,
-    LocalDate orderedOn,
-    String currencyCode,
-    int quantity,
-    BigDecimal unitPrice,
-    BigDecimal subtotal,
-    BigDecimal shipping,
-    BigDecimal tax,
-    BigDecimal total,
-    PersonInfo customer,
-    ProductInfo product,
-    AddressInfo shippingAddress
-) {
-
-}
+        String orderNumber,
+        String status,
+        LocalDate orderedOn,
+        String currencyCode,
+        int quantity,
+        BigDecimal unitPrice,
+        BigDecimal subtotal,
+        BigDecimal shipping,
+        BigDecimal tax,
+        BigDecimal total,
+        PersonInfo customer,
+        ProductInfo product,
+        AddressInfo shippingAddress) {}

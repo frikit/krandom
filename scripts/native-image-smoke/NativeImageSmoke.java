@@ -11,7 +11,6 @@ import io.github.frikit.krandom.generator.extension.KRandomModule;
 import io.github.frikit.krandom.generator.extension.KRandomModuleContext;
 import io.github.frikit.krandom.generator.object.ObjectGenerator;
 import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
-
 import java.util.Locale;
 
 /**
@@ -19,8 +18,7 @@ import java.util.Locale;
  */
 public final class NativeImageSmoke {
 
-    private NativeImageSmoke() {
-    }
+    private NativeImageSmoke() {}
 
     /**
      * Runs a deterministic core generator.
@@ -28,7 +26,11 @@ public final class NativeImageSmoke {
      * @param args ignored
      */
     public static void main(String[] args) {
-        GeneratorConfig config = GeneratorConfig.builder().seed(42L).locale(Locale.US).install(new SmokeModule()).build();
+        GeneratorConfig config = GeneratorConfig.builder()
+                .seed(42L)
+                .locale(Locale.US)
+                .install(new SmokeModule())
+                .build();
         String name = Generators.ofFullName(config).generate();
         Person person = new ObjectGenerator<>(Person.class, config).generate();
         String extensionValue = Generators.ofProviderHub(config).get("smoke.provider", String.class);
@@ -41,9 +43,15 @@ public final class NativeImageSmoke {
     private record Person(String name, int age) {}
 
     private static final class SmokeModule implements KRandomModule {
-        @Override public String id() { return "native-image-smoke"; }
-        @Override public void configure(KRandomModuleContext context) {
-            context.registerProvider(ProviderDescriptor.builder("smoke.provider", String.class, config -> "extension").build());
+        @Override
+        public String id() {
+            return "native-image-smoke";
+        }
+
+        @Override
+        public void configure(KRandomModuleContext context) {
+            context.registerProvider(ProviderDescriptor.builder("smoke.provider", String.class, config -> "extension")
+                    .build());
         }
     }
 }

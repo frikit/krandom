@@ -187,7 +187,7 @@ public final class SchemaProjection<T> {
      * @throws IOException if writing fails
      */
     public void writeCsv(Appendable out, Iterable<? extends T> values, CsvFormulaPolicy formulaPolicy)
-        throws IOException {
+            throws IOException {
         Objects.requireNonNull(out, "out must not be null");
         Objects.requireNonNull(formulaPolicy, "formulaPolicy must not be null");
         List<String> columns = new ArrayList<>(fields.keySet());
@@ -233,12 +233,18 @@ public final class SchemaProjection<T> {
         while (iterator.hasNext()) {
             Map<String, Object> row = project(iterator.next());
             Schema.appendIndent(out, 2);
-            out.append('<').append(Schema.DEFAULT_XML_RECORD_ELEMENT).append('>').append(Schema.NEWLINE);
+            out.append('<')
+                    .append(Schema.DEFAULT_XML_RECORD_ELEMENT)
+                    .append('>')
+                    .append(Schema.NEWLINE);
             for (Map.Entry<String, Object> entry : row.entrySet()) {
                 Schema.appendXmlField(out, entry.getKey(), entry.getValue(), 4);
             }
             Schema.appendIndent(out, 2);
-            out.append("</").append(Schema.DEFAULT_XML_RECORD_ELEMENT).append('>').append(Schema.NEWLINE);
+            out.append("</")
+                    .append(Schema.DEFAULT_XML_RECORD_ELEMENT)
+                    .append('>')
+                    .append(Schema.NEWLINE);
         }
         out.append("</").append(Schema.DEFAULT_XML_ROOT_ELEMENT).append('>').append(Schema.NEWLINE);
     }
@@ -351,7 +357,7 @@ public final class SchemaProjection<T> {
      * @throws IOException if writing fails
      */
     public void writeTo(OutputStream out, OutputFormat format, Iterable<? extends T> values, String tableName)
-        throws IOException {
+            throws IOException {
         Objects.requireNonNull(out, "out must not be null");
         Writer writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
         writeTo(writer, format, values, tableName);
@@ -368,7 +374,7 @@ public final class SchemaProjection<T> {
      * @throws IOException if writing fails
      */
     public void writeTo(Writer writer, OutputFormat format, Iterable<? extends T> values, String tableName)
-        throws IOException {
+            throws IOException {
         Objects.requireNonNull(writer, "writer must not be null");
         Objects.requireNonNull(format, "format must not be null");
         if (format == OutputFormat.JSONL) {

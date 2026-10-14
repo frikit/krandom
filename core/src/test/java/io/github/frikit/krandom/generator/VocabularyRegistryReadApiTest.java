@@ -5,6 +5,14 @@
  */
 package io.github.frikit.krandom.generator;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.commerce.CommerceDataRegistry;
 import io.github.frikit.krandom.generator.database.DatabaseColumnDataRegistry;
 import io.github.frikit.krandom.generator.file.DirectoryNameDataRegistry;
@@ -23,22 +31,13 @@ import io.github.frikit.krandom.generator.user.JobTypeDataRegistry;
 import io.github.frikit.krandom.generator.user.MaritalStatusDataRegistry;
 import io.github.frikit.krandom.generator.user.PositionDataRegistry;
 import io.github.frikit.krandom.generator.user.SeniorityDataRegistry;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Read-only contract of the vocabulary registries added by the locale-pattern migration: built-in
@@ -49,11 +48,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("Vocabulary registry read APIs")
 class VocabularyRegistryReadApiTest {
 
-    private record ReadApi(String name,
-                           Function<Locale, Boolean> isRegistered,
-                           Function<Locale, Object> forLocale,
-                           Set<String> registeredKeys,
-                           Function<Object, Locale> providerLocale) {
+    private record ReadApi(
+            String name,
+            Function<Locale, Boolean> isRegistered,
+            Function<Locale, Object> forLocale,
+            Set<String> registeredKeys,
+            Function<Object, Locale> providerLocale) {
 
         @Override
         public String toString() {
@@ -63,55 +63,107 @@ class VocabularyRegistryReadApiTest {
 
     static Stream<ReadApi> readApis() {
         return Stream.of(
-            new ReadApi("industry", IndustryDataRegistry::isRegistered, IndustryDataRegistry::forLocale,
+                new ReadApi(
+                        "industry",
+                        IndustryDataRegistry::isRegistered,
+                        IndustryDataRegistry::forLocale,
                         IndustryDataRegistry.registeredKeys(),
                         p -> ((io.github.frikit.krandom.generator.user.IndustryDataProvider) p).getLocale()),
-            new ReadApi("jobField", JobFieldDataRegistry::isRegistered, JobFieldDataRegistry::forLocale,
+                new ReadApi(
+                        "jobField",
+                        JobFieldDataRegistry::isRegistered,
+                        JobFieldDataRegistry::forLocale,
                         JobFieldDataRegistry.registeredKeys(),
                         p -> ((io.github.frikit.krandom.generator.user.JobFieldDataProvider) p).getLocale()),
-            new ReadApi("seniority", SeniorityDataRegistry::isRegistered, SeniorityDataRegistry::forLocale,
+                new ReadApi(
+                        "seniority",
+                        SeniorityDataRegistry::isRegistered,
+                        SeniorityDataRegistry::forLocale,
                         SeniorityDataRegistry.registeredKeys(),
                         p -> ((io.github.frikit.krandom.generator.user.SeniorityDataProvider) p).getLocale()),
-            new ReadApi("position", PositionDataRegistry::isRegistered, PositionDataRegistry::forLocale,
+                new ReadApi(
+                        "position",
+                        PositionDataRegistry::isRegistered,
+                        PositionDataRegistry::forLocale,
                         PositionDataRegistry.registeredKeys(),
                         p -> ((io.github.frikit.krandom.generator.user.PositionDataProvider) p).getLocale()),
-            new ReadApi("educationalAttainment", EducationalAttainmentDataRegistry::isRegistered,
-                        EducationalAttainmentDataRegistry::forLocale, EducationalAttainmentDataRegistry.registeredKeys(),
-                        p -> ((io.github.frikit.krandom.generator.user.EducationalAttainmentDataProvider) p).getLocale()),
-            new ReadApi("maritalStatus", MaritalStatusDataRegistry::isRegistered, MaritalStatusDataRegistry::forLocale,
+                new ReadApi(
+                        "educationalAttainment",
+                        EducationalAttainmentDataRegistry::isRegistered,
+                        EducationalAttainmentDataRegistry::forLocale,
+                        EducationalAttainmentDataRegistry.registeredKeys(),
+                        p -> ((io.github.frikit.krandom.generator.user.EducationalAttainmentDataProvider) p)
+                                .getLocale()),
+                new ReadApi(
+                        "maritalStatus",
+                        MaritalStatusDataRegistry::isRegistered,
+                        MaritalStatusDataRegistry::forLocale,
                         MaritalStatusDataRegistry.registeredKeys(),
                         p -> ((io.github.frikit.krandom.generator.user.MaritalStatusDataProvider) p).getLocale()),
-            new ReadApi("jobType", JobTypeDataRegistry::isRegistered, JobTypeDataRegistry::forLocale,
+                new ReadApi(
+                        "jobType",
+                        JobTypeDataRegistry::isRegistered,
+                        JobTypeDataRegistry::forLocale,
                         JobTypeDataRegistry.registeredKeys(),
                         p -> ((io.github.frikit.krandom.generator.user.JobTypeDataProvider) p).getLocale()),
-            new ReadApi("companyName", CompanyNameDataRegistry::isRegistered, CompanyNameDataRegistry::forLocale,
+                new ReadApi(
+                        "companyName",
+                        CompanyNameDataRegistry::isRegistered,
+                        CompanyNameDataRegistry::forLocale,
                         CompanyNameDataRegistry.registeredKeys(),
                         p -> ((io.github.frikit.krandom.generator.user.CompanyNameDataProvider) p).getLocale()),
-            new ReadApi("companyBuzzword", CompanyBuzzwordDataRegistry::isRegistered,
-                        CompanyBuzzwordDataRegistry::forLocale, CompanyBuzzwordDataRegistry.registeredKeys(),
+                new ReadApi(
+                        "companyBuzzword",
+                        CompanyBuzzwordDataRegistry::isRegistered,
+                        CompanyBuzzwordDataRegistry::forLocale,
+                        CompanyBuzzwordDataRegistry.registeredKeys(),
                         p -> ((io.github.frikit.krandom.generator.user.CompanyBuzzwordDataProvider) p).getLocale()),
-            new ReadApi("companyCatchPhrase", CompanyCatchPhraseDataRegistry::isRegistered,
-                        CompanyCatchPhraseDataRegistry::forLocale, CompanyCatchPhraseDataRegistry.registeredKeys(),
+                new ReadApi(
+                        "companyCatchPhrase",
+                        CompanyCatchPhraseDataRegistry::isRegistered,
+                        CompanyCatchPhraseDataRegistry::forLocale,
+                        CompanyCatchPhraseDataRegistry.registeredKeys(),
                         p -> ((io.github.frikit.krandom.generator.user.CompanyCatchPhraseDataProvider) p).getLocale()),
-            new ReadApi("textWord", TextWordDataRegistry::isRegistered, TextWordDataRegistry::forLocale,
+                new ReadApi(
+                        "textWord",
+                        TextWordDataRegistry::isRegistered,
+                        TextWordDataRegistry::forLocale,
                         TextWordDataRegistry.registeredKeys(),
                         p -> ((io.github.frikit.krandom.generator.text.TextWordDataProvider) p).getLocale()),
-            new ReadApi("commerce", CommerceDataRegistry::isRegistered, CommerceDataRegistry::forLocale,
+                new ReadApi(
+                        "commerce",
+                        CommerceDataRegistry::isRegistered,
+                        CommerceDataRegistry::forLocale,
                         CommerceDataRegistry.registeredKeys(),
                         p -> ((io.github.frikit.krandom.generator.commerce.CommerceDataProvider) p).getLocale()),
-            new ReadApi("databaseColumn", DatabaseColumnDataRegistry::isRegistered, DatabaseColumnDataRegistry::forLocale,
+                new ReadApi(
+                        "databaseColumn",
+                        DatabaseColumnDataRegistry::isRegistered,
+                        DatabaseColumnDataRegistry::forLocale,
                         DatabaseColumnDataRegistry.registeredKeys(),
                         p -> ((io.github.frikit.krandom.generator.database.DatabaseColumnDataProvider) p).getLocale()),
-            new ReadApi("directoryName", DirectoryNameDataRegistry::isRegistered, DirectoryNameDataRegistry::forLocale,
+                new ReadApi(
+                        "directoryName",
+                        DirectoryNameDataRegistry::isRegistered,
+                        DirectoryNameDataRegistry::forLocale,
                         DirectoryNameDataRegistry.registeredKeys(),
                         p -> ((io.github.frikit.krandom.generator.file.DirectoryNameDataProvider) p).getLocale()),
-            new ReadApi("bankName", BankNameDataRegistry::isRegistered, BankNameDataRegistry::forLocale,
+                new ReadApi(
+                        "bankName",
+                        BankNameDataRegistry::isRegistered,
+                        BankNameDataRegistry::forLocale,
                         BankNameDataRegistry.registeredKeys(),
                         p -> ((io.github.frikit.krandom.generator.finance.BankNameDataProvider) p).getLocale()),
-            new ReadApi("bankType", BankTypeDataRegistry::isRegistered, BankTypeDataRegistry::forLocale,
+                new ReadApi(
+                        "bankType",
+                        BankTypeDataRegistry::isRegistered,
+                        BankTypeDataRegistry::forLocale,
                         BankTypeDataRegistry.registeredKeys(),
                         p -> ((io.github.frikit.krandom.generator.finance.BankTypeDataProvider) p).getLocale()),
-            new ReadApi("bankAccount", BankAccountDataRegistry::isRegistered, BankAccountDataRegistry::forLocale,
+                new ReadApi(
+                        "bankAccount",
+                        BankAccountDataRegistry::isRegistered,
+                        BankAccountDataRegistry::forLocale,
                         BankAccountDataRegistry.registeredKeys(),
                         p -> ((io.github.frikit.krandom.generator.finance.BankAccountDataProvider) p).getLocale()));
     }
@@ -154,6 +206,7 @@ class VocabularyRegistryReadApiTest {
     @MethodSource("readApis")
     @DisplayName("key snapshots are immutable")
     void registeredKeysAreImmutable(ReadApi api) {
-        assertThrows(UnsupportedOperationException.class, () -> api.registeredKeys().add("xx"));
+        assertThrows(
+                UnsupportedOperationException.class, () -> api.registeredKeys().add("xx"));
     }
 }

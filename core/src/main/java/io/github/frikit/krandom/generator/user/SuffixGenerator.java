@@ -5,11 +5,10 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
-import java.security.SecureRandom;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -35,8 +34,8 @@ import java.util.Random;
 public final class SuffixGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
-    private final Random          random;
-    private final String[]        suffixes;
+    private final Random random;
+    private final String[] suffixes;
 
     /**
      * Uses {@link GeneratorConfig#defaults()} — locale defaults to {@link Locale#US}.
@@ -60,14 +59,14 @@ public final class SuffixGenerator implements Generator<String> {
         DataRegistryContext registryContext = config.getRegistryContext();
 
         Locale locale = config.getLocale();
-        if (!registryContext.isSuffixRegistered(locale)) {
-            throw new UnsupportedOperationException(
-                "Locale " + locale + " is not supported. Registered locales: "
-                + registryContext.suffixRegisteredKeys());
+        if (!registryContext.isRegistered(Vocabulary.SUFFIX, locale)) {
+            throw new UnsupportedOperationException("Locale " + locale + " is not supported. Registered locales: "
+                    + registryContext.registeredKeys(Vocabulary.SUFFIX));
         }
 
         this.random = config.createRandom();
-        this.suffixes = registryContext.suffixProvider(locale).getSuffixes();
+        this.suffixes = java.util.Objects.requireNonNull(registryContext.provider(Vocabulary.SUFFIX, locale))
+                .getSuffixes();
     }
 
     @Override
@@ -93,6 +92,6 @@ public final class SuffixGenerator implements Generator<String> {
      * Returns {@code true} if the configured locale has a registered suffix provider.
      */
     public boolean isLocaleExplicitlySupported() {
-        return config.getRegistryContext().isSuffixRegistered(config.getLocale());
+        return config.getRegistryContext().isRegistered(Vocabulary.SUFFIX, config.getLocale());
     }
 }

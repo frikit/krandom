@@ -5,16 +5,13 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import io.github.frikit.krandom.generator.GenerationContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.GenerationContext;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.objenesis.Objenesis;
-import org.objenesis.ObjenesisStd;
-
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -36,6 +33,9 @@ import java.util.Random;
 import java.util.ServiceLoader;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.Nullable;
+import org.objenesis.Objenesis;
+import org.objenesis.ObjenesisStd;
 
 /**
  * Generates random instances of any Java class or record by introspecting its structure
@@ -137,15 +137,15 @@ public final class ObjectGenerator<T> implements Generator<T> {
         }
     }
 
-    private final Class<T>              type;
+    private final Class<T> type;
     private final ObjectGeneratorConfig config;
-    private final ObjectPool            pool;
-    private final UniqueFieldTracker    uniqueFieldTracker;
-    private final int                   depth;
-    private final Long                  generationSeed;
-    private final Random                topLevelSeedSequence;
+    private final @Nullable ObjectPool pool;
+    private final UniqueFieldTracker uniqueFieldTracker;
+    private final int depth;
+    private final @Nullable Long generationSeed;
+    private final @Nullable Random topLevelSeedSequence;
     private final Map<TypeVariable<?>, Type> typeBindings;
-    private final String                objectPath;
+    private final String objectPath;
 
     // ── Public constructors ───────────────────────────────────────────────────
 
@@ -153,24 +153,14 @@ public final class ObjectGenerator<T> implements Generator<T> {
      * Creates a generator with default configuration.
      */
     public ObjectGenerator(Class<T> type) {
-        this(type,
-             ObjectGeneratorConfig.from(GeneratorConfig.defaults()),
-             0,
-             null,
-             null,
-             new UniqueFieldTracker());
+        this(type, ObjectGeneratorConfig.from(GeneratorConfig.defaults()), 0, null, null, new UniqueFieldTracker());
     }
 
     /**
      * Creates a generator that uses the shared root configuration defaults.
      */
     public ObjectGenerator(Class<T> type, GeneratorConfig config) {
-        this(type,
-             ObjectGeneratorConfig.from(config),
-             0,
-             null,
-             null,
-             new UniqueFieldTracker());
+        this(type, ObjectGeneratorConfig.from(config), 0, null, null, new UniqueFieldTracker());
     }
 
     /**
@@ -183,46 +173,43 @@ public final class ObjectGenerator<T> implements Generator<T> {
     /**
      * Internal constructor — depth and pool are managed by {@link FieldGeneratorResolver}.
      */
-    ObjectGenerator(Class<T> type,
-                    ObjectGeneratorConfig config,
-                    int depth,
-                    ObjectPool pool,
-                    Long generationSeed,
-                    UniqueFieldTracker uniqueFieldTracker) {
-        this(type,
-             config,
-             depth,
-             pool,
-             generationSeed,
-             uniqueFieldTracker,
-             ResolvedType.bindingsFor(Objects.requireNonNull(type, "type must not be null")));
+    ObjectGenerator(
+            Class<T> type,
+            ObjectGeneratorConfig config,
+            int depth,
+            @Nullable ObjectPool pool,
+            @Nullable Long generationSeed,
+            UniqueFieldTracker uniqueFieldTracker) {
+        this(
+                type,
+                config,
+                depth,
+                pool,
+                generationSeed,
+                uniqueFieldTracker,
+                ResolvedType.bindingsFor(Objects.requireNonNull(type, "type must not be null")));
     }
 
-    ObjectGenerator(Class<T> type,
-                    ObjectGeneratorConfig config,
-                    int depth,
-                    ObjectPool pool,
-                    Long generationSeed,
-                    UniqueFieldTracker uniqueFieldTracker,
-                    Map<? extends TypeVariable<?>, ? extends Type> typeBindings) {
-        this(type,
-             config,
-             depth,
-             pool,
-             generationSeed,
-             uniqueFieldTracker,
-             typeBindings,
-             typePath(type));
+    ObjectGenerator(
+            Class<T> type,
+            ObjectGeneratorConfig config,
+            int depth,
+            @Nullable ObjectPool pool,
+            @Nullable Long generationSeed,
+            UniqueFieldTracker uniqueFieldTracker,
+            Map<? extends TypeVariable<?>, ? extends Type> typeBindings) {
+        this(type, config, depth, pool, generationSeed, uniqueFieldTracker, typeBindings, typePath(type));
     }
 
-    ObjectGenerator(Class<T> type,
-                    ObjectGeneratorConfig config,
-                    int depth,
-                    ObjectPool pool,
-                    Long generationSeed,
-                    UniqueFieldTracker uniqueFieldTracker,
-                    Map<? extends TypeVariable<?>, ? extends Type> typeBindings,
-                    String objectPath) {
+    ObjectGenerator(
+            Class<T> type,
+            ObjectGeneratorConfig config,
+            int depth,
+            @Nullable ObjectPool pool,
+            @Nullable Long generationSeed,
+            UniqueFieldTracker uniqueFieldTracker,
+            Map<? extends TypeVariable<?>, ? extends Type> typeBindings,
+            String objectPath) {
         this.type = Objects.requireNonNull(type, "type must not be null");
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.depth = depth;
@@ -232,10 +219,10 @@ public final class ObjectGenerator<T> implements Generator<T> {
         this.typeBindings = Map.copyOf(Objects.requireNonNull(typeBindings, "typeBindings must not be null"));
         this.objectPath = Objects.requireNonNull(objectPath, "objectPath must not be null");
         this.topLevelSeedSequence = depth == 0 && pool == null
-                                    ? config.getGeneratorConfig().getSeed().isPresent()
-                                      ? config.getGeneratorConfig().createRandom()
-                                      : null
-                                    : null;
+                ? config.getGeneratorConfig().getSeed().isPresent()
+                        ? config.getGeneratorConfig().createRandom()
+                        : null
+                : null;
     }
 
     // ── Generator<T> ─────────────────────────────────────────────────────────
@@ -245,7 +232,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
      * Used when a record component is excluded from generation.
      * Each primitive type gets its exact wrapper to satisfy {@link java.lang.reflect.Constructor#newInstance}.
      */
-    private static Object defaultForType(Class<?> type) {
+    private static @Nullable Object defaultForType(Class<?> type) {
         if (type == boolean.class) return false;
         if (type == byte.class) return (byte) 0;
         if (type == short.class) return (short) 0;
@@ -269,14 +256,14 @@ public final class ObjectGenerator<T> implements Generator<T> {
         if (depth == 0 && pool == null) {
             // Fresh pool for each top-level generation call to prevent cross-call leakage.
             ObjectGenerator<T> scoped = new ObjectGenerator<>(
-                type,
-                config,
-                0,
-                new ObjectPool(config.getObjectPoolSize()),
-                nextGenerationSeed(),
-                uniqueFieldTracker,
-                typeBindings,
-                objectPath);
+                    type,
+                    config,
+                    0,
+                    new ObjectPool(config.getObjectPoolSize()),
+                    nextGenerationSeed(),
+                    uniqueFieldTracker,
+                    typeBindings,
+                    objectPath);
             return scoped.generateWithPool();
         }
         return generateWithPool();
@@ -290,22 +277,22 @@ public final class ObjectGenerator<T> implements Generator<T> {
     T populate(T instance) {
         Objects.requireNonNull(instance, "instance must not be null");
         if (!type.isInstance(instance)) {
-            throw new IllegalArgumentException(
-                "instance must be assignable to " + type.getName() + ", got " + instance.getClass().getName());
+            throw new IllegalArgumentException("instance must be assignable to " + type.getName() + ", got "
+                    + instance.getClass().getName());
         }
         if (type.isRecord()) {
             throw new IllegalArgumentException("populate(existing) does not support record types: " + type.getName());
         }
         if (depth == 0 && pool == null) {
             ObjectGenerator<T> scoped = new ObjectGenerator<>(
-                type,
-                config,
-                0,
-                new ObjectPool(config.getObjectPoolSize()),
-                nextGenerationSeed(),
-                uniqueFieldTracker,
-                typeBindings,
-                objectPath);
+                    type,
+                    config,
+                    0,
+                    new ObjectPool(config.getObjectPoolSize()),
+                    nextGenerationSeed(),
+                    uniqueFieldTracker,
+                    typeBindings,
+                    objectPath);
             return scoped.populateWithPool(instance);
         }
         return populateWithPool(instance);
@@ -317,23 +304,18 @@ public final class ObjectGenerator<T> implements Generator<T> {
         var contextualFactory = config.getContextualTypeOverride(type);
         if (contextualFactory.isPresent()) {
             return generateFromRootFactory(
-                "contextual type override",
-                () -> contextualFactory.get().generate(
-                    new GenerationContext("$root",
-                                          type,
-                                          depth,
-                                          objectPath,
-                                          type,
-                                          type,
-                                          config.getGeneratorConfig())));
+                    "contextual type override",
+                    () -> contextualFactory
+                            .get()
+                            .generate(new GenerationContext(
+                                    "$root", type, depth, objectPath, type, type, config.getGeneratorConfig())));
         }
         var factory = config.getTypeOverride(type);
         if (factory.isPresent()) {
             return generateFromRootFactory("type override", factory.get()::generate);
         }
 
-        FieldGeneratorResolver resolver =
-            new FieldGeneratorResolver(
+        FieldGeneratorResolver resolver = new FieldGeneratorResolver(
                 config,
                 Objects.requireNonNull(pool, "pool must not be null"),
                 uniqueFieldTracker,
@@ -341,9 +323,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 typeBindings,
                 objectPath);
         SemanticCoherenceAdjuster coherenceAdjuster =
-            new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth);
+                new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth);
         try {
-            return type.isRecord() ? generateRecord(resolver, coherenceAdjuster) : generateClass(resolver, coherenceAdjuster);
+            return type.isRecord()
+                    ? generateRecord(resolver, coherenceAdjuster)
+                    : generateClass(resolver, coherenceAdjuster);
         } catch (InvocationTargetException e) {
             throw constructionFailure(e.getTargetException());
         } catch (ReflectiveOperationException e) {
@@ -353,6 +337,9 @@ public final class ObjectGenerator<T> implements Generator<T> {
         }
     }
 
+    // Lenient mode deliberately returns the null fallback of a failed root factory from a
+    // non-null generator contract; that documented behavior is kept rather than widened.
+    @SuppressWarnings("NullAway")
     private T generateFromRootFactory(String factoryKind, Supplier<?> factory) {
         try {
             Object value = factory.get();
@@ -361,29 +348,28 @@ public final class ObjectGenerator<T> implements Generator<T> {
             }
             if (!type.isInstance(value)) {
                 throw new IllegalArgumentException(
-                    factoryKind + " returned " + value.getClass().getName()
-                    + " for " + type.getName());
+                        factoryKind + " returned " + value.getClass().getName() + " for " + type.getName());
             }
             return type.cast(value);
         } catch (RuntimeException factoryFailure) {
             String path = typePath();
             GenerationFailureContext context = new GenerationFailureContext(
-                GenerationFailureCategory.CUSTOM_GENERATOR,
-                GenerationOperation.CONSTRUCT,
-                path,
-                type,
-                type.getTypeName(),
-                depth,
-                -1);
+                    GenerationFailureCategory.CUSTOM_GENERATOR,
+                    GenerationOperation.CONSTRUCT,
+                    path,
+                    type,
+                    type.getTypeName(),
+                    depth,
+                    -1);
             ObjectGenerationFailurePolicy failurePolicy = new ObjectGenerationFailurePolicy(
-                config.isIgnoreErrors(), config.getGeneratorConfig().getGenerationFailureListener());
+                    config.isIgnoreErrors(), config.getGeneratorConfig().getGenerationFailureListener());
             Object fallback = failurePolicy.handle(
-                new ObjectGenerationException(
-                    "Root " + factoryKind + " failed for '" + path + "' (declared type "
-                    + type.getTypeName() + ", depth " + depth + ")",
-                    context,
-                    factoryFailure),
-                null);
+                    new ObjectGenerationException(
+                            "Root " + factoryKind + " failed for '" + path + "' (declared type " + type.getTypeName()
+                                    + ", depth " + depth + ")",
+                            context,
+                            factoryFailure),
+                    null);
             return type.cast(fallback);
         }
     }
@@ -391,18 +377,18 @@ public final class ObjectGenerator<T> implements Generator<T> {
     private ObjectGenerationException constructionFailure(Throwable cause) {
         String path = typePath();
         GenerationFailureContext context = new GenerationFailureContext(
-            GenerationFailureCategory.CONSTRUCTION,
-            GenerationOperation.CONSTRUCT,
-            path,
-            type,
-            type.getTypeName(),
-            depth,
-            -1);
+                GenerationFailureCategory.CONSTRUCTION,
+                GenerationOperation.CONSTRUCT,
+                path,
+                type,
+                type.getTypeName(),
+                depth,
+                -1);
         return new ObjectGenerationException(
-            "Could not construct type at '" + path + "' (declared type "
-            + type.getTypeName() + ", depth " + depth + ")",
-            context,
-            cause);
+                "Could not construct type at '" + path + "' (declared type " + type.getTypeName() + ", depth " + depth
+                        + ")",
+                context,
+                cause);
     }
 
     private ObjectGenerationException moduleAccessFailure(Class<?> declaringType, Throwable cause) {
@@ -411,20 +397,20 @@ public final class ObjectGenerator<T> implements Generator<T> {
         String sourceModuleName = declaringType.getModule().getName();
         String directive = "opens " + packageName + " to io.github.frikit.krandom;";
         GenerationFailureContext context = new GenerationFailureContext(
-            GenerationFailureCategory.REFLECTION,
-            GenerationOperation.CONSTRUCT,
-            path,
-            declaringType,
-            type.getTypeName(),
-            depth,
-            -1);
+                GenerationFailureCategory.REFLECTION,
+                GenerationOperation.CONSTRUCT,
+                path,
+                declaringType,
+                type.getTypeName(),
+                depth,
+                -1);
         return new ObjectGenerationException(
-            "Could not access reflective members of type at '" + path + "' (declared type "
-            + type.getTypeName() + ", depth " + depth + "). Module '" + sourceModuleName
-            + "' must open package '" + packageName + "' to kRandom; add '" + directive
-            + "' to module-info.java",
-            context,
-            cause);
+                "Could not access reflective members of type at '" + path + "' (declared type "
+                        + type.getTypeName() + ", depth " + depth + "). Module '" + sourceModuleName
+                        + "' must open package '" + packageName + "' to kRandom; add '" + directive
+                        + "' to module-info.java",
+                context,
+                cause);
     }
 
     private String typePath() {
@@ -437,8 +423,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
     }
 
     private T populateWithPool(T instance) {
-        FieldGeneratorResolver resolver =
-            new FieldGeneratorResolver(
+        FieldGeneratorResolver resolver = new FieldGeneratorResolver(
                 config,
                 Objects.requireNonNull(pool, "pool must not be null"),
                 uniqueFieldTracker,
@@ -446,77 +431,82 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 typeBindings,
                 objectPath);
         try {
-            populateClass(instance,
-                          resolver,
-                          new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth),
-                          collectSettableFields(type),
-                          config.isOverrideDefaultInitialization());
+            populateClass(
+                    instance,
+                    resolver,
+                    new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth),
+                    collectSettableFields(type),
+                    config.isOverrideDefaultInitialization());
             return instance;
         } catch (ModuleAccessException e) {
             throw moduleAccessFailure(e.getDeclaringType(), e);
         }
     }
 
-    private Long nextGenerationSeed() {
+    private @Nullable Long nextGenerationSeed() {
         return topLevelSeedSequence != null ? Long.valueOf(topLevelSeedSequence.nextLong()) : generationSeed;
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private T generateRecord(FieldGeneratorResolver resolver,
-                             SemanticCoherenceAdjuster coherenceAdjuster) throws ReflectiveOperationException {
+    private T generateRecord(FieldGeneratorResolver resolver, SemanticCoherenceAdjuster coherenceAdjuster)
+            throws ReflectiveOperationException {
         RecordMeta meta = RECORD_META.get(type);
         RecordComponent[] components = meta.components();
         Field[] backingFields = meta.backingFields();
 
-        Object[] args = new Object[components.length];
+        @Nullable Object[] args = new @Nullable Object[components.length];
         for (int i = 0; i < components.length; i++) {
             RecordComponent comp = components[i];
             if (config.shouldExclude(backingFields[i])) {
                 args[i] = defaultForType(comp.getType());
             } else {
                 args[i] = resolver.resolveAndGenerateMember(
-                    comp.getGenericType(),
-                    comp.getType(),
-                    comp.getName(),
-                    type,
-                    depth,
-                    backingFields[i],
-                    memberStreamIdentity(type, "record", comp.getName()));
+                        comp.getGenericType(),
+                        comp.getType(),
+                        comp.getName(),
+                        type,
+                        depth,
+                        backingFields[i],
+                        memberStreamIdentity(type, "record", comp.getName()));
             }
         }
         coherenceAdjuster.adjustRecordArguments(type, components, backingFields, args);
 
         Constructor<T> canonical = type.getDeclaredConstructor(meta.paramTypes());
         ensureAccessible(canonical, type);
-        return canonical.newInstance(args);
+        try {
+            return canonical.newInstance(args);
+        } catch (IllegalArgumentException argumentMismatch) {
+            // An override or provider produced a value the canonical constructor cannot accept.
+            throw constructionFailure(argumentMismatch);
+        }
     }
 
     private static RecordMeta buildRecordMeta(Class<?> recordType) {
         RecordComponent[] components = recordType.getRecordComponents();
-        Class<?>[] paramTypes = Arrays.stream(components)
-                                      .map(RecordComponent::getType)
-                                      .toArray(Class[]::new);
-        Map<String, Field> fieldsByName = Arrays.stream(recordType.getDeclaredFields())
-                                                .collect(Collectors.toMap(Field::getName, field -> field));
+        Class<?>[] paramTypes =
+                Arrays.stream(components).map(RecordComponent::getType).toArray(Class[]::new);
+        Map<String, Field> fieldsByName =
+                Arrays.stream(recordType.getDeclaredFields()).collect(Collectors.toMap(Field::getName, field -> field));
         Field[] backingFields = Arrays.stream(components)
-            .map(c -> Objects.requireNonNull(fieldsByName.get(c.getName()),
-                                             "record backing field missing for " + recordType.getName() + "." + c.getName()))
-            .toArray(Field[]::new);
+                .map(c -> Objects.requireNonNull(
+                        fieldsByName.get(c.getName()),
+                        "record backing field missing for " + recordType.getName() + "." + c.getName()))
+                .toArray(Field[]::new);
         return new RecordMeta(components, backingFields, paramTypes);
     }
 
-    private T generateClass(FieldGeneratorResolver resolver,
-                            SemanticCoherenceAdjuster coherenceAdjuster) throws ReflectiveOperationException {
+    private T generateClass(FieldGeneratorResolver resolver, SemanticCoherenceAdjuster coherenceAdjuster)
+            throws ReflectiveOperationException {
         Optional<ObjectConstructionAdapter> adapter =
-            uniqueFieldTracker.constructionAdapter(type, ObjectGenerator::constructionAdapterFor);
+                uniqueFieldTracker.constructionAdapter(type, ObjectGenerator::constructionAdapterFor);
         if (adapter.isPresent()) {
             return constructWithAdapter(adapter.get(), resolver);
         }
         if (requiresKotlinConstructionAdapter(type)) {
-            throw new ReflectiveOperationException(
-                "Immutable Kotlin type " + type.getName()
-                + " requires the krandom-kotlin-dsl construction adapter");
+            throw new ReflectiveOperationException("Immutable Kotlin type " + type.getName()
+                    + " requires the krandom-kotlin-dsl construction adapter");
         }
         validateConstructibleType();
         List<Field> settableFields = collectSettableFields(type);
@@ -528,27 +518,26 @@ public final class ObjectGenerator<T> implements Generator<T> {
     private T constructWithAdapter(ObjectConstructionAdapter adapter, FieldGeneratorResolver resolver) {
         try {
             Object value = adapter.construct(new ObjectConstructionContext<>(
-                type,
-                typePath(),
-                type,
-                depth,
-                (genericType, rawType, memberName, element) -> resolver.resolveAndGenerateMember(
-                    genericType,
-                    rawType,
-                    memberName,
+                    type,
+                    typePath(),
                     type,
                     depth,
-                    element,
-                    memberStreamIdentity(type, "constructor", memberName)),
-                this::hasExplicitConstructionOverride,
-                this::isExcludedConstructionMember));
+                    (genericType, rawType, memberName, element) -> resolver.resolveAndGenerateMember(
+                            genericType,
+                            rawType,
+                            memberName,
+                            type,
+                            depth,
+                            element,
+                            memberStreamIdentity(type, "constructor", memberName)),
+                    this::hasExplicitConstructionOverride,
+                    this::isExcludedConstructionMember));
             if (value == null) {
                 throw new IllegalStateException(adapter.getClass().getName() + " returned null");
             }
             if (!type.isInstance(value)) {
-                throw new IllegalArgumentException(
-                    adapter.getClass().getName() + " returned " + value.getClass().getName()
-                    + " for " + type.getName());
+                throw new IllegalArgumentException(adapter.getClass().getName() + " returned "
+                        + value.getClass().getName() + " for " + type.getName());
             }
             return type.cast(value);
         } catch (ObjectGenerationException e) {
@@ -563,6 +552,10 @@ public final class ObjectGenerator<T> implements Generator<T> {
      * parameter, through the property's backing field declared on the type or a superclass.
      */
     private boolean isExcludedConstructionMember(String memberName) {
+        // A name exclusion applies to the member itself, whether or not a field backs it.
+        if (config.getGeneratorConfig().isObjectFieldNameExcluded(memberName)) {
+            return true;
+        }
         for (Class<?> current = type; current != Object.class; current = current.getSuperclass()) {
             try {
                 return config.shouldExclude(current.getDeclaredField(memberName));
@@ -575,12 +568,12 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     private boolean hasExplicitConstructionOverride(String memberName, Class<?> rawType) {
         return config.getContextualFieldOverride(type, memberName).isPresent()
-               || config.getFieldOverride(type, memberName).isPresent()
-               || config.getContextualTypeOverride(rawType).isPresent()
-               || config.getTypeOverride(rawType).isPresent();
+                || config.getFieldOverride(type, memberName).isPresent()
+                || config.getContextualTypeOverride(rawType).isPresent()
+                || config.getTypeOverride(rawType).isPresent();
     }
 
-    private static ObjectConstructionAdapter constructionAdapterFor(Class<?> requestedType) {
+    private static @Nullable ObjectConstructionAdapter constructionAdapterFor(Class<?> requestedType) {
         for (ObjectConstructionAdapter adapter : ServiceLoader.load(ObjectConstructionAdapter.class)) {
             if (adapter.supports(requestedType)) {
                 return adapter;
@@ -607,7 +600,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     private static boolean isKotlinType(Class<?> requestedType) {
         return Arrays.stream(requestedType.getDeclaredAnnotations())
-                     .anyMatch(annotation -> annotation.annotationType().getName().equals("kotlin.Metadata"));
+                .anyMatch(annotation -> annotation.annotationType().getName().equals("kotlin.Metadata"));
     }
 
     private static boolean hasKotlinObjectInstance(Class<?> requestedType) {
@@ -619,13 +612,14 @@ public final class ObjectGenerator<T> implements Generator<T> {
         }
     }
 
-    private void populateClass(T instance,
-                               FieldGeneratorResolver resolver,
-                               SemanticCoherenceAdjuster coherenceAdjuster,
-                               List<Field> settableFields,
-                               boolean allowOverwriteExisting) {
+    private void populateClass(
+            T instance,
+            FieldGeneratorResolver resolver,
+            SemanticCoherenceAdjuster coherenceAdjuster,
+            List<Field> settableFields,
+            boolean allowOverwriteExisting) {
         ObjectGenerationFailurePolicy failurePolicy = new ObjectGenerationFailurePolicy(
-            config.isIgnoreErrors(), config.getGeneratorConfig().getGenerationFailureListener());
+                config.isIgnoreErrors(), config.getGeneratorConfig().getGenerationFailureListener());
         for (Field field : settableFields) {
             if (config.shouldExclude(field)) continue; // exclusion check
             ensureAccessible(field, field.getDeclaringClass());
@@ -633,30 +627,29 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 continue;
             }
             Object value = resolver.resolveAndGenerateMember(
-                field.getGenericType(),
-                field.getType(),
-                field.getName(),
-                field.getDeclaringClass(),
-                depth,
-                field,
-                memberStreamIdentity(field.getDeclaringClass(), "field", field.getName()));
+                    field.getGenericType(),
+                    field.getType(),
+                    field.getName(),
+                    field.getDeclaringClass(),
+                    depth,
+                    field,
+                    memberStreamIdentity(field.getDeclaringClass(), "field", field.getName()));
             try {
                 field.set(instance, value);
             } catch (IllegalAccessException | IllegalArgumentException e) {
                 String fieldContext = "field '" + field.getDeclaringClass().getSimpleName()
-                                      + "." + field.getName() + "' (declared type "
-                                      + field.getGenericType().getTypeName() + ", depth " + depth + ")";
+                        + "." + field.getName() + "' (declared type "
+                        + field.getGenericType().getTypeName() + ", depth " + depth + ")";
                 GenerationFailureContext failureContext = new GenerationFailureContext(
-                    GenerationFailureCategory.ASSIGNMENT,
-                    GenerationOperation.ASSIGN,
-                    field.getDeclaringClass().getSimpleName() + "." + field.getName(),
-                    field.getDeclaringClass(),
-                    field.getGenericType().getTypeName(),
-                    depth,
-                    -1);
+                        GenerationFailureCategory.ASSIGNMENT,
+                        GenerationOperation.ASSIGN,
+                        field.getDeclaringClass().getSimpleName() + "." + field.getName(),
+                        field.getDeclaringClass(),
+                        field.getGenericType().getTypeName(),
+                        depth,
+                        -1);
                 failurePolicy.handle(
-                    new ObjectGenerationException("Could not set " + fieldContext, failureContext, e),
-                    null);
+                        new ObjectGenerationException("Could not set " + fieldContext, failureContext, e), null);
             }
         }
         coherenceAdjuster.adjustInstance(type, instance, settableFields, allowOverwriteExisting);
@@ -666,8 +659,10 @@ public final class ObjectGenerator<T> implements Generator<T> {
      * Instantiate {@code type} without populating fields.
      *
      * <p>Attempts to use a no-arg constructor first (public or package-private). In safe mode, one
-     * unambiguous declared constructor is resolved when no no-arg constructor exists. The unsafe
-     * compatibility policy instead preserves the legacy Objenesis fallback.
+     * unambiguous declared constructor is resolved when no no-arg constructor exists; its parameters
+     * are resolved by name when the type was compiled with {@code -parameters} and as
+     * {@code constructorArg<index>} otherwise. The unsafe compatibility policy instead preserves the
+     * legacy Objenesis fallback.
      *
      * <p>Any {@link ReflectiveOperationException} thrown by {@link Constructor#newInstance}
      * (e.g. {@link java.lang.reflect.InvocationTargetException} when the constructor body
@@ -691,18 +686,17 @@ public final class ObjectGenerator<T> implements Generator<T> {
     private void validateConstructibleType() throws ReflectiveOperationException {
         int modifiers = type.getModifiers();
         boolean unsupported = type.isArray()
-                              || type.isPrimitive()
-                              || type.isEnum()
-                              || type.isAnnotation()
-                              || type.isInterface()
-                              || Modifier.isAbstract(modifiers)
-                              || type.isLocalClass()
-                              || type.isAnonymousClass()
-                              || (type.isMemberClass() && !Modifier.isStatic(modifiers));
+                || type.isPrimitive()
+                || type.isEnum()
+                || type.isAnnotation()
+                || type.isInterface()
+                || Modifier.isAbstract(modifiers)
+                || type.isLocalClass()
+                || type.isAnonymousClass()
+                || (type.isMemberClass() && !Modifier.isStatic(modifiers));
         if (unsupported) {
-            throw new ReflectiveOperationException(
-                "Construction policy " + config.getConstructionPolicy()
-                + " does not support root type " + type.getName());
+            throw new ReflectiveOperationException("Construction policy " + config.getConstructionPolicy()
+                    + " does not support root type " + type.getName());
         }
     }
 
@@ -710,28 +704,40 @@ public final class ObjectGenerator<T> implements Generator<T> {
     private T invokeUniqueDeclaredConstructor(FieldGeneratorResolver resolver) throws ReflectiveOperationException {
         Constructor<?>[] candidates = type.getDeclaredConstructors();
         if (candidates.length != 1) {
-            throw new ReflectiveOperationException(
-                "Construction policy " + ObjectConstructionPolicy.SAFE_CONSTRUCTORS
-                + " requires one unambiguous declared constructor for " + type.getName()
-                + "; found " + candidates.length);
+            throw new ReflectiveOperationException("Construction policy " + ObjectConstructionPolicy.SAFE_CONSTRUCTORS
+                    + " requires one unambiguous declared constructor for " + type.getName()
+                    + "; found " + candidates.length);
         }
 
         Constructor<T> constructor = (Constructor<T>) candidates[0];
         ensureAccessible(constructor, type);
         Parameter[] parameters = constructor.getParameters();
-        Object[] arguments = new Object[parameters.length];
+        @Nullable Object[] arguments = new @Nullable Object[parameters.length];
         for (int index = 0; index < parameters.length; index++) {
             Parameter parameter = parameters[index];
+            // Parameter names are only available when the owner was compiled with -parameters.
+            // With names, a parameter behaves like the field it initializes: by-name overrides,
+            // exclusions, and semantic resolution apply. Without names it is addressed by position.
+            String memberName = parameter.isNamePresent() ? parameter.getName() : "constructorArg" + index;
+            if (parameter.isNamePresent() && isExcludedConstructionMember(memberName)) {
+                arguments[index] = defaultForType(parameter.getType());
+                continue;
+            }
             arguments[index] = resolver.resolveAndGenerateMember(
-                parameter.getParameterizedType(),
-                parameter.getType(),
-                "constructorArg" + index,
-                type,
-                depth,
-                parameter,
-                memberStreamIdentity(type, "constructor", Integer.toString(index)));
+                    parameter.getParameterizedType(),
+                    parameter.getType(),
+                    memberName,
+                    type,
+                    depth,
+                    parameter,
+                    memberStreamIdentity(type, "constructor", memberName));
         }
-        return constructor.newInstance(arguments);
+        try {
+            return constructor.newInstance(arguments);
+        } catch (IllegalArgumentException argumentMismatch) {
+            // An override or provider produced a value the constructor cannot accept.
+            throw constructionFailure(argumentMismatch);
+        }
     }
 
     /**
@@ -744,8 +750,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
     }
 
     private static String memberStreamIdentity(Class<?> ownerType, String kind, String memberName) {
-        return "object|owner=" + ownerType.getName().length() + ':' + ownerType.getName()
-               + "|kind=" + kind + "|member=" + memberName.length() + ':' + memberName;
+        return "object|owner=" + ownerType.getName().length() + ':' + ownerType.getName() + "|kind=" + kind + "|member="
+                + memberName.length() + ':' + memberName;
     }
 
     private static List<Field> doCollectSettableFields(Class<?> clazz) {
@@ -760,8 +766,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
             Arrays.sort(declared, Comparator.comparing(Field::getName));
             for (Field f : declared) {
                 int mods = f.getModifiers();
-                if (Modifier.isStatic(mods)) continue;  // class-level, not instance
-                if (Modifier.isFinal(mods)) continue;  // immutable after construction
+                if (Modifier.isStatic(mods)) continue; // class-level, not instance
+                if (Modifier.isFinal(mods)) continue; // immutable after construction
                 ensureAccessible(f, f.getDeclaringClass());
                 fields.add(f);
             }
@@ -781,8 +787,9 @@ public final class ObjectGenerator<T> implements Generator<T> {
             Object currentValue = field.get(instance);
             return !isDefaultValue(currentValue, field.getType());
         } catch (IllegalAccessException e) {
-            throw new IllegalStateException("Field should be accessible: "
-                                            + field.getDeclaringClass().getSimpleName() + "." + field.getName(), e);
+            throw new IllegalStateException(
+                    "Field should be accessible: " + field.getDeclaringClass().getSimpleName() + "." + field.getName(),
+                    e);
         }
     }
 
@@ -790,7 +797,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     @Override
     public String toString() {
-        return "ObjectGenerator{type=" + type.getName() + ", depth=" + depth +
-               ", maxDepth=" + config.getMaxDepth() + "}";
+        return "ObjectGenerator{type=" + type.getName() + ", depth=" + depth + ", maxDepth=" + config.getMaxDepth()
+                + "}";
     }
 }

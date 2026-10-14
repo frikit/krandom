@@ -5,10 +5,10 @@
  */
 package io.github.frikit.krandom.generator.weather;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -31,7 +31,7 @@ import java.util.Random;
 public final class WeatherGenerator implements Generator<String> {
 
     private static final WeatherDataProvider DEFAULT_PROVIDER =
-        new BuiltInWeatherDataProvider(Locale.ROOT, "krandom/weather/default.txt");
+            new BuiltInWeatherDataProvider(Locale.ROOT, "krandom/weather/default.txt");
 
     private final List<String> conditions;
     private final Random random;
@@ -50,7 +50,9 @@ public final class WeatherGenerator implements Generator<String> {
      *               file exists; must not be {@code null}
      */
     public WeatherGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -61,7 +63,7 @@ public final class WeatherGenerator implements Generator<String> {
     public WeatherGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         DataRegistryContext registryContext = config.getRegistryContext();
-        WeatherDataProvider provider = registryContext.weatherProvider(config.getLocale());
+        WeatherDataProvider provider = registryContext.provider(Vocabulary.WEATHER, config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }

@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.math.BigInteger;
 import java.util.Objects;
 import java.util.Random;
@@ -31,7 +30,7 @@ public final class BigIntegerGenerator implements Generator<BigInteger> {
 
     private final BigInteger min;
     private final BigInteger max;
-    private final Random     random;
+    private final Random random;
 
     /**
      * Default range [0, {@link Long#MAX_VALUE}].

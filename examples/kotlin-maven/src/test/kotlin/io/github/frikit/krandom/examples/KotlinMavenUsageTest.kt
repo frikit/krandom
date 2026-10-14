@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 krandom contributors
+ *
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
 package io.github.frikit.krandom.examples
 
 import io.github.frikit.krandom.generator.Generators
@@ -9,14 +14,14 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class KotlinMavenUsageTest {
-
     @Test
     fun `core can generate fixture data from kotlin`() {
-        val fixture = UserFixture(
-            name = Generators.ofFullName().generate(),
-            email = Generators.ofEmail().generate(),
-            country = Generators.ofCountry().generate()
-        )
+        val fixture =
+            UserFixture(
+                name = Generators.ofFullName().generate(),
+                email = Generators.ofEmail().generate(),
+                country = Generators.ofCountry().generate(),
+            )
 
         assertTrue(fixture.email.contains("@"))
         assertFalse(fixture.country.isBlank())
@@ -24,12 +29,15 @@ class KotlinMavenUsageTest {
 
     @Test
     fun `core names the Kotlin DSL when immutable Kotlin construction is unavailable`() {
-        val failure = assertThrows(ObjectGenerationException::class.java) {
-            ObjectGenerator(CoreOnlyImmutableFixture::class.java).generate()
-        }
+        val failure =
+            assertThrows(ObjectGenerationException::class.java) {
+                ObjectGenerator(CoreOnlyImmutableFixture::class.java).generate()
+            }
 
         assertTrue(failure.cause?.message?.contains("krandom-kotlin-dsl") == true)
     }
 }
 
-data class CoreOnlyImmutableFixture(val value: String)
+data class CoreOnlyImmutableFixture(
+    val value: String,
+)

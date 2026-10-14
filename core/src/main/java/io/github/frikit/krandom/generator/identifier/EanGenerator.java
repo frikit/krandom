@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.identifier;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
 
@@ -60,7 +58,7 @@ public final class EanGenerator implements Generator<String> {
         return generateWithLength(13, prefix);
     }
 
-    private String generateWithLength(int length, String prefix) {
+    private String generateWithLength(int length, @org.jspecify.annotations.Nullable String prefix) {
         if (length != 8 && length != 13) {
             throw new IllegalArgumentException("length must be 8 or 13, got: " + length);
         }

@@ -5,12 +5,10 @@
  */
 package io.github.frikit.krandom.generator.object.exception;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
-import org.jspecify.annotations.Nullable;
-
 import java.util.Objects;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Thrown when {@code ObjectGenerator} cannot populate a type.
@@ -48,7 +46,8 @@ public class ObjectGenerationException extends RuntimeException {
      * @param context machine-readable generation context
      * @param cause   original cause
      */
-    public ObjectGenerationException(String message, GenerationFailureContext context, Throwable cause) {
+    public ObjectGenerationException(
+            String message, GenerationFailureContext context, @org.jspecify.annotations.Nullable Throwable cause) {
         super(message, cause);
         this.context = Objects.requireNonNull(context, "context must not be null");
     }

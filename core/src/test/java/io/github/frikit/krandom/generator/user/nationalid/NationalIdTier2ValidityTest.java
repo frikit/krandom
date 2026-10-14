@@ -5,11 +5,11 @@
  */
 package io.github.frikit.krandom.generator.user.nationalid;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.util.List;
@@ -21,10 +21,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 /**
  * Validates the tier-2 national-ID providers with validators written independently from each
@@ -39,18 +38,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("Tier-2 national IDs pass independent validators")
 class NationalIdTier2ValidityTest {
 
-    private static final int       SAMPLE_SIZE              = 2_000;
+    private static final int SAMPLE_SIZE = 2_000;
     /** Fixed living-person window, so assertions never depend on the clock. */
     private static final LocalDate EARLIEST_PLAUSIBLE_BIRTH = LocalDate.of(1900, 1, 1);
-    private static final LocalDate LATEST_PLAUSIBLE_BIRTH   = LocalDate.of(2025, 12, 31);
 
-    private static void assertSeededIds(Locale locale, long seed, Pattern documentedFormat,
-                                        Predicate<String> validator) {
+    private static final LocalDate LATEST_PLAUSIBLE_BIRTH = LocalDate.of(2025, 12, 31);
+
+    private static void assertSeededIds(
+            Locale locale, long seed, Pattern documentedFormat, Predicate<String> validator) {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(locale)
-                                                .seed(seed)
-                                                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                .build();
+                .locale(locale)
+                .seed(seed)
+                .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
         List<String> ids = new NationalIdGenerator(config).generateList(SAMPLE_SIZE);
         assertEquals(SAMPLE_SIZE, ids.size());
         for (String id : ids) {
@@ -91,7 +91,8 @@ class NationalIdTier2ValidityTest {
             @Override
             public int nextInt(int bound) {
                 int value = nextIntResults[index++];
-                assertTrue(value >= 0 && value < bound, () -> "scripted draw " + value + " is outside [0, " + bound + ")");
+                assertTrue(
+                        value >= 0 && value < bound, () -> "scripted draw " + value + " is outside [0, " + bound + ")");
                 return value;
             }
         };
@@ -164,8 +165,8 @@ class NationalIdTier2ValidityTest {
     @DisplayName("fi_FI personal identity code (henkilötunnus)")
     class FiFiHetu {
 
-        private static final Pattern OFFICIAL_FORMAT    = Pattern.compile("\\d{6}[-+A-FU-Y]\\d{3}[0-9A-Y]");
-        private static final String  CONTROL_CHARACTERS = "0123456789ABCDEFHJKLMNPRSTUVWXY";
+        private static final Pattern OFFICIAL_FORMAT = Pattern.compile("\\d{6}[-+A-FU-Y]\\d{3}[0-9A-Y]");
+        private static final String CONTROL_CHARACTERS = "0123456789ABCDEFHJKLMNPRSTUVWXY";
 
         /**
          * Digital and Population Data Services Agency (DVV), "Personal identity code": DDMMYY and a
@@ -184,8 +185,8 @@ class NationalIdTier2ValidityTest {
             }
             int remainder = Integer.parseInt(hetu.substring(0, 6) + hetu.substring(7, 10)) % 31;
             return number(hetu, 7, 10) >= 2
-                   && CONTROL_CHARACTERS.charAt(remainder) == hetu.charAt(10)
-                   && hasPlausibleBirthDate(hetu);
+                    && CONTROL_CHARACTERS.charAt(remainder) == hetu.charAt(10)
+                    && hasPlausibleBirthDate(hetu);
         }
 
         @Test
@@ -203,7 +204,8 @@ class NationalIdTier2ValidityTest {
         void seededIdsHavePlausibleBirthDates() {
             // The provider documents DDMMYY-XXX without the control character, so only the birth date
             // that its century sign presents is asserted.
-            assertSeededIds(Locale.of("fi", "FI"), 102L, Pattern.compile("\\d{6}-\\d{3}"), FiFiHetu::hasPlausibleBirthDate);
+            assertSeededIds(
+                    Locale.of("fi", "FI"), 102L, Pattern.compile("\\d{6}-\\d{3}"), FiFiHetu::hasPlausibleBirthDate);
         }
 
         @Test
@@ -234,12 +236,13 @@ class NationalIdTier2ValidityTest {
             if (!digits.matches("\\d{11}")) {
                 return null;
             }
-            int century = switch (digits.charAt(0)) {
-                case '1', '2', '5', '6' -> 1900;
-                case '3', '4' -> 2000;
-                case '7', '8' -> 1800;
-                default -> 0;
-            };
+            int century =
+                    switch (digits.charAt(0)) {
+                        case '1', '2', '5', '6' -> 1900;
+                        case '3', '4' -> 2000;
+                        case '7', '8' -> 1800;
+                        default -> 0;
+                    };
             try {
                 return LocalDate.of(century + number(digits, 1, 3), number(digits, 3, 5), number(digits, 5, 7));
             } catch (DateTimeException nonExistentDate) {
@@ -291,7 +294,7 @@ class NationalIdTier2ValidityTest {
     @DisplayName("ro_RO personal numeric code (CNP)")
     class RoRoCnp {
 
-        private static final Pattern      FORMAT       = Pattern.compile("\\d{13}");
+        private static final Pattern FORMAT = Pattern.compile("\\d{13}");
         /** ro.wikipedia "Cod numeric personal (România)": 01-46, former Bucharest sectors 47-48, 51-52, 70. */
         private static final Set<Integer> COUNTY_CODES = codes(IntStream.rangeClosed(1, 48), IntStream.of(51, 52, 70));
 
@@ -300,14 +303,15 @@ class NationalIdTier2ValidityTest {
             if (!FORMAT.matcher(cnp).matches()) {
                 return false;
             }
-            int century = switch (cnp.charAt(0)) {
-                case '1', '2', '7', '8', '9' -> 1900;
-                case '3', '4' -> 1800;
-                case '5', '6' -> 2000;
-                default -> 0;
-            };
+            int century =
+                    switch (cnp.charAt(0)) {
+                        case '1', '2', '7', '8', '9' -> 1900;
+                        case '3', '4' -> 1800;
+                        case '5', '6' -> 2000;
+                        default -> 0;
+                    };
             return COUNTY_CODES.contains(number(cnp, 7, 9))
-                   && isPlausibleBirthDate(century + number(cnp, 1, 3), number(cnp, 3, 5), number(cnp, 5, 7));
+                    && isPlausibleBirthDate(century + number(cnp, 1, 3), number(cnp, 3, 5), number(cnp, 5, 7));
         }
 
         /**
@@ -353,7 +357,7 @@ class NationalIdTier2ValidityTest {
     @DisplayName("sk_SK birth number (rodné číslo)")
     class SkSkRodneCislo {
 
-        private static final Pattern FORMAT            = Pattern.compile("\\d{6}/\\d{3,4}");
+        private static final Pattern FORMAT = Pattern.compile("\\d{6}/\\d{3,4}");
         private static final Pattern DOCUMENTED_FORMAT = Pattern.compile("\\d{6}/\\d{4}");
 
         /**
@@ -368,10 +372,9 @@ class NationalIdTier2ValidityTest {
             String digits = rc.replace("/", "");
             int year = number(digits, 0, 2);
             int encodedMonth = number(digits, 2, 4);
-            int month = encodedMonth > 70 ? encodedMonth - 70
-                : encodedMonth > 50 ? encodedMonth - 50
-                : encodedMonth > 20 ? encodedMonth - 20
-                : encodedMonth;
+            int month = encodedMonth > 70
+                    ? encodedMonth - 70
+                    : encodedMonth > 50 ? encodedMonth - 50 : encodedMonth > 20 ? encodedMonth - 20 : encodedMonth;
             int century = digits.length() == 9 ? (year <= 53 ? 1900 : 1800) : (year >= 54 ? 1900 : 2000);
             return isPlausibleBirthDate(century + year, month, number(digits, 4, 6));
         }
@@ -417,8 +420,8 @@ class NationalIdTier2ValidityTest {
     @DisplayName("uk_UA taxpayer registration number (RNOKPP)")
     class UkUaRnokpp {
 
-        private static final Pattern FORMAT  = Pattern.compile("\\d{10}");
-        private static final int[]   WEIGHTS = { -1, 5, 7, 9, 4, 6, 10, 5, 7 };
+        private static final Pattern FORMAT = Pattern.compile("\\d{10}");
+        private static final int[] WEIGHTS = {-1, 5, 7, 9, 4, 6, 10, 5, 7};
 
         /**
          * uk.wikipedia "Реєстраційний номер облікової картки платника податків": digits 1-5 count
@@ -434,7 +437,7 @@ class NationalIdTier2ValidityTest {
                 sum += digit(code, i) * WEIGHTS[i];
             }
             return Math.floorMod(sum, 11) % 10 == digit(code, 9)
-                   && isPlausible(LocalDate.of(1899, 12, 31).plusDays(number(code, 0, 5)));
+                    && isPlausible(LocalDate.of(1899, 12, 31).plusDays(number(code, 0, 5)));
         }
 
         @Test
@@ -462,8 +465,8 @@ class NationalIdTier2ValidityTest {
     @DisplayName("bg_BG unified civil number (EGN)")
     class BgBgEgn {
 
-        private static final Pattern FORMAT  = Pattern.compile("\\d{10}");
-        private static final int[]   WEIGHTS = { 2, 4, 8, 5, 10, 9, 7, 3, 6 };
+        private static final Pattern FORMAT = Pattern.compile("\\d{10}");
+        private static final int[] WEIGHTS = {2, 4, 8, 5, 10, 9, 7, 3, 6};
 
         /** en.wikipedia "Unique citizenship number": YYMMDD with month +20 for the 1800s and +40 for the 2000s. */
         static boolean hasValidStructure(String egn) {
@@ -586,14 +589,15 @@ class NationalIdTier2ValidityTest {
     @DisplayName("th_TH personal identification number")
     class ThThPin {
 
-        private static final Pattern      FORMAT         = Pattern.compile("\\d-\\d{4}-\\d{5}-\\d{2}-\\d");
+        private static final Pattern FORMAT = Pattern.compile("\\d-\\d{4}-\\d{5}-\\d{2}-\\d");
         /** Numeric ISO 3166-2:TH province codes (TH-10 Bangkok to TH-96 Narathiwat). */
-        private static final Set<Integer> PROVINCE_CODES = codes(IntStream.rangeClosed(10, 27),
-                                                                 IntStream.rangeClosed(30, 58),
-                                                                 IntStream.rangeClosed(60, 67),
-                                                                 IntStream.rangeClosed(70, 77),
-                                                                 IntStream.rangeClosed(80, 86),
-                                                                 IntStream.rangeClosed(90, 96));
+        private static final Set<Integer> PROVINCE_CODES = codes(
+                IntStream.rangeClosed(10, 27),
+                IntStream.rangeClosed(30, 58),
+                IntStream.rangeClosed(60, 67),
+                IntStream.rangeClosed(70, 77),
+                IntStream.rangeClosed(80, 86),
+                IntStream.rangeClosed(90, 96));
 
         /**
          * th.wikipedia "เลขประจำตัวประชาชนไทย": category digit (0-8; 9 is reserved), registrar
@@ -609,9 +613,9 @@ class NationalIdTier2ValidityTest {
                 sum += digit(digits, i) * (13 - i);
             }
             return digit(digits, 0) != 9
-                   && PROVINCE_CODES.contains(number(digits, 1, 3))
-                   && number(digits, 3, 5) >= 1
-                   && (11 - sum % 11) % 10 == digit(digits, 12);
+                    && PROVINCE_CODES.contains(number(digits, 1, 3))
+                    && number(digits, 3, 5) >= 1
+                    && (11 - sum % 11) % 10 == digit(digits, 12);
         }
 
         @Test
@@ -638,12 +642,12 @@ class NationalIdTier2ValidityTest {
     @DisplayName("vi_VN citizen identity card number (CCCD)")
     class ViVnCccd {
 
-        private static final Pattern      FORMAT         = Pattern.compile("\\d{12}");
+        private static final Pattern FORMAT = Pattern.compile("\\d{12}");
         /** Appendix 1 of Circular 07/2016/TT-BCA (Ministry of Public Security): the 63 province codes. */
         private static final Set<Integer> PROVINCE_CODES = codes(IntStream.of(
-            1, 2, 4, 6, 8, 10, 11, 12, 14, 15, 17, 19, 20, 22, 24, 25, 26, 27, 30, 31, 33, 34, 35, 36, 37, 38,
-            40, 42, 44, 45, 46, 48, 49, 51, 52, 54, 56, 58, 60, 62, 64, 66, 67, 68, 70, 72, 74, 75, 77, 79, 80,
-            82, 83, 84, 86, 87, 89, 91, 92, 93, 94, 95, 96));
+                1, 2, 4, 6, 8, 10, 11, 12, 14, 15, 17, 19, 20, 22, 24, 25, 26, 27, 30, 31, 33, 34, 35, 36, 37, 38, 40,
+                42, 44, 45, 46, 48, 49, 51, 52, 54, 56, 58, 60, 62, 64, 66, 67, 68, 70, 72, 74, 75, 77, 79, 80, 82, 83,
+                84, 86, 87, 89, 91, 92, 93, 94, 95, 96));
 
         /**
          * Decree 137/2015/ND-CP art. 7: province code, sex/century digit (0/1 = 1900s, 2/3 = 2000s, ...),
@@ -655,9 +659,9 @@ class NationalIdTier2ValidityTest {
             }
             int birthYear = 1900 + 100 * (digit(id, 3) / 2) + number(id, 4, 6);
             return PROVINCE_CODES.contains(number(id, 0, 3))
-                   && number(id, 6, 12) >= 1
-                   && birthYear >= EARLIEST_PLAUSIBLE_BIRTH.getYear()
-                   && birthYear <= LATEST_PLAUSIBLE_BIRTH.getYear();
+                    && number(id, 6, 12) >= 1
+                    && birthYear >= EARLIEST_PLAUSIBLE_BIRTH.getYear()
+                    && birthYear <= LATEST_PLAUSIBLE_BIRTH.getYear();
         }
 
         @Test
@@ -686,12 +690,13 @@ class NationalIdTier2ValidityTest {
     @DisplayName("id_ID population identification number (NIK)")
     class IdIdNik {
 
-        private static final Pattern      FORMAT         = Pattern.compile("\\d{16}");
+        private static final Pattern FORMAT = Pattern.compile("\\d{16}");
         /** Kepmendagri No 300.2.2-2430 Tahun 2025 province codes. */
-        private static final Set<Integer> PROVINCE_CODES = codes(IntStream.rangeClosed(11, 19), IntStream.of(21),
-                                                                 IntStream.rangeClosed(31, 36), IntStream.rangeClosed(51, 53),
-                                                                 IntStream.rangeClosed(61, 65), IntStream.rangeClosed(71, 76),
-                                                                 IntStream.of(81, 82), IntStream.rangeClosed(91, 96));
+        private static final Set<Integer> PROVINCE_CODES = codes(
+                IntStream.rangeClosed(11, 19), IntStream.of(21),
+                IntStream.rangeClosed(31, 36), IntStream.rangeClosed(51, 53),
+                IntStream.rangeClosed(61, 65), IntStream.rangeClosed(71, 76),
+                IntStream.of(81, 82), IntStream.rangeClosed(91, 96));
 
         /**
          * id.wikipedia "Nomor Induk Kependudukan": province, regency and district codes, the birth
@@ -706,10 +711,10 @@ class NationalIdTier2ValidityTest {
             int month = number(nik, 8, 10);
             int year = number(nik, 10, 12);
             return PROVINCE_CODES.contains(number(nik, 0, 2))
-                   && number(nik, 2, 4) >= 1
-                   && number(nik, 4, 6) >= 1
-                   && number(nik, 12, 16) >= 1
-                   && (isPlausibleBirthDate(1900 + year, month, day) || isPlausibleBirthDate(2000 + year, month, day));
+                    && number(nik, 2, 4) >= 1
+                    && number(nik, 4, 6) >= 1
+                    && number(nik, 12, 16) >= 1
+                    && (isPlausibleBirthDate(1900 + year, month, day) || isPlausibleBirthDate(2000 + year, month, day));
         }
 
         @Test
@@ -739,11 +744,13 @@ class NationalIdTier2ValidityTest {
     @DisplayName("ms_MY identity card number (MyKad)")
     class MsMyMyKad {
 
-        private static final Pattern      FORMAT                = Pattern.compile("\\d{6}-\\d{2}-\\d{4}");
+        private static final Pattern FORMAT = Pattern.compile("\\d{6}-\\d{2}-\\d{4}");
         /** en.wikipedia "Malaysian identity card": place-of-birth codes marked n/a. */
-        private static final Set<Integer> UNUSED_BIRTH_PLACES   = codes(IntStream.of(0), IntStream.rangeClosed(17, 20),
-                                                                        IntStream.of(69, 70, 73, 80, 81),
-                                                                        IntStream.rangeClosed(94, 97));
+        private static final Set<Integer> UNUSED_BIRTH_PLACES = codes(
+                IntStream.of(0),
+                IntStream.rangeClosed(17, 20),
+                IntStream.of(69, 70, 73, 80, 81),
+                IntStream.rangeClosed(94, 97));
 
         /** YYMMDD birth date (no century marker), two-digit place of birth and four more digits. */
         static boolean isValid(String nric) {
@@ -754,7 +761,7 @@ class NationalIdTier2ValidityTest {
             int month = number(nric, 2, 4);
             int day = number(nric, 4, 6);
             return !UNUSED_BIRTH_PLACES.contains(number(nric, 7, 9))
-                   && (isPlausibleBirthDate(1900 + year, month, day) || isPlausibleBirthDate(2000 + year, month, day));
+                    && (isPlausibleBirthDate(1900 + year, month, day) || isPlausibleBirthDate(2000 + year, month, day));
         }
 
         @Test
@@ -770,8 +777,11 @@ class NationalIdTier2ValidityTest {
         @Test
         @DisplayName("seeded MyKad numbers use a real birth date and a state birth place")
         void seededIdsAreValid() {
-            assertSeededIds(Locale.of("ms", "MY"), 113L, FORMAT,
-                            nric -> isValid(nric) && number(nric, 7, 9) >= 1 && number(nric, 7, 9) <= 16);
+            assertSeededIds(
+                    Locale.of("ms", "MY"),
+                    113L,
+                    FORMAT,
+                    nric -> isValid(nric) && number(nric, 7, 9) >= 1 && number(nric, 7, 9) <= 16);
         }
     }
 
@@ -818,13 +828,13 @@ class NationalIdTier2ValidityTest {
     @DisplayName("ca_ES Spanish DNI")
     class CaEsDni {
 
-        private static final Pattern FORMAT        = Pattern.compile("\\d{8}[A-Z]");
-        private static final String  CHECK_LETTERS = "TRWAGMYFPDXBNJZSQVHLCKE";
+        private static final Pattern FORMAT = Pattern.compile("\\d{8}[A-Z]");
+        private static final String CHECK_LETTERS = "TRWAGMYFPDXBNJZSQVHLCKE";
 
         /** Ministerio del Interior, "Cálculo del dígito de control del NIF/NIE": the number mod 23 selects the letter. */
         static boolean isValid(String dni) {
             return FORMAT.matcher(dni).matches()
-                   && CHECK_LETTERS.charAt(Integer.parseInt(dni.substring(0, 8)) % 23) == dni.charAt(8);
+                    && CHECK_LETTERS.charAt(Integer.parseInt(dni.substring(0, 8)) % 23) == dni.charAt(8);
         }
 
         @Test

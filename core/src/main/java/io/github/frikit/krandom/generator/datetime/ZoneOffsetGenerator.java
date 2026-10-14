@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.datetime;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Seedable;
-
 import java.time.ZoneOffset;
 import java.util.Objects;
 import java.util.Random;
@@ -19,7 +18,7 @@ import java.util.Random;
 public final class ZoneOffsetGenerator implements Generator<ZoneOffset>, Seedable {
 
     private static final int MIN_SECONDS = -18 * 60 * 60;
-    private static final int MAX_SECONDS =  18 * 60 * 60;
+    private static final int MAX_SECONDS = 18 * 60 * 60;
 
     private final Random random;
 

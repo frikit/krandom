@@ -16,12 +16,9 @@ package io.github.frikit.krandom.generator.finance;
  * @param transactionType transaction type
  */
 public record BankInfo(
-    String accountNumber,
-    String routingNumber,
-    String bankName,
-    String bankType,
-    String accountName,
-    String transactionType
-) {
-
-}
+        String accountNumber,
+        String routingNumber,
+        String bankName,
+        String bankType,
+        String accountName,
+        String transactionType) {}

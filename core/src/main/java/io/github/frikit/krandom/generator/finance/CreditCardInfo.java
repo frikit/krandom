@@ -13,11 +13,4 @@ package io.github.frikit.krandom.generator.finance;
  * @param exp    expiration date
  * @param cvv    security code
  */
-public record CreditCardInfo(
-    String number,
-    String type,
-    String exp,
-    String cvv
-) {
-
-}
+public record CreditCardInfo(String number, String type, String exp, String cvv) {}

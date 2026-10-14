@@ -246,6 +246,7 @@ requirements; check the [changelog](CHANGELOG.md) before upgrading.
 
 - Public docs source: [`docs-site/`](docs-site/)
 - Docs URL: [https://frikit.github.io/krandom/](https://frikit.github.io/krandom/)
+- API reference (Javadoc): [javadoc.io/doc/io.github.frikit/krandom-core](https://javadoc.io/doc/io.github.frikit/krandom-core)
 - Maintained project docs: [`docs/`](docs/)
 - k-random migration guide: [`docs/migration/k-random-to-krandom.md`](docs/migration/k-random-to-krandom.md)
 

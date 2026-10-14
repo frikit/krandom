@@ -5,22 +5,6 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.ContextualGenerator;
-import io.github.frikit.krandom.generator.GenerationContext;
-import io.github.frikit.krandom.generator.Generator;
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.GenerationRecipe;
-import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
-import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
-import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.concurrent.atomic.AtomicReference;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -28,6 +12,21 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.ContextualGenerator;
+import io.github.frikit.krandom.generator.GenerationContext;
+import io.github.frikit.krandom.generator.GenerationRecipe;
+import io.github.frikit.krandom.generator.Generator;
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import java.util.concurrent.atomic.AtomicReference;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Object construction policy")
 class ObjectConstructionPolicyTest {
@@ -44,20 +43,21 @@ class ObjectConstructionPolicyTest {
     void safePolicyIsTheRoundTrippingDefault() {
         GeneratorConfig defaults = GeneratorConfig.defaults();
         assertSame(ObjectConstructionPolicy.SAFE_CONSTRUCTORS, defaults.getObjectConstructionPolicy());
-        assertSame(ObjectConstructionPolicy.SAFE_CONSTRUCTORS,
-                   defaults.toBuilder().build().getObjectConstructionPolicy());
+        assertSame(
+                ObjectConstructionPolicy.SAFE_CONSTRUCTORS,
+                defaults.toBuilder().build().getObjectConstructionPolicy());
 
         GeneratorConfig unsafe = GeneratorConfig.builder()
-                                                .objectConstructionPolicy(
-                                                    ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS)
-                                                .build();
-        ObjectGeneratorConfig mapped = ObjectGeneratorConfig.builder().generatorConfig(unsafe).build();
+                .objectConstructionPolicy(ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS)
+                .build();
+        ObjectGeneratorConfig mapped =
+                ObjectGeneratorConfig.builder().generatorConfig(unsafe).build();
 
         assertSame(ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS, mapped.getConstructionPolicy());
-        assertSame(ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS,
-                   mapped.toGeneratorConfig().getObjectConstructionPolicy());
-        assertThrows(NullPointerException.class,
-                     () -> GeneratorConfig.builder().objectConstructionPolicy(null));
+        assertSame(
+                ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS,
+                mapped.toGeneratorConfig().getObjectConstructionPolicy());
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().objectConstructionPolicy(null));
     }
 
     @Test
@@ -74,11 +74,13 @@ class ObjectConstructionPolicyTest {
     @DisplayName("safe mode rejects ambiguous declared constructors contextually")
     void safeModeRejectsAmbiguousConstructors() {
         ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(AmbiguousConstructorFixture.class).generate());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(AmbiguousConstructorFixture.class).generate());
 
         assertEquals(0, AmbiguousConstructorFixture.constructorCalls);
-        assertEquals(GenerationFailureCategory.CONSTRUCTION, ex.getContext().orElseThrow().category());
+        assertEquals(
+                GenerationFailureCategory.CONSTRUCTION,
+                ex.getContext().orElseThrow().category());
         assertTrue(ex.getCause().getMessage().contains(ObjectConstructionPolicy.SAFE_CONSTRUCTORS.name()));
     }
 
@@ -86,12 +88,10 @@ class ObjectConstructionPolicyTest {
     @DisplayName("unsafe bypass remains explicit and preserves legacy constructor skipping")
     void unsafeModeExplicitlyBypassesConstructors() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectConstructionPolicy(
-                                                    ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS)
-                                                .build();
+                .objectConstructionPolicy(ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS)
+                .build();
 
-        UniqueConstructorFixture value =
-            new ObjectGenerator<>(UniqueConstructorFixture.class, config).generate();
+        UniqueConstructorFixture value = new ObjectGenerator<>(UniqueConstructorFixture.class, config).generate();
 
         assertEquals(0, UniqueConstructorFixture.constructorCalls);
         assertNull(value.required);
@@ -101,14 +101,13 @@ class ObjectConstructionPolicyTest {
     @DisplayName("unsafe construction policy replays from a portable recipe")
     void unsafeModeReplaysFromPortableRecipe() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .seed(17L)
-                                                .objectConstructionPolicy(
-                                                    ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS)
-                                                .build();
+                .seed(17L)
+                .objectConstructionPolicy(ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS)
+                .build();
         GenerationRecipe recipe = config.getGenerationRecipe().orElseThrow();
 
         UniqueConstructorFixture value =
-            new ObjectGenerator<>(UniqueConstructorFixture.class, recipe.toGeneratorConfig()).generate();
+                new ObjectGenerator<>(UniqueConstructorFixture.class, recipe.toGeneratorConfig()).generate();
 
         assertSame(ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS, recipe.getConstructionPolicy());
         assertEquals(0, UniqueConstructorFixture.constructorCalls);
@@ -118,8 +117,7 @@ class ObjectConstructionPolicyTest {
     @Test
     @DisplayName("declared constructor parameters use Bean Validation normalization")
     void constructorParametersUseConstraintNormalization() {
-        ConstrainedConstructorFixture value =
-            new ObjectGenerator<>(ConstrainedConstructorFixture.class).generate();
+        ConstrainedConstructorFixture value = new ObjectGenerator<>(ConstrainedConstructorFixture.class).generate();
 
         assertNotNull(value.code);
         assertEquals(4, value.code.length());
@@ -137,8 +135,7 @@ class ObjectConstructionPolicyTest {
         assertUnsupportedRoot(EnumFixture.class, ObjectConstructionPolicy.SAFE_CONSTRUCTORS);
         assertUnsupportedRoot(AnnotationFixture.class, ObjectConstructionPolicy.SAFE_CONSTRUCTORS);
 
-        class LocalFixture {
-        }
+        class LocalFixture {}
         assertUnsupportedRoot(LocalFixture.class, ObjectConstructionPolicy.SAFE_CONSTRUCTORS);
 
         Object anonymous = new Object() {};
@@ -149,28 +146,25 @@ class ObjectConstructionPolicyTest {
     @DisplayName("unsafe policy is named when an unsupported root cannot be allocated")
     void unsafeUnsupportedRootNamesPolicy() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectConstructionPolicy(
-                                                    ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS)
-                                                .build();
+                .objectConstructionPolicy(ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS)
+                .build();
 
         ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(AbstractFixture.class, config).generate());
+                ObjectGenerationException.class, () -> new ObjectGenerator<>(AbstractFixture.class, config).generate());
 
-        assertEquals(GenerationFailureCategory.CONSTRUCTION, ex.getContext().orElseThrow().category());
-        assertTrue(ex.getCause().getMessage().contains(
-            ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS.name()));
+        assertEquals(
+                GenerationFailureCategory.CONSTRUCTION,
+                ex.getContext().orElseThrow().category());
+        assertTrue(ex.getCause().getMessage().contains(ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS.name()));
     }
 
     @Test
     @DisplayName("closed Java modules fail with an actionable qualified opens directive")
     void closedModuleFailsWithActionableOpensDirective() {
-        ObjectGenerationException generationFailure = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(Thread.class).generate());
+        ObjectGenerationException generationFailure =
+                assertThrows(ObjectGenerationException.class, () -> new ObjectGenerator<>(Thread.class).generate());
         ObjectGenerationException populationFailure = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(Thread.class).populate(new Thread()));
+                ObjectGenerationException.class, () -> new ObjectGenerator<>(Thread.class).populate(new Thread()));
 
         assertClosedJavaBaseFailure(generationFailure);
         assertClosedJavaBaseFailure(populationFailure);
@@ -180,8 +174,8 @@ class ObjectConstructionPolicyTest {
     @DisplayName("construction adapters resolve parameters through standard override handling")
     void constructionAdapterResolvesParametersThroughCorePipeline() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectOverride(AdapterFixture.class, "value", () -> "configured")
-                                                .build();
+                .objectOverride(AdapterFixture.class, "value", () -> "configured")
+                .build();
 
         AdapterFixture value = new ObjectGenerator<>(AdapterFixture.class, config).generate();
 
@@ -204,23 +198,25 @@ class ObjectConstructionPolicyTest {
     @DisplayName("construction adapters recognize contextual and type overrides")
     void constructionAdapterRecognizesEveryExplicitOverrideKind() {
         AdapterFixture contextualField = new ObjectGenerator<>(
-            AdapterFixture.class,
-            GeneratorConfig.builder()
-                           .objectOverride(
-                               AdapterFixture.class,
-                               "value",
-                               (ContextualGenerator<String>) context -> "contextual-field")
-                           .build()).generate();
+                        AdapterFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverride(AdapterFixture.class, "value", (ContextualGenerator<String>)
+                                        context -> "contextual-field")
+                                .build())
+                .generate();
         AdapterFixture contextualType = new ObjectGenerator<>(
-            AdapterFixture.class,
-            GeneratorConfig.builder()
-                           .objectOverride(
-                               String.class,
-                               (ContextualGenerator<String>) context -> "contextual-type")
-                           .build()).generate();
+                        AdapterFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverride(
+                                        String.class, (ContextualGenerator<String>) context -> "contextual-type")
+                                .build())
+                .generate();
         AdapterFixture plainType = new ObjectGenerator<>(
-            AdapterFixture.class,
-            GeneratorConfig.builder().objectOverride(String.class, () -> "plain-type").build()).generate();
+                        AdapterFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverride(String.class, () -> "plain-type")
+                                .build())
+                .generate();
 
         assertEquals("contextual-field", contextualField.value);
         assertTrue(contextualField.explicitlyOverridden);
@@ -236,8 +232,8 @@ class ObjectConstructionPolicyTest {
     void rootFactoryWinsOverConstructionAdapter() {
         AdapterFixture expected = new AdapterFixture("factory", true);
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectOverride(AdapterFixture.class, () -> expected)
-                                                .build();
+                .objectOverride(AdapterFixture.class, () -> expected)
+                .build();
 
         AdapterFixture value = new ObjectGenerator<>(AdapterFixture.class, config).generate();
 
@@ -249,9 +245,9 @@ class ObjectConstructionPolicyTest {
     @DisplayName("construction adapters see field exclusions on the type and its superclasses")
     void constructionAdapterSeesExclusions() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectExcludeField("own")
-                                                .objectExcludeField("inherited")
-                                                .build();
+                .objectExcludeField("own")
+                .objectExcludeField("inherited")
+                .build();
         ExclusionAdapterFixture excluded = new ObjectGenerator<>(ExclusionAdapterFixture.class, config).generate();
         assertTrue(excluded.ownExcluded);
         assertTrue(excluded.inheritedExcluded);
@@ -271,8 +267,8 @@ class ObjectConstructionPolicyTest {
         assertConstructionAdapterFailure(FailingAdapterFixture.class, IllegalStateException.class);
 
         ObjectGenerationException structured = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(StructuredFailingAdapterFixture.class).generate());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(StructuredFailingAdapterFixture.class).generate());
         assertEquals("structured adapter failure", structured.getMessage());
     }
 
@@ -280,10 +276,12 @@ class ObjectConstructionPolicyTest {
     @DisplayName("immutable Kotlin metadata fails clearly without the Kotlin construction adapter")
     void immutableKotlinTypeRequiresKotlinAdapter() {
         ObjectGenerationException failure = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(MissingKotlinAdapterFixture.class).generate());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(MissingKotlinAdapterFixture.class).generate());
 
-        assertEquals(GenerationFailureCategory.CONSTRUCTION, failure.getContext().orElseThrow().category());
+        assertEquals(
+                GenerationFailureCategory.CONSTRUCTION,
+                failure.getContext().orElseThrow().category());
         assertTrue(failure.getCause().getMessage().contains("krandom-kotlin-dsl"));
     }
 
@@ -298,10 +296,8 @@ class ObjectConstructionPolicyTest {
     @DisplayName("mutable Kotlin metadata remains eligible for ordinary Java construction")
     void mutableKotlinTypeUsesOrdinaryConstruction() {
         KotlinMutableFixture value = new ObjectGenerator<>(KotlinMutableFixture.class).generate();
-        KotlinWrongInstanceFixture wrongInstance =
-            new ObjectGenerator<>(KotlinWrongInstanceFixture.class).generate();
-        KotlinInstanceFieldFixture instanceField =
-            new ObjectGenerator<>(KotlinInstanceFieldFixture.class).generate();
+        KotlinWrongInstanceFixture wrongInstance = new ObjectGenerator<>(KotlinWrongInstanceFixture.class).generate();
+        KotlinInstanceFieldFixture instanceField = new ObjectGenerator<>(KotlinInstanceFieldFixture.class).generate();
 
         assertNotNull(value.value);
         assertNotNull(wrongInstance.value);
@@ -312,8 +308,8 @@ class ObjectConstructionPolicyTest {
     @DisplayName("synthetic Kotlin metadata fields do not make a mutable type immutable")
     void syntheticKotlinFieldDoesNotRequireAdapter() {
         ObjectGenerationException failure = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(KotlinSyntheticFieldFixture.class).generate());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(KotlinSyntheticFieldFixture.class).generate());
 
         assertFalse(failure.getCause().getMessage().contains("krandom-kotlin-dsl"));
     }
@@ -323,8 +319,8 @@ class ObjectConstructionPolicyTest {
     void plainTypeOverrideActsAsRootFactory() {
         FactoryProduct expected = new FactoryProductValue("plain-factory");
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectOverride(FactoryProduct.class, () -> expected)
-                                                .build();
+                .objectOverride(FactoryProduct.class, () -> expected)
+                .build();
 
         FactoryProduct value = new ObjectGenerator<>(FactoryProduct.class, config).generate();
 
@@ -337,16 +333,12 @@ class ObjectConstructionPolicyTest {
         AtomicReference<GenerationContext> observed = new AtomicReference<>();
         FactoryProduct contextual = new FactoryProductValue("contextual-factory");
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectOverride(
-                                                    FactoryProduct.class,
-                                                    () -> new FactoryProductValue("plain-factory"))
-                                                .objectOverride(
-                                                    FactoryProduct.class,
-                                                    (ContextualGenerator<FactoryProduct>) context -> {
-                                                        observed.set(context);
-                                                        return contextual;
-                                                    })
-                                                .build();
+                .objectOverride(FactoryProduct.class, () -> new FactoryProductValue("plain-factory"))
+                .objectOverride(FactoryProduct.class, (ContextualGenerator<FactoryProduct>) context -> {
+                    observed.set(context);
+                    return contextual;
+                })
+                .build();
 
         FactoryProduct value = new ObjectGenerator<>(FactoryProduct.class, config).generate();
 
@@ -360,20 +352,22 @@ class ObjectConstructionPolicyTest {
     @DisplayName("invalid root factory values fail with custom-generator context")
     void invalidRootFactoryValuesFailContextually() {
         GeneratorConfig nullConfig = GeneratorConfig.builder()
-                                                    .objectOverride(FactoryProduct.class, () -> null)
-                                                    .build();
+                .objectOverride(FactoryProduct.class, () -> null)
+                .build();
         ObjectGenerationException nullFailure = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(FactoryProduct.class, nullConfig).generate());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(FactoryProduct.class, nullConfig).generate());
 
-        assertEquals(GenerationFailureCategory.CUSTOM_GENERATOR,
-                     nullFailure.getContext().orElseThrow().category());
+        assertEquals(
+                GenerationFailureCategory.CUSTOM_GENERATOR,
+                nullFailure.getContext().orElseThrow().category());
 
         ObjectGenerationException wrongTypeFailure = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(FactoryProduct.class, wrongTypeFactoryConfig()).generate());
-        assertEquals(GenerationFailureCategory.CUSTOM_GENERATOR,
-                     wrongTypeFailure.getContext().orElseThrow().category());
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(FactoryProduct.class, wrongTypeFactoryConfig()).generate());
+        assertEquals(
+                GenerationFailureCategory.CUSTOM_GENERATOR,
+                wrongTypeFailure.getContext().orElseThrow().category());
     }
 
     @Test
@@ -381,57 +375,60 @@ class ObjectConstructionPolicyTest {
     void lenientRootFactoryFailureReturnsNullAndEmitsDiagnostic() {
         AtomicReference<GenerationFailureDiagnostic> observed = new AtomicReference<>();
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectOverride(FactoryProduct.class, () -> null)
-                                                .objectIgnoreErrors(true)
-                                                .generationFailureListener(observed::set)
-                                                .build();
+                .objectOverride(FactoryProduct.class, () -> null)
+                .objectIgnoreErrors(true)
+                .generationFailureListener(observed::set)
+                .build();
 
         FactoryProduct value = new ObjectGenerator<>(FactoryProduct.class, config).generate();
 
         assertNull(value);
-        assertEquals(GenerationFailureCategory.CUSTOM_GENERATOR, observed.get().context().category());
+        assertEquals(
+                GenerationFailureCategory.CUSTOM_GENERATOR,
+                observed.get().context().category());
         assertEquals("FactoryProduct", observed.get().context().path());
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private static GeneratorConfig wrongTypeFactoryConfig() {
         Generator wrongType = () -> "wrong-type";
         return GeneratorConfig.builder()
-                              .objectOverride((Class) FactoryProduct.class, wrongType)
-                              .build();
+                .objectOverride((Class) FactoryProduct.class, wrongType)
+                .build();
     }
 
     private static void assertClosedJavaBaseFailure(ObjectGenerationException failure) {
-        assertEquals(GenerationFailureCategory.REFLECTION,
-                     failure.getContext().orElseThrow().category());
+        assertEquals(
+                GenerationFailureCategory.REFLECTION,
+                failure.getContext().orElseThrow().category());
         assertSame(Thread.class, failure.getContext().orElseThrow().ownerType());
-        assertTrue(failure.getMessage().contains(
-            "opens java.lang to io.github.frikit.krandom;"));
+        assertTrue(failure.getMessage().contains("opens java.lang to io.github.frikit.krandom;"));
     }
 
     private static void assertConstructionAdapterFailure(Class<?> type, Class<? extends Throwable> causeType) {
-        ObjectGenerationException failure = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(type).generate());
+        ObjectGenerationException failure =
+                assertThrows(ObjectGenerationException.class, () -> new ObjectGenerator<>(type).generate());
 
-        assertEquals(GenerationFailureCategory.CONSTRUCTION, failure.getContext().orElseThrow().category());
+        assertEquals(
+                GenerationFailureCategory.CONSTRUCTION,
+                failure.getContext().orElseThrow().category());
         assertTrue(causeType.isInstance(failure.getCause()));
     }
 
     private static void assertKotlinAdapterRequired(Class<?> type) {
-        ObjectGenerationException failure = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(type).generate());
+        ObjectGenerationException failure =
+                assertThrows(ObjectGenerationException.class, () -> new ObjectGenerator<>(type).generate());
 
         assertTrue(failure.getCause().getMessage().contains("krandom-kotlin-dsl"));
     }
 
     private static void assertUnsupportedRoot(Class<?> type, ObjectConstructionPolicy policy) {
-        ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(type).generate());
+        ObjectGenerationException ex =
+                assertThrows(ObjectGenerationException.class, () -> new ObjectGenerator<>(type).generate());
 
-        assertEquals(GenerationFailureCategory.CONSTRUCTION, ex.getContext().orElseThrow().category());
+        assertEquals(
+                GenerationFailureCategory.CONSTRUCTION,
+                ex.getContext().orElseThrow().category());
         assertTrue(ex.getCause().getMessage().contains(policy.name()));
     }
 
@@ -475,24 +472,22 @@ class ObjectConstructionPolicyTest {
         }
     }
 
-    abstract static class AbstractFixture {
+    abstract static class AbstractFixture {}
+
+    interface InterfaceFixture {}
+
+    enum EnumFixture {
+        VALUE
     }
 
-    interface InterfaceFixture {
-    }
-
-    enum EnumFixture { VALUE }
-
-    @interface AnnotationFixture {
-    }
+    @interface AnnotationFixture {}
 
     interface FactoryProduct {
 
         String value();
     }
 
-    record FactoryProductValue(String value) implements FactoryProduct {
-    }
+    record FactoryProductValue(String value) implements FactoryProduct {}
 
     static class ExclusionBase {
 
@@ -501,7 +496,7 @@ class ObjectConstructionPolicyTest {
 
     static final class ExclusionAdapterFixture extends ExclusionBase {
 
-        final String  own = "own";
+        final String own = "own";
         final boolean ownExcluded;
         final boolean inheritedExcluded;
         final boolean missingExcluded;
@@ -515,7 +510,7 @@ class ObjectConstructionPolicyTest {
 
     static final class AdapterFixture {
 
-        final String  value;
+        final String value;
         final boolean explicitlyOverridden;
 
         AdapterFixture(String value, boolean explicitlyOverridden) {
@@ -524,17 +519,13 @@ class ObjectConstructionPolicyTest {
         }
     }
 
-    static final class NullAdapterFixture {
-    }
+    static final class NullAdapterFixture {}
 
-    static final class WrongTypeAdapterFixture {
-    }
+    static final class WrongTypeAdapterFixture {}
 
-    static final class FailingAdapterFixture {
-    }
+    static final class FailingAdapterFixture {}
 
-    static final class StructuredFailingAdapterFixture {
-    }
+    static final class StructuredFailingAdapterFixture {}
 
     @kotlin.Metadata
     static final class MissingKotlinAdapterFixture {
@@ -547,16 +538,14 @@ class ObjectConstructionPolicyTest {
     }
 
     @kotlin.Metadata
-    abstract static class MissingKotlinAbstractFixture {
-    }
+    abstract static class MissingKotlinAbstractFixture {}
 
     @kotlin.Metadata
     static final class MissingKotlinObjectFixture {
 
         static final MissingKotlinObjectFixture INSTANCE = new MissingKotlinObjectFixture();
 
-        private MissingKotlinObjectFixture() {
-        }
+        private MissingKotlinObjectFixture() {}
     }
 
     @kotlin.Metadata
@@ -588,6 +577,5 @@ class ObjectConstructionPolicyTest {
         String value = ObjectConstructionPolicyTest.this.toString();
     }
 
-    final class NonStaticInnerFixture {
-    }
+    final class NonStaticInnerFixture {}
 }

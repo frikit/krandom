@@ -5,22 +5,21 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.core.model.PersonWithLegacyDateTimes;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import io.github.frikit.krandom.generator.core.model.PersonWithLegacyDateTimes;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectGenerator — legacy date/time auto-population")
 class ObjectGeneratorLegacyDateTimeTest {
 
-    private static final int       SAMPLES = 50;
-    private static final LocalDate MIN     = LocalDate.of(2020, 1, 1);
-    private static final LocalDate MAX     = LocalDate.of(2023, 12, 31);
+    private static final int SAMPLES = 50;
+    private static final LocalDate MIN = LocalDate.of(2020, 1, 1);
+    private static final LocalDate MAX = LocalDate.of(2023, 12, 31);
 
     @Test
     @DisplayName("legacy date/time fields are auto-populated")
@@ -35,17 +34,18 @@ class ObjectGeneratorLegacyDateTimeTest {
     @Test
     @DisplayName("global dateRange applies to util.Date, sql.Date and sql.Timestamp")
     void globalRangeAppliesToLegacyDateTypes() {
-        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
-                                                            .dateRange(MIN, MAX)
-                                                            .build();
+        ObjectGeneratorConfig config =
+                ObjectGeneratorConfig.builder().dateRange(MIN, MAX).build();
         ObjectGenerator<PersonWithLegacyDateTimes> gen = new ObjectGenerator<>(PersonWithLegacyDateTimes.class, config);
 
         for (int i = 0; i < SAMPLES; i++) {
             PersonWithLegacyDateTimes p = gen.generate();
 
-            LocalDate utilDate = p.getCreatedAt().toInstant().atZone(ZoneOffset.UTC).toLocalDate();
+            LocalDate utilDate =
+                    p.getCreatedAt().toInstant().atZone(ZoneOffset.UTC).toLocalDate();
             LocalDate sqlDate = p.getBornOn().toLocalDate();
-            LocalDate sqlTimestamp = p.getUpdatedAt().toInstant().atZone(ZoneOffset.UTC).toLocalDate();
+            LocalDate sqlTimestamp =
+                    p.getUpdatedAt().toInstant().atZone(ZoneOffset.UTC).toLocalDate();
 
             assertFalse(utilDate.isBefore(MIN), "util.Date < min");
             assertFalse(utilDate.isAfter(MAX), "util.Date > max");

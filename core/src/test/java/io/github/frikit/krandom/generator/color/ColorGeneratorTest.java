@@ -5,18 +5,17 @@
  */
 package io.github.frikit.krandom.generator.color;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.HashSet;
+import java.util.Set;
+import org.junit.jupiter.api.Test;
 
 class ColorGeneratorTest {
 
@@ -77,7 +76,8 @@ class ColorGeneratorTest {
     void testGenerateWithRGBAFormat() {
         ColorGenerator generator = new ColorGenerator();
         String color = generator.generate(ColorFormat.RGBA);
-        assertTrue(color.matches("rgba\\(\\d{1,3},\\d{1,3},\\d{1,3},\\d\\.\\d{3}\\)"), "Expected RGBA format: " + color);
+        assertTrue(
+                color.matches("rgba\\(\\d{1,3},\\d{1,3},\\d{1,3},\\d\\.\\d{3}\\)"), "Expected RGBA format: " + color);
     }
 
     @Test
@@ -91,7 +91,8 @@ class ColorGeneratorTest {
     void testGenerateWithHSLAFormat() {
         ColorGenerator generator = new ColorGenerator();
         String color = generator.generate(ColorFormat.HSLA);
-        assertTrue(color.matches("hsla\\(\\d{1,3},\\d{1,3}%,\\d{1,3}%,\\d\\.\\d{3}\\)"), "Expected HSLA format: " + color);
+        assertTrue(
+                color.matches("hsla\\(\\d{1,3},\\d{1,3}%,\\d{1,3}%,\\d\\.\\d{3}\\)"), "Expected HSLA format: " + color);
     }
 
     @Test
@@ -182,8 +183,10 @@ class ColorGeneratorTest {
 
     @Test
     void testSeededGeneratorProducesSameResults() {
-        ColorGenerator gen1 = new ColorGenerator(GeneratorConfig.builder().seed(42L).build());
-        ColorGenerator gen2 = new ColorGenerator(GeneratorConfig.builder().seed(42L).build());
+        ColorGenerator gen1 =
+                new ColorGenerator(GeneratorConfig.builder().seed(42L).build());
+        ColorGenerator gen2 =
+                new ColorGenerator(GeneratorConfig.builder().seed(42L).build());
 
         assertEquals(gen1.generate(), gen2.generate());
         assertEquals(gen1.generate(), gen2.generate());
@@ -192,8 +195,10 @@ class ColorGeneratorTest {
 
     @Test
     void testSeededGeneratorWithFormatProducesSameResults() {
-        ColorGenerator gen1 = new ColorGenerator(GeneratorConfig.builder().seed(999L).build());
-        ColorGenerator gen2 = new ColorGenerator(GeneratorConfig.builder().seed(999L).build());
+        ColorGenerator gen1 =
+                new ColorGenerator(GeneratorConfig.builder().seed(999L).build());
+        ColorGenerator gen2 =
+                new ColorGenerator(GeneratorConfig.builder().seed(999L).build());
 
         assertEquals(gen1.generate(ColorFormat.RGB), gen2.generate(ColorFormat.RGB));
         assertEquals(gen1.generate(ColorFormat.SHORT_HEX), gen2.generate(ColorFormat.SHORT_HEX));
@@ -201,8 +206,10 @@ class ColorGeneratorTest {
 
     @Test
     void testDifferentSeedsProduceDifferentResults() {
-        ColorGenerator gen1 = new ColorGenerator(GeneratorConfig.builder().seed(100L).build());
-        ColorGenerator gen2 = new ColorGenerator(GeneratorConfig.builder().seed(200L).build());
+        ColorGenerator gen1 =
+                new ColorGenerator(GeneratorConfig.builder().seed(100L).build());
+        ColorGenerator gen2 =
+                new ColorGenerator(GeneratorConfig.builder().seed(200L).build());
 
         assertNotEquals(gen1.generate(), gen2.generate());
     }
@@ -269,7 +276,8 @@ class ColorGeneratorTest {
 
     @Test
     void testAllFormatsProduceValidOutput() {
-        ColorGenerator generator = new ColorGenerator(GeneratorConfig.builder().seed(12345L).build());
+        ColorGenerator generator =
+                new ColorGenerator(GeneratorConfig.builder().seed(12345L).build());
 
         String hex = generator.generate(ColorFormat.HEX);
         assertTrue(hex.matches("#[0-9a-f]{6}"));
@@ -315,8 +323,10 @@ class ColorGeneratorTest {
 
     @Test
     void testSeededGrayscaleProducesSameResults() {
-        ColorGenerator gen1 = new ColorGenerator(GeneratorConfig.builder().seed(777L).build());
-        ColorGenerator gen2 = new ColorGenerator(GeneratorConfig.builder().seed(777L).build());
+        ColorGenerator gen1 =
+                new ColorGenerator(GeneratorConfig.builder().seed(777L).build());
+        ColorGenerator gen2 =
+                new ColorGenerator(GeneratorConfig.builder().seed(777L).build());
 
         assertEquals(gen1.generateGrayscale(), gen2.generateGrayscale());
         assertEquals(gen1.generateGrayscale(), gen2.generateGrayscale());
@@ -324,8 +334,10 @@ class ColorGeneratorTest {
 
     @Test
     void testSeededUppercaseProducesSameResults() {
-        ColorGenerator gen1 = new ColorGenerator(GeneratorConfig.builder().seed(888L).build());
-        ColorGenerator gen2 = new ColorGenerator(GeneratorConfig.builder().seed(888L).build());
+        ColorGenerator gen1 =
+                new ColorGenerator(GeneratorConfig.builder().seed(888L).build());
+        ColorGenerator gen2 =
+                new ColorGenerator(GeneratorConfig.builder().seed(888L).build());
 
         assertEquals(gen1.generateUppercase(), gen2.generateUppercase());
         assertEquals(gen1.generateUppercase(), gen2.generateUppercase());

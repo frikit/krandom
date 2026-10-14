@@ -7,11 +7,9 @@ package io.github.frikit.krandom.generator.identifier;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
@@ -65,7 +63,7 @@ public final class UUIDGenerator implements Generator<UUID> {
     // Standard UUID v5 namespace for URLs (as per RFC 4122)
     private static final UUID NAMESPACE_URL = UUID.fromString("6ba7b811-9dad-11d1-80b4-00c04fd430c8");
     private final GeneratorConfig config;
-    private final Random          random;
+    private final Random random;
 
     /**
      * Creates a UUID generator with default configuration.
@@ -145,12 +143,12 @@ public final class UUIDGenerator implements Generator<UUID> {
         random.nextBytes(randomBytes);
 
         // Set version to 4 (bits 12-15 of time_hi_and_version field)
-        randomBytes[6] &= 0x0f;  // Clear version bits
-        randomBytes[6] |= 0x40;  // Set to version 4
+        randomBytes[6] &= 0x0f; // Clear version bits
+        randomBytes[6] |= 0x40; // Set to version 4
 
         // Set variant to RFC 4122 (bits 6-7 of clock_seq_hi_and_reserved field)
-        randomBytes[8] &= 0x3f;  // Clear variant bits
-        randomBytes[8] |= 0x80;  // Set to variant 1 (10x)
+        randomBytes[8] &= 0x3f; // Clear variant bits
+        randomBytes[8] |= 0x80; // Set to variant 1 (10x)
 
         return bytesToUuid(randomBytes);
     }
@@ -252,12 +250,12 @@ public final class UUIDGenerator implements Generator<UUID> {
         System.arraycopy(hash, 0, uuidBytes, 0, 16);
 
         // Set version to 5 (bits 12-15 of time_hi_and_version field)
-        uuidBytes[6] &= 0x0f;  // Clear version bits
-        uuidBytes[6] |= 0x50;  // Set to version 5
+        uuidBytes[6] &= 0x0f; // Clear version bits
+        uuidBytes[6] |= 0x50; // Set to version 5
 
         // Set variant to RFC 4122 (bits 6-7 of clock_seq_hi_and_reserved field)
-        uuidBytes[8] &= 0x3f;  // Clear variant bits
-        uuidBytes[8] |= 0x80;  // Set to variant 1 (10x)
+        uuidBytes[8] &= 0x3f; // Clear variant bits
+        uuidBytes[8] |= 0x80; // Set to variant 1 (10x)
 
         return bytesToUuid(uuidBytes);
     }

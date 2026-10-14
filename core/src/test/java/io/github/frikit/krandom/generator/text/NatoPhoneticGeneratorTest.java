@@ -5,27 +5,49 @@
  */
 package io.github.frikit.krandom.generator.text;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("NatoPhoneticGenerator")
 class NatoPhoneticGeneratorTest {
 
     private static final Set<String> WORDS = Set.of(
-        "Alfa", "Bravo", "Charlie", "Delta", "Echo", "Foxtrot", "Golf", "Hotel", "India",
-        "Juliett", "Kilo", "Lima", "Mike", "November", "Oscar", "Papa", "Quebec", "Romeo",
-        "Sierra", "Tango", "Uniform", "Victor", "Whiskey", "X-ray", "Yankee", "Zulu");
+            "Alfa",
+            "Bravo",
+            "Charlie",
+            "Delta",
+            "Echo",
+            "Foxtrot",
+            "Golf",
+            "Hotel",
+            "India",
+            "Juliett",
+            "Kilo",
+            "Lima",
+            "Mike",
+            "November",
+            "Oscar",
+            "Papa",
+            "Quebec",
+            "Romeo",
+            "Sierra",
+            "Tango",
+            "Uniform",
+            "Victor",
+            "Whiskey",
+            "X-ray",
+            "Yankee",
+            "Zulu");
 
     @RepeatedTest(200)
     @DisplayName("generate() returns a valid code word")
@@ -36,7 +58,8 @@ class NatoPhoneticGeneratorTest {
     @Test
     @DisplayName("generate() can surface every code word over many draws")
     void generateCoversAll() {
-        NatoPhoneticGenerator gen = new NatoPhoneticGenerator(GeneratorConfig.builder().seed(11L).build());
+        NatoPhoneticGenerator gen =
+                new NatoPhoneticGenerator(GeneratorConfig.builder().seed(11L).build());
         Set<String> seen = new HashSet<>();
         for (int i = 0; i < 5000; i++) {
             seen.add(gen.generate());
@@ -47,8 +70,10 @@ class NatoPhoneticGeneratorTest {
     @Test
     @DisplayName("same seed is reproducible")
     void reproducible() {
-        List<String> a = new NatoPhoneticGenerator(GeneratorConfig.builder().seed(5L).build()).generateList(40);
-        List<String> b = new NatoPhoneticGenerator(GeneratorConfig.builder().seed(5L).build()).generateList(40);
+        List<String> a =
+                new NatoPhoneticGenerator(GeneratorConfig.builder().seed(5L).build()).generateList(40);
+        List<String> b =
+                new NatoPhoneticGenerator(GeneratorConfig.builder().seed(5L).build()).generateList(40);
         assertEquals(a, b);
     }
 
@@ -94,6 +119,7 @@ class NatoPhoneticGeneratorTest {
     void facade() {
         assertTrue(WORDS.contains(Generators.ofNatoPhonetic().generate()));
         assertTrue(WORDS.contains(
-            Generators.ofNatoPhonetic(GeneratorConfig.builder().seed(1L).build()).generate()));
+                Generators.ofNatoPhonetic(GeneratorConfig.builder().seed(1L).build())
+                        .generate()));
     }
 }

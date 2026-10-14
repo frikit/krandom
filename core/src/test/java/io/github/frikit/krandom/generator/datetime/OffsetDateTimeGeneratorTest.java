@@ -5,18 +5,17 @@
  */
 package io.github.frikit.krandom.generator.datetime;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("OffsetDateTimeGenerator")
 class OffsetDateTimeGeneratorTest {
@@ -34,9 +33,10 @@ class OffsetDateTimeGeneratorTest {
     @Test
     @DisplayName("between(start,end) stays within instant range")
     void betweenWithinInstantRange() {
-        OffsetDateTimeGenerator gen = new OffsetDateTimeGenerator(GeneratorConfig.builder().seed(99L).build());
+        OffsetDateTimeGenerator gen =
+                new OffsetDateTimeGenerator(GeneratorConfig.builder().seed(99L).build());
         OffsetDateTime start = OffsetDateTime.of(LocalDateTime.of(2025, 1, 1, 0, 0), ZoneOffset.UTC);
-        OffsetDateTime end   = OffsetDateTime.of(LocalDateTime.of(2025, 12, 31, 23, 59), ZoneOffset.UTC);
+        OffsetDateTime end = OffsetDateTime.of(LocalDateTime.of(2025, 12, 31, 23, 59), ZoneOffset.UTC);
         for (int i = 0; i < 30; i++) {
             OffsetDateTime sample = gen.between(start, end);
             assertTrue(!sample.toInstant().isBefore(start.toInstant()));

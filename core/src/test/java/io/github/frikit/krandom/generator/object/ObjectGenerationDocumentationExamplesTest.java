@@ -5,18 +5,6 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.time.Instant;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -24,6 +12,17 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import java.time.Instant;
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("object generation documentation examples")
 class ObjectGenerationDocumentationExamplesTest {
@@ -37,22 +36,17 @@ class ObjectGenerationDocumentationExamplesTest {
         List<User> batch = users.generateList(10);
 
         assertAll(
-            () -> assertNotNull(user),
-            () -> assertNotNull(user.username),
-            () -> assertEquals(10, batch.size()),
-            () -> assertTrue(batch.stream().allMatch(value -> value.username != null))
-        );
+                () -> assertNotNull(user),
+                () -> assertNotNull(user.username),
+                () -> assertEquals(10, batch.size()),
+                () -> assertTrue(batch.stream().allMatch(value -> value.username != null)));
     }
 
     @Test
     @DisplayName("seeded generation example is repeatable")
     void seededGenerationExampleIsRepeatable() {
-        GeneratorConfig firstConfig = GeneratorConfig.builder()
-                                                     .seed(42L)
-                                                     .build();
-        GeneratorConfig secondConfig = GeneratorConfig.builder()
-                                                      .seed(42L)
-                                                      .build();
+        GeneratorConfig firstConfig = GeneratorConfig.builder().seed(42L).build();
+        GeneratorConfig secondConfig = GeneratorConfig.builder().seed(42L).build();
 
         UserRecord first = Generators.ofObject(UserRecord.class, firstConfig).generate();
         UserRecord second = Generators.ofObject(UserRecord.class, secondConfig).generate();
@@ -64,8 +58,8 @@ class ObjectGenerationDocumentationExamplesTest {
     @DisplayName("field override example stays runnable")
     void fieldOverrideExampleStaysRunnable() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectOverride(User.class, "email", () -> "user@example.com")
-                                                .build();
+                .objectOverride(User.class, "email", () -> "user@example.com")
+                .build();
 
         User user = Generators.ofObject(User.class, config).generate();
 
@@ -76,8 +70,8 @@ class ObjectGenerationDocumentationExamplesTest {
     @DisplayName("type override example stays runnable")
     void typeOverrideExampleStaysRunnable() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectOverride(PaymentMethod.class, CardPayment::new)
-                                                .build();
+                .objectOverride(PaymentMethod.class, CardPayment::new)
+                .build();
 
         Checkout checkout = Generators.ofObject(Checkout.class, config).generate();
 
@@ -87,16 +81,12 @@ class ObjectGenerationDocumentationExamplesTest {
     @Test
     @DisplayName("exclusion example stays runnable")
     void exclusionExampleStaysRunnable() {
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .objectExcludeField("password")
-                                                .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().objectExcludeField("password").build();
 
         SecretUser user = Generators.ofObject(SecretUser.class, config).generate();
 
-        assertAll(
-            () -> assertNotNull(user.username),
-            () -> assertNull(user.password)
-        );
+        assertAll(() -> assertNotNull(user.username), () -> assertNull(user.password));
     }
 
     @Test
@@ -105,35 +95,31 @@ class ObjectGenerationDocumentationExamplesTest {
         Account account = Generators.ofObject(Account.class).generate();
 
         assertAll(
-            () -> assertNotNull(account.username),
-            () -> assertFalse(account.username.isBlank()),
-            () -> assertTrue(account.username.length() >= 3),
-            () -> assertTrue(account.username.length() <= 16),
-            () -> assertNotNull(account.email),
-            () -> assertTrue(account.email.contains("@")),
-            () -> assertNotNull(account.scores),
-            () -> assertTrue(account.scores.size() >= 2),
-            () -> assertTrue(account.scores.size() <= 4),
-            () -> assertTrue(account.expiresAt.isAfter(Instant.now()))
-        );
+                () -> assertNotNull(account.username),
+                () -> assertFalse(account.username.isBlank()),
+                () -> assertTrue(account.username.length() >= 3),
+                () -> assertTrue(account.username.length() <= 16),
+                () -> assertNotNull(account.email),
+                () -> assertTrue(account.email.contains("@")),
+                () -> assertNotNull(account.scores),
+                () -> assertTrue(account.scores.size() >= 2),
+                () -> assertTrue(account.scores.size() <= 4),
+                () -> assertTrue(account.expiresAt.isAfter(Instant.now())));
     }
 
     @Test
     @DisplayName("faker and domain generator example stays runnable")
     void fakerAndDomainGeneratorExampleStaysRunnable() {
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .seed(20260511L)
-                                                .build();
+        GeneratorConfig config = GeneratorConfig.builder().seed(20260511L).build();
 
         String firstName = Generators.person(config).firstName().generate();
         String email = Generators.ofEmail(config).generate();
         String city = Generators.location(config).city().generate();
 
         assertAll(
-            () -> assertFalse(firstName.isBlank()),
-            () -> assertTrue(email.contains("@")),
-            () -> assertFalse(city.isBlank())
-        );
+                () -> assertFalse(firstName.isBlank()),
+                () -> assertTrue(email.contains("@")),
+                () -> assertFalse(city.isBlank()));
     }
 
     static class User {
@@ -157,17 +143,12 @@ class ObjectGenerationDocumentationExamplesTest {
     }
 
     static class Account {
-        @NotBlank
-        @Size(min = 3, max = 16)
-        String username;
+        @NotBlank @Size(min = 3, max = 16) String username;
 
-        @Email
-        String email;
+        @Email String email;
 
-        @Size(min = 2, max = 4)
-        List<Integer> scores;
+        @Size(min = 2, max = 4) List<Integer> scores;
 
-        @Future
-        Instant expiresAt;
+        @Future Instant expiresAt;
     }
 }

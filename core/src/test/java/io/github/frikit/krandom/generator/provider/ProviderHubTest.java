@@ -5,6 +5,14 @@
  */
 package io.github.frikit.krandom.generator.provider;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.GeneratorProfile;
 import io.github.frikit.krandom.generator.commerce.OrderInfoGenerator;
@@ -16,8 +24,8 @@ import io.github.frikit.krandom.generator.finance.BankInfoGenerator;
 import io.github.frikit.krandom.generator.finance.CreditCardInfoGenerator;
 import io.github.frikit.krandom.generator.finance.CurrencyGenerator;
 import io.github.frikit.krandom.generator.finance.InvoiceInfoGenerator;
-import io.github.frikit.krandom.generator.finance.PaymentInfoGenerator;
 import io.github.frikit.krandom.generator.finance.MoneyGenerator;
+import io.github.frikit.krandom.generator.finance.PaymentInfoGenerator;
 import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.location.CityGenerator;
@@ -46,9 +54,6 @@ import io.github.frikit.krandom.generator.user.LastNameGenerator;
 import io.github.frikit.krandom.generator.user.PasswordGenerator;
 import io.github.frikit.krandom.generator.user.PersonInfoGenerator;
 import io.github.frikit.krandom.generator.user.UsernameGenerator;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -61,14 +66,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ProviderHub")
 class ProviderHubTest {
@@ -192,7 +191,8 @@ class ProviderHubTest {
     @Test
     @DisplayName("locale and seed config is propagated to custom providers")
     void localeAndSeedPropagateToFactory() {
-        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.JAPAN).seed(42L).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.JAPAN).seed(42L).build();
         ProviderHub hub = new ProviderHub(config);
         AtomicReference<GeneratorConfig> observed = new AtomicReference<>();
 
@@ -216,8 +216,8 @@ class ProviderHubTest {
         MoneyGenerator money = hub.get("finance", MoneyGenerator.class);
         assertNotNull(money.generate());
 
-        IllegalArgumentException mismatch = assertThrows(IllegalArgumentException.class,
-                                                         () -> hub.get("finance", FullNameGenerator.class));
+        IllegalArgumentException mismatch =
+                assertThrows(IllegalArgumentException.class, () -> hub.get("finance", FullNameGenerator.class));
         assertTrue(mismatch.getMessage().contains("not"));
     }
 
@@ -226,8 +226,7 @@ class ProviderHubTest {
     void registerConflictPolicy() {
         ProviderHub hub = new ProviderHub();
 
-        assertThrows(IllegalArgumentException.class,
-                     () -> hub.register("person", cfg -> "x"));
+        assertThrows(IllegalArgumentException.class, () -> hub.register("person", cfg -> "x"));
 
         hub.register("person", cfg -> "replacement", ConflictPolicy.REPLACE);
         assertEquals("replacement", hub.get("person"));
@@ -238,21 +237,19 @@ class ProviderHubTest {
     void aliasRegistrationAndConflicts() {
         ProviderHub hub = new ProviderHub();
 
-        assertThrows(IllegalArgumentException.class,
-                     () -> hub.registerAlias("mystery", "missing"));
+        assertThrows(IllegalArgumentException.class, () -> hub.registerAlias("mystery", "missing"));
 
         hub.register("custom", cfg -> 10);
         hub.registerAlias("c", "custom");
         assertEquals(10, hub.get("c"));
 
-        assertThrows(IllegalArgumentException.class,
-                     () -> hub.registerAlias("c", "custom"));
+        assertThrows(IllegalArgumentException.class, () -> hub.registerAlias("c", "custom"));
 
         hub.registerAlias("c", "custom", ConflictPolicy.REPLACE);
         assertEquals(10, hub.get("c"));
 
-        assertThrows(IllegalArgumentException.class,
-                     () -> hub.registerAlias("person", "custom", ConflictPolicy.REPLACE));
+        assertThrows(
+                IllegalArgumentException.class, () -> hub.registerAlias("person", "custom", ConflictPolicy.REPLACE));
     }
 
     @Test
@@ -272,7 +269,8 @@ class ProviderHubTest {
     @Test
     @DisplayName("text format helpers are exposed through provider hub")
     void textFormatHelpersAreExposed() {
-        ProviderHub hub = new ProviderHub(GeneratorConfig.builder().locale(Locale.US).seed(42L).build());
+        ProviderHub hub = new ProviderHub(
+                GeneratorConfig.builder().locale(Locale.US).seed(42L).build());
         TextFormatProvider format = hub.get("text.format", TextFormatProvider.class);
 
         assertTrue(format.lexify("??").matches("[a-z]{2}"));
@@ -298,7 +296,8 @@ class ProviderHubTest {
         UniqueGenerator<String> bounded = hub.unique(() -> UUID.randomUUID().toString(), 3);
         assertNotNull(bounded.generate());
 
-        UniqueGenerator<String> comparatorDistinct = hub.unique(() -> UUID.randomUUID().toString(), String::equalsIgnoreCase);
+        UniqueGenerator<String> comparatorDistinct =
+                hub.unique(() -> UUID.randomUUID().toString(), String::equalsIgnoreCase);
         assertNotNull(comparatorDistinct.generate());
 
         assertThrows(NullPointerException.class, () -> hub.unique(null));
@@ -346,7 +345,8 @@ class ProviderHubTest {
     @Test
     @DisplayName("getConfig returns the configured generator config")
     void getConfigReturnsConfiguredValue() {
-        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.ITALY).seed(7L).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.ITALY).seed(7L).build();
         ProviderHub hub = new ProviderHub(config);
 
         assertSame(config, hub.getConfig());

@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.util.Locale;
 
 /**
@@ -14,7 +13,7 @@ import java.util.Locale;
  */
 final class BuiltInFirstNameDataProvider implements FirstNameDataProvider {
 
-    private final Locale   locale;
+    private final Locale locale;
     private final String[] maleNames;
     private final String[] femaleNames;
 

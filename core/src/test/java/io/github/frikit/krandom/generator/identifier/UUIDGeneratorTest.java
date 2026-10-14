@@ -5,21 +5,20 @@
  */
 package io.github.frikit.krandom.generator.identifier;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
 class UUIDGeneratorTest {
 
@@ -80,9 +79,9 @@ class UUIDGeneratorTest {
     void testGenerateV7UsesConfiguredClock() {
         Instant instant = Instant.ofEpochMilli(0x0123456789ABL);
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .seed(42L)
-                                                .clock(Clock.fixed(instant, ZoneOffset.UTC))
-                                                .build();
+                .seed(42L)
+                .clock(Clock.fixed(instant, ZoneOffset.UTC))
+                .build();
 
         UUID uuid = new UUIDGenerator(config).generateV7();
 
@@ -92,9 +91,9 @@ class UUIDGeneratorTest {
     @Test
     void testGenerateV7ConsumesRandomBytes() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .seed(42L)
-                                                .clock(Clock.fixed(Instant.EPOCH, ZoneOffset.UTC))
-                                                .build();
+                .seed(42L)
+                .clock(Clock.fixed(Instant.EPOCH, ZoneOffset.UTC))
+                .build();
         UUIDGenerator generator = new UUIDGenerator(config);
 
         assertNotEquals(generator.generateV7(), generator.generateV7());
@@ -258,8 +257,7 @@ class UUIDGeneratorTest {
 
         // Check variant (10xx in binary, so 8, 9, a, or b in hex)
         char variantChar = parts[3].charAt(0);
-        assertTrue(variantChar == '8' || variantChar == '9' ||
-                   variantChar == 'a' || variantChar == 'b');
+        assertTrue(variantChar == '8' || variantChar == '9' || variantChar == 'a' || variantChar == 'b');
     }
 
     @Test
@@ -276,8 +274,7 @@ class UUIDGeneratorTest {
 
         // Check variant
         char variantChar = parts[3].charAt(0);
-        assertTrue(variantChar == '8' || variantChar == '9' ||
-                   variantChar == 'a' || variantChar == 'b');
+        assertTrue(variantChar == '8' || variantChar == '9' || variantChar == 'a' || variantChar == 'b');
     }
 
     @Test

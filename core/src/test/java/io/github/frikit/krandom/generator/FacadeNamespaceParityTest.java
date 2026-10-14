@@ -5,8 +5,8 @@
  */
 package io.github.frikit.krandom.generator;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -18,9 +18,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * Keeps the {@link Generators} facade and the fluent namespaces ({@code Generators.person()},
@@ -35,14 +34,13 @@ class FacadeNamespaceParityTest {
      * Keys are {@code NamespaceSimpleName#method}; values are the facade method names.
      */
     private static final Map<String, String> FACADE_ALIASES = Map.of(
-        "CommerceGenerators#product", "ofProductInfo",
-        "CommerceGenerators#order", "ofOrderInfo",
-        "CommerceGenerators#shipment", "ofShipmentInfo",
-        "IdentifierGenerators#mask", "ofIdentifierMask",
-        "NetworkGenerators#ip", "ofIP",
-        "NetworkGenerators#ipv4", "ofIPv4",
-        "NetworkGenerators#ipv6", "ofIPv6"
-    );
+            "CommerceGenerators#product", "ofProductInfo",
+            "CommerceGenerators#order", "ofOrderInfo",
+            "CommerceGenerators#shipment", "ofShipmentInfo",
+            "IdentifierGenerators#mask", "ofIdentifierMask",
+            "NetworkGenerators#ip", "ofIP",
+            "NetworkGenerators#ipv4", "ofIPv4",
+            "NetworkGenerators#ipv6", "ofIPv6");
 
     /**
      * Every namespace type exposed by the facade, discovered from {@code Generators}' public
@@ -50,28 +48,28 @@ class FacadeNamespaceParityTest {
      */
     static List<Class<?>> namespaceTypes() {
         return Arrays.stream(Generators.class.getMethods())
-            .filter(method -> Modifier.isStatic(method.getModifiers()))
-            .filter(method -> method.getParameterCount() == 0)
-            .map(Method::getReturnType)
-            .filter(type -> type.getPackageName().endsWith(".generator.namespace"))
-            .distinct()
-            .sorted((left, right) -> left.getSimpleName().compareTo(right.getSimpleName()))
-            .toList();
+                .filter(method -> Modifier.isStatic(method.getModifiers()))
+                .filter(method -> method.getParameterCount() == 0)
+                .map(Method::getReturnType)
+                .filter(type -> type.getPackageName().endsWith(".generator.namespace"))
+                .distinct()
+                .sorted((left, right) -> left.getSimpleName().compareTo(right.getSimpleName()))
+                .toList();
     }
 
     private static Set<String> facadeMethods(Class<?>... parameterTypes) {
         return Arrays.stream(Generators.class.getMethods())
-            .filter(method -> Modifier.isStatic(method.getModifiers()))
-            .filter(method -> Arrays.equals(method.getParameterTypes(), parameterTypes))
-            .map(Method::getName)
-            .collect(Collectors.toSet());
+                .filter(method -> Modifier.isStatic(method.getModifiers()))
+                .filter(method -> Arrays.equals(method.getParameterTypes(), parameterTypes))
+                .map(Method::getName)
+                .collect(Collectors.toSet());
     }
 
     private static List<Method> namespaceMethods(Class<?> namespace) {
         return Arrays.stream(namespace.getMethods())
-            .filter(method -> method.getDeclaringClass() == namespace)
-            .filter(method -> !Modifier.isStatic(method.getModifiers()))
-            .toList();
+                .filter(method -> method.getDeclaringClass() == namespace)
+                .filter(method -> !Modifier.isStatic(method.getModifiers()))
+                .toList();
     }
 
     private static String facadeName(Class<?> namespace, String method) {
@@ -82,19 +80,26 @@ class FacadeNamespaceParityTest {
     @Test
     @DisplayName("the facade exposes all eight namespaces")
     void discoversNamespaces() {
-        assertEquals(List.of("CommerceGenerators", "DateTimeGenerators", "FinanceGenerators",
-                             "IdentifierGenerators", "LocationGenerators", "NetworkGenerators",
-                             "PersonGenerators", "TextGenerators"),
-                     namespaceTypes().stream().map(Class::getSimpleName).toList());
+        assertEquals(
+                List.of(
+                        "CommerceGenerators",
+                        "DateTimeGenerators",
+                        "FinanceGenerators",
+                        "IdentifierGenerators",
+                        "LocationGenerators",
+                        "NetworkGenerators",
+                        "PersonGenerators",
+                        "TextGenerators"),
+                namespaceTypes().stream().map(Class::getSimpleName).toList());
     }
 
     @Test
     @DisplayName("every namespace generator has a facade factory")
     void everyNamespaceMethodHasFacadeFactory() {
         Set<String> facade = Arrays.stream(Generators.class.getMethods())
-            .filter(method -> Modifier.isStatic(method.getModifiers()))
-            .map(Method::getName)
-            .collect(Collectors.toSet());
+                .filter(method -> Modifier.isStatic(method.getModifiers()))
+                .map(Method::getName)
+                .collect(Collectors.toSet());
         List<String> missing = new ArrayList<>();
         for (Class<?> namespace : namespaceTypes()) {
             for (Method method : namespaceMethods(namespace)) {
@@ -129,10 +134,14 @@ class FacadeNamespaceParityTest {
     @DisplayName("aliases only cover namespace methods that exist")
     void aliasesAreCurrent() {
         Set<String> declared = namespaceTypes().stream()
-            .flatMap(namespace -> namespaceMethods(namespace).stream()
-                .map(method -> namespace.getSimpleName() + "#" + method.getName()))
-            .collect(Collectors.toSet());
-        assertTrue(declared.containsAll(FACADE_ALIASES.keySet()),
-                   "stale aliases: " + FACADE_ALIASES.keySet().stream().filter(key -> !declared.contains(key)).toList());
+                .flatMap(namespace -> namespaceMethods(namespace).stream()
+                        .map(method -> namespace.getSimpleName() + "#" + method.getName()))
+                .collect(Collectors.toSet());
+        assertTrue(
+                declared.containsAll(FACADE_ALIASES.keySet()),
+                "stale aliases: "
+                        + FACADE_ALIASES.keySet().stream()
+                                .filter(key -> !declared.contains(key))
+                                .toList());
     }
 }

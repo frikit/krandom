@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.namespace;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.user.*;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator;
-
 import java.util.Locale;
 
 /**
@@ -28,82 +27,177 @@ public final class PersonGenerators {
         this.config = config;
     }
 
-    public FullNameGenerator fullName() { return new FullNameGenerator(config); }
-    public FullNameGenerator fullName(Locale locale) { return new FullNameGenerator(withLocale(locale)); }
+    public FullNameGenerator fullName() {
+        return new FullNameGenerator(config);
+    }
 
-    public FirstNameGenerator firstName() { return new FirstNameGenerator(config); }
-    public FirstNameGenerator firstName(Locale locale) { return new FirstNameGenerator(withLocale(locale)); }
+    public FullNameGenerator fullName(Locale locale) {
+        return new FullNameGenerator(withLocale(locale));
+    }
 
-    public LastNameGenerator lastName() { return new LastNameGenerator(config); }
-    public LastNameGenerator lastName(Locale locale) { return new LastNameGenerator(withLocale(locale)); }
+    public FirstNameGenerator firstName() {
+        return new FirstNameGenerator(config);
+    }
 
-    public MiddleNameGenerator middleName() { return new MiddleNameGenerator(config); }
-    public MiddleNameGenerator middleName(Locale locale) { return new MiddleNameGenerator(withLocale(locale)); }
+    public FirstNameGenerator firstName(Locale locale) {
+        return new FirstNameGenerator(withLocale(locale));
+    }
 
-    public EmailGenerator email() { return new EmailGenerator(config); }
-    public EmailGenerator email(Locale locale) { return new EmailGenerator(withLocale(locale)); }
+    public LastNameGenerator lastName() {
+        return new LastNameGenerator(config);
+    }
 
-    public UsernameGenerator username() { return new UsernameGenerator(config); }
-    public UsernameGenerator username(Locale locale) { return new UsernameGenerator(withLocale(locale)); }
+    public LastNameGenerator lastName(Locale locale) {
+        return new LastNameGenerator(withLocale(locale));
+    }
 
-    public PasswordGenerator password() { return new PasswordGenerator(config); }
+    public MiddleNameGenerator middleName() {
+        return new MiddleNameGenerator(config);
+    }
 
-    public AgeGenerator age() { return new AgeGenerator(config); }
-    public AgeGenerator age(AgeType type) { return new AgeGenerator(type, config); }
+    public MiddleNameGenerator middleName(Locale locale) {
+        return new MiddleNameGenerator(withLocale(locale));
+    }
 
-    public BirthdayGenerator birthday() { return new BirthdayGenerator(config); }
+    public EmailGenerator email() {
+        return new EmailGenerator(config);
+    }
 
-    public GenderGenerator gender() { return new GenderGenerator(config); }
+    public EmailGenerator email(Locale locale) {
+        return new EmailGenerator(withLocale(locale));
+    }
 
-    public ProfessionGenerator profession() { return new ProfessionGenerator(config); }
-    public ProfessionGenerator profession(Locale locale) { return new ProfessionGenerator(withLocale(locale)); }
+    public UsernameGenerator username() {
+        return new UsernameGenerator(config);
+    }
 
-    public UniversityGenerator university() { return new UniversityGenerator(config); }
+    public UsernameGenerator username(Locale locale) {
+        return new UsernameGenerator(withLocale(locale));
+    }
 
-    public NationalIdGenerator nationalId(Locale locale) { return new NationalIdGenerator(withLocale(locale)); }
+    public PasswordGenerator password() {
+        return new PasswordGenerator(config);
+    }
 
-    public AvatarUrlGenerator avatarUrl() { return new AvatarUrlGenerator(config); }
+    public AgeGenerator age() {
+        return new AgeGenerator(config);
+    }
 
-    public SocialHandleGenerator socialHandle() { return new SocialHandleGenerator(config); }
+    public AgeGenerator age(AgeType type) {
+        return new AgeGenerator(type, config);
+    }
 
-    public SocialProfileGenerator socialProfile() { return new SocialProfileGenerator(config); }
+    public BirthdayGenerator birthday() {
+        return new BirthdayGenerator(config);
+    }
 
-    public PersonInfoGenerator personInfo() { return new PersonInfoGenerator(config); }
+    public GenderGenerator gender() {
+        return new GenderGenerator(config);
+    }
 
-    public ContactInfoGenerator contactInfo() { return new ContactInfoGenerator(config); }
+    public ProfessionGenerator profession() {
+        return new ProfessionGenerator(config);
+    }
 
-    public SimpleProfileGenerator simpleProfile() { return new SimpleProfileGenerator(config); }
+    public ProfessionGenerator profession(Locale locale) {
+        return new ProfessionGenerator(withLocale(locale));
+    }
 
-    public ProfileGenerator profile() { return new ProfileGenerator(config); }
+    public UniversityGenerator university() {
+        return new UniversityGenerator(config);
+    }
 
-    public MaritalStatusGenerator maritalStatus() { return new MaritalStatusGenerator(config); }
+    public NationalIdGenerator nationalId(Locale locale) {
+        return new NationalIdGenerator(withLocale(locale));
+    }
 
-    public EducationalAttainmentGenerator educationalAttainment() { return new EducationalAttainmentGenerator(config); }
+    public AvatarUrlGenerator avatarUrl() {
+        return new AvatarUrlGenerator(config);
+    }
 
-    public CompanyNameGenerator companyName() { return new CompanyNameGenerator(config); }
-    public CompanyNameGenerator companyName(Locale locale) { return new CompanyNameGenerator(withLocale(locale)); }
+    public SocialHandleGenerator socialHandle() {
+        return new SocialHandleGenerator(config);
+    }
 
-    public CompanyEmailGenerator companyEmail() { return new CompanyEmailGenerator(config); }
+    public SocialProfileGenerator socialProfile() {
+        return new SocialProfileGenerator(config);
+    }
 
-    public CompanyInfoGenerator companyInfo() { return new CompanyInfoGenerator(config); }
+    public PersonInfoGenerator personInfo() {
+        return new PersonInfoGenerator(config);
+    }
 
-    public CompanyUrlGenerator companyUrl() { return new CompanyUrlGenerator(config); }
+    public ContactInfoGenerator contactInfo() {
+        return new ContactInfoGenerator(config);
+    }
 
-    public CompanyBuzzwordGenerator companyBuzzword() { return new CompanyBuzzwordGenerator(config); }
+    public SimpleProfileGenerator simpleProfile() {
+        return new SimpleProfileGenerator(config);
+    }
 
-    public CompanyCatchPhraseGenerator companyCatchPhrase() { return new CompanyCatchPhraseGenerator(config); }
+    public ProfileGenerator profile() {
+        return new ProfileGenerator(config);
+    }
 
-    public JobInfoGenerator jobInfo() { return new JobInfoGenerator(config); }
+    public MaritalStatusGenerator maritalStatus() {
+        return new MaritalStatusGenerator(config);
+    }
 
-    public JobTypeGenerator jobType() { return new JobTypeGenerator(config); }
+    public EducationalAttainmentGenerator educationalAttainment() {
+        return new EducationalAttainmentGenerator(config);
+    }
 
-    public JobFieldGenerator jobField() { return new JobFieldGenerator(config); }
+    public CompanyNameGenerator companyName() {
+        return new CompanyNameGenerator(config);
+    }
 
-    public SeniorityGenerator seniority() { return new SeniorityGenerator(config); }
+    public CompanyNameGenerator companyName(Locale locale) {
+        return new CompanyNameGenerator(withLocale(locale));
+    }
 
-    public PositionGenerator position() { return new PositionGenerator(config); }
+    public CompanyEmailGenerator companyEmail() {
+        return new CompanyEmailGenerator(config);
+    }
 
-    public IndustryGenerator industry() { return new IndustryGenerator(config); }
+    public CompanyInfoGenerator companyInfo() {
+        return new CompanyInfoGenerator(config);
+    }
+
+    public CompanyUrlGenerator companyUrl() {
+        return new CompanyUrlGenerator(config);
+    }
+
+    public CompanyBuzzwordGenerator companyBuzzword() {
+        return new CompanyBuzzwordGenerator(config);
+    }
+
+    public CompanyCatchPhraseGenerator companyCatchPhrase() {
+        return new CompanyCatchPhraseGenerator(config);
+    }
+
+    public JobInfoGenerator jobInfo() {
+        return new JobInfoGenerator(config);
+    }
+
+    public JobTypeGenerator jobType() {
+        return new JobTypeGenerator(config);
+    }
+
+    public JobFieldGenerator jobField() {
+        return new JobFieldGenerator(config);
+    }
+
+    public SeniorityGenerator seniority() {
+        return new SeniorityGenerator(config);
+    }
+
+    public PositionGenerator position() {
+        return new PositionGenerator(config);
+    }
+
+    public IndustryGenerator industry() {
+        return new IndustryGenerator(config);
+    }
 
     private GeneratorConfig withLocale(Locale locale) {
         return config.toBuilder().locale(locale).build();

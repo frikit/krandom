@@ -5,26 +5,25 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectGenerator — nested generic types")
 class ObjectGeneratorNestedGenericTest {
 
     private static final GeneratorConfig CONFIG = GeneratorConfig.builder()
-                                                                  .seed(2202L)
-                                                                  .collectionSize(2, 2)
-                                                                  .objectOptionalEmptyProbability(0.0)
-                                                                  .build();
+            .seed(2202L)
+            .collectionSize(2, 2)
+            .objectOptionalEmptyProbability(0.0)
+            .build();
 
     @Test
     @DisplayName("mutable fields retain nested list, map-value, and optional types")
@@ -42,9 +41,8 @@ class ObjectGeneratorNestedGenericTest {
         assertNestedValues(value.names(), value.counts(), value.label());
     }
 
-    private static void assertNestedValues(List<List<String>> names,
-                                           Map<String, List<Integer>> counts,
-                                           Optional<Optional<String>> label) {
+    private static void assertNestedValues(
+            List<List<String>> names, Map<String, List<Integer>> counts, Optional<Optional<String>> label) {
         assertEquals(2, names.size());
         for (List<String> inner : names) {
             assertEquals(2, inner.size());
@@ -75,9 +73,5 @@ class ObjectGeneratorNestedGenericTest {
     }
 
     record NestedRecord(
-        List<List<String>> names,
-        Map<String, List<Integer>> counts,
-        Optional<Optional<String>> label
-    ) {
-    }
+            List<List<String>> names, Map<String, List<Integer>> counts, Optional<Optional<String>> label) {}
 }

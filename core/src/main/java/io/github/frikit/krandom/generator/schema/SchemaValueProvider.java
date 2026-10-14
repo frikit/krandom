@@ -20,7 +20,7 @@ public interface SchemaValueProvider {
      * @param context schema generation context
      * @return generated value
      */
-    Object generate(SchemaContext context);
+    @org.jspecify.annotations.Nullable Object generate(SchemaContext context);
 
     /**
      * Returns the JSON Schema fragment for values produced by this provider.
@@ -46,12 +46,12 @@ public interface SchemaValueProvider {
      */
     static SchemaValueProvider withJsonSchema(SchemaValueProvider provider, Map<String, ?> jsonSchema) {
         Objects.requireNonNull(provider, "provider must not be null");
-        Map<String, Object> schema = JsonSchemaSupport.copyJsonSchema(
-            Objects.requireNonNull(jsonSchema, "jsonSchema must not be null"));
+        Map<String, Object> schema =
+                JsonSchemaSupport.copyJsonSchema(Objects.requireNonNull(jsonSchema, "jsonSchema must not be null"));
         return new SchemaValueProvider() {
 
             @Override
-            public Object generate(SchemaContext context) {
+            public @org.jspecify.annotations.Nullable Object generate(SchemaContext context) {
                 return provider.generate(context);
             }
 

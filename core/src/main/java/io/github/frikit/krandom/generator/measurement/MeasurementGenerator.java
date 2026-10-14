@@ -5,10 +5,10 @@
  */
 package io.github.frikit.krandom.generator.measurement;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -31,7 +31,7 @@ import java.util.Random;
 public final class MeasurementGenerator implements Generator<String> {
 
     private static final MeasurementDataProvider DEFAULT_PROVIDER =
-        new BuiltInMeasurementDataProvider(Locale.ROOT, "krandom/measurement/default.txt");
+            new BuiltInMeasurementDataProvider(Locale.ROOT, "krandom/measurement/default.txt");
 
     private final List<String> units;
     private final Random random;
@@ -50,7 +50,9 @@ public final class MeasurementGenerator implements Generator<String> {
      *               exists; must not be {@code null}
      */
     public MeasurementGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -61,7 +63,7 @@ public final class MeasurementGenerator implements Generator<String> {
     public MeasurementGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         DataRegistryContext registryContext = config.getRegistryContext();
-        MeasurementDataProvider provider = registryContext.measurementProvider(config.getLocale());
+        MeasurementDataProvider provider = registryContext.provider(Vocabulary.MEASUREMENT, config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }

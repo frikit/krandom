@@ -5,24 +5,22 @@
  */
 package io.github.frikit.krandom.generator.location;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
-import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("StreetAddressGenerator")
 class StreetAddressGeneratorTest {
@@ -106,7 +104,8 @@ class StreetAddressGeneratorTest {
     @DisplayName("generate(true) uses short suffixes")
     void shortSuffixMode() {
         StreetAddressGenerator gen = new StreetAddressGenerator(Locale.US);
-        Set<String> shortSuffixes = Set.of(StreetAddressDataRegistry.forLocale(Locale.US).getStreetTypesShort());
+        Set<String> shortSuffixes =
+                Set.of(StreetAddressDataRegistry.forLocale(Locale.US).getStreetTypesShort());
         for (int i = 0; i < SAMPLES; i++) {
             String suffix = gen.generate(true).split(" ")[2];
             assertTrue(shortSuffixes.contains(suffix));
@@ -117,7 +116,8 @@ class StreetAddressGeneratorTest {
     @DisplayName("generate(false) uses long suffixes")
     void longSuffixMode() {
         StreetAddressGenerator gen = new StreetAddressGenerator(Locale.US);
-        Set<String> longSuffixes = Set.of(StreetAddressDataRegistry.forLocale(Locale.US).getStreetTypesLong());
+        Set<String> longSuffixes =
+                Set.of(StreetAddressDataRegistry.forLocale(Locale.US).getStreetTypesLong());
         for (int i = 0; i < SAMPLES; i++) {
             String suffix = gen.generate(false).split(" ")[2];
             assertTrue(longSuffixes.contains(suffix));
@@ -149,8 +149,10 @@ class StreetAddressGeneratorTest {
     @Test
     @DisplayName("seeded generation reproducible for short and long modes")
     void seededReproducibility() {
-        GeneratorConfig cfg1 = GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
-        GeneratorConfig cfg2 = GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
+        GeneratorConfig cfg1 =
+                GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
+        GeneratorConfig cfg2 =
+                GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
         StreetAddressGenerator a = new StreetAddressGenerator(cfg1);
         StreetAddressGenerator b = new StreetAddressGenerator(cfg2);
 
@@ -165,8 +167,10 @@ class StreetAddressGeneratorTest {
     @Test
     @DisplayName("different seeds produce different sequences")
     void differentSeedsDifferent() {
-        GeneratorConfig cfg1 = GeneratorConfig.builder().locale(Locale.US).seed(1L).build();
-        GeneratorConfig cfg2 = GeneratorConfig.builder().locale(Locale.US).seed(2L).build();
+        GeneratorConfig cfg1 =
+                GeneratorConfig.builder().locale(Locale.US).seed(1L).build();
+        GeneratorConfig cfg2 =
+                GeneratorConfig.builder().locale(Locale.US).seed(2L).build();
         StreetAddressGenerator a = new StreetAddressGenerator(cfg1);
         StreetAddressGenerator b = new StreetAddressGenerator(cfg2);
 
@@ -184,9 +188,7 @@ class StreetAddressGeneratorTest {
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
         UnsupportedOperationException ex = assertThrows(
-            UnsupportedOperationException.class,
-            () -> new StreetAddressGenerator(Locale.of("xx", "YY"))
-        );
+                UnsupportedOperationException.class, () -> new StreetAddressGenerator(Locale.of("xx", "YY")));
         assertTrue(ex.getMessage().contains("not supported"));
     }
 
@@ -222,35 +224,35 @@ class StreetAddressGeneratorTest {
     void fullAddressWithoutStateProviderInScopedContext() {
         Locale locale = Locale.of("qq", "QQ");
         DataRegistryContext context = DataRegistryContext.builder()
-                                                         .isolated()
-                                                         .registerStreetAddressProvider(new StreetAddressDataProvider() {
-                                                             @Override
-                                                             public Locale getLocale() {
-                                                                 return locale;
-                                                             }
+                .isolated()
+                .register(Vocabulary.STREET_ADDRESS, new StreetAddressDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
 
-                                                             @Override
-                                                             public String[] getStreetNames() {
-                                                                 return new String[] { "Scoped" };
-                                                             }
+                    @Override
+                    public String[] getStreetNames() {
+                        return new String[] {"Scoped"};
+                    }
 
-                                                             @Override
-                                                             public String[] getStreetTypesShort() {
-                                                                 return new String[] { "St" };
-                                                             }
+                    @Override
+                    public String[] getStreetTypesShort() {
+                        return new String[] {"St"};
+                    }
 
-                                                             @Override
-                                                             public String[] getStreetTypesLong() {
-                                                                 return new String[] { "Street" };
-                                                             }
-                                                         })
-                                                         .build();
+                    @Override
+                    public String[] getStreetTypesLong() {
+                        return new String[] {"Street"};
+                    }
+                })
+                .build();
 
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(locale)
-                                                .seed(9L)
-                                                .registryContext(context)
-                                                .build();
+                .locale(locale)
+                .seed(9L)
+                .registryContext(context)
+                .build();
         StreetAddressGenerator generator = new StreetAddressGenerator(config);
         String full = generator.generateFullAddress();
         assertTrue(full.contains("Scoped"));

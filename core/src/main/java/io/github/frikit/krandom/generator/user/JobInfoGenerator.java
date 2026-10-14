@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Locale;
 import java.util.Objects;
 
@@ -16,10 +15,10 @@ import java.util.Objects;
  */
 public final class JobInfoGenerator implements Generator<JobInfo> {
 
-    private final GeneratorConfig     config;
-    private final JobFieldGenerator   jobFieldGenerator;
-    private final SeniorityGenerator  seniorityGenerator;
-    private final JobTypeGenerator    jobTypeGenerator;
+    private final GeneratorConfig config;
+    private final JobFieldGenerator jobFieldGenerator;
+    private final SeniorityGenerator seniorityGenerator;
+    private final JobTypeGenerator jobTypeGenerator;
     private final ProfessionGenerator professionGenerator;
 
     /**
@@ -35,7 +34,9 @@ public final class JobInfoGenerator implements Generator<JobInfo> {
      * @param locale locale to use
      */
     public JobInfoGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -57,12 +58,7 @@ public final class JobInfoGenerator implements Generator<JobInfo> {
         String level = seniorityGenerator.generate();
         String profession = professionGenerator.generate();
         return new JobInfo(
-            descriptor,
-            level,
-            joinNonBlank(" ", level, profession),
-            jobTypeGenerator.generate(),
-            profession
-        );
+                descriptor, level, joinNonBlank(" ", level, profession), jobTypeGenerator.generate(), profession);
     }
 
     /**

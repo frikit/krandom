@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.base;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Seedable;
-
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
@@ -19,8 +18,8 @@ import java.util.concurrent.atomic.AtomicLong;
 public final class AtomicLongGenerator implements Generator<AtomicLong>, Seedable {
 
     private final Random random;
-    private final long   min;
-    private final long   max;
+    private final long min;
+    private final long max;
 
     public AtomicLongGenerator() {
         this(Long.MIN_VALUE, Long.MAX_VALUE, GeneratorConfig.defaults());

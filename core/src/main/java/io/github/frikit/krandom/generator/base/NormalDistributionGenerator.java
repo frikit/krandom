@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.base;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.Objects;
 import java.util.Random;
 import java.util.random.RandomGenerator;
@@ -41,11 +40,11 @@ import java.util.random.RandomGenerator;
 public final class NormalDistributionGenerator implements io.github.frikit.krandom.generator.Generator<Double> {
 
     private final RandomGenerator random;
-    private final double          mean;
-    private final double          standardDeviation;
+    private final double mean;
+    private final double standardDeviation;
 
     // Box-Muller generates two values at once; cache the second for efficiency
-    private Double cachedValue = null;
+    private @org.jspecify.annotations.Nullable Double cachedValue = null;
 
     /**
      * Create a standard normal distribution generator (mean=0, stdDev=1).
@@ -89,8 +88,7 @@ public final class NormalDistributionGenerator implements io.github.frikit.krand
 
     private NormalDistributionGenerator(RandomGenerator random, double mean, double standardDeviation) {
         if (standardDeviation <= 0) {
-            throw new IllegalArgumentException(
-                "Standard deviation must be positive, got: " + standardDeviation);
+            throw new IllegalArgumentException("Standard deviation must be positive, got: " + standardDeviation);
         }
         this.mean = mean;
         this.standardDeviation = standardDeviation;

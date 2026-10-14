@@ -55,10 +55,17 @@ initialized instances, and it preserves field initializers unless
 |:---|:---|:---|
 | Java record | Canonical constructor | Contextual construction failure |
 | Mutable class with a no-argument constructor | No-argument constructor, then mutable fields | Contextual construction/access failure |
-| Class with exactly one declared constructor | Generated constructor arguments, then mutable fields | Contextual construction/access failure |
+| Class with exactly one declared constructor | Generated constructor arguments (by parameter name with `-parameters`, otherwise by position), then mutable fields | Contextual construction/access failure |
 | Class with multiple declared constructors | No implicit choice | Register a type factory |
 | Interface or abstract root | No reflective allocation | Register a type factory |
 | Local, anonymous, non-static inner, enum, annotation, array, or primitive root | Unsupported | Use a supported wrapper/factory design |
+
+Constructor parameters behave like the fields they initialize when the class is compiled with
+`-parameters`: by-name overrides, `objectExcludeField` on the parameter name (or `@Exclude` on the
+backing field), Bean Validation constraints declared on the parameter, and semantic providers such
+as `firstName` or `email` all apply. Without compiled parameter names the engine addresses
+arguments by position, so `objectOverride(Money.class, "constructorArg0", ...)` targets the first
+argument and exclusions by name have no effect.
 
 A type override is also a root factory and runs before reflection. Contextual factories win over
 plain factories and receive `"$root"`, the requested type, and depth zero:

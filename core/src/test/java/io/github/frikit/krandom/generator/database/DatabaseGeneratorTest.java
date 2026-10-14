@@ -5,20 +5,19 @@
  */
 package io.github.frikit.krandom.generator.database;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.util.Locale;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("DatabaseGenerator")
 class DatabaseGeneratorTest {
@@ -29,32 +28,28 @@ class DatabaseGeneratorTest {
         DatabaseGenerator generator = new DatabaseGenerator(Locale.US);
         assertFalse(generator.generate().isBlank());
         assertFalse(generator.generateColumn().isBlank());
-        assertTrue(generator.generateType().matches(
-            "VARCHAR\\(255\\)|TEXT|INTEGER|BIGINT|BOOLEAN|DATE|TIMESTAMP|DECIMAL\\(10,2\\)|JSON|UUID"));
+        assertTrue(generator
+                .generateType()
+                .matches("VARCHAR\\(255\\)|TEXT|INTEGER|BIGINT|BOOLEAN|DATE|TIMESTAMP|DECIMAL\\(10,2\\)|JSON|UUID"));
     }
 
     @Test
     @DisplayName("locale branch changes column vocabulary")
     void localeSupport() {
-        DatabaseGenerator en = new DatabaseGenerator(GeneratorConfig.builder().seed(8L).locale(Locale.US).build());
-        DatabaseGenerator fr = new DatabaseGenerator(GeneratorConfig.builder().seed(8L).locale(Locale.FRANCE).build());
+        DatabaseGenerator en = new DatabaseGenerator(
+                GeneratorConfig.builder().seed(8L).locale(Locale.US).build());
+        DatabaseGenerator fr = new DatabaseGenerator(
+                GeneratorConfig.builder().seed(8L).locale(Locale.FRANCE).build());
         assertNotEquals(en.generateColumn(), fr.generateColumn());
     }
 
     @Test
     @DisplayName("covers all locale branches for columns")
     void localeBranchCoverage() {
-        Locale[] locales = {
-            Locale.US,
-            Locale.GERMANY,
-            Locale.FRANCE,
-            Locale.of("es", "ES"),
-            Locale.ITALY
-        };
+        Locale[] locales = {Locale.US, Locale.GERMANY, Locale.FRANCE, Locale.of("es", "ES"), Locale.ITALY};
         for (Locale locale : locales) {
             DatabaseGenerator generator = new DatabaseGenerator(
-                GeneratorConfig.builder().seed(2L).locale(locale).build()
-            );
+                    GeneratorConfig.builder().seed(2L).locale(locale).build());
             assertFalse(generator.generateColumn().isBlank());
             assertFalse(generator.generateType().isBlank());
         }
@@ -71,7 +66,8 @@ class DatabaseGeneratorTest {
     @Test
     @DisplayName("query helpers generate SQL query shapes")
     void queryHelpers() {
-        DatabaseGenerator generator = new DatabaseGenerator(GeneratorConfig.builder().seed(7L).locale(Locale.US).build());
+        DatabaseGenerator generator = new DatabaseGenerator(
+                GeneratorConfig.builder().seed(7L).locale(Locale.US).build());
 
         String table = generator.generateTable();
         assertFalse(table.isBlank());
@@ -97,15 +93,16 @@ class DatabaseGeneratorTest {
 
         String shape = generator.generateQueryShape();
         assertTrue(shape.startsWith("SELECT ")
-                   || shape.startsWith("INSERT INTO ")
-                   || shape.startsWith("UPDATE ")
-                   || shape.startsWith("DELETE FROM "));
+                || shape.startsWith("INSERT INTO ")
+                || shape.startsWith("UPDATE ")
+                || shape.startsWith("DELETE FROM "));
     }
 
     @Test
     @DisplayName("seeded query generation is reproducible")
     void queryDeterminism() {
-        GeneratorConfig config = GeneratorConfig.builder().seed(101L).locale(Locale.US).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().seed(101L).locale(Locale.US).build();
         DatabaseGenerator a = new DatabaseGenerator(config);
         DatabaseGenerator b = new DatabaseGenerator(config);
 
@@ -119,7 +116,8 @@ class DatabaseGeneratorTest {
     @Test
     @DisplayName("query shapes cover all top-level SQL operations")
     void queryShapeCoverage() {
-        DatabaseGenerator generator = new DatabaseGenerator(GeneratorConfig.builder().seed(33L).locale(Locale.US).build());
+        DatabaseGenerator generator = new DatabaseGenerator(
+                GeneratorConfig.builder().seed(33L).locale(Locale.US).build());
         Set<String> ops = Set.of("SELECT", "INSERT", "UPDATE", "DELETE");
         for (int i = 0; i < 20; i++) {
             String query = generator.generateQueryShape();

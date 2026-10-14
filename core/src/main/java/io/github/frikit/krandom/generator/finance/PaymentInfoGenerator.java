@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.finance;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
-
 import java.time.LocalDate;
 import java.util.Locale;
 import java.util.Objects;
@@ -22,25 +21,17 @@ import java.util.Random;
  */
 public final class PaymentInfoGenerator implements Generator<PaymentInfo> {
 
-    private static final String[] PAYMENT_METHODS = {
-        "CARD", "ACH", "WIRE"
-    };
-    private static final String[] PAYMENT_STATUSES = {
-        "AUTHORIZED", "CAPTURED", "SETTLED", "FAILED", "REFUNDED"
-    };
-    private static final String[] CARD_PROCESSORS = {
-        "Stripe", "Adyen", "Braintree", "Checkout.com", "Square"
-    };
-    private static final String[] BANK_PROCESSORS = {
-        "Plaid", "Dwolla", "GoCardless", "Modern Treasury"
-    };
+    private static final String[] PAYMENT_METHODS = {"CARD", "ACH", "WIRE"};
+    private static final String[] PAYMENT_STATUSES = {"AUTHORIZED", "CAPTURED", "SETTLED", "FAILED", "REFUNDED"};
+    private static final String[] CARD_PROCESSORS = {"Stripe", "Adyen", "Braintree", "Checkout.com", "Square"};
+    private static final String[] BANK_PROCESSORS = {"Plaid", "Dwolla", "GoCardless", "Modern Treasury"};
 
-    private final GeneratorConfig          config;
-    private final Random                   random;
-    private final UUIDGenerator            uuidGenerator;
-    private final InvoiceInfoGenerator     invoiceInfoGenerator;
-    private final CreditCardInfoGenerator  creditCardInfoGenerator;
-    private final BankInfoGenerator        bankInfoGenerator;
+    private final GeneratorConfig config;
+    private final Random random;
+    private final UUIDGenerator uuidGenerator;
+    private final InvoiceInfoGenerator invoiceInfoGenerator;
+    private final CreditCardInfoGenerator creditCardInfoGenerator;
+    private final BankInfoGenerator bankInfoGenerator;
 
     /**
      * Creates a payment-info generator using default configuration ({@link Locale#US}).
@@ -55,7 +46,9 @@ public final class PaymentInfoGenerator implements Generator<PaymentInfo> {
      * @param locale locale to use
      */
     public PaymentInfoGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -81,20 +74,19 @@ public final class PaymentInfoGenerator implements Generator<PaymentInfo> {
         LocalDate settledOn = requiresSettlement(status) ? authorizedOn.plusDays(random.nextInt(0, 6)) : null;
 
         return new PaymentInfo(
-            prefixedId("PAY"),
-            invoice.orderNumber(),
-            invoice.invoiceNumber(),
-            status,
-            method,
-            selectProcessor(method),
-            authorizedOn,
-            settledOn,
-            invoice.currencyCode(),
-            invoice.total(),
-            invoice.customer(),
-            invoice.billingAddress(),
-            instrumentReference(method)
-        );
+                prefixedId("PAY"),
+                invoice.orderNumber(),
+                invoice.invoiceNumber(),
+                status,
+                method,
+                selectProcessor(method),
+                authorizedOn,
+                settledOn,
+                invoice.currencyCode(),
+                invoice.total(),
+                invoice.customer(),
+                invoice.billingAddress(),
+                instrumentReference(method));
     }
 
     /**
@@ -116,7 +108,8 @@ public final class PaymentInfoGenerator implements Generator<PaymentInfo> {
 
     private String instrumentReference(String method) {
         if ("CARD".equals(method)) {
-            return "**** **** **** " + tailDigits(creditCardInfoGenerator.generate().number(), 4);
+            return "**** **** **** "
+                    + tailDigits(creditCardInfoGenerator.generate().number(), 4);
         }
         if (config.getBankingSafetyPolicy() == BankingSafetyPolicy.DISABLED) {
             return "ACCT-TEST-" + String.format(Locale.ROOT, "%04d", random.nextInt(10_000));

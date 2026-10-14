@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.datetime;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
@@ -24,11 +23,11 @@ import java.util.Random;
 public final class OffsetDateTimeGenerator implements Generator<OffsetDateTime> {
 
     private static final int OFFSET_STEP_MINUTES = 15;
-    private static final int MIN_OFFSET_MINUTES  = -18 * 60;
-    private static final int MAX_OFFSET_MINUTES  =  18 * 60;
-    private static final int OFFSET_STEPS        = (MAX_OFFSET_MINUTES - MIN_OFFSET_MINUTES) / OFFSET_STEP_MINUTES + 1;
+    private static final int MIN_OFFSET_MINUTES = -18 * 60;
+    private static final int MAX_OFFSET_MINUTES = 18 * 60;
+    private static final int OFFSET_STEPS = (MAX_OFFSET_MINUTES - MIN_OFFSET_MINUTES) / OFFSET_STEP_MINUTES + 1;
 
-    private final Random                 random;
+    private final Random random;
     private final LocalDateTimeGenerator dateTimeGenerator;
 
     /**
@@ -62,8 +61,8 @@ public final class OffsetDateTimeGenerator implements Generator<OffsetDateTime> 
         Objects.requireNonNull(startInclusive, "startInclusive must not be null");
         Objects.requireNonNull(endInclusive, "endInclusive must not be null");
         if (startInclusive.isAfter(endInclusive)) {
-            throw new IllegalArgumentException("startInclusive must be <= endInclusive, got: "
-                                               + startInclusive + " > " + endInclusive);
+            throw new IllegalArgumentException(
+                    "startInclusive must be <= endInclusive, got: " + startInclusive + " > " + endInclusive);
         }
         long seconds = ChronoUnit.SECONDS.between(startInclusive, endInclusive);
         long offset = seconds == 0 ? 0 : random.nextLong(seconds + 1);

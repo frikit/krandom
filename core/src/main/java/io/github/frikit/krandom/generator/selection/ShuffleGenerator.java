@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.selection;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,7 +21,7 @@ import java.util.Random;
 public final class ShuffleGenerator<T> implements Generator<List<T>> {
 
     private final List<T> source;
-    private final Random  random;
+    private final Random random;
 
     /**
      * Creates a shuffle generator backed by the default fast PRNG.

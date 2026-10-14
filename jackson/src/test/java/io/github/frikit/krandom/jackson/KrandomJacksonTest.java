@@ -5,23 +5,22 @@
  */
 package io.github.frikit.krandom.jackson;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.schema.Field;
 import io.github.frikit.krandom.generator.schema.Schema;
 import io.github.frikit.krandom.generator.schema.SchemaValueProvider;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("krandom jackson integration")
 class KrandomJacksonTest {
@@ -51,17 +50,21 @@ class KrandomJacksonTest {
         ObjectMapper mapper = KrandomJackson.newObjectMapper();
         JsonNode node = mapper.valueToTree(schema);
 
-        assertEquals("https://json-schema.org/draft/2020-12/schema", node.get("$schema").asText());
+        assertEquals(
+                "https://json-schema.org/draft/2020-12/schema",
+                node.get("$schema").asText());
         assertEquals("object", node.get("type").asText());
         assertEquals("string", node.path("properties").path("name").path("type").asText());
         assertEquals("integer", node.path("properties").path("age").path("type").asText());
-        assertEquals("boolean", node.path("properties").path("active").path("type").asText());
+        assertEquals(
+                "boolean", node.path("properties").path("active").path("type").asText());
     }
 
     @Test
     @DisplayName("schemas and generated rows serialize composite records")
     void schemaAndRowsSerializeCompositeRecords() {
-        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
         Field field = new Field(config);
         Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
         fields.put("company", field.bind("company.info"));
@@ -71,10 +74,21 @@ class KrandomJacksonTest {
         ObjectMapper mapper = KrandomJackson.newObjectMapper();
 
         JsonNode schemaNode = mapper.valueToTree(schema);
-        assertEquals("object", schemaNode.path("properties").path("company").path("type").asText());
-        assertEquals("object", schemaNode.path("properties").path("company")
-                                         .path("properties").path("address").path("type").asText());
-        assertEquals("object", schemaNode.path("properties").path("card").path("type").asText());
+        assertEquals(
+                "object",
+                schemaNode.path("properties").path("company").path("type").asText());
+        assertEquals(
+                "object",
+                schemaNode
+                        .path("properties")
+                        .path("company")
+                        .path("properties")
+                        .path("address")
+                        .path("type")
+                        .asText());
+        assertEquals(
+                "object",
+                schemaNode.path("properties").path("card").path("type").asText());
 
         JsonNode rowNode = mapper.valueToTree(schema.generate());
         assertTrue(rowNode.path("company").path("name").isTextual());
@@ -85,7 +99,8 @@ class KrandomJacksonTest {
     @Test
     @DisplayName("schema serialization does not advance generated row sequence")
     void schemaSerializationDoesNotAdvanceGeneratedRows() {
-        GeneratorConfig config = GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.US).seed(123L).build();
         Field fieldA = new Field(config);
         Field fieldB = new Field(config);
         Map<String, SchemaValueProvider> fieldsA = new LinkedHashMap<>();

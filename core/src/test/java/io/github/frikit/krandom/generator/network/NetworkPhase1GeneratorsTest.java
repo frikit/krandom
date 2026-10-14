@@ -5,16 +5,15 @@
  */
 package io.github.frikit.krandom.generator.network;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.Locale;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Phase 1 network generators")
 class NetworkPhase1GeneratorsTest {
@@ -65,7 +64,8 @@ class NetworkPhase1GeneratorsTest {
     @Test
     @DisplayName("http method generator uses known methods")
     void httpMethod() {
-        HttpMethodGenerator gen = new HttpMethodGenerator(GeneratorConfig.builder().seed(7L).build());
+        HttpMethodGenerator gen =
+                new HttpMethodGenerator(GeneratorConfig.builder().seed(7L).build());
         Set<String> methods = Set.of("GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS");
         for (int i = 0; i < 20; i++) {
             assertTrue(methods.contains(gen.generate()));
@@ -75,7 +75,8 @@ class NetworkPhase1GeneratorsTest {
     @Test
     @DisplayName("seeded hostname generation is reproducible")
     void seededHostname() {
-        GeneratorConfig cfg = GeneratorConfig.builder().seed(123L).locale(Locale.US).build();
+        GeneratorConfig cfg =
+                GeneratorConfig.builder().seed(123L).locale(Locale.US).build();
         HostnameGenerator a = new HostnameGenerator(cfg);
         HostnameGenerator b = new HostnameGenerator(cfg);
         assertEquals(a.generate(), b.generate());
@@ -84,7 +85,8 @@ class NetworkPhase1GeneratorsTest {
     @Test
     @DisplayName("seeded URI generation is reproducible")
     void seededUri() {
-        GeneratorConfig cfg = GeneratorConfig.builder().seed(321L).locale(Locale.US).build();
+        GeneratorConfig cfg =
+                GeneratorConfig.builder().seed(321L).locale(Locale.US).build();
         UriGenerator a = new UriGenerator(cfg);
         UriGenerator b = new UriGenerator(cfg);
         assertEquals(a.generate(), b.generate());

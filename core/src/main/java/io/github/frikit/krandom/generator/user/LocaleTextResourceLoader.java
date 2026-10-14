@@ -20,8 +20,7 @@ import java.nio.charset.StandardCharsets;
  */
 public final class LocaleTextResourceLoader {
 
-    private LocaleTextResourceLoader() {
-    }
+    private LocaleTextResourceLoader() {}
 
     /**
      * Loads entries from a classpath resource file.
@@ -41,9 +40,9 @@ public final class LocaleTextResourceLoader {
     static String[] load(InputStream is, String resourcePath) {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
             return reader.lines()
-                         .map(String::trim)
-                         .filter(line -> !line.isEmpty() && !line.startsWith("#"))
-                         .toArray(String[]::new);
+                    .map(String::trim)
+                    .filter(line -> !line.isEmpty() && !line.startsWith("#"))
+                    .toArray(String[]::new);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to read resource: " + resourcePath, e);
         }

@@ -5,20 +5,19 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 class SchemaWriteToTest {
 
@@ -133,15 +132,14 @@ class SchemaWriteToTest {
     @Test
     @DisplayName("writeTo rejects null OutputStream")
     void writeToRejectsNullOutputStream() {
-        assertThrows(NullPointerException.class,
-            () -> schema.writeTo((java.io.OutputStream) null, OutputFormat.JSONL, 1));
+        assertThrows(
+                NullPointerException.class, () -> schema.writeTo((java.io.OutputStream) null, OutputFormat.JSONL, 1));
     }
 
     @Test
     @DisplayName("writeTo rejects null format")
     void writeToRejectsNullFormat() {
-        assertThrows(NullPointerException.class,
-            () -> schema.writeTo(new ByteArrayOutputStream(), null, 1));
+        assertThrows(NullPointerException.class, () -> schema.writeTo(new ByteArrayOutputStream(), null, 1));
     }
 
     @Test
@@ -152,8 +150,8 @@ class SchemaWriteToTest {
         Schema throwingSchema = new Schema(fields);
 
         SchemaGenerationException ex = assertThrows(
-            SchemaGenerationException.class,
-            () -> throwingSchema.writeTo(new ByteArrayOutputStream(), OutputFormat.JSONL, 1));
+                SchemaGenerationException.class,
+                () -> throwingSchema.writeTo(new ByteArrayOutputStream(), OutputFormat.JSONL, 1));
         var context = ex.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.REFLECTION, context.category());
         assertEquals(GenerationOperation.READ, context.operation());

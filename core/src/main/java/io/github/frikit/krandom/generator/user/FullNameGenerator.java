@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -35,12 +34,12 @@ import java.util.Set;
  */
 public final class FullNameGenerator implements Generator<String> {
 
-    private static final Map<String, Locale> NATIONALITY_TO_LOCALE      = nationalityToLocaleMap();
-    private static final Set<String>         SUPPORTED_NATIONALITY_KEYS = NATIONALITY_TO_LOCALE.keySet();
+    private static final Map<String, Locale> NATIONALITY_TO_LOCALE = nationalityToLocaleMap();
+    private static final Set<String> SUPPORTED_NATIONALITY_KEYS = NATIONALITY_TO_LOCALE.keySet();
 
-    private final GeneratorConfig             config;
-    private final FirstNameGenerator          firstNameGenerator;
-    private final LastNameGenerator           lastNameGenerator;
+    private final GeneratorConfig config;
+    private final FirstNameGenerator firstNameGenerator;
+    private final LastNameGenerator lastNameGenerator;
     private final Map<Locale, NameGenerators> generatorsByLocale;
 
     /**
@@ -65,8 +64,8 @@ public final class FullNameGenerator implements Generator<String> {
         this.firstNameGenerator = new FirstNameGenerator(config.forChildStream("firstName"));
         this.lastNameGenerator = new LastNameGenerator(config.forChildStream("lastName"));
         this.generatorsByLocale = new HashMap<>();
-        this.generatorsByLocale.put(config.getLocale(),
-                                    new NameGenerators(config, firstNameGenerator, lastNameGenerator));
+        this.generatorsByLocale.put(
+                config.getLocale(), new NameGenerators(config, firstNameGenerator, lastNameGenerator));
     }
 
     private static Locale resolveNationalityLocale(String nationality) {
@@ -74,7 +73,7 @@ public final class FullNameGenerator implements Generator<String> {
         Locale locale = NATIONALITY_TO_LOCALE.get(key);
         if (locale == null) {
             throw new UnsupportedOperationException(
-                "Nationality '" + nationality + "' is not supported. Supported: " + SUPPORTED_NATIONALITY_KEYS);
+                    "Nationality '" + nationality + "' is not supported. Supported: " + SUPPORTED_NATIONALITY_KEYS);
         }
         return locale;
     }
@@ -163,8 +162,8 @@ public final class FullNameGenerator implements Generator<String> {
     public String generateWithMiddleName() {
         MiddleNameGenerator middleNameGenerator = new MiddleNameGenerator(config.forChildStream("middleName"));
         return firstNameGenerator.generate()
-               + " " + middleNameGenerator.generate()
-               + " " + lastNameGenerator.generate();
+                + " " + middleNameGenerator.generate()
+                + " " + lastNameGenerator.generate();
     }
 
     /**
@@ -183,8 +182,8 @@ public final class FullNameGenerator implements Generator<String> {
         Objects.requireNonNull(gender, "gender must not be null");
         MiddleNameGenerator middleNameGenerator = new MiddleNameGenerator(config.forChildStream("middleName"));
         return firstNameGenerator.generate(gender)
-               + " " + middleNameGenerator.generate(gender)
-               + " " + lastNameGenerator.generate();
+                + " " + middleNameGenerator.generate(gender)
+                + " " + lastNameGenerator.generate();
     }
 
     /**
@@ -199,8 +198,8 @@ public final class FullNameGenerator implements Generator<String> {
      */
     public String generateWithMiddleInitial() {
         return firstNameGenerator.generate()
-               + " " + new MiddleNameGenerator(config.forChildStream("middleName")).generateInitial()
-               + " " + lastNameGenerator.generate();
+                + " " + new MiddleNameGenerator(config.forChildStream("middleName")).generateInitial()
+                + " " + lastNameGenerator.generate();
     }
 
     /**
@@ -214,8 +213,8 @@ public final class FullNameGenerator implements Generator<String> {
     public String generateWithMiddleInitial(Gender gender) {
         Objects.requireNonNull(gender, "gender must not be null");
         return firstNameGenerator.generate(gender)
-               + " " + new MiddleNameGenerator(config.forChildStream("middleName")).generateInitial(gender)
-               + " " + lastNameGenerator.generate();
+                + " " + new MiddleNameGenerator(config.forChildStream("middleName")).generateInitial(gender)
+                + " " + lastNameGenerator.generate();
     }
 
     /**
@@ -238,9 +237,8 @@ public final class FullNameGenerator implements Generator<String> {
     public String generate(NameOptions options) {
         Objects.requireNonNull(options, "options must not be null");
 
-        Locale locale = options.nationality() == null
-                        ? config.getLocale()
-                        : resolveNationalityLocale(options.nationality());
+        Locale locale =
+                options.nationality() == null ? config.getLocale() : resolveNationalityLocale(options.nationality());
 
         NameGenerators generators = generatorsFor(locale);
         Gender gender = options.gender();
@@ -252,8 +250,8 @@ public final class FullNameGenerator implements Generator<String> {
         }
 
         String firstName = gender == null
-                           ? generators.firstNameGenerator().generate()
-                           : generators.firstNameGenerator().generate(gender);
+                ? generators.firstNameGenerator().generate()
+                : generators.firstNameGenerator().generate(gender);
         String middlePart = null;
         String lastName = generators.lastNameGenerator().generate();
 
@@ -307,10 +305,9 @@ public final class FullNameGenerator implements Generator<String> {
 
         GeneratorConfig localeConfig = configForLocale(locale);
         NameGenerators created = new NameGenerators(
-            localeConfig,
-            new FirstNameGenerator(localeConfig.forChildStream("firstName")),
-            new LastNameGenerator(localeConfig.forChildStream("lastName"))
-        );
+                localeConfig,
+                new FirstNameGenerator(localeConfig.forChildStream("firstName")),
+                new LastNameGenerator(localeConfig.forChildStream("lastName")));
         generatorsByLocale.put(locale, created);
         return created;
     }
@@ -325,7 +322,6 @@ public final class FullNameGenerator implements Generator<String> {
         return builder.build();
     }
 
-
     /**
      * Option bag for Chance-style name generation.
      *
@@ -338,29 +334,25 @@ public final class FullNameGenerator implements Generator<String> {
      * @param nationality   optional nationality/locale token (for example {@code "en"}, {@code "it"})
      */
     public record NameOptions(
-        boolean middle,
-        boolean middleInitial,
-        boolean prefix,
-        boolean suffix,
-        boolean reverse,
-        Gender gender,
-        String nationality
-    ) {
-    }
-
+            boolean middle,
+            boolean middleInitial,
+            boolean prefix,
+            boolean suffix,
+            boolean reverse,
+            Gender gender,
+            String nationality) {}
 
     private static final class NameGenerators {
 
-        private final GeneratorConfig     config;
-        private final FirstNameGenerator  firstNameGenerator;
-        private final LastNameGenerator   lastNameGenerator;
-        private       TitleGenerator      titleGenerator;
-        private       SuffixGenerator     suffixGenerator;
-        private       MiddleNameGenerator middleNameGenerator;
+        private final GeneratorConfig config;
+        private final FirstNameGenerator firstNameGenerator;
+        private final LastNameGenerator lastNameGenerator;
+        private @org.jspecify.annotations.Nullable TitleGenerator titleGenerator;
+        private @org.jspecify.annotations.Nullable SuffixGenerator suffixGenerator;
+        private @org.jspecify.annotations.Nullable MiddleNameGenerator middleNameGenerator;
 
-        private NameGenerators(GeneratorConfig config,
-                               FirstNameGenerator firstNameGenerator,
-                               LastNameGenerator lastNameGenerator) {
+        private NameGenerators(
+                GeneratorConfig config, FirstNameGenerator firstNameGenerator, LastNameGenerator lastNameGenerator) {
             this.config = config;
             this.firstNameGenerator = firstNameGenerator;
             this.lastNameGenerator = lastNameGenerator;

@@ -5,8 +5,6 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import org.jspecify.annotations.Nullable;
-
 import java.lang.reflect.Array;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.ParameterizedType;
@@ -20,19 +18,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Internal recursive representation of a declared Java type.
  */
 record ResolvedType(
-    Type declaredType,
-    Kind kind,
-    @Nullable Class<?> rawClass,
-    List<ResolvedType> arguments,
-    @Nullable ResolvedType componentType,
-    @Nullable ResolvedType effectiveType,
-    @Nullable String unresolvedReason
-) {
+        Type declaredType,
+        Kind kind,
+        @Nullable Class<?> rawClass,
+        List<ResolvedType> arguments,
+        @Nullable ResolvedType componentType,
+        @Nullable ResolvedType effectiveType,
+        @Nullable String unresolvedReason) {
 
     enum Kind {
         CLASS,
@@ -98,13 +96,11 @@ record ResolvedType(
         }
     }
 
-    private static ResolvedType resolve(Type type,
-                                        Map<? extends TypeVariable<?>, ? extends Type> bindings,
-                                        Set<TypeVariable<?>> visiting) {
+    private static ResolvedType resolve(
+            Type type, Map<? extends TypeVariable<?>, ? extends Type> bindings, Set<TypeVariable<?>> visiting) {
         if (type instanceof Class<?> rawClass) {
-            ResolvedType component = rawClass.isArray()
-                                     ? resolve(rawClass.getComponentType(), bindings, visiting)
-                                     : null;
+            ResolvedType component =
+                    rawClass.isArray() ? resolve(rawClass.getComponentType(), bindings, visiting) : null;
             return new ResolvedType(type, Kind.CLASS, rawClass, List.of(), component, null, null);
         }
         if (type instanceof ParameterizedType parameterized) {
@@ -119,8 +115,8 @@ record ResolvedType(
         if (type instanceof GenericArrayType genericArray) {
             ResolvedType component = resolve(genericArray.getGenericComponentType(), bindings, visiting);
             Class<?> rawClass = component.rawClass() == null
-                                ? null
-                                : Array.newInstance(component.rawClass(), 0).getClass();
+                    ? null
+                    : Array.newInstance(component.rawClass(), 0).getClass();
             String reason = rawClass == null ? "generic array component has no concrete runtime class" : null;
             return new ResolvedType(type, Kind.GENERIC_ARRAY, rawClass, List.of(), component, null, reason);
         }
@@ -130,12 +126,16 @@ record ResolvedType(
         if (type instanceof TypeVariable<?> variable) {
             return resolveVariable(variable, bindings, visiting);
         }
-        return unresolved(type, Kind.UNKNOWN, "unsupported Type implementation: " + type.getClass().getName());
+        return unresolved(
+                type,
+                Kind.UNKNOWN,
+                "unsupported Type implementation: " + type.getClass().getName());
     }
 
-    private static ResolvedType resolveWildcard(WildcardType wildcard,
-                                                Map<? extends TypeVariable<?>, ? extends Type> bindings,
-                                                Set<TypeVariable<?>> visiting) {
+    private static ResolvedType resolveWildcard(
+            WildcardType wildcard,
+            Map<? extends TypeVariable<?>, ? extends Type> bindings,
+            Set<TypeVariable<?>> visiting) {
         Type[] lowerBounds = wildcard.getLowerBounds();
         if (lowerBounds.length == 1) {
             return withEffectiveType(wildcard, Kind.WILDCARD, resolve(lowerBounds[0], bindings, visiting));
@@ -150,9 +150,10 @@ record ResolvedType(
         return unresolved(wildcard, Kind.WILDCARD, "wildcard must declare exactly one upper bound");
     }
 
-    private static ResolvedType resolveVariable(TypeVariable<?> variable,
-                                                Map<? extends TypeVariable<?>, ? extends Type> bindings,
-                                                Set<TypeVariable<?>> visiting) {
+    private static ResolvedType resolveVariable(
+            TypeVariable<?> variable,
+            Map<? extends TypeVariable<?>, ? extends Type> bindings,
+            Set<TypeVariable<?>> visiting) {
         if (!visiting.add(variable)) {
             return unresolved(variable, Kind.TYPE_VARIABLE, "recursive type bound for " + variable.getName());
         }
@@ -166,11 +167,15 @@ record ResolvedType(
                 if (bounds[0] != Object.class) {
                     return withEffectiveType(variable, Kind.TYPE_VARIABLE, resolve(bounds[0], bindings, visiting));
                 }
-                return unresolved(variable, Kind.TYPE_VARIABLE,
-                                  "unbounded type variable has no generation type: " + variable.getName());
+                return unresolved(
+                        variable,
+                        Kind.TYPE_VARIABLE,
+                        "unbounded type variable has no generation type: " + variable.getName());
             }
-            return unresolved(variable, Kind.TYPE_VARIABLE,
-                              "multiple type-variable bounds are unsupported: " + variable.getName());
+            return unresolved(
+                    variable,
+                    Kind.TYPE_VARIABLE,
+                    "multiple type-variable bounds are unsupported: " + variable.getName());
         } finally {
             visiting.remove(variable);
         }
@@ -178,13 +183,13 @@ record ResolvedType(
 
     private static ResolvedType withEffectiveType(Type declaredType, Kind kind, ResolvedType effectiveType) {
         return new ResolvedType(
-            declaredType,
-            kind,
-            effectiveType.rawClass(),
-            effectiveType.arguments(),
-            effectiveType.componentType(),
-            effectiveType,
-            effectiveType.unresolvedReason());
+                declaredType,
+                kind,
+                effectiveType.rawClass(),
+                effectiveType.arguments(),
+                effectiveType.componentType(),
+                effectiveType,
+                effectiveType.unresolvedReason());
     }
 
     private static ResolvedType unresolved(Type type, Kind kind, String reason) {

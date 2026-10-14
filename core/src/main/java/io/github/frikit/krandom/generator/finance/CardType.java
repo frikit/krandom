@@ -28,10 +28,7 @@ public enum CardType {
     /**
      * Mastercard with prefixes 51-55 or 2221-2720, 16 digits.
      */
-    MASTERCARD("Mastercard",
-               List.of("51", "52", "53", "54", "55", "2221-2720"),
-               List.of(16),
-               3),
+    MASTERCARD("Mastercard", List.of("51", "52", "53", "54", "55", "2221-2720"), List.of(16), 3),
 
     /**
      * American Express (Amex) with prefixes 34 or 37, 15 digits, 4-digit CVV.
@@ -58,10 +55,10 @@ public enum CardType {
      */
     RANDOM("Random", List.of(), List.of(), 3);
 
-    private final String        displayName;
-    private final List<String>  prefixPatterns;
+    private final String displayName;
+    private final List<String> prefixPatterns;
     private final List<Integer> cardLengths;
-    private final int           cvvLength;
+    private final int cvvLength;
 
     CardType(String displayName, List<String> prefixPatterns, List<Integer> cardLengths, int cvvLength) {
         this.displayName = displayName;

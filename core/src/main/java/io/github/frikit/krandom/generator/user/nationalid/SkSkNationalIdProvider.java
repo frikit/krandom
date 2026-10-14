@@ -29,10 +29,12 @@ public final class SkSkNationalIdProvider implements NationalIdProvider {
         if (date.getYear() < 1954) {
             date = date.plusYears(4);
         }
-        return String.format(Locale.ROOT, "%02d%02d%02d/%04d",
-                             date.getYear() % 100,
-                             date.getMonthValue(),
-                             date.getDayOfMonth(),
-                             random.nextInt(10_000));
+        return String.format(
+                Locale.ROOT,
+                "%02d%02d%02d/%04d",
+                date.getYear() % 100,
+                date.getMonthValue(),
+                date.getDayOfMonth(),
+                random.nextInt(10_000));
     }
 }

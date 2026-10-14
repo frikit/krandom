@@ -5,18 +5,17 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.core.model.Address;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.core.model.Address;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("ObjectGenerator edge coverage")
 class ObjectGeneratorCoverageEdgeTest {
@@ -31,17 +30,19 @@ class ObjectGeneratorCoverageEdgeTest {
         Field field = PrivateFieldHolder.class.getDeclaredField("value");
         // Intentionally do not set accessible(true) to trigger IllegalAccessException in field.get(instance).
         InvocationTargetException ex = assertThrows(
-            InvocationTargetException.class,
-            () -> method.invoke(generator, new PrivateFieldHolder(), field)
-        );
+                InvocationTargetException.class, () -> method.invoke(generator, new PrivateFieldHolder(), field));
         assertTrue(ex.getCause() instanceof IllegalStateException);
     }
 
     @Test
     @DisplayName("metadata caches use ClassValue")
     void metadataCachesUseClassValue() throws Exception {
-        assertEquals(ClassValue.class, ObjectGenerator.class.getDeclaredField("SETTABLE_FIELDS").getType());
-        assertEquals(ClassValue.class, ObjectGenerator.class.getDeclaredField("RECORD_META").getType());
+        assertEquals(
+                ClassValue.class,
+                ObjectGenerator.class.getDeclaredField("SETTABLE_FIELDS").getType());
+        assertEquals(
+                ClassValue.class,
+                ObjectGenerator.class.getDeclaredField("RECORD_META").getType());
     }
 
     @Test
@@ -49,13 +50,7 @@ class ObjectGeneratorCoverageEdgeTest {
     void generateUsesExistingPoolForScopedGenerator() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder().build();
         ObjectGenerator<Address> scoped = new ObjectGenerator<>(
-            Address.class,
-            config,
-            1,
-            new ObjectPool(config.getObjectPoolSize()),
-            null,
-            new UniqueFieldTracker()
-        );
+                Address.class, config, 1, new ObjectPool(config.getObjectPoolSize()), null, new UniqueFieldTracker());
         assertNotNull(scoped.generate());
     }
 
@@ -64,13 +59,7 @@ class ObjectGeneratorCoverageEdgeTest {
     void generateUsesExistingPoolAtDepthZero() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder().build();
         ObjectGenerator<Address> scoped = new ObjectGenerator<>(
-            Address.class,
-            config,
-            0,
-            new ObjectPool(config.getObjectPoolSize()),
-            null,
-            new UniqueFieldTracker()
-        );
+                Address.class, config, 0, new ObjectPool(config.getObjectPoolSize()), null, new UniqueFieldTracker());
         assertNotNull(scoped.generate());
     }
 

@@ -5,19 +5,18 @@
  */
 package io.github.frikit.krandom.generator.locale;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("RandomLocaleGenerator")
 class RandomLocaleGeneratorTest {
@@ -26,7 +25,8 @@ class RandomLocaleGeneratorTest {
     @DisplayName("generate returns supported locales")
     void generateReturnsSupportedLocales() {
         Set<Locale> supported = new HashSet<>(SupportedLocale.locales());
-        RandomLocaleGenerator generator = new RandomLocaleGenerator(GeneratorConfig.builder().seed(42L).build());
+        RandomLocaleGenerator generator =
+                new RandomLocaleGenerator(GeneratorConfig.builder().seed(42L).build());
 
         for (int i = 0; i < 100; i++) {
             assertTrue(supported.contains(generator.generate()));
@@ -58,7 +58,8 @@ class RandomLocaleGeneratorTest {
         assertNotNull(Generators.ofLocale().generate());
         assertNotNull(Generators.ofLocale(seeded(1L)).generate());
         assertNotNull(Generators.ofLocale(GeneratorConfig.defaults()).generate());
-        assertTrue(SupportedLocale.locales().contains(Generators.forType(Locale.class).generate()));
+        assertTrue(SupportedLocale.locales()
+                .contains(Generators.forType(Locale.class).generate()));
     }
 
     @Test

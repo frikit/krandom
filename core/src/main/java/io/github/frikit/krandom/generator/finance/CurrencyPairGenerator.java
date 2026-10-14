@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -89,9 +87,7 @@ public final class CurrencyPairGenerator implements Generator<String> {
         do {
             quoteIdx = random.nextInt(ALL_CURRENCIES.length);
         } while (quoteIdx == baseIdx);
-        return new CurrencyPair(
-            ALL_CURRENCIES[baseIdx].toInfo(),
-            ALL_CURRENCIES[quoteIdx].toInfo());
+        return new CurrencyPair(ALL_CURRENCIES[baseIdx].toInfo(), ALL_CURRENCIES[quoteIdx].toInfo());
     }
 
     /**

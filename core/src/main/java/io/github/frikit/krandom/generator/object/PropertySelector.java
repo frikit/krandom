@@ -19,5 +19,4 @@ import java.util.function.Function;
  * @param <V> property value type
  */
 @FunctionalInterface
-public interface PropertySelector<T, V> extends Function<T, V>, Serializable {
-}
+public interface PropertySelector<T, V> extends Function<T, V>, Serializable {}

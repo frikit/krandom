@@ -5,10 +5,10 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -32,7 +32,7 @@ import java.util.Random;
 public final class PronounGenerator implements Generator<String> {
 
     private static final PronounDataProvider DEFAULT_PROVIDER =
-        new BuiltInPronounDataProvider(Locale.ROOT, "krandom/pronouns/default.txt");
+            new BuiltInPronounDataProvider(Locale.ROOT, "krandom/pronouns/default.txt");
 
     private final List<String> sets;
     private final Random random;
@@ -51,7 +51,9 @@ public final class PronounGenerator implements Generator<String> {
      *               exists; must not be {@code null}
      */
     public PronounGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -62,7 +64,7 @@ public final class PronounGenerator implements Generator<String> {
     public PronounGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         DataRegistryContext registryContext = config.getRegistryContext();
-        PronounDataProvider provider = registryContext.pronounProvider(config.getLocale());
+        PronounDataProvider provider = registryContext.provider(Vocabulary.PRONOUN, config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }

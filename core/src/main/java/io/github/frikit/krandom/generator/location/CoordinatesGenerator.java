@@ -7,9 +7,7 @@ package io.github.frikit.krandom.generator.location;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.math.BigDecimal;
-import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -109,9 +107,9 @@ public final class CoordinatesGenerator implements Generator<String> {
     // India
     private static final GeoBounds IN_BOUNDS = new GeoBounds(6.5, 35.7, 68.1, 97.4);
     private final GeneratorConfig config;
-    private final Random          random;
-    private final Locale          locale;
-    private final GeoBounds       bounds;
+    private final Random random;
+    private final Locale locale;
+    private final GeoBounds bounds;
     /**
      * Creates a generator using US locale with default config.
      */
@@ -139,9 +137,9 @@ public final class CoordinatesGenerator implements Generator<String> {
      * @throws NullPointerException if {@code locale} is {@code null}
      */
     public CoordinatesGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(
-            Objects.requireNonNull(locale, "locale must not be null")
-        ).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -311,9 +309,7 @@ public final class CoordinatesGenerator implements Generator<String> {
     private void validatePrecision(int precision) {
         if (precision < MIN_PRECISION || precision > MAX_PRECISION) {
             throw new IllegalArgumentException(
-                "precision must be between " + MIN_PRECISION + " and " + MAX_PRECISION +
-                ", got: " + precision
-            );
+                    "precision must be between " + MIN_PRECISION + " and " + MAX_PRECISION + ", got: " + precision);
         }
     }
 
@@ -321,7 +317,6 @@ public final class CoordinatesGenerator implements Generator<String> {
         double multiplier = Math.pow(10, precision);
         return Math.round(value * multiplier) / multiplier;
     }
-
 
     // Geographical bounds for each locale
     private static class GeoBounds {

@@ -5,17 +5,13 @@
  */
 package io.github.frikit.krandom.generator.finance;
 
+import static java.util.Map.entry;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import org.apache.commons.validator.routines.IBANValidator;
-import org.apache.commons.validator.routines.checkdigit.LuhnCheckDigit;
-import org.apache.commons.validator.routines.checkdigit.ModulusTenCheckDigit;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,11 +23,14 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-
-import static java.util.Map.entry;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.apache.commons.validator.routines.IBANValidator;
+import org.apache.commons.validator.routines.checkdigit.LuhnCheckDigit;
+import org.apache.commons.validator.routines.checkdigit.ModulusTenCheckDigit;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Checks generated IBANs and BBANs against an independent copy of the ISO 13616 IBAN registry
@@ -41,69 +40,66 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("IBAN and BBAN generators follow the ISO 13616 IBAN registry")
 class IbanRegistryConformanceTest {
 
-    private static final int    SEEDS_PER_LOCALE = 1_000;
-    private static final String DEFAULT_COUNTRY  = "DE";
+    private static final int SEEDS_PER_LOCALE = 1_000;
+    private static final String DEFAULT_COUNTRY = "DE";
 
     private static final IBANValidator IBAN_VALIDATOR = IBANValidator.getInstance();
 
     /** ISO 13616 IBAN registry: BBAN structure, IBAN length, and the registry sample IBAN. */
     private static final Map<String, RegistryEntry> REGISTRY = Map.ofEntries(
-        entry("AT", new RegistryEntry("5!n11!n", 20, "AT611904300234573201")),
-        entry("BE", new RegistryEntry("3!n7!n2!n", 16, "BE68539007547034")),
-        entry("BG", new RegistryEntry("4!a4!n2!n8!c", 22, "BG80BNBG96611020345678")),
-        entry("BR", new RegistryEntry("8!n5!n10!n1!a1!c", 29, "BR1800360305000010009795493C1")),
-        entry("CH", new RegistryEntry("5!n12!c", 21, "CH9300762011623852957")),
-        entry("CZ", new RegistryEntry("4!n6!n10!n", 24, "CZ6508000000192000145399")),
-        entry("DE", new RegistryEntry("8!n10!n", 22, "DE89370400440532013000")),
-        entry("DK", new RegistryEntry("4!n9!n1!n", 18, "DK5000400440116243")),
-        entry("ES", new RegistryEntry("4!n4!n1!n1!n10!n", 24, "ES9121000418450200051332")),
-        entry("FI", new RegistryEntry("3!n11!n", 18, "FI2112345600000785")),
-        entry("FR", new RegistryEntry("5!n5!n11!c2!n", 27, "FR1420041010050500013M02606")),
-        entry("GB", new RegistryEntry("4!a6!n8!n", 22, "GB29NWBK60161331926819")),
-        entry("GR", new RegistryEntry("3!n4!n16!c", 27, "GR1601101250000000012300695")),
-        entry("HR", new RegistryEntry("7!n10!n", 21, "HR1210010051863000160")),
-        entry("HU", new RegistryEntry("3!n4!n1!n15!n1!n", 28, "HU42117730161111101800000000")),
-        entry("IE", new RegistryEntry("4!a6!n8!n", 22, "IE29AIBK93115212345678")),
-        entry("IL", new RegistryEntry("3!n3!n13!n", 23, "IL620108000000099999999")),
-        entry("IT", new RegistryEntry("1!a5!n5!n12!c", 27, "IT60X0542811101000000123456")),
-        entry("NL", new RegistryEntry("4!a10!n", 18, "NL91ABNA0417164300")),
-        entry("NO", new RegistryEntry("4!n6!n1!n", 15, "NO9386011117947")),
-        entry("PL", new RegistryEntry("8!n16!n", 28, "PL61109010140000071219812874")),
-        entry("PT", new RegistryEntry("4!n4!n11!n2!n", 25, "PT50000201231234567890154")),
-        entry("RO", new RegistryEntry("4!a16!c", 24, "RO49AAAA1B31007593840000")),
-        entry("RU", new RegistryEntry("9!n5!n15!c", 33, "RU0304452522540817810538091310419")),
-        entry("SA", new RegistryEntry("2!n18!c", 24, "SA0380000000608010167519")),
-        entry("SE", new RegistryEntry("3!n16!n1!n", 24, "SE4550000000058398257466")),
-        entry("SK", new RegistryEntry("4!n6!n10!n", 24, "SK3112000000198742637541")),
-        entry("TR", new RegistryEntry("5!n1!n16!c", 26, "TR330006100519786457841326")),
-        entry("UA", new RegistryEntry("6!n19!c", 29, "UA213223130000026007233566001"))
-    );
+            entry("AT", new RegistryEntry("5!n11!n", 20, "AT611904300234573201")),
+            entry("BE", new RegistryEntry("3!n7!n2!n", 16, "BE68539007547034")),
+            entry("BG", new RegistryEntry("4!a4!n2!n8!c", 22, "BG80BNBG96611020345678")),
+            entry("BR", new RegistryEntry("8!n5!n10!n1!a1!c", 29, "BR1800360305000010009795493C1")),
+            entry("CH", new RegistryEntry("5!n12!c", 21, "CH9300762011623852957")),
+            entry("CZ", new RegistryEntry("4!n6!n10!n", 24, "CZ6508000000192000145399")),
+            entry("DE", new RegistryEntry("8!n10!n", 22, "DE89370400440532013000")),
+            entry("DK", new RegistryEntry("4!n9!n1!n", 18, "DK5000400440116243")),
+            entry("ES", new RegistryEntry("4!n4!n1!n1!n10!n", 24, "ES9121000418450200051332")),
+            entry("FI", new RegistryEntry("3!n11!n", 18, "FI2112345600000785")),
+            entry("FR", new RegistryEntry("5!n5!n11!c2!n", 27, "FR1420041010050500013M02606")),
+            entry("GB", new RegistryEntry("4!a6!n8!n", 22, "GB29NWBK60161331926819")),
+            entry("GR", new RegistryEntry("3!n4!n16!c", 27, "GR1601101250000000012300695")),
+            entry("HR", new RegistryEntry("7!n10!n", 21, "HR1210010051863000160")),
+            entry("HU", new RegistryEntry("3!n4!n1!n15!n1!n", 28, "HU42117730161111101800000000")),
+            entry("IE", new RegistryEntry("4!a6!n8!n", 22, "IE29AIBK93115212345678")),
+            entry("IL", new RegistryEntry("3!n3!n13!n", 23, "IL620108000000099999999")),
+            entry("IT", new RegistryEntry("1!a5!n5!n12!c", 27, "IT60X0542811101000000123456")),
+            entry("NL", new RegistryEntry("4!a10!n", 18, "NL91ABNA0417164300")),
+            entry("NO", new RegistryEntry("4!n6!n1!n", 15, "NO9386011117947")),
+            entry("PL", new RegistryEntry("8!n16!n", 28, "PL61109010140000071219812874")),
+            entry("PT", new RegistryEntry("4!n4!n11!n2!n", 25, "PT50000201231234567890154")),
+            entry("RO", new RegistryEntry("4!a16!c", 24, "RO49AAAA1B31007593840000")),
+            entry("RU", new RegistryEntry("9!n5!n15!c", 33, "RU0304452522540817810538091310419")),
+            entry("SA", new RegistryEntry("2!n18!c", 24, "SA0380000000608010167519")),
+            entry("SE", new RegistryEntry("3!n16!n1!n", 24, "SE4550000000058398257466")),
+            entry("SK", new RegistryEntry("4!n6!n10!n", 24, "SK3112000000198742637541")),
+            entry("TR", new RegistryEntry("5!n1!n16!c", 26, "TR330006100519786457841326")),
+            entry("UA", new RegistryEntry("6!n19!c", 29, "UA213223130000026007233566001")));
 
     /** Further published IBANs for the countries whose BBAN carries national check digits. */
     private static final List<String> ADDITIONAL_SAMPLES = List.of(
-        "ES7921000813610123456789",
-        "FR7630006000011234567890189",
-        "NO8330001234567",
-        "HU93116000060000000012345676",
-        "CZ5508000000001234567899"
-    );
+            "ES7921000813610123456789",
+            "FR7630006000011234567890189",
+            "NO8330001234567",
+            "HU93116000060000000012345676",
+            "CZ5508000000001234567899");
 
     /** National check-digit rules that hold for every account of the country, keyed by country. */
     private static final Map<String, Predicate<String>> NATIONAL_CHECKS = Map.ofEntries(
-        entry("BE", IbanRegistryConformanceTest::belgianCheckDigitsValid),
-        entry("CZ", IbanRegistryConformanceTest::czechSlovakCheckDigitsValid),
-        entry("ES", IbanRegistryConformanceTest::spanishCheckDigitsValid),
-        entry("FI", bban -> LuhnCheckDigit.LUHN_CHECK_DIGIT.isValid(bban)),
-        entry("FR", IbanRegistryConformanceTest::frenchRibKeyValid),
-        entry("HR", IbanRegistryConformanceTest::croatianCheckDigitsValid),
-        entry("HU", IbanRegistryConformanceTest::hungarianCheckDigitsValid),
-        entry("IT", IbanRegistryConformanceTest::italianCinValid),
-        entry("NO", IbanRegistryConformanceTest::norwegianCheckDigitValid),
-        entry("PL", IbanRegistryConformanceTest::polishSortCodeCheckDigitValid),
-        entry("PT", IbanRegistryConformanceTest::portugueseNibCheckDigitsValid),
-        entry("SK", IbanRegistryConformanceTest::czechSlovakCheckDigitsValid),
-        entry("TR", bban -> bban.charAt(5) == '0')
-    );
+            entry("BE", IbanRegistryConformanceTest::belgianCheckDigitsValid),
+            entry("CZ", IbanRegistryConformanceTest::czechSlovakCheckDigitsValid),
+            entry("ES", IbanRegistryConformanceTest::spanishCheckDigitsValid),
+            entry("FI", bban -> LuhnCheckDigit.LUHN_CHECK_DIGIT.isValid(bban)),
+            entry("FR", IbanRegistryConformanceTest::frenchRibKeyValid),
+            entry("HR", IbanRegistryConformanceTest::croatianCheckDigitsValid),
+            entry("HU", IbanRegistryConformanceTest::hungarianCheckDigitsValid),
+            entry("IT", IbanRegistryConformanceTest::italianCinValid),
+            entry("NO", IbanRegistryConformanceTest::norwegianCheckDigitValid),
+            entry("PL", IbanRegistryConformanceTest::polishSortCodeCheckDigitValid),
+            entry("PT", IbanRegistryConformanceTest::portugueseNibCheckDigitsValid),
+            entry("SK", IbanRegistryConformanceTest::czechSlovakCheckDigitsValid),
+            entry("TR", bban -> bban.charAt(5) == '0'));
 
     private record RegistryEntry(String bbanStructure, int ibanLength, String sampleIban) {
 
@@ -113,12 +109,16 @@ class IbanRegistryConformanceTest {
             int end = 0;
             while (segment.find()) {
                 assertEquals(end, segment.start(), "unparsed registry notation in " + bbanStructure);
-                String characterClass = switch (segment.group(2)) {
-                    case "n" -> "[0-9]";
-                    case "a" -> "[A-Z]";
-                    default -> "[0-9A-Z]";
-                };
-                regex.append(characterClass).append('{').append(segment.group(1)).append('}');
+                String characterClass =
+                        switch (segment.group(2)) {
+                            case "n" -> "[0-9]";
+                            case "a" -> "[A-Z]";
+                            default -> "[0-9A-Z]";
+                        };
+                regex.append(characterClass)
+                        .append('{')
+                        .append(segment.group(1))
+                        .append('}');
                 end = segment.end();
             }
             assertEquals(bbanStructure.length(), end, "unparsed registry notation in " + bbanStructure);
@@ -138,14 +138,26 @@ class IbanRegistryConformanceTest {
     @Test
     @DisplayName("published sample BBANs match their registry structure")
     void publishedSampleBbansMatchRegistryStructure() {
-        assertTrue(REGISTRY.get("DE").bbanPattern().matcher("370400440532013000").matches());
-        assertTrue(REGISTRY.get("GB").bbanPattern().matcher("NWBK60161331926819").matches());
-        assertTrue(REGISTRY.get("FR").bbanPattern().matcher("20041010050500013M02606").matches());
-        assertTrue(REGISTRY.get("IT").bbanPattern().matcher("X0542811101000000123456").matches());
-        assertTrue(REGISTRY.get("BR").bbanPattern().matcher("00360305000010009795493C1").matches());
+        assertTrue(
+                REGISTRY.get("DE").bbanPattern().matcher("370400440532013000").matches());
+        assertTrue(
+                REGISTRY.get("GB").bbanPattern().matcher("NWBK60161331926819").matches());
+        assertTrue(REGISTRY.get("FR")
+                .bbanPattern()
+                .matcher("20041010050500013M02606")
+                .matches());
+        assertTrue(REGISTRY.get("IT")
+                .bbanPattern()
+                .matcher("X0542811101000000123456")
+                .matches());
+        assertTrue(REGISTRY.get("BR")
+                .bbanPattern()
+                .matcher("00360305000010009795493C1")
+                .matches());
         assertTrue(REGISTRY.get("NL").bbanPattern().matcher("ABNA0417164300").matches());
         // The structure check rejects a GB BBAN without the four-letter bank code.
-        assertFalse(REGISTRY.get("GB").bbanPattern().matcher("123460161331926819").matches());
+        assertFalse(
+                REGISTRY.get("GB").bbanPattern().matcher("123460161331926819").matches());
     }
 
     @Test
@@ -206,9 +218,17 @@ class IbanRegistryConformanceTest {
     }
 
     static Stream<Locale> localesWithoutIbanFormat() {
-        return Stream.of(Locale.US, Locale.JAPAN, Locale.CHINA, Locale.KOREA, Locale.CANADA,
-                         Locale.of("en", "AU"), Locale.of("hi", "IN"), Locale.of("es", "MX"),
-                         Locale.ENGLISH, Locale.ROOT);
+        return Stream.of(
+                Locale.US,
+                Locale.JAPAN,
+                Locale.CHINA,
+                Locale.KOREA,
+                Locale.CANADA,
+                Locale.of("en", "AU"),
+                Locale.of("hi", "IN"),
+                Locale.of("es", "MX"),
+                Locale.ENGLISH,
+                Locale.ROOT);
     }
 
     @ParameterizedTest(name = "[{index}] locale \"{0}\"")
@@ -241,8 +261,8 @@ class IbanRegistryConformanceTest {
     @DisplayName("default configuration locale emits German IBANs")
     void defaultLocaleEmitsGermanIbans() {
         GeneratorConfig config = GeneratorConfig.builder()
-                                                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                                                .build();
+                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
         List<String> ibans = new ArrayList<>();
         IbanGenerator generator = new IbanGenerator(config);
         for (int i = 0; i < 100; i++) {
@@ -254,10 +274,8 @@ class IbanRegistryConformanceTest {
     @Test
     @DisplayName("bank-country generator output is unchanged by the IBAN country rules")
     void bankCountryGeneratorOutputUnchanged() {
-        assertEquals(List.of("BR", "ES", "IT", "ES", "US", "ES", "CN", "AU"),
-                     bankCountries(Locale.CANADA));
-        assertEquals(List.of("BR", "ES", "IT", "ES", "US", "ES", "CN", "AU"),
-                     bankCountries(Locale.of("nl", "NL")));
+        assertEquals(List.of("BR", "ES", "IT", "ES", "US", "ES", "CN", "AU"), bankCountries(Locale.CANADA));
+        assertEquals(List.of("BR", "ES", "IT", "ES", "US", "ES", "CN", "AU"), bankCountries(Locale.of("nl", "NL")));
         assertEquals(List.of("US", "US", "US", "US", "US", "US", "US", "US"), bankCountries(Locale.US));
         assertEquals(List.of("JP", "JP", "JP", "JP", "JP", "JP", "JP", "JP"), bankCountries(Locale.JAPAN));
     }
@@ -271,8 +289,9 @@ class IbanRegistryConformanceTest {
         assertEquals(registry.ibanLength(), iban.length(), () -> "registry length: " + iban);
         assertTrue(IBAN_VALIDATOR.isValid(iban), () -> "IBANValidator rejected " + iban);
         assertTrue(registry.bbanPattern().matcher(bban).matches(), () -> "registry BBAN structure: " + iban);
-        assertTrue(NATIONAL_CHECKS.getOrDefault(country, value -> true).test(bban),
-                   () -> "national check digits: " + iban);
+        assertTrue(
+                NATIONAL_CHECKS.getOrDefault(country, value -> true).test(bban),
+                () -> "national check digits: " + iban);
     }
 
     private static String expectedCountry(Locale locale) {
@@ -286,10 +305,8 @@ class IbanRegistryConformanceTest {
     }
 
     private static List<String> bankCountries(Locale locale) {
-        BankCountryGenerator generator = new BankCountryGenerator(GeneratorConfig.builder()
-                                                                                 .seed(7L)
-                                                                                 .locale(locale)
-                                                                                 .build());
+        BankCountryGenerator generator = new BankCountryGenerator(
+                GeneratorConfig.builder().seed(7L).locale(locale).build());
         List<String> countries = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
             countries.add(generator.generate());
@@ -299,10 +316,10 @@ class IbanRegistryConformanceTest {
 
     private static GeneratorConfig realisticConfig(long seed, Locale locale) {
         return GeneratorConfig.builder()
-                              .seed(seed)
-                              .locale(locale)
-                              .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
-                              .build();
+                .seed(seed)
+                .locale(locale)
+                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
     }
 
     private static int digit(String value, int index) {
@@ -321,20 +338,22 @@ class IbanRegistryConformanceTest {
 
     /** Belgium: the last two digits are the first ten digits modulo 97 (97 when the rest is 0). */
     private static boolean belgianCheckDigitsValid(String bban) {
-        int remainder = new BigInteger(bban.substring(0, 10)).mod(BigInteger.valueOf(97)).intValue();
+        int remainder = new BigInteger(bban.substring(0, 10))
+                .mod(BigInteger.valueOf(97))
+                .intValue();
         return Integer.parseInt(bban.substring(10)) == (remainder == 0 ? 97 : remainder);
     }
 
     /** Czechia and Slovakia: account prefix and account number are each weighted multiples of 11. */
     private static boolean czechSlovakCheckDigitsValid(String bban) {
         return weightedSum(bban.substring(4, 10), 10, 5, 8, 4, 2, 1) % 11 == 0
-               && weightedSum(bban.substring(10), 6, 3, 7, 9, 10, 5, 8, 4, 2, 1) % 11 == 0;
+                && weightedSum(bban.substring(10), 6, 3, 7, 9, 10, 5, 8, 4, 2, 1) % 11 == 0;
     }
 
     /** Spain: the two DC digits check {@code 00 + bank + branch} and the account number. */
     private static boolean spanishCheckDigitsValid(String bban) {
         return digit(bban, 8) == spanishControlDigit("00" + bban.substring(0, 8))
-               && digit(bban, 9) == spanishControlDigit(bban.substring(10));
+                && digit(bban, 9) == spanishControlDigit(bban.substring(10));
     }
 
     private static int spanishControlDigit(String tenDigits) {

@@ -5,20 +5,6 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDate;
-import java.time.MonthDay;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -26,25 +12,56 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.time.LocalDate;
+import java.time.MonthDay;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
+
 @DisplayName("Zodiac generators")
 class ZodiacGeneratorTest {
 
     private static final Locale RU = Locale.of("ru", "RU");
 
     private static final Set<String> WESTERN_EN = Set.of(
-        "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-        "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces");
+            "Aries",
+            "Taurus",
+            "Gemini",
+            "Cancer",
+            "Leo",
+            "Virgo",
+            "Libra",
+            "Scorpio",
+            "Sagittarius",
+            "Capricorn",
+            "Aquarius",
+            "Pisces");
 
     private static final Set<String> WESTERN_RU = Set.of(
-        "Овен", "Телец", "Близнецы", "Рак", "Лев", "Дева",
-        "Весы", "Скорпион", "Стрелец", "Козерог", "Водолей", "Рыбы");
+            "Овен",
+            "Телец",
+            "Близнецы",
+            "Рак",
+            "Лев",
+            "Дева",
+            "Весы",
+            "Скорпион",
+            "Стрелец",
+            "Козерог",
+            "Водолей",
+            "Рыбы");
 
     private static final Set<String> CHINESE = Set.of(
-        "Monkey", "Rooster", "Dog", "Pig", "Rat", "Ox",
-        "Tiger", "Rabbit", "Dragon", "Snake", "Horse", "Goat");
+            "Monkey", "Rooster", "Dog", "Pig", "Rat", "Ox", "Tiger", "Rabbit", "Dragon", "Snake", "Horse", "Goat");
 
-    private static final Set<String> CHINESE_ZH = Set.of(
-        "猴", "鸡", "狗", "猪", "鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊");
+    private static final Set<String> CHINESE_ZH = Set.of("猴", "鸡", "狗", "猪", "鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊");
 
     @Nested
     @DisplayName("ZodiacGenerator (Western)")
@@ -59,7 +76,8 @@ class ZodiacGeneratorTest {
         @Test
         @DisplayName("default generate() can surface every English sign over many draws")
         void generateCoversAll() {
-            ZodiacGenerator gen = new ZodiacGenerator(GeneratorConfig.builder().seed(7L).build());
+            ZodiacGenerator gen =
+                    new ZodiacGenerator(GeneratorConfig.builder().seed(7L).build());
             Set<String> seen = new HashSet<>();
             for (int i = 0; i < 2000; i++) {
                 seen.add(gen.generate());
@@ -70,7 +88,8 @@ class ZodiacGeneratorTest {
         @Test
         @DisplayName("Russian locale generates Russian sign names")
         void russianGenerate() {
-            ZodiacGenerator gen = new ZodiacGenerator(GeneratorConfig.builder().locale(RU).seed(7L).build());
+            ZodiacGenerator gen = new ZodiacGenerator(
+                    GeneratorConfig.builder().locale(RU).seed(7L).build());
             Set<String> seen = new HashSet<>();
             for (int i = 0; i < 2000; i++) {
                 seen.add(gen.generate());
@@ -83,8 +102,8 @@ class ZodiacGeneratorTest {
         void signForLocalized() {
             ZodiacGenerator en = new ZodiacGenerator();
             assertEquals("Scorpio", en.signFor(LocalDate.of(1990, 11, 5)));
-            assertEquals("Aries", en.signFor(LocalDate.of(2000, 3, 21)));   // exactly on cutoff
-            assertEquals("Pisces", en.signFor(LocalDate.of(2000, 3, 20)));  // day before cutoff
+            assertEquals("Aries", en.signFor(LocalDate.of(2000, 3, 21))); // exactly on cutoff
+            assertEquals("Pisces", en.signFor(LocalDate.of(2000, 3, 20))); // day before cutoff
 
             ZodiacGenerator ru = new ZodiacGenerator(RU);
             assertEquals("Скорпион", ru.signFor(LocalDate.of(1990, 11, 5)));
@@ -96,8 +115,8 @@ class ZodiacGeneratorTest {
         @DisplayName("signFor handles the January wrap-around to Capricorn")
         void januaryWrap() {
             ZodiacGenerator gen = new ZodiacGenerator();
-            assertEquals("Capricorn", gen.signFor(MonthDay.of(1, 10)));  // before Jan cutoff
-            assertEquals("Aquarius", gen.signFor(MonthDay.of(1, 25)));   // on/after Jan cutoff
+            assertEquals("Capricorn", gen.signFor(MonthDay.of(1, 10))); // before Jan cutoff
+            assertEquals("Aquarius", gen.signFor(MonthDay.of(1, 25))); // on/after Jan cutoff
             assertEquals("Capricorn", gen.signFor(MonthDay.of(12, 25))); // December on/after cutoff
         }
 
@@ -171,8 +190,8 @@ class ZodiacGeneratorTest {
         @Test
         @DisplayName("generate() can surface every animal over many draws")
         void generateCoversAll() {
-            ChineseZodiacGenerator gen =
-                new ChineseZodiacGenerator(GeneratorConfig.builder().seed(3L).build());
+            ChineseZodiacGenerator gen = new ChineseZodiacGenerator(
+                    GeneratorConfig.builder().seed(3L).build());
             Set<String> seen = new HashSet<>();
             for (int i = 0; i < 2000; i++) {
                 seen.add(gen.generate());
@@ -207,10 +226,12 @@ class ZodiacGeneratorTest {
         @Test
         @DisplayName("same seed is reproducible")
         void reproducible() {
-            List<String> a =
-                new ChineseZodiacGenerator(GeneratorConfig.builder().seed(9L).build()).generateList(30);
-            List<String> b =
-                new ChineseZodiacGenerator(GeneratorConfig.builder().seed(9L).build()).generateList(30);
+            List<String> a = new ChineseZodiacGenerator(
+                            GeneratorConfig.builder().seed(9L).build())
+                    .generateList(30);
+            List<String> b = new ChineseZodiacGenerator(
+                            GeneratorConfig.builder().seed(9L).build())
+                    .generateList(30);
             assertEquals(a, b);
         }
 
@@ -251,11 +272,14 @@ class ZodiacGeneratorTest {
             assertTrue(WESTERN_EN.contains(Generators.ofZodiac().generate()));
             assertTrue(WESTERN_RU.contains(Generators.ofZodiac(RU).generate()));
             assertTrue(WESTERN_EN.contains(
-                Generators.ofZodiac(GeneratorConfig.builder().seed(1L).build()).generate()));
+                    Generators.ofZodiac(GeneratorConfig.builder().seed(1L).build())
+                            .generate()));
             assertTrue(CHINESE.contains(Generators.ofChineseZodiac().generate()));
-            assertTrue(CHINESE_ZH.contains(Generators.ofChineseZodiac(Locale.CHINA).generate()));
-            assertTrue(CHINESE.contains(
-                Generators.ofChineseZodiac(GeneratorConfig.builder().seed(1L).build()).generate()));
+            assertTrue(
+                    CHINESE_ZH.contains(Generators.ofChineseZodiac(Locale.CHINA).generate()));
+            assertTrue(CHINESE.contains(Generators.ofChineseZodiac(
+                            GeneratorConfig.builder().seed(1L).build())
+                    .generate()));
         }
     }
 }

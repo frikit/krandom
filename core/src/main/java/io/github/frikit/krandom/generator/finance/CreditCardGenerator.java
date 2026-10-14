@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -107,18 +105,17 @@ public final class CreditCardGenerator implements Generator<String> {
     private static final DateTimeFormatter EXPIRY_FORMATTER = DateTimeFormatter.ofPattern("MM/yy");
 
     private static final Map<CardType, String> STRIPE_SANDBOX_NUMBERS = Map.of(
-        CardType.VISA, "4242424242424242",
-        CardType.MASTERCARD, "5555555555554444",
-        CardType.AMEX, "378282246310005",
-        CardType.DISCOVER, "6011111111111117",
-        CardType.JCB, "3566002020360505",
-        CardType.DINERS_CLUB, "3056930009020004"
-    );
+            CardType.VISA, "4242424242424242",
+            CardType.MASTERCARD, "5555555555554444",
+            CardType.AMEX, "378282246310005",
+            CardType.DISCOVER, "6011111111111117",
+            CardType.JCB, "3566002020360505",
+            CardType.DINERS_CLUB, "3056930009020004");
 
     private final GeneratorConfig config;
-    private final Random          random;
-    private final CardType        cardType;
-    private final Clock           clock;
+    private final Random random;
+    private final CardType cardType;
+    private final Clock clock;
 
     /**
      * Creates a generator that produces random card types using default configuration.
@@ -304,12 +301,12 @@ public final class CreditCardGenerator implements Generator<String> {
     public String generateFull() {
         CardInfo info = generateWithType();
         return info.cardType().getDisplayName()
-               + "\n"
-               + info.cardNumber()
-               + "\n"
-               + info.expirationDate()
-               + " "
-               + info.cvv();
+                + "\n"
+                + info.cardNumber()
+                + "\n"
+                + info.expirationDate()
+                + " "
+                + info.cvv();
     }
 
     /**
@@ -320,11 +317,7 @@ public final class CreditCardGenerator implements Generator<String> {
     public CreditCardInfo generateCreditCardInfo() {
         CardInfo info = generateWithType();
         return new CreditCardInfo(
-            info.cardNumber(),
-            info.cardType().getDisplayName(),
-            info.expirationDate(),
-            info.cvv()
-        );
+                info.cardNumber(), info.cardType().getDisplayName(), info.expirationDate(), info.cvv());
     }
 
     /**
@@ -405,26 +398,23 @@ public final class CreditCardGenerator implements Generator<String> {
 
         // Randomly select a card type (excluding RANDOM itself)
         CardType[] types = {
-            CardType.VISA,
-            CardType.MASTERCARD,
-            CardType.AMEX,
-            CardType.DISCOVER,
-            CardType.JCB,
-            CardType.DINERS_CLUB
+            CardType.VISA, CardType.MASTERCARD, CardType.AMEX, CardType.DISCOVER, CardType.JCB, CardType.DINERS_CLUB
         };
         return types[random.nextInt(types.length)];
     }
 
     private String generateCardNumber(CardType type) {
         if (config.getPaymentCardSafetyPolicy() == PaymentCardSafetyPolicy.STRIPE_SANDBOX) {
-            return STRIPE_SANDBOX_NUMBERS.get(type);
+            // Every card type has a sandbox number.
+            return Objects.requireNonNull(STRIPE_SANDBOX_NUMBERS.get(type), type::name);
         }
 
         // Select a prefix pattern
         String prefix = selectPrefix(type);
 
         // Select card length
-        int cardLength = type.getCardLengths().get(random.nextInt(type.getCardLengths().size()));
+        int cardLength =
+                type.getCardLengths().get(random.nextInt(type.getCardLengths().size()));
 
         // Generate the rest of the digits (except the last check digit)
         StringBuilder builder = new StringBuilder(prefix);
@@ -445,7 +435,8 @@ public final class CreditCardGenerator implements Generator<String> {
     }
 
     private String selectPrefix(CardType type) {
-        String pattern = type.getPrefixPatterns().get(random.nextInt(type.getPrefixPatterns().size()));
+        String pattern = type.getPrefixPatterns()
+                .get(random.nextInt(type.getPrefixPatterns().size()));
 
         // Handle range patterns (e.g., "51-55", "2221-2720")
         if (pattern.contains("-")) {
@@ -492,9 +483,9 @@ public final class CreditCardGenerator implements Generator<String> {
     private String formatCardNumber(String cardNumber, CardType type) {
         // Different formatting for different card types
         return switch (type) {
-            case AMEX -> formatAmex(cardNumber);              // 4-6-5
-            case DINERS_CLUB -> formatDiners(cardNumber);     // 4-6-4
-            default -> formatStandard(cardNumber);            // 4-4-4-4 (or 4-4-4-1 for 13-digit)
+            case AMEX -> formatAmex(cardNumber); // 4-6-5
+            case DINERS_CLUB -> formatDiners(cardNumber); // 4-6-4
+            default -> formatStandard(cardNumber); // 4-4-4-4 (or 4-4-4-1 for 13-digit)
         };
     }
 
@@ -512,16 +503,12 @@ public final class CreditCardGenerator implements Generator<String> {
 
     private String formatAmex(String cardNumber) {
         // Format as 4-6-5
-        return cardNumber.substring(0, 4) + " " +
-               cardNumber.substring(4, 10) + " " +
-               cardNumber.substring(10);
+        return cardNumber.substring(0, 4) + " " + cardNumber.substring(4, 10) + " " + cardNumber.substring(10);
     }
 
     private String formatDiners(String cardNumber) {
         // Format as 4-6-4
-        return cardNumber.substring(0, 4) + " " +
-               cardNumber.substring(4, 10) + " " +
-               cardNumber.substring(10);
+        return cardNumber.substring(0, 4) + " " + cardNumber.substring(4, 10) + " " + cardNumber.substring(10);
     }
 
     private String getCvv(CardType type) {

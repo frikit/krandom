@@ -9,12 +9,11 @@ import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
 import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
 import io.github.frikit.krandom.generator.failure.GenerationFailureListener;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Central strict/lenient decision for contextual object-generation failures. */
 final class ObjectGenerationFailurePolicy {
@@ -34,9 +33,8 @@ final class ObjectGenerationFailurePolicy {
         this(lenient, listener, Optional.empty());
     }
 
-    ObjectGenerationFailurePolicy(boolean lenient,
-                                  GenerationFailureListener listener,
-                                  Optional<String> replayIdentity) {
+    ObjectGenerationFailurePolicy(
+            boolean lenient, GenerationFailureListener listener, Optional<String> replayIdentity) {
         this(lenient, listener, constant(Objects.requireNonNull(replayIdentity, "replayIdentity must not be null")));
     }
 
@@ -44,9 +42,8 @@ final class ObjectGenerationFailurePolicy {
      * Creates a policy whose replay identity is computed only when a failure is reported, because
      * serializing a recipe is far more expensive than the rare failure path that needs it.
      */
-    ObjectGenerationFailurePolicy(boolean lenient,
-                                  GenerationFailureListener listener,
-                                  Supplier<Optional<String>> replayIdentity) {
+    ObjectGenerationFailurePolicy(
+            boolean lenient, GenerationFailureListener listener, Supplier<Optional<String>> replayIdentity) {
         this.lenient = lenient;
         this.listener = Objects.requireNonNull(listener, "listener must not be null");
         this.replayIdentity = Objects.requireNonNull(replayIdentity, "replayIdentity must not be null");
@@ -56,21 +53,22 @@ final class ObjectGenerationFailurePolicy {
         return () -> replayIdentity;
     }
 
-    <T> T handle(ObjectGenerationException failure, T fallback) {
+    @org.jspecify.annotations.Nullable Object handle(ObjectGenerationException failure, @org.jspecify.annotations.Nullable Object fallback) {
         Objects.requireNonNull(failure, "failure must not be null");
-        GenerationFailureContext context = failure.getContext().orElseThrow(
-            () -> new IllegalArgumentException("Failure policy requires structured context", failure));
+        GenerationFailureContext context = failure.getContext()
+                .orElseThrow(() -> new IllegalArgumentException("Failure policy requires structured context", failure));
         Throwable cause = failure.getCause();
-        String causeType = cause != null ? cause.getClass().getName() : failure.getClass().getName();
+        String causeType =
+                cause != null ? cause.getClass().getName() : failure.getClass().getName();
         notifyListener(new GenerationFailureDiagnostic(context, causeType, replayIdentity.get()));
         if (!lenient) {
             throw failure;
         }
 
         LOGGER.debug("Ignored generation failure " + context.operation() + "/" + context.category()
-                     + " at '" + context.path() + "' (declared type " + context.declaredType()
-                     + ", depth " + context.depth() + ", record index " + context.recordIndex()
-                     + "); cause=" + causeType);
+                + " at '" + context.path() + "' (declared type " + context.declaredType()
+                + ", depth " + context.depth() + ", record index " + context.recordIndex()
+                + "); cause=" + causeType);
         return fallback;
     }
 
@@ -79,7 +77,7 @@ final class ObjectGenerationFailurePolicy {
             listener.onFailure(diagnostic);
         } catch (RuntimeException e) {
             LOGGER.warn("Generation failure listener callback was ignored; listener="
-                        + listener.getClass().getName() + ", cause=" + e.getClass().getName());
+                    + listener.getClass().getName() + ", cause=" + e.getClass().getName());
         }
     }
 }

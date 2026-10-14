@@ -9,12 +9,12 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.object.ObjectFieldStreamPolicy;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.ObjectGenerator;
-import org.openjdk.jmh.annotations.*;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.openjdk.jmh.annotations.*;
 
 /**
  * Compare legacy output and opt-in field streams on the same workload, both structurally and with
@@ -29,25 +29,30 @@ import java.util.concurrent.TimeUnit;
 public class FieldStreamsBenchmark {
     @Param({"LEGACY", "INDEPENDENT"})
     public String policy;
+
     @Param({"false", "true"})
     public boolean customized;
     /** {@code STRUCTURAL_ONLY} isolates stream planning; {@code RELAXED} is the default mode. */
     @Param({"STRUCTURAL_ONLY", "RELAXED"})
     public String semanticMode;
+
     private ObjectGenerator<Fixture> generator;
 
     @Setup
     public void setup() {
-        GeneratorConfig.Builder config = GeneratorConfig.builder().seed(42)
-            .clock(Clock.fixed(Instant.EPOCH, ZoneOffset.UTC))
-            .objectSemanticMode(ObjectGenerationSemanticMode.valueOf(semanticMode))
-            .objectFieldStreamPolicy(ObjectFieldStreamPolicy.valueOf(policy));
+        GeneratorConfig.Builder config = GeneratorConfig.builder()
+                .seed(42)
+                .clock(Clock.fixed(Instant.EPOCH, ZoneOffset.UTC))
+                .objectSemanticMode(ObjectGenerationSemanticMode.valueOf(semanticMode))
+                .objectFieldStreamPolicy(ObjectFieldStreamPolicy.valueOf(policy));
         if (customized) config.objectOverride(Fixture.class, "name", () -> "fixed");
         generator = new ObjectGenerator<>(Fixture.class, config.build());
     }
 
     @Benchmark
-    public Fixture generate() { return generator.generate(); }
+    public Fixture generate() {
+        return generator.generate();
+    }
 
     public record Fixture(String name, int age, List<Integer> values) {}
 }

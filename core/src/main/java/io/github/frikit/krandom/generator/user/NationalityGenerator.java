@@ -5,10 +5,10 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -31,7 +31,7 @@ import java.util.Random;
 public final class NationalityGenerator implements Generator<String> {
 
     private static final NationalityDataProvider DEFAULT_PROVIDER =
-        new BuiltInNationalityDataProvider(Locale.ROOT, "krandom/nationalities/default.txt");
+            new BuiltInNationalityDataProvider(Locale.ROOT, "krandom/nationalities/default.txt");
 
     private final List<String> nationalities;
     private final Random random;
@@ -50,7 +50,9 @@ public final class NationalityGenerator implements Generator<String> {
      *               exists; must not be {@code null}
      */
     public NationalityGenerator(Locale locale) {
-        this(GeneratorConfig.builder().locale(Objects.requireNonNull(locale, "locale must not be null")).build());
+        this(GeneratorConfig.builder()
+                .locale(Objects.requireNonNull(locale, "locale must not be null"))
+                .build());
     }
 
     /**
@@ -61,7 +63,7 @@ public final class NationalityGenerator implements Generator<String> {
     public NationalityGenerator(GeneratorConfig config) {
         Objects.requireNonNull(config, "config must not be null");
         DataRegistryContext registryContext = config.getRegistryContext();
-        NationalityDataProvider provider = registryContext.nationalityProvider(config.getLocale());
+        NationalityDataProvider provider = registryContext.provider(Vocabulary.NATIONALITY, config.getLocale());
         if (provider == null) {
             provider = DEFAULT_PROVIDER;
         }

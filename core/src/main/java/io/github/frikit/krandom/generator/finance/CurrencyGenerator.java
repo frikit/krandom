@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -98,7 +96,7 @@ public final class CurrencyGenerator implements Generator<String> {
     private static final Currency[] ALL_CURRENCIES = Currency.values();
 
     private final GeneratorConfig config;
-    private final Random          random;
+    private final Random random;
 
     /**
      * Creates a new CurrencyGenerator with default configuration.

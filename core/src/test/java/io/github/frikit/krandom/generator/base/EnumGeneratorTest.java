@@ -5,16 +5,15 @@
  */
 package io.github.frikit.krandom.generator.base;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.HashSet;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("EnumGenerator")
 class EnumGeneratorTest {
@@ -63,13 +62,17 @@ class EnumGeneratorTest {
 
     @Test
     @DisplayName("non-enum class (getEnumConstants returns null) throws IllegalArgumentException")
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     void nonEnumClassThrows() {
         Class nonEnum = String.class;
         assertThrows(IllegalArgumentException.class, () -> new EnumGenerator<>(nonEnum));
     }
 
-    private enum Colour {RED, GREEN, BLUE}
+    private enum Colour {
+        RED,
+        GREEN,
+        BLUE
+    }
 
     /**
      * An enum with no constants — triggers the length == 0 guard.

@@ -5,8 +5,8 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayOutputStream;
 import java.io.StringWriter;
@@ -16,9 +16,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("SchemaProjection")
 class SchemaProjectionTest {
@@ -33,8 +32,8 @@ class SchemaProjectionTest {
 
         assertEquals(Map.of("name", "Ada", "age", 36), projection.project(new Person("Ada", 36)));
         assertEquals(
-            "[{\"name\":\"Ada\",\"age\":36},{\"name\":\"Lin\",\"age\":28}]\n",
-            projection.toJson(List.of(new Person("Ada", 36), new Person("Lin", 28))));
+                "[{\"name\":\"Ada\",\"age\":36},{\"name\":\"Lin\",\"age\":28}]\n",
+                projection.toJson(List.of(new Person("Ada", 36), new Person("Lin", 28))));
     }
 
     @Test
@@ -57,8 +56,9 @@ class SchemaProjectionTest {
     void validatesProjectionsValuesAndTomlNulls() {
         assertThrows(NullPointerException.class, () -> SchemaProjection.of(null));
         assertThrows(IllegalArgumentException.class, () -> SchemaProjection.of(Map.of()));
-        assertThrows(IllegalArgumentException.class,
-                     () -> SchemaProjection.of(Map.of(" ", (Function<Person, String>) Person::name)));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> SchemaProjection.of(Map.of(" ", (Function<Person, String>) Person::name)));
         Map<String, Function<Person, ?>> nullExtractor = new LinkedHashMap<>();
         nullExtractor.put("name", null);
         assertThrows(IllegalArgumentException.class, () -> SchemaProjection.of(nullExtractor));
@@ -69,8 +69,9 @@ class SchemaProjectionTest {
         SchemaProjection<Person> projection = SchemaProjection.of(Map.of("name", Person::name));
         assertThrows(NullPointerException.class, () -> projection.project(null));
         assertThrows(NullPointerException.class, () -> projection.toJson(null));
-        assertThrows(IllegalArgumentException.class,
-                     () -> SchemaProjection.of(Map.of("name", person -> null)).toToml(List.of(new Person("Ada", 36))));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> SchemaProjection.of(Map.of("name", person -> null)).toToml(List.of(new Person("Ada", 36))));
     }
 
     @Test
@@ -98,10 +99,12 @@ class SchemaProjectionTest {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         projection.writeTo(output, OutputFormat.JSON, values, "people");
         assertEquals(expected(OutputFormat.JSON), output.toString(StandardCharsets.UTF_8));
-        assertThrows(NullPointerException.class, () -> projection.writeTo((ByteArrayOutputStream) null, OutputFormat.JSON,
-                                                                          values, "people"));
-        assertThrows(NullPointerException.class, () -> projection.writeTo((StringWriter) null, OutputFormat.JSON,
-                                                                          values, "people"));
+        assertThrows(
+                NullPointerException.class,
+                () -> projection.writeTo((ByteArrayOutputStream) null, OutputFormat.JSON, values, "people"));
+        assertThrows(
+                NullPointerException.class,
+                () -> projection.writeTo((StringWriter) null, OutputFormat.JSON, values, "people"));
         assertThrows(NullPointerException.class, () -> projection.writeTo(new StringWriter(), null, values, "people"));
         assertThrows(NullPointerException.class, () -> projection.writeJsonLines(new StringBuilder(), null));
     }
@@ -126,7 +129,8 @@ class SchemaProjectionTest {
             case JSONL -> "{\"name\":\"Ada\",\"age\":36}\n";
             case JSON -> "[{\"name\":\"Ada\",\"age\":36}]\n";
             case CSV -> "name,age\nAda,36\n";
-            case XML -> "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            case XML ->
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                         + "<records>\n"
                         + "  <record>\n"
                         + "    <name>Ada</name>\n"
@@ -139,6 +143,5 @@ class SchemaProjectionTest {
         };
     }
 
-    private record Person(String name, int age) {
-    }
+    private record Person(String name, int age) {}
 }

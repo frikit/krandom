@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.List;
 import java.util.Locale;
 
@@ -15,7 +16,7 @@ import java.util.Locale;
  * {@link MaritalStatusDataRegistry}; locales without built-in data fall back to the bundled English
  * {@code default.txt} data.
  */
-public interface MaritalStatusDataProvider {
+public interface MaritalStatusDataProvider extends LocaleDataProvider {
 
     /**
      * The locale this provider supplies marital status values for.

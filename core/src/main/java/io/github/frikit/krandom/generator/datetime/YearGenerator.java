@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.datetime;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Seedable;
-
 import java.time.Year;
 import java.util.Objects;
 import java.util.Random;
@@ -22,8 +21,8 @@ public final class YearGenerator implements Generator<Year>, Seedable {
     private static final int DEFAULT_MAX_YEAR = 2100;
 
     private final Random random;
-    private final int    minYear;
-    private final int    maxYear;
+    private final int minYear;
+    private final int maxYear;
 
     public YearGenerator() {
         this(DEFAULT_MIN_YEAR, DEFAULT_MAX_YEAR, GeneratorConfig.defaults());

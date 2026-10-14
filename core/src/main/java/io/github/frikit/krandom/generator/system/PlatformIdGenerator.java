@@ -7,8 +7,6 @@ package io.github.frikit.krandom.generator.system;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
-import java.security.SecureRandom;
 import java.util.Objects;
 import java.util.Random;
 
@@ -17,8 +15,8 @@ import java.util.Random;
  */
 public final class PlatformIdGenerator implements Generator<String> {
 
-    private static final String[] PLATFORMS = { "windows", "linux", "macos", "android", "ios" };
-    private static final String[] ARCH      = { "x86", "x64", "arm64" };
+    private static final String[] PLATFORMS = {"windows", "linux", "macos", "android", "ios"};
+    private static final String[] ARCH = {"x86", "x64", "arm64"};
 
     private final Random random;
 

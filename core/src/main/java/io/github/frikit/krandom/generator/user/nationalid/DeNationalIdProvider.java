@@ -38,8 +38,7 @@ public final class DeNationalIdProvider implements NationalIdProvider {
     /**
      * Creates a provider for German Steuer-ID numbers.
      */
-    public DeNationalIdProvider() {
-    }
+    public DeNationalIdProvider() {}
 
     /**
      * Computes the ISO 7064 Mod 11,10 check digit for the first 10 elements of the given array.
@@ -70,7 +69,7 @@ public final class DeNationalIdProvider implements NationalIdProvider {
      * @param digits array of at least 10 elements that receives the digits
      */
     private static void fillDigits(Random random, int[] digits) {
-        int[] pool = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        int[] pool = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         shuffle(random, pool);
         int occurrences = random.nextInt(7) < 3 ? 2 : 3;
         for (int i = 0; i < 10; i++) {

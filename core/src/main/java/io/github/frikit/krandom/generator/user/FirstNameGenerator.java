@@ -5,11 +5,10 @@
  */
 package io.github.frikit.krandom.generator.user;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.DataRegistryContext;
-
-import java.security.SecureRandom;
+import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
@@ -39,9 +38,9 @@ import java.util.Random;
 public final class FirstNameGenerator implements Generator<String> {
 
     private final GeneratorConfig config;
-    private final Random          random;
-    private final String[]        maleNames;
-    private final String[]        femaleNames;
+    private final Random random;
+    private final String[] maleNames;
+    private final String[] femaleNames;
 
     /**
      * Uses {@link GeneratorConfig#defaults()} — locale defaults to {@link Locale#US}.
@@ -65,14 +64,14 @@ public final class FirstNameGenerator implements Generator<String> {
         DataRegistryContext registryContext = config.getRegistryContext();
 
         Locale locale = config.getLocale();
-        if (!registryContext.isFirstNameRegistered(locale)) {
-            throw new UnsupportedOperationException(
-                "Locale " + locale + " is not supported. Registered locales: "
-                + registryContext.firstNameRegisteredKeys());
+        if (!registryContext.isRegistered(Vocabulary.FIRST_NAME, locale)) {
+            throw new UnsupportedOperationException("Locale " + locale + " is not supported. Registered locales: "
+                    + registryContext.registeredKeys(Vocabulary.FIRST_NAME));
         }
 
         this.random = config.createRandom();
-        FirstNameDataProvider provider = registryContext.firstNameProvider(locale);
+        FirstNameDataProvider provider =
+                java.util.Objects.requireNonNull(registryContext.provider(Vocabulary.FIRST_NAME, locale));
         this.maleNames = provider.getMaleFirstNames();
         this.femaleNames = provider.getFemaleFirstNames();
     }
@@ -125,6 +124,6 @@ public final class FirstNameGenerator implements Generator<String> {
      * Returns {@code true} if the configured locale has a registered first-name provider.
      */
     public boolean isLocaleExplicitlySupported() {
-        return config.getRegistryContext().isFirstNameRegistered(config.getLocale());
+        return config.getRegistryContext().isRegistered(Vocabulary.FIRST_NAME, config.getLocale());
     }
 }

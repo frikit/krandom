@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.measurement;
 
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
 import io.github.frikit.krandom.generator.user.LocaleTextResourceLoader;
-
 import java.util.List;
 import java.util.Locale;
 
@@ -23,8 +22,7 @@ final class BuiltInMeasurementDataProvider implements MeasurementDataProvider {
     private final List<String> units;
 
     BuiltInMeasurementDataProvider(SupportedLocale supportedLocale) {
-        this(supportedLocale.locale(),
-            "krandom/measurement/" + supportedLocale.resourcePrefix() + ".txt");
+        this(supportedLocale.locale(), "krandom/measurement/" + supportedLocale.resourcePrefix() + ".txt");
     }
 
     BuiltInMeasurementDataProvider(Locale locale, String resourcePath) {

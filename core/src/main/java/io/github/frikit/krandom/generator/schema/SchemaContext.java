@@ -18,11 +18,7 @@ import java.util.Random;
  *                    retain their configured sequential source
  * @param recordIndex zero-based record index in batch generation
  */
-public record SchemaContext(
-    Locale locale,
-    Random random,
-    int recordIndex
-) {
+public record SchemaContext(Locale locale, Random random, int recordIndex) {
 
     /**
      * Validates context invariants.

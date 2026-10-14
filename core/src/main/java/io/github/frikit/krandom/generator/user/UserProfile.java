@@ -21,15 +21,12 @@ import java.time.LocalDate;
  * @param website   website URL
  */
 public record UserProfile(
-    String username,
-    String name,
-    String sex,
-    String address,
-    String mail,
-    LocalDate birthdate,
-    String company,
-    String job,
-    String website
-) {
-
-}
+        String username,
+        String name,
+        String sex,
+        String address,
+        String mail,
+        LocalDate birthdate,
+        String company,
+        String job,
+        String website) {}

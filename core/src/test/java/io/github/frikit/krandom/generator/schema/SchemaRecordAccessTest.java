@@ -5,16 +5,15 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
-import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
-import io.github.frikit.krandom.generator.failure.GenerationOperation;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.RecordComponent;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
+import java.lang.reflect.RecordComponent;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Schema record access")
 class SchemaRecordAccessTest {
@@ -25,8 +24,8 @@ class SchemaRecordAccessTest {
         RecordComponent component = ExpectedRecord.class.getRecordComponents()[0];
 
         SchemaGenerationException ex = assertThrows(
-            SchemaGenerationException.class,
-            () -> SchemaRecordAccess.read(new DifferentRecord("value"), component, "nested.value"));
+                SchemaGenerationException.class,
+                () -> SchemaRecordAccess.read(new DifferentRecord("value"), component, "nested.value"));
 
         var context = ex.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.REFLECTION, context.category());
@@ -37,9 +36,7 @@ class SchemaRecordAccessTest {
         assertTrue(ex.getCause() instanceof IllegalArgumentException);
     }
 
-    private record ExpectedRecord(String value) {
-    }
+    private record ExpectedRecord(String value) {}
 
-    private record DifferentRecord(String value) {
-    }
+    private record DifferentRecord(String value) {}
 }

@@ -5,28 +5,25 @@
  */
 package io.github.frikit.krandom.generator.object;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
-import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 @DisplayName("ObjectGenerator — inherited generic bindings")
 class ObjectGeneratorInheritedGenericTest {
 
-    private static final GeneratorConfig CONFIG = GeneratorConfig.builder()
-                                                                  .seed(2210L)
-                                                                  .collectionSize(2, 2)
-                                                                  .build();
+    private static final GeneratorConfig CONFIG =
+            GeneratorConfig.builder().seed(2210L).collectionSize(2, 2).build();
 
     @Test
     @DisplayName("concrete superclass binding applies to direct and container fields")
@@ -63,8 +60,7 @@ class ObjectGeneratorInheritedGenericTest {
     @DisplayName("unbound type variable fails with its declared path and signature")
     void unboundTypeVariableFailsWithContext() {
         ObjectGenerationException ex = assertThrows(
-            ObjectGenerationException.class,
-            () -> new ObjectGenerator<>(UnboundFixture.class, CONFIG).generate());
+                ObjectGenerationException.class, () -> new ObjectGenerator<>(UnboundFixture.class, CONFIG).generate());
 
         var context = ex.getContext().orElseThrow();
         assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
@@ -80,14 +76,11 @@ class ObjectGeneratorInheritedGenericTest {
         Optional<T> optional;
     }
 
-    static final class StringFixture extends GenericFixture<String> {
-    }
+    static final class StringFixture extends GenericFixture<String> {}
 
-    static class NestedGenericFixture<U> extends GenericFixture<List<U>> {
-    }
+    static class NestedGenericFixture<U> extends GenericFixture<List<U>> {}
 
-    static final class IntegerListFixture extends NestedGenericFixture<Integer> {
-    }
+    static final class IntegerListFixture extends NestedGenericFixture<Integer> {}
 
     static final class UnboundFixture<T> {
 

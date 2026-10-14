@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.user.PersonInfo;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -29,19 +28,16 @@ import java.time.LocalDate;
  * @param instrumentReference masked card reference or opaque banking test reference
  */
 public record PaymentInfo(
-    String paymentNumber,
-    String orderNumber,
-    String invoiceNumber,
-    String status,
-    String method,
-    String processor,
-    LocalDate authorizedOn,
-    LocalDate settledOn,
-    String currencyCode,
-    BigDecimal amount,
-    PersonInfo payer,
-    AddressInfo billingAddress,
-    String instrumentReference
-) {
-
-}
+        String paymentNumber,
+        String orderNumber,
+        String invoiceNumber,
+        String status,
+        String method,
+        String processor,
+        LocalDate authorizedOn,
+        @org.jspecify.annotations.Nullable LocalDate settledOn,
+        String currencyCode,
+        BigDecimal amount,
+        PersonInfo payer,
+        AddressInfo billingAddress,
+        String instrumentReference) {}

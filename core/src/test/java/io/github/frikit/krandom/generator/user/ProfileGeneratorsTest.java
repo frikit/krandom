@@ -5,17 +5,16 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Profile generators")
 class ProfileGeneratorsTest {
@@ -54,7 +53,8 @@ class ProfileGeneratorsTest {
     @Test
     @DisplayName("seeded simple profile generation is reproducible")
     void seededSimpleProfile() {
-        GeneratorConfig config = GeneratorConfig.builder().seed(1234L).locale(Locale.US).build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().seed(1234L).locale(Locale.US).build();
         SimpleProfileGenerator one = new SimpleProfileGenerator(config);
         SimpleProfileGenerator two = new SimpleProfileGenerator(config);
         assertEquals(one.generate(), two.generate());
@@ -63,17 +63,22 @@ class ProfileGeneratorsTest {
     @Test
     @DisplayName("simple and full profile birthdays follow the configured clock")
     void birthdaysFollowTheConfiguredClock() {
-        java.time.Clock clock = java.time.Clock.fixed(java.time.Instant.parse("1990-06-15T00:00:00Z"),
-                                                      java.time.ZoneOffset.UTC);
-        GeneratorConfig config = GeneratorConfig.builder().seed(7L).clock(clock).locale(Locale.US).build();
+        java.time.Clock clock =
+                java.time.Clock.fixed(java.time.Instant.parse("1990-06-15T00:00:00Z"), java.time.ZoneOffset.UTC);
+        GeneratorConfig config = GeneratorConfig.builder()
+                .seed(7L)
+                .clock(clock)
+                .locale(Locale.US)
+                .build();
         java.time.LocalDate today = java.time.LocalDate.now(clock);
         SimpleProfileGenerator simple = new SimpleProfileGenerator(config);
         ProfileGenerator full = new ProfileGenerator(config);
         for (int i = 0; i < 20; i++) {
-            for (java.time.LocalDate birthdate : java.util.List.of(simple.generate().birthdate(),
-                                                                   full.generate().birthdate())) {
-                assertTrue(birthdate.isBefore(today) && birthdate.isAfter(today.minusYears(102)),
-                           "birthdate " + birthdate + " must be an age of 1-100 years on " + today);
+            for (java.time.LocalDate birthdate : java.util.List.of(
+                    simple.generate().birthdate(), full.generate().birthdate())) {
+                assertTrue(
+                        birthdate.isBefore(today) && birthdate.isAfter(today.minusYears(102)),
+                        "birthdate " + birthdate + " must be an age of 1-100 years on " + today);
             }
         }
     }
@@ -82,7 +87,7 @@ class ProfileGeneratorsTest {
     @DisplayName("simple profile can generate both male and female profiles")
     void simpleProfileBothSexes() {
         SimpleProfileGenerator generator = new SimpleProfileGenerator(
-            GeneratorConfig.builder().seed(99L).locale(Locale.US).build());
+                GeneratorConfig.builder().seed(99L).locale(Locale.US).build());
         boolean sawMale = false;
         boolean sawFemale = false;
         for (int i = 0; i < 200 && !(sawMale && sawFemale); i++) {

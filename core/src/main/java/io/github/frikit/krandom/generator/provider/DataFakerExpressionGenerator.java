@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.provider;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -39,40 +38,40 @@ public final class DataFakerExpressionGenerator implements Generator<String> {
     private static final Pattern TOKEN = Pattern.compile("#\\{([A-Za-z._]+)}");
 
     private static final Map<String, String> PROVIDER_TOKENS = Map.ofEntries(
-        Map.entry("name.firstname", "person.first_name"),
-        Map.entry("name.first_name", "person.first_name"),
-        Map.entry("name.lastname", "person.last_name"),
-        Map.entry("name.last_name", "person.last_name"),
-        Map.entry("name.fullname", "person.full_name"),
-        Map.entry("name.full_name", "person.full_name"),
-        Map.entry("name.name", "person.full_name"),
-        Map.entry("name.username", "person.username"),
-        Map.entry("internet.emailaddress", "person.email"),
-        Map.entry("internet.email_address", "person.email"),
-        Map.entry("internet.username", "person.username"),
-        Map.entry("internet.url", "internet.url"),
-        Map.entry("internet.domainname", "internet.domain"),
-        Map.entry("internet.domain_name", "internet.domain"),
-        Map.entry("internet.uuid", "code.uuid"),
-        Map.entry("address.city", "address.city"),
-        Map.entry("address.country", "address.country"),
-        Map.entry("address.state", "address.state"),
-        Map.entry("address.streetaddress", "address.street_address"),
-        Map.entry("address.street_address", "address.street_address"),
-        Map.entry("address.zipcode", "address.postal_code"),
-        Map.entry("address.zip_code", "address.postal_code"),
-        Map.entry("address.postcode", "address.postal_code"),
-        Map.entry("phonenumber.phonenumber", "address.phone_number"),
-        Map.entry("phone_number.phone_number", "address.phone_number"),
-        Map.entry("company.name", "company.name"),
-        Map.entry("company.buzzword", "company.buzzword"),
-        Map.entry("company.catchphrase", "company.catch_phrase"),
-        Map.entry("company.catch_phrase", "company.catch_phrase"),
-        Map.entry("company.industry", "company.industry"),
-        Map.entry("money.currency", "finance.currency"),
-        Map.entry("lorem.word", "text.word"),
-        Map.entry("lorem.sentence", "text.sentence"),
-        Map.entry("lorem.paragraph", "text.paragraph"));
+            Map.entry("name.firstname", "person.first_name"),
+            Map.entry("name.first_name", "person.first_name"),
+            Map.entry("name.lastname", "person.last_name"),
+            Map.entry("name.last_name", "person.last_name"),
+            Map.entry("name.fullname", "person.full_name"),
+            Map.entry("name.full_name", "person.full_name"),
+            Map.entry("name.name", "person.full_name"),
+            Map.entry("name.username", "person.username"),
+            Map.entry("internet.emailaddress", "person.email"),
+            Map.entry("internet.email_address", "person.email"),
+            Map.entry("internet.username", "person.username"),
+            Map.entry("internet.url", "internet.url"),
+            Map.entry("internet.domainname", "internet.domain"),
+            Map.entry("internet.domain_name", "internet.domain"),
+            Map.entry("internet.uuid", "code.uuid"),
+            Map.entry("address.city", "address.city"),
+            Map.entry("address.country", "address.country"),
+            Map.entry("address.state", "address.state"),
+            Map.entry("address.streetaddress", "address.street_address"),
+            Map.entry("address.street_address", "address.street_address"),
+            Map.entry("address.zipcode", "address.postal_code"),
+            Map.entry("address.zip_code", "address.postal_code"),
+            Map.entry("address.postcode", "address.postal_code"),
+            Map.entry("phonenumber.phonenumber", "address.phone_number"),
+            Map.entry("phone_number.phone_number", "address.phone_number"),
+            Map.entry("company.name", "company.name"),
+            Map.entry("company.buzzword", "company.buzzword"),
+            Map.entry("company.catchphrase", "company.catch_phrase"),
+            Map.entry("company.catch_phrase", "company.catch_phrase"),
+            Map.entry("company.industry", "company.industry"),
+            Map.entry("money.currency", "finance.currency"),
+            Map.entry("lorem.word", "text.word"),
+            Map.entry("lorem.sentence", "text.sentence"),
+            Map.entry("lorem.paragraph", "text.paragraph"));
 
     /** Parsed expression: String literals interleaved with provider-backed generators. */
     private final List<Object> segments = new ArrayList<>();
@@ -107,7 +106,7 @@ public final class DataFakerExpressionGenerator implements Generator<String> {
             String providerName = PROVIDER_TOKENS.get(key);
             if (providerName == null) {
                 throw new IllegalArgumentException("Unsupported DataFaker expression '#{" + matcher.group(1)
-                                                   + "}'. Supported expressions: " + supportedExpressions());
+                        + "}'. Supported expressions: " + supportedExpressions());
             }
             segments.add(hub.get(providerName));
             last = matcher.end();

@@ -9,7 +9,6 @@ import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
 import io.github.frikit.krandom.generator.provider.ProviderCatalog;
 import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
 import io.github.frikit.krandom.generator.provider.ProviderSchemaProjection;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -25,16 +24,16 @@ import java.util.Set;
  */
 public final class KRandomExtensionRegistry {
 
-    private static final KRandomExtensionRegistry EMPTY =
-        new KRandomExtensionRegistry(List.of(), List.of(), Map.of());
+    private static final KRandomExtensionRegistry EMPTY = new KRandomExtensionRegistry(List.of(), List.of(), Map.of());
 
     private final List<String> moduleIds;
     private final List<ProviderDescriptor<?>> providerDescriptors;
     private final Map<String, Set<String>> semanticAliases;
 
-    private KRandomExtensionRegistry(List<String> moduleIds,
-                                     List<ProviderDescriptor<?>> providerDescriptors,
-                                     Map<String, Set<String>> semanticAliases) {
+    private KRandomExtensionRegistry(
+            List<String> moduleIds,
+            List<ProviderDescriptor<?>> providerDescriptors,
+            Map<String, Set<String>> semanticAliases) {
         this.moduleIds = List.copyOf(moduleIds);
         this.providerDescriptors = List.copyOf(providerDescriptors);
         Map<String, Set<String>> copiedAliases = new LinkedHashMap<>();
@@ -108,38 +107,38 @@ public final class KRandomExtensionRegistry {
                 String existingProvider = source.semanticProviderNameFor(semanticKey);
                 if (existingProvider != null && !existingProvider.equals(descriptor.getKey())) {
                     throw new IllegalArgumentException(
-                        "Semantic key '" + semanticKey + "' already uses provider '" + existingProvider + "'");
+                            "Semantic key '" + semanticKey + "' already uses provider '" + existingProvider + "'");
                 }
                 String contributedProvider = contributedProviders.putIfAbsent(normalizedKey, descriptor.getKey());
                 if (contributedProvider != null && !contributedProvider.equals(descriptor.getKey())) {
                     throw new IllegalArgumentException(
-                        "Semantic key '" + semanticKey + "' is contributed by multiple providers");
+                            "Semantic key '" + semanticKey + "' is contributed by multiple providers");
                 }
                 builder.provider(semanticKey, descriptor.getKey());
                 addAlias(builder, source, contributedAliases, semanticKey, semanticKey);
             }
         }
-        semanticAliases.forEach((semanticKey, aliases) -> aliases.forEach(alias ->
-            addAlias(builder, source, contributedAliases, semanticKey, alias)));
+        semanticAliases.forEach((semanticKey, aliases) ->
+                aliases.forEach(alias -> addAlias(builder, source, contributedAliases, semanticKey, alias)));
         return builder.build();
     }
 
-    private static void addAlias(SemanticFieldRegistry.Builder builder,
-                                 SemanticFieldRegistry source,
-                                 Map<String, String> contributedAliases,
-                                 String semanticKey,
-                                 String alias) {
+    private static void addAlias(
+            SemanticFieldRegistry.Builder builder,
+            SemanticFieldRegistry source,
+            Map<String, String> contributedAliases,
+            String semanticKey,
+            String alias) {
         String existingKey = source.semanticKeyForFieldName(alias);
         String normalizedKey = normalizeSemantic(semanticKey);
         if (existingKey != null && !existingKey.equals(normalizedKey)) {
             throw new IllegalArgumentException(
-                "Semantic alias '" + alias + "' already resolves to key '" + existingKey + "'");
+                    "Semantic alias '" + alias + "' already resolves to key '" + existingKey + "'");
         }
         String normalizedAlias = normalizeSemantic(alias);
         String contributedKey = contributedAliases.putIfAbsent(normalizedAlias, normalizedKey);
         if (contributedKey != null && !contributedKey.equals(normalizedKey)) {
-            throw new IllegalArgumentException(
-                "Semantic alias '" + alias + "' is contributed for multiple keys");
+            throw new IllegalArgumentException("Semantic alias '" + alias + "' is contributed for multiple keys");
         }
         builder.alias(semanticKey, alias);
     }
@@ -207,7 +206,7 @@ public final class KRandomExtensionRegistry {
                 semanticAliases.forEach((existingKey, existingAliases) -> {
                     if (!existingKey.equals(key) && existingAliases.contains(alias)) {
                         throw new IllegalArgumentException(
-                            "Semantic alias '" + fieldName + "' is contributed for multiple keys");
+                                "Semantic alias '" + fieldName + "' is contributed for multiple keys");
                     }
                 });
                 aliases.add(alias);
@@ -218,7 +217,7 @@ public final class KRandomExtensionRegistry {
             String normalized = normalizeName(name);
             if (!names.add(normalized)) {
                 throw new IllegalArgumentException(
-                    "Module '" + currentModuleId + "' conflicts with existing " + kind + " name: " + normalized);
+                        "Module '" + currentModuleId + "' conflicts with existing " + kind + " name: " + normalized);
             }
         }
 

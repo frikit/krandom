@@ -7,7 +7,6 @@ package io.github.frikit.krandom.generator.selection;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,8 +21,8 @@ import java.util.Random;
 public final class PickSetGenerator<T> implements Generator<List<T>> {
 
     private final List<T> source;
-    private final int     count;
-    private final Random  random;
+    private final int count;
+    private final Random random;
 
     /**
      * Creates a pick-set generator backed by the default fast PRNG.
@@ -43,7 +42,10 @@ public final class PickSetGenerator<T> implements Generator<List<T>> {
      * @param config generator configuration; must not be {@code null}
      */
     public PickSetGenerator(List<T> source, int count, GeneratorConfig config) {
-        this(source, count, Objects.requireNonNull(config, "config must not be null").createRandom());
+        this(
+                source,
+                count,
+                Objects.requireNonNull(config, "config must not be null").createRandom());
     }
 
     private PickSetGenerator(List<T> source, int count, Random random) {

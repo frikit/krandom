@@ -5,15 +5,14 @@
  */
 package io.github.frikit.krandom.generator;
 
-import io.github.frikit.krandom.generator.base.IntGenerator;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.base.IntGenerator;
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("Generator default methods")
 class GeneratorTest {
@@ -63,12 +62,10 @@ class GeneratorTest {
         String serialized = original.getGenerationRecipe().orElseThrow().serialize();
         GeneratorConfig replayed = GenerationRecipe.parse(serialized).toGeneratorConfig();
 
-        Generator<String> first = new IntGenerator(0, 1_000, original)
-            .map(value -> "v-" + value)
-            .filter(value -> !value.endsWith("7"));
-        Generator<String> second = new IntGenerator(0, 1_000, replayed)
-            .map(value -> "v-" + value)
-            .filter(value -> !value.endsWith("7"));
+        Generator<String> first =
+                new IntGenerator(0, 1_000, original).map(value -> "v-" + value).filter(value -> !value.endsWith("7"));
+        Generator<String> second =
+                new IntGenerator(0, 1_000, replayed).map(value -> "v-" + value).filter(value -> !value.endsWith("7"));
 
         assertEquals(first.generateList(25), second.generateList(25));
     }

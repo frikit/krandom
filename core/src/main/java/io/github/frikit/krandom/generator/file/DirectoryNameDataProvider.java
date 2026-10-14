@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.file;
 
+import io.github.frikit.krandom.generator.LocaleDataProvider;
 import java.util.List;
 import java.util.Locale;
 
@@ -15,7 +16,7 @@ import java.util.Locale;
  * {@link DirectoryNameDataRegistry}; locales without built-in data fall back to the bundled English
  * {@code default.txt} data.
  */
-public interface DirectoryNameDataProvider {
+public interface DirectoryNameDataProvider extends LocaleDataProvider {
 
     /**
      * The locale this provider supplies directory names for.

@@ -5,17 +5,16 @@
  */
 package io.github.frikit.krandom.generator.user;
 
-import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Generators;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.util.Locale;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Generators;
+import java.util.Locale;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @DisplayName("PersonInfoGenerator")
 class PersonInfoGeneratorTest {
@@ -28,7 +27,9 @@ class PersonInfoGeneratorTest {
         assertNotNull(info);
         assertNotNull(info.contact());
         assertNotNull(info.address());
-        assertEquals(info.username(), info.contact().email().substring(0, info.contact().email().indexOf('@')));
+        assertEquals(
+                info.username(),
+                info.contact().email().substring(0, info.contact().email().indexOf('@')));
         assertTrue(info.password().length() >= 8);
         assertEquals("US", info.address().countryAbbr());
     }
@@ -36,10 +37,8 @@ class PersonInfoGeneratorTest {
     @Test
     @DisplayName("seeded generation is reproducible")
     void seededGeneration() {
-        GeneratorConfig config = GeneratorConfig.builder()
-                                                .locale(Locale.UK)
-                                                .seed(42L)
-                                                .build();
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.UK).seed(42L).build();
 
         PersonInfoGenerator one = new PersonInfoGenerator(config);
         PersonInfoGenerator two = new PersonInfoGenerator(config);
