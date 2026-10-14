@@ -6,7 +6,7 @@ val krandomVersion =
     providers
         .gradleProperty("krandomVersion")
         .orElse(providers.environmentVariable("KRANDOM_VERSION"))
-        .orElse("2.6.0-SNAPSHOT")
+        .orElse("2.7.0-SNAPSHOT")
 
 repositories {
     if (providers.gradleProperty("krandomRepository").orNull != "central") {

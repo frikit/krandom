@@ -7,7 +7,7 @@ generated-output compatibility promise relative to earlier releases: read the
 version.
 
 The latest stable release is `2.6.0`.
-The repository development line is `2.6.0-SNAPSHOT`.
+The repository development line is `2.7.0-SNAPSHOT`.
 
 ## Determinism
 
