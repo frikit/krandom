@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Update Palantir Java Format to 2.102.0, which keeps a switch expression assigned to a variable on
+  its declaration line; nine source files were reformatted.
+
 ## [2.6.0] - 2026-10-14
 
 ### Added

@@ -39,15 +39,14 @@ class DiceGeneratorTest {
         @EnumSource(DiceType.class)
         @DisplayName("sides() matches expected face counts")
         void sideCount(DiceType type) {
-            int expected =
-                    switch (type) {
-                        case D4 -> 4;
-                        case D6 -> 6;
-                        case D8 -> 8;
-                        case D10 -> 10;
-                        case D12 -> 12;
-                        case D20 -> 20;
-                    };
+            int expected = switch (type) {
+                case D4 -> 4;
+                case D6 -> 6;
+                case D8 -> 8;
+                case D10 -> 10;
+                case D12 -> 12;
+                case D20 -> 20;
+            };
             assertEquals(expected, type.sides());
         }
     }

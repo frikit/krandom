@@ -135,15 +135,14 @@ public final class HttpStatusCodeGenerator implements Generator<Integer> {
      * Generates a status code from a specific category (1..5).
      */
     public int generateByCategory(int category) {
-        int[] source =
-                switch (category) {
-                    case 1 -> CODES_1XX;
-                    case 2 -> CODES_2XX;
-                    case 3 -> CODES_3XX;
-                    case 4 -> CODES_4XX;
-                    case 5 -> CODES_5XX;
-                    default -> throw new IllegalArgumentException("category must be in [1,5], got: " + category);
-                };
+        int[] source = switch (category) {
+            case 1 -> CODES_1XX;
+            case 2 -> CODES_2XX;
+            case 3 -> CODES_3XX;
+            case 4 -> CODES_4XX;
+            case 5 -> CODES_5XX;
+            default -> throw new IllegalArgumentException("category must be in [1,5], got: " + category);
+        };
         return source[random.nextInt(source.length)];
     }
 

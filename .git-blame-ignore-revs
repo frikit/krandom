@@ -4,3 +4,6 @@
 
 # style: reformat Java and Kotlin sources with Palantir Java Format and ktlint
 43127760600a865b2d12c6cdd473c3d51f911335
+
+# style: reformat switch assignments with Palantir Java Format 2.102.0
+26407d3fd449663913e948ba1359f1b07fa5e11b

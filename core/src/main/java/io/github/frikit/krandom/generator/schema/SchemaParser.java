@@ -339,19 +339,18 @@ public final class SchemaParser {
     }
 
     private static @Nullable SchemaValueProvider resolveFormat(String format, GeneratorConfig config) {
-        Function<GeneratorConfig, Generator<?>> factory =
-                switch (format) {
-                    case "email" -> Generators::ofEmail;
-                    case "uri", "url" -> URLGenerator::new;
-                    case "uuid" -> UUIDGenerator::new;
-                    case "date" -> DateGenerator::new;
-                    case "date-time" -> LocalDateTimeGenerator::new;
-                    case "time" -> TimeGenerator::new;
-                    case "ipv4" -> IPv4Generator::new;
-                    case "ipv6" -> IPv6Generator::new;
-                    case "hostname" -> HostnameGenerator::new;
-                    default -> null;
-                };
+        Function<GeneratorConfig, Generator<?>> factory = switch (format) {
+            case "email" -> Generators::ofEmail;
+            case "uri", "url" -> URLGenerator::new;
+            case "uuid" -> UUIDGenerator::new;
+            case "date" -> DateGenerator::new;
+            case "date-time" -> LocalDateTimeGenerator::new;
+            case "time" -> TimeGenerator::new;
+            case "ipv4" -> IPv4Generator::new;
+            case "ipv6" -> IPv6Generator::new;
+            case "hostname" -> HostnameGenerator::new;
+            default -> null;
+        };
         if (factory == null) {
             return null;
         }

@@ -845,12 +845,11 @@ class NationalIdTier1ValidityTest {
             if (!matcher.matches()) {
                 return false;
             }
-            int century =
-                    switch (Integer.parseInt(matcher.group(4))) {
-                        case 9, 0 -> 1800;
-                        case 1, 2, 5, 6 -> 1900;
-                        default -> 2000;
-                    };
+            int century = switch (Integer.parseInt(matcher.group(4))) {
+                case 9, 0 -> 1800;
+                case 1, 2, 5, 6 -> 1900;
+                default -> 2000;
+            };
             if (!isCalendarDate(
                     century + Integer.parseInt(matcher.group(1)),
                     Integer.parseInt(matcher.group(2)),
