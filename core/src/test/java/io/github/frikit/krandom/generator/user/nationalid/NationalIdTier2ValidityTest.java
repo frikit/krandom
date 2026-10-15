@@ -236,13 +236,12 @@ class NationalIdTier2ValidityTest {
             if (!digits.matches("\\d{11}")) {
                 return null;
             }
-            int century =
-                    switch (digits.charAt(0)) {
-                        case '1', '2', '5', '6' -> 1900;
-                        case '3', '4' -> 2000;
-                        case '7', '8' -> 1800;
-                        default -> 0;
-                    };
+            int century = switch (digits.charAt(0)) {
+                case '1', '2', '5', '6' -> 1900;
+                case '3', '4' -> 2000;
+                case '7', '8' -> 1800;
+                default -> 0;
+            };
             try {
                 return LocalDate.of(century + number(digits, 1, 3), number(digits, 3, 5), number(digits, 5, 7));
             } catch (DateTimeException nonExistentDate) {
@@ -303,13 +302,12 @@ class NationalIdTier2ValidityTest {
             if (!FORMAT.matcher(cnp).matches()) {
                 return false;
             }
-            int century =
-                    switch (cnp.charAt(0)) {
-                        case '1', '2', '7', '8', '9' -> 1900;
-                        case '3', '4' -> 1800;
-                        case '5', '6' -> 2000;
-                        default -> 0;
-                    };
+            int century = switch (cnp.charAt(0)) {
+                case '1', '2', '7', '8', '9' -> 1900;
+                case '3', '4' -> 1800;
+                case '5', '6' -> 2000;
+                default -> 0;
+            };
             return COUNTY_CODES.contains(number(cnp, 7, 9))
                     && isPlausibleBirthDate(century + number(cnp, 1, 3), number(cnp, 3, 5), number(cnp, 5, 7));
         }

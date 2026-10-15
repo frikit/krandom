@@ -81,12 +81,11 @@ final class EmailLocalParts {
     }
 
     private static String transliterateCyrillic(String text, String language) {
-        Map<Integer, String> table =
-                switch (language) {
-                    case "uk" -> UKRAINIAN;
-                    case "bg" -> BULGARIAN;
-                    default -> RUSSIAN;
-                };
+        Map<Integer, String> table = switch (language) {
+            case "uk" -> UKRAINIAN;
+            case "bg" -> BULGARIAN;
+            default -> RUSSIAN;
+        };
         boolean ukrainian = "uk".equals(language);
         StringBuilder out = new StringBuilder(text.length() + 8);
         boolean wordStart = true;

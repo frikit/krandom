@@ -380,17 +380,16 @@ public final class EmailGenerator implements Generator<String> {
 
     private String getRandomFreeDomain() {
         String language = config.getLocale().getLanguage();
-        String[] providers =
-                switch (language) {
-                    case "de" -> POPULAR_DOMAINS_DE;
-                    case "fr" -> POPULAR_DOMAINS_FR;
-                    case "es" -> POPULAR_DOMAINS_ES;
-                    case "it" -> POPULAR_DOMAINS_IT;
-                    case "pt" -> POPULAR_DOMAINS_PT;
-                    case "ja" -> POPULAR_DOMAINS_JA;
-                    case "zh" -> POPULAR_DOMAINS_ZH;
-                    default -> POPULAR_DOMAINS;
-                };
+        String[] providers = switch (language) {
+            case "de" -> POPULAR_DOMAINS_DE;
+            case "fr" -> POPULAR_DOMAINS_FR;
+            case "es" -> POPULAR_DOMAINS_ES;
+            case "it" -> POPULAR_DOMAINS_IT;
+            case "pt" -> POPULAR_DOMAINS_PT;
+            case "ja" -> POPULAR_DOMAINS_JA;
+            case "zh" -> POPULAR_DOMAINS_ZH;
+            default -> POPULAR_DOMAINS;
+        };
         return providers[random.nextInt(providers.length)];
     }
 

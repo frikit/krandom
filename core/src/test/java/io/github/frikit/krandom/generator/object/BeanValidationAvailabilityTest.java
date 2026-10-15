@@ -127,12 +127,11 @@ class BeanValidationAvailabilityTest {
     }
 
     private static Object invoke(Class<?> type, String name, Object... arguments) throws Exception {
-        Class<?>[] parameterTypes =
-                switch (name) {
-                    case "constraintModelFor" -> new Class<?>[] {AnnotatedElement.class, Class.class};
-                    case "sizeRangeFor" -> new Class<?>[] {AnnotatedElement.class};
-                    default -> new Class<?>[0];
-                };
+        Class<?>[] parameterTypes = switch (name) {
+            case "constraintModelFor" -> new Class<?>[] {AnnotatedElement.class, Class.class};
+            case "sizeRangeFor" -> new Class<?>[] {AnnotatedElement.class};
+            default -> new Class<?>[0];
+        };
         // getDeclaredMethod resolves every declared signature, so this also fails if any method of
         // the class mentions a Jakarta type.
         Method method = type.getDeclaredMethod(name, parameterTypes);

@@ -109,12 +109,11 @@ class IbanRegistryConformanceTest {
             int end = 0;
             while (segment.find()) {
                 assertEquals(end, segment.start(), "unparsed registry notation in " + bbanStructure);
-                String characterClass =
-                        switch (segment.group(2)) {
-                            case "n" -> "[0-9]";
-                            case "a" -> "[A-Z]";
-                            default -> "[0-9A-Z]";
-                        };
+                String characterClass = switch (segment.group(2)) {
+                    case "n" -> "[0-9]";
+                    case "a" -> "[A-Z]";
+                    default -> "[0-9A-Z]";
+                };
                 regex.append(characterClass)
                         .append('{')
                         .append(segment.group(1))
