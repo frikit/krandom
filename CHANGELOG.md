@@ -10,8 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Update Palantir Java Format to 2.102.0, which keeps a switch expression assigned to a variable on
   its declaration line; nine source files were reformatted.
-- Update Kotest to 6.2.6, Hibernate Validator to 9.1.5.Final, and PIT to 1.30.1; refresh the
-  GitHub Action pins (setup-java 6.1.0).
+- Update Jackson to 2.22.4 (the `krandom-jackson` dependency), Kotest to 6.2.6, Hibernate
+  Validator to 9.1.5.Final, and PIT to 1.30.1; refresh the GitHub Action pins (setup-java 6.1.0).
 
 ## [2.6.0] - 2026-10-14
 
