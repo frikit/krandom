@@ -104,7 +104,8 @@ broader rule-composition surface.
 | Initialized properties | A field rule replaces them; other values keep them unless `objectOverrideDefaultInitialization(true)` | Rules, `ruleForType` values, and generated values all replace them |
 
 In both APIs, an explicit field rule takes precedence over a type rule and generated defaults.
-The DSL validates duplicate field/type rules immediately and unknown root field names when building.
+The DSL validates duplicate field/type rules immediately (a Java `ObjectFaker` rule instead replaces
+an earlier rule for the same path) and unknown root field names when building.
 It supports neither value classes nor sealed/abstract types without a concrete type override.
 These boundaries are intentional: they keep the Kotlin adapter small while the Java API remains the
 single place for complex fixture composition.

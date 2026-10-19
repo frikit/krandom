@@ -12,6 +12,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   its declaration line; nine source files were reformatted.
 - Update Jackson to 2.22.4 (the `krandom-jackson` dependency), Kotest to 6.2.6, Hibernate
   Validator to 9.1.5.Final, and PIT to 1.30.1; refresh the GitHub Action pins (setup-java 6.1.0).
+- `ObjectFaker.ruleFor` and `ruleForContext` replace an earlier rule of any kind for the identical
+  field path instead of failing with "already has a registered rule"; a replacement of the same
+  kind keeps its place in the evaluation order. Defaults from a profile, a shared fixture, or an
+  earlier `ObjectModel` can now be refined per test (`defaults.and(perTest)`). `ignore` on a field
+  that has a rule still fails. A rule or `include` for an ignored nested path such as
+  `address.city`, or a path below one, now fails too instead of being dropped, and so does `ignore`
+  below an ignored nested path.
 
 ### Fixed
 

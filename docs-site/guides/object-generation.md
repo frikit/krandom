@@ -180,6 +180,9 @@ Supported in the current fixture layer:
 - path-aware `ignore(...)`, including nested paths such as `address.city`
 - path-aware `include(...)` to whitelist root fields or prune nested payload slices such as `address.city`
 - named `profile(...)` plus `useProfile(...)` for reusable rule bundles
+- a later rule for the identical path replaces the earlier one (a same-kind replacement keeps its
+  place), so a profile or a composed `ObjectModel` can be refined per test; rules on nested paths
+  below it still apply unless the new rule is a dependent rule on the parent, which runs last
 - `afterGenerate(...)` / `postProcess(...)`
 - `populate(existing)` for mutable classes
 - `strict()` to validate the complete explicit rule/include/ignore decision before generation

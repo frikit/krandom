@@ -53,6 +53,14 @@ import org.jspecify.annotations.Nullable;
  * {@code "billingAddress.postalCode"}. Include/ignore rules can also target nested paths,
  * allowing the top-level shape and nested payload slices to be constrained declaratively.
  *
+ * <p>A rule replaces any earlier rule for the identical field path, whatever the kind of either
+ * rule, so defaults from a profile, a shared fixture, or an earlier {@link ObjectModel} can be
+ * refined per test. A replacement of the same kind keeps the earlier rule's place in the evaluation
+ * order. Rules on nested paths below the replaced path still apply, unless the new rule is a
+ * dependent rule on the parent, which runs last and overwrites the whole value. A rule or include
+ * for an ignored path or a path below one fails, as does {@code ignore} below an ignored path or on
+ * a field that has a rule.
+ *
  * @param <T> the root type being generated
  */
 public final class ObjectFaker<T> implements Generator<T> {
@@ -108,12 +116,16 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     /**
-     * Registers a deterministic field rule evaluated during base object generation.
+     * Registers a deterministic field rule evaluated during base object generation. It replaces any
+     * earlier rule for the same field path.
      */
     public <V> ObjectFaker<T> ruleFor(String fieldName, Generator<? extends V> generator) {
         RulePath target = requireRulePath(fieldName, "ruleFor");
-        ensureFieldAvailable(fieldName);
-        fieldRules.put(target.path(), Objects.requireNonNull(generator, "generator must not be null"));
+        ensureNotIgnored(fieldName);
+        Objects.requireNonNull(generator, "generator must not be null");
+        contextualFieldRules.remove(target.path());
+        dependentFieldRules.remove(target.path());
+        fieldRules.put(target.path(), generator);
         invalidateGeneratorState();
         return this;
     }
@@ -134,12 +146,16 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     /**
-     * Registers a context-aware field rule evaluated during base object generation.
+     * Registers a context-aware field rule evaluated during base object generation. It replaces any
+     * earlier rule for the same field path.
      */
     public <V> ObjectFaker<T> ruleForContext(String fieldName, ContextualGenerator<? extends V> generator) {
         RulePath target = requireRulePath(fieldName, "ruleFor");
-        ensureFieldAvailable(fieldName);
-        contextualFieldRules.put(target.path(), Objects.requireNonNull(generator, "generator must not be null"));
+        ensureNotIgnored(fieldName);
+        Objects.requireNonNull(generator, "generator must not be null");
+        fieldRules.remove(target.path());
+        dependentFieldRules.remove(target.path());
+        contextualFieldRules.put(target.path(), generator);
         invalidateGeneratorState();
         return this;
     }
@@ -161,12 +177,22 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     /**
-     * Registers a dependent field rule evaluated after the base object is generated.
+     * Registers a dependent field rule evaluated after the base object is generated. It replaces any
+     * earlier rule for the same field path.
      */
     public <V> ObjectFaker<T> ruleFor(String fieldName, Function<? super T, ? extends V> generator) {
         RulePath target = requireRulePath(fieldName, "dependent ruleFor");
-        ensureFieldAvailable(fieldName);
-        dependentFieldRules.put(target.path(), Objects.requireNonNull(generator, "generator must not be null"));
+        ensureNotIgnored(fieldName);
+        Objects.requireNonNull(generator, "generator must not be null");
+        boolean replacedBaseRule = fieldRules.remove(target.path()) != null;
+        replacedBaseRule |= contextualFieldRules.remove(target.path()) != null;
+        dependentFieldRules.put(target.path(), generator);
+        if (replacedBaseRule || !includedFields.isEmpty()) {
+            // A replaced base or context rule is baked into the cached generator, and in include mode
+            // dependent rules decide which root fields are generated, so rebuild it then. Otherwise a
+            // dependent rule leaves the generator, and with it a seeded sequence, untouched.
+            invalidateGeneratorState();
+        }
         return this;
     }
 
@@ -228,9 +254,7 @@ public final class ObjectFaker<T> implements Generator<T> {
      */
     public ObjectFaker<T> include(String fieldName) {
         RulePath target = requireRulePath(fieldName, "include");
-        if (ignoredFields.contains(target.path()) || ignoredFields.contains(rootFieldName(fieldName))) {
-            throw new IllegalStateException("Field '" + fieldName + "' is already ignored");
-        }
+        ensureNotIgnored(fieldName);
         includedFields.add(target.path());
         invalidateGeneratorState();
         return this;
@@ -746,11 +770,17 @@ public final class ObjectFaker<T> implements Generator<T> {
         }
     }
 
-    private void ensureFieldAvailable(String fieldName) {
-        String rootFieldName = rootFieldName(fieldName);
-        if (ignoredFields.contains(rootFieldName)) {
-            throw new IllegalStateException("Field '" + rootFieldName + "' is already ignored");
+    /** Rejects a path that is ignored itself or lies below an ignored path. */
+    private void ensureNotIgnored(String fieldName) {
+        for (String ignoredPath : ignoredFields) {
+            if (fieldName.equals(ignoredPath) || fieldName.startsWith(ignoredPath + ".")) {
+                throw new IllegalStateException("Field '" + ignoredPath + "' is already ignored");
+            }
         }
+    }
+
+    private void ensureFieldAvailable(String fieldName) {
+        ensureNotIgnored(fieldName);
         if (fieldRules.containsKey(fieldName)
                 || contextualFieldRules.containsKey(fieldName)
                 || dependentFieldRules.containsKey(fieldName)) {

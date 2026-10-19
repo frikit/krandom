@@ -59,6 +59,21 @@ class ObjectModelTest {
     }
 
     @Test
+    @DisplayName("a later model's rule replaces an earlier rule for the same field")
+    void laterModelRuleReplacesEarlierRule() {
+        ObjectModel<User> defaults = ObjectModel.of(User.class)
+                .configure(faker ->
+                        faker.ruleFor(User::getFirstName, () -> "Ada").ruleFor(User::getLastName, () -> "Lovelace"));
+        ObjectModel<User> perTest =
+                ObjectModel.of(User.class).configure(faker -> faker.ruleFor(User::getFirstName, () -> "Grace"));
+
+        User generated = defaults.and(perTest).generate();
+
+        assertEquals("Grace", generated.firstName);
+        assertEquals("Lovelace", generated.lastName);
+    }
+
+    @Test
     @DisplayName("typed include is retained by a reusable model")
     void typedIncludeIsRetained() {
         User generated = ObjectModel.of(User.class)
