@@ -1,6 +1,6 @@
 # Kotlin + Gradle Example (Test-based)
 
-Uses `io.github.frikit:krandom-core:2.7.0-SNAPSHOT` by default for repo-local verification.
+Uses `io.github.frikit:krandom-core:2.8.0-SNAPSHOT` by default for repo-local verification.
 
 Use the embedded snapshot default only for repo-local Maven-local checks. For published versions, pass the target version explicitly.
 
