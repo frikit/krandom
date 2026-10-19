@@ -16,9 +16,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   field path instead of failing with "already has a registered rule"; a replacement of the same
   kind keeps its place in the evaluation order. Defaults from a profile, a shared fixture, or an
   earlier `ObjectModel` can now be refined per test (`defaults.and(perTest)`). `ignore` on a field
-  that has a rule still fails. A rule or `include` for an ignored nested path such as
-  `address.city`, or a path below one, now fails too instead of being dropped, and so does `ignore`
-  below an ignored nested path.
+  that has a rule still fails. A rule for an ignored nested path such as `address.city`, and a rule
+  or `include` below an ignored nested path, now fail too instead of being dropped; `ignore` below
+  an ignored nested path now fails as well.
 
 ### Fixed
 
