@@ -12,8 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.github.frikit.krandom.generator.location.AddressPurposeDataRegistry;
-import io.github.frikit.krandom.generator.location.AddressTypeDataRegistry;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import java.time.Clock;
@@ -150,17 +148,16 @@ class KrandomTest {
     }
 
     @Test
-    @DisplayName("address types and purposes come from the session locale")
+    @DisplayName("address types and purposes draw from their own streams, in the session locale")
     void addressTypesAndPurposesFollowTheLocale() {
-        Krandom fake = uk("fixtures");
-        List<String> types = AddressTypeDataRegistry.forLocale(Locale.UK).getAddressTypes();
-        List<String> purposes = AddressPurposeDataRegistry.forLocale(Locale.UK).getAddressPurposes();
+        Krandom fake = Krandom.seeded("fixtures", Locale.GERMANY);
+        Generator<String> types = Generators.ofAddressType(fake.streamConfig("krandom.addressType"));
+        Generator<String> purposes = Generators.ofAddressPurpose(fake.streamConfig("krandom.addressPurpose"));
 
-        for (int i = 0; i < 20; i++) {
-            assertTrue(types.contains(fake.addressType()));
-            assertTrue(purposes.contains(fake.addressPurpose()));
+        for (int i = 0; i < 10; i++) {
+            assertEquals(types.generate(), fake.addressType());
+            assertEquals(purposes.generate(), fake.addressPurpose());
         }
-        assertTrue(purposes.contains("Correspondence address"));
     }
 
     @Test

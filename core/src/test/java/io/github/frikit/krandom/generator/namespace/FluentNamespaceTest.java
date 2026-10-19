@@ -476,7 +476,7 @@ class FluentNamespaceTest {
         assertSameFirstValue(new StreetAddressGenerator(italy), location.streetAddress(Locale.ITALY));
         assertSameFirstValue(new AddressInfoGenerator(canada), location.addressInfo(Locale.CANADA));
         assertSameFirstValue(new AddressTypeGenerator(german), location.addressType(Locale.GERMANY));
-        assertSameFirstValue(new AddressPurposeGenerator(uk), location.addressPurpose(Locale.UK));
+        assertSameFirstValue(new AddressPurposeGenerator(german), location.addressPurpose(Locale.GERMANY));
         assertSameFirstValue(new AddressTypeGenerator(seeded), location.addressType());
         assertSameFirstValue(new AddressPurposeGenerator(seeded), location.addressPurpose());
 

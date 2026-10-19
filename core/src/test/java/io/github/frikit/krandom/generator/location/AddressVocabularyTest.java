@@ -132,8 +132,13 @@ class AddressVocabularyTest {
     void unsupportedLocaleFallsBackToEnglish() {
         Locale icelandic = Locale.of("is", "IS");
 
-        assertTrue(TYPES.containsAll(new AddressTypeGenerator(icelandic).generateList(20)));
-        assertTrue(PURPOSES.containsAll(new AddressPurposeGenerator(icelandic).generateList(20)));
+        assertEquals(TYPES, new BuiltInAddressTypeDataProvider(Locale.ROOT, "default").getAddressTypes());
+        assertEquals(PURPOSES, new BuiltInAddressPurposeDataProvider(Locale.ROOT, "default").getAddressPurposes());
+        assertEquals(
+                new HashSet<>(TYPES), new HashSet<>(new AddressTypeGenerator(seeded(icelandic)).generateList(200)));
+        assertEquals(
+                new HashSet<>(PURPOSES),
+                new HashSet<>(new AddressPurposeGenerator(seeded(icelandic)).generateList(200)));
     }
 
     @Test

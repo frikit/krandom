@@ -16,8 +16,9 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Seeded at class-load time with every built-in
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}; regional variants use the dataset
- * their {@code resourcePrefix()} names. Other locales are not registered, so address types fall back to
- * the bundled English {@code default.txt} data.
+ * their {@code resourcePrefix()} names. A region of a supported language that is not listed (for example
+ * {@code de_LU}) resolves to that language's dataset through the language-only key; only locales of
+ * languages without a built-in dataset fall back to the bundled English {@code default.txt} data.
  *
  * <p><b>Lookup order:</b> exact {@code language_COUNTRY} match, then language-only match, then
  * {@code null}.
