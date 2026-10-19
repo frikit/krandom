@@ -378,7 +378,9 @@ public final class GeneratorConfig {
      *
      * <p>The default uses NANPA's fictional 555-0100 through 555-0199 range for North American
      * Numbering Plan (NANP) locales, which resolve to the United States or Canada ({@code en_US},
-     * {@code en_CA}, {@code fr_CA}, and the language-only {@code en}). Other locales and custom
+     * {@code en_CA}, {@code fr_CA}, and the language-only {@code en}), and Ofcom's ranges for TV
+     * and radio drama for United Kingdom locales such as {@code en_GB} (mobile numbers 07700 900000
+     * through 07700 900999 and 16 geographic landline blocks). Other locales and custom
      * phone-number templates remain unclassified rather than being presented as non-routable.
      */
     public PhoneNumberSafetyPolicy getPhoneNumberSafetyPolicy() {
@@ -1545,8 +1547,10 @@ public final class GeneratorConfig {
          *
          * <p>The default uses NANPA's fictional 555-0100 through 555-0199 range for North American
          * Numbering Plan (NANP) locales, which resolve to the United States or Canada
-         * ({@code en_US}, {@code en_CA}, {@code fr_CA}, and the language-only {@code en}). Other
-         * locales and custom templates remain unclassified.
+         * ({@code en_US}, {@code en_CA}, {@code fr_CA}, and the language-only {@code en}), and
+         * Ofcom's ranges for TV and radio drama for United Kingdom locales such as {@code en_GB}
+         * (mobile numbers 07700 900000 through 07700 900999 and 16 geographic landline blocks).
+         * Other locales and custom templates remain unclassified.
          *
          * @param phoneNumberSafetyPolicy locale-style phone-number safety policy
          * @return this builder

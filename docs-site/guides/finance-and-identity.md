@@ -15,7 +15,10 @@ sandbox credentials for payment, onboarding, KYC, account-creation, trading, or 
 
 - Card numbers are issuer-shaped but deliberately fail Luhn by default.
 - US and Canadian (NANP) locale-style phone numbers use NANPA's fictional `555-0100` through
-  `555-0199` range by default. Other locales, custom masks, and MSISDN values are unclassified.
+  `555-0199` range by default, and United Kingdom ones use Ofcom's ranges for TV and radio drama
+  (mobile numbers `07700 900000` to `07700 900999` and 16 geographic landline blocks, such as
+  `020 7946 0000` to `020 7946 0999`). Other locales, custom masks, and MSISDN values are
+  unclassified.
 - Email addresses use reserved `example.com`/`example.net`/`example.org` domains and company
   addresses the reserved `.test` top-level domain by default; realistic mailbox-provider domains
   require `emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED)`.

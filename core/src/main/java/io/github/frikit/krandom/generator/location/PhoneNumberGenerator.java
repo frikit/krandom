@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.location;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -16,12 +17,26 @@ import java.util.Random;
  * Generates locale-specific phone numbers.
  *
  * <p>This generator creates phone numbers that match the national format conventions of the
- * country resolved from the configured locale. By default, output for the North American
- * Numbering Plan (NANP) countries of the built-in catalog, the United States and Canada, uses
- * NANPA's fictional non-working {@code 555-0100} through {@code 555-0199} range. Other countries
- * retain realistic output but are unclassified and must not be treated as non-routable. Phone
- * numbers can be generated as formatted (with separators) or unformatted (digits only), and where
- * the national numbering plan distinguishes them, as landline or mobile numbers.
+ * country resolved from the configured locale. Phone numbers can be generated as formatted (with
+ * separators) or unformatted (digits only), and where the national numbering plan distinguishes
+ * them, as landline or mobile numbers.
+ *
+ * <p>By default, under {@link PhoneNumberSafetyPolicy#TEST_SAFE_WHERE_AVAILABLE}, two numbering
+ * plans draw from ranges that are reserved for fiction and never assigned to a subscriber:
+ * <ul>
+ *   <li>The North American Numbering Plan (NANP) countries of the built-in catalog, the United
+ *       States and Canada, use NANPA's fictional non-working {@code 555-0100} through
+ *       {@code 555-0199} range.</li>
+ *   <li>The United Kingdom uses Ofcom's ranges for TV and radio drama: mobile numbers
+ *       {@code 07700 900000} through {@code 07700 900999}, and landline numbers from 16
+ *       geographic blocks of 1,000 numbers, such as {@code 020 7946 0000} through
+ *       {@code 020 7946 0999} for London and {@code 0161 496 0000} through
+ *       {@code 0161 496 0999} for Manchester.</li>
+ * </ul>
+ *
+ * <p>Other countries retain realistic output but are unclassified and must not be treated as
+ * non-routable. {@link PhoneNumberSafetyPolicy#REALISTIC_UNCLASSIFIED} gives realistic output
+ * for every country.
  *
  * <p>The format country is resolved once, when the generator is created:
  * <ol>
@@ -162,6 +177,35 @@ public final class PhoneNumberGenerator implements Generator<String> {
         "07400", "07401", "07402", "07500", "07501", "07502", "07700", "07701", "07702", "07800", "07801", "07802",
         "07900", "07901", "07902"
     };
+
+    // A UK number has ten digits after the leading 0, so a code of n digits (with the 0) leaves
+    // 11 - n digits for the local number.
+    private static final int UK_NUMBER_DIGITS = 11;
+
+    // Ofcom, "Telephone numbers for use in TV and radio drama programmes",
+    // https://www.ofcom.org.uk/phones-and-broadband/phone-numbers/numbers-for-drama (last updated
+    // 11 May 2023). Each block is 1,000 consecutive numbers that Ofcom never allocates to customers.
+    private static final int UK_DRAMA_BLOCK_SIZE = 1000;
+
+    private static final UkDramaBlock UK_DRAMA_MOBILE = new UkDramaBlock("07700", 900_000);
+
+    private static final List<UkDramaBlock> UK_DRAMA_LANDLINES = List.of(
+            new UkDramaBlock("0113", 4_960_000),
+            new UkDramaBlock("0114", 4_960_000),
+            new UkDramaBlock("0115", 4_960_000),
+            new UkDramaBlock("0116", 4_960_000),
+            new UkDramaBlock("0117", 4_960_000),
+            new UkDramaBlock("0118", 4_960_000),
+            new UkDramaBlock("0121", 4_960_000),
+            new UkDramaBlock("0131", 4_960_000),
+            new UkDramaBlock("0141", 4_960_000),
+            new UkDramaBlock("0151", 4_960_000),
+            new UkDramaBlock("0161", 4_960_000),
+            new UkDramaBlock("020", 79_460_000), // London
+            new UkDramaBlock("0191", 4_980_000), // Tyneside, Durham and Sunderland
+            new UkDramaBlock("028", 96_496_000), // Northern Ireland
+            new UkDramaBlock("029", 20_180_000), // Cardiff
+            new UkDramaBlock("01632", 960_000)); // no area
 
     // Australian area codes (landline)
     private static final String[] AU_LANDLINE_CODES = {"02", "03", "07", "08"};
@@ -556,7 +600,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
     private String generateNanpPhone(boolean formatted, int[] areaCodes) {
         int areaCode = areaCodes[random.nextInt(areaCodes.length)];
-        boolean fictionalNanpaRange = usesFictionalNANPARange();
+        boolean fictionalNanpaRange = usesTestSafeRange();
         int exchange = fictionalNanpaRange ? NANPA_FICTITIOUS_EXCHANGE : 200 + random.nextInt(800);
         int number = fictionalNanpaRange
                 ? NANPA_FICTITIOUS_LINE_START + random.nextInt(NANPA_FICTITIOUS_LINE_COUNT)
@@ -574,38 +618,37 @@ public final class PhoneNumberGenerator implements Generator<String> {
     }
 
     private String generateUKPhone(boolean formatted, boolean mobile) {
+        if (usesTestSafeRange()) {
+            UkDramaBlock block =
+                    mobile ? UK_DRAMA_MOBILE : UK_DRAMA_LANDLINES.get(random.nextInt(UK_DRAMA_LANDLINES.size()));
+            return formatUKPhone(
+                    block.code(), block.firstLocalNumber() + random.nextInt(UK_DRAMA_BLOCK_SIZE), formatted);
+        }
         if (mobile) {
             String prefix = UK_MOBILE_PREFIXES[random.nextInt(UK_MOBILE_PREFIXES.length)];
-            int number = random.nextInt(1000000);
-
-            if (formatted) {
-                return String.format(Locale.ROOT, "%s %06d", prefix, number);
-            }
-            return prefix + String.format(Locale.ROOT, "%06d", number);
-        } else {
-            String areaCode = UK_LANDLINE_CODES[random.nextInt(UK_LANDLINE_CODES.length)];
-            int numberLength = areaCode.equals("020") ? 8 : (areaCode.length() == 5 ? 6 : 7);
-            int maxNumber = (int) Math.pow(10, numberLength);
-            int number = random.nextInt(maxNumber);
-
-            if (formatted) {
-                if (areaCode.equals("020")) {
-                    // London format: 020 7946 0958
-                    int part1 = number / 10000;
-                    int part2 = number % 10000;
-                    return String.format(Locale.ROOT, "%s %04d %04d", areaCode, part1, part2);
-                } else if (areaCode.length() == 5) {
-                    // 5-digit area code: 01202 123456
-                    return String.format(Locale.ROOT, "%s %0" + numberLength + "d", areaCode, number);
-                } else {
-                    // 4-digit area code: 0161 496 0123
-                    int part1 = number / 10000;
-                    int part2 = number % 10000;
-                    return String.format(Locale.ROOT, "%s %03d %04d", areaCode, part1, part2);
-                }
-            }
-            return areaCode + String.format(Locale.ROOT, "%0" + numberLength + "d", number);
+            return formatUKPhone(prefix, random.nextInt(1000000), formatted);
         }
+        String areaCode = UK_LANDLINE_CODES[random.nextInt(UK_LANDLINE_CODES.length)];
+        return formatUKPhone(
+                areaCode, random.nextInt((int) Math.pow(10, UK_NUMBER_DIGITS - areaCode.length())), formatted);
+    }
+
+    /**
+     * Formats a UK number from its code (area code or mobile prefix, with the leading 0) and its
+     * local number: "020 7946 0958" for a 3-digit code, "0161 496 0123" for a 4-digit code, and
+     * "01632 960123" or "07700 900123" for a 5-digit code; digits only when not formatted.
+     */
+    private static String formatUKPhone(String code, int localNumber, boolean formatted) {
+        int localDigits = UK_NUMBER_DIGITS - code.length();
+        String local = String.format(Locale.ROOT, "%0" + localDigits + "d", localNumber);
+        if (!formatted) {
+            return code + local;
+        }
+        if (localDigits == 6) {
+            return code + " " + local;
+        }
+        int split = localDigits - 4;
+        return code + " " + local.substring(0, split) + " " + local.substring(split);
     }
 
     private String generateAustralianPhone(boolean formatted, boolean mobile) {
@@ -927,10 +970,18 @@ public final class PhoneNumberGenerator implements Generator<String> {
     }
 
     /**
-     * Only NANP countries reach this check: every NANP locale uses the fictional range unless
-     * realistic output was explicitly requested.
+     * Only the countries whose official fictional range this generator implements reach this
+     * check, the NANP countries (NANPA's 555-0100 through 555-0199) and the United Kingdom
+     * (Ofcom's drama ranges): they use that range unless realistic output was explicitly
+     * requested.
      */
-    private boolean usesFictionalNANPARange() {
+    private boolean usesTestSafeRange() {
         return config.getPhoneNumberSafetyPolicy() == PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE;
     }
+
+    /**
+     * A block of 1,000 UK numbers that Ofcom reserves for drama: the code (area code or mobile
+     * prefix, with the leading 0) and the first local number of the block.
+     */
+    private record UkDramaBlock(String code, int firstLocalNumber) {}
 }
