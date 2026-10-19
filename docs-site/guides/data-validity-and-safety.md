@@ -45,7 +45,8 @@ subscriber, for the two numbering plans whose fiction range kRandom implements:
 - United Kingdom locales (`en_GB`, and any other locale whose country is `GB`) use
   [Ofcom's telephone numbers for TV and radio drama](https://www.ofcom.org.uk/phones-and-broadband/phone-numbers/numbers-for-drama):
   mobile numbers `07700 900000` to `07700 900999`, and landline numbers from the 16 geographic
-  blocks below. Ofcom never allocates these numbers to customers, so they cannot ring a real phone.
+  blocks below. Ofcom sets these numbers aside for drama and does not allocate them to
+  communications providers for their customers, and says it will not in the foreseeable future.
 
 | Area | Landline drama range |
 |:---|:---|

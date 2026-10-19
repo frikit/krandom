@@ -184,7 +184,8 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
     // Ofcom, "Telephone numbers for use in TV and radio drama programmes",
     // https://www.ofcom.org.uk/phones-and-broadband/phone-numbers/numbers-for-drama (last updated
-    // 11 May 2023). Each block is 1,000 consecutive numbers that Ofcom never allocates to customers.
+    // 11 May 2023). Each block is 1,000 consecutive numbers that Ofcom does not allocate to
+    // communications providers for their customers.
     private static final int UK_DRAMA_BLOCK_SIZE = 1000;
 
     private static final UkDramaBlock UK_DRAMA_MOBILE = new UkDramaBlock("07700", 900_000);

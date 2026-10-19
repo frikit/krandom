@@ -189,6 +189,7 @@ class KrandomTest {
             assertEquals(firstNames.generate(), fake.firstName());
             assertEquals(firstNames.generate(Gender.MALE), fake.firstName(Gender.MALE));
             assertEquals(middleNames.generate(Gender.MALE), fake.middleName(Gender.MALE));
+            assertEquals(middleNames.generate(Gender.FEMALE), fake.middleName(Gender.FEMALE));
             assertEquals(middleNames.generate(), fake.middleName());
         }
         assertThrows(NullPointerException.class, () -> fake.firstName(null));
