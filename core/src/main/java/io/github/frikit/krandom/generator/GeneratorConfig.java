@@ -255,6 +255,10 @@ public final class GeneratorConfig {
      * the copy keeps the independent policy, so nested composites derive their own children from
      * it. Stream names are stable structural identifiers, unique among one parent's children.
      *
+     * <p>The same holds for separate generators built from one seeded configuration: each starts
+     * from this seed, so they draw the same random sequence unless each receives its own child
+     * stream under {@link ChildStreamPolicy#INDEPENDENT}.
+     *
      * @param streamName non-blank, stable name of the child stream
      * @return configuration for the child generator
      * @throws IllegalArgumentException if {@code streamName} is blank or spans lines

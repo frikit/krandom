@@ -127,3 +127,21 @@ from independent streams while the output stays reproducible. A numeric or textu
 required. Portable recipes record the explicit policy as `child-stream-policy`; an absent setting
 means LEGACY. Custom composites can adopt the same contract by passing
 `config.forChildStream("childName")` to each child they construct.
+
+The same applies to separate generators built from one seeded configuration: each starts from the
+root seed, so two `Generators.ofInt(1, 40, config)` instances return the same values, and
+generators of different types draw from the same random sequence. Give each generator its own
+stream by passing `config.forChildStream(name)` under `INDEPENDENT`:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .seed("checkout-fixtures")
+    .childStreamPolicy(ChildStreamPolicy.INDEPENDENT)
+    .build();
+
+Generator<String> firstNames = Generators.ofFirstName(config.forChildStream("firstName"));
+Generator<String> lastNames = Generators.ofLastName(config.forChildStream("lastName"));
+```
+
+Under the default `LEGACY` policy `forChildStream` returns the configuration unchanged, so it has no
+effect there.

@@ -35,6 +35,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - A plain or predicate field override now takes precedence over a contextual type override, as
   documented; the contextual type override was resolved first.
 
+### Documentation
+
+- Explain that generators built from one seeded configuration share its random stream and how to
+  give each its own with `forChildStream` under `ChildStreamPolicy.INDEPENDENT`, state that
+  `krandom-junit` requires JUnit 6, and note the Scala 3 SAM-conversion pitfall for helpers
+  overloaded on `Generator` and function types.
+
 ## [2.6.0] - 2026-10-14
 
 ### Added

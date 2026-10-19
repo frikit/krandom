@@ -13,6 +13,11 @@ when a test fails, so a failure caused by random data is always reproducible.
 testImplementation("io.github.frikit:krandom-junit:2.6.0")
 ```
 
+`krandom-junit` is built and tested against JUnit 6 (Jupiter 6.1) and exposes `junit-jupiter-api`
+as an API dependency; JUnit 5 is not supported. A project that stays on JUnit 5, for example
+through Spring Boot 3.5 dependency management, can still pass a seeded `GeneratorConfig` from
+`krandom-core` to its generators.
+
 ## Seed reporting on failure
 
 Register the extension and inject a seeded `GeneratorConfig` into any test:

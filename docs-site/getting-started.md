@@ -10,6 +10,7 @@ permalink: /getting-started/
 
 - Java 21+
 - Gradle or Maven
+- JUnit 6 for the optional `krandom-junit` extension
 
 ## Dependency
 
@@ -150,6 +151,10 @@ EmailGenerator b = new EmailGenerator(cfg);
 String firstA = a.generate();
 String firstB = b.generate();
 ```
+
+Every generator built from one seeded config starts from that seed, so different generators draw
+the same random sequence too. To give each generator its own reproducible stream, see
+[composite child streams]({{ '/guides/primitives-and-determinism/' | relative_url }}#composite-child-streams).
 
 The same root config can also drive deterministic object, fixture, template, provider, and schema generation.
 
