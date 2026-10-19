@@ -109,6 +109,8 @@ class JavaGradleUsageTest {
                     throw new IllegalStateException("failed");
                 });
         org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class, () -> faker.useProfile("failed"));
+        org.junit.jupiter.api.Assertions.assertNotEquals(
+                "partial", faker.generate().name(), "a failed profile must not leave its rule behind");
         assertEquals(
                 "recovered", faker.ruleFor("name", () -> "recovered").generate().name());
     }

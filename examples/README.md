@@ -52,3 +52,15 @@ To point the examples at a different artifact version, set `KRANDOM_VERSION` or 
 # Verify the whole matrix against the locally published snapshot
 ./scripts/verify_examples_local.sh
 ```
+
+## Notes for Scala callers
+
+kRandom's `Generator<T>` has a single abstract method, so Scala 3 converts a lambda such as
+`() => source.generate()` to a `Generator`. If a Scala helper is overloaded on both
+`Generator[String]` and `() => String`, a lambda argument can resolve to the `Generator` overload,
+and an overload that delegates to the other with a lambda then calls itself forever. Give such
+helpers distinct names.
+
+`Krandom.pick` takes Java varargs, so `fake.pick(Seq("a", "b"))` passes the whole `Seq` as one
+value and returns it. Write `fake.pick("a", "b")`, or splice a collection with `fake.pick(values*)`
+(Scala 2.13: `fake.pick(values: _*)`).

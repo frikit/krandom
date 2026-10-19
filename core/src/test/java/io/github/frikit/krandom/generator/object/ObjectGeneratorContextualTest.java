@@ -68,6 +68,30 @@ class ObjectGeneratorContextualTest {
     }
 
     @Test
+    @DisplayName("a plain field override takes precedence over a contextual type override")
+    void plainFieldOverrideTakesPrecedenceOverContextualTypeOverride() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                .override(String.class, (ContextualGenerator<String>) ctx -> "type-level")
+                .override(Person.class, "firstName", () -> "field-level")
+                .build();
+        Person p = new ObjectGenerator<>(Person.class, config).generate();
+        assertEquals("field-level", p.getFirstName());
+        assertEquals("type-level", p.getLastName());
+    }
+
+    @Test
+    @DisplayName("a predicate field override takes precedence over a contextual type override")
+    void predicateFieldOverrideTakesPrecedenceOverContextualTypeOverride() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                .override(String.class, (ContextualGenerator<String>) ctx -> "type-level")
+                .override(field -> field.getName().equals("firstName"), () -> "predicate-level")
+                .build();
+        Person p = new ObjectGenerator<>(Person.class, config).generate();
+        assertEquals("predicate-level", p.getFirstName());
+        assertEquals("type-level", p.getLastName());
+    }
+
+    @Test
     @DisplayName("contextual override is called once per field across generateList")
     void contextualOverrideCalledForEachInstance() {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()

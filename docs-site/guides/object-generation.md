@@ -49,7 +49,10 @@ semantic controls, and registry wiring all live on the root `GeneratorConfig` bu
 
 `SAFE_CONSTRUCTORS` is the default. It runs constructors instead of manufacturing partially
 initialized instances, and it preserves field initializers unless
-`objectOverrideDefaultInitialization(true)` is selected.
+`objectOverrideDefaultInitialization(true)` is selected. An override that targets the field itself
+(`objectOverride` by owner type and field name or by field predicate, or an `ObjectFaker` rule)
+replaces its initializer either way; type-level overrides keep it. Field-level overrides take
+precedence over type-level overrides, contextual or not.
 
 | Target | Safe construction path | If unavailable |
 |:---|:---|:---|
@@ -177,6 +180,9 @@ Supported in the current fixture layer:
 - path-aware `ignore(...)`, including nested paths such as `address.city`
 - path-aware `include(...)` to whitelist root fields or prune nested payload slices such as `address.city`
 - named `profile(...)` plus `useProfile(...)` for reusable rule bundles
+- a later rule for the identical path replaces the earlier one (a same-kind replacement keeps its
+  place), so a profile or a composed `ObjectModel` can be refined per test; rules on nested paths
+  below it still apply unless the new rule is a dependent rule on the parent, which runs last
 - `afterGenerate(...)` / `postProcess(...)`
 - `populate(existing)` for mutable classes
 - `strict()` to validate the complete explicit rule/include/ignore decision before generation

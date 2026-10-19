@@ -57,7 +57,8 @@ public final class ObjectModel<T> {
     }
 
     /**
-     * Returns a new model applying this model followed by another model of the same type.
+     * Returns a new model applying this model followed by another model of the same type. A rule in
+     * {@code other} replaces this model's rule for the same field path.
      *
      * @param other model appended after this model
      * @return composed immutable model

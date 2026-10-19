@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -39,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -70,6 +72,24 @@ class ObjectGeneratorTest {
 
         int getDefaultAge() {
             return defaultAge;
+        }
+    }
+
+    static class ContactWithPresetEmail {
+
+        private String firstName;
+        private String lastName;
+        private String email = "preset@example.com";
+    }
+
+    static class Ticket {
+
+        private String code;
+        private final String codeSeenByConstructor;
+
+        Ticket(String code) {
+            this.code = code;
+            this.codeSeenByConstructor = code;
         }
     }
 
@@ -654,6 +674,127 @@ class ObjectGeneratorTest {
             assertEquals("OVERRIDDEN", value.getUnsetName());
             assertEquals(7, value.getPresetAge());
             assertEquals(7, value.getDefaultAge());
+        }
+
+        @Test
+        @DisplayName("a field override replaces a non-default initializer while initializers are preserved")
+        void fieldOverrideReplacesInitializedValue() {
+            ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                    .overrideDefaultInitialization(false)
+                    .override(PreInitializedFields.class, "presetName", () -> "RULED")
+                    .build();
+
+            PreInitializedFields value = new ObjectGenerator<>(PreInitializedFields.class, config).generate();
+            assertEquals("RULED", value.getPresetName(), "a field override should replace the initializer");
+            assertEquals(42, value.getPresetAge(), "a field without its own override keeps its initializer");
+        }
+
+        @Test
+        @DisplayName("a contextual field override replaces a non-default initializer")
+        void contextualFieldOverrideReplacesInitializedValue() {
+            ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                    .override(PreInitializedFields.class, "presetName", context -> "CTX-" + context.getFieldName())
+                    .build();
+
+            PreInitializedFields value = new ObjectGenerator<>(PreInitializedFields.class, config).generate();
+            assertEquals("CTX-presetName", value.getPresetName());
+            assertEquals(42, value.getPresetAge());
+        }
+
+        @Test
+        @DisplayName("a predicate field override replaces a non-default initializer")
+        void predicateFieldOverrideReplacesInitializedValue() {
+            ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                    .override(field -> field.getName().equals("presetAge"), () -> 7)
+                    .build();
+
+            PreInitializedFields value = new ObjectGenerator<>(PreInitializedFields.class, config).generate();
+            assertEquals(7, value.getPresetAge());
+            assertEquals("PRESET", value.getPresetName());
+        }
+
+        @Test
+        @DisplayName("a contextual predicate field override replaces a non-default initializer")
+        void contextualPredicateFieldOverrideReplacesInitializedValue() {
+            ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                    .override(field -> field.getName().equals("presetAge"), context -> 9)
+                    .build();
+
+            PreInitializedFields value = new ObjectGenerator<>(PreInitializedFields.class, config).generate();
+            assertEquals(9, value.getPresetAge());
+            assertEquals("PRESET", value.getPresetName());
+        }
+
+        @Test
+        @DisplayName("populate(existing) overwrites a set field only when it has a field override")
+        void populateOverwritesOnlyFieldsWithFieldOverride() {
+            ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                    .override(PreInitializedFields.class, "presetName", () -> "RULED")
+                    .build();
+            PreInitializedFields existing = new PreInitializedFields();
+
+            PreInitializedFields populated =
+                    new ObjectGenerator<>(PreInitializedFields.class, config).populate(existing);
+
+            assertSame(existing, populated);
+            assertEquals("RULED", populated.getPresetName());
+            assertEquals(42, populated.getPresetAge());
+            assertNotNull(populated.getUnsetName());
+        }
+
+        @Test
+        @DisplayName("semantic coherence keeps a field override that replaced an initializer")
+        void coherenceKeepsFieldOverrideOfInitializedField() {
+            ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                    .override(ContactWithPresetEmail.class, "email", () -> "rule@example.org")
+                    .build();
+
+            ContactWithPresetEmail value = new ObjectGenerator<>(ContactWithPresetEmail.class, config).generate();
+            assertEquals("rule@example.org", value.email);
+            assertNotNull(value.firstName);
+            assertNotNull(value.lastName);
+        }
+
+        @Test
+        @DisplayName("a by-name constructor override runs once and is not regenerated for its field")
+        void constructorOverrideRunsOnceForItsField() {
+            AtomicInteger calls = new AtomicInteger();
+            ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                    .override(Ticket.class, "code", () -> "T" + calls.incrementAndGet())
+                    .build();
+
+            Ticket ticket = new ObjectGenerator<>(Ticket.class, config).generate();
+
+            assertEquals("T1", ticket.codeSeenByConstructor);
+            assertEquals("T1", ticket.code);
+            assertEquals(1, calls.get());
+        }
+
+        @Test
+        @DisplayName("a contextual by-name constructor override runs once for its field")
+        void contextualConstructorOverrideRunsOnceForItsField() {
+            AtomicInteger calls = new AtomicInteger();
+            ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                    .override(Ticket.class, "code", context -> "C" + calls.incrementAndGet())
+                    .build();
+
+            Ticket ticket = new ObjectGenerator<>(Ticket.class, config).generate();
+
+            assertEquals("C1", ticket.code);
+            assertEquals(1, calls.get());
+        }
+
+        @Test
+        @DisplayName("a predicate override replaces a field its constructor argument initialized")
+        void predicateOverrideReplacesConstructorInitializedField() {
+            ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                    .override(field -> field.getName().equals("code"), () -> "PRED")
+                    .build();
+
+            Ticket ticket = new ObjectGenerator<>(Ticket.class, config).generate();
+
+            assertEquals("PRED", ticket.code);
+            assertNotEquals("PRED", ticket.codeSeenByConstructor, "predicates do not apply to constructor arguments");
         }
 
         @Test

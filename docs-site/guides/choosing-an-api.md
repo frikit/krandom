@@ -28,6 +28,17 @@ String city = Generators.ofCity().generate();
 String label = Generators.ofProviderTemplate("{firstname}-##").generate();
 ```
 
+For seeded fixture values in tests, `Krandom` returns plain values from one object and gives each
+method its own stream, so a method's values are unaffected by calls of other methods:
+
+```java
+Krandom fake = Krandom.seeded("checkout-fixtures", Locale.UK);
+
+String surname = fake.lastName();
+LocalDate birthDate = fake.birthday(25, 80);
+String title = fake.pick("MR", "MRS", "MS", "DR");
+```
+
 Choose this path when:
 
 - you are filling a few individual fields manually
@@ -99,6 +110,7 @@ Choose this path when:
 
 ## Rule of thumb
 
+- Need seeded values for test fixtures: use `Krandom`.
 - Need one value: use a scalar generator.
 - Need a DTO filled quickly: use `ObjectGenerator<T>`.
 - Need specific fixture control: use `ObjectFaker<T>`.

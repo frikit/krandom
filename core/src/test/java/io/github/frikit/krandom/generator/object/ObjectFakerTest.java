@@ -8,19 +8,23 @@ package io.github.frikit.krandom.generator.object;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -54,6 +58,39 @@ class ObjectFakerTest {
         assertEquals("Ada", user.firstName);
         assertEquals("Lovelace", user.lastName);
         assertNotNull(user.email);
+    }
+
+    @Test
+    @DisplayName("ruleFor replaces a field initializer")
+    void ruleForReplacesFieldInitializer() {
+        Basket basket = new ObjectFaker<>(Basket.class)
+                .ruleFor("products", () -> List.of("apple", "pear"))
+                .generate();
+
+        assertEquals(List.of("apple", "pear"), basket.products);
+        assertEquals("keep", basket.note, "a field without a rule keeps its initializer");
+    }
+
+    @Test
+    @DisplayName("ruleFor replaces the initializer of an inherited field")
+    void ruleForReplacesInheritedFieldInitializer() {
+        TaggedChild child = new ObjectFaker<>(TaggedChild.class)
+                .ruleFor("tags", () -> List.of("red"))
+                .generate();
+
+        assertEquals(List.of("red"), child.tags);
+    }
+
+    @Test
+    @DisplayName("a rule on an inherited semantic field survives semantic coherence")
+    void ruleOnInheritedSemanticFieldSurvivesCoherence() {
+        InheritedContact contact = new ObjectFaker<>(InheritedContact.class)
+                .ruleFor("email", () -> "rule@example.org")
+                .generate();
+
+        assertEquals("rule@example.org", contact.email);
+        assertNotNull(contact.firstName);
+        assertNotNull(contact.lastName);
     }
 
     @Test
@@ -334,25 +371,46 @@ class ObjectFakerTest {
     }
 
     @Test
-    @DisplayName("duplicate rules are rejected")
-    void duplicateRulesAreRejected() {
-        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class).ruleFor("firstName", () -> "Ada");
+    @DisplayName("a later rule replaces an earlier rule for the same field")
+    void laterRuleReplacesEarlierRule() {
+        FixtureUser user = new ObjectFaker<>(FixtureUser.class)
+                .ruleFor("firstName", () -> "Ada")
+                .ruleFor("firstName", () -> "Grace")
+                .generate();
 
-        IllegalStateException ex =
-                assertThrows(IllegalStateException.class, () -> faker.ruleFor("firstName", () -> "Grace"));
-
-        assertTrue(ex.getMessage().contains("already has a registered rule"));
+        assertEquals("Grace", user.firstName);
     }
 
     @Test
-    @DisplayName("ignored fields cannot later receive rules")
+    @DisplayName("ignored fields cannot later receive any kind of rule")
     void ignoredFieldsCannotReceiveRules() {
         ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class).ignore("email");
 
-        IllegalStateException ex =
+        IllegalStateException plain =
                 assertThrows(IllegalStateException.class, () -> faker.ruleFor("email", () -> "ada@example.com"));
+        IllegalStateException contextual =
+                assertThrows(IllegalStateException.class, () -> faker.ruleForContext("email", ctx -> "ctx"));
+        IllegalStateException dependent =
+                assertThrows(IllegalStateException.class, () -> faker.ruleFor("email", generated -> "derived"));
 
-        assertTrue(ex.getMessage().contains("already ignored"));
+        assertTrue(plain.getMessage().contains("already ignored"));
+        assertTrue(contextual.getMessage().contains("already ignored"));
+        assertTrue(dependent.getMessage().contains("already ignored"));
+    }
+
+    @Test
+    @DisplayName("a field with any kind of rule cannot later be ignored")
+    void fieldsWithRulesCannotLaterBeIgnored() {
+        ObjectFaker<FixtureUser> plain = new ObjectFaker<>(FixtureUser.class).ruleFor("email", () -> "plain");
+        ObjectFaker<FixtureUser> contextual =
+                new ObjectFaker<>(FixtureUser.class).ruleForContext("email", ctx -> "ctx");
+        ObjectFaker<FixtureUser> dependent =
+                new ObjectFaker<>(FixtureUser.class).ruleFor("email", generated -> "derived");
+
+        for (ObjectFaker<FixtureUser> faker : List.of(plain, contextual, dependent)) {
+            IllegalStateException ex = assertThrows(IllegalStateException.class, () -> faker.ignore("email"));
+            assertTrue(ex.getMessage().contains("already has a registered rule"));
+        }
     }
 
     @Test
@@ -376,25 +434,189 @@ class ObjectFakerTest {
     }
 
     @Test
-    @DisplayName("context rules participate in duplicate validation")
-    void contextRulesParticipateInDuplicateValidation() {
-        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class).ruleForContext("email", ctx -> "ctx");
+    @DisplayName("a dependent rule replaces a context rule")
+    void dependentRuleReplacesContextRule() {
+        AtomicInteger contextCalls = new AtomicInteger();
+        FixtureUser user = new ObjectFaker<>(FixtureUser.class)
+                .ruleForContext("email", ctx -> {
+                    contextCalls.incrementAndGet();
+                    return "ctx";
+                })
+                .ruleFor("email", generated -> "derived")
+                .generate();
 
-        IllegalStateException ex =
-                assertThrows(IllegalStateException.class, () -> faker.ruleFor("email", generated -> "derived"));
-
-        assertTrue(ex.getMessage().contains("already has a registered rule"));
+        assertEquals("derived", user.email);
+        assertEquals(0, contextCalls.get(), "the replaced context rule must not run");
     }
 
     @Test
-    @DisplayName("dependent rules participate in duplicate validation")
-    void dependentRulesParticipateInDuplicateValidation() {
-        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class).ruleFor("email", generated -> "derived");
+    @DisplayName("a context rule replaces a dependent rule")
+    void contextRuleReplacesDependentRule() {
+        FixtureUser user = new ObjectFaker<>(FixtureUser.class)
+                .ruleFor("email", generated -> "derived")
+                .ruleForContext("email", ctx -> "ctx")
+                .generate();
 
-        IllegalStateException ex =
-                assertThrows(IllegalStateException.class, () -> faker.ruleForContext("email", ctx -> "ctx"));
+        assertEquals("ctx", user.email);
+    }
 
-        assertTrue(ex.getMessage().contains("already has a registered rule"));
+    @Test
+    @DisplayName("a base rule replaces a dependent rule")
+    void baseRuleReplacesDependentRule() {
+        FixtureUser user = new ObjectFaker<>(FixtureUser.class)
+                .ruleFor("email", generated -> "derived")
+                .ruleFor("email", () -> "plain@example.com")
+                .generate();
+
+        assertEquals("plain@example.com", user.email);
+    }
+
+    @Test
+    @DisplayName("a dependent rule that replaces a base rule drops it from the cached generator")
+    void dependentRuleReplacingBaseRuleDropsItFromCachedGenerator() {
+        AtomicInteger baseCalls = new AtomicInteger();
+        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class).ruleFor("firstName", () -> {
+            baseCalls.incrementAndGet();
+            return "Ada";
+        });
+        assertEquals("Ada", faker.generate().firstName);
+
+        faker.ruleFor("firstName", user -> "Grace");
+
+        assertEquals("Grace", faker.generate().firstName);
+        assertEquals(1, baseCalls.get(), "the replaced base rule must not run again");
+    }
+
+    @Test
+    @DisplayName("a replaced dependent rule keeps its place in the evaluation order")
+    void replacedDependentRuleKeepsItsPlace() {
+        FixtureUser user = new ObjectFaker<>(FixtureUser.class)
+                .ruleFor("lastName", generated -> "Lovelace")
+                .ruleFor("email", generated -> generated.lastName + "@example.com")
+                .ruleFor("lastName", generated -> "Hopper")
+                .generate();
+
+        assertEquals("Hopper", user.lastName);
+        assertEquals("Hopper@example.com", user.email);
+    }
+
+    @Test
+    @DisplayName("a new dependent rule keeps the seeded sequence of a started faker")
+    void newDependentRuleKeepsSeededSequence() {
+        GeneratorConfig config = GeneratorConfig.builder().seed(7L).build();
+        ObjectFaker<FixtureUser> control = new ObjectFaker<>(FixtureUser.class, config);
+        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class, config);
+        control.generate();
+        faker.generate();
+
+        faker.ruleFor("email", generated -> "derived@example.com");
+
+        FixtureUser expected = control.generate();
+        FixtureUser actual = faker.generate();
+        assertEquals(expected.firstName, actual.firstName);
+        assertEquals(expected.lastName, actual.lastName);
+        assertEquals("derived@example.com", actual.email);
+    }
+
+    @Test
+    @DisplayName("a dependent rule that replaces a context rule drops it from the cached generator")
+    void dependentRuleReplacingContextRuleDropsItFromCachedGenerator() {
+        AtomicInteger contextCalls = new AtomicInteger();
+        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class).ruleForContext("firstName", ctx -> {
+            contextCalls.incrementAndGet();
+            return "Ada";
+        });
+        assertEquals("Ada", faker.generate().firstName);
+
+        faker.ruleFor("firstName", user -> "Grace");
+
+        assertEquals("Grace", faker.generate().firstName);
+        assertEquals(1, contextCalls.get(), "the replaced context rule must not run again");
+    }
+
+    @Test
+    @DisplayName("an ignored nested path, or a path below an ignored field, cannot receive a rule")
+    void ignoredNestedPathsCannotReceiveRules() {
+        ObjectFaker<FixtureUserWithAddress> nested =
+                new ObjectFaker<>(FixtureUserWithAddress.class).ignore("address.city");
+        ObjectFaker<FixtureUserWithAddress> below = new ObjectFaker<>(FixtureUserWithAddress.class).ignore("address");
+
+        IllegalStateException exact =
+                assertThrows(IllegalStateException.class, () -> nested.ruleFor("address.city", () -> "Paris"));
+        IllegalStateException child =
+                assertThrows(IllegalStateException.class, () -> below.ruleFor("address.city", () -> "Paris"));
+
+        assertTrue(exact.getMessage().contains("'address.city' is already ignored"));
+        assertTrue(child.getMessage().contains("'address' is already ignored"));
+        assertSame(nested, nested.ruleFor("address", () -> new FixtureAddress()), "an ancestor rule stays legal");
+    }
+
+    @Test
+    @DisplayName("a dependent rule added after a generation in include mode generates its field")
+    void dependentRuleAfterGenerationInIncludeModeGeneratesItsField() {
+        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class).include("firstName");
+        assertNull(faker.generate().email);
+
+        faker.ruleFor("email", user -> user.email + "!");
+
+        String email = faker.generate().email;
+        assertNotEquals("null!", email, "the rebuilt generator includes the newly ruled field");
+        assertTrue(email.endsWith("!"));
+    }
+
+    @Test
+    @DisplayName("rules and ignores registered after a generation apply to the next object")
+    void rulesRegisteredAfterGenerationApplyToNextObject() {
+        ObjectFaker<FixtureUser> plain = new ObjectFaker<>(FixtureUser.class);
+        assertNotNull(plain.generate().firstName);
+        plain.ruleFor("firstName", () -> "Late");
+        assertEquals("Late", plain.generate().firstName);
+
+        ObjectFaker<FixtureUser> contextual = new ObjectFaker<>(FixtureUser.class);
+        assertNotNull(contextual.generate().firstName);
+        contextual.ruleForContext("firstName", ctx -> "Context");
+        assertEquals("Context", contextual.generate().firstName);
+
+        ObjectFaker<FixtureUser> ignoring = new ObjectFaker<>(FixtureUser.class);
+        assertNotNull(ignoring.generate().email);
+        ignoring.ignore("email");
+        assertNull(ignoring.generate().email);
+    }
+
+    @Test
+    @DisplayName("a nested path below an ignored root cannot be ignored again")
+    void nestedPathBelowIgnoredRootCannotBeIgnored() {
+        ObjectFaker<FixtureUserWithAddress> faker = new ObjectFaker<>(FixtureUserWithAddress.class).ignore("address");
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> faker.ignore("address.city"));
+
+        assertTrue(ex.getMessage().contains("'address' is already ignored"));
+    }
+
+    @Test
+    @DisplayName("a root field cannot be ignored while a nested include targets it")
+    void rootFieldCannotBeIgnoredWhileNestedIncludeTargetsIt() {
+        ObjectFaker<FixtureUserWithAddress> faker =
+                new ObjectFaker<>(FixtureUserWithAddress.class).include("address.city");
+
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> faker.ignore("address"));
+
+        assertTrue(ex.getMessage().contains("nested include rules already target 'address.city'"));
+    }
+
+    @Test
+    @DisplayName("a rule refines a field that an applied profile already set")
+    void ruleRefinesFieldSetByAppliedProfile() {
+        FixtureUser user = new ObjectFaker<>(FixtureUser.class)
+                .profile(
+                        "defaults",
+                        faker -> faker.ruleFor("firstName", () -> "Ada").ruleFor("lastName", () -> "Lovelace"))
+                .useProfile("defaults")
+                .ruleFor("firstName", () -> "Grace")
+                .generate();
+
+        assertEquals("Grace", user.firstName);
+        assertEquals("Lovelace", user.lastName);
     }
 
     @Test
@@ -1001,6 +1223,28 @@ class ObjectFakerTest {
 
     static final class PrimitiveFixture {
         int age;
+    }
+
+    static final class Basket {
+        List<String> products = new ArrayList<>();
+        String note = "keep";
+    }
+
+    static class TaggedBase {
+        List<String> tags = new ArrayList<>();
+    }
+
+    static final class TaggedChild extends TaggedBase {
+        String label;
+    }
+
+    static class ContactBase {
+        String email = "preset@example.com";
+    }
+
+    static final class InheritedContact extends ContactBase {
+        String firstName;
+        String lastName;
     }
 
     static final class FixtureUserWithBrokenAddress {

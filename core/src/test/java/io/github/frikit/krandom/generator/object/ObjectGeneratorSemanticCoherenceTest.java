@@ -72,16 +72,30 @@ class ObjectGeneratorSemanticCoherenceTest {
     }
 
     @Test
-    @DisplayName("a blank domain field with an override is protected from coherence")
+    @DisplayName("a blank domain produced by an override is protected from coherence")
     void overriddenBlankDomainIsProtected() {
-        // The initializer is kept, so the override never runs; the override still marks the field protected.
+        // The override replaces the initializer with another blank value and marks the field protected,
+        // so coherence resolves a domain from the email but must not write it into the domain field.
+        GeneratorConfig config = GeneratorConfig.builder()
+                .objectOverride(BlankDomainHolder.class, "domain", () -> "")
+                .build();
+
+        BlankDomainHolder value = new ObjectGenerator<>(BlankDomainHolder.class, config).generate();
+
+        assertEquals("", value.domain);
+        assertTrue(value.email.contains("@"));
+    }
+
+    @Test
+    @DisplayName("a domain override replaces the blank initializer")
+    void domainOverrideReplacesBlankInitializer() {
         GeneratorConfig config = GeneratorConfig.builder()
                 .objectOverride(BlankDomainHolder.class, "domain", () -> "override.example")
                 .build();
 
         BlankDomainHolder value = new ObjectGenerator<>(BlankDomainHolder.class, config).generate();
 
-        assertEquals("", value.domain);
+        assertEquals("override.example", value.domain);
         assertTrue(value.email.contains("@"));
     }
 

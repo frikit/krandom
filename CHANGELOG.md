@@ -6,12 +6,53 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `Krandom`, one seeded source of everyday fixture values that returns plain values. Create one
+  session and reuse it (`Krandom fake = Krandom.seeded("orders", Locale.UK)`), then call
+  `fake.firstName()`, `birthday(25, 80)`, `dateBetween(from, to)`, `postalCode()`,
+  `nationalIdCompact()`, `pick(...)`, and more. Each method draws from its own stream (only
+  `nationalIdCompact()` shares `nationalId()`'s, and the two `pick` overloads share one), derived
+  from the seed and the method's name whatever the child-stream policy, so a method's values are
+  unaffected by calls of other methods, and the same seed repeats the same data (dates too, with a
+  fixed clock). `streamConfig(name)` gives any other generator a stream of its own. Kotlin and
+  Scala callers get plain values with no generator or stream wiring.
+
 ### Changed
 
 - Update Palantir Java Format to 2.102.0, which keeps a switch expression assigned to a variable on
   its declaration line; nine source files were reformatted.
-- Update Kotest to 6.2.6, Hibernate Validator to 9.1.5.Final, and PIT to 1.30.1; refresh the
-  GitHub Action pins (setup-java 6.1.0).
+- Update Jackson to 2.22.4 (the `krandom-jackson` dependency), Kotest to 6.2.6, Hibernate
+  Validator to 9.1.5.Final, and PIT to 1.30.1; refresh the GitHub Action pins (setup-java 6.1.0).
+- `ObjectFaker.ruleFor` and `ruleForContext` replace an earlier rule of any kind for the identical
+  field path instead of failing with "already has a registered rule"; a replacement of the same
+  kind keeps its place in the evaluation order. Defaults from a profile, a shared fixture, or an
+  earlier `ObjectModel` can now be refined per test (`defaults.and(perTest)`). `ignore` on a field
+  that has a rule still fails. A rule for an ignored nested path such as `address.city`, and a rule
+  or `include` below an ignored nested path, now fail too instead of being dropped; `ignore` below
+  an ignored nested path now fails as well.
+
+### Fixed
+
+- An override that targets a field now replaces a non-default field initializer. An `ObjectFaker`
+  root rule, or an object override registered by owner type and field name or by field predicate,
+  was skipped for an initialized field such as `List<Item> items = new ArrayList<>()` unless
+  `objectOverrideDefaultInitialization(true)` was set. Type-level overrides still keep
+  initializers, and `populate(existing)` now overwrites a field that has such an override. A field
+  whose constructor argument was already produced by its by-name override is not generated a second
+  time.
+- An override of an inherited field is no longer rewritten by semantic coherence: an `ObjectFaker`
+  rule on an inherited `email`, `domain`, `url`, or other harmonized field could be replaced by a
+  derived value.
+- A plain or predicate field override now takes precedence over a contextual type override, as
+  documented; the contextual type override was resolved first.
+
+### Documentation
+
+- Explain that generators built from one seeded configuration share its random stream and how to
+  give each its own with `forChildStream` under `ChildStreamPolicy.INDEPENDENT`, state that
+  `krandom-junit` requires JUnit 6, and note the Scala 3 SAM-conversion pitfall for helpers
+  overloaded on `Generator` and function types.
 
 ## [2.6.0] - 2026-10-14
 
