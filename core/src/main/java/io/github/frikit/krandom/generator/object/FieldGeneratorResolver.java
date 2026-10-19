@@ -104,9 +104,11 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Resolution order (first match wins):
  * <ol>
- *   <li>Contextual field-level override from {@link ObjectGeneratorConfig}</li>
+ *   <li>Contextual field-level override from {@link ObjectGeneratorConfig}, by owner type and
+ *       field name, then by field predicate</li>
+ *   <li>Field-level override from {@link ObjectGeneratorConfig} ({@code "OwnerType.fieldName"}),
+ *       then by field predicate</li>
  *   <li>Contextual type-level override from {@link ObjectGeneratorConfig}</li>
- *   <li>Field-level override from {@link ObjectGeneratorConfig} ({@code "OwnerType.fieldName"})</li>
  *   <li>Type-level override from {@link ObjectGeneratorConfig}</li>
  *   <li>Declarative {@link Randomizer} annotation on the field/component</li>
  *   <li>Bean Validation constraint annotation (e.g. {@code @Size}, {@code @Min}, {@code @Max})</li>
@@ -1690,12 +1692,6 @@ final class FieldGeneratorResolver {
             }
         }
 
-        // ── 0b. Contextual type-level override ────────────────────────────────
-        var ctxType = config.getContextualTypeOverride(rawType);
-        if (ctxType.isPresent()) {
-            return ctxType.get().generate(generationContext(fieldName, ownerType, currentDepth, genericType, element));
-        }
-
         // ── 1. Field-level override ───────────────────────────────────────────
         var fieldOverride = config.getFieldOverride(ownerType, fieldName);
         if (fieldOverride.isPresent()) {
@@ -1710,7 +1706,13 @@ final class FieldGeneratorResolver {
             }
         }
 
-        // ── 2. Type-level override ────────────────────────────────────────────
+        // ── 2. Contextual type-level override (after every field-level override) ──
+        var ctxType = config.getContextualTypeOverride(rawType);
+        if (ctxType.isPresent()) {
+            return ctxType.get().generate(generationContext(fieldName, ownerType, currentDepth, genericType, element));
+        }
+
+        // ── 2a. Type-level override ───────────────────────────────────────────
         var typeOverride = config.getTypeOverride(rawType);
         if (typeOverride.isPresent()) {
             return typeOverride.get().generate();

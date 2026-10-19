@@ -86,9 +86,9 @@ fun krandomConfig(block: ConfigScope.() -> Unit): GeneratorConfig {
  * Builder for configuring krandom object generation via DSL.
  *
  * Defaults match the Java `ObjectGenerator` with one intentional, documented difference:
- * the DSL enables `objectOverrideDefaultInitialization` so field rules and generated values
- * replace Kotlin/Java field initializers; without it, `rule(...)` on an initialized property
- * would be ignored, which surprises DSL users.
+ * the DSL enables `objectOverrideDefaultInitialization` so `ruleForType` values and generated
+ * values also replace Kotlin/Java field initializers. A `rule(...)` replaces its property's
+ * initializer, as field rules do in the Java API.
  */
 @KrandomDslMarker
 class KrandomBuilder<T : Any>(

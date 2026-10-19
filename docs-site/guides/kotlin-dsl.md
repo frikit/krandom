@@ -101,7 +101,7 @@ broader rule-composition surface.
 | Include, profiles, post-processing, and `populate` | Supported | Use Java `ObjectFaker` |
 | Immutable reusable models | `ObjectModel<T>` | Use Java `ObjectModel` |
 | Kotlin primary constructors | Via the Kotlin DSL module | Via the Kotlin DSL module |
-| Initialized properties | Java preserves them by default | DSL rules override them by default |
+| Initialized properties | A field rule replaces them; other values keep them unless `objectOverrideDefaultInitialization(true)` | Rules, `ruleForType` values, and generated values all replace them |
 
 In both APIs, an explicit field rule takes precedence over a type rule and generated defaults.
 The DSL validates duplicate field/type rules immediately and unknown root field names when building.
@@ -177,7 +177,9 @@ val recipe = config.generationRecipe.orElseThrow().serialize()  // portable repl
 ```
 
 The DSL matches the Java builder defaults with one intentional, documented difference:
-`objectOverrideDefaultInitialization` is enabled so `rule(...)` replaces property initializers.
+`objectOverrideDefaultInitialization` is enabled, so `ruleForType` values and generated values also
+replace property initializers. A `rule(...)` replaces its property's initializer, as field rules do in
+the Java API.
 
 ## Opt-in independent streams (2.3+)
 

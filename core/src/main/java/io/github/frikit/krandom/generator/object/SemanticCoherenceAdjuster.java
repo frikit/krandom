@@ -506,15 +506,16 @@ final class SemanticCoherenceAdjuster {
     }
 
     private boolean isProtected(Slot slot) {
-        if (config.getContextualFieldOverride(slot.ownerType(), slot.fieldName())
-                        .isPresent()
-                || config.getFieldOverride(slot.ownerType(), slot.fieldName()).isPresent()
+        Field field = slot.annotatedElement();
+        // Field overrides are resolved under the declaring class, so an inherited field is protected
+        // by an override registered for its declaring class as well as for the generated type.
+        if (hasFieldOverride(slot.ownerType(), slot.fieldName())
+                || hasFieldOverride(field.getDeclaringClass(), slot.fieldName())
                 || config.getContextualTypeOverride(slot.rawType()).isPresent()
                 || config.getTypeOverride(slot.rawType()).isPresent()) {
             return true;
         }
 
-        Field field = slot.annotatedElement();
         if (config.getContextualFieldPredicateOverride(field).isPresent()
                 || config.getFieldPredicateOverride(field).isPresent()) {
             return true;
@@ -529,6 +530,11 @@ final class SemanticCoherenceAdjuster {
             return BeanValidationSupport.constraintGeneratorFor(field, slot.rawType()) != null;
         }
         return false;
+    }
+
+    private boolean hasFieldOverride(Class<?> ownerType, String fieldName) {
+        return config.getContextualFieldOverride(ownerType, fieldName).isPresent()
+                || config.getFieldOverride(ownerType, fieldName).isPresent();
     }
 
     @Nullable Object applyUniqueness(Slot slot, String semanticKey, @Nullable String candidate) {

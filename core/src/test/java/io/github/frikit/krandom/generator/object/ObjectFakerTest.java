@@ -20,6 +20,7 @@ import io.github.frikit.krandom.generator.object.exception.ObjectGenerationExcep
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,6 +55,39 @@ class ObjectFakerTest {
         assertEquals("Ada", user.firstName);
         assertEquals("Lovelace", user.lastName);
         assertNotNull(user.email);
+    }
+
+    @Test
+    @DisplayName("ruleFor replaces a field initializer")
+    void ruleForReplacesFieldInitializer() {
+        Basket basket = new ObjectFaker<>(Basket.class)
+                .ruleFor("products", () -> List.of("apple", "pear"))
+                .generate();
+
+        assertEquals(List.of("apple", "pear"), basket.products);
+        assertEquals("keep", basket.note, "a field without a rule keeps its initializer");
+    }
+
+    @Test
+    @DisplayName("ruleFor replaces the initializer of an inherited field")
+    void ruleForReplacesInheritedFieldInitializer() {
+        TaggedChild child = new ObjectFaker<>(TaggedChild.class)
+                .ruleFor("tags", () -> List.of("red"))
+                .generate();
+
+        assertEquals(List.of("red"), child.tags);
+    }
+
+    @Test
+    @DisplayName("a rule on an inherited semantic field survives semantic coherence")
+    void ruleOnInheritedSemanticFieldSurvivesCoherence() {
+        InheritedContact contact = new ObjectFaker<>(InheritedContact.class)
+                .ruleFor("email", () -> "rule@example.org")
+                .generate();
+
+        assertEquals("rule@example.org", contact.email);
+        assertNotNull(contact.firstName);
+        assertNotNull(contact.lastName);
     }
 
     @Test
@@ -1001,6 +1035,28 @@ class ObjectFakerTest {
 
     static final class PrimitiveFixture {
         int age;
+    }
+
+    static final class Basket {
+        List<String> products = new ArrayList<>();
+        String note = "keep";
+    }
+
+    static class TaggedBase {
+        List<String> tags = new ArrayList<>();
+    }
+
+    static final class TaggedChild extends TaggedBase {
+        String label;
+    }
+
+    static class ContactBase {
+        String email = "preset@example.com";
+    }
+
+    static final class InheritedContact extends ContactBase {
+        String firstName;
+        String lastName;
     }
 
     static final class FixtureUserWithBrokenAddress {

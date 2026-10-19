@@ -25,12 +25,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
@@ -436,7 +438,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                     resolver,
                     new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth),
                     collectSettableFields(type),
-                    config.isOverrideDefaultInitialization());
+                    config.isOverrideDefaultInitialization(),
+                    Set.of());
             return instance;
         } catch (ModuleAccessException e) {
             throw moduleAccessFailure(e.getDeclaringType(), e);
@@ -510,8 +513,10 @@ public final class ObjectGenerator<T> implements Generator<T> {
         }
         validateConstructibleType();
         List<Field> settableFields = collectSettableFields(type);
-        T instance = instantiate(resolver); // may throw ReflectiveOperationException for throwing constructors
-        populateClass(instance, resolver, coherenceAdjuster, settableFields, true);
+        Set<String> overriddenConstructorMembers = new HashSet<>();
+        // may throw ReflectiveOperationException for throwing constructors
+        T instance = instantiate(resolver, overriddenConstructorMembers);
+        populateClass(instance, resolver, coherenceAdjuster, settableFields, true, overriddenConstructorMembers);
         return instance;
     }
 
@@ -566,6 +571,26 @@ public final class ObjectGenerator<T> implements Generator<T> {
         return false;
     }
 
+    /**
+     * Whether an override targets this field itself, by owner type and name or by field predicate. Such
+     * an override replaces a non-default initializer even when default initialization is preserved;
+     * type-level overrides keep the initializer.
+     */
+    private boolean hasExplicitFieldOverride(Field field) {
+        Class<?> ownerType = field.getDeclaringClass();
+        String fieldName = field.getName();
+        return config.getContextualFieldOverride(ownerType, fieldName).isPresent()
+                || config.getFieldOverride(ownerType, fieldName).isPresent()
+                || config.getContextualFieldPredicateOverride(field).isPresent()
+                || config.getFieldPredicateOverride(field).isPresent();
+    }
+
+    /** Whether a constructor argument named {@code memberName} is produced by an owner-and-name override. */
+    private boolean hasByNameOverride(String memberName) {
+        return config.getContextualFieldOverride(type, memberName).isPresent()
+                || config.getFieldOverride(type, memberName).isPresent();
+    }
+
     private boolean hasExplicitConstructionOverride(String memberName, Class<?> rawType) {
         return config.getContextualFieldOverride(type, memberName).isPresent()
                 || config.getFieldOverride(type, memberName).isPresent()
@@ -617,13 +642,18 @@ public final class ObjectGenerator<T> implements Generator<T> {
             FieldGeneratorResolver resolver,
             SemanticCoherenceAdjuster coherenceAdjuster,
             List<Field> settableFields,
-            boolean allowOverwriteExisting) {
+            boolean allowOverwriteExisting,
+            Set<String> overriddenConstructorMembers) {
         ObjectGenerationFailurePolicy failurePolicy = new ObjectGenerationFailurePolicy(
                 config.isIgnoreErrors(), config.getGeneratorConfig().getGenerationFailureListener());
         for (Field field : settableFields) {
             if (config.shouldExclude(field)) continue; // exclusion check
             ensureAccessible(field, field.getDeclaringClass());
-            if (!config.isOverrideDefaultInitialization() && hasNonDefaultValue(instance, field)) {
+            // A field override replaces an initializer, but a field whose constructor argument was
+            // already produced by its by-name override is not generated a second time.
+            if (!config.isOverrideDefaultInitialization()
+                    && hasNonDefaultValue(instance, field)
+                    && (overriddenConstructorMembers.contains(field.getName()) || !hasExplicitFieldOverride(field))) {
                 continue;
             }
             Object value = resolver.resolveAndGenerateMember(
@@ -670,7 +700,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
      *
      * @throws ReflectiveOperationException if the constructor is found but throws at runtime
      */
-    private T instantiate(FieldGeneratorResolver resolver) throws ReflectiveOperationException {
+    private T instantiate(FieldGeneratorResolver resolver, Set<String> overriddenConstructorMembers)
+            throws ReflectiveOperationException {
         try {
             Constructor<T> ctor = type.getDeclaredConstructor();
             ensureAccessible(ctor, type);
@@ -679,7 +710,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
             if (config.getConstructionPolicy() == ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS) {
                 return OBJENESIS.newInstance(type);
             }
-            return invokeUniqueDeclaredConstructor(resolver);
+            return invokeUniqueDeclaredConstructor(resolver, overriddenConstructorMembers);
         }
     }
 
@@ -701,7 +732,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private T invokeUniqueDeclaredConstructor(FieldGeneratorResolver resolver) throws ReflectiveOperationException {
+    private T invokeUniqueDeclaredConstructor(FieldGeneratorResolver resolver, Set<String> overriddenConstructorMembers)
+            throws ReflectiveOperationException {
         Constructor<?>[] candidates = type.getDeclaredConstructors();
         if (candidates.length != 1) {
             throw new ReflectiveOperationException("Construction policy " + ObjectConstructionPolicy.SAFE_CONSTRUCTORS
@@ -719,6 +751,9 @@ public final class ObjectGenerator<T> implements Generator<T> {
             // With names, a parameter behaves like the field it initializes: by-name overrides,
             // exclusions, and semantic resolution apply. Without names it is addressed by position.
             String memberName = parameter.isNamePresent() ? parameter.getName() : "constructorArg" + index;
+            if (parameter.isNamePresent() && hasByNameOverride(memberName)) {
+                overriddenConstructorMembers.add(memberName);
+            }
             if (parameter.isNamePresent() && isExcludedConstructionMember(memberName)) {
                 arguments[index] = defaultForType(parameter.getType());
                 continue;

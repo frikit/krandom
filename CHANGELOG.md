@@ -13,6 +13,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Update Jackson to 2.22.4 (the `krandom-jackson` dependency), Kotest to 6.2.6, Hibernate
   Validator to 9.1.5.Final, and PIT to 1.30.1; refresh the GitHub Action pins (setup-java 6.1.0).
 
+### Fixed
+
+- An override that targets a field now replaces a non-default field initializer. An `ObjectFaker`
+  root rule, or an object override registered by owner type and field name or by field predicate,
+  was skipped for an initialized field such as `List<Item> items = new ArrayList<>()` unless
+  `objectOverrideDefaultInitialization(true)` was set. Type-level overrides still keep
+  initializers, and `populate(existing)` now overwrites a field that has such an override. A field
+  whose constructor argument was already produced by its by-name override is not generated a second
+  time.
+- An override of an inherited field is no longer rewritten by semantic coherence: an `ObjectFaker`
+  rule on an inherited `email`, `domain`, `url`, or other harmonized field could be replaced by a
+  derived value.
+- A plain or predicate field override now takes precedence over a contextual type override, as
+  documented; the contextual type override was resolved first.
+
 ## [2.6.0] - 2026-10-14
 
 ### Added

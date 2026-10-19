@@ -49,7 +49,10 @@ semantic controls, and registry wiring all live on the root `GeneratorConfig` bu
 
 `SAFE_CONSTRUCTORS` is the default. It runs constructors instead of manufacturing partially
 initialized instances, and it preserves field initializers unless
-`objectOverrideDefaultInitialization(true)` is selected.
+`objectOverrideDefaultInitialization(true)` is selected. An override that targets the field itself
+(`objectOverride` by owner type and field name or by field predicate, or an `ObjectFaker` rule)
+replaces its initializer either way; type-level overrides keep it. Field-level overrides take
+precedence over type-level overrides, contextual or not.
 
 | Target | Safe construction path | If unavailable |
 |:---|:---|:---|

@@ -461,7 +461,9 @@ public final class GeneratorConfig {
     }
 
     /**
-     * Controls whether non-default initialized fields are overwritten during object generation.
+     * Controls whether generated values and type-level overrides overwrite non-default initialized
+     * fields during object generation. A field-level override (by owner type and field name or by
+     * field predicate, which includes {@code ObjectFaker} rules) replaces the initializer either way.
      */
     public boolean isObjectOverrideDefaultInitialization() {
         return objectOverrideDefaultInitialization;
@@ -1126,7 +1128,9 @@ public final class GeneratorConfig {
         }
 
         /**
-         * Controls whether non-default initialized fields are overwritten during object generation.
+         * Controls whether generated values and type-level overrides overwrite non-default initialized
+         * fields during object generation. A field-level override (by owner type and field name or by
+         * field predicate, which includes {@code ObjectFaker} rules) replaces the initializer either way.
          */
         public Builder objectOverrideDefaultInitialization(boolean objectOverrideDefaultInitialization) {
             this.objectOverrideDefaultInitialization = objectOverrideDefaultInitialization;
