@@ -153,10 +153,40 @@ String firstB = b.generate();
 ```
 
 Every generator built from one seeded config starts from that seed, so different generators draw
-the same random sequence too. To give each generator its own reproducible stream, see
+the same random sequence too. `Krandom` (below) gives each of its methods its own stream; for
+generators you build yourself, see
 [composite child streams]({{ '/guides/primitives-and-determinism/' | relative_url }}#composite-child-streams).
 
 The same root config can also drive deterministic object, fixture, template, provider, and schema generation.
+
+## Fixture values in tests
+
+For test fixtures, `Krandom` is one seeded object that returns plain values. Each method draws from
+its own stream, so its values are unaffected by calls of other methods, and the same seed gives the
+same data. `today()` and birthdays follow the configured clock, so fix the clock when dates must be
+the same on every day:
+
+```java
+import io.github.frikit.krandom.generator.Krandom;
+
+Krandom fake = Krandom.of(GeneratorConfig.builder()
+        .seed("checkout-fixtures")
+        .locale(Locale.UK)
+        .clock(Clock.fixed(Instant.parse("2025-06-30T12:00:00Z"), ZoneOffset.UTC))
+        .build());
+
+String forename = fake.firstName();
+String surname = fake.lastName();
+LocalDate birthDate = fake.birthday(25, 80);
+LocalDate joined = fake.dateBetween(birthDate.plusYears(18), fake.today());
+String postcode = fake.postalCode();
+String title = fake.pick("MR", "MRS", "MS", "DR");
+```
+
+Create one session and reuse it; a new session starts every stream again. `Krandom.seeded(seed,
+locale)` is the short form when dates may follow the system clock, and
+`NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED` on the configuration allows `nationalId()`. For any
+other generator, build it from `fake.streamConfig("name")` so it gets a stream of its own.
 
 ## Run checks locally
 

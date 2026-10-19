@@ -77,6 +77,7 @@ val user = krandom<User> {
 
 ## Choosing an API
 
+- Use `Krandom.seeded("checkout-fixtures", Locale.UK)` for seeded fixture values in tests: one object that returns plain values (`fake.firstName()`, `fake.birthday(25, 80)`, `fake.postalCode()`), with an independent stream per method.
 - Use scalar generators like `Generators.ofInt(...)`, `Generators.ofEmail()`, or `Generators.ofCity()` when you need a few direct values.
 - Use the domain namespaces — `Generators.person()`, `Generators.finance()`, `Generators.location()`, `Generators.network()`, `Generators.text()`, `Generators.commerce()`, `Generators.identifier()`, `Generators.datetime()` — when you want a discoverable, IDE-friendly entry point per domain (each also accepts a `GeneratorConfig`).
 - Use `ObjectGenerator<T>` when you want an existing DTO / record populated with realistic defaults.

@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `Krandom`, one seeded source of everyday fixture values that returns plain values. Create one
+  session and reuse it (`Krandom fake = Krandom.seeded("orders", Locale.UK)`), then call
+  `fake.firstName()`, `birthday(25, 80)`, `dateBetween(from, to)`, `postalCode()`,
+  `nationalIdCompact()`, `pick(...)`, and more. Each method draws from its own stream (only
+  `nationalIdCompact()` shares `nationalId()`'s, and the two `pick` overloads share one), derived
+  from the seed and the method's name whatever the child-stream policy, so a method's values are
+  unaffected by calls of other methods, and the same seed repeats the same data (dates too, with a
+  fixed clock). `streamConfig(name)` gives any other generator a stream of its own. Kotlin and
+  Scala callers get plain values with no generator or stream wiring.
+
 ### Changed
 
 - Update Palantir Java Format to 2.102.0, which keeps a switch expression assigned to a variable on

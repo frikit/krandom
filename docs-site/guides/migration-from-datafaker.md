@@ -94,6 +94,10 @@ should assert on shape, not exact values — see
 [VERSIONING.md](https://github.com/frikit/krandom/blob/main/VERSIONING.md)
 for the seed-stability policy.
 
+`Krandom` is the closest match for one seeded `Faker` instance: `Krandom.seeded("name")` returns
+plain values (`fake.firstName()`, `fake.city()`, `fake.dateBetween(from, to)`), and each method has
+its own stream, so a method's values are unaffected by calls of other methods.
+
 ## Honest gaps
 
 - **Long-tail novelty providers** (sports teams, movies, food, animals,

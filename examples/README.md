@@ -60,3 +60,7 @@ kRandom's `Generator<T>` has a single abstract method, so Scala 3 converts a lam
 `Generator[String]` and `() => String`, a lambda argument can resolve to the `Generator` overload,
 and an overload that delegates to the other with a lambda then calls itself forever. Give such
 helpers distinct names.
+
+`Krandom.pick` takes Java varargs, so `fake.pick(Seq("a", "b"))` passes the whole `Seq` as one
+value and returns it. Write `fake.pick("a", "b")`, or splice a collection with `fake.pick(values*)`
+(Scala 2.13: `fake.pick(values: _*)`).

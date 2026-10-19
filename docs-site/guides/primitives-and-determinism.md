@@ -144,4 +144,5 @@ Generator<String> lastNames = Generators.ofLastName(config.forChildStream("lastN
 ```
 
 Under the default `LEGACY` policy `forChildStream` returns the configuration unchanged, so it has no
-effect there.
+effect there. `Krandom` does this for you: each of its methods has a stream derived from the seed
+and the method's name, whatever the child-stream policy.
