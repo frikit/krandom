@@ -1,0 +1,7 @@
+# Address types by property use, one per line. Line N is the same type in every locale.
+住宅
+商业
+工业
+农业
+公共服务
+混合用途

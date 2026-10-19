@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator;
 
+import io.github.frikit.krandom.generator.location.CountryCodes;
 import io.github.frikit.krandom.generator.user.TitleGenerator;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -274,12 +275,70 @@ public final class Krandom {
     }
 
     /**
+     * Returns an address type by property use, such as {@code "Residential"} or {@code "Commercial"}.
+     *
+     * @return a locale-aware address type
+     */
+    public String addressType() {
+        return kind("addressType", Generators::ofAddressType).generate();
+    }
+
+    /**
+     * Returns what an address is used for, such as {@code "Home address"} or {@code "Billing address"}.
+     *
+     * @return a locale-aware address purpose
+     */
+    public String addressPurpose() {
+        return kind("addressPurpose", Generators::ofAddressPurpose).generate();
+    }
+
+    /**
      * Returns a country name.
      *
      * @return a locale-aware country name
      */
     public String country() {
         return kind("country", Generators::ofCountry).generate();
+    }
+
+    /**
+     * Returns an ISO 3166-1 alpha-2 country code, such as {@code "DE"}. The three code formats are drawn
+     * independently, so use {@link #countryCodes()} when the codes must belong to one country.
+     *
+     * @return a two-letter country code
+     */
+    public String countryCode() {
+        return kind("countryCode", Generators::ofCountry).generateCode();
+    }
+
+    /**
+     * Returns an ISO 3166-1 alpha-3 country code, such as {@code "DEU"}, drawn independently of the other
+     * code formats.
+     *
+     * @return a three-letter country code
+     */
+    public String countryCodeAlpha3() {
+        return kind("countryCodeAlpha3", Generators::ofCountry).generateCodeAlpha3();
+    }
+
+    /**
+     * Returns an ISO 3166-1 numeric country code, such as {@code "276"}, drawn independently of the other
+     * code formats.
+     *
+     * @return a three-digit country code
+     */
+    public String countryCodeNumeric() {
+        return kind("countryCodeNumeric", Generators::ofCountry).generateCodeNumeric();
+    }
+
+    /**
+     * Returns the alpha-2, alpha-3 and numeric ISO 3166-1 codes of one country, such as {@code GB},
+     * {@code GBR} and {@code 826}, for when the codes must belong together.
+     *
+     * @return the codes of one country
+     */
+    public CountryCodes countryCodes() {
+        return kind("countryCodes", Generators::ofCountry).generateCodes();
     }
 
     // ── Dates, numbers, and choices ───────────────────────────────────────────

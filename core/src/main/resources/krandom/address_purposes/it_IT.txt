@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+Indirizzo di casa
+Indirizzo di lavoro
+Indirizzo di fatturazione
+Indirizzo di spedizione
+Indirizzo postale
+Indirizzo temporaneo
+Indirizzo precedente

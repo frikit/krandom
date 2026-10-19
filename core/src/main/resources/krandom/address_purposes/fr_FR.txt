@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+Adresse du domicile
+Adresse professionnelle
+Adresse de facturation
+Adresse de livraison
+Adresse postale
+Adresse temporaire
+Ancienne adresse

@@ -16,11 +16,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Vocabulary;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -76,16 +79,104 @@ class CountryGeneratorTest {
     }
 
     @Test
+    @DisplayName("the bundled ISO 3166-1 table has all 249 countries, unique in every column, in alpha-2 order")
+    void isoTableIsCompleteAndConsistent() {
+        List<CountryCodes> table =
+                CountryGenerator.parseIsoCodes(CountryResourceLoader.load("krandom/country_codes/iso_3166_1.txt"));
+        List<String> alpha2 = table.stream().map(CountryCodes::alpha2).toList();
+
+        assertEquals(249, table.size());
+        assertEquals(249, alpha2.stream().distinct().count());
+        assertEquals(249, table.stream().map(CountryCodes::alpha3).distinct().count());
+        assertEquals(249, table.stream().map(CountryCodes::numeric).distinct().count());
+        assertEquals(alpha2.stream().sorted().toList(), alpha2);
+        for (CountryCodes codes : table) {
+            assertTrue(codes.alpha2().matches("[A-Z]{2}"), codes.toString());
+            assertTrue(codes.numeric().matches("\\d{3}"), codes.toString());
+            assertEquals(Locale.of("", codes.alpha2()).getISO3Country(), codes.alpha3(), codes.toString());
+        }
+    }
+
+    @Test
+    @DisplayName("numeric codes match ISO 3166-1 for the formerly mapped countries and the easy-to-get-wrong ones")
+    void isoNumericCodesMatchTheStandard() {
+        Map<String, String> numericByAlpha2 =
+                CountryGenerator.parseIsoCodes(CountryResourceLoader.load("krandom/country_codes/iso_3166_1.txt"))
+                        .stream()
+                        .collect(Collectors.toMap(CountryCodes::alpha2, CountryCodes::numeric));
+        String[] pairs = """
+                US 840 GB 826 AU 036 DE 276 FR 250 ES 724 IT 380 BR 076 JP 392 CN 156 NL 528 PL 616
+                RU 643 KR 410 TR 792 SE 752 NO 578 CZ 203 SA 682 IN 356 DK 208 FI 246 HU 348 RO 642
+                SK 703 UA 804 BG 100 HR 191 GR 300 TH 764 VN 704 ID 360 MY 458 IL 376 CA 124 NZ 554
+                IE 372 ZA 710 BE 056 CH 756 AT 040 MX 484 AR 032 PT 620 TW 158
+                AQ 010 AX 248 BQ 535 CD 180 CG 178 CW 531 EH 732 IO 086 KP 408 PS 275 SS 728 SX 534
+                UM 581 VA 336
+                """.trim().split("\\s+");
+
+        for (int i = 0; i < pairs.length; i += 2) {
+            assertEquals(pairs[i + 1], numericByAlpha2.get(pairs[i]), pairs[i]);
+        }
+        assertFalse(numericByAlpha2.containsKey("XK"), "Kosovo's XK is user-assigned, not ISO 3166-1");
+    }
+
+    @Test
+    @DisplayName("seeded code sequences are fixed on every Java version, alpha-2 and alpha-3 as before the table")
+    void seededCodeSequencesAreFixed() {
+        GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
+        CountryGenerator alpha2 = new CountryGenerator(config);
+        CountryGenerator alpha3 = new CountryGenerator(config);
+        CountryGenerator numeric = new CountryGenerator(config);
+        List<String> alpha2Codes = new ArrayList<>();
+        List<String> alpha3Codes = new ArrayList<>();
+        List<String> numericCodes = new ArrayList<>();
+        for (int i = 0; i < 6; i++) {
+            alpha2Codes.add(alpha2.generateCode());
+            alpha3Codes.add(alpha3.generateCodeAlpha3());
+            numericCodes.add(numeric.generateCodeNumeric());
+        }
+
+        assertEquals(List.of("SM", "TK", "NF", "GL", "AD", "KZ"), alpha2Codes);
+        assertEquals(List.of("SMR", "TKL", "NFK", "GRL", "AND", "KAZ"), alpha3Codes);
+        assertEquals(List.of("674", "772", "574", "304", "020", "398"), numericCodes);
+    }
+
+    @Test
+    @DisplayName("a malformed ISO 3166-1 row is rejected")
+    void malformedIsoRowIsRejected() {
+        IllegalStateException ex = assertThrows(
+                IllegalStateException.class, () -> CountryGenerator.parseIsoCodes(new String[] {"GB GBR"}));
+        assertTrue(ex.getMessage().contains("GB GBR"));
+    }
+
+    @Test
+    @DisplayName("generateCodes() returns the three codes of one country, drawn from the whole table")
+    void generateCodesBelongTogether() {
+        CountryGenerator gen =
+                new CountryGenerator(GeneratorConfig.builder().seed(7L).build());
+        Set<String> numericCodes = new HashSet<>();
+        for (int i = 0; i < 500; i++) {
+            CountryCodes codes = gen.generateCodes();
+            assertEquals(Locale.of("", codes.alpha2()).getISO3Country(), codes.alpha3(), codes.toString());
+            numericCodes.add(codes.numeric());
+        }
+        assertTrue(numericCodes.size() > 45, "numeric codes come from every country, not a short list");
+    }
+
+    @Test
     @DisplayName("current-country helpers return locale-specific values")
     void currentCountryHelpers() {
         CountryGenerator us = new CountryGenerator(Locale.US);
         assertEquals("US", us.currentCountryCode());
         assertEquals("USA", us.currentCountryCodeAlpha3());
         assertEquals("840", us.currentCountryCodeNumeric());
+        assertEquals(new CountryCodes("US", "USA", "840"), us.currentCountryCodes());
         assertEquals("US", us.currentCountryCode(CountryGenerator.CountryCodeFormat.ALPHA2));
         assertEquals("USA", us.currentCountryCode(CountryGenerator.CountryCodeFormat.ALPHA3));
         assertEquals("840", us.currentCountryCode(CountryGenerator.CountryCodeFormat.NUMERIC));
         assertFalse(us.currentCountry().isBlank());
+        assertEquals(
+                new CountryCodes("NG", "NGA", "566"),
+                new CountryGenerator(Locale.of("en", "NG")).currentCountryCodes());
     }
 
     @Test
@@ -97,6 +188,7 @@ class CountryGeneratorTest {
         assertThrows(UnsupportedOperationException.class, languageOnly::currentCountryCode);
         assertThrows(UnsupportedOperationException.class, languageOnly::currentCountryCodeAlpha3);
         assertThrows(UnsupportedOperationException.class, languageOnly::currentCountryCodeNumeric);
+        assertThrows(UnsupportedOperationException.class, languageOnly::currentCountryCodes);
         assertThrows(UnsupportedOperationException.class, languageOnly::currentContinent);
         assertThrows(UnsupportedOperationException.class, languageOnly::currentCallingCode);
         assertThrows(UnsupportedOperationException.class, languageOnly::currentTimezone);
@@ -558,6 +650,7 @@ class CountryGeneratorTest {
 
         assertThrows(UnsupportedOperationException.class, generator::currentCountryCodeAlpha3);
         assertThrows(UnsupportedOperationException.class, generator::currentCountryCodeNumeric);
+        assertThrows(UnsupportedOperationException.class, generator::currentCountryCodes);
         assertThrows(UnsupportedOperationException.class, generator::currentContinent);
         assertThrows(UnsupportedOperationException.class, generator::currentCallingCode);
         assertThrows(UnsupportedOperationException.class, generator::currentTimezone);

@@ -79,7 +79,7 @@ WeatherDataProvider weather = context.provider(Vocabulary.WEATHER, Locale.UK);
 Set<String> keys = context.registeredKeys(Vocabulary.WEATHER); // "en_GB", "en" and the bundled keys
 ```
 
-`Vocabulary.all()` lists the 39 built-in vocabularies. Lookups resolve the exact
+`Vocabulary.all()` lists the 41 built-in vocabularies. Lookups resolve the exact
 `language_COUNTRY` key first, then the bundled data for that key, then the language entry (a
 regional registration also serves its language) and finally the bundled language data;
 `isolated()` contexts skip the bundled data. `Vocabulary.NATIONAL_ID` is the one exception: for a

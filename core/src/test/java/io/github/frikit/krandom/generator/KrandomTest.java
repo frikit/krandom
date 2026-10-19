@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.location.CountryGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import java.time.Clock;
 import java.time.Instant;
@@ -56,7 +57,13 @@ class KrandomTest {
                 fake.streetAddress(),
                 fake.city(),
                 fake.postalCode(),
+                fake.addressType(),
+                fake.addressPurpose(),
                 fake.country(),
+                fake.countryCode(),
+                fake.countryCodeAlpha3(),
+                fake.countryCodeNumeric(),
+                fake.countryCodes(),
                 fake.today(),
                 fake.dateBetween(TODAY.minusYears(1), TODAY),
                 fake.intBetween(1, 1_000_000),
@@ -117,6 +124,40 @@ class KrandomTest {
                 Generators.ofFirstName(fake.streamConfig("krandom.firstName")).generate(), fake.firstName());
         assertEquals(
                 Generators.ofLastName(fake.streamConfig("krandom.lastName")).generate(), fake.lastName());
+    }
+
+    @Test
+    @DisplayName("each country-code method draws from its own stream, and countryCodes keeps one country's codes")
+    void countryCodesInEachFormat() {
+        Krandom fake = uk("fixtures");
+        CountryGenerator alpha2 = Generators.ofCountry(fake.streamConfig("krandom.countryCode"));
+        CountryGenerator alpha3 = Generators.ofCountry(fake.streamConfig("krandom.countryCodeAlpha3"));
+        CountryGenerator numeric = Generators.ofCountry(fake.streamConfig("krandom.countryCodeNumeric"));
+        CountryGenerator codes = Generators.ofCountry(fake.streamConfig("krandom.countryCodes"));
+
+        // Interleaved, so a generator shared between two methods would shift the other method's values.
+        for (int i = 0; i < 5; i++) {
+            assertEquals(alpha2.generateCode(), fake.countryCode());
+            assertEquals(alpha3.generateCodeAlpha3(), fake.countryCodeAlpha3());
+            assertEquals(numeric.generateCodeNumeric(), fake.countryCodeNumeric());
+            assertEquals(codes.generateCodes(), fake.countryCodes());
+        }
+        assertTrue(fake.countryCode().matches("[A-Z]{2}"));
+        assertTrue(fake.countryCodeAlpha3().matches("[A-Z]{3}"));
+        assertTrue(fake.countryCodeNumeric().matches("\\d{3}"));
+    }
+
+    @Test
+    @DisplayName("address types and purposes draw from their own streams, in the session locale")
+    void addressTypesAndPurposesFollowTheLocale() {
+        Krandom fake = Krandom.seeded("fixtures", Locale.GERMANY);
+        Generator<String> types = Generators.ofAddressType(fake.streamConfig("krandom.addressType"));
+        Generator<String> purposes = Generators.ofAddressPurpose(fake.streamConfig("krandom.addressPurpose"));
+
+        for (int i = 0; i < 10; i++) {
+            assertEquals(types.generate(), fake.addressType());
+            assertEquals(purposes.generate(), fake.addressPurpose());
+        }
     }
 
     @Test

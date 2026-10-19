@@ -15,9 +15,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.MissingResourceException;
 import java.util.Objects;
 import java.util.Random;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Generates locale-aware country names.
@@ -28,60 +29,18 @@ import java.util.Random;
  * <p>Built-in country-name generation follows the full {@link io.github.frikit.krandom.generator.locale.SupportedLocale}
  * catalog. Additional locales — and overrides of built-in ones — can be registered at runtime
  * via {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}.
+ *
+ * <p>Country codes come from the ISO 3166-1 table bundled with kRandom: the alpha-2, alpha-3 and numeric
+ * codes of all 249 officially assigned countries. Because the table ships with the library, seeded codes
+ * are the same on every Java version.
  */
 public final class CountryGenerator implements Generator<String> {
 
-    private static final String[] ISO_ALPHA2_CODES = Locale.getISOCountries();
-    private static final String[] ISO_NUMERIC_CODES = {
-        "036", "076", "156", "203", "250", "276", "356", "380", "392", "410",
-        "528", "578", "616", "643", "682", "724", "752", "792", "826", "840"
-    };
-    private static final Map<String, String> NUMERIC_BY_COUNTRY = Map.ofEntries(
-            Map.entry("US", "840"),
-            Map.entry("GB", "826"),
-            Map.entry("AU", "036"),
-            Map.entry("DE", "276"),
-            Map.entry("FR", "250"),
-            Map.entry("ES", "724"),
-            Map.entry("IT", "380"),
-            Map.entry("BR", "076"),
-            Map.entry("JP", "392"),
-            Map.entry("CN", "156"),
-            Map.entry("NL", "528"),
-            Map.entry("PL", "616"),
-            Map.entry("RU", "643"),
-            Map.entry("KR", "410"),
-            Map.entry("TR", "792"),
-            Map.entry("SE", "752"),
-            Map.entry("NO", "578"),
-            Map.entry("CZ", "203"),
-            Map.entry("SA", "682"),
-            Map.entry("IN", "356"),
-            Map.entry("DK", "208"),
-            Map.entry("FI", "246"),
-            Map.entry("HU", "348"),
-            Map.entry("RO", "642"),
-            Map.entry("SK", "703"),
-            Map.entry("UA", "804"),
-            Map.entry("BG", "100"),
-            Map.entry("HR", "191"),
-            Map.entry("GR", "300"),
-            Map.entry("TH", "764"),
-            Map.entry("VN", "704"),
-            Map.entry("ID", "360"),
-            Map.entry("MY", "458"),
-            Map.entry("IL", "376"),
-            Map.entry("CA", "124"),
-            Map.entry("NZ", "554"),
-            Map.entry("IE", "372"),
-            Map.entry("ZA", "710"),
-            Map.entry("BE", "056"),
-            Map.entry("CH", "756"),
-            Map.entry("AT", "040"),
-            Map.entry("MX", "484"),
-            Map.entry("AR", "032"),
-            Map.entry("PT", "620"),
-            Map.entry("TW", "158"));
+    private static final String ISO_CODES_RESOURCE = "krandom/country_codes/iso_3166_1.txt";
+    // Alpha-2 order, the same order as Locale.getISOCountries(), which seeded codes were drawn from before.
+    private static final List<CountryCodes> ISO_CODES = parseIsoCodes(CountryResourceLoader.load(ISO_CODES_RESOURCE));
+    private static final Map<String, CountryCodes> ISO_CODES_BY_ALPHA2 =
+            ISO_CODES.stream().collect(Collectors.toUnmodifiableMap(CountryCodes::alpha2, Function.identity()));
     private static final Map<String, String> CALLING_BY_COUNTRY = orderedMap(
             Map.entry("US", "+1"),
             Map.entry("GB", "+44"),
@@ -281,16 +240,16 @@ public final class CountryGenerator implements Generator<String> {
         return Collections.unmodifiableMap(ordered);
     }
 
-    private static String[] loadIsoAlpha3Codes() {
-        List<String> alpha3 = new ArrayList<>();
-        for (String alpha2 : ISO_ALPHA2_CODES) {
-            alpha3.add(Locale.of("", alpha2).getISO3Country());
+    static List<CountryCodes> parseIsoCodes(String[] rows) {
+        List<CountryCodes> codes = new ArrayList<>(rows.length);
+        for (String row : rows) {
+            String[] fields = row.split(" ");
+            if (fields.length != 3) {
+                throw new IllegalStateException("Malformed ISO 3166-1 row: " + row);
+            }
+            codes.add(new CountryCodes(fields[0], fields[1], fields[2]));
         }
-        return alpha3.toArray(String[]::new);
-    }
-
-    private static String[] isoAlpha3Codes() {
-        return IsoAlpha3Holder.CODES;
+        return List.copyOf(codes);
     }
 
     /**
@@ -309,7 +268,7 @@ public final class CountryGenerator implements Generator<String> {
      * @return an upper-case country code; never {@code null}
      */
     public String generateCode() {
-        return ISO_ALPHA2_CODES[random.nextInt(ISO_ALPHA2_CODES.length)];
+        return generateCodes().alpha2();
     }
 
     /**
@@ -333,17 +292,26 @@ public final class CountryGenerator implements Generator<String> {
      * @return an upper-case alpha-3 code; never {@code null}
      */
     public String generateCodeAlpha3() {
-        String[] codes = isoAlpha3Codes();
-        return codes[random.nextInt(codes.length)];
+        return generateCodes().alpha3();
     }
 
     /**
      * Returns a random ISO 3166-1 numeric code (for example, {@code "840"}, {@code "276"}).
      *
-     * @return numeric country code
+     * @return a three-digit numeric country code; never {@code null}
      */
     public String generateCodeNumeric() {
-        return ISO_NUMERIC_CODES[random.nextInt(ISO_NUMERIC_CODES.length)];
+        return generateCodes().numeric();
+    }
+
+    /**
+     * Returns the alpha-2, alpha-3 and numeric ISO 3166-1 codes of one random country, for when the codes
+     * must belong together.
+     *
+     * @return the codes of one of the 249 ISO 3166-1 countries; never {@code null}
+     */
+    public CountryCodes generateCodes() {
+        return ISO_CODES.get(random.nextInt(ISO_CODES.size()));
     }
 
     /**
@@ -387,31 +355,39 @@ public final class CountryGenerator implements Generator<String> {
      * Returns the ISO 3166-1 alpha-3 code for the configured locale country.
      *
      * @return alpha-3 country code
-     * @throws UnsupportedOperationException if configured locale has no country component
+     * @throws UnsupportedOperationException if configured locale has no country component, or its country
+     *                                       is not an ISO 3166-1 country
      */
     public String currentCountryCodeAlpha3() {
-        String countryCode = requireLocaleCountry();
-        try {
-            return Locale.of("", countryCode).getISO3Country();
-        } catch (MissingResourceException ex) {
-            throw new UnsupportedOperationException(
-                    "Alpha-3 country code not available for locale country: " + countryCode, ex);
-        }
+        return currentCountryCodes().alpha3();
     }
 
     /**
      * Returns the configured locale-country ISO numeric code.
      *
      * @return numeric code
+     * @throws UnsupportedOperationException if configured locale has no country component, or its country
+     *                                       is not an ISO 3166-1 country
      */
     public String currentCountryCodeNumeric() {
+        return currentCountryCodes().numeric();
+    }
+
+    /**
+     * Returns the alpha-2, alpha-3 and numeric ISO 3166-1 codes of the configured locale country.
+     *
+     * @return the locale country's codes; never {@code null}
+     * @throws UnsupportedOperationException if configured locale has no country component, or its country
+     *                                       is not an ISO 3166-1 country
+     */
+    public CountryCodes currentCountryCodes() {
         String countryCode = requireLocaleCountry();
-        String numeric = NUMERIC_BY_COUNTRY.get(countryCode);
-        if (numeric == null) {
+        CountryCodes codes = ISO_CODES_BY_ALPHA2.get(countryCode);
+        if (codes == null) {
             throw new UnsupportedOperationException(
-                    "Numeric country code not available for locale country: " + countryCode);
+                    "ISO 3166-1 codes not available for locale country: " + countryCode);
         }
-        return numeric;
+        return codes;
     }
 
     /**
@@ -525,9 +501,5 @@ public final class CountryGenerator implements Generator<String> {
         ALPHA2,
         ALPHA3,
         NUMERIC
-    }
-
-    private static final class IsoAlpha3Holder {
-        private static final String[] CODES = loadIsoAlpha3Codes();
     }
 }

@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+自宅住所
+勤務先住所
+請求先住所
+配送先住所
+郵送先住所
+仮住所
+旧住所

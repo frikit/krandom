@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+Adresa bydliště
+Pracovní adresa
+Fakturační adresa
+Doručovací adresa
+Korespondenční adresa
+Přechodná adresa
+Předchozí adresa

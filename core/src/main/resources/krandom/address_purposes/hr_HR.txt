@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+Kućna adresa
+Poslovna adresa
+Adresa za naplatu
+Adresa za dostavu
+Poštanska adresa
+Privremena adresa
+Prethodna adresa

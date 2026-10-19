@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+Adresa de domiciliu
+Adresa de la serviciu
+Adresa de facturare
+Adresa de livrare
+Adresa de corespondență
+Adresa temporară
+Adresa anterioară

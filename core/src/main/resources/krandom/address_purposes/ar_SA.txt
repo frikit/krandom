@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+عنوان المنزل
+عنوان العمل
+عنوان الفواتير
+عنوان الشحن
+العنوان البريدي
+العنوان المؤقت
+العنوان السابق

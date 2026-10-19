@@ -49,6 +49,8 @@ import io.github.frikit.krandom.generator.identifier.IsbnGenerator;
 import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
 import io.github.frikit.krandom.generator.identifier.UpcGenerator;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
+import io.github.frikit.krandom.generator.location.AddressPurposeGenerator;
+import io.github.frikit.krandom.generator.location.AddressTypeGenerator;
 import io.github.frikit.krandom.generator.location.CityGenerator;
 import io.github.frikit.krandom.generator.location.CoordinatesGenerator;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
@@ -222,6 +224,8 @@ class FluentNamespaceTest {
         assertNotNull(l.phoneNumber().generate());
         assertNotNull(l.streetAddress().generate());
         assertNotNull(l.addressInfo().generate());
+        assertNotNull(l.addressType().generate());
+        assertNotNull(l.addressPurpose().generate());
         assertNotNull(l.coordinates().generate());
     }
 
@@ -471,6 +475,10 @@ class FluentNamespaceTest {
         assertSameFirstValue(new PhoneNumberGenerator(japan), location.phoneNumber(Locale.JAPAN));
         assertSameFirstValue(new StreetAddressGenerator(italy), location.streetAddress(Locale.ITALY));
         assertSameFirstValue(new AddressInfoGenerator(canada), location.addressInfo(Locale.CANADA));
+        assertSameFirstValue(new AddressTypeGenerator(german), location.addressType(Locale.GERMANY));
+        assertSameFirstValue(new AddressPurposeGenerator(german), location.addressPurpose(Locale.GERMANY));
+        assertSameFirstValue(new AddressTypeGenerator(seeded), location.addressType());
+        assertSameFirstValue(new AddressPurposeGenerator(seeded), location.addressPurpose());
 
         CommerceGenerators commerce = Generators.commerce(seeded);
         assertSameFirstValue(new ProductInfoGenerator(german), commerce.product(Locale.GERMANY));

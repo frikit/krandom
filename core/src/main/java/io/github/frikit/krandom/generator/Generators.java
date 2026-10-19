@@ -98,6 +98,8 @@ import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
 import io.github.frikit.krandom.generator.identifier.UpcGenerator;
 import io.github.frikit.krandom.generator.locale.RandomLocaleGenerator;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
+import io.github.frikit.krandom.generator.location.AddressPurposeGenerator;
+import io.github.frikit.krandom.generator.location.AddressTypeGenerator;
 import io.github.frikit.krandom.generator.location.CityGenerator;
 import io.github.frikit.krandom.generator.location.CoordinatesGenerator;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
@@ -2094,6 +2096,48 @@ public final class Generators {
      */
     public static StreetAddressGenerator ofStreetAddress(GeneratorConfig config) {
         return new StreetAddressGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces address types by property use (e.g. {@code "Residential"}).
+     */
+    public static AddressTypeGenerator ofAddressType() {
+        return new AddressTypeGenerator();
+    }
+
+    /**
+     * Returns a generator that produces address types by property use for a specific locale.
+     */
+    public static AddressTypeGenerator ofAddressType(Locale locale) {
+        return new AddressTypeGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces address types by property use with explicit configuration.
+     */
+    public static AddressTypeGenerator ofAddressType(GeneratorConfig config) {
+        return new AddressTypeGenerator(config);
+    }
+
+    /**
+     * Returns a generator that produces address purposes (e.g. {@code "Billing address"}).
+     */
+    public static AddressPurposeGenerator ofAddressPurpose() {
+        return new AddressPurposeGenerator();
+    }
+
+    /**
+     * Returns a generator that produces address purposes for a specific locale.
+     */
+    public static AddressPurposeGenerator ofAddressPurpose(Locale locale) {
+        return new AddressPurposeGenerator(locale);
+    }
+
+    /**
+     * Returns a generator that produces address purposes with explicit configuration.
+     */
+    public static AddressPurposeGenerator ofAddressPurpose(GeneratorConfig config) {
+        return new AddressPurposeGenerator(config);
     }
 
     /**

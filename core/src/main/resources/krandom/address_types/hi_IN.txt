@@ -1,0 +1,7 @@
+# Address types by property use, one per line. Line N is the same type in every locale.
+आवासीय
+वाणिज्यिक
+औद्योगिक
+कृषि
+संस्थागत
+मिश्रित उपयोग

@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+Hemadress
+Arbetsadress
+Faktureringsadress
+Leveransadress
+Postadress
+Tillfällig adress
+Tidigare adress

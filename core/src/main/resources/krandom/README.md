@@ -41,6 +41,9 @@ Native resource coverage by folder:
 | `states/` | 1 | 35 | 35 | all first-level subdivisions + codes | ok |
 | `streets/` | 4 subfolders | 140 | 35 | complete, paired, unique (see below) | ok |
 | `countries/` | 1 | 35 | 35 | full world set (195), localized | all 35 at 195 |
+| `country_codes/` | n/a | 1 | non-locale | all 249 ISO 3166-1 codes | ok |
+| `address_types/` | 1 | 36 | 35 | the 6 property-use types, same order everywhere | ok |
+| `address_purposes/` | 1 | 36 | 35 | the 7 address purposes, same order everywhere | ok |
 | `professions/` | 1 | 35 | 35 | ≥ 40 unique professions | all ≥ 40 |
 | `titles/` | 1 | 35 | 35 | ≥ 4 unique honorifics | ok |
 | `text/` | n/a | 1 set | non-locale | complete standard set | ok |
@@ -120,6 +123,46 @@ One file per locale, `<locale>_countries.txt`, one country name per line.
 - **Rule:** the **full set of world countries** (currently 195 per file),
   localized and unique.
 - **Coverage:** all 35 core locales (195 countries each).
+
+### `country_codes/`
+
+One non-locale file, `iso_3166_1.txt`: one country per line as
+`<alpha-2> <alpha-3> <numeric>` (e.g. `GB GBR 826`), in alpha-2 order.
+
+- **Content:** the ISO 3166-1 codes of all 249 officially assigned countries;
+  the numeric codes are the UN M49 codes ISO 3166-1 uses.
+- **Rule:** **complete** and unique in every column; each alpha-3 code matches
+  the JDK's `Locale.getISO3Country()` for its alpha-2 code. Keep the alpha-2
+  order: seeded country codes index into it.
+- **Loader:** `CountryResourceLoader` / `CountryGenerator`.
+
+### `address_types/`
+
+One file per locale, `address_types/<locale>.txt`, plus the English
+`default.txt`, one address type per line.
+
+- **Content:** the six address types by property use, in this order:
+  residential, commercial, industrial, agricultural, institutional, mixed-use,
+  in the locale's own land-use or real-estate terms (e.g. `de_DE` → `Wohnen`,
+  `Gewerbe`, `Industrie`).
+- **Rule:** exactly these six, **in the same order in every locale** (line N is
+  the same type everywhere), unique.
+- **Loader:** `LocaleTextResourceLoader` / `BuiltInAddressTypeDataProvider`
+  (via `AddressTypeDataRegistry`).
+
+### `address_purposes/`
+
+One file per locale, `address_purposes/<locale>.txt`, plus the English
+`default.txt`, one address purpose per line.
+
+- **Content:** what an address is used for, in this order: home, work, billing,
+  shipping, mailing, temporary, previous (the vCard `ADR` types, FHIR
+  `Address.use`, and the usual CRM and e-commerce address types), worded as the
+  locale's own forms word them (e.g. `en_GB` → `Delivery address`,
+  `Correspondence address`).
+- **Rule:** exactly these seven, **in the same order in every locale**, unique.
+- **Loader:** `LocaleTextResourceLoader` / `BuiltInAddressPurposeDataProvider`
+  (via `AddressPurposeDataRegistry`).
 
 ### `professions/`
 

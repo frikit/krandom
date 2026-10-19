@@ -1,0 +1,7 @@
+# Address types by property use, one per line. Line N is the same type in every locale.
+Uso residenziale
+Uso commerciale
+Uso industriale
+Uso agricolo
+Uso pubblico
+Uso misto

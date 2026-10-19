@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+घर का पता
+कार्यालय का पता
+बिलिंग पता
+शिपिंग पता
+डाक पता
+अस्थायी पता
+पिछला पता

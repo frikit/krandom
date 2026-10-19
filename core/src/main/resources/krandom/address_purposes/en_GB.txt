@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+Home address
+Work address
+Billing address
+Delivery address
+Correspondence address
+Temporary address
+Previous address

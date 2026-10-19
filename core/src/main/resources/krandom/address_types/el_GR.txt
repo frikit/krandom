@@ -1,0 +1,7 @@
+# Address types by property use, one per line. Line N is the same type in every locale.
+Οικιστική χρήση
+Εμπορική χρήση
+Βιομηχανική χρήση
+Αγροτική χρήση
+Δημόσια χρήση
+Μικτή χρήση

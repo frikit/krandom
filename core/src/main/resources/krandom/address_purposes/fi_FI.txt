@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+Kotiosoite
+Työosoite
+Laskutusosoite
+Toimitusosoite
+Postiosoite
+Tilapäinen osoite
+Edellinen osoite

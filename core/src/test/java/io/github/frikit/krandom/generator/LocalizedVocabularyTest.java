@@ -27,6 +27,10 @@ import io.github.frikit.krandom.generator.finance.BankNameGenerator;
 import io.github.frikit.krandom.generator.finance.BankTypeDataRegistry;
 import io.github.frikit.krandom.generator.finance.BankTypeGenerator;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
+import io.github.frikit.krandom.generator.location.AddressPurposeDataRegistry;
+import io.github.frikit.krandom.generator.location.AddressPurposeGenerator;
+import io.github.frikit.krandom.generator.location.AddressTypeDataRegistry;
+import io.github.frikit.krandom.generator.location.AddressTypeGenerator;
 import io.github.frikit.krandom.generator.text.TextGenerator;
 import io.github.frikit.krandom.generator.text.TextWordDataRegistry;
 import io.github.frikit.krandom.generator.user.CompanyBuzzwordDataProvider;
@@ -156,6 +160,16 @@ class LocalizedVocabularyTest {
             "Vocational Certificate");
     private static final List<String> MARITAL =
             List.of("Single", "Married", "Divorced", "Widowed", "Separated", "Domestic Partnership");
+    private static final List<String> ADDRESS_TYPES =
+            List.of("Residential", "Commercial", "Industrial", "Agricultural", "Institutional", "Mixed-use");
+    private static final List<String> ADDRESS_PURPOSES = List.of(
+            "Home address",
+            "Work address",
+            "Billing address",
+            "Shipping address",
+            "Mailing address",
+            "Temporary address",
+            "Previous address");
     private static final List<String> JOB_TYPES = List.of(
             "Full-time",
             "Part-time",
@@ -537,6 +551,16 @@ class LocalizedVocabularyTest {
                         MaritalStatusGenerator::new,
                         null),
                 new SingleList(
+                        "addressTypes",
+                        locale -> AddressTypeDataRegistry.forLocale(locale).getAddressTypes(),
+                        AddressTypeGenerator::new,
+                        null),
+                new SingleList(
+                        "addressPurposes",
+                        locale -> AddressPurposeDataRegistry.forLocale(locale).getAddressPurposes(),
+                        AddressPurposeGenerator::new,
+                        null),
+                new SingleList(
                         "jobTypes",
                         locale -> JobTypeDataRegistry.forLocale(locale).getJobTypes(),
                         JobTypeGenerator::new,
@@ -679,6 +703,18 @@ class LocalizedVocabularyTest {
                 "maritalStatuses",
                 MaritalStatusDataRegistry.forLocale(locale).getMaritalStatuses(),
                 MARITAL,
+                true);
+        assertTranslated(
+                locale,
+                "addressTypes",
+                AddressTypeDataRegistry.forLocale(locale).getAddressTypes(),
+                ADDRESS_TYPES,
+                true);
+        assertTranslated(
+                locale,
+                "addressPurposes",
+                AddressPurposeDataRegistry.forLocale(locale).getAddressPurposes(),
+                ADDRESS_PURPOSES,
                 true);
         assertTranslated(
                 locale, "jobTypes", JobTypeDataRegistry.forLocale(locale).getJobTypes(), JOB_TYPES, true);

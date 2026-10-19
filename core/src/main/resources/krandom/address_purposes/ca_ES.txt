@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+Adreça particular
+Adreça de la feina
+Adreça de facturació
+Adreça d'enviament
+Adreça postal
+Adreça temporal
+Adreça anterior

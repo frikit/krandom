@@ -1,0 +1,7 @@
+# Address types by property use, one per line. Line N is the same type in every locale.
+주거용
+상업용
+산업용
+농업용
+공공용
+복합용도

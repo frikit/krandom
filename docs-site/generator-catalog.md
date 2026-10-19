@@ -40,8 +40,10 @@ generator where shown by the API.
 
 - `ofFullName`, `ofMiddleName`, `ofEmail`, `ofUsername`, `ofPassword`,
   `ofAvatarUrl`, `ofContactInfo`, `ofSimpleProfile`, `ofProfile`
-- `ofStreetAddress`, `ofAddressInfo`, `ofCity`, `ofState`, `ofPostalCode`,
-  `ofCountry`, `ofPhoneNumber`, `ofGeohash`
+- `ofStreetAddress`, `ofAddressInfo`, `ofAddressType` (residential, commercial, …),
+  `ofAddressPurpose` (home, billing, shipping, …), `ofCity`, `ofState`, `ofPostalCode`,
+  `ofCountry` (names and ISO 3166-1 alpha-2, alpha-3 and numeric codes), `ofPhoneNumber`,
+  `ofGeohash`
 - `ofCompanyEmail`, `ofCompanyInfo`, `ofJobInfo`, `ofPersonInfo`, `ofSocialHandle`,
   `ofSocialProfile`
 - `ofUniversity` for configuration-scoped verified local data packs

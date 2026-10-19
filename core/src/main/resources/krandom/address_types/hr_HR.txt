@@ -1,0 +1,7 @@
+# Address types by property use, one per line. Line N is the same type in every locale.
+Stambena namjena
+Poslovna namjena
+Industrijska namjena
+Poljoprivredna namjena
+Javna i društvena namjena
+Mješovita namjena
