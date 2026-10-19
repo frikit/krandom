@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `Krandom.maritalStatus()`, and `firstName(Gender)` and `middleName(Gender)` for names that match
+  a gender. The gendered overloads draw from the same stream as `firstName()` and `middleName()`.
+
+### Changed
+
+- Marital statuses add `Annulled`, `Dissolved Partnership` and `Surviving Partner` in all 35
+  locales, so each locale lists nine statuses in the same order. Where a country has a legal term,
+  the entry uses it, for example `Ehe aufgehoben`, `Aufgehobene Lebenspartnerschaft` and
+  `Durch Tod aufgelöste Lebenspartnerschaft` in German. Seeded marital-status output changes.
+- United Kingdom (`en_GB`) phone numbers now come from Ofcom's ranges for TV and radio drama under
+  the default `PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE`: mobile numbers from
+  `07700 900000` to `07700 900999`, and landline numbers from 16 geographic blocks of 1,000, such
+  as `020 7946 0000` to `020 7946 0999` and `0161 496 0000` to `0161 496 0999`. Ofcom sets these
+  numbers aside for drama and does not allocate them to communications providers for their
+  customers, and says it will not in the foreseeable future. `REALISTIC_UNCLASSIFIED` keeps the
+  realistic area codes, mobile prefixes and subscriber numbers, with the same seeded output as
+  before. Seeded `en_GB` phone output changes under the default policy.
+
 ## [2.8.0] - 2026-10-19
 
 ### Added

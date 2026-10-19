@@ -13,6 +13,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.location.CountryGenerator;
+import io.github.frikit.krandom.generator.user.FirstNameGenerator;
+import io.github.frikit.krandom.generator.user.Gender;
+import io.github.frikit.krandom.generator.user.MiddleNameGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import java.time.Clock;
 import java.time.Instant;
@@ -45,10 +48,13 @@ class KrandomTest {
     private static List<Object> everyKind(Krandom fake) {
         return List.of(
                 fake.firstName(),
+                fake.firstName(Gender.FEMALE),
                 fake.middleName(),
+                fake.middleName(Gender.MALE),
                 fake.lastName(),
                 fake.fullName(),
                 fake.title(),
+                fake.maritalStatus(),
                 fake.email(),
                 fake.phoneNumber(),
                 fake.nationalId(),
@@ -158,6 +164,36 @@ class KrandomTest {
             assertEquals(types.generate(), fake.addressType());
             assertEquals(purposes.generate(), fake.addressPurpose());
         }
+    }
+
+    @Test
+    @DisplayName("maritalStatus draws from its own stream, in the session locale")
+    void maritalStatusFollowsTheLocale() {
+        Krandom fake = Krandom.seeded("fixtures", Locale.GERMANY);
+        Generator<String> statuses = Generators.ofMaritalStatus(fake.streamConfig("krandom.maritalStatus"));
+
+        for (int i = 0; i < 10; i++) {
+            assertEquals(statuses.generate(), fake.maritalStatus());
+        }
+    }
+
+    @Test
+    @DisplayName("gendered first and middle names share their method's stream and reject a null gender")
+    void genderedNamesShareTheirMethodsStream() {
+        Krandom fake = uk("fixtures");
+        FirstNameGenerator firstNames = Generators.ofFirstName(fake.streamConfig("krandom.firstName"));
+        MiddleNameGenerator middleNames = Generators.ofMiddleName(fake.streamConfig("krandom.middleName"));
+
+        for (int i = 0; i < 5; i++) {
+            assertEquals(firstNames.generate(Gender.FEMALE), fake.firstName(Gender.FEMALE));
+            assertEquals(firstNames.generate(), fake.firstName());
+            assertEquals(firstNames.generate(Gender.MALE), fake.firstName(Gender.MALE));
+            assertEquals(middleNames.generate(Gender.MALE), fake.middleName(Gender.MALE));
+            assertEquals(middleNames.generate(Gender.FEMALE), fake.middleName(Gender.FEMALE));
+            assertEquals(middleNames.generate(), fake.middleName());
+        }
+        assertThrows(NullPointerException.class, () -> fake.firstName(null));
+        assertThrows(NullPointerException.class, () -> fake.middleName(null));
     }
 
     @Test

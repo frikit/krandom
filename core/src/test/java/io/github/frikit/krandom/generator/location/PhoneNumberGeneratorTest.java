@@ -14,17 +14,106 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.locale.SupportedLocale;
-import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 @DisplayName("PhoneNumberGenerator")
 class PhoneNumberGeneratorTest {
+
+    // Ofcom's ranges for TV and radio drama
+    // (https://www.ofcom.org.uk/phones-and-broadband/phone-numbers/numbers-for-drama, last updated
+    // 11 May 2023), written out here independently of the generator. Each block holds 1,000
+    // numbers, so only the last three digits vary.
+    private static final Pattern UK_DRAMA_MOBILE = Pattern.compile("07700 900\\d{3}");
+    private static final Pattern UK_DRAMA_LANDLINE = Pattern.compile("0(11[3-8]|1[2-6]1) 496 0\\d{3}|020 7946 0\\d{3}"
+            + "|0191 498 0\\d{3}|028 9649 6\\d{3}|029 2018 0\\d{3}|01632 960\\d{3}");
+    private static final Pattern UK_DRAMA_ANY =
+            Pattern.compile(UK_DRAMA_MOBILE.pattern() + "|" + UK_DRAMA_LANDLINE.pattern());
+    private static final Pattern UK_DRAMA_MOBILE_DIGITS = digitsOnly(UK_DRAMA_MOBILE);
+    private static final Pattern UK_DRAMA_LANDLINE_DIGITS = digitsOnly(UK_DRAMA_LANDLINE);
+    private static final Pattern UK_DRAMA_ANY_DIGITS = digitsOnly(UK_DRAMA_ANY);
+
+    // First and last number of each drama landline block, in the order the generator draws them.
+    private static final String[][] UK_DRAMA_LANDLINE_BLOCKS = {
+        {"0113 496 0000", "0113 496 0999"},
+        {"0114 496 0000", "0114 496 0999"},
+        {"0115 496 0000", "0115 496 0999"},
+        {"0116 496 0000", "0116 496 0999"},
+        {"0117 496 0000", "0117 496 0999"},
+        {"0118 496 0000", "0118 496 0999"},
+        {"0121 496 0000", "0121 496 0999"},
+        {"0131 496 0000", "0131 496 0999"},
+        {"0141 496 0000", "0141 496 0999"},
+        {"0151 496 0000", "0151 496 0999"},
+        {"0161 496 0000", "0161 496 0999"},
+        {"020 7946 0000", "020 7946 0999"},
+        {"0191 498 0000", "0191 498 0999"},
+        {"028 9649 6000", "028 9649 6999"},
+        {"029 2018 0000", "029 2018 0999"},
+        {"01632 960000", "01632 960999"}
+    };
+
+    /**
+     * en_GB output under {@link PhoneNumberSafetyPolicy#REALISTIC_UNCLASSIFIED}, recorded from the
+     * implementation before the default policy moved UK numbers to Ofcom's drama ranges (main at
+     * 582e295c, when the UK output ignored the policy). Per seed: three rounds of
+     * {@code generate()}, {@code generate(false)}, {@code generate(true, true)},
+     * {@code generate(true, false)}, {@code generate(false, false)} and
+     * {@code generate(false, true)}, then {@code generateMsisdn()}, which draws from the same
+     * random stream and so also pins how many draws the phone calls make.
+     */
+    private static final Map<Long, List<String>> UK_REALISTIC_GOLDEN = Map.of(
+            42L,
+            List.of(
+                    "07500 211248",
+                    "01303087525",
+                    "07502 796918",
+                    "01202 118093",
+                    "02069067502",
+                    "07700572292",
+                    "0191 568 8456",
+                    "07901572209",
+                    "07502 327863",
+                    "020 4446 2913",
+                    "01418515241",
+                    "07801307458",
+                    "01308 356730",
+                    "01342291085",
+                    "07402 177727",
+                    "01342 708093",
+                    "01202781164",
+                    "07902168065",
+                    "447547573308600"),
+            7L,
+            List.of(
+                    "07902 829485",
+                    "01306566254",
+                    "07901 696649",
+                    "01279 239534",
+                    "01915813712",
+                    "07500588911",
+                    "07701 712961",
+                    "07900738279",
+                    "07701 143924",
+                    "01305 577051",
+                    "01235062004",
+                    "07800337400",
+                    "01307 700123",
+                    "07501863891",
+                    "07400 616492",
+                    "01293 317506",
+                    "01352723234",
+                    "07502048880",
+                    "44735296225404"));
 
     // ── Constructor tests ─────────────────────────────────────────────────────
 
@@ -264,71 +353,44 @@ class PhoneNumberGeneratorTest {
     // ── UK phone numbers (en_GB) ──────────────────────────────────────────────
 
     @Test
-    @DisplayName("UK locale generates formatted landline")
+    @DisplayName("UK locale generates a formatted landline from Ofcom's drama ranges")
     void ukFormattedLandline() {
         PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.UK);
         String phone = gen.generate(true, false);
 
         assertNotNull(phone);
-        // Match patterns like "020 7946 0958", "0161 496 0123", "01202 123456"
-        assertTrue(
-                phone.matches("0\\d{2,4} \\d{3,4} \\d{4}|0\\d{2,4} \\d{6,8}"),
-                "Expected UK landline format, got: " + phone);
+        // Patterns like "020 7946 0958", "0161 496 0123", "01632 960123"
+        assertMatches(UK_DRAMA_LANDLINE, phone, "UK formatted landline");
     }
 
     @Test
-    @DisplayName("UK formatted landline covers London split formatting branch")
-    void ukFormattedLondonBranch() throws Exception {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.UK);
-        Field randomField = PhoneNumberGenerator.class.getDeclaredField("random");
-        randomField.setAccessible(true);
-        randomField.set(gen, new Random(0L) {
-
-            private int intCalls;
-
-            @Override
-            public int nextInt(int bound) {
-                // 1st call picks area-code index 0 => "020", 2nd call picks number
-                if (intCalls++ == 0) {
-                    return 0;
-                }
-                return 0;
-            }
-        });
-
-        String phone = gen.generate(true, false);
-        assertTrue(phone.matches("020 \\d{4} \\d{4}"), "Expected London format, got: " + phone);
-    }
-
-    @Test
-    @DisplayName("UK locale generates formatted mobile")
+    @DisplayName("UK locale generates a formatted mobile from Ofcom's drama range")
     void ukFormattedMobile() {
         PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.UK);
         String phone = gen.generate(true, true);
 
         assertNotNull(phone);
-        assertTrue(phone.matches("07\\d{3} \\d{6}"), "Expected UK mobile format (07xxx xxxxxx), got: " + phone);
+        assertMatches(UK_DRAMA_MOBILE, phone, "UK formatted mobile");
     }
 
     @Test
-    @DisplayName("UK mobile starts with 07")
+    @DisplayName("UK mobile numbers run from 07700 900000 to 07700 900999")
     void ukMobilePrefix() {
         PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.UK);
 
         for (int i = 0; i < 20; i++) {
-            String phone = gen.generate(false, true);
-            assertTrue(phone.startsWith("07"), "UK mobile should start with 07, got: " + phone);
+            assertMatches(UK_DRAMA_MOBILE_DIGITS, gen.generate(false, true), "UK unformatted mobile");
         }
     }
 
     @Test
-    @DisplayName("UK landline starts with valid area code")
+    @DisplayName("UK landlines come from a drama landline block, never a mobile range")
     void ukLandlineAreaCode() {
         PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.UK);
 
         for (int i = 0; i < 20; i++) {
             String phone = gen.generate(false, false);
-            assertTrue(phone.startsWith("0"), "UK landline should start with 0, got: " + phone);
+            assertMatches(UK_DRAMA_LANDLINE_DIGITS, phone, "UK unformatted landline");
             assertFalse(phone.startsWith("07"), "UK landline should not start with 07, got: " + phone);
         }
     }
@@ -340,7 +402,114 @@ class PhoneNumberGeneratorTest {
         String phone = gen.generate(false, true);
 
         assertFalse(phone.contains(" "), "Unformatted should have no spaces: " + phone);
-        assertTrue(phone.matches("\\d+"), "Unformatted should be all digits: " + phone);
+        assertTrue(phone.matches("\\d{11}"), "Unformatted should be 11 digits: " + phone);
+    }
+
+    @Test
+    @DisplayName("every default-policy UK number falls inside one of Ofcom's drama blocks")
+    void ukDefaultPolicyNumbersStayInsideOfcomDramaBlocks() {
+        for (long seed = 0; seed < 25; seed++) {
+            PhoneNumberGenerator gen = new PhoneNumberGenerator(
+                    GeneratorConfig.builder().locale(Locale.UK).seed(seed).build());
+            String label = "seed " + seed + ": ";
+
+            for (int i = 0; i < 40; i++) {
+                assertMatches(UK_DRAMA_MOBILE, gen.generate(true, true), label + "formatted mobile");
+                assertMatches(UK_DRAMA_MOBILE_DIGITS, gen.generate(false, true), label + "unformatted mobile");
+                assertMatches(UK_DRAMA_LANDLINE, gen.generate(true, false), label + "formatted landline");
+                assertMatches(UK_DRAMA_LANDLINE_DIGITS, gen.generate(false, false), label + "unformatted landline");
+                assertMatches(UK_DRAMA_ANY, gen.generate(), label + "generate()");
+                assertMatches(UK_DRAMA_ANY_DIGITS, gen.generate(false), label + "generate(false)");
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("all 16 Ofcom landline blocks and the mobile block are reachable")
+    void everyUkDramaBlockIsReachable() {
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(
+                GeneratorConfig.builder().locale(Locale.UK).seed(2026L).build());
+        Set<String> expectedBlocks = new TreeSet<>();
+        for (String[] block : UK_DRAMA_LANDLINE_BLOCKS) {
+            expectedBlocks.add(blockOf(block[0]));
+        }
+
+        Set<String> landlineBlocks = new TreeSet<>();
+        Set<String> mobileBlocks = new TreeSet<>();
+        for (int i = 0; i < 2_000; i++) {
+            landlineBlocks.add(blockOf(gen.generate(true, false)));
+            mobileBlocks.add(blockOf(gen.generate(true, true)));
+        }
+
+        assertEquals(16, expectedBlocks.size());
+        assertEquals(expectedBlocks, landlineBlocks);
+        assertEquals(Set.of("07700 900"), mobileBlocks);
+    }
+
+    @Test
+    @DisplayName("UK drama numbers draw a block out of 16, then a number out of 1,000, edges included")
+    void ukDramaBlockEdges() {
+        for (int i = 0; i < UK_DRAMA_LANDLINE_BLOCKS.length; i++) {
+            String first = UK_DRAMA_LANDLINE_BLOCKS[i][0];
+            String last = UK_DRAMA_LANDLINE_BLOCKS[i][1];
+
+            assertEquals(first, ukPhone(scripted(16, i, 1000, 0), true, false), "first of block " + i);
+            assertEquals(last, ukPhone(scripted(16, i, 1000, 999), true, false), "last of block " + i);
+            assertEquals(first.replace(" ", ""), ukPhone(scripted(16, i, 1000, 0), false, false));
+            assertEquals(last.replace(" ", ""), ukPhone(scripted(16, i, 1000, 999), false, false));
+        }
+        // A mobile number needs no block draw.
+        assertEquals("07700 900000", ukPhone(scripted(1000, 0), true, true));
+        assertEquals("07700 900999", ukPhone(scripted(1000, 999), true, true));
+        assertEquals("07700900000", ukPhone(scripted(1000, 0), false, true));
+        assertEquals("07700900999", ukPhone(scripted(1000, 999), false, true));
+    }
+
+    @Test
+    @DisplayName("the class Javadoc's UK examples are Ofcom drama numbers")
+    void ukJavadocExamplesAreDramaNumbers() {
+        assertEquals("07700 900123", ukPhone(scripted(1000, 123), true, true));
+        assertEquals("020 7946 0958", ukPhone(scripted(16, 11, 1000, 958), true, false));
+    }
+
+    @Test
+    @DisplayName("realistic unclassified policy keeps the recorded UK output draw for draw")
+    void realisticUnclassifiedPolicyKeepsRecordedUkOutput() {
+        UK_REALISTIC_GOLDEN.forEach((seed, expected) -> {
+            PhoneNumberGenerator gen = new PhoneNumberGenerator(GeneratorConfig.builder()
+                    .locale(Locale.UK)
+                    .seed(seed)
+                    .phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
+            List<String> actual = new ArrayList<>();
+            for (int round = 0; round < 3; round++) {
+                actual.add(gen.generate());
+                actual.add(gen.generate(false));
+                actual.add(gen.generate(true, true));
+                actual.add(gen.generate(true, false));
+                actual.add(gen.generate(false, false));
+                actual.add(gen.generate(false, true));
+            }
+            actual.add(gen.generateMsisdn());
+
+            assertEquals(expected, actual, "seed " + seed);
+        });
+    }
+
+    @Test
+    @DisplayName("realistic unclassified UK output keeps its draws, bounds and layouts")
+    void ukRealisticDrawsBoundsAndLayouts() {
+        // 46 landline codes: index 0 is "020", 1 is "0121", and 7 is "01202". The local number is
+        // drawn below 10^(11 - code length).
+        assertEquals("020 0123 4567", realisticUkPhone(scripted(46, 0, 100_000_000, 1_234_567), true, false));
+        assertEquals("02001234567", realisticUkPhone(scripted(46, 0, 100_000_000, 1_234_567), false, false));
+        assertEquals("0121 023 4567", realisticUkPhone(scripted(46, 1, 10_000_000, 234_567), true, false));
+        assertEquals("01210234567", realisticUkPhone(scripted(46, 1, 10_000_000, 234_567), false, false));
+        assertEquals("01202 045678", realisticUkPhone(scripted(46, 7, 1_000_000, 45_678), true, false));
+        assertEquals("01202045678", realisticUkPhone(scripted(46, 7, 1_000_000, 45_678), false, false));
+        // 15 mobile prefixes: index 0 is "07400". The subscriber number is drawn below 10^6.
+        assertEquals("07400 012345", realisticUkPhone(scripted(15, 0, 1_000_000, 12_345), true, true));
+        assertEquals("07400012345", realisticUkPhone(scripted(15, 0, 1_000_000, 12_345), false, true));
     }
 
     // ── Australian phone numbers (en_AU) ──────────────────────────────────────
@@ -903,7 +1072,7 @@ class PhoneNumberGeneratorTest {
         assertEquals(20, phones.size());
         phones.forEach(phone -> {
             assertNotNull(phone);
-            assertTrue(phone.startsWith("0"), "UK phone should start with 0: " + phone);
+            assertMatches(UK_DRAMA_ANY, phone, "UK stream value");
         });
     }
 
@@ -1110,12 +1279,12 @@ class PhoneNumberGeneratorTest {
             String mobile = gen.generate(false, true);
             String landline = gen.generate(false, false);
 
-            mobileSet.add(mobile.substring(0, 2));
+            mobileSet.add(mobile.substring(0, 8));
             landlineSet.add(landline.substring(0, 2));
         }
 
-        // All mobiles should start with 07
-        assertTrue(mobileSet.stream().allMatch(p -> p.equals("07")), "UK mobiles should all start with 07");
+        // All mobiles come from Ofcom's 07700 900xxx drama range
+        assertEquals(Set.of("07700900"), mobileSet, "UK mobiles should all start with 07700 900");
 
         // No landlines should start with 07
         assertTrue(landlineSet.stream().noneMatch(p -> p.equals("07")), "UK landlines should not start with 07");
@@ -1179,23 +1348,24 @@ class PhoneNumberGeneratorTest {
     }
 
     @Test
-    @DisplayName("UK all format types generate correctly")
+    @DisplayName("UK landlines use the layout of their area-code length")
     void ukAllFormatTypes() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.UK);
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(
+                GeneratorConfig.builder().locale(Locale.UK).seed(5L).build());
 
-        // Test London format specifically
-        boolean foundLondon = false;
-        for (int i = 0; i < 100; i++) {
+        Set<String> layouts = new HashSet<>();
+        for (int i = 0; i < 200; i++) {
             String phone = gen.generate(true, false);
-            if (phone.startsWith("020 ")) {
-                foundLondon = true;
-                assertTrue(phone.matches("020 \\d{4} \\d{4}"), "London format should be 020 xxxx xxxx: " + phone);
-            } else {
-                assertTrue(
-                        phone.matches("\\d{5} \\d{6}") || phone.matches("\\d{4} \\d{3} \\d{4}"),
-                        "UK landline format should be either xxxxx xxxxxx or xxxx xxx xxxx: " + phone);
-            }
+            String layout = switch (phone.indexOf(' ')) {
+                case 3 -> "0\\d{2} \\d{4} \\d{4}"; // 020, 028, 029
+                case 4 -> "0\\d{3} \\d{3} \\d{4}"; // 0113 to 0191
+                default -> "0\\d{4} \\d{6}"; // 01632
+            };
+            assertTrue(phone.matches(layout), "UK landline should match " + layout + ", got: " + phone);
+            layouts.add(layout);
         }
+
+        assertEquals(3, layouts.size(), "expected all three UK landline layouts, got " + layouts);
     }
 
     @Test
@@ -1242,8 +1412,8 @@ class PhoneNumberGeneratorTest {
 
             // Verify they have characteristics of mobile vs landline
             if (locale.equals(Locale.UK)) {
-                assertTrue(mobile.startsWith("07"), "UK mobile should start with 07");
-                assertFalse(landline.startsWith("07"), "UK landline should not start with 07");
+                assertMatches(UK_DRAMA_MOBILE_DIGITS, mobile, "UK mobile");
+                assertMatches(UK_DRAMA_LANDLINE_DIGITS, landline, "UK landline");
             } else if (locale.getCountry().equals("AU")) {
                 assertTrue(mobile.startsWith("04"), "AU mobile should start with 04");
                 assertFalse(landline.startsWith("04"), "AU landline should not start with 04");
@@ -1277,6 +1447,71 @@ class PhoneNumberGeneratorTest {
                 assertTrue(mobile.startsWith("1"), "CN mobile should start with 1");
                 assertTrue(landline.startsWith("0"), "CN landline should start with 0");
             }
+        }
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private static void assertMatches(Pattern pattern, String value, String label) {
+        assertTrue(pattern.matcher(value).matches(), label + " expected /" + pattern.pattern() + "/ but got: " + value);
+    }
+
+    private static Pattern digitsOnly(Pattern formatted) {
+        return Pattern.compile(formatted.pattern().replace(" ", ""));
+    }
+
+    /** The fixed part of a formatted drama number: all but the three digits that vary in a block. */
+    private static String blockOf(String formatted) {
+        return formatted.substring(0, formatted.length() - 3);
+    }
+
+    private static String ukPhone(ScriptedRandom random, boolean formatted, boolean mobile) {
+        return ukPhone(PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE, random, formatted, mobile);
+    }
+
+    private static String realisticUkPhone(ScriptedRandom random, boolean formatted, boolean mobile) {
+        return ukPhone(PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED, random, formatted, mobile);
+    }
+
+    private static String ukPhone(
+            PhoneNumberSafetyPolicy policy, ScriptedRandom random, boolean formatted, boolean mobile) {
+        String phone = new PhoneNumberGenerator(GeneratorConfig.builder()
+                        .locale(Locale.UK)
+                        .random(random)
+                        .phoneNumberSafetyPolicy(policy)
+                        .build())
+                .generate(formatted, mobile);
+        random.assertExhausted();
+        return phone;
+    }
+
+    /** Scripts {@code nextInt(bound)} as {bound, value} pairs, in draw order. */
+    private static ScriptedRandom scripted(int... boundsAndValues) {
+        return new ScriptedRandom(boundsAndValues);
+    }
+
+    /** A random source that answers scripted draws and fails on an unexpected bound or draw. */
+    private static final class ScriptedRandom extends Random {
+
+        private final int[] boundsAndValues;
+        private int position;
+
+        ScriptedRandom(int... boundsAndValues) {
+            this.boundsAndValues = boundsAndValues.clone();
+        }
+
+        @Override
+        public int nextInt(int bound) {
+            int draw = position / 2 + 1;
+            assertTrue(position < boundsAndValues.length, "unscripted draw " + draw + " with bound " + bound);
+            assertEquals(boundsAndValues[position], bound, "bound of draw " + draw);
+            int value = boundsAndValues[position + 1];
+            position += 2;
+            return value;
+        }
+
+        void assertExhausted() {
+            assertEquals(boundsAndValues.length, position, "scripted draws left unused");
         }
     }
 }

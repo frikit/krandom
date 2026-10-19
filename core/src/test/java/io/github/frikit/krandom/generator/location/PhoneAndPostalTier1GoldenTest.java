@@ -23,6 +23,11 @@ import org.junit.jupiter.params.provider.MethodSource;
  * moved from exact locale keys to resolved countries. The expected strings were captured from
  * the 2.5.0 implementation and must stay byte-identical, including for the language-only and
  * legacy Norwegian keys that the old switches served from the same branch.
+ *
+ * <p>One deliberate change since then: under the default {@link PhoneNumberSafetyPolicy}, en_GB
+ * phone numbers come from Ofcom's TV and radio drama ranges, so the default-policy en_GB phone
+ * rows were captured again. The 2.5.0 en_GB phone strings are kept unchanged as the
+ * {@link PhoneNumberSafetyPolicy#REALISTIC_UNCLASSIFIED} rows.
  */
 @DisplayName("Tier-1 phone and postal seeded output stays byte-identical")
 class PhoneAndPostalTier1GoldenTest {
@@ -68,15 +73,15 @@ class PhoneAndPostalTier1GoldenTest {
             row(
                     "en_GB",
                     7L,
-                    "07401 249164|0121 067 8044|07801566254|01334696649|07400 239534|0191 581 3712|0161 517 4495|07700650738|07800 857842"),
+                    "07700 900236|0161 496 0485|07700900044|01184960254|07700 900968|020 7946 0850|07700 900200|07700900708|028 9649 6662"),
             row(
                     "en_GB",
                     42L,
-                    "07502 392763|01306 948884|07400087525|01619796918|07501 118093|020 6906 7502|01352 164476|07700576170|07902 241400"),
+                    "07700 900130|0113 496 0248|07700900884|01174960525|07700 900505|020 7946 0519|029 2018 0502|01214960476|07700 900456"),
             row(
                     "en_GB",
                     20260927L,
-                    "07801 927145|01225 057265|07502993885|01233911446|07900 216488|01224 520018|01305 941999|01270247891|07500 256881"),
+                    "07700 900425|0113 496 0108|07700900265|01154960885|07700 900354|0117 496 0437|0118 496 0018|02896496999|028 9649 6891"),
             row(
                     "en_AU",
                     7L,
@@ -294,6 +299,21 @@ class PhoneAndPostalTier1GoldenTest {
                     20260927L,
                     "87145 14108|044 06795785|9035411446|048468216488|70018 74582|033 33941999|044 97247891|8688166745|67915 48386"));
 
+    // The PHONE sequence under PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED: the 2.5.0 en_GB output.
+    private static final List<Golden> REALISTIC_PHONE = List.of(
+            row(
+                    "en_GB",
+                    7L,
+                    "07401 249164|0121 067 8044|07801566254|01334696649|07400 239534|0191 581 3712|0161 517 4495|07700650738|07800 857842"),
+            row(
+                    "en_GB",
+                    42L,
+                    "07502 392763|01306 948884|07400087525|01619796918|07501 118093|020 6906 7502|01352 164476|07700576170|07902 241400"),
+            row(
+                    "en_GB",
+                    20260927L,
+                    "07801 927145|01225 057265|07502993885|01233911446|07900 216488|01224 520018|01305 941999|01270247891|07500 256881"));
+
     // generateCountryCallingCode() | generateMsisdn() | generateMsisdn()
     private static final List<Golden> MSISDN = List.of(
             row("en_US", 7L, "+1|145404890402815|118792431849061"),
@@ -428,18 +448,19 @@ class PhoneAndPostalTier1GoldenTest {
     @DisplayName("locale-style phone numbers match the captured Tier-1 output")
     void phoneNumbersMatchGoldenOutput(String localeKey, long seed, String expected) {
         PhoneNumberGenerator generator = new PhoneNumberGenerator(config(localeKey, seed));
-        List<String> actual = List.of(
-                generator.generate(true, true),
-                generator.generate(true, false),
-                generator.generate(false, true),
-                generator.generate(false, false),
-                generator.generate(true, true),
-                generator.generate(true, false),
-                generator.generate(),
-                generator.generate(false),
-                generator.generate());
 
-        assertEquals(expected, String.join("|", actual));
+        assertEquals(expected, phoneSequence(generator));
+    }
+
+    @ParameterizedTest(name = "{0} seed {1}")
+    @MethodSource("realisticPhoneCases")
+    @DisplayName("realistic-policy phone numbers match the captured 2.5.0 output")
+    void realisticPhoneNumbersMatchGoldenOutput(String localeKey, long seed, String expected) {
+        PhoneNumberGenerator generator = new PhoneNumberGenerator(builder(localeKey, seed)
+                .phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build());
+
+        assertEquals(expected, phoneSequence(generator));
     }
 
     @ParameterizedTest(name = "{0} seed {1}")
@@ -473,6 +494,10 @@ class PhoneAndPostalTier1GoldenTest {
         return withSameBranchKeys(PHONE);
     }
 
+    static Stream<Arguments> realisticPhoneCases() {
+        return withSameBranchKeys(REALISTIC_PHONE);
+    }
+
     static Stream<Arguments> msisdnCases() {
         return MSISDN.stream().map(golden -> Arguments.of(golden.localeKey(), golden.seed(), golden.expected()));
     }
@@ -492,10 +517,28 @@ class PhoneAndPostalTier1GoldenTest {
         return cases.stream();
     }
 
+    private static String phoneSequence(PhoneNumberGenerator generator) {
+        List<String> actual = List.of(
+                generator.generate(true, true),
+                generator.generate(true, false),
+                generator.generate(false, true),
+                generator.generate(false, false),
+                generator.generate(true, true),
+                generator.generate(true, false),
+                generator.generate(),
+                generator.generate(false),
+                generator.generate());
+        return String.join("|", actual);
+    }
+
     private static GeneratorConfig config(String localeKey, long seed) {
+        return builder(localeKey, seed).build();
+    }
+
+    private static GeneratorConfig.Builder builder(String localeKey, long seed) {
         String[] parts = localeKey.split("_");
         Locale locale = parts.length == 1 ? Locale.of(parts[0]) : Locale.of(parts[0], parts[1]);
-        return GeneratorConfig.builder().locale(locale).seed(seed).build();
+        return GeneratorConfig.builder().locale(locale).seed(seed);
     }
 
     private static Golden row(String localeKey, long seed, String expected) {

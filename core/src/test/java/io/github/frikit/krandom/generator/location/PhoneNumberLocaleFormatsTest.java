@@ -44,14 +44,17 @@ class PhoneNumberLocaleFormatsTest {
             // NANP: fictional 555-0100..0199 lines under the default safety policy
             nanp("US", "\\d{3}"),
             nanp("CA", CA_AREA_CODES),
-            // Tier-1 formats (unchanged implementations)
+            // GB: Ofcom's TV and radio drama ranges under the default safety policy
             format(
                     "GB",
                     "+44",
-                    "07\\d{3} \\d{6}",
-                    "07\\d{9}",
-                    "020 \\d{4} \\d{4}|01\\d{2} \\d{3} \\d{4}|01\\d{3} \\d{6}",
-                    "0(20\\d{8}|1\\d{9})"),
+                    "07700 900\\d{3}",
+                    "07700900\\d{3}",
+                    "0(11[3-8]|1[2-6]1) 496 0\\d{3}|020 7946 0\\d{3}|0191 498 0\\d{3}|028 9649 6\\d{3}"
+                            + "|029 2018 0\\d{3}|01632 960\\d{3}",
+                    "0(11[3-8]|1[2-6]1)4960\\d{3}|02079460\\d{3}|01914980\\d{3}|02896496\\d{3}"
+                            + "|02920180\\d{3}|01632960\\d{3}"),
+            // Tier-1 formats (unchanged implementations)
             format("AU", "+61", "04\\d{2} \\d{3} \\d{3}", "04\\d{8}", "0[2378] \\d{4} \\d{4}", "0[2378]\\d{8}"),
             format("DE", "+49", "01[5-7]\\d \\d{8}", "01[5-7]\\d{9}", "0[2-9]\\d{1,2} \\d{8}", "0[2-9]\\d{9,10}"),
             format("FR", "+33", "0[67]( \\d{2}){4}", "0[67]\\d{8}", "0[1-5]( \\d{2}){4}", "0[1-5]\\d{8}"),
@@ -333,6 +336,42 @@ class PhoneNumberLocaleFormatsTest {
             exchanges.add(matcher.group(2));
         }
         assertTrue(exchanges.size() > 50, "realistic exchanges expected, got " + exchanges);
+    }
+
+    // ── United Kingdom ─────────────────────────────────────────────────────────
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"en_GB", "cy_GB"})
+    @DisplayName("United Kingdom locales use Ofcom's drama ranges by default, whatever the language")
+    void ukLocalesUseOfcomDramaRangesByDefault(String localeKey) {
+        assertGeneratesFormat(FORMATS.get("GB"), new PhoneNumberGenerator(seeded(locale(localeKey), 13L)), localeKey);
+    }
+
+    @Test
+    @DisplayName("the United Kingdom uses realistic codes only under the realistic policy")
+    void ukUsesRealisticCodesOnlyWhenRequested() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                .locale(Locale.UK)
+                .seed(17L)
+                .phoneNumberSafetyPolicy(PhoneNumberSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
+        PhoneNumberGenerator generator = new PhoneNumberGenerator(config);
+
+        Set<String> mobilePrefixes = new HashSet<>();
+        Set<String> landlineCodes = new HashSet<>();
+        for (int i = 0; i < 200; i++) {
+            String mobile = generator.generate(true, true);
+            String landline = generator.generate(true, false);
+            assertTrue(mobile.matches("07\\d{3} \\d{6}"), "realistic mobile: " + mobile);
+            assertTrue(
+                    landline.matches("020 \\d{4} \\d{4}|01\\d{2} \\d{3} \\d{4}|01\\d{3} \\d{6}"),
+                    "realistic landline: " + landline);
+            mobilePrefixes.add(mobile.substring(0, mobile.indexOf(' ')));
+            landlineCodes.add(landline.substring(0, landline.indexOf(' ')));
+        }
+        // The drama ranges have one mobile prefix and 16 landline codes.
+        assertTrue(mobilePrefixes.size() > 10, "realistic mobile prefixes expected, got " + mobilePrefixes);
+        assertTrue(landlineCodes.size() > 30, "realistic landline codes expected, got " + landlineCodes);
     }
 
     // ── Locale resolution ──────────────────────────────────────────────────────

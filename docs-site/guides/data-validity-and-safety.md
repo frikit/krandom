@@ -36,17 +36,47 @@ processor's documented sandbox values and test credentials for integration tests
 ## Phone-number contract
 
 `PhoneNumberSafetyPolicy.TEST_SAFE_WHERE_AVAILABLE` is the default for locale-style output. It
-uses [NANPA's fictional, non-working `555-0100` through `555-0199` line-number range](https://www.nanpa.com/numbering/555-line-numbers) for
-North American Numbering Plan locales, which resolve to the United States or Canada (`en_US`,
-`en_CA`, `fr_CA`, and the language-only English fallback). Every other `SupportedLocale` country
-uses its own national format; other locales remain realistic but unclassified, as do custom
-phone-number templates and generated MSISDNs. A locale whose country has no built-in format uses
-the first catalog country of its language (for example `de_LI` uses the German format), and an
-unknown language uses `en_US`. `REALISTIC_UNCLASSIFIED` explicitly preserves the prior
-realistic-looking behavior without a safety claim.
+draws from ranges that the numbering authority reserves for fiction and never assigns to a
+subscriber, for the two numbering plans whose fiction range kRandom implements:
 
-The NANPA allocation does not make the same range safe in countries outside its numbering plan.
-Use a country-specific official test allocation only when the generator documents it.
+- North American Numbering Plan locales, which resolve to the United States or Canada (`en_US`,
+  `en_CA`, `fr_CA`, and the language-only English fallback), use
+  [NANPA's fictional, non-working `555-0100` through `555-0199` line-number range](https://www.nanpa.com/numbering/555-line-numbers).
+- United Kingdom locales (`en_GB`, and any other locale whose country is `GB`) use
+  [Ofcom's telephone numbers for TV and radio drama](https://www.ofcom.org.uk/phones-and-broadband/phone-numbers/numbers-for-drama):
+  mobile numbers `07700 900000` to `07700 900999`, and landline numbers from the 16 geographic
+  blocks below. Ofcom sets these numbers aside for drama and does not allocate them to
+  communications providers for their customers, and says it will not in the foreseeable future.
+
+| Area | Landline drama range |
+|:---|:---|
+| Leeds | `0113 496 0000` to `0113 496 0999` |
+| Sheffield | `0114 496 0000` to `0114 496 0999` |
+| Nottingham | `0115 496 0000` to `0115 496 0999` |
+| Leicester | `0116 496 0000` to `0116 496 0999` |
+| Bristol | `0117 496 0000` to `0117 496 0999` |
+| Reading | `0118 496 0000` to `0118 496 0999` |
+| Birmingham | `0121 496 0000` to `0121 496 0999` |
+| Edinburgh | `0131 496 0000` to `0131 496 0999` |
+| Glasgow | `0141 496 0000` to `0141 496 0999` |
+| Liverpool | `0151 496 0000` to `0151 496 0999` |
+| Manchester | `0161 496 0000` to `0161 496 0999` |
+| London | `020 7946 0000` to `020 7946 0999` |
+| Tyneside, Durham and Sunderland | `0191 498 0000` to `0191 498 0999` |
+| Northern Ireland | `028 9649 6000` to `028 9649 6999` |
+| Cardiff | `029 2018 0000` to `029 2018 0999` |
+| No area | `01632 960000` to `01632 960999` |
+
+Every other `SupportedLocale` country uses its own national format; other locales remain realistic
+but unclassified, as do custom phone-number templates and generated MSISDNs. A locale whose country
+has no built-in format uses the first catalog country of its language (for example `de_LI` uses the
+German format), and an unknown language uses `en_US`. `REALISTIC_UNCLASSIFIED` explicitly preserves
+the prior realistic-looking behavior, including realistic NANP exchanges and UK area codes and
+mobile prefixes, without a safety claim.
+
+Neither allocation makes the same digits safe in another country's numbering plan: NANPA's range
+is fictional only within the NANP, and Ofcom's ranges only within the United Kingdom. Use a
+country-specific official test allocation only when the generator documents it.
 
 ## Email-domain contract
 

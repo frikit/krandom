@@ -5,3 +5,6 @@ Geschieden
 Verwitwet
 Getrennt lebend
 Eingetragene Lebenspartnerschaft
+Ehe aufgehoben
+Aufgehobene Lebenspartnerschaft
+Durch Tod aufgelöste Lebenspartnerschaft
