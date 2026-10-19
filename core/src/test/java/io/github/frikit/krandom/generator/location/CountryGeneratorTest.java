@@ -76,16 +76,61 @@ class CountryGeneratorTest {
     }
 
     @Test
+    @DisplayName("the bundled ISO 3166-1 table has all 249 countries, unique in every column, in alpha-2 order")
+    void isoTableIsCompleteAndConsistent() {
+        List<CountryCodes> table =
+                CountryGenerator.parseIsoCodes(CountryResourceLoader.load("krandom/country_codes/iso_3166_1.txt"));
+        List<String> alpha2 = table.stream().map(CountryCodes::alpha2).toList();
+
+        assertEquals(249, table.size());
+        assertEquals(249, alpha2.stream().distinct().count());
+        assertEquals(249, table.stream().map(CountryCodes::alpha3).distinct().count());
+        assertEquals(249, table.stream().map(CountryCodes::numeric).distinct().count());
+        assertEquals(alpha2.stream().sorted().toList(), alpha2);
+        for (CountryCodes codes : table) {
+            assertTrue(codes.alpha2().matches("[A-Z]{2}"), codes.toString());
+            assertTrue(codes.numeric().matches("\\d{3}"), codes.toString());
+            assertEquals(Locale.of("", codes.alpha2()).getISO3Country(), codes.alpha3(), codes.toString());
+        }
+    }
+
+    @Test
+    @DisplayName("a malformed ISO 3166-1 row is rejected")
+    void malformedIsoRowIsRejected() {
+        IllegalStateException ex = assertThrows(
+                IllegalStateException.class, () -> CountryGenerator.parseIsoCodes(new String[] {"GB GBR"}));
+        assertTrue(ex.getMessage().contains("GB GBR"));
+    }
+
+    @Test
+    @DisplayName("generateCodes() returns the three codes of one country, drawn from the whole table")
+    void generateCodesBelongTogether() {
+        CountryGenerator gen =
+                new CountryGenerator(GeneratorConfig.builder().seed(7L).build());
+        Set<String> numericCodes = new HashSet<>();
+        for (int i = 0; i < 500; i++) {
+            CountryCodes codes = gen.generateCodes();
+            assertEquals(Locale.of("", codes.alpha2()).getISO3Country(), codes.alpha3(), codes.toString());
+            numericCodes.add(codes.numeric());
+        }
+        assertTrue(numericCodes.size() > 45, "numeric codes come from every country, not a short list");
+    }
+
+    @Test
     @DisplayName("current-country helpers return locale-specific values")
     void currentCountryHelpers() {
         CountryGenerator us = new CountryGenerator(Locale.US);
         assertEquals("US", us.currentCountryCode());
         assertEquals("USA", us.currentCountryCodeAlpha3());
         assertEquals("840", us.currentCountryCodeNumeric());
+        assertEquals(new CountryCodes("US", "USA", "840"), us.currentCountryCodes());
         assertEquals("US", us.currentCountryCode(CountryGenerator.CountryCodeFormat.ALPHA2));
         assertEquals("USA", us.currentCountryCode(CountryGenerator.CountryCodeFormat.ALPHA3));
         assertEquals("840", us.currentCountryCode(CountryGenerator.CountryCodeFormat.NUMERIC));
         assertFalse(us.currentCountry().isBlank());
+        assertEquals(
+                new CountryCodes("NG", "NGA", "566"),
+                new CountryGenerator(Locale.of("en", "NG")).currentCountryCodes());
     }
 
     @Test
@@ -97,6 +142,7 @@ class CountryGeneratorTest {
         assertThrows(UnsupportedOperationException.class, languageOnly::currentCountryCode);
         assertThrows(UnsupportedOperationException.class, languageOnly::currentCountryCodeAlpha3);
         assertThrows(UnsupportedOperationException.class, languageOnly::currentCountryCodeNumeric);
+        assertThrows(UnsupportedOperationException.class, languageOnly::currentCountryCodes);
         assertThrows(UnsupportedOperationException.class, languageOnly::currentContinent);
         assertThrows(UnsupportedOperationException.class, languageOnly::currentCallingCode);
         assertThrows(UnsupportedOperationException.class, languageOnly::currentTimezone);
@@ -558,6 +604,7 @@ class CountryGeneratorTest {
 
         assertThrows(UnsupportedOperationException.class, generator::currentCountryCodeAlpha3);
         assertThrows(UnsupportedOperationException.class, generator::currentCountryCodeNumeric);
+        assertThrows(UnsupportedOperationException.class, generator::currentCountryCodes);
         assertThrows(UnsupportedOperationException.class, generator::currentContinent);
         assertThrows(UnsupportedOperationException.class, generator::currentCallingCode);
         assertThrows(UnsupportedOperationException.class, generator::currentTimezone);

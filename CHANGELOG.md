@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `CountryGenerator.generateCodes()` and `currentCountryCodes()` return a `CountryCodes` record
+  with the alpha-2, alpha-3 and numeric ISO 3166-1 codes of one country, so the three always
+  belong together. The `Krandom` session adds `countryCode()`, `countryCodeAlpha3()` and
+  `countryCodeNumeric()`, each with its own stream.
+
+### Changed
+
+- Country codes come from an ISO 3166-1 table bundled with kRandom
+  (`krandom/country_codes/iso_3166_1.txt`, all 249 assigned countries) instead of the JDK's
+  country list, so seeded codes no longer depend on the Java version. Alpha-2 and alpha-3 output
+  is unchanged, because the table keeps the JDK's order. `generateCodeNumeric()` now draws from
+  all 249 countries instead of 20, which changes its seeded output, and
+  `currentCountryCodeNumeric()` works for every ISO 3166-1 country instead of 45.
+
 ## [2.7.0] - 2026-10-19
 
 ### Added

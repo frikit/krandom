@@ -282,6 +282,33 @@ public final class Krandom {
         return kind("country", Generators::ofCountry).generate();
     }
 
+    /**
+     * Returns an ISO 3166-1 alpha-2 country code, such as {@code "DE"}.
+     *
+     * @return a two-letter country code
+     */
+    public String countryCode() {
+        return kind("countryCode", Generators::ofCountry).generateCode();
+    }
+
+    /**
+     * Returns an ISO 3166-1 alpha-3 country code, such as {@code "DEU"}.
+     *
+     * @return a three-letter country code
+     */
+    public String countryCodeAlpha3() {
+        return kind("countryCodeAlpha3", Generators::ofCountry).generateCodeAlpha3();
+    }
+
+    /**
+     * Returns an ISO 3166-1 numeric country code, such as {@code "276"}.
+     *
+     * @return a three-digit country code
+     */
+    public String countryCodeNumeric() {
+        return kind("countryCodeNumeric", Generators::ofCountry).generateCodeNumeric();
+    }
+
     // ── Dates, numbers, and choices ───────────────────────────────────────────
 
     /**

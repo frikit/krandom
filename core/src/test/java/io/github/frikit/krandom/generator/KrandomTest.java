@@ -57,6 +57,9 @@ class KrandomTest {
                 fake.city(),
                 fake.postalCode(),
                 fake.country(),
+                fake.countryCode(),
+                fake.countryCodeAlpha3(),
+                fake.countryCodeNumeric(),
                 fake.today(),
                 fake.dateBetween(TODAY.minusYears(1), TODAY),
                 fake.intBetween(1, 1_000_000),
@@ -117,6 +120,20 @@ class KrandomTest {
                 Generators.ofFirstName(fake.streamConfig("krandom.firstName")).generate(), fake.firstName());
         assertEquals(
                 Generators.ofLastName(fake.streamConfig("krandom.lastName")).generate(), fake.lastName());
+    }
+
+    @Test
+    @DisplayName("country codes come in the three ISO 3166-1 formats, each from its own stream")
+    void countryCodesInEachFormat() {
+        Krandom fake = uk("fixtures");
+
+        assertTrue(fake.countryCode().matches("[A-Z]{2}"));
+        assertTrue(fake.countryCodeAlpha3().matches("[A-Z]{3}"));
+        assertTrue(fake.countryCodeNumeric().matches("\\d{3}"));
+        assertEquals(
+                Generators.ofCountry(fake.streamConfig("krandom.countryCodeAlpha3"))
+                        .generateCodeAlpha3(),
+                uk("fixtures").countryCodeAlpha3());
     }
 
     @Test
