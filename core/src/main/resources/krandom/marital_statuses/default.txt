@@ -5,3 +5,6 @@ Divorced
 Widowed
 Separated
 Domestic Partnership
+Annulled
+Dissolved partnership
+Surviving partner

@@ -5,3 +5,6 @@ Divorziato/a
 Vedovo/a
 Separato/a
 Unione civile
+Matrimonio annullato
+Unione civile sciolta
+Superstite di unione civile

@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.location.CountryCodes;
+import io.github.frikit.krandom.generator.user.Gender;
 import io.github.frikit.krandom.generator.user.TitleGenerator;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -33,7 +34,8 @@ import java.util.regex.Pattern;
  *
  * <p>Each method is one kind of value with a generator of its own, and every call of a method shares
  * that generator, whatever its arguments. The exceptions are {@link #nationalIdCompact()}, which
- * draws from {@link #nationalId()}'s stream, and the two {@code pick} overloads, which share one.
+ * draws from {@link #nationalId()}'s stream, and the overloads of {@code firstName},
+ * {@code middleName} and {@code pick}: each pair shares one stream.
  * With a seeded configuration, each method's stream is
  * derived from the seed and the method's name with
  * {@link GenerationRecipe#deriveChildSeed(long, String)}, whatever the configured
@@ -149,12 +151,36 @@ public final class Krandom {
     }
 
     /**
+     * Returns a first name traditionally given to the gender, from the same stream as
+     * {@link #firstName()}.
+     *
+     * @param gender the gender the name belongs to; must not be {@code null}
+     * @return a locale-aware first name
+     */
+    public String firstName(Gender gender) {
+        Objects.requireNonNull(gender, "gender must not be null");
+        return kind("firstName", Generators::ofFirstName).generate(gender);
+    }
+
+    /**
      * Returns a middle name.
      *
      * @return a locale-aware middle name
      */
     public String middleName() {
         return kind("middleName", Generators::ofMiddleName).generate();
+    }
+
+    /**
+     * Returns a middle name traditionally given to the gender, from the same stream as
+     * {@link #middleName()}.
+     *
+     * @param gender the gender the name belongs to; must not be {@code null}
+     * @return a locale-aware middle name
+     */
+    public String middleName(Gender gender) {
+        Objects.requireNonNull(gender, "gender must not be null");
+        return kind("middleName", Generators::ofMiddleName).generate(gender);
     }
 
     /**
@@ -182,6 +208,15 @@ public final class Krandom {
      */
     public String title() {
         return kind("title", TitleGenerator::new).generate();
+    }
+
+    /**
+     * Returns a marital status such as {@code Married} or {@code Dissolved partnership}.
+     *
+     * @return a locale-aware marital status
+     */
+    public String maritalStatus() {
+        return kind("maritalStatus", Generators::ofMaritalStatus).generate();
     }
 
     /**

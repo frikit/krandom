@@ -5,3 +5,6 @@ Divorțat(ă)
 Văduv(ă)
 Separat(ă)
 Uniune consensuală
+Căsătorie anulată
+Uniune consensuală încheiată
+Partener supraviețuitor

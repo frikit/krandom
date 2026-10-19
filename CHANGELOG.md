@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `Krandom.maritalStatus()`, and `firstName(Gender)` and `middleName(Gender)` for names that match
+  a gender. The gendered overloads draw from the same stream as `firstName()` and `middleName()`.
+
+### Changed
+
+- Marital statuses add `Annulled`, `Dissolved partnership` and `Surviving partner` in all 35
+  locales, so each locale lists nine statuses in the same order. Where a country has a legal term,
+  the entry uses it, for example `Ehe aufgehoben`, `Aufgehobene Lebenspartnerschaft` and
+  `Durch Tod aufgelöste Lebenspartnerschaft` in German. Seeded marital-status output changes.
+
 ## [2.8.0] - 2026-10-19
 
 ### Added

@@ -5,3 +5,6 @@ Razveden/a
 Udovac/udovica
 Rastavljen/a
 Životno partnerstvo
+Poništen brak
+Prestalo životno partnerstvo
+Preživjeli životni partner

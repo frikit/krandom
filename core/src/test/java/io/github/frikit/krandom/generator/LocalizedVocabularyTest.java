@@ -158,8 +158,16 @@ class LocalizedVocabularyTest {
             "Doctorate",
             "Professional Degree",
             "Vocational Certificate");
-    private static final List<String> MARITAL =
-            List.of("Single", "Married", "Divorced", "Widowed", "Separated", "Domestic Partnership");
+    private static final List<String> MARITAL = List.of(
+            "Single",
+            "Married",
+            "Divorced",
+            "Widowed",
+            "Separated",
+            "Domestic Partnership",
+            "Annulled",
+            "Dissolved partnership",
+            "Surviving partner");
     private static final List<String> ADDRESS_TYPES =
             List.of("Residential", "Commercial", "Industrial", "Agricultural", "Institutional", "Mixed-use");
     private static final List<String> ADDRESS_PURPOSES = List.of(

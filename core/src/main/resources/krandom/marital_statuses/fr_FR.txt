@@ -5,3 +5,6 @@ Divorcé(e)
 Veuf ou veuve
 Séparé(e)
 Pacsé(e)
+Mariage annulé
+PACS dissous
+Partenaire de PACS survivant
