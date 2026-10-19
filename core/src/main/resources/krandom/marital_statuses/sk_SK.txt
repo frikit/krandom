@@ -6,5 +6,5 @@ Vdovec/vdova
 Odlúčený/á
 Druh/družka
 Neplatné manželstvo
-Bývalý druh/družka
-Pozostalý druh/družka
+Bývalý druh/bývalá družka
+Pozostalý druh/pozostalá družka

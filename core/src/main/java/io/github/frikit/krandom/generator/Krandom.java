@@ -211,7 +211,7 @@ public final class Krandom {
     }
 
     /**
-     * Returns a marital status such as {@code Married} or {@code Dissolved partnership}.
+     * Returns a marital status such as {@code Married} or {@code Dissolved Partnership}.
      *
      * @return a locale-aware marital status
      */

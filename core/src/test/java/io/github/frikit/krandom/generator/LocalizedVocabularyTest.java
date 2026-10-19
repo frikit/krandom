@@ -166,8 +166,8 @@ class LocalizedVocabularyTest {
             "Separated",
             "Domestic Partnership",
             "Annulled",
-            "Dissolved partnership",
-            "Surviving partner");
+            "Dissolved Partnership",
+            "Surviving Partner");
     private static final List<String> ADDRESS_TYPES =
             List.of("Residential", "Commercial", "Industrial", "Agricultural", "Institutional", "Mixed-use");
     private static final List<String> ADDRESS_PURPOSES = List.of(

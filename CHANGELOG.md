@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- Marital statuses add `Annulled`, `Dissolved partnership` and `Surviving partner` in all 35
+- Marital statuses add `Annulled`, `Dissolved Partnership` and `Surviving Partner` in all 35
   locales, so each locale lists nine statuses in the same order. Where a country has a legal term,
   the entry uses it, for example `Ehe aufgehoben`, `Aufgehobene Lebenspartnerschaft` and
   `Durch Tod aufgelöste Lebenspartnerschaft` in German. Seeded marital-status output changes.
