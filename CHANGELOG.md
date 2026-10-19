@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.8.0] - 2026-10-19
+
 ### Added
 
 - `CountryGenerator.generateCodes()` and `currentCountryCodes()` return a `CountryCodes` record
@@ -869,7 +871,8 @@ Condensed summary of all pre-1.0.0 development (≈Feb–Apr 2026), originally t
 ### Removed
 - Kotlin and Scala API modules (implementation surface kept focused); deprecated APIs and deprecated Java locale usage.
 
-[Unreleased]: https://github.com/frikit/krandom/compare/v2.7.0...HEAD
+[Unreleased]: https://github.com/frikit/krandom/compare/v2.8.0...HEAD
+[2.8.0]: https://github.com/frikit/krandom/compare/v2.7.0...v2.8.0
 [2.7.0]: https://github.com/frikit/krandom/compare/v2.6.0...v2.7.0
 [2.6.0]: https://github.com/frikit/krandom/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/frikit/krandom/compare/v2.4.0...v2.5.0
