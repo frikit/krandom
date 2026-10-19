@@ -28,8 +28,8 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.frikit:krandom-core:2.8.0")
-    implementation("io.github.frikit:krandom-jackson:2.8.0")
+    implementation("io.github.frikit:krandom-core:2.9.0")
+    implementation("io.github.frikit:krandom-jackson:2.9.0")
 }
 ```
 

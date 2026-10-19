@@ -10,7 +10,7 @@ permalink: /guides/junit-extension/
 when a test fails, so a failure caused by random data is always reproducible.
 
 ```kotlin
-testImplementation("io.github.frikit:krandom-junit:2.8.0")
+testImplementation("io.github.frikit:krandom-junit:2.9.0")
 ```
 
 `krandom-junit` is built and tested against JUnit 6 (Jupiter 6.1) and exposes `junit-jupiter-api`

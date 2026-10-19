@@ -18,8 +18,8 @@ are tracked in the [`product roadmap`](../development/market-leadership-roadmap.
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.frikit:krandom-core:2.8.0")
-    // optional: testImplementation("io.github.frikit:krandom-junit:2.8.0")
+    testImplementation("io.github.frikit:krandom-core:2.9.0")
+    // optional: testImplementation("io.github.frikit:krandom-junit:2.9.0")
 }
 ```
 
