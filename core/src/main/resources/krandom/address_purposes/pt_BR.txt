@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+Endereço residencial
+Endereço comercial
+Endereço de cobrança
+Endereço de entrega
+Endereço para correspondência
+Endereço temporário
+Endereço anterior

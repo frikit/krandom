@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+Домашний адрес
+Рабочий адрес
+Платёжный адрес
+Адрес доставки
+Почтовый адрес
+Временный адрес
+Прежний адрес

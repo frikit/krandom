@@ -74,6 +74,22 @@ public final class LocationGenerators {
         return new StreetAddressGenerator(withLocale(locale));
     }
 
+    public AddressTypeGenerator addressType() {
+        return new AddressTypeGenerator(config);
+    }
+
+    public AddressTypeGenerator addressType(Locale locale) {
+        return new AddressTypeGenerator(withLocale(locale));
+    }
+
+    public AddressPurposeGenerator addressPurpose() {
+        return new AddressPurposeGenerator(config);
+    }
+
+    public AddressPurposeGenerator addressPurpose(Locale locale) {
+        return new AddressPurposeGenerator(withLocale(locale));
+    }
+
     public AddressInfoGenerator addressInfo() {
         return new AddressInfoGenerator(config);
     }

@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+Alamat rumah
+Alamat kantor
+Alamat penagihan
+Alamat pengiriman
+Alamat surat-menyurat
+Alamat sementara
+Alamat sebelumnya

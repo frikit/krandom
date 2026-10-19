@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+자택 주소
+직장 주소
+청구지 주소
+배송지 주소
+우편 주소
+임시 주소
+이전 주소

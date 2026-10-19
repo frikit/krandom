@@ -17,6 +17,8 @@ import io.github.frikit.krandom.generator.file.DirPathGenerator;
 import io.github.frikit.krandom.generator.finance.BankAccountGenerator;
 import io.github.frikit.krandom.generator.finance.BankNameGenerator;
 import io.github.frikit.krandom.generator.finance.BankTypeGenerator;
+import io.github.frikit.krandom.generator.location.AddressPurposeGenerator;
+import io.github.frikit.krandom.generator.location.AddressTypeGenerator;
 import io.github.frikit.krandom.generator.text.TextGenerator;
 import io.github.frikit.krandom.generator.user.CompanyBuzzwordGenerator;
 import io.github.frikit.krandom.generator.user.CompanyCatchPhraseGenerator;
@@ -67,6 +69,8 @@ class ScopedVocabularyRegistryTest {
                 new Concept(Vocabulary.POSITION, PositionGenerator::new),
                 new Concept(Vocabulary.EDUCATIONAL_ATTAINMENT, EducationalAttainmentGenerator::new),
                 new Concept(Vocabulary.MARITAL_STATUS, MaritalStatusGenerator::new),
+                new Concept(Vocabulary.ADDRESS_TYPE, AddressTypeGenerator::new),
+                new Concept(Vocabulary.ADDRESS_PURPOSE, AddressPurposeGenerator::new),
                 new Concept(Vocabulary.JOB_TYPE, JobTypeGenerator::new),
                 new Concept(Vocabulary.COMPANY_NAME, CompanyNameGenerator::new),
                 new Concept(Vocabulary.COMPANY_BUZZWORD, CompanyBuzzwordGenerator::new),

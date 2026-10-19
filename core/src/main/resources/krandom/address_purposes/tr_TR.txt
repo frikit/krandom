@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+Ev adresi
+İş adresi
+Fatura adresi
+Teslimat adresi
+Posta adresi
+Geçici adres
+Önceki adres

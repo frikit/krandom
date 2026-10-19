@@ -274,6 +274,24 @@ public final class Krandom {
     }
 
     /**
+     * Returns an address type by property use, such as {@code "Residential"} or {@code "Commercial"}.
+     *
+     * @return a locale-aware address type
+     */
+    public String addressType() {
+        return kind("addressType", Generators::ofAddressType).generate();
+    }
+
+    /**
+     * Returns what an address is used for, such as {@code "Home address"} or {@code "Billing address"}.
+     *
+     * @return a locale-aware address purpose
+     */
+    public String addressPurpose() {
+        return kind("addressPurpose", Generators::ofAddressPurpose).generate();
+    }
+
+    /**
      * Returns a country name.
      *
      * @return a locale-aware country name

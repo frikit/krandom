@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+Woonadres
+Werkadres
+Factuuradres
+Afleveradres
+Postadres
+Tijdelijk adres
+Vorig adres

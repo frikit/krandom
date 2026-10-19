@@ -1,0 +1,7 @@
+# Address types by property use, one per line. Line N is the same type in every locale.
+ที่อยู่อาศัย
+พาณิชยกรรม
+อุตสาหกรรม
+เกษตรกรรม
+สถาบันราชการ
+ใช้ประโยชน์แบบผสม

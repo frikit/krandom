@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+Домашен адрес
+Служебен адрес
+Адрес за фактуриране
+Адрес за доставка
+Адрес за кореспонденция
+Временен адрес
+Предишен адрес

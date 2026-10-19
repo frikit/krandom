@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+Dirección particular
+Dirección del trabajo
+Dirección de facturación
+Dirección de envío
+Dirección postal
+Dirección temporal
+Dirección anterior

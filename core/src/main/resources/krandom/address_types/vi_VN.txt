@@ -1,0 +1,7 @@
+# Address types by property use, one per line. Line N is the same type in every locale.
+Nhà ở
+Thương mại
+Công nghiệp
+Nông nghiệp
+Công trình công cộng
+Sử dụng hỗn hợp

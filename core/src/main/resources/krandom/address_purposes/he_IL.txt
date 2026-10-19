@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+כתובת מגורים
+כתובת עבודה
+כתובת לחיוב
+כתובת למשלוח
+מען למכתבים
+כתובת זמנית
+כתובת קודמת

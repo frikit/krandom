@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+家庭住址
+工作地址
+账单地址
+收货地址
+通信地址
+临时地址
+旧地址

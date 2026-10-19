@@ -12,6 +12,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   with the alpha-2, alpha-3 and numeric ISO 3166-1 codes of one country, so the three always
   belong together. The `Krandom` session adds `countryCode()`, `countryCodeAlpha3()` and
   `countryCodeNumeric()`, each with its own stream.
+- Address types and address purposes in all 35 locales. `Generators.ofAddressType()` gives the
+  kind of property at an address (residential, commercial, industrial, agricultural, institutional
+  or mixed-use; `Wohnen` in German), and `Generators.ofAddressPurpose()` what an address is used
+  for (home, work, billing, shipping, mailing, temporary or previous; `Rechnungsadresse` in
+  German). British and Australian English use their own wording ("Delivery address",
+  "Correspondence address", "Postal address"). Both are also on `Generators.location()` and the
+  `Krandom` session (`addressType()`, `addressPurpose()`), and custom locales register through
+  `Vocabulary.ADDRESS_TYPE` and `Vocabulary.ADDRESS_PURPOSE`.
 
 ### Changed
 

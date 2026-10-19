@@ -31,6 +31,10 @@ import io.github.frikit.krandom.generator.finance.BankTypeDataProvider;
 import io.github.frikit.krandom.generator.finance.BankTypeDataRegistry;
 import io.github.frikit.krandom.generator.finance.FinancialTermDataProvider;
 import io.github.frikit.krandom.generator.finance.FinancialTermDataRegistry;
+import io.github.frikit.krandom.generator.location.AddressPurposeDataProvider;
+import io.github.frikit.krandom.generator.location.AddressPurposeDataRegistry;
+import io.github.frikit.krandom.generator.location.AddressTypeDataProvider;
+import io.github.frikit.krandom.generator.location.AddressTypeDataRegistry;
 import io.github.frikit.krandom.generator.location.CityDataProvider;
 import io.github.frikit.krandom.generator.location.CityDataRegistry;
 import io.github.frikit.krandom.generator.location.CountryDataProvider;
@@ -221,6 +225,22 @@ public final class Vocabulary<P extends LocaleDataProvider> {
                 array("streetTypesShort", provider.getStreetTypesShort());
                 array("streetTypesLong", provider.getStreetTypesLong());
             });
+
+    /** Address types by property use: residential, commercial, and so on. */
+    public static final Vocabulary<AddressTypeDataProvider> ADDRESS_TYPE = builtIn(
+            "addressType",
+            AddressTypeDataProvider.class,
+            AddressTypeDataRegistry::forLocale,
+            AddressTypeDataRegistry::registeredKeys,
+            provider -> textValues("addressTypes", provider.getAddressTypes()));
+
+    /** Address purposes, what an address is used for: home, billing, shipping, and so on. */
+    public static final Vocabulary<AddressPurposeDataProvider> ADDRESS_PURPOSE = builtIn(
+            "addressPurpose",
+            AddressPurposeDataProvider.class,
+            AddressPurposeDataRegistry::forLocale,
+            AddressPurposeDataRegistry::registeredKeys,
+            provider -> textValues("addressPurposes", provider.getAddressPurposes()));
 
     /**
      * National identity-number formats. Unlike every other vocabulary, a registration also serves
@@ -497,6 +517,8 @@ public final class Vocabulary<P extends LocaleDataProvider> {
             STATE,
             COUNTRY,
             STREET_ADDRESS,
+            ADDRESS_TYPE,
+            ADDRESS_PURPOSE,
             NATIONAL_ID,
             WEATHER,
             MEASUREMENT,

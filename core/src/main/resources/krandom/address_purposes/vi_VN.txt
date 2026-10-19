@@ -1,0 +1,8 @@
+# Address purposes, one per line. Line N is the same purpose in every locale.
+Địa chỉ nhà riêng
+Địa chỉ nơi làm việc
+Địa chỉ thanh toán
+Địa chỉ giao hàng
+Địa chỉ gửi thư
+Địa chỉ tạm trú
+Địa chỉ cũ

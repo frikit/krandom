@@ -41,7 +41,7 @@ class VocabularyTest {
     void builtInVocabulariesAreListedOnce() {
         List<Vocabulary<?>> all = Vocabulary.all();
 
-        assertEquals(39, all.size());
+        assertEquals(41, all.size());
         Set<String> names = new HashSet<>();
         for (Vocabulary<?> vocabulary : all) {
             assertTrue(names.add(vocabulary.name()), "duplicate vocabulary name " + vocabulary.name());
