@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.location.AddressPurposeDataRegistry;
 import io.github.frikit.krandom.generator.location.AddressTypeDataRegistry;
+import io.github.frikit.krandom.generator.location.CountryGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import java.time.Clock;
 import java.time.Instant;
@@ -64,6 +65,7 @@ class KrandomTest {
                 fake.countryCode(),
                 fake.countryCodeAlpha3(),
                 fake.countryCodeNumeric(),
+                fake.countryCodes(),
                 fake.today(),
                 fake.dateBetween(TODAY.minusYears(1), TODAY),
                 fake.intBetween(1, 1_000_000),
@@ -127,17 +129,24 @@ class KrandomTest {
     }
 
     @Test
-    @DisplayName("country codes come in the three ISO 3166-1 formats, each from its own stream")
+    @DisplayName("each country-code method draws from its own stream, and countryCodes keeps one country's codes")
     void countryCodesInEachFormat() {
         Krandom fake = uk("fixtures");
+        CountryGenerator alpha2 = Generators.ofCountry(fake.streamConfig("krandom.countryCode"));
+        CountryGenerator alpha3 = Generators.ofCountry(fake.streamConfig("krandom.countryCodeAlpha3"));
+        CountryGenerator numeric = Generators.ofCountry(fake.streamConfig("krandom.countryCodeNumeric"));
+        CountryGenerator codes = Generators.ofCountry(fake.streamConfig("krandom.countryCodes"));
 
+        // Interleaved, so a generator shared between two methods would shift the other method's values.
+        for (int i = 0; i < 5; i++) {
+            assertEquals(alpha2.generateCode(), fake.countryCode());
+            assertEquals(alpha3.generateCodeAlpha3(), fake.countryCodeAlpha3());
+            assertEquals(numeric.generateCodeNumeric(), fake.countryCodeNumeric());
+            assertEquals(codes.generateCodes(), fake.countryCodes());
+        }
         assertTrue(fake.countryCode().matches("[A-Z]{2}"));
         assertTrue(fake.countryCodeAlpha3().matches("[A-Z]{3}"));
         assertTrue(fake.countryCodeNumeric().matches("\\d{3}"));
-        assertEquals(
-                Generators.ofCountry(fake.streamConfig("krandom.countryCodeAlpha3"))
-                        .generateCodeAlpha3(),
-                uk("fixtures").countryCodeAlpha3());
     }
 
     @Test

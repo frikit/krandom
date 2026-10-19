@@ -11,7 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `CountryGenerator.generateCodes()` and `currentCountryCodes()` return a `CountryCodes` record
   with the alpha-2, alpha-3 and numeric ISO 3166-1 codes of one country, so the three always
   belong together. The `Krandom` session adds `countryCode()`, `countryCodeAlpha3()` and
-  `countryCodeNumeric()`, each with its own stream.
+  `countryCodeNumeric()`, each drawn independently from its own stream, and `countryCodes()` for
+  the three codes of one country.
 - Address types and address purposes in all 35 locales. `Generators.ofAddressType()` gives the
   kind of property at an address (residential, commercial, industrial, agricultural, institutional
   or mixed-use; `Wohnen` in German), and `Generators.ofAddressPurpose()` what an address is used

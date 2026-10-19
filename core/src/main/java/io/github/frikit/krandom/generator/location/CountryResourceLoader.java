@@ -12,9 +12,10 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Loads country name lists from classpath resource files.
+ * Loads country data from classpath resource files: the per-locale country-name lists and the
+ * ISO 3166-1 code table.
  *
- * <p>Each resource file is a plain UTF-8 text file with one country name per line.
+ * <p>Each resource file is a plain UTF-8 text file with one entry per line.
  * Blank lines and lines starting with {@code #} are ignored.
  */
 final class CountryResourceLoader {
@@ -24,11 +25,11 @@ final class CountryResourceLoader {
     }
 
     /**
-     * Loads country names from a classpath resource file.
+     * Loads the entries of a classpath resource file.
      *
      * @param resourcePath path relative to the classpath root
      *                     (e.g. {@code "krandom/countries/en_US_countries.txt"})
-     * @return non-empty array of country name strings
+     * @return the file's entries, one per non-comment line
      * @throws IllegalStateException if the resource cannot be found or read
      */
     static String[] load(String resourcePath) {
