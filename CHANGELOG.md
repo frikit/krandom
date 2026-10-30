@@ -22,6 +22,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `.com`. Seeded output changes for objects with these fields.
 - A unique `domain` field now numbers a subdomain (`n1.acme.test`). It used to append to the
   top-level domain (`acme.test1`), which left the reserved space.
+- `AvatarUrlGenerator` no longer writes the size in the digits of the JVM's default locale, which
+  gave `size=٢٥٦` on an Arabic JVM.
+- `SqlTimeGenerator` now generates a time of day, to the second, so a seeded `java.sql.Time` reads the
+  same whichever of the JDK's time zones is the JVM's default. It used to change with the zone.
+  Seeded output changes.
 
 ## [2.9.0] - 2026-10-19
 

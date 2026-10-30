@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.time.LocalDate;
@@ -22,7 +21,6 @@ class LegacyDateGeneratorsTest {
 
     private static final LocalDate MIN = LocalDate.of(2020, 1, 1);
     private static final LocalDate MAX = LocalDate.of(2020, 1, 3);
-    private static final long MILLIS_PER_DAY = 24L * 60L * 60L * 1000L;
 
     @Test
     @DisplayName("default constructors generate non-null values")
@@ -105,10 +103,6 @@ class LegacyDateGeneratorsTest {
         SqlTimeGenerator b =
                 new SqlTimeGenerator(GeneratorConfig.builder().seed(42L).build());
 
-        long firstA = a.generate().getTime();
-        long firstB = b.generate().getTime();
-        assertEquals(firstA, firstB);
-        assertTrue(firstA >= 0);
-        assertTrue(firstA < MILLIS_PER_DAY);
+        assertEquals(a.generate(), b.generate());
     }
 }

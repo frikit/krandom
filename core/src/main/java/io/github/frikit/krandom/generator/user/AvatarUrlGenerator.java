@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
@@ -65,9 +66,9 @@ public final class AvatarUrlGenerator implements Generator<String> {
         String seed = encode(username);
         int provider = random.nextInt(PROVIDERS.length);
         return switch (provider) {
-            case 0 -> String.format(PROVIDERS[0], seed);
-            case 1 -> String.format(PROVIDERS[1], seed, size, size);
-            default -> String.format(PROVIDERS[2], seed, size);
+            case 0 -> String.format(Locale.ROOT, PROVIDERS[0], seed);
+            case 1 -> String.format(Locale.ROOT, PROVIDERS[1], seed, size, size);
+            default -> String.format(Locale.ROOT, PROVIDERS[2], seed, size);
         };
     }
 }
