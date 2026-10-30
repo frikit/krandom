@@ -27,6 +27,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `SqlTimeGenerator` now generates a time of day, to the second, so a seeded `java.sql.Time` reads the
   same whichever of the JDK's time zones is the JVM's default. It used to change with the zone.
   Seeded output changes.
+- `SchemaParser` now applies a field's constraints together, so a generated value meets all of them,
+  and a combination with no value is rejected with its schema path. Seeded output changes for the
+  schemas below.
+- A `pattern` or `format` no longer ignores `minLength` and `maxLength`. `^A{8}$` with `maxLength` 3
+  generated `AAAAAAAA`, and is now rejected. Values are drawn again until one fits, up to 10,000 times
+  each. This samples rather than analyses, so a combination that rarely fits can also be rejected,
+  while parsing or on a later record. `RegexGenerator` repeats `*`, `+` and `{n,}` at most 10 times, so
+  `^[a-z]+$` with `minLength` 20 is rejected too, where it used to generate values that were too
+  short. `^[a-z]{20,40}$` works.
+- A `const` or `enum` value must now meet the field's `type`, length bounds, `pattern`, numeric bounds,
+  `minItems`, `maxItems`, `items` and `properties`. An `enum` keeps the values that do: `[a, bbbb]`
+  with `maxLength` 1 now generates only `a`. A `const` that breaks one is rejected, including a `const`
+  missing from the `enum` beside it, which used to win. `format` is not checked on these values,
+  because it is an annotation in Draft 2020-12.
+- Numeric bounds now intersect. `minimum` 100 with `exclusiveMinimum` 0 used to draw as low as 1.
+  OpenAPI 3.0's `exclusiveMinimum` and `exclusiveMaximum` flags now work: `maximum` 1 with
+  `exclusiveMaximum: true` used to draw up to 1,000,000 on a `number`, and `exclusiveMinimum: false`
+  used to exclude the minimum on an `integer`.
+- An `integer` now rounds a fractional bound inward. `minimum` 1.5 used to allow 1, and a bound beyond
+  the range of a `long` used to wrap around or saturate.
+- These are no longer rejected or left to fail while generating: `minLength` 0, `maxLength` 0, which
+  generates the empty string, a lone `minimum` or `maximum` beyond the default range, such as `minimum`
+  2000000 on a `number`, and a lone `minItems` above the default array size or `maxItems` below it.
+  `minItems` above `maxItems` now fails while parsing.
+- A schema with no `type` now honours `pattern`, `format` and length bounds. It used to generate any
+  text.
+- `nullable: true` no longer adds `null` to a `const` or `enum` that leaves it out, and `type: string`
+  now holds for a name that matches a provider of another type: `datetimeTimestamp` generated a `Long`
+  and now generates its digits as a string.
+- A `number` now stays within a bound that a double cannot hold. `minimum` 9007199254740993 used to
+  allow 9007199254740992. A range wider than a double holds, such as `minimum` -1.7976931348623157E308
+  with `maximum` 1.7976931348623157E308, now generates values, where it used to fail while generating.
+- `format: idn-email` now generates emails, which are all valid for it. It used to generate a random
+  string.
 
 ## [2.9.0] - 2026-10-19
 

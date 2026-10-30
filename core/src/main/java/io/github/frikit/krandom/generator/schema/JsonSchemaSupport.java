@@ -428,7 +428,7 @@ final class JsonSchemaSupport {
         return (Class<?>) ((ParameterizedType) type).getRawType();
     }
 
-    private static @org.jspecify.annotations.Nullable Object normalizeStructuredValue(
+    static @org.jspecify.annotations.Nullable Object normalizeStructuredValue(
             @org.jspecify.annotations.Nullable Object value) {
         return normalizeStructuredValue(value, "");
     }

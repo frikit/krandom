@@ -18,6 +18,8 @@ import io.github.frikit.krandom.generator.network.HostnameGenerator;
 import io.github.frikit.krandom.generator.network.IPv4Generator;
 import io.github.frikit.krandom.generator.network.IPv6Generator;
 import io.github.frikit.krandom.generator.network.URLGenerator;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -26,8 +28,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -37,10 +41,11 @@ import org.jspecify.annotations.Nullable;
  * <p>Supports the following JSON Schema keywords:
  * <ul>
  *   <li>{@code type} — string, integer, number, boolean, array, object, null</li>
- *   <li>{@code format} — date, date-time, time, email, uri, uuid, ipv4, ipv6, hostname</li>
+ *   <li>{@code format} — date, date-time, time, email, idn-email, uri, uuid, ipv4, ipv6, hostname</li>
  *   <li>{@code enum} — random selection from enumerated values</li>
  *   <li>{@code const} — constant value</li>
- *   <li>{@code minimum}/{@code maximum} — bounded numeric generation</li>
+ *   <li>{@code minimum}/{@code maximum}/{@code exclusiveMinimum}/{@code exclusiveMaximum} — bounded
+ *       numeric generation, including OpenAPI 3.0's boolean exclusive flags</li>
  *   <li>{@code minLength}/{@code maxLength} — bounded string length</li>
  *   <li>{@code pattern} — regex-based string generation</li>
  *   <li>{@code items} — array element schema</li>
@@ -55,6 +60,15 @@ import org.jspecify.annotations.Nullable;
  * {@code additionalProperties}. References and schema composition ({@code $ref}, {@code allOf},
  * {@code anyOf}, {@code oneOf}, and related conditional keywords) are rejected with a schema path
  * because this parser has no resolver or composition semantics.
+ *
+ * <p>Constraints apply together, and a keyword constrains only values of its own JSON type. A
+ * {@code const} or {@code enum} value must meet the other constraints, and an {@code enum} keeps only
+ * the values that do; {@code format} is not one of them, because it is an annotation in Draft 2020-12.
+ * Overlapping numeric bounds intersect. A {@code pattern} or {@code format} value is drawn again until
+ * it fits {@code minLength} and {@code maxLength}, up to a fixed number of attempts. A combination that
+ * leaves no value is rejected with its schema path, while parsing where that can be told. A combination
+ * of length bounds with a {@code pattern} or {@code format} is judged by sampling rather than analysis,
+ * so one that rarely fits can also be rejected, and can fail on a later record.
  *
  * <p>Field names are matched against krandom's semantic resolver for realistic data.
  * For example, a property named "email" with type "string" will produce email addresses.
@@ -97,6 +111,17 @@ public final class SchemaParser {
 
     private static final Set<String> SUPPORTED_TYPES =
             Set.of("string", "integer", "number", "boolean", "array", "object", "null");
+
+    /** How many generated values may miss the length bounds before the record is given up on. */
+    private static final int LENGTH_ATTEMPTS = 10_000;
+
+    /** The same limit while parsing. It is lower, so a combination that passes rarely runs out later. */
+    private static final int PARSING_LENGTH_ATTEMPTS = 1_000;
+
+    private static final BigDecimal LONG_MIN = BigDecimal.valueOf(Long.MIN_VALUE);
+    private static final BigDecimal LONG_MAX = BigDecimal.valueOf(Long.MAX_VALUE);
+
+    private static final double NUMBER_DEFAULT_LIMIT = 1_000_000.0;
 
     private SchemaParser() {}
 
@@ -148,9 +173,11 @@ public final class SchemaParser {
 
             @SuppressWarnings("unchecked")
             Map<String, Object> fieldSchema = (Map<String, Object>) fieldSchemaRaw;
-            boolean nullable = Boolean.TRUE.equals(fieldSchema.get("nullable"));
+            // nullable widens the type, but a const or enum can still leave null out.
+            boolean nullable = Boolean.TRUE.equals(fieldSchema.get("nullable")) && satisfies(null, fieldSchema);
 
-            SchemaValueProvider provider = resolveProvider(fieldName, fieldSchema, field, config);
+            SchemaValueProvider provider =
+                    resolveProvider(fieldName, "$.properties." + fieldName, fieldSchema, field, config);
             if (nullable) {
                 SchemaValueProvider inner = provider;
                 provider = ctx -> ctx.random().nextBoolean() ? null : inner.generate(ctx);
@@ -263,17 +290,17 @@ public final class SchemaParser {
 
     @SuppressWarnings("unchecked")
     private static SchemaValueProvider resolveProvider(
-            String fieldName, Map<String, Object> fieldSchema, Field field, GeneratorConfig config) {
-        // const takes absolute priority
+            String fieldName, String path, Map<String, Object> fieldSchema, Field field, GeneratorConfig config) {
+        // const and enum name their values outright, but the other constraints still apply to them.
         if (fieldSchema.containsKey("const")) {
             Object constValue = fieldSchema.get("const");
+            allowedValues(Collections.singletonList(constValue), fieldSchema, path);
             return ctx -> constValue;
         }
 
         // enum: random selection
         if (fieldSchema.containsKey("enum")) {
-            List<?> enumValues = (List<?>) fieldSchema.get("enum");
-            List<Object> values = Collections.unmodifiableList(new ArrayList<>(enumValues));
+            List<?> values = allowedValues((List<?>) fieldSchema.get("enum"), fieldSchema, path);
             return ctx -> values.get(ctx.random().nextInt(values.size()));
         }
 
@@ -281,42 +308,163 @@ public final class SchemaParser {
         String format = stringOrNull(fieldSchema.get("format"));
 
         return switch (schemaType) {
-            case "string" -> resolveString(fieldName, fieldSchema, format, field, config);
-            case "integer" -> resolveInteger(fieldSchema);
-            case "number" -> resolveNumber(fieldSchema);
+            case "integer" -> resolveInteger(fieldSchema, path);
+            case "number" -> resolveNumber(fieldSchema, path);
             case "boolean" -> ctx -> ctx.random().nextBoolean();
-            case "array" -> resolveArray(fieldName, fieldSchema, field, config);
-            case "object" -> resolveNestedObject(fieldSchema, field, config);
+            case "array" -> resolveArray(fieldName, path, fieldSchema, field, config);
+            case "object" -> resolveNestedObject(path, fieldSchema, field, config);
             case "null" -> ctx -> null;
-            default -> resolveUntyped(fieldName, field, config);
+            // A schema without a type also generates a string, so string constraints apply to it too.
+            default -> resolveString(fieldName, path, fieldSchema, format, field, config);
         };
+    }
+
+    private static List<?> allowedValues(List<?> values, Map<?, ?> schema, String path) {
+        List<?> allowed;
+        try {
+            allowed = values.stream().filter(value -> satisfies(value, schema)).toList();
+        } catch (IllegalArgumentException exception) {
+            // A pattern that is not a regular expression, or a number that JSON cannot write, such as NaN.
+            throw new IllegalArgumentException(
+                    "JSON Schema const or enum cannot be checked at " + path + ": " + exception.getMessage(),
+                    exception);
+        }
+        if (allowed.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "JSON Schema const or enum has no value that meets the other constraints at " + path + ": "
+                            + schema);
+        }
+        return allowed;
+    }
+
+    /**
+     * Whether an explicit value meets a schema. A value is judged as it is written, so an Optional counts
+     * as its content and a set or array as a list. A keyword constrains only values of its own JSON type.
+     */
+    private static boolean satisfies(@Nullable Object explicit, Map<?, ?> schema) {
+        Object value = JsonSchemaSupport.normalizeStructuredValue(explicit);
+        if (!hasDeclaredType(value, schema)
+                || (schema.containsKey("const") && !sameValue(value, schema.get("const")))
+                || (schema.get("enum") instanceof List<?> values
+                        && values.stream().noneMatch(other -> sameValue(value, other)))) {
+            return false;
+        }
+        if (value instanceof Number number) {
+            return withinNumericBounds(number, schema);
+        }
+        if (value instanceof List<?> list) {
+            return list.size() >= intOrDefault(schema.get("minItems"), 0)
+                    && list.size() <= intOrDefault(schema.get("maxItems"), Integer.MAX_VALUE)
+                    && (!(schema.get("items") instanceof Map<?, ?> items)
+                            || list.stream().allMatch(item -> satisfies(item, items)));
+        }
+        if (value instanceof Map<?, ?> object && schema.get("properties") instanceof Map<?, ?> properties) {
+            return properties.entrySet().stream()
+                    .allMatch(property -> !object.containsKey(property.getKey())
+                            || !(property.getValue() instanceof Map<?, ?> propertySchema)
+                            || satisfies(object.get(property.getKey()), propertySchema));
+        }
+        // A string, or anything else written as one, such as a date. A pattern searches that text; it
+        // need not match all of it.
+        return value == null
+                || !"string".equals(JsonSchemaSupport.infer(value).get("type"))
+                || (withinLengthBounds(value.toString(), schema)
+                        && (!(schema.get("pattern") instanceof String pattern)
+                                || Pattern.compile(pattern)
+                                        .matcher(value.toString())
+                                        .find()));
+    }
+
+    private static boolean hasDeclaredType(@Nullable Object value, Map<?, ?> schema) {
+        Object declared = schema.get("type");
+        if (declared == null) {
+            return true;
+        }
+        List<?> types = declared instanceof List<?> list ? list : List.of(declared);
+        if (value == null) {
+            return types.contains("null") || Boolean.TRUE.equals(schema.get("nullable"));
+        }
+        if (value instanceof Number number) {
+            // JSON has one number type: 5.0 is an integer.
+            return types.contains("number")
+                    || (types.contains("integer")
+                            && decimal(number).stripTrailingZeros().scale() <= 0);
+        }
+        return types.contains(JsonSchemaSupport.infer(value).get("type"));
+    }
+
+    private static boolean sameValue(@Nullable Object value, @Nullable Object explicit) {
+        Object other = JsonSchemaSupport.normalizeStructuredValue(explicit);
+        return value instanceof Number number && other instanceof Number otherNumber
+                ? decimal(number).compareTo(decimal(otherNumber)) == 0
+                : Objects.equals(value, other);
+    }
+
+    private static boolean withinNumericBounds(Number number, Map<?, ?> schema) {
+        BigDecimal value = decimal(number);
+        return (!(schema.get("minimum") instanceof Number minimum) || value.compareTo(decimal(minimum)) >= 0)
+                && (!(schema.get("maximum") instanceof Number maximum) || value.compareTo(decimal(maximum)) <= 0)
+                && (!(exclusiveBound(schema, "exclusiveMinimum", "minimum") instanceof Number exclusiveMinimum)
+                        || value.compareTo(decimal(exclusiveMinimum)) > 0)
+                && (!(exclusiveBound(schema, "exclusiveMaximum", "maximum") instanceof Number exclusiveMaximum)
+                        || value.compareTo(decimal(exclusiveMaximum)) < 0);
+    }
+
+    /** An exclusive bound, which OpenAPI 3.0 writes as a boolean flag on the inclusive keyword. */
+    private static @Nullable Object exclusiveBound(Map<?, ?> schema, String exclusiveKeyword, String inclusiveKeyword) {
+        Object bound = schema.get(exclusiveKeyword);
+        return Boolean.TRUE.equals(bound) ? schema.get(inclusiveKeyword) : bound;
+    }
+
+    private static BigDecimal decimal(Number number) {
+        return new BigDecimal(number.toString());
+    }
+
+    private static boolean withinLengthBounds(String text, Map<?, ?> schema) {
+        // JSON Schema counts characters, not UTF-16 units.
+        int length = text.codePointCount(0, text.length());
+        return length >= intOrDefault(schema.get("minLength"), 0)
+                && length <= intOrDefault(schema.get("maxLength"), Integer.MAX_VALUE);
+    }
+
+    private static boolean declaresLength(Map<?, ?> schema) {
+        return schema.containsKey("minLength") || schema.containsKey("maxLength");
     }
 
     private static SchemaValueProvider resolveString(
             String fieldName,
+            String path,
             Map<String, Object> schema,
             @Nullable String format,
             Field field,
             GeneratorConfig config) {
+        if (intOrDefault(schema.get("minLength"), 0) > intOrDefault(schema.get("maxLength"), Integer.MAX_VALUE)) {
+            throw emptyRange("string length", path, schema);
+        }
+
         // Explicit constraints win over field-name semantics: pattern first, then format, and
         // semantic values only when no length bounds are declared.
         String pattern = stringOrNull(schema.get("pattern"));
         if (pattern != null) {
             new RegexGenerator(pattern); // validate the pattern while parsing
-            return ctx -> matching(pattern, ctx.random().nextLong());
+            return fittingLength(ctx -> matching(pattern, ctx.random().nextLong()), schema, path, config);
         }
 
         if (format != null) {
             SchemaValueProvider formatProvider = resolveFormat(format, config);
             if (formatProvider != null) {
-                return formatProvider;
+                return fittingLength(formatProvider, schema, path, config);
             }
         }
 
-        if (!schema.containsKey("minLength") && !schema.containsKey("maxLength")) {
+        if (!declaresLength(schema)) {
             SchemaValueProvider semantic = trySemanticResolve(fieldName, field);
             if (semantic != null) {
-                return semantic;
+                // A semantic value can have its own type, such as a numeric timestamp; a declared type wins.
+                return schema.containsKey("type")
+                                && !"string".equals(semantic.jsonSchema().get("type"))
+                        ? ctx -> String.valueOf(semantic.generate(ctx))
+                        : semantic;
             }
         }
 
@@ -327,9 +475,42 @@ public final class SchemaParser {
                 schema.get("maxLength"),
                 Math.max(config.getMaxStringLength(), intOrDefault(schema.get("minLength"), 0)));
         int minLength = intOrDefault(schema.get("minLength"), Math.min(config.getMinStringLength(), maxLength));
-        // Validate the bounds while parsing; values are built from the field's stream.
-        StringGenerator.builder().minLength(minLength).maxLength(maxLength).build();
-        return text(minLength, maxLength);
+        // Generated text has at least one character, so only maxLength 0 needs the empty string.
+        return maxLength == 0 ? ctx -> "" : text(Math.max(minLength, 1), maxLength);
+    }
+
+    /**
+     * Draws candidates until one fits the declared length bounds. Nothing analyses a pattern or format
+     * for its possible lengths, so the first search runs here, to fail while parsing. Candidates that
+     * draw from the context get a fixed seed, which gives them the same verdict on every run.
+     */
+    private static SchemaValueProvider fittingLength(
+            SchemaValueProvider candidates, Map<String, Object> schema, String path, GeneratorConfig config) {
+        if (!declaresLength(schema)) {
+            return candidates;
+        }
+        // Values keep to the bounds as parsed, even if the caller's map changes later.
+        Map<String, Object> parsed = new LinkedHashMap<>(schema);
+        firstFitting(
+                candidates,
+                new SchemaContext(config.getLocale(), new Random(0L), 0),
+                PARSING_LENGTH_ATTEMPTS,
+                parsed,
+                path);
+        return ctx -> firstFitting(candidates, ctx, LENGTH_ATTEMPTS, parsed, path);
+    }
+
+    private static String firstFitting(
+            SchemaValueProvider candidates, SchemaContext ctx, int attempts, Map<String, Object> schema, String path) {
+        for (int attempt = 0; attempt < attempts; attempt++) {
+            String candidate = String.valueOf(candidates.generate(ctx));
+            if (withinLengthBounds(candidate, schema)) {
+                return candidate;
+            }
+        }
+        throw new IllegalArgumentException("JSON Schema length bounds could not be met at " + path + ": none of "
+                + attempts + " generated values fit " + schema
+                + " (a pattern's *, + and {n,} repeat at most 10 times)");
     }
 
     private static String matching(String pattern, long seed) {
@@ -340,7 +521,8 @@ public final class SchemaParser {
 
     private static @Nullable SchemaValueProvider resolveFormat(String format, GeneratorConfig config) {
         Function<GeneratorConfig, Generator<?>> factory = switch (format) {
-            case "email" -> Generators::ofEmail;
+            // Every email is also a valid idn-email.
+            case "email", "idn-email" -> Generators::ofEmail;
             case "uri", "url" -> URLGenerator::new;
             case "uuid" -> UUIDGenerator::new;
             case "date" -> DateGenerator::new;
@@ -367,26 +549,37 @@ public final class SchemaParser {
                 .toString();
     }
 
-    private static SchemaValueProvider resolveInteger(Map<String, Object> schema) {
-        long min = longOrDefault(schema.get("minimum"), Integer.MIN_VALUE);
-        long max = longOrDefault(schema.get("maximum"), Integer.MAX_VALUE);
+    private static SchemaValueProvider resolveInteger(Map<String, Object> schema, String path) {
+        // Every bound narrows the range, and a fractional one rounds inward: a minimum of 1.5 means 2.
+        BigDecimal lowest = LONG_MIN;
+        BigDecimal highest = LONG_MAX;
+        if (schema.get("minimum") instanceof Number minimum) {
+            lowest = lowest.max(decimal(minimum).setScale(0, RoundingMode.CEILING));
+        }
+        if (exclusiveBound(schema, "exclusiveMinimum", "minimum") instanceof Number exclusive) {
+            lowest = lowest.max(
+                    decimal(exclusive).setScale(0, RoundingMode.FLOOR).add(BigDecimal.ONE));
+        }
+        if (schema.get("maximum") instanceof Number maximum) {
+            highest = highest.min(decimal(maximum).setScale(0, RoundingMode.FLOOR));
+        }
+        if (exclusiveBound(schema, "exclusiveMaximum", "maximum") instanceof Number exclusive) {
+            highest = highest.min(
+                    decimal(exclusive).setScale(0, RoundingMode.CEILING).subtract(BigDecimal.ONE));
+        }
+        if (lowest.compareTo(highest) > 0) {
+            throw emptyRange("integer", path, schema);
+        }
 
-        if (schema.containsKey("exclusiveMinimum")) {
-            long exclusiveMinimum = longOrDefault(schema.get("exclusiveMinimum"), min);
-            if (exclusiveMinimum == Long.MAX_VALUE) {
-                throw emptyRange("integer", schema);
-            }
-            min = exclusiveMinimum + 1;
+        long min = lowest.longValue();
+        long max = highest.longValue();
+        // A missing bound defaults within the declared one: a lone minimum above the int range must not
+        // keep the int maximum.
+        if (!schema.containsKey("maximum") && !schema.containsKey("exclusiveMaximum") && min <= Integer.MAX_VALUE) {
+            max = Integer.MAX_VALUE;
         }
-        if (schema.containsKey("exclusiveMaximum")) {
-            long exclusiveMaximum = longOrDefault(schema.get("exclusiveMaximum"), max);
-            if (exclusiveMaximum == Long.MIN_VALUE) {
-                throw emptyRange("integer", schema);
-            }
-            max = exclusiveMaximum - 1;
-        }
-        if (min > max) {
-            throw emptyRange("integer", schema);
+        if (!schema.containsKey("minimum") && !schema.containsKey("exclusiveMinimum") && max >= Integer.MIN_VALUE) {
+            min = Integer.MIN_VALUE;
         }
 
         long lower = min;
@@ -404,37 +597,89 @@ public final class SchemaParser {
         return ctx -> ctx.random().nextLong();
     }
 
-    private static SchemaValueProvider resolveNumber(Map<String, Object> schema) {
-        double lower = doubleOrDefault(schema.get("minimum"), -1_000_000.0);
-        if (schema.containsKey("exclusiveMinimum")) {
-            lower = Math.nextUp(doubleOrDefault(schema.get("exclusiveMinimum"), lower));
+    private static SchemaValueProvider resolveNumber(Map<String, Object> schema, String path) {
+        // Every bound narrows the range; a side with no bound stays infinite until its default below.
+        double lowest = Double.NEGATIVE_INFINITY;
+        if (schema.get("minimum") instanceof Number minimum) {
+            lowest = doubleAtOrAbove(minimum);
         }
+        if (exclusiveBound(schema, "exclusiveMinimum", "minimum") instanceof Number exclusive) {
+            lowest = Math.max(lowest, Math.nextUp(doubleAtOrBelow(exclusive)));
+        }
+        double highest = Double.POSITIVE_INFINITY;
+        if (schema.get("maximum") instanceof Number maximum) {
+            highest = doubleAtOrBelow(maximum);
+        }
+        if (exclusiveBound(schema, "exclusiveMaximum", "maximum") instanceof Number exclusive) {
+            highest = Math.min(highest, Math.nextDown(doubleAtOrAbove(exclusive)));
+        }
+        // A missing bound defaults within the declared one: a lone minimum above the default range must
+        // not keep the default maximum.
+        if (highest == Double.POSITIVE_INFINITY) {
+            highest = lowest < NUMBER_DEFAULT_LIMIT ? NUMBER_DEFAULT_LIMIT : lowest + 2 * NUMBER_DEFAULT_LIMIT;
+        }
+        if (lowest == Double.NEGATIVE_INFINITY) {
+            lowest = highest > -NUMBER_DEFAULT_LIMIT ? -NUMBER_DEFAULT_LIMIT : highest - 2 * NUMBER_DEFAULT_LIMIT;
+        }
+        // An infinity left here is a bound beyond every double, with no double on its allowed side.
+        if (lowest > highest || lowest == Double.POSITIVE_INFINITY || highest == Double.NEGATIVE_INFINITY) {
+            throw emptyRange("number", path, schema);
+        }
+        double origin = lowest;
+        double limit = highest;
         // Draws are half-open, so an inclusive maximum becomes the next representable double.
-        double upperExclusive = schema.containsKey("exclusiveMaximum")
-                ? doubleOrDefault(schema.get("exclusiveMaximum"), 1_000_000.0)
-                : Math.nextUp(doubleOrDefault(schema.get("maximum"), 1_000_000.0));
-        if (lower >= upperExclusive) {
-            throw emptyRange("number", schema);
+        double bound = Math.nextUp(limit);
+        if (Double.isInfinite(bound - origin)) {
+            // nextDouble(origin, bound) cannot take a range wider than a double holds.
+            return ctx -> {
+                double share = ctx.random().nextDouble();
+                return Math.clamp(origin * (1 - share) + limit * share, origin, limit);
+            };
         }
-        double origin = lower;
-        double bound = upperExclusive;
         return ctx -> ctx.random().nextDouble(origin, bound);
     }
 
-    private static IllegalArgumentException emptyRange(String type, Map<String, Object> schema) {
-        return new IllegalArgumentException("JSON Schema " + type + " range has no values: " + schema);
+    /**
+     * The lowest double that, as written, is not below a bound, since a double may not hold the bound
+     * itself. Beyond the range of a double, this is the infinity on the bound's side.
+     */
+    private static double doubleAtOrAbove(Number bound) {
+        BigDecimal exact = decimal(bound);
+        double nearest = exact.doubleValue();
+        return Double.isFinite(nearest) && decimal(nearest).compareTo(exact) < 0 ? Math.nextUp(nearest) : nearest;
+    }
+
+    /**
+     * The highest double that, as written, is not above a bound, since a double may not hold the bound
+     * itself. Beyond the range of a double, this is the infinity on the bound's side.
+     */
+    private static double doubleAtOrBelow(Number bound) {
+        BigDecimal exact = decimal(bound);
+        double nearest = exact.doubleValue();
+        return Double.isFinite(nearest) && decimal(nearest).compareTo(exact) > 0 ? Math.nextDown(nearest) : nearest;
+    }
+
+    private static IllegalArgumentException emptyRange(String kind, String path, Map<String, Object> schema) {
+        return new IllegalArgumentException("JSON Schema " + kind + " range has no values at " + path + ": " + schema);
     }
 
     @SuppressWarnings("unchecked")
     private static SchemaValueProvider resolveArray(
-            String fieldName, Map<String, Object> schema, Field field, GeneratorConfig config) {
-        int minItems = intOrDefault(schema.get("minItems"), config.getMinCollectionSize());
-        int maxItems = intOrDefault(schema.get("maxItems"), config.getMaxCollectionSize());
+            String fieldName, String path, Map<String, Object> schema, Field field, GeneratorConfig config) {
+        // As with string lengths, a missing bound defaults within the declared one.
+        int maxItems = intOrDefault(
+                schema.get("maxItems"),
+                Math.max(config.getMaxCollectionSize(), intOrDefault(schema.get("minItems"), 0)));
+        int minItems = intOrDefault(schema.get("minItems"), Math.min(config.getMinCollectionSize(), maxItems));
+        if (minItems > maxItems) {
+            throw emptyRange("array size", path, schema);
+        }
 
         SchemaValueProvider itemProvider;
         Object itemsRaw = schema.get("items");
         if (itemsRaw instanceof Map<?, ?> itemSchema) {
-            itemProvider = resolveProvider(fieldName + "[]", (Map<String, Object>) itemSchema, field, config);
+            itemProvider =
+                    resolveProvider(fieldName + "[]", path + ".items", (Map<String, Object>) itemSchema, field, config);
         } else {
             itemProvider = randomText(config);
         }
@@ -452,7 +697,7 @@ public final class SchemaParser {
 
     @SuppressWarnings("unchecked")
     private static SchemaValueProvider resolveNestedObject(
-            Map<String, Object> schema, Field field, GeneratorConfig config) {
+            String path, Map<String, Object> schema, Field field, GeneratorConfig config) {
         Object propertiesRaw = schema.get("properties");
         if (!(propertiesRaw instanceof Map<?, ?> propertiesMap) || propertiesMap.isEmpty()) {
             return ctx -> Collections.emptyMap();
@@ -461,7 +706,10 @@ public final class SchemaParser {
         Map<String, SchemaValueProvider> nestedProviders = new LinkedHashMap<>();
         for (Map.Entry<?, ?> entry : propertiesMap.entrySet()) {
             if (entry.getKey() instanceof String name && entry.getValue() instanceof Map<?, ?> propSchema) {
-                nestedProviders.put(name, resolveProvider(name, (Map<String, Object>) propSchema, field, config));
+                nestedProviders.put(
+                        name,
+                        resolveProvider(
+                                name, path + ".properties." + name, (Map<String, Object>) propSchema, field, config));
             }
         }
 
@@ -472,14 +720,6 @@ public final class SchemaParser {
             }
             return nested;
         };
-    }
-
-    private static SchemaValueProvider resolveUntyped(String fieldName, Field field, GeneratorConfig config) {
-        SchemaValueProvider semantic = trySemanticResolve(fieldName, field);
-        if (semantic != null) {
-            return semantic;
-        }
-        return randomText(config);
     }
 
     private static SchemaValueProvider randomText(GeneratorConfig config) {
@@ -571,20 +811,6 @@ public final class SchemaParser {
     private static int intOrDefault(@Nullable Object value, int defaultValue) {
         if (value instanceof Number n) {
             return n.intValue();
-        }
-        return defaultValue;
-    }
-
-    private static long longOrDefault(@Nullable Object value, long defaultValue) {
-        if (value instanceof Number n) {
-            return n.longValue();
-        }
-        return defaultValue;
-    }
-
-    private static double doubleOrDefault(@Nullable Object value, double defaultValue) {
-        if (value instanceof Number n) {
-            return n.doubleValue();
         }
         return defaultValue;
     }

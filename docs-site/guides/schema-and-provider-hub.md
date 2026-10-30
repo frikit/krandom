@@ -88,9 +88,29 @@ is a fixture-schema importer, not a general JSON Schema validator or reference r
 | Root | An object with a non-empty `properties` map is required. |
 | Types | `string`, `integer`, `number`, `boolean`, `array`, `object`, and `null`; a type list may contain exactly one concrete type plus `null`. |
 | Scalars | `const`, a non-empty `enum`, numeric bounds, string length bounds, and the simplified-regex `pattern` syntax supported by `RegexGenerator`. |
-| Strings | `email`, `uri`/`url`, `uuid`, `date`, `date-time`, `time`, `ipv4`, `ipv6`, and `hostname` receive dedicated generation. An unknown *string* format deliberately uses semantic-name or bounded-string fallback rather than pretending to implement it. |
+| Strings | `email`/`idn-email`, `uri`/`url`, `uuid`, `date`, `date-time`, `time`, `ipv4`, `ipv6`, and `hostname` receive dedicated generation. An unknown *string* format deliberately uses semantic-name or bounded-string fallback rather than pretending to implement it. A schema with no `type` generates a string under the same rules. |
 | Structures | `items` and `minItems`/`maxItems` for arrays; nested `properties` for objects. An array without `items` produces strings. |
 | OpenAPI controls | OpenAPI 3.0 `nullable`, plus `$schema`, `required`, and `additionalProperties` emitted by `toJsonSchema()`. The latter three are accepted as document controls rather than generation constraints. |
+
+Constraints apply together, and a keyword constrains only values of its own JSON type:
+
+- A `const` must meet the other constraints, and an `enum` keeps only the values that do, so `enum`
+  `[a, bbbb]` with `maxLength` 1 generates `a`. `format` is not checked on these values, because it is
+  an annotation in Draft 2020-12. A `pattern` is checked with `java.util.regex` and searches the
+  string, as in JSON Schema.
+- Numeric bounds intersect, so `minimum` 100 with `exclusiveMinimum` 0 starts at 100. OpenAPI 3.0's
+  boolean `exclusiveMinimum` and `exclusiveMaximum` work as flags on the inclusive bound. An `integer`
+  rounds a fractional bound inward and stays within the range of a `long`.
+- A `pattern` or `format` value is drawn again until it fits `minLength` and `maxLength`, up to 10,000
+  times each. Length is counted in characters, not UTF-16 units.
+
+A combination that leaves no value is rejected with its schema path, such as
+`$.properties.parent.properties.code`. That includes a nested `items` or property schema, even where
+an empty array or an object without that property would be valid, because the importer resolves every
+schema it is given. Pattern and format lengths are judged by sampling 1,000 values while parsing,
+rather than by analysing the pattern. A combination that rarely fits can be rejected too, and one
+that passes parsing can still fail on a later record. `RegexGenerator` repeats `*`, `+`, and `{n,}` at most
+10 times, so `^[a-z]+$` with `minLength` 20 is rejected; write `^[a-z]{20,40}$` instead.
 
 `$ref`, dynamic/recursive references, `allOf`, `anyOf`, `oneOf`, `not`, conditional schemas,
 and pattern/dependent-property composition are unsupported. They fail during parsing with the nested
