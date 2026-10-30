@@ -60,6 +60,10 @@ User user = new ObjectFaker<>(User.class, config)
     .generate();
 ```
 
+`email`, `id` and a few other names stay [unique]({{ '/guides/object-generation/' | relative_url }}#unique-fields)
+for a faker's lifetime, so the constant rule above fails on a second object from the same faker. Use
+`objectUniqueFields(...)` to leave the field out.
+
 ## What kRandom adds over Instancio
 
 - **Semantic field values** — `firstName`, `email`, `city` resolve to

@@ -78,6 +78,7 @@ val users = krandomList<UserDto>(10) {
 import io.github.frikit.krandom.dsl.krandomGenerator
 
 val users = krandomGenerator<UserDto> {
+    config { objectUniqueFields() } // every String is the same, so none can stay unique
     ruleForType<String> { "fixed" }
 }
 
@@ -86,6 +87,8 @@ val many = users.generateList(5)
 ```
 
 Rules are backed by `GeneratorConfig` object overrides, so the DSL shares the same defaults, seeding, locale, and object-generation behavior as the Java API.
+
+That includes [unique fields]({{ '/guides/object-generation/' | relative_url }}#unique-fields). `email`, `id` and a few other names stay unique for a generator's lifetime, so a rule or `ruleForType` that gives one of them a constant fails on a second object from the same generator. Use `config { objectUniqueFields(...) }` to leave the field out, or call it with no names for no unique fields at all.
 
 ## Java fixture API and Kotlin DSL scope
 

@@ -1306,7 +1306,9 @@ public final class GeneratorConfig {
         }
 
         /**
-         * Maximum attempts used when generating a unique object field value.
+         * Maximum attempts used when generating a unique object field value. When every attempt repeats
+         * a value, generation fails, or with {@link #objectIgnoreErrors(boolean)} the field gets its
+         * default.
          */
         public Builder objectUniquenessMaxAttempts(int objectUniquenessMaxAttempts) {
             if (objectUniquenessMaxAttempts < 1) {

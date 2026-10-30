@@ -69,6 +69,10 @@ GeneratorConfig config = GeneratorConfig.builder()
 User user = Generators.ofObject(User.class, config).generate();
 ```
 
+`email`, `id` and a few other names stay [unique]({{ '/guides/object-generation/' | relative_url }}#unique-fields)
+for a generator's lifetime, so the constant override above fails on a second object from the same
+generator. Use `objectUniqueFields(...)` to leave the field out.
+
 ## Domain generators
 
 k-random faker/DataFaker randomizers map to kRandom facade methods and fluent namespaces:

@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import io.github.frikit.krandom.generator.ContextualGenerator;
 import io.github.frikit.krandom.generator.GenerationContext;
 import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.Generator;
@@ -1121,19 +1122,26 @@ final class FieldGeneratorResolver {
         return () -> preferred.get(random.nextInt(preferred.size()));
     }
 
-    private Object generateWithUniqueness(String fieldName, Generator<?> generator) {
-        return generateWithUniqueness(fieldName, null, generator);
-    }
-
-    private Object generateWithUniqueness(String fieldName, @Nullable String semanticKey, Generator<?> generator) {
+    private @Nullable Object generateWithUniqueness(
+            Generator<?> generator,
+            @Nullable String semanticKey,
+            Class<?> rawType,
+            Type declaredType,
+            Class<?> ownerType,
+            String fieldName,
+            int depth) {
         String normalizedFieldName = normalizeSemanticFieldName(fieldName);
         if (!isUniqueField(normalizedFieldName, semanticKey)) {
             return generator.generate();
         }
-        return uniqueFieldTracker.nextUnique(
-                semanticKey != null ? semanticKey : normalizedFieldName,
-                generator::generate,
-                config.getUniquenessMaxAttempts());
+        try {
+            return uniqueFieldTracker.nextUnique(
+                    UniqueFieldTracker.fieldKey(ownerType, fieldName),
+                    generator::generate,
+                    config.getUniquenessMaxAttempts());
+        } catch (UniqueFieldTracker.ExhaustedException exhausted) {
+            return handleExhaustedUniqueField(rawType, declaredType, ownerType, fieldName, depth, exhausted);
+        }
     }
 
     private boolean isUniqueField(String normalizedFieldName, @Nullable String semanticKey) {
@@ -1676,47 +1684,15 @@ final class FieldGeneratorResolver {
 
         ResolvedType resolvedType = ResolvedType.resolve(genericType, typeBindings);
         rawType = Objects.requireNonNullElse(resolvedType.rawClass(), rawType);
+        // Structural-only generation has no field-name semantics, so only a field's own name makes it unique.
+        String semanticKey = semanticMode == ObjectGenerationSemanticMode.STRUCTURAL_ONLY
+                ? null
+                : semanticRegistry.semanticKeyForFieldName(fieldName);
 
-        // ── 0a. Contextual field-level override ───────────────────────────────
-        var ctxField = config.getContextualFieldOverride(ownerType, fieldName);
-        if (ctxField.isPresent()) {
-            return ctxField.get().generate(generationContext(fieldName, ownerType, currentDepth, genericType, element));
-        }
-
-        // ── 0aa. Contextual predicate field override ─────────────────────────
-        if (element instanceof java.lang.reflect.Field field) {
-            var ctxPredicateField = config.getContextualFieldPredicateOverride(field);
-            if (ctxPredicateField.isPresent()) {
-                return ctxPredicateField
-                        .get()
-                        .generate(generationContext(fieldName, ownerType, currentDepth, genericType, element));
-            }
-        }
-
-        // ── 1. Field-level override ───────────────────────────────────────────
-        var fieldOverride = config.getFieldOverride(ownerType, fieldName);
-        if (fieldOverride.isPresent()) {
-            return fieldOverride.get().generate();
-        }
-
-        // ── 1a. Predicate field-level override ───────────────────────────────
-        if (element instanceof java.lang.reflect.Field field) {
-            var predicateFieldOverride = config.getFieldPredicateOverride(field);
-            if (predicateFieldOverride.isPresent()) {
-                return predicateFieldOverride.get().generate();
-            }
-        }
-
-        // ── 2. Contextual type-level override (after every field-level override) ──
-        var ctxType = config.getContextualTypeOverride(rawType);
-        if (ctxType.isPresent()) {
-            return ctxType.get().generate(generationContext(fieldName, ownerType, currentDepth, genericType, element));
-        }
-
-        // ── 2a. Type-level override ───────────────────────────────────────────
-        var typeOverride = config.getTypeOverride(rawType);
-        if (typeOverride.isPresent()) {
-            return typeOverride.get().generate();
+        Generator<?> override = overrideFor(rawType, genericType, fieldName, ownerType, currentDepth, element);
+        if (override != null) {
+            return generateWithUniqueness(
+                    override, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         Generator<?> annotationGenerator =
@@ -1743,7 +1719,6 @@ final class FieldGeneratorResolver {
         }
 
         // ── 3a. Semantic field-name resolver ─────────────────────────────────
-        String semanticKey = semanticRegistry.semanticKeyForFieldName(fieldName);
         Generator<?> semanticGenerator = semanticGeneratorFor(rawType, fieldName);
         if (semanticGenerator != null
                 && !bvConstraints.constrained()
@@ -1751,12 +1726,14 @@ final class FieldGeneratorResolver {
                         || (annotationGenerator == null
                                 && fakeAnnotationGenerator == null
                                 && fakeRangeGenerator == null))) {
-            return generateWithUniqueness(fieldName, semanticKey, semanticGenerator);
+            return generateWithUniqueness(
+                    semanticGenerator, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 3aa. Configured null/optional behavior ────────────────────────────
         if (bvConstraints.nullOnly()) {
-            return generateConstraintValue(bvGen, rawType, genericType, ownerType, fieldName, currentDepth);
+            return generateConstraintValue(
+                    bvGen, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
         }
         if (Optional.class == rawType) {
             if (!hasResolvedArguments(genericType, Optional.class)) {
@@ -1776,28 +1753,33 @@ final class FieldGeneratorResolver {
 
         // ── 3b. Declarative @Randomizer override ─────────────────────────────
         if (annotationGenerator != null) {
-            return annotationGenerator.generate();
+            return generateWithUniqueness(
+                    annotationGenerator, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 3ba. Declarative @Fake override ──────────────────────────────────
         if (fakeAnnotationGenerator != null) {
-            return fakeAnnotationGenerator.generate();
+            return generateWithUniqueness(
+                    fakeAnnotationGenerator, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 3bb. Declarative @FakeRange override ─────────────────────────────
         if (fakeRangeGenerator != null) {
-            return fakeRangeGenerator.generate();
+            return generateWithUniqueness(
+                    fakeRangeGenerator, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 3c. Bean Validation constraint override ───────────────────────────
         if (bvGen != null) {
-            return generateConstraintValue(bvGen, rawType, genericType, ownerType, fieldName, currentDepth);
+            return generateConstraintValue(
+                    bvGen, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 4. Built-in (primitives, wrappers, String, JSR-310, UUID, BigDecimal, BigInteger) ──
         var builtin = builtins.get(rawType);
         if (builtin != null) {
-            return generateWithUniqueness(fieldName, builtin);
+            return generateWithUniqueness(
+                    builtin, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 5. Enum ───────────────────────────────────────────────────────────
@@ -1808,7 +1790,8 @@ final class FieldGeneratorResolver {
             Generator<?> enumGenerator = enumSeed != null
                     ? new EnumGenerator((Class<? extends Enum>) rawType, enumSeed)
                     : () -> constants[sequenceRandom.nextInt(constants.length)];
-            return generateWithUniqueness(fieldName, enumGenerator);
+            return generateWithUniqueness(
+                    enumGenerator, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 6a. Array ─────────────────────────────────────────────────────────
@@ -2010,6 +1993,60 @@ final class FieldGeneratorResolver {
         return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
     }
 
+    /** The override that supplies this member, in order of precedence, or {@code null} when none does. */
+    private @Nullable Generator<?> overrideFor(
+            Class<?> rawType,
+            Type genericType,
+            String fieldName,
+            Class<?> ownerType,
+            int currentDepth,
+            @Nullable AnnotatedElement element) {
+        // ── 0a. Contextual field-level override ───────────────────────────────
+        var ctxField = config.getContextualFieldOverride(ownerType, fieldName);
+        if (ctxField.isPresent()) {
+            return withContext(
+                    ctxField.get(), generationContext(fieldName, ownerType, currentDepth, genericType, element));
+        }
+
+        // ── 0aa. Contextual predicate field override ─────────────────────────
+        if (element instanceof java.lang.reflect.Field field) {
+            var ctxPredicateField = config.getContextualFieldPredicateOverride(field);
+            if (ctxPredicateField.isPresent()) {
+                return withContext(
+                        ctxPredicateField.get(),
+                        generationContext(fieldName, ownerType, currentDepth, genericType, element));
+            }
+        }
+
+        // ── 1. Field-level override ───────────────────────────────────────────
+        var fieldOverride = config.getFieldOverride(ownerType, fieldName);
+        if (fieldOverride.isPresent()) {
+            return fieldOverride.get();
+        }
+
+        // ── 1a. Predicate field-level override ───────────────────────────────
+        if (element instanceof java.lang.reflect.Field field) {
+            var predicateFieldOverride = config.getFieldPredicateOverride(field);
+            if (predicateFieldOverride.isPresent()) {
+                return predicateFieldOverride.get();
+            }
+        }
+
+        // ── 2. Contextual type-level override (after every field-level override) ──
+        var ctxType = config.getContextualTypeOverride(rawType);
+        if (ctxType.isPresent()) {
+            return withContext(
+                    ctxType.get(), generationContext(fieldName, ownerType, currentDepth, genericType, element));
+        }
+
+        // ── 2a. Type-level override ───────────────────────────────────────────
+        return config.getTypeOverride(rawType).orElse(null);
+    }
+
+    private static Generator<?> withContext(ContextualGenerator<?> generator, GenerationContext context) {
+        return () -> generator.generate(context);
+    }
+
     @Nullable Object resolveAndGenerateMember(
             Type genericType,
             Class<?> rawType,
@@ -2198,8 +2235,39 @@ final class FieldGeneratorResolver {
                 null);
     }
 
+    /**
+     * The domain of a unique field ran out. The whole member path names it, because an inherited
+     * field's owner is not the nested type on that path.
+     */
+    private @Nullable Object handleExhaustedUniqueField(
+            Class<?> rawType,
+            Type declaredType,
+            Class<?> ownerType,
+            String fieldName,
+            int depth,
+            UniqueFieldTracker.ExhaustedException cause) {
+        String path = memberPath(fieldName);
+        String declaredTypeName = declaredType.getTypeName();
+        GenerationFailureContext context = new GenerationFailureContext(
+                GenerationFailureCategory.UNSUPPORTED_TYPE,
+                GenerationOperation.GENERATE,
+                path,
+                ownerType,
+                declaredTypeName,
+                depth,
+                -1);
+        return failurePolicy.handle(
+                new ObjectGenerationException(
+                        "Could not generate a unique value at '" + path + "' (declared type " + declaredTypeName
+                                + ", depth " + depth + ")",
+                        context,
+                        cause),
+                PRIMITIVE_DEFAULTS.getOrDefault(rawType, null));
+    }
+
     private @Nullable Object generateConstraintValue(
             @Nullable Generator<?> generator,
+            @Nullable String semanticKey,
             Class<?> rawType,
             Type declaredType,
             Class<?> ownerType,
@@ -2207,7 +2275,14 @@ final class FieldGeneratorResolver {
             int depth) {
         try {
             // A constrained model always carries its generator; the resolver only gets here for one.
-            return Objects.requireNonNull(generator, "constraint generator").generate();
+            return generateWithUniqueness(
+                    Objects.requireNonNull(generator, "constraint generator"),
+                    semanticKey,
+                    rawType,
+                    declaredType,
+                    ownerType,
+                    fieldName,
+                    depth);
         } catch (BeanValidationSupport.ConstraintConflictException conflict) {
             Object fallback = handleConstraintConflict(rawType, declaredType, ownerType, fieldName, depth, conflict);
             return fallback;

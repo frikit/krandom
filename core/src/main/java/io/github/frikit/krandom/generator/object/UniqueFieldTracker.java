@@ -57,14 +57,26 @@ final class UniqueFieldTracker {
         return created;
     }
 
-    Object nextUnique(String normalizedFieldName, Supplier<Object> supplier, int maxAttempts) {
-        Objects.requireNonNull(normalizedFieldName, "normalizedFieldName must not be null");
+    /**
+     * The key of one field's values. A field is its owner and name, so two fields may hold the same
+     * value: {@code orderId} and {@code customerId}, or {@code id} on two types.
+     */
+    static String fieldKey(Class<?> ownerType, String fieldName) {
+        return ownerType.getName() + "." + fieldName;
+    }
+
+    int valueCount(String fieldKey) {
+        return valuesByField.getOrDefault(fieldKey, Set.of()).size();
+    }
+
+    Object nextUnique(String fieldKey, Supplier<Object> supplier, int maxAttempts) {
+        Objects.requireNonNull(fieldKey, "fieldKey must not be null");
         Objects.requireNonNull(supplier, "supplier must not be null");
         if (maxAttempts < 1) {
             throw new IllegalArgumentException("maxAttempts must be >= 1");
         }
 
-        Set<Object> seen = valuesByField.computeIfAbsent(normalizedFieldName, ignored -> new HashSet<>());
+        Set<Object> seen = valuesByField.computeIfAbsent(fieldKey, ignored -> new HashSet<>());
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
             Object candidate = supplier.get();
             if (candidate == null || seen.add(candidate)) {
@@ -72,7 +84,26 @@ final class UniqueFieldTracker {
             }
         }
 
-        throw new ObjectGenerationException("Could not generate a unique value for field '" + normalizedFieldName
-                + "' after " + maxAttempts + " attempts");
+        throw new ExhaustedException("Could not generate a unique value for field '" + fieldKey + "' after "
+                + maxAttempts + " attempts; its values may have run out, so generate more distinct values, raise "
+                + "objectUniquenessMaxAttempts, or leave the field out of objectUniqueFields");
+    }
+
+    /** Gives back a value that no object ended up with. */
+    void release(String fieldKey, @org.jspecify.annotations.Nullable Object value) {
+        Set<Object> seen = valuesByField.get(fieldKey);
+        if (seen != null) {
+            seen.remove(value);
+        }
+    }
+
+    /** No attempt produced a value the field has not had yet. */
+    static final class ExhaustedException extends ObjectGenerationException {
+
+        private static final long serialVersionUID = 1L;
+
+        private ExhaustedException(String message) {
+            super(message);
+        }
     }
 }

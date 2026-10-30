@@ -354,6 +354,35 @@ class ObjectFakerTest {
     }
 
     @Test
+    @DisplayName("a root rule is an override, so a constant on a unique field fails on the next object")
+    void constantRootRuleOnUniqueFieldFailsOnTheNextObject() {
+        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class).ruleFor("email", () -> "ada@example.com");
+
+        assertEquals("ada@example.com", faker.generate().email);
+
+        ObjectGenerationException error = assertThrows(ObjectGenerationException.class, faker::generate);
+        assertEquals("FixtureUser.email", error.getContext().orElseThrow().path());
+    }
+
+    @Test
+    @DisplayName("dependent and nested rules run after generation, so they may repeat a value on a unique field")
+    void postGenerationRulesMayRepeatValuesOnUniqueFields() {
+        List<FixtureUser> users = new ObjectFaker<>(FixtureUser.class)
+                .ruleFor("firstName", () -> "Ada")
+                .ruleFor("lastName", () -> "Lovelace")
+                .ruleFor("email", generated -> generated.firstName.toLowerCase() + "@example.com")
+                .generateList(5);
+        assertTrue(users.stream().allMatch(user -> "ada@example.com".equals(user.email)));
+
+        List<FixtureUserWithAddress> located = new ObjectFaker<>(
+                        FixtureUserWithAddress.class,
+                        GeneratorConfig.builder().objectUniqueField("city").build())
+                .ruleFor("address.city", () -> "Berlin")
+                .generateList(5);
+        assertTrue(located.stream().allMatch(user -> "Berlin".equals(user.address.city)));
+    }
+
+    @Test
     @DisplayName("invalid dependent assignments are wrapped as generation failures")
     void invalidDependentAssignmentsAreWrapped() {
         ObjectGenerationException ex = assertThrows(

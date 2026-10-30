@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.object;
 
 import io.github.frikit.krandom.generator.EmailDomainPolicy;
+import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Vocabulary;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
@@ -52,34 +53,40 @@ final class SemanticCoherenceAdjuster {
     /** The domains RFC 2606 reserves, which cannot reach a real mailbox. */
     private static final Pattern RESERVED_DOMAIN =
             Pattern.compile("(?:.+\\.)?example\\.(?:com|net|org)|.+\\.(?:test|example|invalid|localhost)");
+    /** The fields this pass derives a value for that it cannot number apart from one already used. */
+    private static final Set<String> UNNUMBERED_KEYS =
+            Set.of("createdat", "updatedat", "birthdate", "age", "price", "amount", "balance", "active", "status");
 
     private final ObjectGeneratorConfig config;
     private final UniqueFieldTracker uniqueFieldTracker;
     private final SemanticFieldRegistry semanticRegistry;
     private final @Nullable Long generationSeed;
     private final int depth;
+    private final String objectPath;
     private @Nullable AddressInfo addressInfo;
     private boolean addressInfoResolved;
 
     SemanticCoherenceAdjuster(ObjectGeneratorConfig config, UniqueFieldTracker uniqueFieldTracker) {
-        this(config, uniqueFieldTracker, null, 0);
+        this(config, uniqueFieldTracker, null);
     }
 
     SemanticCoherenceAdjuster(
             ObjectGeneratorConfig config, UniqueFieldTracker uniqueFieldTracker, @Nullable Long generationSeed) {
-        this(config, uniqueFieldTracker, generationSeed, 0);
+        this(config, uniqueFieldTracker, generationSeed, 0, "$root");
     }
 
     SemanticCoherenceAdjuster(
             ObjectGeneratorConfig config,
             UniqueFieldTracker uniqueFieldTracker,
             @Nullable Long generationSeed,
-            int depth) {
+            int depth,
+            String objectPath) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.uniqueFieldTracker = Objects.requireNonNull(uniqueFieldTracker, "uniqueFieldTracker must not be null");
         this.semanticRegistry = config.getSemanticRegistry();
         this.generationSeed = generationSeed;
         this.depth = depth;
+        this.objectPath = Objects.requireNonNull(objectPath, "objectPath must not be null");
     }
 
     void adjustInstance(Class<?> ownerType, Object instance, List<Field> fields, boolean allowOverwriteExisting) {
@@ -563,7 +570,10 @@ final class SemanticCoherenceAdjuster {
         Field field = slot.annotatedElement();
         // An inherited field is also protected by an override registered for the generated type,
         // although field overrides are resolved under the declaring class.
-        if (hasFieldOverride(slot.ownerType(), slot.fieldName()) || hasMemberOverride(slot) || hasTypeOverride(slot)) {
+        if (hasFieldOverride(slot.ownerType(), slot.fieldName())
+                || hasMemberOverride(slot)
+                || hasTypeOverride(slot)
+                || keepsUniqueValue(slot)) {
             return true;
         }
 
@@ -576,6 +586,17 @@ final class SemanticCoherenceAdjuster {
             return BeanValidationSupport.constraintGeneratorFor(field, slot.rawType()) != null;
         }
         return false;
+    }
+
+    /**
+     * A derived value that could repeat must not replace the value generation tracked for a unique
+     * field, so that field keeps it and the sibling adapts where it can.
+     */
+    private boolean keepsUniqueValue(Slot slot) {
+        // A slot only reaches this pass through its semantic key.
+        String semanticKey = Objects.requireNonNull(
+                semanticRegistry.semanticKeyForFieldName(slot.fieldName()), "semanticKey must not be null");
+        return UNNUMBERED_KEYS.contains(semanticKey) && isUniqueField(slot.fieldName(), semanticKey);
     }
 
     /** True when an override of this field, not a generator or a constraint, produced its value. */
@@ -597,18 +618,52 @@ final class SemanticCoherenceAdjuster {
     }
 
     @Nullable Object applyUniqueness(Slot slot, String semanticKey, @Nullable String candidate) {
-        if (candidate == null || !isUniqueField(slot.fieldName(), semanticKey)) {
+        // Generation tracked a value it gave the field, and a value the class set itself is not checked.
+        if (candidate == null || !isUniqueField(slot.fieldName(), semanticKey) || candidate.equals(slot.getValue())) {
             return candidate;
         }
 
         AtomicInteger attempt = new AtomicInteger();
-        String normalizedFieldName = FieldGeneratorResolver.normalizeSemanticFieldName(semanticKey);
-        return uniqueFieldTracker.nextUnique(
-                normalizedFieldName,
-                () -> "domain".equals(semanticKey)
-                        ? uniquifyDomain(candidate, attempt.getAndIncrement())
-                        : uniquifyString(candidate, attempt.getAndIncrement()),
-                config.getUniquenessMaxAttempts());
+        String fieldKey = UniqueFieldTracker.fieldKey(slot.annotatedElement().getDeclaringClass(), slot.fieldName());
+        try {
+            return uniqueFieldTracker.nextUnique(
+                    fieldKey,
+                    () -> "domain".equals(semanticKey)
+                            ? uniquifyDomain(candidate, attempt.getAndIncrement())
+                            : uniquifyString(candidate, attempt.getAndIncrement()),
+                    config.getUniquenessMaxAttempts());
+        } catch (UniqueFieldTracker.ExhaustedException exhausted) {
+            return handleExhaustedUniqueField(slot, exhausted);
+        }
+    }
+
+    /**
+     * The numbered values of a derived field ran out. Lenient generation leaves the member {@code null}
+     * rather than keep its generated value, which may be a domain no generated email can take.
+     */
+    private @Nullable Object handleExhaustedUniqueField(Slot slot, UniqueFieldTracker.ExhaustedException cause) {
+        String path = objectPath + "." + slot.fieldName();
+        String declaredType = slot.annotatedElement().getGenericType().getTypeName();
+        GenerationFailureContext context = new GenerationFailureContext(
+                GenerationFailureCategory.UNSUPPORTED_TYPE,
+                GenerationOperation.ALIGN_SEMANTICS,
+                path,
+                slot.ownerType(),
+                declaredType,
+                depth,
+                -1);
+        GeneratorConfig generatorConfig = config.getGeneratorConfig();
+        return new ObjectGenerationFailurePolicy(
+                        config.isIgnoreErrors(),
+                        generatorConfig.getGenerationFailureListener(),
+                        () -> generatorConfig.getGenerationRecipe().map(GenerationRecipe::serializeForDiagnostics))
+                .handle(
+                        new ObjectGenerationException(
+                                "Could not generate a unique value at '" + path + "' (declared type " + declaredType
+                                        + ", depth " + depth + ")",
+                                context,
+                                cause),
+                        null);
     }
 
     /** Numbers a subdomain, so that a reserved domain stays reserved: {@code n1.acme.test}. */

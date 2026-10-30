@@ -9,13 +9,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.EmailDomainPolicy;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
+import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import jakarta.validation.constraints.Email;
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -26,11 +33,14 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -459,6 +469,385 @@ class ObjectGeneratorSemanticCoherenceTest {
         assertTrue(orderedMoney.balance.compareTo(orderedMoney.amount) >= 0);
     }
 
+    @Test
+    @DisplayName("a derived email's numbered values run out at objectUniquenessMaxAttempts, then generation fails")
+    void derivedEmailFailsWhenItsNumberedValuesRunOut() {
+        List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+        ObjectGenerator<FixedNamePerson> generator = new ObjectGenerator<>(
+                FixedNamePerson.class,
+                fixedNames(
+                        FixedNamePerson.class,
+                        GeneratorConfig.builder()
+                                .seed(61L)
+                                .objectUniquenessMaxAttempts(3)
+                                .generationFailureListener(diagnostics::add)));
+
+        assertEquals("alice.smith@example.com", generator.generate().email);
+        assertEquals("alice.smith1@example.com", generator.generate().email);
+        assertEquals("alice.smith2@example.com", generator.generate().email);
+        assertTrue(diagnostics.isEmpty());
+
+        ObjectGenerationException error = assertThrows(ObjectGenerationException.class, generator::generate);
+
+        GenerationFailureContext context = error.getContext().orElseThrow();
+        assertEquals("FixedNamePerson.email", context.path());
+        assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
+        assertEquals(GenerationOperation.ALIGN_SEMANTICS, context.operation());
+        assertEquals(FixedNamePerson.class, context.ownerType());
+        assertEquals(String.class.getTypeName(), context.declaredType());
+        assertEquals(0, context.depth());
+        assertEquals(
+                "Could not generate a unique value at 'FixedNamePerson.email' (declared type java.lang.String, depth 0)",
+                error.getMessage());
+        assertTrue(error.getCause().getMessage().contains("FixedNamePerson.email' after 3 attempts"));
+        assertEquals(1, diagnostics.size());
+        assertEquals(context, diagnostics.getFirst().context());
+        assertTrue(diagnostics.getFirst().causeType().endsWith("UniqueFieldTracker$ExhaustedException"));
+    }
+
+    @Test
+    @DisplayName("a record and a nested object's derived values fail the same way")
+    void derivedValueFailureInRecordsAndNestedObjects() {
+        GeneratorConfig.Builder strict = GeneratorConfig.builder().seed(61L).objectUniquenessMaxAttempts(1);
+
+        ObjectGenerator<FixedNameRecord> records =
+                new ObjectGenerator<>(FixedNameRecord.class, fixedNames(FixedNameRecord.class, strict));
+        assertEquals("alice.smith@example.com", records.generate().email());
+        assertEquals(
+                "FixedNameRecord.email",
+                assertThrows(ObjectGenerationException.class, records::generate)
+                        .getContext()
+                        .orElseThrow()
+                        .path());
+
+        ObjectGenerator<FixedNameTeam> teams =
+                new ObjectGenerator<>(FixedNameTeam.class, fixedNames(FixedNameRecord.class, strict));
+        assertEquals("alice.smith@example.com", teams.generate().lead().email());
+        ObjectGenerationException nested = assertThrows(ObjectGenerationException.class, teams::generate);
+        assertEquals(
+                "FixedNameTeam.lead.email", nested.getContext().orElseThrow().path());
+        assertTrue(nested.getCause().getMessage().contains("FixedNameRecord.email' after 1 attempts"));
+    }
+
+    @Test
+    @DisplayName("objectIgnoreErrors leaves an exhausted derived value null and tells the listener")
+    void lenientModeLeavesExhaustedDerivedValueNull() {
+        List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+        GeneratorConfig.Builder lenient = GeneratorConfig.builder()
+                .seed(61L)
+                .objectUniquenessMaxAttempts(1)
+                .objectIgnoreErrors(true)
+                .generationFailureListener(diagnostics::add);
+
+        ObjectGenerator<FixedNamePerson> people =
+                new ObjectGenerator<>(FixedNamePerson.class, fixedNames(FixedNamePerson.class, lenient));
+        assertEquals("alice.smith@example.com", people.generate().email);
+        assertNull(people.generate().email);
+
+        ObjectGenerator<FixedNameRecord> records =
+                new ObjectGenerator<>(FixedNameRecord.class, fixedNames(FixedNameRecord.class, lenient));
+        assertEquals("alice.smith@example.com", records.generate().email());
+        assertNull(records.generate().email());
+
+        ObjectGenerator<FixedNameTeam> teams =
+                new ObjectGenerator<>(FixedNameTeam.class, fixedNames(FixedNameRecord.class, lenient));
+        assertEquals("alice.smith@example.com", teams.generate().lead().email());
+        assertNull(teams.generate().lead().email());
+
+        assertEquals(
+                List.of("FixedNamePerson.email", "FixedNameRecord.email", "FixedNameTeam.lead.email"),
+                diagnostics.stream()
+                        .map(diagnostic -> diagnostic.context().path())
+                        .toList());
+    }
+
+    @Test
+    @DisplayName("an exhausted unique domain stays null, and the email beside it stays on a reserved domain")
+    void exhaustedUniqueDomainKeepsEmailOnReservedDomain() {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                .generatorConfig(GeneratorConfig.builder()
+                        .seed(61L)
+                        .objectUniqueField("domain")
+                        .objectUniquenessMaxAttempts(2)
+                        .objectIgnoreErrors(true)
+                        .build())
+                .override(CompanyDomainEmail.class, "companyName", () -> "Acme")
+                .build();
+        ObjectGenerator<CompanyDomainEmail> generator = new ObjectGenerator<>(CompanyDomainEmail.class, config);
+
+        assertEquals("acme.test", generator.generate().domain());
+        assertEquals("n1.acme.test", generator.generate().domain());
+
+        CompanyDomainEmail exhausted = generator.generate();
+
+        assertNull(exhausted.domain());
+        assertTrue(RESERVED_EMAIL.matcher(exhausted.companyEmail()).matches(), exhausted.companyEmail());
+    }
+
+    @Test
+    @DisplayName("a derived value the field already holds is kept, so it is not numbered or counted twice")
+    void derivedValueTheFieldAlreadyHoldsIsKept() {
+        ObjectGenerator<DomainOnly> domains = new ObjectGenerator<>(
+                DomainOnly.class,
+                GeneratorConfig.builder()
+                        .seed(61L)
+                        .objectUniqueField("domain")
+                        .objectUniquenessMaxAttempts(1)
+                        .build());
+        assertFalse(domains.generate().domain().startsWith("n1."));
+
+        ObjectGenerator<PatternedName> names = new ObjectGenerator<>(
+                PatternedName.class,
+                ObjectGeneratorConfig.builder()
+                        .generatorConfig(GeneratorConfig.builder()
+                                .seed(61L)
+                                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                                .objectUniqueField("fullName")
+                                .objectUniquenessMaxAttempts(1)
+                                .build())
+                        .override(PatternedName.class, "firstName", () -> "Alice")
+                        .override(PatternedName.class, "lastName", () -> "Smith")
+                        .build());
+        assertEquals("Alice Smith", names.generate().fullName());
+        assertEquals(
+                GenerationOperation.GENERATE,
+                assertThrows(ObjectGenerationException.class, names::generate)
+                        .getContext()
+                        .orElseThrow()
+                        .operation());
+    }
+
+    @Test
+    @DisplayName("generation and coherence draw on one set of values for a field")
+    void generationAndCoherenceShareOneFieldsValues() {
+        for (long seed = 1; seed <= 10; seed++) {
+            ObjectGenerator<TwoNames> generator = new ObjectGenerator<>(
+                    TwoNames.class,
+                    ObjectGeneratorConfig.builder()
+                            .generatorConfig(GeneratorConfig.builder()
+                                    .seed(seed)
+                                    .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                                    .objectUniqueField("fullName")
+                                    .build())
+                            .override(TwoNames.class, "firstName", () -> "Alice")
+                            .override(TwoNames.class, "lastName", () -> "Smith")
+                            .build());
+
+            List<String> names = new ArrayList<>();
+            assertThrows(ObjectGenerationException.class, () -> {
+                for (int i = 0; i < 10; i++) {
+                    names.add(generator.generate().fullName());
+                }
+            });
+
+            assertEquals(names.size(), new HashSet<>(names).size(), names.toString());
+        }
+    }
+
+    @Test
+    @DisplayName("a field initializer the pass would derive again stays as the class set it, unchecked")
+    void keptInitializerStaysUnchecked() {
+        ObjectGenerator<PresetDomain> generator = new ObjectGenerator<>(
+                PresetDomain.class,
+                GeneratorConfig.builder().objectUniqueField("domain").build());
+
+        for (int i = 0; i < 3; i++) {
+            assertEquals("acme.test", generator.generate().domain);
+        }
+    }
+
+    @Test
+    @DisplayName("a seeded coherence failure carries the replay recipe")
+    void seededCoherenceFailureCarriesReplayRecipe() {
+        List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+        ObjectGenerator<AnnotatedNames> generator = new ObjectGenerator<>(
+                AnnotatedNames.class,
+                GeneratorConfig.builder()
+                        .seed("replayable")
+                        .objectUniquenessMaxAttempts(1)
+                        .generationFailureListener(diagnostics::add)
+                        .build());
+
+        // Annotations keep the names fixed and the recipe portable. An email can only differ by its
+        // generated domain, so it soon repeats, and one attempt leaves no room to number it.
+        ObjectGenerationException error = assertThrows(ObjectGenerationException.class, () -> {
+            for (int i = 0; i < 100; i++) {
+                generator.generate();
+            }
+        });
+
+        assertEquals(
+                GenerationOperation.ALIGN_SEMANTICS,
+                error.getContext().orElseThrow().operation());
+        assertTrue(diagnostics.getFirst().replayIdentity().orElseThrow().contains("format=krandom-recipe"));
+    }
+
+    @Test
+    @DisplayName("coherence does not overwrite a unique timestamp with a value that repeats")
+    void coherenceKeepsUniqueTimestamps() {
+        LocalDateTime later = LocalDateTime.of(2999, 1, 1, 0, 0);
+        LocalDateTime earlier = LocalDateTime.of(1900, 1, 1, 0, 0);
+
+        assertDistinct(
+                Lifecycle.class,
+                uniqueIn("updatedAt")
+                        .override(Lifecycle.class, "createdAt", () -> later)
+                        .build(),
+                Lifecycle::updatedAt);
+        assertDistinct(
+                Lifecycle.class,
+                uniqueIn("createdAt")
+                        .override(Lifecycle.class, "updatedAt", () -> earlier)
+                        .build(),
+                Lifecycle::createdAt);
+    }
+
+    @Test
+    @DisplayName("the other timestamp adapts to a unique one")
+    void otherTimestampAdaptsToUniqueOne() {
+        ObjectGenerator<Lifecycle> generator =
+                new ObjectGenerator<>(Lifecycle.class, uniqueIn("updatedAt").build());
+
+        for (int i = 0; i < 40; i++) {
+            Lifecycle value = generator.generate();
+            assertFalse(value.createdAt().isAfter(value.updatedAt()));
+        }
+    }
+
+    @Test
+    @DisplayName("coherence does not overwrite a unique age or birth date with a value that repeats")
+    void coherenceKeepsUniqueAgeAndBirthDate() {
+        assertDistinct(
+                Lifespan.class,
+                uniqueIn("age")
+                        .override(Lifespan.class, "birthDate", () -> LocalDate.of(1990, 1, 1))
+                        .build(),
+                Lifespan::age);
+        assertDistinct(
+                Lifespan.class,
+                uniqueIn("birthDate").override(Lifespan.class, "age", () -> 30).build(),
+                Lifespan::birthDate);
+    }
+
+    @Test
+    @DisplayName("the birth date adapts to a unique age")
+    void birthDateAdaptsToUniqueAge() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
+        ObjectGenerator<Lifespan> generator = new ObjectGenerator<>(
+                Lifespan.class,
+                GeneratorConfig.builder()
+                        .seed(61L)
+                        .clock(clock)
+                        .objectUniqueField("age")
+                        .build());
+
+        for (int i = 0; i < 10; i++) {
+            Lifespan value = generator.generate();
+            assertEquals(LocalDate.of(2026, 6, 4).minusYears(value.age()), value.birthDate());
+        }
+    }
+
+    @Test
+    @DisplayName("coherence does not overwrite a unique amount with a value that repeats")
+    void coherenceKeepsUniqueMoney() {
+        BigDecimal low = BigDecimal.ZERO;
+        BigDecimal high = new BigDecimal("99999999.00");
+
+        assertDistinct(
+                Charge.class,
+                uniqueIn("price").override(Charge.class, "amount", () -> low).build(),
+                Charge::price);
+        assertDistinct(
+                Charge.class,
+                uniqueIn("amount").override(Charge.class, "price", () -> high).build(),
+                Charge::amount);
+        assertDistinct(
+                Charge.class,
+                uniqueIn("balance").override(Charge.class, "amount", () -> high).build(),
+                Charge::balance);
+    }
+
+    @Test
+    @DisplayName("coherence does not overwrite a unique status or active flag with a value that repeats")
+    void coherenceKeepsUniqueStatusAndActiveFlag() {
+        ObjectGenerator<EnumAccount> statuses = new ObjectGenerator<>(
+                EnumAccount.class,
+                uniqueIn("status")
+                        .override(EnumAccount.class, "active", () -> true)
+                        .build());
+        assertEquals(
+                Set.of(LifecycleState.values()),
+                statuses.generateList(LifecycleState.values().length).stream()
+                        .map(EnumAccount::status)
+                        .collect(Collectors.toSet()));
+        assertEquals(
+                "EnumAccount.status",
+                assertThrows(ObjectGenerationException.class, statuses::generate)
+                        .getContext()
+                        .orElseThrow()
+                        .path());
+
+        ObjectGenerator<TextAccount> flags = new ObjectGenerator<>(
+                TextAccount.class,
+                uniqueIn("active")
+                        .override(TextAccount.class, "status", () -> "ACTIVE")
+                        .build());
+        assertEquals(
+                Set.of(true, false),
+                flags.generateList(2).stream().map(TextAccount::active).collect(Collectors.toSet()));
+        assertEquals(
+                "TextAccount.active",
+                assertThrows(ObjectGenerationException.class, flags::generate)
+                        .getContext()
+                        .orElseThrow()
+                        .path());
+    }
+
+    @Test
+    @DisplayName("the active flag adapts to a unique status")
+    void activeFlagAdaptsToUniqueStatus() {
+        ObjectGenerator<EnumAccount> generator =
+                new ObjectGenerator<>(EnumAccount.class, uniqueIn("status").build());
+
+        Set<LifecycleState> statuses = new HashSet<>();
+        for (int i = 0; i < LifecycleState.values().length; i++) {
+            EnumAccount value = generator.generate();
+            statuses.add(value.status());
+            Boolean expected = SemanticCoherenceAdjuster.activeFromStatus(value.status());
+            if (expected != null) {
+                assertEquals(expected, value.active());
+            }
+        }
+        assertEquals(Set.of(LifecycleState.values()), statuses);
+    }
+
+    private static ObjectGeneratorConfig fixedNames(Class<?> owner, GeneratorConfig.Builder base) {
+        return ObjectGeneratorConfig.builder()
+                .generatorConfig(base.build())
+                .override(owner, "firstName", () -> "Alice")
+                .override(owner, "lastName", () -> "Smith")
+                .override(owner, "domain", () -> "example.com")
+                .build();
+    }
+
+    private static ObjectGeneratorConfig.Builder uniqueIn(String fieldName) {
+        return ObjectGeneratorConfig.builder()
+                .generatorConfig(GeneratorConfig.builder()
+                        .seed(61L)
+                        .objectUniqueField(fieldName)
+                        .build());
+    }
+
+    /** A sibling pinned by an override would give every object the same derived value. */
+    private static <T> void assertDistinct(Class<T> type, ObjectGeneratorConfig config, Function<T, Object> field) {
+        ObjectGenerator<T> generator = new ObjectGenerator<>(type, config);
+        Set<Object> values = new HashSet<>();
+        for (int i = 0; i < 10; i++) {
+            values.add(field.apply(generator.generate()));
+        }
+        assertEquals(10, values.size());
+    }
+
     private static String slug(String value) {
         StringBuilder normalized = new StringBuilder(value.length());
         for (int i = 0; i < value.length(); i++) {
@@ -512,6 +901,44 @@ class ObjectGeneratorSemanticCoherenceTest {
         String domain;
         String email;
     }
+
+    record FixedNameRecord(String firstName, String lastName, String domain, String email) {}
+
+    record FixedNameTeam(FixedNameRecord lead) {}
+
+    record AnnotatedNames(
+            @Randomizer(AnnotatedValueGenerator.class) String firstName,
+            @Randomizer(AnnotatedValueGenerator.class) String lastName,
+            String email) {}
+
+    record DomainOnly(String domain) {}
+
+    record PatternedName(
+            String firstName,
+            String lastName,
+
+            @jakarta.validation.constraints.Pattern(regexp = "Alice Smith") String fullName) {}
+
+    record TwoNames(
+            String firstName,
+            String lastName,
+
+            @jakarta.validation.constraints.Pattern(regexp = "Alice Smith|Bob Jones") String fullName) {}
+
+    static class PresetDomain {
+
+        String domain = "acme.test";
+    }
+
+    record Lifecycle(LocalDateTime createdAt, LocalDateTime updatedAt) {}
+
+    record Lifespan(LocalDate birthDate, int age) {}
+
+    record Charge(BigDecimal price, BigDecimal amount, BigDecimal balance) {}
+
+    record EnumAccount(boolean active, LifecycleState status) {}
+
+    record TextAccount(boolean active, String status) {}
 
     static class TemporalCoherenceHolder {
 

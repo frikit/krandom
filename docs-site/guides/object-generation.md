@@ -200,6 +200,65 @@ lets generation succeed without giving it a value.
 `ObjectFaker` rules and ignores on nested paths run after generation, so they do not prevent the
 failure: raise `objectMaxDepth` as well, or use `objectOverride`.
 
+## Unique fields
+
+`objectUniqueFields` names the fields whose values must not repeat. By default they are `email`,
+`emailAddress`, `username`, `userHandle`, `uuid`, `guid` and `id`. A name's semantic aliases count too,
+so `accountId` and `customerId` are unique by default. `STRUCTURAL_ONLY` has no aliases, so there only
+the field's own name counts.
+
+A generator remembers the values it gives each unique field for as long as it lives, including in
+nested objects. Each field has its own values, so `orderId` and `customerId` can be equal, and so can
+`Order.id` and a nested `Customer.id`. A field inherited from a superclass is one field, whichever
+subclass reaches it.
+
+A generator checks a value however it was produced: by an override, `@Randomizer`, `@Fake`,
+`@FakeRange`, a Bean Validation constraint, a semantic field name, a built-in type or an enum. On a
+repeat it draws again, up to `objectUniquenessMaxAttempts` (default 256) times for each value. A `null`
+is never a repeat. If every draw repeats, generation fails:
+
+```java
+record Seat(@Min(1) @Max(3) int id) {}
+
+ObjectGenerator<Seat> seats = new ObjectGenerator<>(Seat.class);
+seats.generateList(3); // ids 1, 2 and 3, in some order
+
+// Throws ObjectGenerationException for 'Seat.id', with the cause
+// "Could not generate a unique value for field 'com.example.Seat.id' after 256 attempts; ..."
+seats.generate();
+```
+
+With `objectIgnoreErrors(true)`, the field gets the default for its type instead (`0`, `false` or
+`null`), and `generationFailureListener` is told.
+
+The draws are random, so a domain that is nearly used up can fail before every value has appeared.
+Raising `objectUniquenessMaxAttempts` makes that less likely.
+
+An override is drawn again like any other generator, so one that returns a constant gives one object
+and fails on the next from the same generator. Because `email` is unique by default, this includes
+`objectOverride(User.class, "email", () -> "owner@example.test")` and, for a class with a `String email`,
+`objectOverride(String.class, () -> "fixed")`. To repeat a value on purpose, leave the field out with
+`objectUniqueFields(...)`, or use `objectUniqueFields()` for no unique fields at all. A new generator
+also starts over.
+
+A root `ObjectFaker` rule with a generator is an override. A dependent rule, a rule on a nested path and
+`postProcess` run after generation, so their values are not checked.
+
+The coherence pass numbers a derived `email`, `fullName`, `domain`, `url` or address field on a repeat,
+as in `alice.smith1@example.com` and `n1.acme.test`. The numbers stop at `objectUniquenessMaxAttempts`,
+after which generation fails, and `objectIgnoreErrors(true)` leaves the field `null`. A `createdAt`,
+`updatedAt`, `birthDate`, `age`, `price`, `amount`, `balance`, `active` or `status` cannot be numbered,
+so a unique one keeps its generated value and the other field of the pair adapts where it can. If that
+field cannot change either, the two stay out of line, because uniqueness wins.
+
+Some values are not checked:
+
+- The elements of a list, set or array are checked under the field's name, but the values inside an
+  `Optional` or a `Map` are not, and neither is a nested object as a whole.
+- Values are compared with `equals`, so a type without value equality, such as `AtomicInteger`, never
+  counts as a repeat.
+- A value the class sets itself, such as a field initializer that generation keeps, is not checked.
+
 ## Fluent fixtures
 
 Use `ObjectFaker<T>` when the default object graph is close but you want explicit rules. JavaBean

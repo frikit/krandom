@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `config { objectUniqueFields(...) }` in the Kotlin DSL, to leave a field out of the unique fields.
+
 ### Fixed
 
 - `@Email` fields no longer get an ordinary domain under the default
@@ -70,6 +74,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   or only `@Size`, is still left `null`, and so is an element of `List<@NotNull Leaf>`. Below the limit,
   a cycle is still cut with `null`, even on a `@NotNull` member. A nested `ObjectFaker` rule runs after
   generation, so it needs a larger `objectMaxDepth` too.
+- A unique field now stays unique however its value is produced. Only semantic, built-in and enum
+  values were checked, so `@Min(1) @Max(1000) int id` repeated values with no error. Overrides,
+  `@Randomizer`, `@Fake`, `@FakeRange` and Bean Validation constraints are now checked too, and a
+  repeat draws again. A semantic alias of a unique name counts on all of them, so `@Min(1) @Max(3) int
+  accountId` is unique by default, like `int accountId`. Under `STRUCTURAL_ONLY` only the field's own
+  name counts. A repeat uses up a draw, so seeded output changes for objects where one happens.
+- Each unique field now has its own values. All the aliases of a name, and the same name on different
+  types, used to share one set. `orderId` and `customerId` can now be equal, and so can `Order.id` and a
+  nested `Customer.id`. A field inherited from a superclass is one field, whichever subclass reaches it.
+- A constant override on a unique field now fails on the next object from the same generator, instead
+  of repeating. `email`, `username`, `uuid`, `id` and their aliases are unique by default, so this
+  includes `objectOverride(User.class, "email", () -> "owner@example.test")`, and, for a class with a
+  `String email`, `objectOverride(String.class, () -> "fixed")`. Use `objectUniqueFields(...)` to leave
+  the field out, or a new generator for each object. Dependent and nested `ObjectFaker` rules run after
+  generation and are not checked.
+- A unique field whose values run out now fails through the object engine's failure handling. It used
+  to throw an error without a path, and without telling `generationFailureListener`, whatever
+  `objectIgnoreErrors` said. In a nested object the reason was lost as well. The error now names the
+  path, such as `Outer.mid.id`. `objectIgnoreErrors(true)` gives the field the default for its type,
+  or `null` for a derived value such as an email, and tells the listener.
+- The coherence pass no longer overwrites a unique `createdAt`, `updatedAt`, `birthDate`, `age`,
+  `price`, `amount`, `balance`, `active` or `status` with a derived value, which could repeat. The field
+  keeps its generated value, and the other field of the pair adapts where it can. So two unique fields
+  can be left out of line with each other: uniqueness wins.
+- A derived value that a unique field already holds is no longer numbered. A generated unique `domain`
+  with no email beside it was always `n1.`-prefixed, and with `objectUniquenessMaxAttempts(1)` it failed
+  on the first object. Seeded output changes for such a field. A field initializer stays as the class
+  set it, where a unique `domain` initializer was numbered from the second object on.
 
 ## [2.9.0] - 2026-10-19
 

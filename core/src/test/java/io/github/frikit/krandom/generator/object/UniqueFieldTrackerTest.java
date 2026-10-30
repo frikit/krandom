@@ -6,8 +6,10 @@
 package io.github.frikit.krandom.generator.object;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -52,6 +54,67 @@ class UniqueFieldTrackerTest {
         UniqueFieldTracker tracker = new UniqueFieldTracker();
         tracker.nextUnique("id", () -> 1L, 1);
 
-        assertThrows(ObjectGenerationException.class, () -> tracker.nextUnique("id", () -> 1L, 2));
+        UniqueFieldTracker.ExhaustedException error =
+                assertThrows(UniqueFieldTracker.ExhaustedException.class, () -> tracker.nextUnique("id", () -> 1L, 2));
+
+        assertInstanceOf(ObjectGenerationException.class, error);
+        assertTrue(error.getMessage().contains("field 'id' after 2 attempts"));
+    }
+
+    @Test
+    @DisplayName("a supplier's own failure is not reported as exhaustion")
+    void supplierFailurePropagatesAsItself() {
+        UniqueFieldTracker tracker = new UniqueFieldTracker();
+
+        assertThrows(
+                IllegalStateException.class,
+                () -> tracker.nextUnique(
+                        "id",
+                        () -> {
+                            throw new IllegalStateException("boom");
+                        },
+                        2));
+    }
+
+    @Test
+    @DisplayName("fields do not share their values")
+    void fieldsDoNotShareTheirValues() {
+        UniqueFieldTracker tracker = new UniqueFieldTracker();
+        tracker.nextUnique("id", () -> 1L, 1);
+
+        assertEquals(1L, tracker.nextUnique("code", () -> 1L, 1));
+    }
+
+    @Test
+    @DisplayName("a released value can be used again, and releasing what was never used changes nothing")
+    void releasedValueCanBeUsedAgain() {
+        UniqueFieldTracker tracker = new UniqueFieldTracker();
+        tracker.nextUnique("id", () -> 1L, 1);
+
+        tracker.release("id", 1L);
+        assertEquals(1L, tracker.nextUnique("id", () -> 1L, 1));
+
+        tracker.release("id", 2L);
+        tracker.release("unknown", 1L);
+        assertThrows(UniqueFieldTracker.ExhaustedException.class, () -> tracker.nextUnique("id", () -> 1L, 1));
+    }
+
+    @Test
+    @DisplayName("a field's key tells apart owners with the same field name")
+    void fieldKeyTellsApartOwners() {
+        assertEquals("java.lang.String.id", UniqueFieldTracker.fieldKey(String.class, "id"));
+    }
+
+    @Test
+    @DisplayName("the value count covers what a field holds, and a null is no value")
+    void valueCountCoversWhatAFieldHolds() {
+        UniqueFieldTracker tracker = new UniqueFieldTracker();
+        assertEquals(0, tracker.valueCount("id"));
+
+        tracker.nextUnique("id", () -> null, 1);
+        assertEquals(0, tracker.valueCount("id"));
+
+        tracker.nextUnique("id", () -> 1L, 1);
+        assertEquals(1, tracker.valueCount("id"));
     }
 }
