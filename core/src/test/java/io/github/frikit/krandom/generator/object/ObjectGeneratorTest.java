@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.object;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -31,13 +32,24 @@ import io.github.frikit.krandom.generator.core.model.PersonWithDateTimes;
 import io.github.frikit.krandom.generator.core.model.Status;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.AbstractCollection;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1364,6 +1376,461 @@ class ObjectGeneratorTest {
             assertEquals(0, context.depth());
             assertEquals(-1, context.recordIndex());
             assertTrue(error.getCause() instanceof IllegalArgumentException);
+        }
+    }
+
+    // ── Required members at the depth limit ───────────────────────────────────
+
+    @Nested
+    @DisplayName("required members at objectMaxDepth")
+    class RequiredMemberAtDepthLimitTest {
+
+        record Leaf(String value) {}
+
+        record Mid(@NotNull Leaf leaf) {}
+
+        record Top(@NotNull Mid mid) {}
+
+        record Outermost(@NotNull Top top) {}
+
+        record AccessorOwner(Leaf leaf) {
+            @Override
+            @NotNull public Leaf leaf() {
+                return leaf;
+            }
+        }
+
+        record AccessorTop(AccessorOwner mid) {}
+
+        static class FieldOwner {
+            @NotNull Leaf leaf;
+        }
+
+        record FieldTop(FieldOwner mid) {}
+
+        static class InheritingOwner extends FieldOwner {}
+
+        record InheritingTop(InheritingOwner mid) {}
+
+        record ElementTop(List<Mid> mids) {}
+
+        static class GetterOwner {
+            Leaf leaf;
+
+            @NotNull public Leaf getLeaf() {
+                return leaf;
+            }
+        }
+
+        record GetterTop(GetterOwner mid) {}
+
+        interface HasLeaf {
+            @NotNull Leaf getLeaf();
+        }
+
+        static class InterfaceOwner implements HasLeaf {
+            Leaf leaf;
+
+            @Override
+            public Leaf getLeaf() {
+                return leaf;
+            }
+        }
+
+        record InterfaceTop(InterfaceOwner mid) {}
+
+        static class ParameterOwner {
+            final Leaf leaf;
+
+            ParameterOwner(@NotNull Leaf leaf) {
+                this.leaf = leaf;
+            }
+        }
+
+        record ParameterTop(ParameterOwner mid) {}
+
+        static class AssignedOwner {
+            @NotNull Leaf leaf;
+
+            AssignedOwner(Leaf leaf) {
+                this.leaf = leaf;
+            }
+        }
+
+        record AssignedTop(AssignedOwner mid) {}
+
+        static class InitializedOwner {
+            @NotNull Leaf leaf = new Leaf("preset");
+        }
+
+        record InitializedTop(InitializedOwner mid) {}
+
+        static class Bag extends AbstractCollection<String> {
+            @Override
+            public Iterator<String> iterator() {
+                return List.<String>of().iterator();
+            }
+
+            @Override
+            public int size() {
+                return 0;
+            }
+        }
+
+        record RequiredBagOwner(@NotEmpty Bag bag) {}
+
+        record RequiredBagTop(RequiredBagOwner mid) {}
+
+        record NullableOwner(Leaf leaf, Collection<String> values, Bag bag, Shape shape, Object anything) {}
+
+        record NullableTop(NullableOwner mid) {}
+
+        record SizedOwner(
+                @Size(min = 1) Collection<String> values,
+                @Size(min = 1) Bag bag) {}
+
+        record SizedTop(SizedOwner mid) {}
+
+        interface Shape {}
+
+        record Circle(int radius) implements Shape {}
+
+        record RequiredShapeOwner(@NotNull Shape shape) {}
+
+        record RequiredShapeTop(RequiredShapeOwner mid) {}
+
+        record RequiredInterfaceCollectionOwner(@NotNull Collection<String> values) {}
+
+        record RequiredInterfaceCollectionTop(RequiredInterfaceCollectionOwner mid) {}
+
+        record NotEmptyInterfaceCollectionOwner(@NotEmpty Collection<String> values) {}
+
+        record NotEmptyInterfaceCollectionTop(NotEmptyInterfaceCollectionOwner mid) {}
+
+        record RequiredObjectOwner(@NotNull Object anything) {}
+
+        record RequiredObjectTop(RequiredObjectOwner mid) {}
+
+        record ContainerOwner(
+                @NotEmpty List<Leaf> list,
+                @NotEmpty Set<Leaf> set,
+                @NotEmpty Map<String, Leaf> byName,
+                Map<Leaf, String> byLeaf,
+                List<@NotNull Leaf> requiredElements,
+                Set<@NotNull Leaf> requiredSetElements,
+                Map<String, @NotNull Leaf> requiredValues,
+                Map<@NotNull Leaf, String> requiredKeys,
+                Optional<@NotNull Leaf> requiredValue,
+                @NotNull Optional<Leaf> optional,
+                @NotNull Leaf[] array) {}
+
+        record ContainerTop(ContainerOwner mid) {}
+
+        record NotEmptyLeafKeysOwner(@NotEmpty Map<Leaf, String> byLeaf) {}
+
+        record NotEmptyLeafKeysTop(NotEmptyLeafKeysOwner mid) {}
+
+        private static GeneratorConfig limitedTo(int maxDepth) {
+            return GeneratorConfig.builder()
+                    .objectMaxDepth(maxDepth)
+                    .collectionSize(2, 2)
+                    .build();
+        }
+
+        private static GenerationFailureContext assertDepthFailure(
+                Class<?> root, GeneratorConfig config, String path, Class<?> owner, int limit) {
+            ObjectGenerationException error =
+                    assertThrows(ObjectGenerationException.class, () -> new ObjectGenerator<>(root, config).generate());
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(path, context.path());
+            assertEquals(owner, context.ownerType());
+            assertEquals(limit, context.depth());
+            BeanValidationSupport.ConstraintConflictException cause =
+                    assertInstanceOf(BeanValidationSupport.ConstraintConflictException.class, error.getCause());
+            assertEquals(
+                    "required member would be null at objectMaxDepth " + limit
+                            + "; raise objectMaxDepth or override the member",
+                    cause.getMessage());
+            return context;
+        }
+
+        private static void assertUnsupportedFailure(Class<?> root, String path, String declaredType) {
+            ObjectGenerationException error = assertThrows(
+                    ObjectGenerationException.class, () -> new ObjectGenerator<>(root, limitedTo(1)).generate());
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
+            assertEquals(path, context.path());
+            assertEquals(declaredType, context.declaredType());
+            assertInstanceOf(UnsupportedOperationException.class, error.getCause());
+        }
+
+        @Test
+        @DisplayName("a @NotNull record component fails with its path, instead of being left null")
+        void requiredRecordComponentFails() {
+            GenerationFailureContext context =
+                    assertDepthFailure(Top.class, limitedTo(1), "Top.mid.leaf", Mid.class, 1);
+
+            assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
+            assertEquals(GenerationOperation.GENERATE, context.operation());
+            assertEquals(Leaf.class.getTypeName(), context.declaredType());
+            assertEquals(-1, context.recordIndex());
+        }
+
+        @Test
+        @DisplayName("the failure names the whole path and the limit when the limit is deeper")
+        void deeperLimitNamesTheWholePath() {
+            assertDepthFailure(Outermost.class, limitedTo(2), "Outermost.top.mid.leaf", Mid.class, 2);
+        }
+
+        @Test
+        @DisplayName("a larger objectMaxDepth generates the member")
+        void largerLimitGeneratesTheMember() {
+            Top top = new ObjectGenerator<>(Top.class, limitedTo(2)).generate();
+
+            assertNotNull(top.mid().leaf().value());
+        }
+
+        @Test
+        @DisplayName("a @NotNull class field fails")
+        void requiredFieldFails() {
+            assertDepthFailure(FieldTop.class, limitedTo(1), "FieldTop.mid.leaf", FieldOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("an inherited @NotNull field fails at the member's path, not its declaring class")
+        void requiredInheritedFieldFailsAtMemberPath() {
+            assertDepthFailure(InheritingTop.class, limitedTo(1), "InheritingTop.mid.leaf", FieldOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("a @NotNull member of a list element fails at the element's path")
+        void requiredMemberOfListElementFailsAtElementPath() {
+            assertDepthFailure(ElementTop.class, limitedTo(1), "ElementTop.mids[].leaf", Mid.class, 1);
+        }
+
+        @Test
+        @DisplayName("a field whose getter is @NotNull fails")
+        void requiredGetterFails() {
+            assertDepthFailure(GetterTop.class, limitedTo(1), "GetterTop.mid.leaf", GetterOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("a field whose interface accessor is @NotNull fails")
+        void requiredInterfaceAccessorFails() {
+            assertDepthFailure(InterfaceTop.class, limitedTo(1), "InterfaceTop.mid.leaf", InterfaceOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("a record component whose accessor is @NotNull fails")
+        void requiredRecordAccessorFails() {
+            assertDepthFailure(AccessorTop.class, limitedTo(1), "AccessorTop.mid.leaf", AccessorOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("a @NotNull constructor parameter fails")
+        void requiredConstructorParameterFails() {
+            assertDepthFailure(ParameterTop.class, limitedTo(1), "ParameterTop.mid.leaf", ParameterOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("a @NotNull field fails after an unconstrained constructor parameter left it null")
+        void requiredFieldAssignedFromPlainParameterFails() {
+            assertDepthFailure(AssignedTop.class, limitedTo(1), "AssignedTop.mid.leaf", AssignedOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("@NotEmpty on a collection class reaches the limit and fails")
+        void notEmptyCollectionClassFails() {
+            assertDepthFailure(RequiredBagTop.class, limitedTo(1), "RequiredBagTop.mid.bag", RequiredBagOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("a field that already has a value is not generated, so it keeps its initializer")
+        void initializedRequiredFieldKeepsItsValue() {
+            InitializedTop top = new ObjectGenerator<>(InitializedTop.class, limitedTo(1)).generate();
+
+            assertEquals("preset", top.mid().leaf.value());
+        }
+
+        @Test
+        @DisplayName("members with no required constraint stay null")
+        void nullableMembersStayNull() {
+            NullableTop top = new ObjectGenerator<>(NullableTop.class, limitedTo(1)).generate();
+
+            assertNull(top.mid().leaf());
+            assertNull(top.mid().values());
+            assertNull(top.mid().bag());
+            assertNull(top.mid().shape());
+            assertNull(top.mid().anything());
+        }
+
+        @Test
+        @DisplayName("@Size alone stays null, because Bean Validation accepts null for it")
+        void sizedMembersStayNull() {
+            SizedTop top = new ObjectGenerator<>(SizedTop.class, limitedTo(1)).generate();
+
+            assertNull(top.mid().values());
+            assertNull(top.mid().bag());
+        }
+
+        @Test
+        @DisplayName("a required member that no depth could generate fails as an unsupported type")
+        void requiredUnsupportedMembersFailAsUnsupported() {
+            assertUnsupportedFailure(RequiredShapeTop.class, "RequiredShapeTop.mid.shape", Shape.class.getTypeName());
+            assertUnsupportedFailure(
+                    RequiredInterfaceCollectionTop.class,
+                    "RequiredInterfaceCollectionTop.mid.values",
+                    "java.util.Collection<java.lang.String>");
+            assertUnsupportedFailure(
+                    NotEmptyInterfaceCollectionTop.class,
+                    "NotEmptyInterfaceCollectionTop.mid.values",
+                    "java.util.Collection<java.lang.String>");
+            assertUnsupportedFailure(RequiredObjectTop.class, "RequiredObjectTop.mid.anything", "java.lang.Object");
+        }
+
+        @Test
+        @DisplayName("a subtype mapping makes a required interface member a depth failure")
+        void mappedRequiredInterfaceFailsOnDepth() {
+            GeneratorConfig mapped = limitedTo(1).toBuilder()
+                    .objectSubtype(Shape.class, Circle.class)
+                    .build();
+
+            assertDepthFailure(
+                    RequiredShapeTop.class, mapped, "RequiredShapeTop.mid.shape", RequiredShapeOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("containers are not cut off, and a constraint on a type argument leaves their contents alone")
+        void containersKeepTruncatedContents() {
+            ContainerOwner owner = new ObjectGenerator<>(ContainerTop.class, limitedTo(1))
+                    .generate()
+                    .mid();
+
+            assertFalse(owner.list().isEmpty());
+            assertTrue(owner.list().stream().allMatch(Objects::isNull));
+            assertEquals(1, owner.set().size());
+            assertTrue(owner.set().contains(null));
+            assertFalse(owner.byName().isEmpty());
+            assertTrue(owner.byName().values().stream().allMatch(Objects::isNull));
+            assertTrue(owner.byLeaf().isEmpty());
+            assertEquals(Arrays.asList(null, null), owner.requiredElements());
+            assertEquals(1, owner.requiredSetElements().size());
+            assertTrue(owner.requiredSetElements().contains(null));
+            assertEquals(2, owner.requiredValues().size());
+            assertTrue(owner.requiredValues().values().stream().allMatch(Objects::isNull));
+            assertTrue(owner.requiredKeys().isEmpty());
+            assertEquals(Optional.empty(), owner.requiredValue());
+            assertEquals(Optional.empty(), owner.optional());
+            assertEquals(2, owner.array().length);
+            assertNull(owner.array()[0]);
+        }
+
+        @Test
+        @DisplayName("@NotEmpty on a map with nested keys still fails on its size")
+        void notEmptyMapWithNestedKeysFailsOnSize() {
+            ObjectGenerationException error = assertThrows(
+                    ObjectGenerationException.class,
+                    () -> new ObjectGenerator<>(NotEmptyLeafKeysTop.class, limitedTo(1)).generate());
+
+            assertEquals(
+                    "NotEmptyLeafKeysTop.mid.byLeaf",
+                    error.getContext().orElseThrow().path());
+            assertInstanceOf(BeanValidationSupport.ConstraintConflictException.class, error.getCause());
+            assertTrue(error.getCause().getMessage().contains("declared minimum size of 1"));
+        }
+
+        @Test
+        @DisplayName("objectIgnoreErrors keeps the null and reports the failure to the listener")
+        void lenientModeKeepsNullAndNotifiesListener() {
+            List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+            GeneratorConfig lenient = limitedTo(1).toBuilder()
+                    .objectIgnoreErrors(true)
+                    .generationFailureListener(diagnostics::add)
+                    .build();
+
+            Top top = new ObjectGenerator<>(Top.class, lenient).generate();
+
+            assertNull(top.mid().leaf());
+            assertEquals(1, diagnostics.size());
+            GenerationFailureDiagnostic diagnostic = diagnostics.getFirst();
+            assertEquals("Top.mid.leaf", diagnostic.context().path());
+            assertEquals(
+                    GenerationFailureCategory.UNSUPPORTED_TYPE,
+                    diagnostic.context().category());
+            assertEquals(Mid.class, diagnostic.context().ownerType());
+            assertEquals(1, diagnostic.context().depth());
+            assertEquals(BeanValidationSupport.ConstraintConflictException.class.getName(), diagnostic.causeType());
+        }
+
+        @Test
+        @DisplayName("objectIgnoreErrors also keeps the null for a required member no depth could generate")
+        void lenientModeKeepsNullForRequiredUnsupportedMember() {
+            List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+            GeneratorConfig lenient = limitedTo(1).toBuilder()
+                    .objectIgnoreErrors(true)
+                    .generationFailureListener(diagnostics::add)
+                    .build();
+
+            RequiredShapeTop top = new ObjectGenerator<>(RequiredShapeTop.class, lenient).generate();
+
+            assertNull(top.mid().shape());
+            assertEquals(1, diagnostics.size());
+            assertEquals(
+                    "RequiredShapeOwner.shape", diagnostics.getFirst().context().path());
+            assertEquals(
+                    UnsupportedOperationException.class.getName(),
+                    diagnostics.getFirst().causeType());
+        }
+
+        @Test
+        @DisplayName("strict mode reports the failure to the listener and throws")
+        void strictModeNotifiesListener() {
+            List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+            GeneratorConfig strict = limitedTo(1).toBuilder()
+                    .generationFailureListener(diagnostics::add)
+                    .build();
+
+            assertThrows(ObjectGenerationException.class, () -> new ObjectGenerator<>(Top.class, strict).generate());
+
+            assertEquals(
+                    List.of("Top.mid.leaf", "Top.mid.leaf"),
+                    diagnostics.stream().map(d -> d.context().path()).toList());
+        }
+
+        @Test
+        @DisplayName("field and type overrides supply the member before the limit applies")
+        void overridesRunBeforeTheLimit() {
+            GeneratorConfig fieldOverride = limitedTo(1).toBuilder()
+                    .objectOverride(Mid.class, "leaf", () -> new Leaf("field"))
+                    .build();
+            GeneratorConfig typeOverride = limitedTo(1).toBuilder()
+                    .objectOverride(Leaf.class, () -> new Leaf("type"))
+                    .build();
+
+            assertEquals(
+                    "field",
+                    new ObjectGenerator<>(Top.class, fieldOverride)
+                            .generate()
+                            .mid()
+                            .leaf()
+                            .value());
+            assertEquals(
+                    "type",
+                    new ObjectGenerator<>(Top.class, typeOverride)
+                            .generate()
+                            .mid()
+                            .leaf()
+                            .value());
+        }
+
+        @Test
+        @DisplayName("an excluded member stays null, because it is never generated")
+        void excludedMemberStaysNull() {
+            GeneratorConfig excluded =
+                    limitedTo(1).toBuilder().objectExcludeField("leaf").build();
+
+            assertNull(
+                    new ObjectGenerator<>(Top.class, excluded).generate().mid().leaf());
         }
     }
 }

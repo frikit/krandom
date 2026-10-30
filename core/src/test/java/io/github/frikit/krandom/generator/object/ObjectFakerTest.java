@@ -19,6 +19,7 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import jakarta.validation.constraints.NotNull;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -1203,6 +1204,30 @@ class ObjectFakerTest {
         assertSame(faker, faker.assertConfigurationIsValid());
     }
 
+    @Test
+    @DisplayName("a nested rule runs after generation, so a required member at the depth limit still fails")
+    void nestedRuleDoesNotPreventRequiredMemberFailureAtDepthLimit() {
+        ObjectFaker<RequiredTop> faker = new ObjectFaker<>(
+                        RequiredTop.class,
+                        GeneratorConfig.builder().objectMaxDepth(1).build())
+                .ruleFor("mid.leaf", () -> new RequiredLeaf("rule"));
+
+        ObjectGenerationException error = assertThrows(ObjectGenerationException.class, faker::generate);
+
+        assertEquals("RequiredTop.mid.leaf", error.getContext().orElseThrow().path());
+    }
+
+    @Test
+    @DisplayName("a larger depth limit lets a nested rule set a required member")
+    void nestedRuleSetsRequiredMemberWithinDepthLimit() {
+        ObjectFaker<RequiredTop> faker = new ObjectFaker<>(
+                        RequiredTop.class,
+                        GeneratorConfig.builder().objectMaxDepth(2).build())
+                .ruleFor("mid.leaf", () -> new RequiredLeaf("rule"));
+
+        assertEquals("rule", faker.generate().mid().leaf().value());
+    }
+
     static final class FixtureUser {
         String firstName;
         String lastName;
@@ -1281,6 +1306,12 @@ class ObjectFakerTest {
     record FixtureRecordWithNestedRecord(String firstName, FixtureAddressRecord address) {}
 
     record FixtureAddressRecord(String city, String postalCode) {}
+
+    record RequiredLeaf(String value) {}
+
+    record RequiredMid(@NotNull RequiredLeaf leaf) {}
+
+    record RequiredTop(RequiredMid mid) {}
 
     record BrokenAddressRecord(String city, String postalCode) {
 

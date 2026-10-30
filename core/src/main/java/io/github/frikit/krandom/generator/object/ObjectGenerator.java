@@ -50,7 +50,9 @@ import org.objenesis.ObjenesisStd;
  *       preferred; otherwise one unambiguous declared constructor is populated through the same
  *       resolver used for fields. Objenesis bypass is available only through {@link
  *       ObjectConstructionPolicy#UNSAFE_CONSTRUCTOR_BYPASS}.</li>
- *   <li><b>Nested objects</b> — resolved recursively up to the configured object max depth.</li>
+ *   <li><b>Nested objects</b> — resolved recursively up to the configured object max depth. A member
+ *       past that depth is left {@code null}, unless it is required (for example {@code @NotNull}),
+ *       which fails generation with the member's path.</li>
  *   <li><b>Enum fields</b> — a random constant is selected.</li>
  *   <li><b>Arrays</b> — auto-populated using the shared collection-size defaults
  *       (default 1 to 10 elements).</li>

@@ -1112,7 +1112,9 @@ public final class GeneratorConfig {
         }
 
         /**
-         * Maximum nesting depth for object generation.
+         * Maximum nesting depth for object generation. A nested object member past this depth is left
+         * {@code null}, unless it is required (for example {@code @NotNull}), which fails generation
+         * with the member's path.
          */
         public Builder objectMaxDepth(int objectMaxDepth) {
             if (objectMaxDepth < 1) {

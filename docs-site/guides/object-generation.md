@@ -149,6 +149,57 @@ Object population natively composes 21 Jakarta Validation constraints across fie
 records, and interface accessors. See the [Bean Validation support matrix]({{ '/guides/bean-validation/' | relative_url }})
 for exact target types, intersection rules, precedence, and exclusions.
 
+## Depth limit
+
+`objectMaxDepth` (default 5) limits how deep nested classes and records are generated. The root is at
+depth 0, and each nested object is one deeper. With `objectMaxDepth(1)`, the root's nested objects are
+generated, but not the nested objects inside them.
+
+A member whose nested object would be past the limit is left `null`, unless the member itself is
+required. A required member fails generation instead:
+
+```java
+record Leaf(String value) {}
+record Mid(@NotNull Leaf leaf) {}
+record Top(Mid mid) {}
+
+GeneratorConfig config = GeneratorConfig.builder().objectMaxDepth(1).build();
+
+// Throws ObjectGenerationException for 'Top.mid.leaf', with the cause
+// "required member would be null at objectMaxDepth 1; raise objectMaxDepth or override the member"
+new ObjectGenerator<>(Top.class, config).generate();
+```
+
+To generate the member, raise `objectMaxDepth`, or give it an override: `objectOverride(Mid.class, "leaf", ...)`
+and `objectOverride(Leaf.class, ...)` run before the limit is checked. Excluding the member leaves it
+`null` without a failure. With `objectIgnoreErrors(true)`, the member stays `null` and
+`generationFailureListener` is told.
+
+What counts as required:
+
+- `@NotNull` on the member, whether on a field, getter, interface accessor, record component or
+  constructor parameter. `@NotNull` on a final field alone is not seen, because a constructor argument
+  only reads the constraints on its parameter.
+- `@NotEmpty` on a collection class that is generated as a nested object, such as a custom
+  `AbstractCollection`. Above the limit such a class is built through its constructor and not filled,
+  so it can still be empty. `@NotEmpty` and `@NotBlank` are rejected on other nested object types.
+- `@Size` alone does not count, because Bean Validation accepts `null` for it.
+
+A required member that no depth could generate, such as an interface with no `objectSubtype` mapping,
+fails as an unsupported type, as it does above the limit.
+
+Collections, arrays, maps and optionals are not cut off at the limit, but the nested objects inside them
+are: a `List<Leaf>` holds `null` elements, and a `Map<Leaf, String>` and an `Optional<Leaf>` are empty.
+A constraint on a type argument, such as `List<@NotNull Leaf>`, does not change this.
+
+Cycles are cut separately. Below the limit, a member that would repeat a nested type already being
+generated, such as `next.next` of a self-typed `@NotNull Node next`, is left `null` whatever its
+constraints. At the limit it fails like any other required member, and a larger `objectMaxDepth` then
+lets generation succeed without giving it a value.
+
+`ObjectFaker` rules and ignores on nested paths run after generation, so they do not prevent the
+failure: raise `objectMaxDepth` as well, or use `objectOverride`.
+
 ## Fluent fixtures
 
 Use `ObjectFaker<T>` when the default object graph is close but you want explicit rules. JavaBean

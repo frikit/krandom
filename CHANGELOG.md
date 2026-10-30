@@ -61,6 +61,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   with `maximum` 1.7976931348623157E308, now generates values, where it used to fail while generating.
 - `format: idn-email` now generates emails, which are all valid for it. It used to generate a random
   string.
+- A `@NotNull` nested object member is no longer left `null` at `objectMaxDepth`. With
+  `objectMaxDepth(1)`, `record Top(Mid mid)` and `record Mid(@NotNull Leaf leaf)` used to give
+  `Top[mid=Mid[leaf=null]]`. Generation now fails with an `ObjectGenerationException` naming
+  `Top.mid.leaf`, whether `@NotNull` is on a field, getter, record component or constructor parameter.
+  Raise `objectMaxDepth` to generate the member, or give it an override. `objectIgnoreErrors(true)`
+  keeps the `null` and reports to `generationFailureListener`. A member with no required constraint,
+  or only `@Size`, is still left `null`, and so is an element of `List<@NotNull Leaf>`. Below the limit,
+  a cycle is still cut with `null`, even on a `@NotNull` member. A nested `ObjectFaker` rule runs after
+  generation, so it needs a larger `objectMaxDepth` too.
 
 ## [2.9.0] - 2026-10-19
 

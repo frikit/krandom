@@ -41,7 +41,7 @@ time.
 | `@NegativeOrZero` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Adds an inclusive upper bound at zero and intersects with all other numeric bounds. |
 | `@NotBlank` | `String` | Implies non-null and minimum size one; composes with email, repeatable patterns, numeric text, and size. |
 | `@NotEmpty` | `String`, arrays, `Collection` implementations, `Map` implementations | Implies non-null and minimum size one; an empty size intersection fails. |
-| `@NotNull` | Reference fields, including the `Optional` object | Suppresses null probability. It does not require an `Optional` to contain a value. |
+| `@NotNull` | Reference fields, including the `Optional` object | Suppresses null probability. It does not require an `Optional` to contain a value. A nested object member at the [depth limit]({{ '/guides/object-generation/' | relative_url }}#depth-limit) fails rather than being left `null`. |
 | `@Null` | Reference fields | Forces `null`; primitive and required intersections fail. |
 | `@Past` | Supported Java temporal types listed below | Intersects with present/future constraints using the configured clock; an empty direction fails. |
 | `@PastOrPresent` | Supported Java temporal types listed below | Can intersect with `@FutureOrPresent` at the configured present. |
@@ -75,5 +75,7 @@ failure policy as other object-generation errors.
   to enforce them.
 - A listed constraint on an unsupported target fails contextually instead of being ignored.
 - Explicit custom generator and override outputs are not silently changed or post-validated.
+- `@NotNull` does not stop a member being left `null` when a cycle is cut, or an element of
+  `List<@NotNull Leaf>` at the [depth limit]({{ '/guides/object-generation/' | relative_url }}#depth-limit).
 - Strict `LocalTime` and `MonthDay` constraints can have no representable value at a configured clock
   boundary; those cases fail rather than wrapping into the wrong temporal direction.

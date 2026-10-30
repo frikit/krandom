@@ -122,7 +122,8 @@ import org.jspecify.annotations.Nullable;
  *   <li>{@code Map<K,V>}: auto-populated with the shared collection-size defaults</li>
  *   <li>{@code Optional<T>}: populated as {@code Optional.ofNullable(value)}, optionally
  *       respecting the configured empty-rate</li>
- *   <li>Depth guard: if {@code currentDepth >= maxDepth} return primitive zero / {@code null}</li>
+ *   <li>Depth guard: if {@code currentDepth >= maxDepth} return primitive zero / {@code null}, or
+ *       fail with field context when the member itself is required</li>
  *   <li>Nested class or record: delegate to a child {@link ObjectGenerator} (cycle-safe via
  *       {@link ObjectPool})</li>
  *   <li>Unsupported type: fail with field context, or return primitive zero / {@code null}
@@ -1956,7 +1957,9 @@ final class FieldGeneratorResolver {
 
         // ── 7. Depth guard ────────────────────────────────────────────────────
         if (currentDepth >= config.getMaxDepth()) {
-            return PRIMITIVE_DEFAULTS.getOrDefault(rawType, null);
+            return bvConstraints.required() && !(element instanceof AnnotatedType)
+                    ? handleRequiredMemberAtMaxDepth(rawType, genericType, ownerType, fieldName, currentDepth)
+                    : PRIMITIVE_DEFAULTS.getOrDefault(rawType, null);
         }
 
         // ── 8. Nested class or record (cycle-safe) ────────────────────────────
@@ -2161,6 +2164,38 @@ final class FieldGeneratorResolver {
                         context,
                         cause),
                 PRIMITIVE_DEFAULTS.getOrDefault(rawType, null));
+    }
+
+    /**
+     * A required member must not be left {@code null} by the depth limit. A member no depth could
+     * generate fails as it does above the limit, so the failure only asks for more depth when more
+     * depth would help.
+     */
+    private @Nullable Object handleRequiredMemberAtMaxDepth(
+            Class<?> rawType, Type declaredType, Class<?> ownerType, String fieldName, int depth) {
+        if (!isNestableType(config.resolveSubtype(rawType))) {
+            return handleUnsupportedType(rawType, declaredType, ownerType, fieldName, depth);
+        }
+        // The whole member path: an inherited field's owner is not the nested type on that path.
+        String path = memberPath(fieldName);
+        String declaredTypeName = declaredType.getTypeName();
+        GenerationFailureContext context = new GenerationFailureContext(
+                GenerationFailureCategory.UNSUPPORTED_TYPE,
+                GenerationOperation.GENERATE,
+                path,
+                ownerType,
+                declaredTypeName,
+                depth,
+                -1);
+        return failurePolicy.handle(
+                new ObjectGenerationException(
+                        "Required member would be null at '" + path + "' (declared type " + declaredTypeName
+                                + ", depth " + depth + ")",
+                        context,
+                        new BeanValidationSupport.ConstraintConflictException(
+                                "required member would be null at objectMaxDepth " + config.getMaxDepth()
+                                        + "; raise objectMaxDepth or override the member")),
+                null);
     }
 
     private @Nullable Object generateConstraintValue(
