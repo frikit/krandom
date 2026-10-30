@@ -1989,6 +1989,38 @@ class ObjectGeneratorTest {
             }
         }
 
+        static class SelfTypedId {
+            int tag = 1;
+            SelfTypedId id;
+
+            SelfTypedId(SelfTypedId id) {
+                this.id = id;
+            }
+
+            SelfTypedId tagged(int newTag) {
+                tag = newTag;
+                return this;
+            }
+
+            @Override
+            public boolean equals(Object other) {
+                return other instanceof SelfTypedId selfTyped && selfTyped.tag == tag;
+            }
+
+            @Override
+            public int hashCode() {
+                return tag;
+            }
+        }
+
+        static class ZeroConstructorId {
+            @Min(0) @Max(0) int id;
+
+            ZeroConstructorId(@Min(0) @Max(0) int id) {
+                this.id = id;
+            }
+        }
+
         static class ShadowedId {
             int id;
         }
@@ -2234,6 +2266,48 @@ class ObjectGeneratorTest {
             assertFalse(generator.generate().id);
 
             // The argument fails, then so does the field: the fallback did not free the earlier false.
+            assertEquals(2, diagnostics.size());
+        }
+
+        @Test
+        @DisplayName("a value tracked inside a nested object does not count as the constructor argument's own")
+        void nestedTrackedValueDoesNotCountAsTheConstructorArgumentsOwn() {
+            AtomicInteger belowRoot = new AtomicInteger(1);
+            ObjectGenerator<SelfTypedId> generator = new ObjectGenerator<>(
+                    SelfTypedId.class,
+                    GeneratorConfig.builder()
+                            .objectOverride(
+                                    FieldPredicates.named("id"),
+                                    context -> new SelfTypedId(null)
+                                            .tagged(context.getDepth() == 0 ? 1 : belowRoot.incrementAndGet()))
+                            .build());
+
+            assertEquals(1, generator.generate().id.tag);
+
+            assertEquals(
+                    "SelfTypedId.id",
+                    assertThrows(ObjectGenerationException.class, generator::generate)
+                            .getContext()
+                            .orElseThrow()
+                            .path());
+        }
+
+        @Test
+        @DisplayName("a lenient fallback equal to an earlier value gives that value nothing back")
+        void lenientFallbackEqualToAnEarlierValueGivesNothingBack() {
+            List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+            ObjectGenerator<ZeroConstructorId> generator = new ObjectGenerator<>(
+                    ZeroConstructorId.class,
+                    unique("id")
+                            .objectIgnoreErrors(true)
+                            .generationFailureListener(diagnostics::add)
+                            .build());
+            generator.generate();
+            assertTrue(diagnostics.isEmpty());
+
+            assertEquals(0, generator.generate().id);
+
+            // The argument fails, then so does the field: the fallback is not the value tracked earlier.
             assertEquals(2, diagnostics.size());
         }
 

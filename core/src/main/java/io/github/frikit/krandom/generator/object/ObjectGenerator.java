@@ -70,7 +70,8 @@ import org.objenesis.ObjenesisStd;
  *
  * <p><b>Unique fields</b> ({@code id}, {@code email} and a few other names unless configured with
  * {@link GeneratorConfig.Builder#objectUniqueFields(String...)}) stay unique across every object a
- * generator produces, including nested objects, however a value is produced. A repeat draws again, up
+ * generator produces, including nested objects, however a value is produced. Each field has its own
+ * values, so {@code Order.id} and a nested {@code Customer.id} can be equal. A repeat draws again, up
  * to {@link GeneratorConfig.Builder#objectUniquenessMaxAttempts(int)} times, and then generation fails,
  * so an override that returns a constant fails on the next object. The generator remembers each value
  * it hands out, so memory grows with the number of generated unique values: create a new generator to
@@ -786,8 +787,6 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 arguments[index] = defaultForType(parameter.getType());
                 continue;
             }
-            String fieldKey = UniqueFieldTracker.fieldKey(type, memberName);
-            int trackedValues = uniqueFieldTracker.valueCount(fieldKey);
             arguments[index] = resolver.resolveAndGenerateMember(
                     parameter.getParameterizedType(),
                     parameter.getType(),
@@ -796,7 +795,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                     depth,
                     parameter,
                     memberStreamIdentity(type, "constructor", memberName));
-            if (uniqueFieldTracker.valueCount(fieldKey) > trackedValues) {
+            if (uniqueFieldTracker.addedLast(UniqueFieldTracker.fieldKey(type, memberName), arguments[index])) {
                 trackedConstructorArguments.put(memberName, arguments[index]);
             }
         }

@@ -6,12 +6,15 @@
 package io.github.frikit.krandom.generator.object;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -106,15 +109,22 @@ class UniqueFieldTrackerTest {
     }
 
     @Test
-    @DisplayName("the value count covers what a field holds, and a null is no value")
-    void valueCountCoversWhatAFieldHolds() {
+    @DisplayName("addedLast holds only for the very value a field added last")
+    void addedLastHoldsOnlyForTheVeryValueAFieldAddedLast() {
         UniqueFieldTracker tracker = new UniqueFieldTracker();
-        assertEquals(0, tracker.valueCount("id"));
+        assertFalse(tracker.addedLast("id", null));
+
+        List<Integer> value = List.of(1);
+        tracker.nextUnique("id", () -> value, 1);
+        assertTrue(tracker.addedLast("id", value));
+        assertFalse(tracker.addedLast("code", value));
+        assertFalse(tracker.addedLast("id", new ArrayList<>(value)));
 
         tracker.nextUnique("id", () -> null, 1);
-        assertEquals(0, tracker.valueCount("id"));
+        assertFalse(tracker.addedLast("id", value));
+        assertFalse(tracker.addedLast("id", null));
 
-        tracker.nextUnique("id", () -> 1L, 1);
-        assertEquals(1, tracker.valueCount("id"));
+        assertThrows(UniqueFieldTracker.ExhaustedException.class, () -> tracker.nextUnique("id", () -> value, 1));
+        assertFalse(tracker.addedLast("id", value));
     }
 }
