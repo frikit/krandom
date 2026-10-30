@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import io.github.frikit.krandom.generator.EmailDomainPolicy;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Vocabulary;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
@@ -48,6 +49,9 @@ import org.jspecify.annotations.Nullable;
 final class SemanticCoherenceAdjuster {
 
     private static final Pattern MONEY_FRAGMENT = Pattern.compile("[-+]?\\d+(?:\\.\\d+)?");
+    /** The domains RFC 2606 reserves, which cannot reach a real mailbox. */
+    private static final Pattern RESERVED_DOMAIN =
+            Pattern.compile("(?:.+\\.)?example\\.(?:com|net|org)|.+\\.(?:test|example|invalid|localhost)");
 
     private final ObjectGeneratorConfig config;
     private final UniqueFieldTracker uniqueFieldTracker;
@@ -211,7 +215,8 @@ final class SemanticCoherenceAdjuster {
     private @Nullable String harmonizeDomain(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
         Slot domainSlot = slotsBySemanticKey.get("domain");
         if (domainSlot != null) {
-            String declaredDomain = normalizeDomain(stringValue(domainSlot.getValue()));
+            String declaredDomain =
+                    sharedDomain(normalizeDomain(stringValue(domainSlot.getValue())), slotsBySemanticKey);
             if (declaredDomain != null) {
                 if (canAssign(domainSlot, allowOverwriteExisting)) {
                     Object assigned = applyUniqueness(domainSlot, "domain", declaredDomain);
@@ -224,10 +229,15 @@ final class SemanticCoherenceAdjuster {
 
         String resolvedDomain = normalizeDomain(emailDomain(stringValue(slotsBySemanticKey.get("email"))));
         if (resolvedDomain == null) {
-            resolvedDomain = normalizeDomain(urlHost(stringValue(slotsBySemanticKey.get("url"))));
+            resolvedDomain = sharedDomain(
+                    normalizeDomain(urlHost(stringValue(slotsBySemanticKey.get("url")))), slotsBySemanticKey);
         }
         if (resolvedDomain == null) {
-            resolvedDomain = normalizeDomain(domainFromCompany(stringValue(slotsBySemanticKey.get("companyname"))));
+            resolvedDomain = normalizeDomain(
+                    domainFromCompany(stringValue(slotsBySemanticKey.get("companyname")), slotsBySemanticKey));
+        }
+        if (resolvedDomain == null) {
+            resolvedDomain = normalizeDomain(emailDomain(stringValue(slotsBySemanticKey.get("companyemail"))));
         }
 
         if (resolvedDomain != null && domainSlot != null && canAssign(domainSlot, allowOverwriteExisting)) {
@@ -272,7 +282,8 @@ final class SemanticCoherenceAdjuster {
             domain = normalizeDomain(emailDomain(stringValue(emailSlot)));
         }
         if (domain == null) {
-            domain = normalizeDomain(urlHost(stringValue(slotsBySemanticKey.get("url"))));
+            domain = emailSafeDomain(
+                    normalizeDomain(urlHost(stringValue(slotsBySemanticKey.get("url")))), slotsBySemanticKey);
         }
         if (domain == null) {
             domain = "example.com";
@@ -293,16 +304,58 @@ final class SemanticCoherenceAdjuster {
             domain = normalizeDomain(emailDomain(stringValue(companyEmailSlot)));
         }
         if (domain == null) {
-            domain = normalizeDomain(urlHost(stringValue(slotsBySemanticKey.get("companyurl"))));
+            domain = emailSafeDomain(
+                    normalizeDomain(urlHost(stringValue(slotsBySemanticKey.get("companyurl")))), slotsBySemanticKey);
         }
         if (domain == null) {
-            domain = normalizeDomain(domainFromCompany(stringValue(slotsBySemanticKey.get("companyname"))));
+            domain = normalizeDomain(
+                    domainFromCompany(stringValue(slotsBySemanticKey.get("companyname")), slotsBySemanticKey));
         }
         if (domain == null) {
             return;
         }
 
         companyEmailSlot.setValue(applyUniqueness(companyEmailSlot, "companyemail", "hello@" + domain));
+    }
+
+    /** Keeps a domain out of a fixture's shared domain when an email field would inherit it unsafely. */
+    private @Nullable String sharedDomain(@Nullable String domain, Map<String, Slot> slotsBySemanticKey) {
+        return hasEmailField(slotsBySemanticKey) ? emailSafeDomain(domain, slotsBySemanticKey) : domain;
+    }
+
+    private static boolean hasEmailField(Map<String, Slot> slotsBySemanticKey) {
+        return slotsBySemanticKey.containsKey("email") || slotsBySemanticKey.containsKey("companyemail");
+    }
+
+    /**
+     * Returns the domain if a generated email may use it. Under the test-safe policy it must be
+     * reserved or come from an override of a sibling field, because a domain the caller supplies is
+     * used verbatim.
+     */
+    private @Nullable String emailSafeDomain(@Nullable String domain, Map<String, Slot> slotsBySemanticKey) {
+        if (domain == null
+                || !usesReservedEmailDomains()
+                || RESERVED_DOMAIN.matcher(domain).matches()
+                || isSuppliedDomain(domain, slotsBySemanticKey)) {
+            return domain;
+        }
+        return null;
+    }
+
+    private boolean usesReservedEmailDomains() {
+        return config.getGeneratorConfig().getEmailDomainPolicy() == EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS;
+    }
+
+    private boolean isSuppliedDomain(String domain, Map<String, Slot> slotsBySemanticKey) {
+        return domain.equals(normalizeDomain(suppliedValue(slotsBySemanticKey.get("domain"))))
+                || domain.equals(normalizeDomain(urlHost(suppliedValue(slotsBySemanticKey.get("url")))))
+                || domain.equals(normalizeDomain(urlHost(suppliedValue(slotsBySemanticKey.get("companyurl")))));
+    }
+
+    private @Nullable String suppliedValue(@Nullable Slot slot) {
+        // Not type overrides: one on String protects every email too, leaving nothing to authorize, and
+        // one on a generic field's erasure does not apply to the value generation resolved for it.
+        return slot != null && hasMemberOverride(slot) ? stringValue(slot) : null;
     }
 
     private void harmonizeUrl(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
@@ -337,7 +390,8 @@ final class SemanticCoherenceAdjuster {
             domain = normalizeDomain(emailDomain(stringValue(slotsBySemanticKey.get("companyemail"))));
         }
         if (domain == null) {
-            domain = normalizeDomain(domainFromCompany(stringValue(slotsBySemanticKey.get("companyname"))));
+            domain = normalizeDomain(
+                    domainFromCompany(stringValue(slotsBySemanticKey.get("companyname")), slotsBySemanticKey));
         }
         if (domain == null) {
             return;
@@ -507,17 +561,9 @@ final class SemanticCoherenceAdjuster {
 
     private boolean isProtected(Slot slot) {
         Field field = slot.annotatedElement();
-        // Field overrides are resolved under the declaring class, so an inherited field is protected
-        // by an override registered for its declaring class as well as for the generated type.
-        if (hasFieldOverride(slot.ownerType(), slot.fieldName())
-                || hasFieldOverride(field.getDeclaringClass(), slot.fieldName())
-                || config.getContextualTypeOverride(slot.rawType()).isPresent()
-                || config.getTypeOverride(slot.rawType()).isPresent()) {
-            return true;
-        }
-
-        if (config.getContextualFieldPredicateOverride(field).isPresent()
-                || config.getFieldPredicateOverride(field).isPresent()) {
+        // An inherited field is also protected by an override registered for the generated type,
+        // although field overrides are resolved under the declaring class.
+        if (hasFieldOverride(slot.ownerType(), slot.fieldName()) || hasMemberOverride(slot) || hasTypeOverride(slot)) {
             return true;
         }
 
@@ -530,6 +576,19 @@ final class SemanticCoherenceAdjuster {
             return BeanValidationSupport.constraintGeneratorFor(field, slot.rawType()) != null;
         }
         return false;
+    }
+
+    /** True when an override of this field, not a generator or a constraint, produced its value. */
+    private boolean hasMemberOverride(Slot slot) {
+        Field field = slot.annotatedElement();
+        return hasFieldOverride(field.getDeclaringClass(), slot.fieldName())
+                || config.getContextualFieldPredicateOverride(field).isPresent()
+                || config.getFieldPredicateOverride(field).isPresent();
+    }
+
+    private boolean hasTypeOverride(Slot slot) {
+        return config.getContextualTypeOverride(slot.rawType()).isPresent()
+                || config.getTypeOverride(slot.rawType()).isPresent();
     }
 
     private boolean hasFieldOverride(Class<?> ownerType, String fieldName) {
@@ -546,8 +605,15 @@ final class SemanticCoherenceAdjuster {
         String normalizedFieldName = FieldGeneratorResolver.normalizeSemanticFieldName(semanticKey);
         return uniqueFieldTracker.nextUnique(
                 normalizedFieldName,
-                () -> uniquifyString(candidate, attempt.getAndIncrement()),
+                () -> "domain".equals(semanticKey)
+                        ? uniquifyDomain(candidate, attempt.getAndIncrement())
+                        : uniquifyString(candidate, attempt.getAndIncrement()),
                 config.getUniquenessMaxAttempts());
+    }
+
+    /** Numbers a subdomain, so that a reserved domain stays reserved: {@code n1.acme.test}. */
+    static String uniquifyDomain(String domain, int attempt) {
+        return attempt == 0 ? domain : "n" + attempt + "." + domain;
     }
 
     boolean isUniqueField(String fieldName, String semanticKey) {
@@ -607,9 +673,12 @@ final class SemanticCoherenceAdjuster {
         return stringValue(slotsBySemanticKey.get("companyname")) != null ? "hello" : null;
     }
 
-    private static @Nullable String domainFromCompany(@Nullable String companyName) {
+    private @Nullable String domainFromCompany(@Nullable String companyName, Map<String, Slot> slotsBySemanticKey) {
         String slug = slugFragment(companyName);
-        return slug != null ? slug + ".com" : null;
+        if (slug == null) {
+            return null;
+        }
+        return slug + (usesReservedEmailDomains() && hasEmailField(slotsBySemanticKey) ? ".test" : ".com");
     }
 
     private static @Nullable String normalizedHumanName(@Nullable String value) {

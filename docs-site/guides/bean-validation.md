@@ -32,7 +32,7 @@ time.
 | `@AssertTrue` | `boolean`, `Boolean` | Intersects with `@AssertFalse`; contradictory assertions fail. |
 | `@DecimalMax` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Inclusive/exclusive decimal endpoints intersect with every numeric and sign bound; empty real or target domains fail. |
 | `@DecimalMin` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Inclusive/exclusive decimal endpoints intersect with every numeric and sign bound; malformed bounds and empty domains fail. |
-| `@Email` | `String` | The email shape, custom email regex, repeatable patterns, numeric bounds, size, and blankness are composed through bounded search. |
+| `@Email` | `String` | The email shape, custom email regex, repeatable patterns, numeric bounds, size, and blankness are composed through bounded search. Generated addresses follow the [email-domain contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#email-domain-contract). |
 | `@Future` | Supported Java temporal types listed below | Intersects with present/past constraints using `GeneratorConfig.getClock()`; an empty direction fails. |
 | `@FutureOrPresent` | Supported Java temporal types listed below | Can intersect with `@PastOrPresent` at the configured present. |
 | `@Max` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Intersects with decimal, minimum, and sign bounds; integral and floating target domains are checked. |

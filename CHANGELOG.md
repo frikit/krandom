@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `@Email` fields no longer get an ordinary domain under the default
+  `EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS`. They drew a random `.com`, `.net` or `.org` domain,
+  such as `fbww@dgeedi.org`. They now use `example.com`, `example.net` or `example.org`, or a `.test`
+  domain when `@Size` rules those out. A domain in the annotation's `regexp` or a `@Pattern` is used
+  as written, and `REALISTIC_UNCLASSIFIED` keeps the old shape. Seeded output changes for these
+  fields.
+- Sibling fields no longer give a generated email an ordinary domain under that policy. A
+  `companyEmail` beside a `companyName` used to become `hello@acmelabs.com`, and an `email` beside a
+  `domain` took that domain's generated value. In an object with an email field, a domain derived
+  from a company name now ends in `.test`, and a generated `domain` takes the email's reserved domain.
+  A domain or URL set through an override is still used verbatim, and `REALISTIC_UNCLASSIFIED` keeps
+  `.com`. Seeded output changes for objects with these fields.
+- A unique `domain` field now numbers a subdomain (`n1.acme.test`). It used to append to the
+  top-level domain (`acme.test1`), which left the reserved space.
+
 ## [2.9.0] - 2026-10-19
 
 ### Added

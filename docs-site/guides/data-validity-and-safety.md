@@ -90,6 +90,13 @@ Latin-script names lose their diacritics (German umlauts expand to `ae`/`oe`/`ue
 Greek names are transliterated, and names in other scripts are replaced by romanized names for the
 locale's language.
 
+The same rule holds when an object has related fields. A generated email takes the domain of a
+sibling such as `domain` or `url` only if that domain is reserved or was set through an override, and
+a domain derived from `companyName` ends in `.test` (`hello@acmelabs.test`). An `@Email` field uses
+`example.com`, `example.net` or `example.org`, or a `.test` domain when its `@Size` rules those out.
+The policy covers only domains a generator chooses: values from your own overrides, rules and
+randomizers, and domains in an `@Email` `regexp` or a `@Pattern`, are used as written.
+
 `EmailDomainPolicy.REALISTIC_UNCLASSIFIED` restores the popular mailbox-provider domains
 (`gmail.com`, `yahoo.com`, …) and realistic company top-level domains for isolated fixtures that
 never send mail. The free-provider methods (`generateFreeEmail`, `getFreeEmailProvider`,

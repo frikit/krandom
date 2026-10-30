@@ -1728,7 +1728,12 @@ final class FieldGeneratorResolver {
             bvConstraints = BeanValidationSupport.constraintModelFor(element, rawType);
             bvGen = element != null
                     ? BeanValidationSupport.constraintGeneratorFor(
-                            element, rawType, sequenceRandom, generatorConfig.getClock(), bvConstraints)
+                            element,
+                            rawType,
+                            sequenceRandom,
+                            generatorConfig.getClock(),
+                            bvConstraints,
+                            generatorConfig.getEmailDomainPolicy())
                     : null;
         } catch (BeanValidationSupport.ConstraintConflictException conflict) {
             Object fallback =

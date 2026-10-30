@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import io.github.frikit.krandom.generator.EmailDomainPolicy;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.base.RegexGenerator;
@@ -75,6 +76,9 @@ final class BeanValidationSupport {
     private static final boolean AVAILABLE = detectJakartaValidation();
     private static final int SIZE_UNBOUNDED_CAP = 255;
     private static final int TEXT_GENERATION_ATTEMPTS = 256;
+    /** The length of "@" and ".test" in a generated reserved address. */
+    private static final int TEST_EMAIL_AFFIX_LENGTH = 6;
+
     private static final BigDecimal DECIMAL_DEFAULT_SPAN = new BigDecimal("1000000");
     private static final java.util.regex.Pattern EMAIL_SHAPE =
             java.util.regex.Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
@@ -162,7 +166,8 @@ final class BeanValidationSupport {
     static @Nullable Generator<?> constraintGeneratorFor(
             @Nullable AnnotatedElement element, Class<?> rawType, Random random, Clock clock) {
         ConstraintModel constraints = constraintModelFor(element, rawType);
-        return constraintGeneratorFor(element, rawType, random, clock, constraints);
+        return constraintGeneratorFor(
+                element, rawType, random, clock, constraints, EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS);
     }
 
     static @Nullable Generator<?> constraintGeneratorFor(
@@ -170,7 +175,8 @@ final class BeanValidationSupport {
             Class<?> rawType,
             Random random,
             Clock clock,
-            ConstraintModel constraints) {
+            ConstraintModel constraints,
+            EmailDomainPolicy emailDomainPolicy) {
         Objects.requireNonNull(random, "random must not be null");
         Objects.requireNonNull(clock, "clock must not be null");
         Objects.requireNonNull(constraints, "constraints must not be null");
@@ -185,7 +191,7 @@ final class BeanValidationSupport {
             return () -> constraints.assertion();
         }
         if (constraints.text() != null) {
-            return textGeneratorFor(constraints.text(), random);
+            return textGeneratorFor(constraints.text(), random, emailDomainPolicy);
         }
         Generator<?> numericGenerator = numericGeneratorFor(constraints.numeric(), rawType, random);
         if (numericGenerator != null) {
@@ -333,7 +339,33 @@ final class BeanValidationSupport {
         }
     }
 
-    private static Generator<String> textGeneratorFor(TextConstraint constraints, Random random) {
+    private static void addEmailSources(
+            List<Generator<String>> sources,
+            @Nullable SizeRange size,
+            EmailDomainPolicy emailDomainPolicy,
+            Random random) {
+        if (emailDomainPolicy != EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS) {
+            sources.add(regexGenerator("[a-z]{4,8}@[a-z]{3,8}\\.(com|net|org)", random));
+            return;
+        }
+        sources.add(regexGenerator("[a-z]{4,8}@example\\.(com|net|org)", random));
+        if (size == null) {
+            return;
+        }
+        // For a size an example.* address cannot meet: the labels share the length left beside "@" and
+        // ".test", so every candidate fits it. A size that leaves too little or too much has no source.
+        int minLabels = Math.max(2, size.min() - TEST_EMAIL_AFFIX_LENGTH);
+        int maxLabels = Math.min(16, size.max() - TEST_EMAIL_AFFIX_LENGTH);
+        if (minLabels <= maxLabels) {
+            sources.add(regexGenerator(
+                    "[a-z]{" + (minLabels + 1) / 2 + "," + (maxLabels + 1) / 2 + "}@[a-z]{" + minLabels / 2 + ","
+                            + maxLabels / 2 + "}\\.test",
+                    random));
+        }
+    }
+
+    private static Generator<String> textGeneratorFor(
+            TextConstraint constraints, Random random, EmailDomainPolicy emailDomainPolicy) {
         List<Generator<String>> sources = new ArrayList<>();
         for (TextPattern pattern : constraints.patterns()) {
             if (pattern.source()) {
@@ -345,7 +377,7 @@ final class BeanValidationSupport {
             }
         }
         if (constraints.email()) {
-            sources.add(regexGenerator("[a-z]{4,8}@[a-z]{3,8}\\.(com|net|org)", random));
+            addEmailSources(sources, constraints.size(), emailDomainPolicy, random);
         }
         Generator<String> numericSource = numericStringGeneratorFor(constraints.numeric(), random);
         if (numericSource != null) {
