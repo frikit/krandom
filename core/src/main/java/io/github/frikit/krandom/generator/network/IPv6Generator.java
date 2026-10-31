@@ -14,6 +14,10 @@ import java.util.StringJoiner;
 /**
  * Generates random IPv6 addresses in colon-separated notation (RFC 4291, RFC 5952).
  *
+ * <p>{@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} keeps every address inside the RFC 3849 documentation
+ * prefix {@code 2001:db8::/32}. Under {@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED} all 128 bits are
+ * random.
+ *
  * <p><b>RFC compliance</b>
  * <ul>
  *   <li>RFC 4291 §2.2 — 128-bit address represented as eight 16-bit groups separated by
@@ -89,7 +93,10 @@ public final class IPv6Generator implements Generator<String> {
     @Override
     public String generate() {
         StringJoiner joiner = new StringJoiner(":");
-        for (int i = 0; i < GROUPS; i++) {
+        if (isReserved()) {
+            joiner.add("2001").add("db8");
+        }
+        for (int i = joiner.length() == 0 ? 0 : 2; i < GROUPS; i++) {
             // nextInt(0x10000) → [0x0000, 0xFFFF]; Integer.toHexString suppresses leading zeros.
             joiner.add(Integer.toHexString(random.nextInt(GROUP_MAX)));
         }
@@ -97,10 +104,17 @@ public final class IPv6Generator implements Generator<String> {
     }
 
     /**
-     * Generates IPv6 CIDR notation such as {@code 2001:db8::/64} (without zero-compression).
+     * Generates IPv6 CIDR notation such as {@code 2001:db8:a:b:c:d:e:f/64} (without zero-compression): an
+     * address and a prefix length, whose host bits are not cleared. Under
+     * {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} the prefix is at least 32, so the whole range stays
+     * inside the RFC 3849 prefix.
      */
     public String generateCidr() {
-        int prefix = 16 + random.nextInt(113); // [16, 128]
+        int prefix = isReserved() ? 32 + random.nextInt(97) : 16 + random.nextInt(113); // [32 or 16, 128]
         return generate() + "/" + prefix;
+    }
+
+    private boolean isReserved() {
+        return config.getNetworkSafetyPolicy() == NetworkSafetyPolicy.TEST_SAFE_RESERVED;
     }
 }

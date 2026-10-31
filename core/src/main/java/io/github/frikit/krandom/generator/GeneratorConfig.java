@@ -13,6 +13,7 @@ import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.network.NetworkSafetyPolicy;
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.object.ObjectFieldStreamPolicy;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
@@ -129,6 +130,7 @@ public final class GeneratorConfig {
     private final NationalIdSafetyPolicy nationalIdSafetyPolicy;
     private final IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy;
     private final EmailDomainPolicy emailDomainPolicy;
+    private final NetworkSafetyPolicy networkSafetyPolicy;
     private final ChildStreamPolicy childStreamPolicy;
     private final String providerDatasetVersion;
     private final List<KRandomModule> modules;
@@ -194,6 +196,7 @@ public final class GeneratorConfig {
         this.nationalIdSafetyPolicy = b.nationalIdSafetyPolicy;
         this.identityDocumentSafetyPolicy = b.identityDocumentSafetyPolicy;
         this.emailDomainPolicy = b.emailDomainPolicy;
+        this.networkSafetyPolicy = b.networkSafetyPolicy;
         this.childStreamPolicy = b.childStreamPolicy;
         this.providerDatasetVersion = b.providerDatasetVersion;
     }
@@ -426,6 +429,20 @@ public final class GeneratorConfig {
      */
     public EmailDomainPolicy getEmailDomainPolicy() {
         return emailDomainPolicy;
+    }
+
+    /**
+     * Enforceable policy for generated network destinations.
+     *
+     * <p>{@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} uses only reserved fixture destinations: the
+     * RFC 5737 and RFC 3849 documentation ranges and names under {@code .test}.
+     * {@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED} is the default for now, and allows random
+     * public addresses and realistic domains in isolated fixtures.
+     *
+     * @return configured network safety policy
+     */
+    public NetworkSafetyPolicy getNetworkSafetyPolicy() {
+        return networkSafetyPolicy;
     }
 
     /**
@@ -771,6 +788,7 @@ public final class GeneratorConfig {
                 .setting("national-id.safety-policy", nationalIdSafetyPolicy.name())
                 .setting("identity-document.safety-policy", identityDocumentSafetyPolicy.name())
                 .setting("email.domain-policy", emailDomainPolicy.name())
+                .setting("network.safety-policy", networkSafetyPolicy.name())
                 .setting("charset", charset.name())
                 .setting("string.min", Integer.toString(minStringLength))
                 .setting("string.max", Integer.toString(maxStringLength))
@@ -945,6 +963,7 @@ public final class GeneratorConfig {
         private NationalIdSafetyPolicy nationalIdSafetyPolicy = NationalIdSafetyPolicy.DISABLED;
         private IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy = IdentityDocumentSafetyPolicy.DISABLED;
         private EmailDomainPolicy emailDomainPolicy = EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS;
+        private NetworkSafetyPolicy networkSafetyPolicy = NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED;
         private ChildStreamPolicy childStreamPolicy = ChildStreamPolicy.LEGACY;
         private String providerDatasetVersion = GenerationRecipe.BUILTIN_PROVIDER_DATASET_VERSION;
         private final List<KRandomModule> modules = new ArrayList<>();
@@ -1002,6 +1021,7 @@ public final class GeneratorConfig {
             this.nationalIdSafetyPolicy = source.nationalIdSafetyPolicy;
             this.identityDocumentSafetyPolicy = source.identityDocumentSafetyPolicy;
             this.emailDomainPolicy = source.emailDomainPolicy;
+            this.networkSafetyPolicy = source.networkSafetyPolicy;
             this.childStreamPolicy = source.childStreamPolicy;
             this.providerDatasetVersion = source.providerDatasetVersion;
             this.modules.addAll(source.modules);
@@ -1653,6 +1673,22 @@ public final class GeneratorConfig {
          */
         public Builder emailDomainPolicy(EmailDomainPolicy emailDomainPolicy) {
             this.emailDomainPolicy = Objects.requireNonNull(emailDomainPolicy, "emailDomainPolicy must not be null");
+            return this;
+        }
+
+        /**
+         * Selects the enforceable policy for generated network destinations.
+         *
+         * <p>{@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} uses only reserved fixture destinations.
+         * {@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED} is the default for now; keep it to isolated
+         * fixtures that never connect to what they generate.
+         *
+         * @param networkSafetyPolicy network safety policy
+         * @return this builder
+         */
+        public Builder networkSafetyPolicy(NetworkSafetyPolicy networkSafetyPolicy) {
+            this.networkSafetyPolicy =
+                    Objects.requireNonNull(networkSafetyPolicy, "networkSafetyPolicy must not be null");
             return this;
         }
 

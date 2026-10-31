@@ -23,7 +23,10 @@ public enum ProviderSafetyPolicy {
     BANKING("banking.safety-policy"),
 
     /** The email-domain policy selected in {@link GeneratorConfig}. */
-    EMAIL_DOMAIN("email.domain-policy");
+    EMAIL_DOMAIN("email.domain-policy"),
+
+    /** The network safety policy selected in {@link GeneratorConfig}. */
+    NETWORK("network.safety-policy");
 
     private final String setting;
 
@@ -53,6 +56,7 @@ public enum ProviderSafetyPolicy {
             case PHONE_NUMBER -> selectedConfig.getPhoneNumberSafetyPolicy().name();
             case BANKING -> selectedConfig.getBankingSafetyPolicy().name();
             case EMAIL_DOMAIN -> selectedConfig.getEmailDomainPolicy().name();
+            case NETWORK -> selectedConfig.getNetworkSafetyPolicy().name();
         };
     }
 }

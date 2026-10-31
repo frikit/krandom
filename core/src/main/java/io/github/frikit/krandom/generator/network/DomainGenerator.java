@@ -18,6 +18,12 @@ import org.jspecify.annotations.Nullable;
  * <p>This generator creates domain names using random words combined with popular
  * or custom TLDs. Supports both generic and country-code TLDs.
  *
+ * <p>Under {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} a domain the generator chooses ends in the
+ * reserved {@code .test} instead, such as {@code techcloud.test}. A TLD passed to
+ * {@link #generate(String)} is used verbatim. A TLD or a label alone is vocabulary, not a destination,
+ * so {@link #getTLD()}, {@link #getPopularTLD()}, and {@link #generateName()} draw the same way under
+ * either policy.
+ *
  * <p><strong>Popular TLDs:</strong>
  * .com, .net, .org, .io, .co, .dev, .app, .tech, .online, .site
  *
@@ -66,6 +72,8 @@ import org.jspecify.annotations.Nullable;
  * {@code Generators.threadLocal(...)} for deterministic concurrent use.
  */
 public final class DomainGenerator implements Generator<String> {
+
+    private static final String RESERVED_TLD = "test";
 
     private static final String[] POPULAR_TLDS = {
         "com", "net", "org", "io", "co", "dev", "app", "tech", "online", "site", "xyz", "pro"
@@ -152,7 +160,8 @@ public final class DomainGenerator implements Generator<String> {
     @Override
     public String generate() {
         String name = generateDomainLabel();
-        String tld = random.nextBoolean() && localeTLD != null ? localeTLD : getRandomPopularTLD();
+        String tld =
+                config.getNetworkSafetyPolicy() == NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED ? getTLD() : RESERVED_TLD;
         return name + "." + tld;
     }
 

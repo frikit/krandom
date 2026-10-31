@@ -23,7 +23,7 @@ A classified schema reference exports the same claims through its `x-krandom-saf
 | `person` | `FullNameGenerator` |  |  | `unclassified` | `person` |
 | `company.name` | `CompanyNameGenerator` | `company_name` | `companyname` | `unclassified` | `company.name` (aliases: `company_name`) |
 | `company.email` | `CompanyEmailGenerator` | `company_email` | `companyemail` | format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT` | `company.email` (aliases: `company_email`) (safety: format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT`) |
-| `company.url` | `CompanyUrlGenerator` | `company_url` | `companyurl` | `unclassified` | `company.url` (aliases: `company_url`) |
+| `company.url` | `CompanyUrlGenerator` | `company_url` | `companyurl` | format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT` | `company.url` (aliases: `company_url`) (safety: format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT`) |
 | `company.buzzword` | `CompanyBuzzwordGenerator` | `company_buzzword` |  | `unclassified` | `company.buzzword` (aliases: `company_buzzword`) |
 | `company.catch_phrase` | `CompanyCatchPhraseGenerator` | `company_catch_phrase` |  | `unclassified` | `company.catch_phrase` (aliases: `company_catch_phrase`) |
 | `company.industry` | `IndustryGenerator` | `company_industry` | `industry` | `unclassified` | `company.industry` (aliases: `company_industry`) |
@@ -37,10 +37,10 @@ A classified schema reference exports the same claims through its `x-krandom-saf
 | `address.country` | `CountryGenerator` | `country` | `country` | `unclassified` | `address.country` (aliases: `country`) |
 | `address.phone_number` | `PhoneNumberGenerator` | `phone_number` | `phone` | format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT` | `address.phone_number` (aliases: `phone_number`) (safety: format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT`) |
 | `address` | `StreetAddressGenerator` |  |  | `unclassified` |  |
-| `internet.url` | `URLGenerator` | `network`, `url` | `url` | `unclassified` | `internet.url` (aliases: `network`, `url`) |
-| `internet.domain` | `DomainGenerator` | `domain` | `domain` | `unclassified` | `internet.domain` (aliases: `domain`) |
-| `internet.hostname` | `HostnameGenerator` | `hostname` |  | `unclassified` | `internet.hostname` (aliases: `hostname`) |
-| `internet` | `URLGenerator` |  |  | `unclassified` | `internet` |
+| `internet.url` | `URLGenerator` | `network`, `url` | `url` | format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT` | `internet.url` (aliases: `network`, `url`) (safety: format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT`) |
+| `internet.domain` | `DomainGenerator` | `domain` | `domain` | format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT` | `internet.domain` (aliases: `domain`) (safety: format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT`) |
+| `internet.hostname` | `HostnameGenerator` | `hostname` |  | format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT` | `internet.hostname` (aliases: `hostname`) (safety: format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT`) |
+| `internet` | `URLGenerator` |  |  | format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT` | `internet` (safety: format: `GUARANTEED`; checksum: `NOT_APPLICABLE`; semantics: `CONFIGURATION_DEPENDENT`; test safety: `CONFIGURATION_DEPENDENT`) |
 | `commerce.product_info` | `ProductInfoGenerator` | `product_info` |  | `unclassified` | `commerce.product_info` (aliases: `product_info`) |
 | `commerce.order_info` | `OrderInfoGenerator` | `order_info` |  | `unclassified` | `commerce.order_info` (aliases: `order_info`) |
 | `commerce.shipment_info` | `ShipmentInfoGenerator` | `shipment_info` |  | `unclassified` | `commerce.shipment_info` (aliases: `shipment_info`) |

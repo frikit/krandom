@@ -15,7 +15,8 @@ import java.util.Random;
  * Generates random IEEE 802 MAC addresses.
  *
  * <p>The default format is uppercase hexadecimal octets separated by colons
- * ({@code "XX:XX:XX:XX:XX:XX"}).
+ * ({@code "XX:XX:XX:XX:XX:XX"}). Under {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} the first octet
+ * has the locally administered bit set and the multicast bit clear.
  *
  * <pre>{@code
  * MacAddressGenerator gen = new MacAddressGenerator();
@@ -84,7 +85,10 @@ public final class MacAddressGenerator implements Generator<String> {
         StringBuilder sb = new StringBuilder(17);
         for (int i = 0; i < 6; i++) {
             if (i > 0) sb.append(separator);
-            sb.append(String.format(Locale.ROOT, "%02X", random.nextInt(256)));
+            int octet = random.nextInt(256);
+            // Locally administered and unicast, so that it cannot collide with a vendor's prefix.
+            boolean first = i == 0 && config.getNetworkSafetyPolicy() == NetworkSafetyPolicy.TEST_SAFE_RESERVED;
+            sb.append(String.format(Locale.ROOT, "%02X", first ? (octet | 0x02) & 0xFE : octet));
         }
         return sb.toString();
     }

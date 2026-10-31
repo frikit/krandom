@@ -111,6 +111,12 @@
       "defaultValue": "DISABLED"
     },
     {
+      "name": "krandom.network-safety-policy",
+      "type": "io.github.frikit.krandom.generator.network.NetworkSafetyPolicy",
+      "description": "Safety policy for generated IP addresses, domains, hostnames, and URLs.",
+      "defaultValue": "REALISTIC_UNCLASSIFIED"
+    },
+    {
       "name": "krandom.object-construction-policy",
       "type": "io.github.frikit.krandom.generator.object.ObjectConstructionPolicy",
       "description": "Construction policy for generated objects. The default calls safe constructors.",

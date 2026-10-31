@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `NetworkSafetyPolicy`, set with `GeneratorConfig.Builder.networkSafetyPolicy` or
+  `krandom.network-safety-policy` in the Spring starter. `TEST_SAFE_RESERVED` keeps every generated
+  network destination reserved: IPv4 addresses and CIDRs in the RFC 5737 blocks, IPv6 in `2001:db8::/32`,
+  and domains, hostnames, URLs, URIs, company URLs, avatar URLs, and social links under `.test`. MAC
+  addresses are locally administered and unicast, and `generatePublic()` and `generatePrivate()` fail.
+  An explicit TLD or destination is used verbatim. `REALISTIC_UNCLASSIFIED` keeps seeded output as it
+  was. A recipe records the policy in the new setting `network.safety-policy`, and replay requires it,
+  so a recipe without it, such as one from an earlier version, is rejected.
 - `GeneratorConfig.getObjectRequestedUniqueFieldNames()`, the names given to `objectUniqueField` and
   `objectUniqueFields`.
 - `config { objectUniqueFields(...) }` in the Kotlin DSL, which had no way to request unique fields. It

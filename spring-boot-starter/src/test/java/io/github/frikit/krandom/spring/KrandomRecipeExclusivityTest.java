@@ -18,6 +18,7 @@ import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.network.NetworkSafetyPolicy;
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
@@ -69,6 +70,7 @@ class KrandomRecipeExclusivityTest {
                 "krandom.crypto-address-safety-policy=" + CryptoAddressSafetyPolicy.values()[0].name(),
                 "krandom.business-tax-identifier-safety-policy=" + BusinessTaxIdentifierSafetyPolicy.values()[0].name(),
                 "krandom.identity-document-safety-policy=" + IdentityDocumentSafetyPolicy.values()[0].name(),
+                "krandom.network-safety-policy=" + NetworkSafetyPolicy.values()[0].name(),
                 "krandom.object-construction-policy=" + ObjectConstructionPolicy.values()[0].name());
     }
 

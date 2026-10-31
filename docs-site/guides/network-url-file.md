@@ -6,6 +6,9 @@ permalink: /guides/network-url-file/
 
 # Network, URL, and File Data
 
+`NetworkSafetyPolicy` selects whether generated addresses and names are reserved fixture destinations;
+see the [network contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#network-contract).
+
 ## Network values
 
 ```java

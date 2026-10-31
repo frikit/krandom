@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
+import java.util.regex.Pattern;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -21,6 +22,11 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>This generator creates complete URLs by combining protocols, domains (via {@link DomainGenerator}),
  * optional paths, and optional query parameters.
+ *
+ * <p>Under {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} a host the generator chooses is under the
+ * reserved {@code .test} top-level domain. A domain passed explicitly is used verbatim. A supplied scheme,
+ * subdomain, or path does not choose the destination, so a scheme or subdomain that would end the host is
+ * rejected.
  *
  * <p><strong>Supported Protocols:</strong>
  * http, https, ftp, ws, wss
@@ -99,6 +105,12 @@ public final class URLGenerator implements Generator<String> {
         "format"
     };
 
+    /** What a supplied scheme may be, without changing where a URL points. */
+    private static final Pattern SCHEME = Pattern.compile("[A-Za-z][A-Za-z0-9+.-]*");
+
+    /** What a supplied subdomain may be, without changing where a URL points. */
+    private static final Pattern SUBDOMAIN = Pattern.compile("[\\p{L}\\p{N}_-]+(?:\\.[\\p{L}\\p{N}_-]+)*");
+
     private final GeneratorConfig config;
     private final Random random;
     private final DomainGenerator domainGenerator;
@@ -149,6 +161,27 @@ public final class URLGenerator implements Generator<String> {
         return requireNonBlank(value, field);
     }
 
+    /**
+     * Under {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} a supplied subdomain must not hold anything
+     * that ends the host, as {@code real.com/} does, because it does not choose the destination.
+     */
+    static String requireSubdomain(NetworkSafetyPolicy policy, String subdomain) {
+        return requireShape(policy, SUBDOMAIN, subdomain, "subdomain");
+    }
+
+    private String requireScheme(String protocol) {
+        return requireShape(config.getNetworkSafetyPolicy(), SCHEME, protocol, "protocol");
+    }
+
+    private static String requireShape(NetworkSafetyPolicy policy, Pattern shape, String value, String field) {
+        if (policy == NetworkSafetyPolicy.TEST_SAFE_RESERVED
+                && !shape.matcher(value).matches()) {
+            throw new IllegalArgumentException(field + " must not change the reserved host; "
+                    + "name a destination with generateWithDomain instead: " + value);
+        }
+        return value;
+    }
+
     private static String normalizePath(String path) {
         String normalized = path.trim();
         return normalized.startsWith("/") ? normalized : "/" + normalized;
@@ -188,6 +221,7 @@ public final class URLGenerator implements Generator<String> {
      */
     public String generate(String protocol) {
         Objects.requireNonNull(protocol, "protocol must not be null");
+        requireScheme(protocol);
         String domain = domainGenerator.generate();
         return protocol + "://" + domain;
     }
@@ -289,6 +323,12 @@ public final class URLGenerator implements Generator<String> {
         String domain =
                 options.domain() == null ? domainGenerator.generate() : requireNonBlank(options.domain(), "domain");
         String prefix = normalizeOptional(options.domainPrefix(), "domainPrefix");
+        if (options.domain() == null) {
+            requireScheme(protocol);
+            if (prefix != null) {
+                requireSubdomain(config.getNetworkSafetyPolicy(), prefix);
+            }
+        }
         String effectiveDomain = prefix == null ? domain : prefix + "." + domain;
 
         String url = protocol + "://" + effectiveDomain;

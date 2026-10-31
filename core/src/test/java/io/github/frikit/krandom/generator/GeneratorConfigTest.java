@@ -18,6 +18,7 @@ import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.network.NetworkSafetyPolicy;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
 import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
@@ -95,6 +96,21 @@ class GeneratorConfigTest {
         assertEquals(NationalIdSafetyPolicy.DISABLED, c.getNationalIdSafetyPolicy());
         assertEquals(IdentityDocumentSafetyPolicy.DISABLED, c.getIdentityDocumentSafetyPolicy());
         assertEquals(EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS, c.getEmailDomainPolicy());
+        assertEquals(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED, c.getNetworkSafetyPolicy());
+    }
+
+    @Test
+    @DisplayName("network safety policy is configurable and retained by toBuilder")
+    void networkSafetyPolicyConfigurable() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                .networkSafetyPolicy(NetworkSafetyPolicy.TEST_SAFE_RESERVED)
+                .build();
+
+        assertEquals(NetworkSafetyPolicy.TEST_SAFE_RESERVED, config.getNetworkSafetyPolicy());
+        assertEquals(
+                NetworkSafetyPolicy.TEST_SAFE_RESERVED,
+                config.toBuilder().build().getNetworkSafetyPolicy());
+        assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().networkSafetyPolicy(null));
     }
 
     @Test

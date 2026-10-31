@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.network.NetworkSafetyPolicy;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
@@ -15,6 +16,10 @@ import java.util.Random;
 
 /**
  * Generates avatar image URLs for user-profile fixtures.
+ *
+ * <p>{@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED} uses real avatar services' hosts, and
+ * {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} the same URL shapes under the reserved {@code .test}
+ * top-level domain. A supplied username or size does not change the host.
  */
 public final class AvatarUrlGenerator implements Generator<String> {
 
@@ -24,8 +29,16 @@ public final class AvatarUrlGenerator implements Generator<String> {
         "https://ui-avatars.com/api/?name=%s&size=%d"
     };
 
+    /** The same providers' URL shapes, on hosts under the reserved {@code .test} top-level domain. */
+    private static final String[] RESERVED_PROVIDERS = {
+        "https://api.dicebear.test/8.x/identicon/svg?seed=%s",
+        "https://robohash.test/%s.png?size=%dx%d",
+        "https://ui-avatars.test/api/?name=%s&size=%d"
+    };
+
     private final Random random;
     private final UsernameGenerator usernameGenerator;
+    private final String[] providers;
 
     public AvatarUrlGenerator() {
         this(GeneratorConfig.defaults());
@@ -35,6 +48,9 @@ public final class AvatarUrlGenerator implements Generator<String> {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.createRandom();
         this.usernameGenerator = new UsernameGenerator(effective.forChildStream("username"));
+        this.providers = effective.getNetworkSafetyPolicy() == NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED
+                ? PROVIDERS
+                : RESERVED_PROVIDERS;
     }
 
     private static String encode(String value) {
@@ -64,11 +80,11 @@ public final class AvatarUrlGenerator implements Generator<String> {
         }
 
         String seed = encode(username);
-        int provider = random.nextInt(PROVIDERS.length);
+        int provider = random.nextInt(providers.length);
         return switch (provider) {
-            case 0 -> String.format(Locale.ROOT, PROVIDERS[0], seed);
-            case 1 -> String.format(Locale.ROOT, PROVIDERS[1], seed, size, size);
-            default -> String.format(Locale.ROOT, PROVIDERS[2], seed, size);
+            case 0 -> String.format(Locale.ROOT, providers[0], seed);
+            case 1 -> String.format(Locale.ROOT, providers[1], seed, size, size);
+            default -> String.format(Locale.ROOT, providers[2], seed, size);
         };
     }
 }

@@ -20,6 +20,7 @@ public final class HostnameGenerator implements Generator<String> {
 
     private final Random random;
     private final DomainGenerator domainGenerator;
+    private final NetworkSafetyPolicy networkSafetyPolicy;
 
     public HostnameGenerator() {
         this(GeneratorConfig.defaults());
@@ -33,6 +34,7 @@ public final class HostnameGenerator implements Generator<String> {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.createRandom();
         this.domainGenerator = new DomainGenerator(effective.forChildStream("domain"));
+        this.networkSafetyPolicy = effective.getNetworkSafetyPolicy();
     }
 
     @Override
@@ -52,6 +54,7 @@ public final class HostnameGenerator implements Generator<String> {
         if (subdomain.isBlank()) {
             throw new IllegalArgumentException("subdomain must not be blank");
         }
+        URLGenerator.requireSubdomain(networkSafetyPolicy, subdomain);
         return subdomain + "." + domainGenerator.generate();
     }
 }

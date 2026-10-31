@@ -107,6 +107,7 @@ public class KrandomAutoConfiguration {
         candidates.put(
                 "krandom.business-tax-identifier-safety-policy", properties.getBusinessTaxIdentifierSafetyPolicy());
         candidates.put("krandom.identity-document-safety-policy", properties.getIdentityDocumentSafetyPolicy());
+        candidates.put("krandom.network-safety-policy", properties.getNetworkSafetyPolicy());
         candidates.put("krandom.object-construction-policy", properties.getObjectConstructionPolicy());
         List<String> set = new ArrayList<>();
         candidates.forEach((name, value) -> {
@@ -179,6 +180,9 @@ public class KrandomAutoConfiguration {
         }
         if (properties.getIdentityDocumentSafetyPolicy() != null) {
             builder.identityDocumentSafetyPolicy(properties.getIdentityDocumentSafetyPolicy());
+        }
+        if (properties.getNetworkSafetyPolicy() != null) {
+            builder.networkSafetyPolicy(properties.getNetworkSafetyPolicy());
         }
         if (properties.getObjectConstructionPolicy() != null) {
             builder.objectConstructionPolicy(properties.getObjectConstructionPolicy());

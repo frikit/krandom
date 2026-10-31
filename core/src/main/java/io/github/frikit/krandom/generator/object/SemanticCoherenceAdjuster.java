@@ -16,6 +16,7 @@ import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
+import io.github.frikit.krandom.generator.network.NetworkSafetyPolicy;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import java.lang.reflect.Field;
 import java.lang.reflect.RecordComponent;
@@ -51,8 +52,8 @@ final class SemanticCoherenceAdjuster {
 
     private static final Pattern MONEY_FRAGMENT = Pattern.compile("[-+]?\\d+(?:\\.\\d+)?");
     /** The domains RFC 2606 reserves, which cannot reach a real mailbox. */
-    private static final Pattern RESERVED_DOMAIN =
-            Pattern.compile("(?:.+\\.)?example\\.(?:com|net|org)|.+\\.(?:test|example|invalid|localhost)");
+    private static final Pattern RESERVED_DOMAIN = Pattern.compile(
+            "(?:[a-z0-9_-]+\\.)*example\\.(?:com|net|org)|(?:[a-z0-9_-]+\\.)+(?:test|example|invalid|localhost)");
     /** The fields this pass derives a value for that it cannot number apart from one already used. */
     private static final Set<String> UNNUMBERED_KEYS =
             Set.of("createdat", "updatedat", "birthdate", "age", "price", "amount", "balance", "active", "status");
@@ -247,7 +248,9 @@ final class SemanticCoherenceAdjuster {
             resolvedDomain = normalizeDomain(emailDomain(stringValue(slotsBySemanticKey.get("companyemail"))));
         }
 
-        if (resolvedDomain != null && domainSlot != null && canAssign(domainSlot, allowOverwriteExisting)) {
+        if (networkSafeDomain(resolvedDomain, slotsBySemanticKey) != null
+                && domainSlot != null
+                && canAssign(domainSlot, allowOverwriteExisting)) {
             Object assigned = applyUniqueness(domainSlot, "domain", resolvedDomain);
             domainSlot.setValue(assigned);
             resolvedDomain = normalizeDomain(stringValue(assigned));
@@ -340,17 +343,28 @@ final class SemanticCoherenceAdjuster {
      * used verbatim.
      */
     private @Nullable String emailSafeDomain(@Nullable String domain, Map<String, Slot> slotsBySemanticKey) {
-        if (domain == null
-                || !usesReservedEmailDomains()
-                || RESERVED_DOMAIN.matcher(domain).matches()
-                || isSuppliedDomain(domain, slotsBySemanticKey)) {
-            return domain;
-        }
-        return null;
+        return usesReservedEmailDomains() ? reservedOrSupplied(domain, slotsBySemanticKey) : domain;
+    }
+
+    /** Returns the domain if a generated domain or URL may use it, under the same rule for the network policy. */
+    private @Nullable String networkSafeDomain(@Nullable String domain, Map<String, Slot> slotsBySemanticKey) {
+        return usesReservedNetworkNames() ? reservedOrSupplied(domain, slotsBySemanticKey) : domain;
+    }
+
+    private @Nullable String reservedOrSupplied(@Nullable String domain, Map<String, Slot> slotsBySemanticKey) {
+        return domain == null
+                        || RESERVED_DOMAIN.matcher(domain).matches()
+                        || isSuppliedDomain(domain, slotsBySemanticKey)
+                ? domain
+                : null;
     }
 
     private boolean usesReservedEmailDomains() {
         return config.getGeneratorConfig().getEmailDomainPolicy() == EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS;
+    }
+
+    private boolean usesReservedNetworkNames() {
+        return config.getGeneratorConfig().getNetworkSafetyPolicy() == NetworkSafetyPolicy.TEST_SAFE_RESERVED;
     }
 
     private boolean isSuppliedDomain(String domain, Map<String, Slot> slotsBySemanticKey) {
@@ -371,9 +385,11 @@ final class SemanticCoherenceAdjuster {
             return;
         }
 
-        String domain = normalizeDomain(stringValue(slotsBySemanticKey.get("domain")));
+        String domain =
+                networkSafeDomain(normalizeDomain(stringValue(slotsBySemanticKey.get("domain"))), slotsBySemanticKey);
         if (domain == null) {
-            domain = normalizeDomain(emailDomain(stringValue(slotsBySemanticKey.get("email"))));
+            domain = networkSafeDomain(
+                    normalizeDomain(emailDomain(stringValue(slotsBySemanticKey.get("email")))), slotsBySemanticKey);
         }
         if (domain == null) {
             return;
@@ -389,12 +405,14 @@ final class SemanticCoherenceAdjuster {
             return;
         }
 
-        String domain = resolvedDomain;
+        String domain = networkSafeDomain(resolvedDomain, slotsBySemanticKey);
         if (domain == null) {
             domain = normalizeDomain(urlHost(stringValue(companyUrlSlot)));
         }
         if (domain == null) {
-            domain = normalizeDomain(emailDomain(stringValue(slotsBySemanticKey.get("companyemail"))));
+            domain = networkSafeDomain(
+                    normalizeDomain(emailDomain(stringValue(slotsBySemanticKey.get("companyemail")))),
+                    slotsBySemanticKey);
         }
         if (domain == null) {
             domain = normalizeDomain(
@@ -628,9 +646,7 @@ final class SemanticCoherenceAdjuster {
         try {
             return uniqueFieldTracker.nextUnique(
                     fieldKey,
-                    () -> "domain".equals(semanticKey)
-                            ? uniquifyDomain(candidate, attempt.getAndIncrement())
-                            : uniquifyString(candidate, attempt.getAndIncrement()),
+                    () -> uniquify(semanticKey, candidate, attempt.getAndIncrement()),
                     config.getUniquenessMaxAttempts());
         } catch (UniqueFieldTracker.ExhaustedException exhausted) {
             return handleExhaustedUniqueField(slot, exhausted);
@@ -666,9 +682,24 @@ final class SemanticCoherenceAdjuster {
                         null);
     }
 
+    private String uniquify(String semanticKey, String candidate, int attempt) {
+        if ("domain".equals(semanticKey)) {
+            return uniquifyDomain(candidate, attempt);
+        }
+        if (usesReservedNetworkNames() && ("url".equals(semanticKey) || "companyurl".equals(semanticKey))) {
+            return uniquifyUrl(candidate, attempt);
+        }
+        return uniquifyString(candidate, attempt);
+    }
+
     /** Numbers a subdomain, so that a reserved domain stays reserved: {@code n1.acme.test}. */
     static String uniquifyDomain(String domain, int attempt) {
         return attempt == 0 ? domain : "n" + attempt + "." + domain;
+    }
+
+    /** Numbers a subdomain, as a number at the end would change the top-level domain: {@code https://n1.www.acme.test}. */
+    static String uniquifyUrl(String url, int attempt) {
+        return attempt == 0 ? url : url.replaceFirst("://", "://n" + attempt + ".");
     }
 
     boolean isUniqueField(String fieldName, String semanticKey) {
@@ -733,7 +764,9 @@ final class SemanticCoherenceAdjuster {
         if (slug == null) {
             return null;
         }
-        return slug + (usesReservedEmailDomains() && hasEmailField(slotsBySemanticKey) ? ".test" : ".com");
+        boolean reserved =
+                usesReservedNetworkNames() || (usesReservedEmailDomains() && hasEmailField(slotsBySemanticKey));
+        return slug + (reserved ? ".test" : ".com");
     }
 
     private static @Nullable String normalizedHumanName(@Nullable String value) {
