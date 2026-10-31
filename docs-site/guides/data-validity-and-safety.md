@@ -212,9 +212,10 @@ A drawn offset has no seconds, so its ISO-8601 text ends in `Z`, `+hh:mm`, or `-
 that text as a `java.util.Date`, and rejects an offset with seconds, such as `+07:17:55`.
 
 `OffsetDateTimeGenerator.between(start, end)` bounds the instant, whatever offsets the bounds have, and
-re-expresses the result at a drawn offset. `objectDateRange` bounds the local date an `OffsetDateTime`
-member is generated with. Aligning `updatedAt` with `createdAt` afterwards works in UTC, so an aligned
-value keeps the instant, and its date can be a day outside the range.
+re-expresses the result at a drawn offset. `objectDateRange` bounds the local date of an `OffsetDateTime`
+member. Aligning `updatedAt` with `createdAt` afterwards keeps the instant, and reads it at UTC, or at the
+nearest offset under this rule that gives a date in the range: see
+[date ranges and coherence]({{ '/guides/object-generation/' | relative_url }}#date-ranges-and-coherence).
 
 Other values do not draw an offset, and keep the one they are given:
 

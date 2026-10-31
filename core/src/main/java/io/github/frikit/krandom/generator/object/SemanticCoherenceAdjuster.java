@@ -25,6 +25,7 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.net.URI;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -57,6 +58,13 @@ final class SemanticCoherenceAdjuster {
     /** The fields this pass derives a value for that it cannot number apart from one already used. */
     private static final Set<String> UNNUMBERED_KEYS =
             Set.of("createdat", "updatedat", "birthdate", "age", "price", "amount", "balance", "active", "status");
+
+    private static final long SECONDS_PER_DAY = Duration.ofDays(1).toSeconds();
+    /** The rule of the UTC-offset contract, as in {@code ZoneOffsetGenerator}. */
+    private static final int OFFSET_MIN_SECONDS = -12 * 60 * 60;
+
+    private static final int OFFSET_MAX_SECONDS = 14 * 60 * 60;
+    private static final int OFFSET_STEP_SECONDS = 15 * 60;
 
     private final ObjectGeneratorConfig config;
     private final UniqueFieldTracker uniqueFieldTracker;
@@ -439,12 +447,84 @@ final class SemanticCoherenceAdjuster {
         }
 
         if (canAssign(updatedAtSlot, allowOverwriteExisting)) {
-            assignConverted(updatedAtSlot, fromInstant(createdAt, updatedAtSlot.rawType()));
-            return;
+            Object aligned = alignedValue(createdAt, updatedAtSlot.rawType());
+            // updatedAt moves, unless that leaves the range and createdAt can move to it inside the range.
+            // A sibling that cannot move leaves no such choice, and the two stay in order.
+            if (!isOutsideDateRange(aligned)
+                    || !movesInsideDateRange(createdAtSlot, updatedAt, allowOverwriteExisting)) {
+                assignConverted(updatedAtSlot, aligned);
+                return;
+            }
         }
         if (canAssign(createdAtSlot, allowOverwriteExisting)) {
-            assignConverted(createdAtSlot, fromInstant(updatedAt, createdAtSlot.rawType()));
+            assignConverted(createdAtSlot, alignedValue(updatedAt, createdAtSlot.rawType()));
         }
+    }
+
+    private boolean movesInsideDateRange(Slot slot, Instant instant, boolean allowOverwriteExisting) {
+        if (!canAssign(slot, allowOverwriteExisting)) {
+            return false;
+        }
+        Object aligned = alignedValue(instant, slot.rawType());
+        return aligned != null && !isOutsideDateRange(aligned);
+    }
+
+    /**
+     * An instant in this type, reading UTC. Where that date is outside the configured range, a type that
+     * holds an offset reads the nearest one to UTC that gives a date in the range, if it can hold one,
+     * because the local date is what the range bounds for an offset or a zone.
+     */
+    private @Nullable Object alignedValue(Instant instant, Class<?> rawType) {
+        Object utc = fromInstant(instant, rawType);
+        if (!isOutsideDateRange(utc)) {
+            return utc;
+        }
+        ZoneOffset offset = offsetIntoDateRange(instant, rawType);
+        return offset != null ? fromInstant(instant, rawType, offset) : utc;
+    }
+
+    /**
+     * The offset nearest UTC, in the steps of the UTC-offset contract, at which an instant outside the
+     * configured range reads a date in it. An {@code OffsetDateTime} keeps to the bounds of the contract
+     * too, and {@code null} means that this type has no such offset.
+     */
+    private @Nullable ZoneOffset offsetIntoDateRange(Instant instant, Class<?> rawType) {
+        long second = instant.getEpochSecond();
+        long toStart = Objects.requireNonNull(config.getDateMin()).toEpochDay() * SECONDS_PER_DAY - second;
+        long toEnd = (Objects.requireNonNull(config.getDateMax()).toEpochDay() + 1) * SECONDS_PER_DAY - 1 - second;
+        long seconds = toStart > 0
+                ? Math.ceilDiv(toStart, OFFSET_STEP_SECONDS) * OFFSET_STEP_SECONDS
+                : Math.floorDiv(toEnd, OFFSET_STEP_SECONDS) * OFFSET_STEP_SECONDS;
+        boolean withinContract = rawType == OffsetDateTime.class;
+        int min = withinContract ? OFFSET_MIN_SECONDS : ZoneOffset.MIN.getTotalSeconds();
+        int max = withinContract ? OFFSET_MAX_SECONDS : ZoneOffset.MAX.getTotalSeconds();
+        return seconds >= min && seconds <= max ? ZoneOffset.ofTotalSeconds((int) seconds) : null;
+    }
+
+    /**
+     * True when a temporal value reads a date outside the configured range. An offset or a zone reads its
+     * local date, and every other type the UTC date, as the generators draw them. This compares epoch days
+     * because an override can hold an {@link Instant} that no date can.
+     */
+    private boolean isOutsideDateRange(@Nullable Object value) {
+        LocalDate min = config.getDateMin();
+        Instant instant = toInstant(value);
+        if (min == null || instant == null) {
+            return false;
+        }
+        long epochDay = Math.floorDiv(instant.getEpochSecond() + offsetSecondsOf(value), SECONDS_PER_DAY);
+        return epochDay < min.toEpochDay()
+                || epochDay > Objects.requireNonNull(config.getDateMax()).toEpochDay();
+    }
+
+    private static int offsetSecondsOf(@Nullable Object value) {
+        if (value instanceof OffsetDateTime offsetDateTime) {
+            return offsetDateTime.getOffset().getTotalSeconds();
+        }
+        if (value instanceof ZonedDateTime zonedDateTime) {
+            return zonedDateTime.getOffset().getTotalSeconds();
+        }
+        return 0;
     }
 
     private void harmonizeAgeAndBirthDate(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
@@ -1121,6 +1201,10 @@ final class SemanticCoherenceAdjuster {
     }
 
     static @Nullable Object fromInstant(Instant instant, Class<?> rawType) {
+        return fromInstant(instant, rawType, ZoneOffset.UTC);
+    }
+
+    private static @Nullable Object fromInstant(Instant instant, Class<?> rawType, ZoneOffset offset) {
         if (rawType == Instant.class) {
             return instant;
         }
@@ -1131,10 +1215,10 @@ final class SemanticCoherenceAdjuster {
             return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
         }
         if (rawType == OffsetDateTime.class) {
-            return instant.atOffset(ZoneOffset.UTC);
+            return instant.atOffset(offset);
         }
         if (rawType == ZonedDateTime.class) {
-            return instant.atZone(ZoneOffset.UTC);
+            return instant.atZone(offset);
         }
         if (rawType == java.util.Date.class) {
             return java.util.Date.from(instant);

@@ -70,6 +70,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- The coherence pass no longer moves a `createdAt` or `updatedAt` out of a configured `objectDateRange`. An
+  `OffsetDateTime` or `ZonedDateTime` is generated with the range on its local date, but its sibling was
+  aligned at UTC, so on a one-day range about one such object in ten had a sibling a day outside it: a
+  `createdAt` of `2024-02-29T23:00-12:00` gave an `updatedAt` of `2024-03-01T11:00Z`. Where the UTC date is
+  outside the range, an `updatedAt` that holds an offset now reads the same instant at the offset nearest UTC,
+  in 15-minute steps, that gives a date in the range, here `2024-02-29T23:45-11:15`. Any other `updatedAt`
+  stays while `createdAt` moves to it, to midnight UTC beside a date-only `updatedAt`. `createdAt` is still
+  not after `updatedAt`, and this changes seeded output only for objects that were out of the range. A field
+  that cannot move, such as an override or a `@Past` value, can still take its sibling out of the range, where
+  no date in it keeps the pair in order. A `birthDate` derived from a constrained or overridden `age` still
+  follows that age out of the range.
+- `ZonedDateTime` and `OffsetDateTime` members and `new ZonedDateTimeGenerator(min, max)` no longer pass the
+  last date of a range when a gap in the drawn zone's rules moves them forward. `Pacific/Apia` and
+  `Pacific/Fakaofo` skipped `2011-12-30`, so a one-day range on that date gave `2011-12-31` about once in 300
+  draws. A `ZonedDateTime` is now the drawn date-time at UTC, and an `OffsetDateTime` keeps it, with its drawn
+  offset. This also holds for a semantic field's default window, which ends on the clock's date. Seeded output
+  changes only for objects that drew such a value, which may differ after the coherence pass too.
 - `@Email` fields no longer get an ordinary domain under the default
   `EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS`. They drew a random `.com`, `.net` or `.org` domain,
   such as `fbww@dgeedi.org`. They now use `example.com`, `example.net` or `example.org`, or a `.test`

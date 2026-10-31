@@ -552,9 +552,13 @@ final class FieldGeneratorResolver {
                 return generator;
             });
         }
-        return () -> ZonedDateTime.of(
-                randomLocalDateTime(seedSource, min, max),
-                ZoneId.of(ZONE_IDS.get(seedSource.nextInt(ZONE_IDS.size()))));
+        return () -> {
+            LocalDateTime dateTime = randomLocalDateTime(seedSource, min, max);
+            ZonedDateTime zoned =
+                    ZonedDateTime.of(dateTime, ZoneId.of(ZONE_IDS.get(seedSource.nextInt(ZONE_IDS.size()))));
+            // As in ZonedDateTimeGenerator, a gap in the zone's rules must not move a value past the range.
+            return zoned.toLocalDate().isAfter(max) ? dateTime.atZone(ZoneOffset.UTC) : zoned;
+        };
     }
 
     private static Generator<java.util.Date> buildUtilDateGenerator(

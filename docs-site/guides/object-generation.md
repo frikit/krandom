@@ -143,6 +143,35 @@ Configured object date ranges still apply to semantic temporal fields. If you se
 
 Object generation also runs a lightweight coherence pass after sibling values are generated. Common pairs such as `firstName` + `lastName` -> `fullName`, `firstName` + `lastName` + `domain` -> `email`, `domain` -> `url`, `createdAt` / `updatedAt`, `birthDate` / `age`, and `active` / `status` are aligned automatically. Address-like clusters now reuse one locale-backed address snapshot so `streetAddress`, `city`, `state`, `postalCode`, and `country` stay consistent with each other, and money-like clusters keep `price <= amount <= balance` while deriving missing sibling values when one amount is already present. In `RELAXED` mode, that pass still leaves annotated or Bean Validation-constrained target fields alone; explicit field and type overrides always win. Generated emails keep to the [email-domain contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#email-domain-contract), and generated domains and URLs to the [network contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#network-contract): a generated `domain` is reserved, so an email beside it takes that domain, and a `companyName` derives a `.test` domain.
 
+### Date ranges and coherence
+
+Aligning `createdAt` and `updatedAt` keeps both in a configured `objectDateRange`, by the date each type
+reads: the local date of an `OffsetDateTime` or `ZonedDateTime`, and the UTC date of every other type, as
+the generators draw them. `updatedAt` moves to `createdAt`'s instant and reads it at UTC. Where that date
+is outside the range:
+
+- An `OffsetDateTime` or `ZonedDateTime` `updatedAt` reads the instant at the offset nearest UTC, in 15-minute
+  steps, that gives a date in the range. So it can have an offset unlike `createdAt`'s, as in
+  `2024-02-29T23:45-11:15` beside `2024-02-29T23:00-12:00`. An `OffsetDateTime` also stays within `-12:00` to
+  `+14:00`, as in the
+  [UTC-offset contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#utc-offset-contract).
+- Otherwise `updatedAt` stays, and `createdAt` moves to its instant, by the same steps. So an
+  `OffsetDateTime` `createdAt` beside a `LocalDate` `updatedAt` can become midnight UTC.
+
+`createdAt` stays not after `updatedAt`, compared by instant, or by UTC date beside an `updatedAt` that holds
+only a date. A `birthDate` stays in the range, and `age` follows it.
+
+A field that cannot move, because of an override, a requested unique name, or an annotation or Bean
+Validation constraint in `RELAXED` mode, need not be in the range: a `@Past` value is drawn before the clock
+whatever the range. Where it leaves no date in the range that keeps the pair in order, its sibling follows it
+out of the range, because the order wins. A `birthDate` derived from such an `age` keeps that age, so it can
+be out of the range too.
+
+A gap in a zone's rules moves a date-time forward. Where that would take a field past the last date of the
+range, a `ZonedDateTime` holds the drawn date-time at UTC instead, and an `OffsetDateTime` holds it at its
+drawn offset. `Pacific/Apia` and `Pacific/Fakaofo`, for example, skipped `2011-12-30`. A `java.sql.Date` reads
+the JVM's default zone, so on a JVM in one of those zones that date reads `2011-12-31`.
+
 ## Bean Validation
 
 Object population natively composes 21 Jakarta Validation constraints across fields, getters,

@@ -28,6 +28,7 @@ import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.locale.LocaleDataBundle;
 import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
+import io.github.frikit.krandom.generator.object.ObjectGeneratorSemanticCoherenceTest.TemporalPairs;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import jakarta.validation.constraints.Size;
 import java.lang.reflect.Field;
@@ -39,6 +40,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -48,6 +50,10 @@ import org.slf4j.LoggerFactory;
 
 @DisplayName("SemanticCoherenceAdjuster")
 class SemanticCoherenceAdjusterTest {
+
+    private static final LocalDate LEAP_DAY = LocalDate.of(2024, 2, 29);
+    private static final ObjectGeneratorConfig LEAP_DAY_RANGE =
+            ObjectGeneratorConfig.builder().dateRange(LEAP_DAY, LEAP_DAY).build();
 
     @Test
     @DisplayName("utility methods normalize strings and URLs")
@@ -1041,6 +1047,361 @@ class SemanticCoherenceAdjusterTest {
     }
 
     @Test
+    @DisplayName("an aligned updatedAt reads UTC while that date is in the configured range")
+    void alignedUpdatedAtReadsUtcWhileThatDateIsInTheRange() {
+        OffsetDateTime createdAt = OffsetDateTime.parse("2024-02-29T12:00+05:00");
+        OffsetDateTime updatedAt = OffsetDateTime.parse("2024-02-29T01:00+05:00");
+
+        Object[] offset = aligned(LEAP_DAY_RANGE, TemporalPairs.OffsetToOffset.class, createdAt, updatedAt);
+        assertEquals(createdAt, offset[0]);
+        assertEquals(OffsetDateTime.parse("2024-02-29T07:00Z"), offset[1]);
+
+        Object[] zoned = aligned(
+                LEAP_DAY_RANGE, TemporalPairs.OffsetToZoned.class, createdAt, ZonedDateTime.parse("2024-02-29T01:00Z"));
+        assertEquals(ZonedDateTime.parse("2024-02-29T07:00Z"), zoned[1]);
+    }
+
+    @Test
+    @DisplayName("an updatedAt that holds an offset reads the nearest to UTC that gives a date in the range")
+    void updatedAtReadsTheOffsetNearestUtcThatGivesADateInTheRange() {
+        // 2024-03-01T11:00Z, past the range at UTC, and -11:00 still reads the next day.
+        OffsetDateTime late = OffsetDateTime.parse("2024-02-29T23:00-12:00");
+        ZonedDateTime lateZoned = ZonedDateTime.parse("2024-02-29T23:00-12:00[Etc/GMT+12]");
+        OffsetDateTime earlier = OffsetDateTime.parse("2024-02-29T08:00+03:00");
+        ZonedDateTime earlierZoned = ZonedDateTime.parse("2024-02-29T08:00+03:00[Europe/Moscow]");
+        OffsetDateTime offset = OffsetDateTime.parse("2024-02-29T23:45-11:15");
+        ZonedDateTime zoned = ZonedDateTime.parse("2024-02-29T23:45-11:15");
+
+        Object[] offsetPair = aligned(LEAP_DAY_RANGE, TemporalPairs.OffsetToOffset.class, late, earlier);
+        assertEquals(late, offsetPair[0]);
+        assertEquals(offset, offsetPair[1]);
+        assertEquals(offset, aligned(LEAP_DAY_RANGE, TemporalPairs.ZonedToOffset.class, lateZoned, earlier)[1]);
+        assertEquals(zoned, aligned(LEAP_DAY_RANGE, TemporalPairs.OffsetToZoned.class, late, earlierZoned)[1]);
+        assertEquals(zoned, aligned(LEAP_DAY_RANGE, TemporalPairs.ZonedToZoned.class, lateZoned, earlierZoned)[1]);
+
+        // The last moment of the range, which -11:00 still reads, with or without a fraction of a second.
+        OffsetDateTime lastSecond = OffsetDateTime.parse("2024-02-29T23:59:59-11:00");
+        assertEquals(lastSecond, aligned(LEAP_DAY_RANGE, TemporalPairs.OffsetToOffset.class, lastSecond, earlier)[1]);
+        OffsetDateTime lastFraction = OffsetDateTime.parse("2024-02-29T23:59:59.5-11:00");
+        assertEquals(
+                lastFraction, aligned(LEAP_DAY_RANGE, TemporalPairs.OffsetToOffset.class, lastFraction, earlier)[1]);
+
+        // 2024-02-28T11:00Z, before the range at UTC, where +13:00 reads the first moment of the range.
+        OffsetDateTime earliest = OffsetDateTime.parse("2024-02-29T00:30+14:00");
+        Object[] firstMoment = aligned(
+                LEAP_DAY_RANGE,
+                TemporalPairs.OffsetToOffset.class,
+                OffsetDateTime.parse("2024-02-29T01:00+14:00"),
+                earliest);
+        assertEquals(OffsetDateTime.parse("2024-02-29T00:00+13:00"), firstMoment[1]);
+        assertEquals(
+                OffsetDateTime.parse("2024-02-29T00:05+13:00"),
+                aligned(
+                        LEAP_DAY_RANGE,
+                        TemporalPairs.OffsetToOffset.class,
+                        OffsetDateTime.parse("2024-02-29T01:05+14:00"),
+                        earliest)[1]);
+    }
+
+    @Test
+    @DisplayName("createdAt moves to an updatedAt that cannot reach it inside the range")
+    void createdAtMovesToAnUpdatedAtThatCannotReachItInsideTheRange() {
+        OffsetDateTime late = OffsetDateTime.parse("2024-02-29T23:00-12:00");
+        ZonedDateTime lateZoned = ZonedDateTime.parse("2024-02-29T23:00-12:00[Etc/GMT+12]");
+        Instant morning = Instant.parse("2024-02-29T10:00:00Z");
+        OffsetDateTime morningUtc = OffsetDateTime.parse("2024-02-29T10:00Z");
+        OffsetDateTime midnightUtc = OffsetDateTime.parse("2024-02-29T00:00Z");
+
+        Object[] instant = aligned(LEAP_DAY_RANGE, TemporalPairs.OffsetToInstant.class, late, morning);
+        assertEquals(morningUtc, instant[0]);
+        assertEquals(morning, instant[1]);
+
+        Object[] zoned = aligned(LEAP_DAY_RANGE, TemporalPairs.ZonedToInstant.class, lateZoned, morning);
+        assertEquals(ZonedDateTime.parse("2024-02-29T10:00Z"), zoned[0]);
+        assertEquals(morning, zoned[1]);
+
+        LocalDateTime localDateTime = LocalDateTime.of(2024, 2, 29, 10, 0);
+        assertEquals(
+                morningUtc, aligned(LEAP_DAY_RANGE, TemporalPairs.OffsetToLocalDateTime.class, late, localDateTime)[0]);
+        java.util.Date utilDate = java.util.Date.from(morning);
+        assertEquals(morningUtc, aligned(LEAP_DAY_RANGE, TemporalPairs.OffsetToUtilDate.class, late, utilDate)[0]);
+        java.sql.Timestamp timestamp = java.sql.Timestamp.from(morning);
+        assertEquals(morningUtc, aligned(LEAP_DAY_RANGE, TemporalPairs.OffsetToTimestamp.class, late, timestamp)[0]);
+
+        Object[] localDate = aligned(LEAP_DAY_RANGE, TemporalPairs.OffsetToLocalDate.class, late, LEAP_DAY);
+        assertEquals(midnightUtc, localDate[0]);
+        assertEquals(LEAP_DAY, localDate[1]);
+        java.sql.Date sqlDate = java.sql.Date.valueOf(LEAP_DAY);
+        Object[] date = aligned(LEAP_DAY_RANGE, TemporalPairs.OffsetToSqlDate.class, late, sqlDate);
+        assertEquals(midnightUtc, date[0]);
+        assertEquals(sqlDate, date[1]);
+    }
+
+    @Test
+    @DisplayName("an OffsetDateTime keeps to the UTC-offset contract, whatever offset its sibling holds")
+    void offsetDateTimeKeepsToTheOffsetContractWhateverOffsetItsSiblingHolds() {
+        LocalDate day = LocalDate.of(1880, 6, 15);
+        // 1880-06-16T08:59:36Z, an offset with seconds, as Anchorage's rules give in 1880.
+        ZonedDateTime offTheGrid = ZonedDateTime.parse("1880-06-15T23:00-09:59:36");
+        OffsetDateTime morning = OffsetDateTime.parse("1880-06-15T08:00+03:00");
+        OffsetDateTime onTheGrid = OffsetDateTime.parse("1880-06-15T23:59:36-09:00");
+
+        Object[] movable = aligned(
+                ObjectGeneratorConfig.builder().dateRange(day, day).build(),
+                TemporalPairs.ZonedToOffset.class,
+                offTheGrid,
+                morning);
+        assertEquals(offTheGrid, movable[0]);
+        assertEquals(onTheGrid, movable[1]);
+
+        Object[] protectedSibling = aligned(
+                ObjectGeneratorConfig.builder()
+                        .dateRange(day, day)
+                        .override(TemporalPairs.ZonedToOffset.class, "createdAt", () -> offTheGrid)
+                        .build(),
+                TemporalPairs.ZonedToOffset.class,
+                offTheGrid,
+                morning);
+        assertEquals(offTheGrid, protectedSibling[0]);
+        assertEquals(onTheGrid, protectedSibling[1]);
+
+        // 2024-02-28T18:00Z, at an offset past the contract's +14:00, which +06:00 also reads in the range.
+        OffsetDateTime pastTheBounds = OffsetDateTime.parse("2024-02-29T12:00+18:00");
+        Object[] bounded = aligned(
+                ObjectGeneratorConfig.builder()
+                        .dateRange(LEAP_DAY, LEAP_DAY)
+                        .override(TemporalPairs.OffsetToOffset.class, "createdAt", () -> pastTheBounds)
+                        .build(),
+                TemporalPairs.OffsetToOffset.class,
+                pastTheBounds,
+                OffsetDateTime.parse("2024-02-29T00:00+14:00"));
+        assertEquals(pastTheBounds, bounded[0]);
+        assertEquals(OffsetDateTime.parse("2024-02-29T00:00+06:00"), bounded[1]);
+    }
+
+    @Test
+    @DisplayName(
+            "createdAt moves where the contract's bounds stop an OffsetDateTime updatedAt, and a ZonedDateTime need not")
+    void createdAtMovesWhereTheContractsBoundsStopAnOffsetDateTimeUpdatedAt() {
+        LocalDate day = LocalDate.of(1800, 6, 15);
+        ObjectGeneratorConfig range =
+                ObjectGeneratorConfig.builder().dateRange(day, day).build();
+        // 1800-06-16T14:56Z. Only an offset below -14:56 reads the range, as Manila's rules give in 1800.
+        ZonedDateTime late = ZonedDateTime.parse("1800-06-15T23:00-15:56");
+
+        OffsetDateTime morning = OffsetDateTime.parse("1800-06-15T08:00+03:00");
+        Object[] readsUtc = aligned(range, TemporalPairs.ZonedToOffset.class, late, morning);
+        assertEquals(ZonedDateTime.parse("1800-06-15T05:00Z"), readsUtc[0]);
+        assertEquals(morning, readsUtc[1]);
+
+        // 1800-06-14T11:00Z, before the range at UTC, so createdAt needs an offset as well.
+        OffsetDateTime early = OffsetDateTime.parse("1800-06-15T01:00+14:00");
+        Object[] readsAnOffset = aligned(range, TemporalPairs.ZonedToOffset.class, late, early);
+        assertEquals(ZonedDateTime.parse("1800-06-15T00:00+13:00"), readsAnOffset[0]);
+        assertEquals(early, readsAnOffset[1]);
+
+        // The contract's bounds are for an OffsetDateTime. A ZonedDateTime holds any offset, so it can move.
+        ZonedDateTime zonedMorning = ZonedDateTime.parse("1800-06-15T08:00+03:00");
+        Object[] zoned = aligned(range, TemporalPairs.ZonedToZoned.class, late, zonedMorning);
+        assertEquals(late, zoned[0]);
+        assertEquals(ZonedDateTime.parse("1800-06-15T23:56-15:00"), zoned[1]);
+
+        Object[] followsOutOfTheRange = aligned(
+                ObjectGeneratorConfig.builder()
+                        .dateRange(day, day)
+                        .override(TemporalPairs.ZonedToOffset.class, "createdAt", () -> late)
+                        .build(),
+                TemporalPairs.ZonedToOffset.class,
+                late,
+                morning);
+        assertEquals(OffsetDateTime.parse("1800-06-16T14:56Z"), followsOutOfTheRange[1]);
+    }
+
+    @Test
+    @DisplayName(
+            "a field beside a protected sibling near the range stays in the range, and follows one too far for that")
+    void fieldBesideAProtectedSiblingStaysInTheRangeUnlessItIsTooFarAway() {
+        Instant nextMorning = Instant.parse("2024-03-01T05:00:00Z");
+        assertEquals(
+                OffsetDateTime.parse("2024-02-29T23:45-05:15"),
+                aligned(
+                        ObjectGeneratorConfig.builder()
+                                .dateRange(LEAP_DAY, LEAP_DAY)
+                                .override(TemporalPairs.InstantToOffset.class, "createdAt", () -> nextMorning)
+                                .build(),
+                        TemporalPairs.InstantToOffset.class,
+                        nextMorning,
+                        OffsetDateTime.parse("2024-02-29T08:00+03:00"))[1]);
+
+        Instant farLater = Instant.parse("2030-01-01T00:00:00Z");
+        assertEquals(
+                OffsetDateTime.parse("2030-01-01T00:00Z"),
+                aligned(
+                        ObjectGeneratorConfig.builder()
+                                .dateRange(LEAP_DAY, LEAP_DAY)
+                                .override(TemporalPairs.InstantToOffset.class, "createdAt", () -> farLater)
+                                .build(),
+                        TemporalPairs.InstantToOffset.class,
+                        farLater,
+                        OffsetDateTime.parse("2024-02-29T08:00+03:00"))[1]);
+        assertEquals(
+                ZonedDateTime.parse("2030-01-01T00:00Z"),
+                aligned(
+                        ObjectGeneratorConfig.builder()
+                                .dateRange(LEAP_DAY, LEAP_DAY)
+                                .override(TemporalPairs.InstantToZoned.class, "createdAt", () -> farLater)
+                                .build(),
+                        TemporalPairs.InstantToZoned.class,
+                        farLater,
+                        ZonedDateTime.parse("2024-02-29T08:00+03:00"))[1]);
+
+        Instant farEarlier = Instant.parse("2000-01-01T00:00:00Z");
+        assertEquals(
+                OffsetDateTime.parse("2000-01-01T00:00Z"),
+                aligned(
+                        ObjectGeneratorConfig.builder()
+                                .dateRange(LEAP_DAY, LEAP_DAY)
+                                .override(TemporalPairs.OffsetToInstant.class, "updatedAt", () -> farEarlier)
+                                .build(),
+                        TemporalPairs.OffsetToInstant.class,
+                        OffsetDateTime.parse("2024-02-29T08:00+03:00"),
+                        farEarlier)[0]);
+        assertEquals(
+                ZonedDateTime.parse("2000-01-01T00:00Z"),
+                aligned(
+                        ObjectGeneratorConfig.builder()
+                                .dateRange(LEAP_DAY, LEAP_DAY)
+                                .override(TemporalPairs.ZonedToInstant.class, "updatedAt", () -> farEarlier)
+                                .build(),
+                        TemporalPairs.ZonedToInstant.class,
+                        ZonedDateTime.parse("2024-02-29T08:00+03:00"),
+                        farEarlier)[0]);
+    }
+
+    @Test
+    @DisplayName("a field follows a protected sibling out of the range where no date in it keeps them in order")
+    void fieldFollowsAProtectedSiblingOutOfTheRangeWhereNoDateInItKeepsThemInOrder() {
+        OffsetDateTime lateCreatedAt = OffsetDateTime.parse("2024-02-29T23:00-12:00");
+        Instant updatedAt = Instant.parse("2024-02-29T10:00:00Z");
+        Object[] updatedFollows = aligned(
+                ObjectGeneratorConfig.builder()
+                        .dateRange(LEAP_DAY, LEAP_DAY)
+                        .override(TemporalPairs.OffsetToInstant.class, "createdAt", () -> lateCreatedAt)
+                        .build(),
+                TemporalPairs.OffsetToInstant.class,
+                lateCreatedAt,
+                updatedAt);
+        assertEquals(lateCreatedAt, updatedFollows[0]);
+        assertEquals(Instant.parse("2024-03-01T11:00:00Z"), updatedFollows[1]);
+
+        OffsetDateTime earlyUpdatedAt = OffsetDateTime.parse("2024-02-29T01:00+14:00");
+        LocalDateTime createdAt = LocalDateTime.of(2024, 2, 29, 5, 0);
+        Object[] createdFollows = aligned(
+                ObjectGeneratorConfig.builder()
+                        .dateRange(LEAP_DAY, LEAP_DAY)
+                        .override(TemporalPairs.LocalDateTimeToOffset.class, "updatedAt", () -> earlyUpdatedAt)
+                        .build(),
+                TemporalPairs.LocalDateTimeToOffset.class,
+                createdAt,
+                earlyUpdatedAt);
+        assertEquals(LocalDateTime.of(2024, 2, 28, 11, 0), createdFollows[0]);
+        assertEquals(earlyUpdatedAt, createdFollows[1]);
+    }
+
+    @Test
+    @DisplayName("a field following a protected sibling reads an offset that stays in the range")
+    void fieldFollowingAProtectedSiblingReadsAnOffsetThatStaysInTheRange() {
+        OffsetDateTime lateCreatedAt = OffsetDateTime.parse("2024-02-29T23:00-12:00");
+        OffsetDateTime updatedAt = OffsetDateTime.parse("2024-02-29T08:00+03:00");
+        assertEquals(
+                OffsetDateTime.parse("2024-02-29T23:45-11:15"),
+                aligned(
+                        ObjectGeneratorConfig.builder()
+                                .dateRange(LEAP_DAY, LEAP_DAY)
+                                .override(TemporalPairs.OffsetToOffset.class, "createdAt", () -> lateCreatedAt)
+                                .build(),
+                        TemporalPairs.OffsetToOffset.class,
+                        lateCreatedAt,
+                        updatedAt)[1]);
+
+        OffsetDateTime earlyUpdatedAt = OffsetDateTime.parse("2024-02-29T01:00+14:00");
+        OffsetDateTime createdAt = OffsetDateTime.parse("2024-02-29T05:00Z");
+        assertEquals(
+                OffsetDateTime.parse("2024-02-29T00:00+13:00"),
+                aligned(
+                        ObjectGeneratorConfig.builder()
+                                .dateRange(LEAP_DAY, LEAP_DAY)
+                                .override(TemporalPairs.OffsetToOffset.class, "updatedAt", () -> earlyUpdatedAt)
+                                .build(),
+                        TemporalPairs.OffsetToOffset.class,
+                        createdAt,
+                        earlyUpdatedAt)[0]);
+    }
+
+    @Test
+    @DisplayName("updatedAt moves when neither value can stay in the range")
+    void updatedAtMovesWhenNeitherValueCanStayInTheRange() {
+        Instant createdAt = Instant.parse("2030-01-02T00:00:00Z");
+        Instant updatedAt = Instant.parse("2030-01-01T00:00:00Z");
+
+        Object[] aligned = aligned(LEAP_DAY_RANGE, TemporalPairs.InstantToInstant.class, createdAt, updatedAt);
+
+        assertEquals(createdAt, aligned[0]);
+        assertEquals(createdAt, aligned[1]);
+    }
+
+    @Test
+    @DisplayName("with no configured range an aligned value reads UTC, whatever date that is")
+    void withNoConfiguredRangeAnAlignedValueReadsUtc() {
+        ObjectGeneratorConfig noRange = ObjectGeneratorConfig.builder().build();
+        OffsetDateTime late = OffsetDateTime.parse("2024-02-29T23:00-12:00");
+
+        assertEquals(
+                OffsetDateTime.parse("2024-03-01T11:00Z"),
+                aligned(
+                        noRange,
+                        TemporalPairs.OffsetToOffset.class,
+                        late,
+                        OffsetDateTime.parse("2024-02-29T08:00+03:00"))[1]);
+        assertEquals(
+                Instant.parse("2024-03-01T11:00:00Z"),
+                aligned(noRange, TemporalPairs.OffsetToInstant.class, late, Instant.parse("2024-02-29T10:00:00Z"))[1]);
+        assertEquals(
+                LocalDate.of(2024, 3, 1), aligned(noRange, TemporalPairs.OffsetToLocalDate.class, late, LEAP_DAY)[1]);
+    }
+
+    @Test
+    @DisplayName("a member type the pass cannot write keeps its value under a configured range")
+    void memberTypeThePassCannotWriteKeepsItsValueUnderAConfiguredRange() {
+        Instant updatedAt = Instant.parse("2024-02-29T10:00:00Z");
+        Instant late = Instant.parse("2024-02-29T11:00:00Z");
+        Object[] unwritableUpdatedAt = aligned(LEAP_DAY_RANGE, TemporalUpdatedAt.class, late, updatedAt);
+        assertEquals(late, unwritableUpdatedAt[0]);
+        assertEquals(updatedAt, unwritableUpdatedAt[1]);
+
+        // A createdAt that cannot be written cannot move, so updatedAt follows it, even out of the range.
+        OffsetDateTime outOfReach = OffsetDateTime.parse("2024-02-29T23:00-12:00");
+        Object[] unwritableCreatedAt = aligned(LEAP_DAY_RANGE, TemporalCreatedAt.class, outOfReach, updatedAt);
+        assertEquals(outOfReach, unwritableCreatedAt[0]);
+        assertEquals(Instant.parse("2024-03-01T11:00:00Z"), unwritableCreatedAt[1]);
+    }
+
+    @Test
+    @DisplayName("the range check reads a value no date can hold without failing")
+    void rangeCheckReadsAValueNoDateCanHoldWithoutFailing() {
+        Object[] aligned = aligned(
+                ObjectGeneratorConfig.builder()
+                        .dateRange(LEAP_DAY, LEAP_DAY)
+                        .override(TemporalPairs.InstantToInstant.class, "createdAt", () -> Instant.MAX)
+                        .build(),
+                TemporalPairs.InstantToInstant.class,
+                Instant.MAX,
+                Instant.parse("2024-02-29T10:00:00Z"));
+
+        assertEquals(Instant.MAX, aligned[1]);
+    }
+
+    @Test
     @DisplayName("timestamp fallback and uniqueness branches are exercised")
     void timestampFallbackAndUniquenessBranchesAreExercised() throws Exception {
         SemanticCoherenceAdjuster updatedProtectedAdjuster = new SemanticCoherenceAdjuster(
@@ -1183,6 +1544,14 @@ class SemanticCoherenceAdjusterTest {
         }
     }
 
+    /** Runs the pass over a record's createdAt and updatedAt, and returns what it leaves in them. */
+    private static Object[] aligned(ObjectGeneratorConfig config, Class<?> pair, Object createdAt, Object updatedAt) {
+        Object[] args = {createdAt, updatedAt};
+        new SemanticCoherenceAdjuster(config, new UniqueFieldTracker())
+                .adjustRecordArguments(pair, pair.getRecordComponents(), pair.getDeclaredFields(), args);
+        return args;
+    }
+
     private static List<Field> declaredFields(Class<?> type) {
         return List.of(type.getDeclaredFields());
     }
@@ -1226,6 +1595,10 @@ class SemanticCoherenceAdjusterTest {
         String lastName;
         String fullName;
     }
+
+    record TemporalUpdatedAt(Instant createdAt, Temporal updatedAt) {}
+
+    record TemporalCreatedAt(Temporal createdAt, Instant updatedAt) {}
 
     static class ManualTemporalHolder {
 

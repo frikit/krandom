@@ -25,6 +25,7 @@ import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.network.NetworkSafetyPolicy;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import jakarta.validation.constraints.Email;
+import java.lang.reflect.RecordComponent;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
@@ -595,6 +596,163 @@ class ObjectGeneratorSemanticCoherenceTest {
                             .isAfter(sql.updatedAt().toLocalDate()),
                     sql.toString());
         }
+    }
+
+    @Test
+    @DisplayName("every pair of temporal types stays in a configured range and in order, seeded or not")
+    void everyPairOfTemporalTypesStaysInAConfiguredRangeAndInOrder() throws Exception {
+        LocalDate leapDay = LocalDate.of(2024, 2, 29);
+        // The short ranges are where an offset crosses midnight. In 1880 most zones have an offset with
+        // seconds, which an OffsetDateTime must not take from a sibling. Pacific/Apia skipped 2011-12-30.
+        List<LocalDate[]> ranges = List.of(
+                new LocalDate[] {leapDay, leapDay},
+                new LocalDate[] {LocalDate.of(2024, 2, 26), LocalDate.of(2024, 3, 3)},
+                new LocalDate[] {LocalDate.of(2020, 1, 1), LocalDate.of(2023, 12, 31)},
+                new LocalDate[] {LocalDate.of(1880, 6, 15), LocalDate.of(1880, 6, 15)},
+                new LocalDate[] {LocalDate.of(2011, 12, 30), LocalDate.of(2011, 12, 30)});
+        assertEquals(64, TemporalPairs.class.getDeclaredClasses().length);
+
+        for (Class<?> pair : TemporalPairs.class.getDeclaredClasses()) {
+            RecordComponent[] members = pair.getRecordComponents();
+            for (LocalDate[] range : ranges) {
+                GeneratorConfig unseeded = GeneratorConfig.builder()
+                        .objectDateRange(range[0], range[1])
+                        .build();
+                for (GeneratorConfig config :
+                        List.of(unseeded, unseeded.toBuilder().seed(42L).build())) {
+                    ObjectGenerator<?> generator = new ObjectGenerator<>(pair, config);
+                    for (int i = 0; i < 300; i++) {
+                        Object value = generator.generate();
+                        Object createdAt = members[0].getAccessor().invoke(value);
+                        Object updatedAt = members[1].getAccessor().invoke(value);
+                        assertReadsADateInRange(createdAt, range[0], range[1], value);
+                        assertReadsADateInRange(updatedAt, range[0], range[1], value);
+                        assertInOrderAndOnTheOffsetGrid(createdAt, updatedAt, value);
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("every pair of temporal types stays in order with no configured range")
+    void everyPairOfTemporalTypesStaysInOrderWithNoConfiguredRange() throws Exception {
+        for (Class<?> pair : TemporalPairs.class.getDeclaredClasses()) {
+            RecordComponent[] members = pair.getRecordComponents();
+            ObjectGenerator<?> generator = new ObjectGenerator<>(
+                    pair, GeneratorConfig.builder().seed(42L).build());
+            for (int i = 0; i < 300; i++) {
+                Object value = generator.generate();
+                assertInOrderAndOnTheOffsetGrid(
+                        members[0].getAccessor().invoke(value),
+                        members[1].getAccessor().invoke(value),
+                        value);
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("a mutable class stays in a configured range and in order too")
+    void mutableClassStaysInAConfiguredRangeAndInOrder() {
+        LocalDate day = LocalDate.of(2024, 2, 29);
+        GeneratorConfig config =
+                GeneratorConfig.builder().seed(42L).objectDateRange(day, day).build();
+        ObjectGenerator<OffsetLifecycle> generator = new ObjectGenerator<>(OffsetLifecycle.class, config);
+
+        for (int i = 0; i < 2_000; i++) {
+            OffsetLifecycle value = generator.generate();
+            String shown = value.createdAt + " / " + value.updatedAt;
+            assertReadsADateInRange(value.createdAt, day, day, shown);
+            assertReadsADateInRange(value.updatedAt, day, day, shown);
+            assertInOrderAndOnTheOffsetGrid(value.createdAt, value.updatedAt, shown);
+        }
+    }
+
+    /** The date a configured range bounds: local for an offset or zone, otherwise as the generators draw it. */
+    private static LocalDate dateInRangeTerms(Object value) {
+        if (value instanceof OffsetDateTime offsetDateTime) {
+            return offsetDateTime.toLocalDate();
+        }
+        if (value instanceof ZonedDateTime zonedDateTime) {
+            return zonedDateTime.toLocalDate();
+        }
+        return SemanticCoherenceAdjuster.toLocalDate(value);
+    }
+
+    private static void assertReadsADateInRange(Object temporal, LocalDate min, LocalDate max, Object context) {
+        LocalDate date = dateInRangeTerms(temporal);
+        assertFalse(date.isBefore(min), date + " is before " + min + ": " + context);
+        assertFalse(date.isAfter(max), date + " is after " + max + ": " + context);
+    }
+
+    private static void assertInOrderAndOnTheOffsetGrid(Object createdAt, Object updatedAt, Object context) {
+        // A date holds no time of day, so a createdAt beside one is compared by its UTC date.
+        if (updatedAt instanceof LocalDate || updatedAt instanceof java.sql.Date) {
+            assertFalse(
+                    SemanticCoherenceAdjuster.toLocalDate(createdAt)
+                            .isAfter(SemanticCoherenceAdjuster.toLocalDate(updatedAt)),
+                    context.toString());
+        } else {
+            assertFalse(
+                    SemanticCoherenceAdjuster.toInstant(createdAt)
+                            .isAfter(SemanticCoherenceAdjuster.toInstant(updatedAt)),
+                    context.toString());
+        }
+        for (Object temporal : List.of(createdAt, updatedAt)) {
+            if (temporal instanceof OffsetDateTime offsetDateTime) {
+                int seconds = offsetDateTime.getOffset().getTotalSeconds();
+                assertEquals(0, seconds % (15 * 60), context.toString());
+                assertTrue(seconds >= -12 * 60 * 60 && seconds <= 14 * 60 * 60, context.toString());
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("a birth date in a configured range gives the age beside it, for every temporal type")
+    void birthDateInAConfiguredRangeGivesTheAgeBesideIt() throws Exception {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneOffset.UTC);
+        LocalDate min = LocalDate.of(1990, 1, 1);
+        LocalDate max = LocalDate.of(1999, 12, 31);
+        GeneratorConfig config = GeneratorConfig.builder()
+                .seed(42L)
+                .clock(clock)
+                .objectDateRange(min, max)
+                .build();
+        assertEquals(8, BirthDates.class.getDeclaredClasses().length);
+
+        for (Class<?> type : BirthDates.class.getDeclaredClasses()) {
+            RecordComponent[] members = type.getRecordComponents();
+            ObjectGenerator<?> generator = new ObjectGenerator<>(type, config);
+            for (int i = 0; i < 300; i++) {
+                Object value = generator.generate();
+                Object birthDate = members[0].getAccessor().invoke(value);
+                int age = (int) members[1].getAccessor().invoke(value);
+                assertReadsADateInRange(birthDate, min, max, value);
+                assertEquals(
+                        ChronoUnit.YEARS.between(
+                                SemanticCoherenceAdjuster.toLocalDate(birthDate), LocalDate.now(clock)),
+                        age,
+                        value.toString());
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("a birth date derived from a protected age follows that age, even out of a configured range")
+    void birthDateDerivedFromAProtectedAgeFollowsThatAgeOutOfAConfiguredRange() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneOffset.UTC);
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                .generatorConfig(GeneratorConfig.builder()
+                        .clock(clock)
+                        .objectDateRange(LocalDate.of(2020, 1, 1), LocalDate.of(2023, 12, 31))
+                        .build())
+                .override(InstantBirthDate.class, "age", () -> 45)
+                .build();
+
+        InstantBirthDate value = new ObjectGenerator<>(InstantBirthDate.class, config).generate();
+
+        assertEquals(45, value.age);
+        assertEquals(Instant.parse("1981-06-04T00:00:00Z"), value.birthDate);
     }
 
     @Test
@@ -1241,6 +1399,164 @@ class ObjectGeneratorSemanticCoherenceTest {
     record InstantToLocalDate(Instant createdAt, LocalDate updatedAt) {}
 
     record InstantToSqlDate(Instant createdAt, java.sql.Date updatedAt) {}
+
+    static class OffsetLifecycle {
+
+        OffsetDateTime createdAt;
+        LocalDateTime updatedAt;
+    }
+
+    /** The temporal types a coherent createdAt and updatedAt can have, as a record for each pair. */
+    interface TemporalPairs {
+
+        record InstantToInstant(Instant createdAt, Instant updatedAt) {}
+
+        record InstantToUtilDate(Instant createdAt, java.util.Date updatedAt) {}
+
+        record InstantToTimestamp(Instant createdAt, java.sql.Timestamp updatedAt) {}
+
+        record InstantToSqlDate(Instant createdAt, java.sql.Date updatedAt) {}
+
+        record InstantToLocalDate(Instant createdAt, LocalDate updatedAt) {}
+
+        record InstantToLocalDateTime(Instant createdAt, LocalDateTime updatedAt) {}
+
+        record InstantToOffset(Instant createdAt, OffsetDateTime updatedAt) {}
+
+        record InstantToZoned(Instant createdAt, ZonedDateTime updatedAt) {}
+
+        record UtilDateToInstant(java.util.Date createdAt, Instant updatedAt) {}
+
+        record UtilDateToUtilDate(java.util.Date createdAt, java.util.Date updatedAt) {}
+
+        record UtilDateToTimestamp(java.util.Date createdAt, java.sql.Timestamp updatedAt) {}
+
+        record UtilDateToSqlDate(java.util.Date createdAt, java.sql.Date updatedAt) {}
+
+        record UtilDateToLocalDate(java.util.Date createdAt, LocalDate updatedAt) {}
+
+        record UtilDateToLocalDateTime(java.util.Date createdAt, LocalDateTime updatedAt) {}
+
+        record UtilDateToOffset(java.util.Date createdAt, OffsetDateTime updatedAt) {}
+
+        record UtilDateToZoned(java.util.Date createdAt, ZonedDateTime updatedAt) {}
+
+        record TimestampToInstant(java.sql.Timestamp createdAt, Instant updatedAt) {}
+
+        record TimestampToUtilDate(java.sql.Timestamp createdAt, java.util.Date updatedAt) {}
+
+        record TimestampToTimestamp(java.sql.Timestamp createdAt, java.sql.Timestamp updatedAt) {}
+
+        record TimestampToSqlDate(java.sql.Timestamp createdAt, java.sql.Date updatedAt) {}
+
+        record TimestampToLocalDate(java.sql.Timestamp createdAt, LocalDate updatedAt) {}
+
+        record TimestampToLocalDateTime(java.sql.Timestamp createdAt, LocalDateTime updatedAt) {}
+
+        record TimestampToOffset(java.sql.Timestamp createdAt, OffsetDateTime updatedAt) {}
+
+        record TimestampToZoned(java.sql.Timestamp createdAt, ZonedDateTime updatedAt) {}
+
+        record SqlDateToInstant(java.sql.Date createdAt, Instant updatedAt) {}
+
+        record SqlDateToUtilDate(java.sql.Date createdAt, java.util.Date updatedAt) {}
+
+        record SqlDateToTimestamp(java.sql.Date createdAt, java.sql.Timestamp updatedAt) {}
+
+        record SqlDateToSqlDate(java.sql.Date createdAt, java.sql.Date updatedAt) {}
+
+        record SqlDateToLocalDate(java.sql.Date createdAt, LocalDate updatedAt) {}
+
+        record SqlDateToLocalDateTime(java.sql.Date createdAt, LocalDateTime updatedAt) {}
+
+        record SqlDateToOffset(java.sql.Date createdAt, OffsetDateTime updatedAt) {}
+
+        record SqlDateToZoned(java.sql.Date createdAt, ZonedDateTime updatedAt) {}
+
+        record LocalDateToInstant(LocalDate createdAt, Instant updatedAt) {}
+
+        record LocalDateToUtilDate(LocalDate createdAt, java.util.Date updatedAt) {}
+
+        record LocalDateToTimestamp(LocalDate createdAt, java.sql.Timestamp updatedAt) {}
+
+        record LocalDateToSqlDate(LocalDate createdAt, java.sql.Date updatedAt) {}
+
+        record LocalDateToLocalDate(LocalDate createdAt, LocalDate updatedAt) {}
+
+        record LocalDateToLocalDateTime(LocalDate createdAt, LocalDateTime updatedAt) {}
+
+        record LocalDateToOffset(LocalDate createdAt, OffsetDateTime updatedAt) {}
+
+        record LocalDateToZoned(LocalDate createdAt, ZonedDateTime updatedAt) {}
+
+        record LocalDateTimeToInstant(LocalDateTime createdAt, Instant updatedAt) {}
+
+        record LocalDateTimeToUtilDate(LocalDateTime createdAt, java.util.Date updatedAt) {}
+
+        record LocalDateTimeToTimestamp(LocalDateTime createdAt, java.sql.Timestamp updatedAt) {}
+
+        record LocalDateTimeToSqlDate(LocalDateTime createdAt, java.sql.Date updatedAt) {}
+
+        record LocalDateTimeToLocalDate(LocalDateTime createdAt, LocalDate updatedAt) {}
+
+        record LocalDateTimeToLocalDateTime(LocalDateTime createdAt, LocalDateTime updatedAt) {}
+
+        record LocalDateTimeToOffset(LocalDateTime createdAt, OffsetDateTime updatedAt) {}
+
+        record LocalDateTimeToZoned(LocalDateTime createdAt, ZonedDateTime updatedAt) {}
+
+        record OffsetToInstant(OffsetDateTime createdAt, Instant updatedAt) {}
+
+        record OffsetToUtilDate(OffsetDateTime createdAt, java.util.Date updatedAt) {}
+
+        record OffsetToTimestamp(OffsetDateTime createdAt, java.sql.Timestamp updatedAt) {}
+
+        record OffsetToSqlDate(OffsetDateTime createdAt, java.sql.Date updatedAt) {}
+
+        record OffsetToLocalDate(OffsetDateTime createdAt, LocalDate updatedAt) {}
+
+        record OffsetToLocalDateTime(OffsetDateTime createdAt, LocalDateTime updatedAt) {}
+
+        record OffsetToOffset(OffsetDateTime createdAt, OffsetDateTime updatedAt) {}
+
+        record OffsetToZoned(OffsetDateTime createdAt, ZonedDateTime updatedAt) {}
+
+        record ZonedToInstant(ZonedDateTime createdAt, Instant updatedAt) {}
+
+        record ZonedToUtilDate(ZonedDateTime createdAt, java.util.Date updatedAt) {}
+
+        record ZonedToTimestamp(ZonedDateTime createdAt, java.sql.Timestamp updatedAt) {}
+
+        record ZonedToSqlDate(ZonedDateTime createdAt, java.sql.Date updatedAt) {}
+
+        record ZonedToLocalDate(ZonedDateTime createdAt, LocalDate updatedAt) {}
+
+        record ZonedToLocalDateTime(ZonedDateTime createdAt, LocalDateTime updatedAt) {}
+
+        record ZonedToOffset(ZonedDateTime createdAt, OffsetDateTime updatedAt) {}
+
+        record ZonedToZoned(ZonedDateTime createdAt, ZonedDateTime updatedAt) {}
+    }
+
+    /** A semantic birth date of each temporal type, beside an age. */
+    interface BirthDates {
+
+        record OfInstant(Instant birthDate, int age) {}
+
+        record OfUtilDate(java.util.Date birthDate, int age) {}
+
+        record OfTimestamp(java.sql.Timestamp birthDate, int age) {}
+
+        record OfSqlDate(java.sql.Date birthDate, int age) {}
+
+        record OfLocalDate(LocalDate birthDate, int age) {}
+
+        record OfLocalDateTime(LocalDateTime birthDate, int age) {}
+
+        record OfOffset(OffsetDateTime birthDate, int age) {}
+
+        record OfZoned(ZonedDateTime birthDate, int age) {}
+    }
 
     static class FixedNamePerson {
 
