@@ -29,6 +29,22 @@ class KotlinImmutableObjectGenerationTest :
                 profile.optionalText shouldBe "preserved-default"
             }
 
+            it("repeats a constant rule on a default name, and fails on the next object on a requested one") {
+                val repeating =
+                    krandomGenerator<ImmutableLabel> {
+                        rule("email") { "fixed" }
+                    }
+                repeating.generateList(3).map { it.email } shouldBe listOf("fixed", "fixed", "fixed")
+
+                val requested =
+                    krandomGenerator<ImmutableLabel> {
+                        config { objectUniqueFields("email") }
+                        rule("email") { "fixed" }
+                    }
+                requested.generate().email shouldBe "fixed"
+                shouldThrow<ObjectGenerationException> { requested.generate() }
+            }
+
             it("resolves concrete generic bindings through nested primary constructors") {
                 val envelope = krandom<GenericEnvelope>()
 

@@ -381,6 +381,10 @@ class ObjectGeneratorConfigTest {
         assertEquals(0.25, config.getNullProbability());
         assertEquals(0.5, config.getOptionalEmptyProbability());
         assertEquals(Set.of("email", "accountid"), config.getUniqueFieldNames());
+        assertTrue(config.isRequestedUniqueField("accountId"));
+        assertTrue(config.isRequestedUniqueField("ACCOUNT_ID"));
+        assertFalse(config.isRequestedUniqueField("customerId"));
+        assertFalse(ObjectGeneratorConfig.builder().build().isRequestedUniqueField("email"));
         assertEquals(5, config.getUniquenessMaxAttempts());
         assertThrows(
                 IllegalArgumentException.class,

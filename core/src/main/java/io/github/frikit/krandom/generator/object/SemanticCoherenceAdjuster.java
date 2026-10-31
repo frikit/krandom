@@ -589,14 +589,14 @@ final class SemanticCoherenceAdjuster {
     }
 
     /**
-     * A derived value that could repeat must not replace the value generation tracked for a unique
-     * field, so that field keeps it and the sibling adapts where it can.
+     * A derived value that could repeat must not replace the value generation tracked for a requested
+     * name, so that field keeps it and the sibling adapts where it can.
      */
     private boolean keepsUniqueValue(Slot slot) {
         // A slot only reaches this pass through its semantic key.
         String semanticKey = Objects.requireNonNull(
                 semanticRegistry.semanticKeyForFieldName(slot.fieldName()), "semanticKey must not be null");
-        return UNNUMBERED_KEYS.contains(semanticKey) && isUniqueField(slot.fieldName(), semanticKey);
+        return UNNUMBERED_KEYS.contains(semanticKey) && config.isRequestedUniqueField(slot.fieldName());
     }
 
     /** True when an override of this field, not a generator or a constraint, produced its value. */

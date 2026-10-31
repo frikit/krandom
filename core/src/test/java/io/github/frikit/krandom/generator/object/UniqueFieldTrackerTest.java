@@ -109,6 +109,52 @@ class UniqueFieldTrackerTest {
     }
 
     @Test
+    @DisplayName("a field's key names the nearest class that declares it")
+    void fieldKeyNamesTheNearestDeclaringClass() {
+        String base = KeyBase.class.getName();
+        String child = KeyChild.class.getName();
+
+        assertEquals(base + ".inherited", UniqueFieldTracker.fieldKey(KeyChild.class, "inherited"));
+        assertEquals(base + ".inherited", UniqueFieldTracker.fieldKey(KeyBase.class, "inherited"));
+        assertEquals(child + ".shadowed", UniqueFieldTracker.fieldKey(KeyChild.class, "shadowed"));
+        assertEquals(base + ".shadowed", UniqueFieldTracker.fieldKey(KeyBase.class, "shadowed"));
+        assertEquals(Runnable.class.getName() + ".run", UniqueFieldTracker.fieldKey(Runnable.class, "run"));
+    }
+
+    @Test
+    @DisplayName("an element's key names the class that declares its member, and keeps the element's name")
+    void fieldKeyOfAnElementNamesTheMembersDeclaringClass() {
+        String base = KeyBase.class.getName();
+        String child = KeyChild.class.getName();
+
+        assertEquals(base + ".inherited[]", UniqueFieldTracker.fieldKey(KeyChild.class, "inherited[]"));
+        assertEquals(base + ".inherited[][]", UniqueFieldTracker.fieldKey(KeyChild.class, "inherited[][]"));
+        assertEquals(base + ".inherited.value", UniqueFieldTracker.fieldKey(KeyChild.class, "inherited.value"));
+        assertEquals(child + ".absent[]", UniqueFieldTracker.fieldKey(KeyChild.class, "absent[]"));
+    }
+
+    @Test
+    @DisplayName("a static field is not the field a key names")
+    void fieldKeySkipsStaticFields() {
+        assertEquals(KeyChild.class.getName() + ".constant", UniqueFieldTracker.fieldKey(KeyChild.class, "constant"));
+        assertEquals(
+                KeyBase.class.getName() + ".hiddenByStatic",
+                UniqueFieldTracker.fieldKey(KeyChild.class, "hiddenByStatic"));
+    }
+
+    static class KeyBase {
+        static final int constant = 0;
+        int inherited;
+        int shadowed;
+        int hiddenByStatic;
+    }
+
+    static class KeyChild extends KeyBase {
+        static final int hiddenByStatic = 0;
+        int shadowed;
+    }
+
+    @Test
     @DisplayName("addedLast holds only for the very value a field added last")
     void addedLastHoldsOnlyForTheVeryValueAFieldAddedLast() {
         UniqueFieldTracker tracker = new UniqueFieldTracker();
@@ -126,5 +172,18 @@ class UniqueFieldTrackerTest {
 
         assertThrows(UniqueFieldTracker.ExhaustedException.class, () -> tracker.nextUnique("id", () -> value, 1));
         assertFalse(tracker.addedLast("id", value));
+    }
+
+    @Test
+    @DisplayName("forgetLastAdded ends addedLast, and keeps the value in the field's set")
+    void forgetLastAddedEndsAddedLast() {
+        UniqueFieldTracker tracker = new UniqueFieldTracker();
+        List<Integer> value = List.of(1);
+        tracker.nextUnique("id", () -> value, 1);
+
+        tracker.forgetLastAdded();
+
+        assertFalse(tracker.addedLast("id", value));
+        assertThrows(UniqueFieldTracker.ExhaustedException.class, () -> tracker.nextUnique("id", () -> value, 1));
     }
 }

@@ -42,7 +42,9 @@ class GenerationRecipeTest {
 
     private static final Instant CLOCK_INSTANT = Instant.parse("2026-07-10T12:34:56Z");
     private static final ZoneId CLOCK_ZONE = ZoneId.of("Europe/London");
-    private static final List<String> REQUIRED_POLICY_SETTINGS = List.of(
+    private static final List<String> REQUIRED_SETTINGS = List.of(
+            "object.unique-fields",
+            "object.requested-unique-fields",
             "payment.card-safety-policy",
             "banking.safety-policy",
             "business-tax-identifier.safety-policy",
@@ -163,14 +165,14 @@ class GenerationRecipeTest {
                 recipe.toGeneratorConfig().getPaymentCardSafetyPolicy());
     }
 
-    static Stream<String> requiredPolicySettings() {
-        return REQUIRED_POLICY_SETTINGS.stream();
+    static Stream<String> requiredSettings() {
+        return REQUIRED_SETTINGS.stream();
     }
 
     @ParameterizedTest(name = "{0}")
-    @MethodSource("requiredPolicySettings")
-    @DisplayName("replay requires every safety and email policy setting")
-    void replayRequiresPolicySetting(String setting) {
+    @MethodSource("requiredSettings")
+    @DisplayName("replay requires every safety and email policy setting, and both sets of unique fields")
+    void replayRequiresSetting(String setting) {
         String complete = GeneratorConfig.builder()
                 .seed(42L)
                 .build()
@@ -188,7 +190,7 @@ class GenerationRecipeTest {
     }
 
     @Test
-    @DisplayName("a hand-built recipe with only the required policy settings replays configuration defaults")
+    @DisplayName("a hand-built recipe with only the required settings replays configuration defaults")
     void policyCompleteRecipeReplaysDefaults() {
         GeneratorConfig defaults = GeneratorConfig.builder().seed(7L).build();
         GeneratorConfig replay = policyComplete(7L).build().toGeneratorConfig();
@@ -197,6 +199,7 @@ class GenerationRecipeTest {
         assertEquals(defaults.getObjectNullProbability(), replay.getObjectNullProbability());
         assertEquals(defaults.getObjectOptionalEmptyProbability(), replay.getObjectOptionalEmptyProbability());
         assertEquals(defaults.getObjectUniqueFieldNames(), replay.getObjectUniqueFieldNames());
+        assertEquals(defaults.getObjectRequestedUniqueFieldNames(), replay.getObjectRequestedUniqueFieldNames());
         assertEquals(defaults.getObjectDateMin(), replay.getObjectDateMin());
         assertEquals(defaults.getPaymentCardSafetyPolicy(), replay.getPaymentCardSafetyPolicy());
         assertEquals(defaults.getEmailDomainPolicy(), replay.getEmailDomainPolicy());
@@ -234,6 +237,89 @@ class GenerationRecipeTest {
                 recipe.serialize()
                         .contains(
                                 "setting.object.unique-fields=email%2Cemailaddress%2Cusername%2Cuserhandle%2Cuuid%2Cguid%2Cid\n"));
+    }
+
+    @Test
+    @DisplayName("a recipe records which unique fields were requested, and writes an empty set as a dash")
+    void recipeRecordsRequestedUniqueFields() {
+        GenerationRecipe defaults = GeneratorConfig.builder()
+                .seed(42L)
+                .build()
+                .getGenerationRecipe()
+                .orElseThrow();
+        assertEquals("-", defaults.getSettings().get("object.requested-unique-fields"));
+        assertTrue(defaults.serialize().contains("setting.object.requested-unique-fields=-\n"));
+
+        GenerationRecipe added = GeneratorConfig.builder()
+                .seed(42L)
+                .objectUniqueField("Order_Code")
+                .objectUniqueField("id")
+                .build()
+                .getGenerationRecipe()
+                .orElseThrow();
+        assertEquals(
+                "email,emailaddress,username,userhandle,uuid,guid,id,ordercode",
+                added.getSettings().get("object.unique-fields"));
+        assertEquals("ordercode,id", added.getSettings().get("object.requested-unique-fields"));
+
+        GenerationRecipe none = GeneratorConfig.builder()
+                .seed(42L)
+                .objectUniqueFields()
+                .build()
+                .getGenerationRecipe()
+                .orElseThrow();
+        assertEquals("-", none.getSettings().get("object.unique-fields"));
+        assertEquals("-", none.getSettings().get("object.requested-unique-fields"));
+    }
+
+    static Stream<GeneratorConfig.Builder> uniqueFieldConfigurations() {
+        return Stream.of(
+                GeneratorConfig.builder(),
+                GeneratorConfig.builder().objectUniqueField("code"),
+                GeneratorConfig.builder().objectUniqueField("id").objectUniqueField("code"),
+                GeneratorConfig.builder().objectUniqueFields("code", "accountId"),
+                GeneratorConfig.builder().objectUniqueFields("code").objectUniqueField("id"),
+                GeneratorConfig.builder().objectUniqueFields());
+    }
+
+    @ParameterizedTest
+    @MethodSource("uniqueFieldConfigurations")
+    @DisplayName("replay restores both sets of unique fields, in order, and serializes the same recipe again")
+    void replayRestoresUniqueFields(GeneratorConfig.Builder configuration) {
+        GeneratorConfig original = configuration
+                .seed(42L)
+                .clock(Clock.fixed(CLOCK_INSTANT, CLOCK_ZONE))
+                .build();
+        GenerationRecipe recipe = original.getGenerationRecipe().orElseThrow();
+
+        GeneratorConfig replay = GenerationRecipe.parse(recipe.serialize()).toGeneratorConfig();
+
+        assertEquals(
+                List.copyOf(original.getObjectUniqueFieldNames()), List.copyOf(replay.getObjectUniqueFieldNames()));
+        assertEquals(
+                List.copyOf(original.getObjectRequestedUniqueFieldNames()),
+                List.copyOf(replay.getObjectRequestedUniqueFieldNames()));
+        assertEquals(
+                recipe.serialize(), replay.getGenerationRecipe().orElseThrow().serialize());
+    }
+
+    @Test
+    @DisplayName("replay rejects a requested name missing from the unique fields, and a set it cannot read")
+    void replayRejectsInconsistentUniqueFields() {
+        assertRejected(
+                "Recipe setting 'object.requested-unique-fields' names a field missing from 'object.unique-fields'",
+                policyComplete(7L).setting("object.requested-unique-fields", "code"));
+        assertRejected(
+                "Recipe setting 'object.requested-unique-fields' names a field missing from 'object.unique-fields'",
+                policyComplete(7L)
+                        .setting("object.unique-fields", "-")
+                        .setting("object.requested-unique-fields", "id"));
+        assertRejected(
+                "fieldName must contain at least one letter or digit",
+                policyComplete(7L).setting("object.unique-fields", "id,,email"));
+        assertRejected(
+                "fieldName must contain at least one letter or digit",
+                policyComplete(7L).setting("object.requested-unique-fields", "-,id"));
     }
 
     @Test
@@ -503,6 +589,7 @@ class GenerationRecipeTest {
         assertEquals(original.getObjectNullProbability(), replay.getObjectNullProbability());
         assertEquals(original.getObjectOptionalEmptyProbability(), replay.getObjectOptionalEmptyProbability());
         assertEquals(original.getObjectUniqueFieldNames(), replay.getObjectUniqueFieldNames());
+        assertEquals(original.getObjectRequestedUniqueFieldNames(), replay.getObjectRequestedUniqueFieldNames());
         assertEquals(original.getObjectUniquenessMaxAttempts(), replay.getObjectUniquenessMaxAttempts());
     }
 
@@ -602,7 +689,7 @@ class GenerationRecipeTest {
                 .orElseThrow()
                 .getSettings();
         GenerationRecipe.Builder builder = GenerationRecipe.builder().seed(seed);
-        for (String setting : REQUIRED_POLICY_SETTINGS) {
+        for (String setting : REQUIRED_SETTINGS) {
             builder.setting(setting, defaults.get(setting));
         }
         return builder;

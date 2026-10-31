@@ -27,6 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
 import java.util.TreeMap;
 import org.jspecify.annotations.Nullable;
 
@@ -75,6 +76,8 @@ public final class GenerationRecipe {
     private static final String CONSTRUCTION_POLICY_KEY = "construction-policy";
     private static final String PROVIDER_DATASET_VERSION_KEY = "provider-dataset-version";
     private static final String SETTING_PREFIX = "setting.";
+    /** No field names, because a setting cannot be blank. A name holds only letters and digits, so none is this. */
+    private static final String NO_FIELD_NAMES = "-";
 
     private static final long FNV1A_64_OFFSET_BASIS = 0xcbf29ce484222325L;
     private static final long FNV1A_64_PRIME = 0x100000001b3L;
@@ -293,9 +296,9 @@ public final class GenerationRecipe {
     /**
      * Recreates a portable generator configuration with a fixed clock.
      *
-     * <p>Every safety-policy setting and the email-domain policy are required, because they select
-     * which values generators may produce; the serialized form of a seeded configuration always
-     * records them.
+     * <p>Every safety-policy setting, the email-domain policy and both sets of unique fields are
+     * required, because they select which values generators may produce; the serialized form of a
+     * seeded configuration always records them.
      *
      * @return replay configuration
      * @throws IllegalArgumentException if this library does not recognize a recorded setting, or a
@@ -455,10 +458,17 @@ public final class GenerationRecipe {
     }
 
     private void applyUniqueFields(GeneratorConfig.Builder builder) {
-        String value = settings.get("object.unique-fields");
-        if (value != null) {
-            builder.objectUniqueFields(value.split(",", -1));
-        }
+        builder.objectUniqueFieldsFromRecipe(
+                fieldNames("object.unique-fields"), fieldNames("object.requested-unique-fields"));
+    }
+
+    private String[] fieldNames(String key) {
+        String value = requiredSetting(key);
+        return NO_FIELD_NAMES.equals(value) ? new String[0] : value.split(",", -1);
+    }
+
+    static String fieldNamesSetting(Set<String> fieldNames) {
+        return fieldNames.isEmpty() ? NO_FIELD_NAMES : String.join(",", fieldNames);
     }
 
     private void applyDateRange(GeneratorConfig.Builder builder) {
@@ -515,6 +525,7 @@ public final class GenerationRecipe {
                     "object.null-probability",
                     "object.optional-empty-probability",
                     "object.unique-fields",
+                    "object.requested-unique-fields",
                     "object.uniqueness-max-attempts",
                     "object.date-min",
                     "object.date-max",

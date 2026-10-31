@@ -730,6 +730,41 @@ class ObjectGeneratorSemanticCoherenceTest {
     }
 
     @Test
+    @DisplayName("coherence still derives an alias of a requested name, which then repeats with no failure")
+    void coherenceDerivesAnAliasOfARequestedName() {
+        ObjectGenerator<AliasedLifespan> generator = new ObjectGenerator<>(
+                AliasedLifespan.class,
+                uniqueIn("age")
+                        .override(AliasedLifespan.class, "birthDate", () -> LocalDate.of(1990, 1, 1))
+                        .build());
+
+        assertEquals(
+                1,
+                generator.generateList(10).stream()
+                        .map(AliasedLifespan::yearsOld)
+                        .distinct()
+                        .count());
+    }
+
+    @Test
+    @DisplayName("a default name still numbers a derived value, and no names at all leaves it to repeat")
+    void defaultNameNumbersADerivedValueAndNoNamesRepeatIt() {
+        ObjectGenerator<FixedNamePerson> numbered = new ObjectGenerator<>(
+                FixedNamePerson.class,
+                fixedNames(FixedNamePerson.class, GeneratorConfig.builder().seed(61L)));
+        assertEquals("alice.smith@example.com", numbered.generate().email);
+        assertEquals("alice.smith1@example.com", numbered.generate().email);
+
+        ObjectGenerator<FixedNamePerson> repeating = new ObjectGenerator<>(
+                FixedNamePerson.class,
+                fixedNames(
+                        FixedNamePerson.class,
+                        GeneratorConfig.builder().seed(61L).objectUniqueFields()));
+        assertEquals("alice.smith@example.com", repeating.generate().email);
+        assertEquals("alice.smith@example.com", repeating.generate().email);
+    }
+
+    @Test
     @DisplayName("the birth date adapts to a unique age")
     void birthDateAdaptsToUniqueAge() {
         Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
@@ -933,6 +968,8 @@ class ObjectGeneratorSemanticCoherenceTest {
     record Lifecycle(LocalDateTime createdAt, LocalDateTime updatedAt) {}
 
     record Lifespan(LocalDate birthDate, int age) {}
+
+    record AliasedLifespan(LocalDate birthDate, int yearsOld) {}
 
     record Charge(BigDecimal price, BigDecimal amount, BigDecimal balance) {}
 

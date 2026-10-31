@@ -380,7 +380,10 @@ class ConfigScope(
         builder.objectMaxDepth(depth)
     }
 
-    /** Replaces the fields whose values must not repeat across a generator's objects; none when empty. */
+    /**
+     * Requests the fields whose values must not repeat across a generator's objects, however they are
+     * produced. This replaces the names that are unique by default, and with no names nothing is unique.
+     */
     fun objectUniqueFields(vararg fieldNames: String) {
         builder.objectUniqueFields(*fieldNames)
     }

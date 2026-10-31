@@ -68,15 +68,17 @@ import org.objenesis.ObjenesisStd;
  * not perturb existing members; nested objects establish their own member streams from the parent
  * member seed. Caller-owned, secure, and unseeded configurations retain sequential behavior.
  *
- * <p><b>Unique fields</b> ({@code id}, {@code email} and a few other names unless configured with
- * {@link GeneratorConfig.Builder#objectUniqueFields(String...)}) stay unique across every object a
- * generator produces, including nested objects, however a value is produced. Each field has its own
- * values, so {@code Order.id} and a nested {@code Customer.id} can be equal. A repeat draws again, up
- * to {@link GeneratorConfig.Builder#objectUniquenessMaxAttempts(int)} times, and then generation fails,
- * so an override that returns a constant fails on the next object. The generator remembers each value
- * it hands out, so memory grows with the number of generated unique values: create a new generator to
- * start a fresh uniqueness scope, or configure no unique fields ({@code objectUniqueFields()}) for
- * unbounded streams.
+ * <p><b>Unique fields.</b> A name requested with {@link GeneratorConfig.Builder#objectUniqueField(String)}
+ * or {@link GeneratorConfig.Builder#objectUniqueFields(String...)} stays unique across every object a
+ * generator produces, including nested objects, however its value is produced. Each field has its own
+ * values, so {@code Order.id} and a nested {@code Customer.id} can be equal. A repeat draws again, up to
+ * {@link GeneratorConfig.Builder#objectUniquenessMaxAttempts(int)} times, and then generation fails, so
+ * an override that returns a constant fails on the next object. Unless replaced, {@code id},
+ * {@code email} and a few other names are unique by default, but only as a plausible default: semantic,
+ * built-in and enum values are checked, while an override, annotation or constraint may repeat its
+ * values. The generator remembers each value it hands out, so memory grows with the number of generated
+ * unique values: create a new generator to start a fresh uniqueness scope, or configure no unique fields
+ * ({@code objectUniqueFields()}) for unbounded streams.
  *
  * <p><b>Usage</b>
  * <pre>{@code
@@ -89,7 +91,6 @@ import org.objenesis.ObjenesisStd;
  *       .objectOverride(String.class, () -> "test-value")
  *       .objectOverride(Person.class, "firstName", () -> "Alice")
  *       .objectExcludeField("password")
- *       .objectUniqueFields() // every String is the same, so none can stay unique
  *       .build();
  *
  *   ObjectGenerator<Person> gen = new ObjectGenerator<>(Person.class, config);
@@ -674,7 +675,9 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 continue;
             }
             // The field's new value replaces its constructor argument, which is no longer in use.
-            if (field.getDeclaringClass() == type && trackedConstructorArguments.containsKey(field.getName())) {
+            if (trackedConstructorArguments.containsKey(field.getName())
+                    && UniqueFieldTracker.fieldKey(type, field.getName())
+                            .equals(UniqueFieldTracker.fieldKey(field.getDeclaringClass(), field.getName()))) {
                 uniqueFieldTracker.release(
                         UniqueFieldTracker.fieldKey(type, field.getName()),
                         trackedConstructorArguments.get(field.getName()));
@@ -787,6 +790,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 arguments[index] = defaultForType(parameter.getType());
                 continue;
             }
+            uniqueFieldTracker.forgetLastAdded();
             arguments[index] = resolver.resolveAndGenerateMember(
                     parameter.getParameterizedType(),
                     parameter.getType(),
@@ -795,7 +799,9 @@ public final class ObjectGenerator<T> implements Generator<T> {
                     depth,
                     parameter,
                     memberStreamIdentity(type, "constructor", memberName));
-            if (uniqueFieldTracker.addedLast(UniqueFieldTracker.fieldKey(type, memberName), arguments[index])) {
+            // Only a requested name gets a replaced argument's value back. Any other name keeps it as used.
+            if (uniqueFieldTracker.addedLast(UniqueFieldTracker.fieldKey(type, memberName), arguments[index])
+                    && config.isRequestedUniqueField(memberName)) {
                 trackedConstructorArguments.put(memberName, arguments[index]);
             }
         }

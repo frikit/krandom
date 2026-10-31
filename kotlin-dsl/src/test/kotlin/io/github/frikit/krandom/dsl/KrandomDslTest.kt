@@ -269,32 +269,34 @@ class KrandomDslTest :
                 people.forEach { it.age shouldBe 25 }
             }
 
-            it("fails on the next object when a constant rule reaches a unique field") {
+            it("repeats a constant rule on a name that is unique only by default") {
                 val gen =
                     krandomGenerator<SamplePerson> {
                         ruleForType<String> { "fixed" }
+                    }
+                gen.generateList(3).map { it.email } shouldBe listOf("fixed", "fixed", "fixed")
+            }
+
+            it("fails on the next object when a constant rule reaches a requested unique field") {
+                val gen =
+                    krandomGenerator<SamplePerson> {
+                        config { objectUniqueFields("email") }
+                        rule("email") { "fixed" }
                     }
                 gen.generate().email shouldBe "fixed"
                 val failure = shouldThrow<ObjectGenerationException> { gen.generate() }
                 failure.message shouldContain "SamplePerson.email"
             }
 
-            it("repeats a constant rule when the field is left out of the unique fields") {
-                val gen =
-                    krandomGenerator<SamplePerson> {
-                        config { objectUniqueFields("lastName") }
-                        rule("email") { "fixed" }
+            it("requests no unique fields when objectUniqueFields names none") {
+                val config =
+                    krandomConfig {
+                        seed(42L)
+                        objectUniqueFields()
                     }
-                gen.generateList(3).map { it.email } shouldBe listOf("fixed", "fixed", "fixed")
-            }
-
-            it("repeats any constant rule with no unique fields") {
-                val gen =
-                    krandomGenerator<SamplePerson> {
-                        config { objectUniqueFields() }
-                        ruleForType<String> { "fixed" }
-                    }
-                gen.generateList(3).map { it.email } shouldBe listOf("fixed", "fixed", "fixed")
+                config.objectUniqueFieldNames shouldBe emptySet<String>()
+                config.objectRequestedUniqueFieldNames shouldBe emptySet<String>()
+                config.generationRecipe.isPresent shouldBe true
             }
         }
 

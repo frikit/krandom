@@ -1122,6 +1122,26 @@ final class FieldGeneratorResolver {
         return () -> preferred.get(random.nextInt(preferred.size()));
     }
 
+    /**
+     * A value from an override, an annotation or a constraint, which may repeat unless its own name was
+     * requested.
+     */
+    private @Nullable Object generateIfRequestedUnique(
+            Generator<?> generator,
+            Class<?> rawType,
+            Type declaredType,
+            Class<?> ownerType,
+            String fieldName,
+            int depth) {
+        return config.isRequestedUniqueField(fieldName)
+                ? generateUnique(generator, rawType, declaredType, ownerType, fieldName, depth)
+                : generator.generate();
+    }
+
+    /**
+     * A value that is checked under every unique name, not just a requested one. The semantic route
+     * passes its key, so that its aliases count too.
+     */
     private @Nullable Object generateWithUniqueness(
             Generator<?> generator,
             @Nullable String semanticKey,
@@ -1130,10 +1150,18 @@ final class FieldGeneratorResolver {
             Class<?> ownerType,
             String fieldName,
             int depth) {
-        String normalizedFieldName = normalizeSemanticFieldName(fieldName);
-        if (!isUniqueField(normalizedFieldName, semanticKey)) {
-            return generator.generate();
-        }
+        return isUniqueField(normalizeSemanticFieldName(fieldName), semanticKey)
+                ? generateUnique(generator, rawType, declaredType, ownerType, fieldName, depth)
+                : generator.generate();
+    }
+
+    private @Nullable Object generateUnique(
+            Generator<?> generator,
+            Class<?> rawType,
+            Type declaredType,
+            Class<?> ownerType,
+            String fieldName,
+            int depth) {
         try {
             return uniqueFieldTracker.nextUnique(
                     UniqueFieldTracker.fieldKey(ownerType, fieldName),
@@ -1684,15 +1712,10 @@ final class FieldGeneratorResolver {
 
         ResolvedType resolvedType = ResolvedType.resolve(genericType, typeBindings);
         rawType = Objects.requireNonNullElse(resolvedType.rawClass(), rawType);
-        // Structural-only generation has no field-name semantics, so only a field's own name makes it unique.
-        String semanticKey = semanticMode == ObjectGenerationSemanticMode.STRUCTURAL_ONLY
-                ? null
-                : semanticRegistry.semanticKeyForFieldName(fieldName);
 
         Generator<?> override = overrideFor(rawType, genericType, fieldName, ownerType, currentDepth, element);
         if (override != null) {
-            return generateWithUniqueness(
-                    override, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
+            return generateIfRequestedUnique(override, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         Generator<?> annotationGenerator =
@@ -1719,6 +1742,7 @@ final class FieldGeneratorResolver {
         }
 
         // ── 3a. Semantic field-name resolver ─────────────────────────────────
+        String semanticKey = semanticRegistry.semanticKeyForFieldName(fieldName);
         Generator<?> semanticGenerator = semanticGeneratorFor(rawType, fieldName);
         if (semanticGenerator != null
                 && !bvConstraints.constrained()
@@ -1732,8 +1756,7 @@ final class FieldGeneratorResolver {
 
         // ── 3aa. Configured null/optional behavior ────────────────────────────
         if (bvConstraints.nullOnly()) {
-            return generateConstraintValue(
-                    bvGen, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
+            return generateConstraintValue(bvGen, rawType, genericType, ownerType, fieldName, currentDepth);
         }
         if (Optional.class == rawType) {
             if (!hasResolvedArguments(genericType, Optional.class)) {
@@ -1753,33 +1776,31 @@ final class FieldGeneratorResolver {
 
         // ── 3b. Declarative @Randomizer override ─────────────────────────────
         if (annotationGenerator != null) {
-            return generateWithUniqueness(
-                    annotationGenerator, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
+            return generateIfRequestedUnique(
+                    annotationGenerator, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 3ba. Declarative @Fake override ──────────────────────────────────
         if (fakeAnnotationGenerator != null) {
-            return generateWithUniqueness(
-                    fakeAnnotationGenerator, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
+            return generateIfRequestedUnique(
+                    fakeAnnotationGenerator, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 3bb. Declarative @FakeRange override ─────────────────────────────
         if (fakeRangeGenerator != null) {
-            return generateWithUniqueness(
-                    fakeRangeGenerator, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
+            return generateIfRequestedUnique(
+                    fakeRangeGenerator, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 3c. Bean Validation constraint override ───────────────────────────
         if (bvGen != null) {
-            return generateConstraintValue(
-                    bvGen, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
+            return generateConstraintValue(bvGen, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 4. Built-in (primitives, wrappers, String, JSR-310, UUID, BigDecimal, BigInteger) ──
         var builtin = builtins.get(rawType);
         if (builtin != null) {
-            return generateWithUniqueness(
-                    builtin, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
+            return generateWithUniqueness(builtin, null, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 5. Enum ───────────────────────────────────────────────────────────
@@ -1791,7 +1812,7 @@ final class FieldGeneratorResolver {
                     ? new EnumGenerator((Class<? extends Enum>) rawType, enumSeed)
                     : () -> constants[sequenceRandom.nextInt(constants.length)];
             return generateWithUniqueness(
-                    enumGenerator, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
+                    enumGenerator, null, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 6a. Array ─────────────────────────────────────────────────────────
@@ -1967,6 +1988,8 @@ final class FieldGeneratorResolver {
                                 memberPath(fieldName))
                         .generate();
                 pool.end(nestedType, poolTypeSignature, instance);
+                // What the nested object added belongs to it, not to this member, even if it is this very value.
+                uniqueFieldTracker.forgetLastAdded();
                 return instance;
             } catch (ObjectGenerationException e) {
                 pool.end(nestedType, poolTypeSignature, null);
@@ -2267,7 +2290,6 @@ final class FieldGeneratorResolver {
 
     private @Nullable Object generateConstraintValue(
             @Nullable Generator<?> generator,
-            @Nullable String semanticKey,
             Class<?> rawType,
             Type declaredType,
             Class<?> ownerType,
@@ -2275,9 +2297,8 @@ final class FieldGeneratorResolver {
             int depth) {
         try {
             // A constrained model always carries its generator; the resolver only gets here for one.
-            return generateWithUniqueness(
+            return generateIfRequestedUnique(
                     Objects.requireNonNull(generator, "constraint generator"),
-                    semanticKey,
                     rawType,
                     declaredType,
                     ownerType,

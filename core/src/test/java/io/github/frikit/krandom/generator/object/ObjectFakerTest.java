@@ -354,9 +354,22 @@ class ObjectFakerTest {
     }
 
     @Test
-    @DisplayName("a root rule is an override, so a constant on a unique field fails on the next object")
-    void constantRootRuleOnUniqueFieldFailsOnTheNextObject() {
-        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class).ruleFor("email", () -> "ada@example.com");
+    @DisplayName("a constant root rule repeats on a default name")
+    void constantRootRuleRepeatsOnADefaultName() {
+        List<FixtureUser> users = new ObjectFaker<>(FixtureUser.class)
+                .ruleFor("email", () -> "ada@example.com")
+                .generateList(5);
+
+        assertTrue(users.stream().allMatch(user -> "ada@example.com".equals(user.email)));
+    }
+
+    @Test
+    @DisplayName("a root rule is an override, so a constant on a requested name fails on the next object")
+    void constantRootRuleOnARequestedNameFailsOnTheNextObject() {
+        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(
+                        FixtureUser.class,
+                        GeneratorConfig.builder().objectUniqueField("email").build())
+                .ruleFor("email", () -> "ada@example.com");
 
         assertEquals("ada@example.com", faker.generate().email);
 

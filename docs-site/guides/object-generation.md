@@ -202,25 +202,18 @@ failure: raise `objectMaxDepth` as well, or use `objectOverride`.
 
 ## Unique fields
 
-`objectUniqueFields` names the fields whose values must not repeat. By default they are `email`,
-`emailAddress`, `username`, `userHandle`, `uuid`, `guid` and `id`. A name's semantic aliases count too,
-so `accountId` and `customerId` are unique by default. `STRUCTURAL_ONLY` has no aliases, so there only
-the field's own name counts.
-
-A generator remembers the values it gives each unique field for as long as it lives, including in
-nested objects. Each field has its own values, so `orderId` and `customerId` can be equal, and so can
-`Order.id` and a nested `Customer.id`. A field inherited from a superclass is one field, whichever
-subclass reaches it.
-
-A generator checks a value however it was produced: by an override, `@Randomizer`, `@Fake`,
-`@FakeRange`, a Bean Validation constraint, a semantic field name, a built-in type or an enum. On a
-repeat it draws again, up to `objectUniquenessMaxAttempts` (default 256) times for each value. A `null`
-is never a repeat. If every draw repeats, generation fails:
+Request a field with `objectUniqueField` when its values must not repeat. A generator remembers the
+values it gives a requested field for as long as it lives, including in nested objects, and checks a
+value however it was produced: by an override, `@Randomizer`, `@Fake`, `@FakeRange`, a Bean Validation
+constraint, a semantic field name, a built-in type or an enum. On a repeat it draws again, up to
+`objectUniquenessMaxAttempts` (default 256) times for each value. A `null` is never a repeat. If every
+draw repeats, generation fails:
 
 ```java
 record Seat(@Min(1) @Max(3) int id) {}
 
-ObjectGenerator<Seat> seats = new ObjectGenerator<>(Seat.class);
+ObjectGenerator<Seat> seats = new ObjectGenerator<>(
+        Seat.class, GeneratorConfig.builder().objectUniqueField("id").build());
 seats.generateList(3); // ids 1, 2 and 3, in some order
 
 // Throws ObjectGenerationException for 'Seat.id', with the cause
@@ -234,30 +227,51 @@ With `objectIgnoreErrors(true)`, the field gets the default for its type instead
 The draws are random, so a domain that is nearly used up can fail before every value has appeared.
 Raising `objectUniquenessMaxAttempts` makes that less likely.
 
-An override is drawn again like any other generator, so one that returns a constant gives one object
-and fails on the next from the same generator. Because `email` is unique by default, this includes
-`objectOverride(User.class, "email", () -> "owner@example.test")` and, for a class with a `String email`,
-`objectOverride(String.class, () -> "fixed")`. To repeat a value on purpose, leave the field out with
-`objectUniqueFields(...)`, or use `objectUniqueFields()` for no unique fields at all. A new generator
-also starts over.
-
-A root `ObjectFaker` rule with a generator is an override. A dependent rule, a rule on a nested path and
+An override is drawn again like any other generator, so one that returns a constant on a requested field
+gives one object and fails on the next from the same generator. A new generator starts over. A root
+`ObjectFaker` rule with a generator is an override. A dependent rule, a rule on a nested path and
 `postProcess` run after generation, so their values are not checked.
 
-The coherence pass numbers a derived `email`, `fullName`, `domain`, `url` or address field on a repeat,
-as in `alice.smith1@example.com` and `n1.acme.test`. The numbers stop at `objectUniquenessMaxAttempts`,
-after which generation fails, and `objectIgnoreErrors(true)` leaves the field `null`. A `createdAt`,
-`updatedAt`, `birthDate`, `age`, `price`, `amount`, `balance`, `active` or `status` cannot be numbered,
-so a unique one keeps its generated value and the other field of the pair adapts where it can. If that
-field cannot change either, the two stay out of line, because uniqueness wins.
+A requested name is matched as given, ignoring case and separators, and does not reach a semantic alias.
+Requesting `id` guarantees nothing for `customerId`, because a foreign key can repeat.
 
-Some values are not checked:
+Each field has its own values, so `orderId` and `customerId` can be equal, and so can `Order.id` and a
+nested `Customer.id`. A field inherited from a superclass is one field, whichever subclass reaches it, and
+a constructor argument shares the values of the field with its name, on its class or nearest superclass.
+
+Some values of a requested field are not checked:
 
 - The elements of a list, set or array are checked under the field's name, but the values inside an
   `Optional` or a `Map` are not, and neither is a nested object as a whole.
 - Values are compared with `equals`, so a type without value equality, such as `AtomicInteger`, never
   counts as a repeat.
 - A value the class sets itself, such as a field initializer that generation keeps, is not checked.
+
+### Names unique by default
+
+`email`, `emailAddress`, `username`, `userHandle`, `uuid`, `guid` and `id` are unique by default, so that
+generated test data looks plausible. This is not a guarantee, and it covers fewer values than a request:
+
+- A semantic value is checked under these names and their semantic aliases, so a generated `String email`
+  or `long customerId` does not repeat.
+- A built-in or enum value is checked under these names alone. `boolean id` fails on the object after its
+  two values run out, while `boolean accountId` repeats them.
+- A value from an override, `@Randomizer`, `@Fake`, `@FakeRange` or a Bean Validation constraint is not
+  checked. `objectOverride(User.class, "email", () -> "owner@example.test")`, a rule that gives `email` a
+  constant, and `record Order(@Min(1) @Max(100) int customerId)` all repeat their values with no failure.
+
+`objectUniqueField` keeps these names, and only the name it adds gets the guarantee above.
+`objectUniqueFields` requests the names you give it and replaces the rest, and `objectUniqueFields()`,
+with no names, makes nothing unique. A name's aliases are still checked on semantic values whether you
+requested the name or not, so `objectUniqueField("id")` leaves a generated `long customerId` as it was.
+
+The coherence pass numbers a derived `email`, `fullName`, `domain`, `url` or address field on a repeat,
+as in `alice.smith1@example.com` and `n1.acme.test`. This applies to any of these unique names, requested
+or not. The numbers stop at `objectUniquenessMaxAttempts`, after which generation fails, and
+`objectIgnoreErrors(true)` leaves the field `null`. A `createdAt`, `updatedAt`, `birthDate`, `age`,
+`price`, `amount`, `balance`, `active` or `status` cannot be numbered, so a requested one keeps its
+generated value and the other field of the pair adapts where it can. If that field cannot change either,
+the two stay out of line, because uniqueness wins.
 
 ## Fluent fixtures
 

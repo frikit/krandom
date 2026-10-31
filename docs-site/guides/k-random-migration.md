@@ -69,9 +69,10 @@ GeneratorConfig config = GeneratorConfig.builder()
 User user = Generators.ofObject(User.class, config).generate();
 ```
 
-`email`, `id` and a few other names stay [unique]({{ '/guides/object-generation/' | relative_url }}#unique-fields)
-for a generator's lifetime, so the constant override above fails on a second object from the same
-generator. Use `objectUniqueFields(...)` to leave the field out.
+An override may repeat its value on every object. To
+[request a unique field]({{ '/guides/object-generation/' | relative_url }}#unique-fields), add
+`objectUniqueField("email")`, and the constant override above then fails on a second object from the same
+generator.
 
 ## Domain generators
 

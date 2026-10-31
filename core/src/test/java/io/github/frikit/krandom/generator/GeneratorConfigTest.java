@@ -29,6 +29,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
@@ -74,6 +75,7 @@ class GeneratorConfigTest {
         assertEquals(
                 Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id"),
                 c.getObjectUniqueFieldNames());
+        assertEquals(Set.of(), c.getObjectRequestedUniqueFieldNames());
         assertEquals(256, c.getObjectUniquenessMaxAttempts());
         assertTrue(c.getObjectTypeOverride(String.class).isEmpty());
         assertTrue(
@@ -561,11 +563,65 @@ class GeneratorConfigTest {
                 .objectUniquenessMaxAttempts(3)
                 .build();
         assertEquals(Set.of("email", "username", "guid"), config.getObjectUniqueFieldNames());
+        assertEquals(Set.of("email", "username", "guid"), config.getObjectRequestedUniqueFieldNames());
         assertEquals(3, config.getObjectUniquenessMaxAttempts());
         assertThrows(
                 IllegalArgumentException.class, () -> GeneratorConfig.builder().objectUniquenessMaxAttempts(0));
         assertThrows(
                 IllegalArgumentException.class, () -> GeneratorConfig.builder().objectUniqueField("___"));
+    }
+
+    @Test
+    @DisplayName("objectUniqueField adds to the default names and requests only the name it adds")
+    void objectUniqueFieldRequestsOnlyTheNameItAdds() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                .objectUniqueField("Order_Code")
+                .objectUniqueField("id")
+                .build();
+
+        assertEquals(
+                List.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id", "ordercode"),
+                List.copyOf(config.getObjectUniqueFieldNames()));
+        assertEquals(List.of("ordercode", "id"), List.copyOf(config.getObjectRequestedUniqueFieldNames()));
+    }
+
+    @Test
+    @DisplayName("objectUniqueFields replaces both sets, and with no names empties them")
+    void objectUniqueFieldsReplacesBothSets() {
+        GeneratorConfig.Builder builder = GeneratorConfig.builder().objectUniqueField("code");
+
+        GeneratorConfig replaced =
+                builder.objectUniqueFields("email", "accountId").build();
+        assertEquals(List.of("email", "accountid"), List.copyOf(replaced.getObjectUniqueFieldNames()));
+        assertEquals(List.of("email", "accountid"), List.copyOf(replaced.getObjectRequestedUniqueFieldNames()));
+
+        GeneratorConfig none = builder.objectUniqueFields().build();
+        assertEquals(Set.of(), none.getObjectUniqueFieldNames());
+        assertEquals(Set.of(), none.getObjectRequestedUniqueFieldNames());
+
+        GeneratorConfig afterReplacing = builder.objectUniqueField("code").build();
+        assertEquals(Set.of("code"), afterReplacing.getObjectUniqueFieldNames());
+        assertEquals(Set.of("code"), afterReplacing.getObjectRequestedUniqueFieldNames());
+    }
+
+    @Test
+    @DisplayName("toBuilder copies which unique fields were requested")
+    void toBuilderCopiesRequestedUniqueFields() {
+        GeneratorConfig defaults = GeneratorConfig.builder().build().toBuilder().build();
+        assertEquals(
+                Set.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id"),
+                defaults.getObjectUniqueFieldNames());
+        assertEquals(Set.of(), defaults.getObjectRequestedUniqueFieldNames());
+
+        GeneratorConfig added = defaults.toBuilder().objectUniqueField("code").build();
+        GeneratorConfig copied = added.toBuilder().build();
+        assertEquals(added.getObjectUniqueFieldNames(), copied.getObjectUniqueFieldNames());
+        assertEquals(Set.of("code"), copied.getObjectRequestedUniqueFieldNames());
+
+        GeneratorConfig none = GeneratorConfig.builder().objectUniqueFields().build().toBuilder()
+                .build();
+        assertEquals(Set.of(), none.getObjectUniqueFieldNames());
+        assertEquals(Set.of(), none.getObjectRequestedUniqueFieldNames());
     }
 
     @Test
@@ -581,9 +637,14 @@ class GeneratorConfigTest {
 
         assertEquals(Set.of("accountid"), original.getObjectUniqueFieldNames());
         assertEquals(Set.of("accountid", "email"), derived.getObjectUniqueFieldNames());
+        assertEquals(Set.of("accountid"), original.getObjectRequestedUniqueFieldNames());
+        assertEquals(Set.of("accountid", "email"), derived.getObjectRequestedUniqueFieldNames());
         assertThrows(
                 UnsupportedOperationException.class,
                 () -> original.getObjectUniqueFieldNames().add("username"));
+        assertThrows(
+                UnsupportedOperationException.class,
+                () -> original.getObjectRequestedUniqueFieldNames().add("username"));
         assertThrows(
                 UnsupportedOperationException.class,
                 () -> original.getObjectSubtypes().put(Runnable.class, Thread.class));
@@ -780,6 +841,7 @@ class GeneratorConfigTest {
         assertEquals(0.25, derived.getObjectNullProbability());
         assertEquals(0.5, derived.getObjectOptionalEmptyProbability());
         assertEquals(Set.of("email", "accountid"), derived.getObjectUniqueFieldNames());
+        assertEquals(Set.of("email", "accountid"), derived.getObjectRequestedUniqueFieldNames());
         assertEquals(7, derived.getObjectUniquenessMaxAttempts());
         assertEquals(LocalDate.of(2022, 1, 1), derived.getObjectDateMin());
         assertEquals(LocalDate.of(2022, 12, 31), derived.getObjectDateMax());
