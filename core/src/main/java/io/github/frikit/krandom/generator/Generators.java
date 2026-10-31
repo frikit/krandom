@@ -1572,7 +1572,8 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces random {@link ZoneOffset} values.
+     * Returns a generator that produces random {@link ZoneOffset} values ({@code -12:00} to {@code +14:00}
+     * in 15-minute steps).
      */
     public static ZoneOffsetGenerator ofZoneOffset() {
         return new ZoneOffsetGenerator();

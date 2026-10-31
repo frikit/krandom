@@ -27,6 +27,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Update Spring Boot to 4.1.2 (the `krandom-spring-boot-starter` dependency), the Gradle wrapper to
   9.8.2, Error Prone to 2.51.0, and NullAway to 0.14.3; align the consumer examples with Spring Boot
   4.1.2 and Maven Surefire 3.6.1.
+- Generated UTC offsets now follow one rule, `-12:00` to `+14:00` in 15-minute steps, in
+  `ZoneOffsetGenerator`, `OffsetTimeGenerator`, `OffsetDateTimeGenerator`, and the `ZoneOffset`,
+  `OffsetTime`, and `OffsetDateTime` members of generated objects, including semantic fields such as
+  `createdAt`. `ZoneOffsetGenerator` and `OffsetTimeGenerator` drew any second in plus or minus 18:00,
+  such as `+07:17:55`. `OffsetDateTimeGenerator` and the object engine's `ZoneOffset` and `OffsetTime`
+  drew quarter hours up to plus or minus 18:00. An `OffsetDateTime` member took a random zone's offset,
+  such as `-00:44:30`, and now keeps only that local date-time. The range and grid are a fixture
+  convention covering the offsets in actual use, not a standard: RFC 3339 excludes seconds from an
+  offset but imposes neither, and JSON imposes nothing. `OffsetDateTimeGenerator.between` still bounds
+  the instant, and a `ZonedDateTime` or `Calendar` keeps its zone's offset. Seeded output changes for
+  these offsets and for values that depend on them, such as an `updatedAt` aligned with an
+  `OffsetDateTime` `createdAt`, an `age` read from an `OffsetDateTime` `birthDate`, or a field sharing a
+  stream with a unique `OffsetDateTime` field whose retries change.
 
 ### Fixed
 

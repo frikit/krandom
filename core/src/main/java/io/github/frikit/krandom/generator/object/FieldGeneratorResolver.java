@@ -25,6 +25,7 @@ import io.github.frikit.krandom.generator.datetime.SqlTimeGenerator;
 import io.github.frikit.krandom.generator.datetime.SqlTimestampGenerator;
 import io.github.frikit.krandom.generator.datetime.TimeGenerator;
 import io.github.frikit.krandom.generator.datetime.UtilDateGenerator;
+import io.github.frikit.krandom.generator.datetime.ZoneOffsetGenerator;
 import io.github.frikit.krandom.generator.datetime.ZonedDateTimeGenerator;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
@@ -232,8 +233,11 @@ final class FieldGeneratorResolver {
                     this.sequenceRandom,
                     this.semanticRegistry,
                     independentSemanticSeed(generationSeed));
-            this.semanticTypedGenerators =
-                    buildSemanticTypedGenerators(this.config, this.generatorConfig, this.sequenceRandom);
+            this.semanticTypedGenerators = buildSemanticTypedGenerators(
+                    this.config,
+                    this.generatorConfig,
+                    this.sequenceRandom,
+                    Objects.requireNonNull(this.builtins.get(ZoneOffset.class), "builtin ZoneOffset generator"));
         }
         this.uniqueFieldNames = config.getUniqueFieldNames();
         GeneratorConfig recipeSource = this.generatorConfig;
@@ -311,12 +315,10 @@ final class FieldGeneratorResolver {
         Generator<Instant> instantGenerator = buildInstantGenerator(generatorConfig, seedSource, lo, hi);
         Generator<ZonedDateTime> zonedDateTimeGenerator =
                 buildZonedDateTimeGenerator(generatorConfig, seedSource, lo, hi);
-        Generator<OffsetDateTime> offsetDateTimeGenerator =
-                () -> zonedDateTimeGenerator.generate().toOffsetDateTime();
-        Random offsetTimeRandom = randomFor(generatorConfig, seedSource);
-        Generator<OffsetTime> offsetTimeGenerator = () -> localTimeGenerator
-                .generate()
-                .atOffset(ZoneOffset.ofTotalSeconds(offsetTimeRandom.nextInt(-72, 73) * 15 * 60));
+        Generator<ZoneOffset> offsetTimeOffsets =
+                lazyGenerator(lazyDerived(generatorConfig, seedSource, ZoneOffsetGenerator::new));
+        Generator<OffsetTime> offsetTimeGenerator =
+                () -> localTimeGenerator.generate().atOffset(offsetTimeOffsets.generate());
         Random yearRandom = randomFor(generatorConfig, seedSource);
         Generator<Year> yearGenerator = () -> Year.of(yearRandom.nextInt(lo.getYear(), hi.getYear() + 1));
         Generator<YearMonth> yearMonthGenerator = () -> YearMonth.from(localDateGenerator.generate());
@@ -329,9 +331,11 @@ final class FieldGeneratorResolver {
                 () -> Period.of(periodRandom.nextInt(0, 11), periodRandom.nextInt(0, 12), periodRandom.nextInt(0, 31));
         Random zoneRandom = randomFor(generatorConfig, seedSource);
         Generator<ZoneId> zoneIdGenerator = () -> ZoneId.of(ZONE_IDS.get(zoneRandom.nextInt(ZONE_IDS.size())));
-        Random zoneOffsetRandom = randomFor(generatorConfig, seedSource);
         Generator<ZoneOffset> zoneOffsetGenerator =
-                () -> ZoneOffset.ofTotalSeconds(zoneOffsetRandom.nextInt(-72, 73) * 15 * 60);
+                lazyGenerator(lazyDerived(generatorConfig, seedSource, ZoneOffsetGenerator::new));
+        // A zone's own offset can have seconds, so an offset date-time keeps only its local date-time.
+        Generator<OffsetDateTime> offsetDateTimeGenerator =
+                () -> zonedDateTimeGenerator.generate().toLocalDateTime().atOffset(zoneOffsetGenerator.generate());
         Generator<java.util.Date> utilDateGenerator = buildUtilDateGenerator(generatorConfig, seedSource, lo, hi);
         Generator<java.sql.Date> sqlDateGenerator = buildSqlDateGenerator(generatorConfig, seedSource, lo, hi);
         Generator<java.sql.Time> sqlTimeGenerator =
@@ -728,16 +732,23 @@ final class FieldGeneratorResolver {
     }
 
     private static Map<String, Map<Class<?>, Generator<?>>> buildSemanticTypedGenerators(
-            ObjectGeneratorConfig objectConfig, GeneratorConfig config, Random seedSource) {
+            ObjectGeneratorConfig objectConfig, GeneratorConfig config, Random seedSource, Generator<?> zoneOffsets) {
         Map<String, Map<Class<?>, Generator<?>>> generators = new HashMap<>();
 
         LocalDate today = LocalDate.now(config.getClock());
         registerTemporalSemantic(
-                generators, objectConfig, config, seedSource, "createdat", today.minusYears(10), today);
+                generators, objectConfig, config, seedSource, zoneOffsets, "createdat", today.minusYears(10), today);
         registerTemporalSemantic(
-                generators, objectConfig, config, seedSource, "updatedat", today.minusYears(10), today);
+                generators, objectConfig, config, seedSource, zoneOffsets, "updatedat", today.minusYears(10), today);
         registerTemporalSemantic(
-                generators, objectConfig, config, seedSource, "birthdate", today.minusYears(90), today.minusYears(18));
+                generators,
+                objectConfig,
+                config,
+                seedSource,
+                zoneOffsets,
+                "birthdate",
+                today.minusYears(90),
+                today.minusYears(18));
         Generator<Integer> ageGenerator = intGenerator(nextDeterministicSeed(config, seedSource), seedSource, 18, 91);
         registerTypedSemantic(generators, "age", int.class, ageGenerator);
         registerTypedSemantic(generators, "age", Integer.class, ageGenerator);
@@ -866,6 +877,7 @@ final class FieldGeneratorResolver {
             ObjectGeneratorConfig objectConfig,
             GeneratorConfig config,
             Random seedSource,
+            Generator<?> zoneOffsets,
             String semanticKey,
             LocalDate min,
             LocalDate max) {
@@ -890,7 +902,7 @@ final class FieldGeneratorResolver {
                 buildZonedDateTimeGenerator(config, seedSource, effectiveMin, effectiveMax);
         registerTypedSemantic(generators, semanticKey, ZonedDateTime.class, zonedGenerator);
         registerTypedSemantic(generators, semanticKey, OffsetDateTime.class, (Generator<OffsetDateTime>)
-                () -> zonedGenerator.generate().toOffsetDateTime());
+                () -> zonedGenerator.generate().toLocalDateTime().atOffset((ZoneOffset) zoneOffsets.generate()));
         registerTypedSemantic(
                 generators,
                 semanticKey,

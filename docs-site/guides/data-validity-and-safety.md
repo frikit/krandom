@@ -148,6 +148,34 @@ most 10 times, or `n` times when that is more. A `GeneratorConfig` whose minimum
 above 5 raises 10 to twice that length, up to 10,000, so that a generated string can reach it. A JSON
 Schema `minLength` or a `@Size` minimum does the same.
 
+## UTC-offset contract
+
+`ZoneOffsetGenerator`, `OffsetTimeGenerator`, `OffsetDateTimeGenerator`, and the `ZoneOffset`,
+`OffsetTime`, and `OffsetDateTime` members of generated objects, including semantic fields such as
+`createdAt`, draw an offset from `-12:00` to `+14:00` in 15-minute steps.
+
+That range and grid are a fixture convention covering the offsets in actual use: every offset in the
+JDK's time-zone rules from 1980 on falls inside them. They are not a standard. RFC 3339 excludes
+seconds from an offset but imposes neither this range nor this grid, and JSON imposes nothing. They
+are not a list of observed offsets either: no zone's rules have used many of the steps, such as
+`+01:15`, since 1980.
+
+A drawn offset has no seconds, so its ISO-8601 text ends in `Z`, `+hh:mm`, or `-hh:mm`. Jackson 2 reads
+that text as a `java.util.Date`, and rejects an offset with seconds, such as `+07:17:55`.
+
+`OffsetDateTimeGenerator.between(start, end)` bounds the instant, whatever offsets the bounds have, and
+re-expresses the result at a drawn offset. `objectDateRange` bounds the local date an `OffsetDateTime`
+member is generated with. Aligning `updatedAt` with `createdAt` afterwards works in UTC, so an aligned
+value keeps the instant, and its date can be a day outside the range.
+
+Other values do not draw an offset, and keep the one they are given:
+
+- A `ZonedDateTime`, a `Calendar`, and `TimezoneGenerator.generateOffset()` use a random zone's rules,
+  so an old date can fall outside the convention. `Africa/Monrovia` is `-00:44:30` before 1972,
+  `Pacific/Kiritimati` is `-10:40` before October 1979, and in 1880 most zones have an offset with
+  seconds.
+- A value generated for `@Past`, `@Future`, or a similar constraint uses the configured clock's zone.
+
 ## Fail-closed finance and identity contracts
 
 The following output families are `DISABLED` by default. Calling `generate()` without the matching

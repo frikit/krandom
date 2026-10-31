@@ -8,7 +8,6 @@ package io.github.frikit.krandom.generator.datetime;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.Random;
@@ -16,16 +15,10 @@ import java.util.Random;
 /**
  * Generates random {@link OffsetDateTime} values.
  *
- * <p>Pairs a random {@link java.time.LocalDateTime} drawn from
- * {@link LocalDateTimeGenerator} with a randomly selected {@link ZoneOffset} sampled at
- * 15-minute increments across the full IANA-allowed range of {@code -18:00} to {@code +18:00}.
+ * <p>Pairs a random {@link java.time.LocalDateTime} drawn from {@link LocalDateTimeGenerator} with a
+ * random offset under the rule on {@link ZoneOffsetGenerator}.
  */
 public final class OffsetDateTimeGenerator implements Generator<OffsetDateTime> {
-
-    private static final int OFFSET_STEP_MINUTES = 15;
-    private static final int MIN_OFFSET_MINUTES = -18 * 60;
-    private static final int MAX_OFFSET_MINUTES = 18 * 60;
-    private static final int OFFSET_STEPS = (MAX_OFFSET_MINUTES - MIN_OFFSET_MINUTES) / OFFSET_STEP_MINUTES + 1;
 
     private final Random random;
     private final LocalDateTimeGenerator dateTimeGenerator;
@@ -48,14 +41,15 @@ public final class OffsetDateTimeGenerator implements Generator<OffsetDateTime> 
 
     @Override
     public OffsetDateTime generate() {
-        return OffsetDateTime.of(dateTimeGenerator.generate(), randomOffset());
+        return OffsetDateTime.of(dateTimeGenerator.generate(), ZoneOffsetGenerator.randomOffset(random));
     }
 
     /**
      * Generates an offset-date-time within the inclusive range, with a randomly assigned offset.
      *
-     * <p>The result is at the same {@link java.time.Instant} as a uniformly sampled point
-     * between the bounds, then re-expressed at a randomly chosen {@link ZoneOffset}.
+     * <p>The result is at the same {@link java.time.Instant} as a uniformly sampled point between the
+     * bounds, then re-expressed at a random offset under the rule on {@link ZoneOffsetGenerator},
+     * whatever offsets the bounds have.
      */
     public OffsetDateTime between(OffsetDateTime startInclusive, OffsetDateTime endInclusive) {
         Objects.requireNonNull(startInclusive, "startInclusive must not be null");
@@ -66,11 +60,6 @@ public final class OffsetDateTimeGenerator implements Generator<OffsetDateTime> 
         }
         long seconds = ChronoUnit.SECONDS.between(startInclusive, endInclusive);
         long offset = seconds == 0 ? 0 : random.nextLong(seconds + 1);
-        return startInclusive.plusSeconds(offset).withOffsetSameInstant(randomOffset());
-    }
-
-    private ZoneOffset randomOffset() {
-        int totalMinutes = MIN_OFFSET_MINUTES + random.nextInt(OFFSET_STEPS) * OFFSET_STEP_MINUTES;
-        return ZoneOffset.ofTotalSeconds(totalMinutes * 60);
+        return startInclusive.plusSeconds(offset).withOffsetSameInstant(ZoneOffsetGenerator.randomOffset(random));
     }
 }

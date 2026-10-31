@@ -23,6 +23,8 @@ import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -114,6 +116,32 @@ class ObjectGeneratorTypedSemanticTest {
                 value.updatedTimestamp.atOffset(ZoneOffset.UTC).toLocalDate().isBefore(min));
         assertFalse(
                 value.updatedTimestamp.atOffset(ZoneOffset.UTC).toLocalDate().isAfter(max));
+    }
+
+    @Test
+    @DisplayName(
+            "a semantic OffsetDateTime keeps its local date in range and takes a conventional offset, not a zone's")
+    void semanticOffsetDateTimeTakesAConventionalOffset() {
+        // In 1880 most zones' rules gave an offset with seconds, which createdAt must not inherit.
+        LocalDate min = LocalDate.of(1880, 1, 1);
+        LocalDate max = LocalDate.of(1880, 12, 31);
+        GeneratorConfig config =
+                GeneratorConfig.builder().seed(42L).objectDateRange(min, max).build();
+        ObjectGenerator<ExtendedTypedSemantics> generator = new ObjectGenerator<>(ExtendedTypedSemantics.class, config);
+        Set<ZoneOffset> drawn = new HashSet<>();
+
+        for (int i = 0; i < 5_000; i++) {
+            OffsetDateTime createdAt = generator.generate().createdAt;
+            assertFalse(createdAt.toLocalDate().isBefore(min), createdAt.toString());
+            assertFalse(createdAt.toLocalDate().isAfter(max), createdAt.toString());
+            drawn.add(createdAt.getOffset());
+        }
+
+        assertEquals(
+                IntStream.rangeClosed(-12 * 4, 14 * 4)
+                        .mapToObj(quarterHours -> ZoneOffset.ofTotalSeconds(quarterHours * 15 * 60))
+                        .collect(Collectors.toSet()),
+                drawn);
     }
 
     @Test

@@ -41,12 +41,17 @@ import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.zone.ZoneRules;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -222,6 +227,44 @@ class BuiltInGeneratorCatalogTest {
         LegacyTimeZoneGenerator timeZone = new LegacyTimeZoneGenerator(seeded(9L));
         timeZone.reseed(12L);
         assertEquals(new LegacyTimeZoneGenerator(seeded(12L)).generate(), timeZone.generate());
+    }
+
+    @Test
+    @DisplayName("ZoneOffset and OffsetTime generators draw every quarter hour from -12:00 to +14:00, and nothing else")
+    void offsetGeneratorsDrawOnlyTheConventionalOffsets() {
+        ZoneOffsetGenerator zoneOffsets = new ZoneOffsetGenerator(seeded(9L));
+        OffsetTimeGenerator offsetTimes = new OffsetTimeGenerator(seeded(9L));
+        Set<ZoneOffset> drawnByZoneOffset = new HashSet<>();
+        Set<ZoneOffset> drawnByOffsetTime = new HashSet<>();
+
+        for (int i = 0; i < 5_000; i++) {
+            drawnByZoneOffset.add(zoneOffsets.generate());
+            drawnByOffsetTime.add(offsetTimes.generate().getOffset());
+        }
+
+        assertEquals(conventionalOffsets(), drawnByZoneOffset);
+        assertEquals(conventionalOffsets(), drawnByOffsetTime);
+        assertTrue(drawnByZoneOffset.stream().allMatch(offset -> offset.getId().matches("Z|[+-]\\d{2}:\\d{2}")));
+    }
+
+    @Test
+    @DisplayName("the offset convention covers every offset the JDK's zones use")
+    void offsetConventionCoversEveryOffsetInUse() {
+        Set<ZoneOffset> conventional = conventionalOffsets();
+        for (String id : ZoneId.getAvailableZoneIds()) {
+            ZoneRules rules = ZoneId.of(id).getRules();
+            for (int month = 1; month <= 12; month++) {
+                Instant instant = LocalDate.of(2026, month, 1).atStartOfDay().toInstant(ZoneOffset.UTC);
+                ZoneOffset offset = rules.getOffset(instant);
+                assertTrue(conventional.contains(offset), id + " uses " + offset + " at " + instant);
+            }
+        }
+    }
+
+    private static Set<ZoneOffset> conventionalOffsets() {
+        return IntStream.rangeClosed(-12 * 4, 14 * 4)
+                .mapToObj(quarterHours -> ZoneOffset.ofTotalSeconds(quarterHours * 15 * 60))
+                .collect(Collectors.toSet());
     }
 
     @Test

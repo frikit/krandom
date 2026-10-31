@@ -36,6 +36,9 @@ generator where shown by the API.
   `ofZoneOffset`, `ofTimezone` (text), `ofTimeZoneObject` (`TimeZone` object), `ofCalendar`
 - `ofUtilDate`, `ofSqlDate`, `ofSqlTime`, `ofSqlTimestamp`, `ofLocale`
 
+Drawn UTC offsets run from `-12:00` to `+14:00` in 15-minute steps; see the
+[UTC-offset contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#utc-offset-contract).
+
 ## People, location, and profiles
 
 - `ofFullName`, `ofMiddleName`, `ofEmail`, `ofUsername`, `ofPassword`,
