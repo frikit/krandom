@@ -38,6 +38,8 @@ generator where shown by the API.
 
 Drawn UTC offsets run from `-12:00` to `+14:00` in 15-minute steps; see the
 [UTC-offset contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#utc-offset-contract).
+`ofInstant` draws a UTC day and a time within it, to the millisecond; see the
+[Instant contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#instant-contract).
 
 ## People, location, and profiles
 

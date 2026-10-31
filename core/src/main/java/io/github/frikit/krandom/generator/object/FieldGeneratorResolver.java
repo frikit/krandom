@@ -137,6 +137,7 @@ final class FieldGeneratorResolver {
     private static final String OBJECT_CHARACTER_POOL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
     private static final List<String> ZONE_IDS =
             ZoneId.getAvailableZoneIds().stream().sorted().toList();
+    private static final long MILLIS_PER_DAY = Duration.ofDays(1).toMillis();
 
     static final int DEFAULT_MIN_ELEMENT_COUNT = GeneratorConfig.defaults().getMinCollectionSize();
     static final int DEFAULT_MAX_ELEMENT_COUNT = GeneratorConfig.defaults().getMaxCollectionSize();
@@ -535,7 +536,7 @@ final class FieldGeneratorResolver {
                 return generator;
             });
         }
-        return () -> randomDate(seedSource, min, max).atStartOfDay().toInstant(ZoneOffset.UTC);
+        return () -> randomInstant(seedSource, min, max);
     }
 
     private static Generator<ZonedDateTime> buildZonedDateTimeGenerator(
@@ -617,6 +618,13 @@ final class FieldGeneratorResolver {
     private static LocalDateTime randomLocalDateTime(Random source, LocalDate min, LocalDate max) {
         return LocalDateTime.of(
                 randomDate(source, min, max), LocalTime.of(source.nextInt(24), source.nextInt(60), source.nextInt(60)));
+    }
+
+    private static Instant randomInstant(Random source, LocalDate min, LocalDate max) {
+        return randomDate(source, min, max)
+                .atStartOfDay()
+                .toInstant(ZoneOffset.UTC)
+                .plusMillis(source.nextLong(MILLIS_PER_DAY));
     }
 
     /**

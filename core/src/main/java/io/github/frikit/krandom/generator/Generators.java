@@ -1400,7 +1400,8 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces random {@link java.time.Instant} values (1970–2100 at UTC midnight).
+     * Returns a generator that produces random {@link java.time.Instant} values (1970–2100, with a time of
+     * day to the millisecond).
      */
     public static InstantGenerator ofInstant() {
         return new InstantGenerator();

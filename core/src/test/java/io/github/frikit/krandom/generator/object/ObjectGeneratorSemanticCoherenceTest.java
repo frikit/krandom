@@ -29,8 +29,10 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -339,6 +341,110 @@ class ObjectGeneratorSemanticCoherenceTest {
             TemporalCoherenceHolder value = generator.generate();
             assertFalse(value.createdAt.toInstant(ZoneOffset.UTC).isAfter(value.updatedAt));
         }
+    }
+
+    @Test
+    @DisplayName("two Instants on one day can differ, and createdAt stays first")
+    void twoInstantsOnOneDayCanDifferAndCreatedAtStaysFirst() {
+        LocalDate day = LocalDate.of(2024, 2, 29);
+        boolean differed = false;
+
+        for (long seed = 0; seed < 200; seed++) {
+            GeneratorConfig config = GeneratorConfig.builder()
+                    .seed(seed)
+                    .objectDateRange(day, day)
+                    .build();
+            InstantToInstant value = new ObjectGenerator<>(InstantToInstant.class, config).generate();
+            assertFalse(value.createdAt().isAfter(value.updatedAt()), value.toString());
+            differed |= value.createdAt().isBefore(value.updatedAt());
+        }
+
+        assertTrue(differed, "two instants on one day must be able to differ");
+    }
+
+    @Test
+    @DisplayName(
+            "an Instant with a time of day keeps createdAt not after updatedAt, for each type that can hold the time")
+    void instantWithATimeOfDayKeepsCreatedAtNotAfterUpdatedAt() {
+        // java.util.Date holds milliseconds, so a finer Instant would stay after an updatedAt aligned with it.
+        assertCreatedAtNotAfterUpdatedAt(
+                InstantToUtilDate.class, InstantToUtilDate::createdAt, InstantToUtilDate::updatedAt);
+        assertCreatedAtNotAfterUpdatedAt(
+                InstantToTimestamp.class, InstantToTimestamp::createdAt, InstantToTimestamp::updatedAt);
+        assertCreatedAtNotAfterUpdatedAt(
+                InstantToLocalDateTime.class, InstantToLocalDateTime::createdAt, InstantToLocalDateTime::updatedAt);
+        assertCreatedAtNotAfterUpdatedAt(
+                InstantToOffsetDateTime.class, InstantToOffsetDateTime::createdAt, InstantToOffsetDateTime::updatedAt);
+        assertCreatedAtNotAfterUpdatedAt(
+                InstantToZonedDateTime.class, InstantToZonedDateTime::createdAt, InstantToZonedDateTime::updatedAt);
+        assertCreatedAtNotAfterUpdatedAt(
+                UtilDateToInstant.class, UtilDateToInstant::createdAt, UtilDateToInstant::updatedAt);
+    }
+
+    private static <T> void assertCreatedAtNotAfterUpdatedAt(
+            Class<T> type, Function<T, Object> createdAt, Function<T, Object> updatedAt) {
+        // One day, so that the order depends on the time of day.
+        LocalDate day = LocalDate.of(2024, 2, 29);
+        for (long seed = 0; seed < 500; seed++) {
+            GeneratorConfig config = GeneratorConfig.builder()
+                    .seed(seed)
+                    .objectDateRange(day, day)
+                    .build();
+            T value = new ObjectGenerator<>(type, config).generate();
+            Instant created = SemanticCoherenceAdjuster.toInstant(createdAt.apply(value));
+            Instant updated = SemanticCoherenceAdjuster.toInstant(updatedAt.apply(value));
+            assertFalse(created.isAfter(updated), type.getSimpleName() + " seed " + seed + ": " + value);
+        }
+    }
+
+    @Test
+    @DisplayName("an Instant createdAt stays on or before the day of an updatedAt that holds only a date")
+    void instantCreatedAtStaysOnOrBeforeADateOnlyUpdatedAt() {
+        for (long seed = 0; seed < 500; seed++) {
+            GeneratorConfig config = GeneratorConfig.builder().seed(seed).build();
+            InstantToLocalDate local = new ObjectGenerator<>(InstantToLocalDate.class, config).generate();
+            InstantToSqlDate sql = new ObjectGenerator<>(InstantToSqlDate.class, config).generate();
+
+            assertFalse(
+                    local.createdAt().atOffset(ZoneOffset.UTC).toLocalDate().isAfter(local.updatedAt()),
+                    local.toString());
+            assertFalse(
+                    sql.createdAt()
+                            .atOffset(ZoneOffset.UTC)
+                            .toLocalDate()
+                            .isAfter(sql.updatedAt().toLocalDate()),
+                    sql.toString());
+        }
+    }
+
+    @Test
+    @DisplayName("an Instant aligned with a date-only sibling, or derived from a protected age, is at midnight UTC")
+    void alignedAndDerivedInstantsCanBeAtMidnight() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
+        boolean aligned = false;
+
+        for (long seed = 0; seed < 200; seed++) {
+            GeneratorConfig config =
+                    GeneratorConfig.builder().seed(seed).clock(clock).build();
+            DateToInstant value = new ObjectGenerator<>(DateToInstant.class, config).generate();
+            if (value.updatedAt().equals(value.createdAt().atStartOfDay().toInstant(ZoneOffset.UTC))) {
+                aligned = true;
+            } else {
+                assertTrue(
+                        value.updatedAt()
+                                .isAfter(value.createdAt().atStartOfDay().toInstant(ZoneOffset.UTC)),
+                        value.toString());
+            }
+        }
+        assertTrue(aligned, "some updatedAt must have been aligned with the date-only createdAt");
+
+        ObjectGeneratorConfig protectedAge = ObjectGeneratorConfig.builder()
+                .generatorConfig(GeneratorConfig.builder().clock(clock).build())
+                .override(InstantBirthDate.class, "age", () -> 45)
+                .build();
+        assertEquals(
+                Instant.parse("1981-06-04T00:00:00Z"),
+                new ObjectGenerator<>(InstantBirthDate.class, protectedAge).generate().birthDate);
     }
 
     @Test
@@ -928,6 +1034,32 @@ class ObjectGeneratorSemanticCoherenceTest {
             String url,
             LocalDateTime createdAt,
             Instant updatedAt) {}
+
+    record DateToInstant(LocalDate createdAt, Instant updatedAt) {}
+
+    static class InstantBirthDate {
+
+        Instant birthDate;
+        int age;
+    }
+
+    record InstantToInstant(Instant createdAt, Instant updatedAt) {}
+
+    record InstantToUtilDate(Instant createdAt, java.util.Date updatedAt) {}
+
+    record InstantToTimestamp(Instant createdAt, java.sql.Timestamp updatedAt) {}
+
+    record InstantToLocalDateTime(Instant createdAt, LocalDateTime updatedAt) {}
+
+    record InstantToOffsetDateTime(Instant createdAt, OffsetDateTime updatedAt) {}
+
+    record InstantToZonedDateTime(Instant createdAt, ZonedDateTime updatedAt) {}
+
+    record UtilDateToInstant(java.util.Date createdAt, Instant updatedAt) {}
+
+    record InstantToLocalDate(Instant createdAt, LocalDate updatedAt) {}
+
+    record InstantToSqlDate(Instant createdAt, java.sql.Date updatedAt) {}
 
     static class FixedNamePerson {
 

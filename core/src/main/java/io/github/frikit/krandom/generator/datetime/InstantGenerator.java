@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.datetime;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Seedable;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -17,13 +18,14 @@ import java.util.Random;
 /**
  * Generates random {@link Instant} values.
  *
- * <p>The generated values correspond to midnight UTC on a random day in the range
- * [1970-01-01, 2100-12-31].
+ * <p>The generated values fall on a random UTC day in the range [1970-01-01, 2100-12-31], at a random
+ * time within that day to the millisecond, the precision of {@link java.util.Date}. This exercises
+ * time-of-day logic and improves coverage, but it does not guarantee distinct instants.
  *
  * <p><strong>Basic Usage:</strong>
  * <pre>{@code
  * InstantGenerator gen = new InstantGenerator();
- * Instant instant = gen.generate();  // e.g. 2063-11-04T00:00:00Z
+ * Instant instant = gen.generate();  // e.g. 2063-11-04T09:41:27.318Z
  * }</pre>
  *
  * <p><strong>Seeded Generation:</strong>
@@ -46,6 +48,7 @@ public final class InstantGenerator implements Generator<Instant>, Seedable {
 
     private static final int MIN_YEAR = 1970;
     private static final int MAX_YEAR = 2100;
+    private static final long MILLIS_PER_DAY = Duration.ofDays(1).toMillis();
 
     private final Random random;
     private final @org.jspecify.annotations.Nullable LocalDate rangeMin;
@@ -75,8 +78,8 @@ public final class InstantGenerator implements Generator<Instant>, Seedable {
      * Creates an instant generator restricted to the given date range.
      * Intended for use by {@code FieldGeneratorResolver} when a date range is configured.
      *
-     * @param min earliest date (inclusive)
-     * @param max latest date (inclusive)
+     * @param min earliest date (inclusive, from the start of that UTC day)
+     * @param max latest date (inclusive, through the end of that UTC day)
      */
     public InstantGenerator(LocalDate min, LocalDate max) {
         this.random = new Random();
@@ -87,7 +90,8 @@ public final class InstantGenerator implements Generator<Instant>, Seedable {
     /**
      * {@inheritDoc}
      *
-     * <p>Generates a random instant at midnight UTC on a random day in [1970-01-01, 2100-12-31].
+     * <p>Generates a random instant, to the millisecond, within a random UTC day of the date range or
+     * of [1970-01-01, 2100-12-31].
      *
      * @return a random instant; never {@code null}
      */
@@ -105,7 +109,7 @@ public final class InstantGenerator implements Generator<Instant>, Seedable {
             int day = 1 + random.nextInt(maxDay);
             date = LocalDate.of(year, month, day);
         }
-        return date.atStartOfDay().toInstant(ZoneOffset.UTC);
+        return date.atStartOfDay().toInstant(ZoneOffset.UTC).plusMillis(random.nextLong(MILLIS_PER_DAY));
     }
 
     /**

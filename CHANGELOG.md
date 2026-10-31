@@ -40,6 +40,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   these offsets and for values that depend on them, such as an `updatedAt` aligned with an
   `OffsetDateTime` `createdAt`, an `age` read from an `OffsetDateTime` `birthDate`, or a field sharing a
   stream with a unique `OffsetDateTime` field whose retries change.
+- `InstantGenerator` and the `Instant` members of generated objects are now generated with a time of
+  day, to the millisecond, within the selected UTC day. They were always midnight UTC, so time-of-day
+  logic was never exercised and two instants on one day compared equal. This improves coverage and does
+  not guarantee distinct instants. The coherence pass can still write midnight, when it aligns an
+  `Instant` with a sibling that holds only a date or derives a `birthDate` from a constrained or
+  overridden `age`. A date range still includes the whole of its last day, through `23:59:59.999Z`. A
+  semantic `createdAt` or `updatedAt` with no configured range can now be later than a fixed clock's
+  current time on the clock's date, as a `LocalDateTime`, `Date`, or `Timestamp` field already could, and
+  `STRICT` mode can copy such a value over a `@Past` sibling. Seeded output changes for `Instant` values
+  and for values that depend on them, such as a `Date` `updatedAt` aligned with an `Instant` `createdAt`.
 
 ### Fixed
 

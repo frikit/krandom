@@ -12,9 +12,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.finance.Currency;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -145,6 +148,75 @@ class ObjectGeneratorTypedSemanticTest {
     }
 
     @Test
+    @DisplayName("a semantic Instant's default window ends with the clock's date, through the whole UTC day")
+    void semanticInstantWindowEndsWithTheClocksDateThroughTheWholeDay() {
+        Instant now = Instant.parse("2026-06-04T12:00:00Z");
+        Clock clock = Clock.fixed(now, ZoneOffset.UTC);
+        LocalDate today = LocalDate.now(clock);
+        boolean passedTheClock = false;
+
+        for (long seed = 0; seed < 200_000 && !passedTheClock; seed++) {
+            GeneratorConfig config =
+                    GeneratorConfig.builder().seed(seed).clock(clock).build();
+            Instant createdAt = new ObjectGenerator<>(InstantCreatedAt.class, config).generate().createdAt;
+            LocalDate date = createdAt.atOffset(ZoneOffset.UTC).toLocalDate();
+            assertFalse(date.isBefore(today.minusYears(10)), createdAt.toString());
+            assertFalse(date.isAfter(today), createdAt.toString());
+            passedTheClock = createdAt.isAfter(now);
+        }
+
+        assertTrue(passedTheClock, "no draw reached the afternoon of the clock's date");
+    }
+
+    @Test
+    @DisplayName(
+            "in relaxed mode, @Past and @PastOrPresent Instants stay before a fixed clock, beside a sibling past it")
+    void constrainedInstantsStayBeforeAFixedClockInRelaxedMode() {
+        Instant now = Instant.parse("2026-06-04T12:00:00Z");
+        Clock clock = Clock.fixed(now, ZoneOffset.UTC);
+        // The range is the clock's date, so about half of the semantic createdAt draws are past the clock.
+        LocalDate today = LocalDate.now(clock);
+
+        for (long seed = 0; seed < 200; seed++) {
+            GeneratorConfig config = GeneratorConfig.builder()
+                    .seed(seed)
+                    .clock(clock)
+                    .objectDateRange(today, today)
+                    .build();
+            PastUpdatedAt past = new ObjectGenerator<>(PastUpdatedAt.class, config).generate();
+            assertTrue(past.updatedAt.isBefore(now), past.updatedAt.toString());
+            assertFalse(past.createdAt.isAfter(past.updatedAt), past.createdAt + " > " + past.updatedAt);
+
+            PastOrPresentUpdatedAt present = new ObjectGenerator<>(PastOrPresentUpdatedAt.class, config).generate();
+            assertTrue(present.updatedAt.isBefore(now), present.updatedAt.toString());
+            assertFalse(present.createdAt.isAfter(present.updatedAt), present.createdAt + " > " + present.updatedAt);
+        }
+    }
+
+    @Test
+    @DisplayName("strict mode can copy a sibling past the clock over a @Past Instant, as semantics win")
+    void strictModeCanCopyASiblingPastTheClockOverAPastInstant() {
+        Instant now = Instant.parse("2026-06-04T12:00:00Z");
+        Clock clock = Clock.fixed(now, ZoneOffset.UTC);
+        LocalDate today = LocalDate.now(clock);
+        boolean overwritten = false;
+
+        for (long seed = 0; seed < 200 && !overwritten; seed++) {
+            GeneratorConfig config = GeneratorConfig.builder()
+                    .seed(seed)
+                    .clock(clock)
+                    .objectDateRange(today, today)
+                    .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                    .build();
+            PastUpdatedAt value = new ObjectGenerator<>(PastUpdatedAt.class, config).generate();
+            assertFalse(value.createdAt.isAfter(value.updatedAt), value.createdAt + " > " + value.updatedAt);
+            overwritten = value.updatedAt.isAfter(now);
+        }
+
+        assertTrue(overwritten, "no createdAt past the clock was copied over the @Past updatedAt");
+    }
+
+    @Test
     @DisplayName("status enums prefer common business lifecycle constants")
     void statusEnumsPreferCommonLifecycleConstants() {
         EnumBackedStatusHolder value = new ObjectGenerator<>(EnumBackedStatusHolder.class).generate();
@@ -257,6 +329,25 @@ class ObjectGeneratorTypedSemanticTest {
     static class EnumBackedStatusHolder {
 
         LifecycleStatus status;
+    }
+
+    static class InstantCreatedAt {
+
+        Instant createdAt;
+    }
+
+    static class PastUpdatedAt {
+
+        Instant createdAt;
+
+        @Past Instant updatedAt;
+    }
+
+    static class PastOrPresentUpdatedAt {
+
+        Instant createdAt;
+
+        @PastOrPresent Instant updatedAt;
     }
 
     static class ExtendedTypedSemantics {
