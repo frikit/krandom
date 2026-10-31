@@ -24,6 +24,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - A recipe now records which unique fields were requested, in the new setting
   `object.requested-unique-fields`, as a replay must treat them the same way. Replay requires it and
   `object.unique-fields`, so a recipe without them, such as one from an earlier version, is rejected.
+- Update Spring Boot to 4.1.2 (the `krandom-spring-boot-starter` dependency), the Gradle wrapper to
+  9.8.2, Error Prone to 2.51.0, and NullAway to 0.14.3; align the consumer examples with Spring Boot
+  4.1.2 and Maven Surefire 3.6.1.
 
 ### Fixed
 
