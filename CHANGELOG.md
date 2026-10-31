@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.10.0] - 2026-11-02
+
 ### Added
 
 - `NetworkSafetyPolicy`, set with `GeneratorConfig.Builder.networkSafetyPolicy` or
@@ -33,9 +35,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   TLD or destination is used verbatim, while a scheme or subdomain that would end the host is rejected.
   `generatePublic()` and `generatePrivate()` now fail with `IllegalStateException`, and a unique IP fails
   when the 762 reserved IPv4 addresses run out. The object engine, JSON Schema formats, and providers
-  follow: a generated `domain`, `url`, or `companyUrl` is reserved, an email beside a generated `domain`
-  takes it, and a `companyName` derives a `.test` domain even with no email field. Seeded output changes
-  for all of these and for values that depend on them. `REALISTIC_UNCLASSIFIED` restores the previous
+  follow: a generated `domain`, `url`, or `companyUrl` is reserved, an email built from name fields takes
+  a generated `domain` beside it, and a `companyName` derives a `.test` domain even with no email field.
+  Seeded output changes for all of these and for values that depend on them. `REALISTIC_UNCLASSIFIED` restores the previous
   output draw for draw. A recipe records the policy in the new setting `network.safety-policy`, and
   replay requires it, so a recipe without it, such as one from an earlier version, is rejected.
 - A recipe now records which unique fields were requested, in the new setting
@@ -98,10 +100,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   fields.
 - Sibling fields no longer give a generated email an ordinary domain under that policy. A
   `companyEmail` beside a `companyName` used to become `hello@acmelabs.com`, and an `email` beside a
-  `domain` took that domain's generated value. In an object with an email field, a domain derived
-  from a company name now ends in `.test`, and a generated `domain` takes the email's reserved domain.
-  A domain or URL set through an override is still used verbatim, and `REALISTIC_UNCLASSIFIED` keeps
-  `.com`. Seeded output changes for objects with these fields.
+  `domain` took that domain's generated value. A domain derived from a company name now ends in `.test`,
+  and a generated email takes a sibling's domain only if it is reserved or set through an override, which
+  is used verbatim. Getting `.com` back takes `REALISTIC_UNCLASSIFIED` for both the email and the network
+  policy. Seeded output changes for objects with these fields.
 - A unique `domain` field now numbers a subdomain (`n1.acme.test`). It used to append to the
   top-level domain (`acme.test1`), which left the reserved space.
 - `AvatarUrlGenerator` no longer writes the size in the digits of the JVM's default locale, which
@@ -1102,7 +1104,8 @@ Condensed summary of all pre-1.0.0 development (≈Feb–Apr 2026), originally t
 ### Removed
 - Kotlin and Scala API modules (implementation surface kept focused); deprecated APIs and deprecated Java locale usage.
 
-[Unreleased]: https://github.com/frikit/krandom/compare/v2.9.0...HEAD
+[Unreleased]: https://github.com/frikit/krandom/compare/v2.10.0...HEAD
+[2.10.0]: https://github.com/frikit/krandom/compare/v2.9.0...v2.10.0
 [2.9.0]: https://github.com/frikit/krandom/compare/v2.8.0...v2.9.0
 [2.8.0]: https://github.com/frikit/krandom/compare/v2.7.0...v2.8.0
 [2.7.0]: https://github.com/frikit/krandom/compare/v2.6.0...v2.7.0
