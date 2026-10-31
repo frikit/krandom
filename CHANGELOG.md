@@ -12,6 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `objectUniqueFields`.
 - `config { objectUniqueFields(...) }` in the Kotlin DSL, which had no way to request unique fields. It
   replaces the names that are unique by default.
+- `KrandomExtension` now injects `Krandom` parameters. A session is built from the same configuration
+  as the `GeneratorConfig` parameter, so `@KrandomSeed`, replay overrides and recipes apply, and a
+  failure's seed reproduces its values. Every `Krandom` parameter of one test, across its constructor,
+  `@BeforeEach`, test method and `@AfterEach`, is the same session, so streams continue from one method
+  to the next. Each test, repetition and parameterized invocation has its own session, and
+  `@BeforeAll`, `@AfterAll` and `PER_CLASS` constructors share one for each class.
 
 ### Changed
 
