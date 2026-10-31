@@ -158,6 +158,7 @@ class EnvironmentDeterminismTest {
             assertAsciiDigits(new DateGenerator(config).generateAmerican());
             assertAsciiDigits(new TimeGenerator(config).generateString());
             assertAsciiDigits(new EinGenerator(config).generate());
+            assertAsciiDigits(Generators.ofAvatarUrl(config).generate());
         }
     }
 

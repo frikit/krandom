@@ -100,6 +100,7 @@ public final class GeneratorConfig {
     private final double objectNullProbability;
     private final double objectOptionalEmptyProbability;
     private final Set<String> objectUniqueFieldNames;
+    private final Set<String> objectRequestedUniqueFieldNames;
     private final int objectUniquenessMaxAttempts;
     private final Map<Class<?>, Generator<?>> objectTypeOverrides;
     private final Map<String, Generator<?>> objectFieldOverrides;
@@ -157,6 +158,8 @@ public final class GeneratorConfig {
         this.objectNullProbability = b.objectNullProbability;
         this.objectOptionalEmptyProbability = b.objectOptionalEmptyProbability;
         this.objectUniqueFieldNames = Collections.unmodifiableSet(new LinkedHashSet<>(b.objectUniqueFieldNames));
+        this.objectRequestedUniqueFieldNames =
+                Collections.unmodifiableSet(new LinkedHashSet<>(b.objectRequestedUniqueFieldNames));
         this.objectUniquenessMaxAttempts = b.objectUniquenessMaxAttempts;
         this.objectTypeOverrides = Collections.unmodifiableMap(new HashMap<>(b.objectTypeOverrides));
         this.objectFieldOverrides = Collections.unmodifiableMap(new HashMap<>(b.objectFieldOverrides));
@@ -556,10 +559,26 @@ public final class GeneratorConfig {
     }
 
     /**
-     * Field names that should be unique within one object-generator sequence.
+     * Field names that are unique within one object-generator sequence: the default names unless
+     * replaced, and every requested name. Semantic, built-in and enum values are checked under these
+     * names, and semantic values under their semantic aliases too. Any other value, such as one from an
+     * override or a constraint, is checked only under a requested name.
+     *
+     * @see #getObjectRequestedUniqueFieldNames()
      */
     public Set<String> getObjectUniqueFieldNames() {
         return objectUniqueFieldNames;
+    }
+
+    /**
+     * The field names requested through {@link Builder#objectUniqueField(String)} or
+     * {@link Builder#objectUniqueFields(String...)}, each one also in
+     * {@link #getObjectUniqueFieldNames()}. A member with one of these names is unique however its
+     * value is produced, and generation fails when its values run out. The name is matched as given,
+     * without semantic aliases.
+     */
+    public Set<String> getObjectRequestedUniqueFieldNames() {
+        return objectRequestedUniqueFieldNames;
     }
 
     /**
@@ -765,7 +784,10 @@ public final class GeneratorConfig {
                 .setting("object.semantic-mode", objectSemanticMode.name())
                 .setting("object.null-probability", Double.toString(objectNullProbability))
                 .setting("object.optional-empty-probability", Double.toString(objectOptionalEmptyProbability))
-                .setting("object.unique-fields", String.join(",", objectUniqueFieldNames))
+                .setting("object.unique-fields", GenerationRecipe.fieldNamesSetting(objectUniqueFieldNames))
+                .setting(
+                        "object.requested-unique-fields",
+                        GenerationRecipe.fieldNamesSetting(objectRequestedUniqueFieldNames))
                 .setting("object.uniqueness-max-attempts", Integer.toString(objectUniquenessMaxAttempts));
         if (stringSeed.isPresent()) {
             recipe.seedText(stringSeed.get());
@@ -891,6 +913,7 @@ public final class GeneratorConfig {
         // would make the serialized default recipe differ between runs.
         private Set<String> objectUniqueFieldNames =
                 new LinkedHashSet<>(List.of("email", "emailaddress", "username", "userhandle", "uuid", "guid", "id"));
+        private Set<String> objectRequestedUniqueFieldNames = new LinkedHashSet<>();
         private int objectUniquenessMaxAttempts = DEFAULT_OBJECT_UNIQUENESS_ATTEMPTS;
         private final Map<Class<?>, Generator<?>> objectTypeOverrides = new HashMap<>();
         private final Map<String, Generator<?>> objectFieldOverrides = new HashMap<>();
@@ -950,6 +973,7 @@ public final class GeneratorConfig {
             this.objectNullProbability = source.objectNullProbability;
             this.objectOptionalEmptyProbability = source.objectOptionalEmptyProbability;
             this.objectUniqueFieldNames = new LinkedHashSet<>(source.objectUniqueFieldNames);
+            this.objectRequestedUniqueFieldNames = new LinkedHashSet<>(source.objectRequestedUniqueFieldNames);
             this.objectUniquenessMaxAttempts = source.objectUniquenessMaxAttempts;
             this.objectTypeOverrides.putAll(source.objectTypeOverrides);
             this.objectFieldOverrides.putAll(source.objectFieldOverrides);
@@ -1112,7 +1136,9 @@ public final class GeneratorConfig {
         }
 
         /**
-         * Maximum nesting depth for object generation.
+         * Maximum nesting depth for object generation. A nested object member past this depth is left
+         * {@code null}, unless it is required (for example {@code @NotNull}), which fails generation
+         * with the member's path.
          */
         public Builder objectMaxDepth(int objectMaxDepth) {
             if (objectMaxDepth < 1) {
@@ -1283,28 +1309,50 @@ public final class GeneratorConfig {
         }
 
         /**
-         * Replaces the set of field names that should be unique within one object-generator sequence.
+         * Requests these field names, and only these, as unique within one object-generator sequence.
+         * This replaces the default names, and with no names nothing is unique.
+         *
+         * @see #objectUniqueField(String)
          */
         public Builder objectUniqueFields(String... fieldNames) {
             Objects.requireNonNull(fieldNames, "fieldNames");
-            LinkedHashSet<String> normalized = new LinkedHashSet<>();
-            for (String fieldName : fieldNames) {
-                normalized.add(normalizeObjectFieldName(fieldName));
-            }
-            this.objectUniqueFieldNames = normalized;
+            this.objectUniqueFieldNames = normalizedFieldNames(fieldNames);
+            this.objectRequestedUniqueFieldNames = new LinkedHashSet<>(this.objectUniqueFieldNames);
             return this;
         }
 
         /**
-         * Adds one field name to the object-level uniqueness set.
+         * Requests one field name as unique within one object-generator sequence, keeping the names
+         * already configured. A member with this name stays unique however its value is produced, and
+         * generation fails when its values run out. The name is matched as given, so {@code id} says
+         * nothing about {@code customerId}.
          */
         public Builder objectUniqueField(String fieldName) {
-            this.objectUniqueFieldNames.add(normalizeObjectFieldName(fieldName));
+            String normalized = normalizeObjectFieldName(fieldName);
+            this.objectUniqueFieldNames.add(normalized);
+            this.objectRequestedUniqueFieldNames.add(normalized);
             return this;
         }
 
         /**
-         * Maximum attempts used when generating a unique object field value.
+         * Restores both sets from a recipe. {@link #objectUniqueFields(String...)} alone would turn the
+         * default names into requested ones.
+         */
+        Builder objectUniqueFieldsFromRecipe(String[] fieldNames, String[] requestedFieldNames) {
+            objectUniqueFields(fieldNames);
+            LinkedHashSet<String> requested = normalizedFieldNames(requestedFieldNames);
+            if (!this.objectUniqueFieldNames.containsAll(requested)) {
+                throw new IllegalArgumentException(
+                        "Recipe setting 'object.requested-unique-fields' names a field missing from 'object.unique-fields'");
+            }
+            this.objectRequestedUniqueFieldNames = requested;
+            return this;
+        }
+
+        /**
+         * Maximum attempts used when generating a unique object field value. When every attempt repeats
+         * a value, generation fails, or with {@link #objectIgnoreErrors(boolean)} the field gets its
+         * default.
          */
         public Builder objectUniquenessMaxAttempts(int objectUniquenessMaxAttempts) {
             if (objectUniquenessMaxAttempts < 1) {
@@ -1629,6 +1677,14 @@ public final class GeneratorConfig {
                 throw new IllegalArgumentException(name + " must be between 0.0 and 1.0");
             }
             return value;
+        }
+
+        private static LinkedHashSet<String> normalizedFieldNames(String[] fieldNames) {
+            LinkedHashSet<String> normalized = new LinkedHashSet<>();
+            for (String fieldName : fieldNames) {
+                normalized.add(normalizeObjectFieldName(fieldName));
+            }
+            return normalized;
         }
 
         private static String normalizeObjectFieldName(String fieldName) {

@@ -60,6 +60,11 @@ User user = new ObjectFaker<>(User.class, config)
     .generate();
 ```
 
+A rule may repeat its value on every object. To
+[request a unique field]({{ '/guides/object-generation/' | relative_url }}#unique-fields), add
+`objectUniqueField("email")` to the configuration, and the constant rule above then fails on a second
+object from the same faker.
+
 ## What kRandom adds over Instancio
 
 - **Semantic field values** — `firstName`, `email`, `city` resolve to

@@ -87,6 +87,8 @@ val many = users.generateList(5)
 
 Rules are backed by `GeneratorConfig` object overrides, so the DSL shares the same defaults, seeding, locale, and object-generation behavior as the Java API.
 
+That includes [unique fields]({{ '/guides/object-generation/' | relative_url }}#unique-fields). A rule or `ruleForType` may repeat a constant on every object, as above. To request a field whose values must not repeat, use `config { objectUniqueFields(...) }`, which replaces the names that are unique by default. A constant on a requested field fails on a second object from the same generator.
+
 ## Java fixture API and Kotlin DSL scope
 
 The Kotlin DSL is the concise, typed front end for ordinary root-property fixtures. It deliberately

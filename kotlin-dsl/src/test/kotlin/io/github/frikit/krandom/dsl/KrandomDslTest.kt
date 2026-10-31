@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.dsl
 
+import io.github.frikit.krandom.generator.`object`.exception.ObjectGenerationException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.collections.shouldHaveSize
@@ -266,6 +267,36 @@ class KrandomDslTest :
                 val people = gen.generateList(4)
                 people shouldHaveSize 4
                 people.forEach { it.age shouldBe 25 }
+            }
+
+            it("repeats a constant rule on a name that is unique only by default") {
+                val gen =
+                    krandomGenerator<SamplePerson> {
+                        ruleForType<String> { "fixed" }
+                    }
+                gen.generateList(3).map { it.email } shouldBe listOf("fixed", "fixed", "fixed")
+            }
+
+            it("fails on the next object when a constant rule reaches a requested unique field") {
+                val gen =
+                    krandomGenerator<SamplePerson> {
+                        config { objectUniqueFields("email") }
+                        rule("email") { "fixed" }
+                    }
+                gen.generate().email shouldBe "fixed"
+                val failure = shouldThrow<ObjectGenerationException> { gen.generate() }
+                failure.message shouldContain "SamplePerson.email"
+            }
+
+            it("requests no unique fields when objectUniqueFields names none") {
+                val config =
+                    krandomConfig {
+                        seed(42L)
+                        objectUniqueFields()
+                    }
+                config.objectUniqueFieldNames shouldBe emptySet<String>()
+                config.objectRequestedUniqueFieldNames shouldBe emptySet<String>()
+                config.generationRecipe.isPresent shouldBe true
             }
         }
 

@@ -22,7 +22,9 @@ import java.util.Random;
  * Generates random {@link ZonedDateTime} values.
  *
  * <p>Combines a random {@link LocalDateTime} in [1970-01-01T00:00:00, 2100-12-31T23:59:59]
- * with a randomly selected {@link ZoneId} from the system's available time-zone set.
+ * with a randomly selected {@link ZoneId} from the system's available time-zone set. The offset is the
+ * one that zone's rules give for the date, so the rule on {@link ZoneOffsetGenerator} does not apply:
+ * {@code Africa/Monrovia}, for example, is {@code -00:44:30} before 1972.
  *
  * <p><strong>Basic Usage:</strong>
  * <pre>{@code

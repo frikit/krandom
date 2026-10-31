@@ -122,6 +122,13 @@ final class ObjectGeneratorConfig {
         return generatorConfig.getObjectUniqueFieldNames();
     }
 
+    /** Whether this member's own name was requested, which makes it unique on every generation route. */
+    boolean isRequestedUniqueField(String fieldName) {
+        return generatorConfig
+                .getObjectRequestedUniqueFieldNames()
+                .contains(SemanticFieldRegistry.normalizeFieldName(fieldName));
+    }
+
     public int getUniquenessMaxAttempts() {
         return generatorConfig.getObjectUniquenessMaxAttempts();
     }

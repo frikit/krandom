@@ -24,6 +24,7 @@ import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -103,6 +104,25 @@ class KrandomRecipeExclusivityTest {
                     assertEquals(24680L, config.getSeed().getAsLong());
                     assertEquals(Locale.CANADA_FRENCH, config.getLocale());
                 });
+    }
+
+    @Test
+    @DisplayName("krandom.recipe restores which unique fields were requested")
+    void recipeRestoresRequestedUniqueFields() {
+        GeneratorConfig original =
+                GeneratorConfig.builder().seed(1L).objectUniqueField("code").build();
+        String recipe = encode(original.getGenerationRecipe().orElseThrow());
+
+        runner.withPropertyValues("krandom.recipe=" + recipe).run(context -> {
+            GeneratorConfig config = context.getBean(GeneratorConfig.class);
+            assertEquals(original.getObjectUniqueFieldNames(), config.getObjectUniqueFieldNames());
+            assertEquals(Set.of("code"), config.getObjectRequestedUniqueFieldNames());
+        });
+        runner.withPropertyValues("krandom.recipe=" + RECIPE).run(context -> {
+            GeneratorConfig config = context.getBean(GeneratorConfig.class);
+            assertTrue(config.getObjectUniqueFieldNames().contains("email"));
+            assertEquals(Set.of(), config.getObjectRequestedUniqueFieldNames());
+        });
     }
 
     @Test

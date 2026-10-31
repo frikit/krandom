@@ -32,7 +32,7 @@ time.
 | `@AssertTrue` | `boolean`, `Boolean` | Intersects with `@AssertFalse`; contradictory assertions fail. |
 | `@DecimalMax` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Inclusive/exclusive decimal endpoints intersect with every numeric and sign bound; empty real or target domains fail. |
 | `@DecimalMin` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Inclusive/exclusive decimal endpoints intersect with every numeric and sign bound; malformed bounds and empty domains fail. |
-| `@Email` | `String` | The email shape, custom email regex, repeatable patterns, numeric bounds, size, and blankness are composed through bounded search. |
+| `@Email` | `String` | The email shape, custom email regex, repeatable patterns, numeric bounds, size, and blankness are composed through bounded search. Generated addresses follow the [email-domain contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#email-domain-contract). |
 | `@Future` | Supported Java temporal types listed below | Intersects with present/past constraints using `GeneratorConfig.getClock()`; an empty direction fails. |
 | `@FutureOrPresent` | Supported Java temporal types listed below | Can intersect with `@PastOrPresent` at the configured present. |
 | `@Max` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Intersects with decimal, minimum, and sign bounds; integral and floating target domains are checked. |
@@ -41,7 +41,7 @@ time.
 | `@NegativeOrZero` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Adds an inclusive upper bound at zero and intersects with all other numeric bounds. |
 | `@NotBlank` | `String` | Implies non-null and minimum size one; composes with email, repeatable patterns, numeric text, and size. |
 | `@NotEmpty` | `String`, arrays, `Collection` implementations, `Map` implementations | Implies non-null and minimum size one; an empty size intersection fails. |
-| `@NotNull` | Reference fields, including the `Optional` object | Suppresses null probability. It does not require an `Optional` to contain a value. |
+| `@NotNull` | Reference fields, including the `Optional` object | Suppresses null probability. It does not require an `Optional` to contain a value. A nested object member at the [depth limit]({{ '/guides/object-generation/' | relative_url }}#depth-limit) fails rather than being left `null`. |
 | `@Null` | Reference fields | Forces `null`; primitive and required intersections fail. |
 | `@Past` | Supported Java temporal types listed below | Intersects with present/future constraints using the configured clock; an empty direction fails. |
 | `@PastOrPresent` | Supported Java temporal types listed below | Can intersect with `@FutureOrPresent` at the configured present. |
@@ -65,9 +65,12 @@ constraint. Outputs from explicit custom rules remain caller-owned and are not p
 
 String composition rotates through pattern, email, numeric, and sized-text candidate sources and
 accepts only a value satisfying the complete annotation contract. Search stops after 256 candidates.
-Malformed Java regexes, regex syntax outside `RegexGenerator`'s supported generation subset,
-incompatible repeatable patterns, and exhausted searches use the same structured strict/lenient
-failure policy as other object-generation errors.
+A pattern outside [`RegexGenerator`'s supported syntax]({{ '/guides/data-validity-and-safety/' | relative_url }}#regular-expression-contract),
+such as one with a lookahead, is not a source, but it is still enforced on every candidate, so another
+source can meet it. If no source is left, or the search runs out, the failure names the unsupported
+construct. Malformed Java regexes, incompatible repeatable patterns, and exhausted searches use the
+same structured strict/lenient failure policy as other object-generation errors. A `@Size` minimum
+lets a pattern's `*`, `+`, and `{n,}` reach that length, so `[0-9]+` with `@Size(min = 20)` works.
 
 ## Honest exclusions
 
@@ -75,5 +78,7 @@ failure policy as other object-generation errors.
   to enforce them.
 - A listed constraint on an unsupported target fails contextually instead of being ignored.
 - Explicit custom generator and override outputs are not silently changed or post-validated.
+- `@NotNull` does not stop a member being left `null` when a cycle is cut, or an element of
+  `List<@NotNull Leaf>` at the [depth limit]({{ '/guides/object-generation/' | relative_url }}#depth-limit).
 - Strict `LocalTime` and `MonthDay` constraints can have no representable value at a configured clock
   boundary; those cases fail rather than wrapping into the wrong temporal direction.

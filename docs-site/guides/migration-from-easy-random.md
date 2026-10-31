@@ -78,6 +78,9 @@ User user = Generators.ofObject(User.class, config).generate();
   path.
 - **Cycle handling** uses an object pool rather than easy-random's depth
   cutoff alone — circular references resolve to cached instances.
+- **[Unique fields]({{ '/guides/object-generation/' | relative_url }}#unique-fields).** A randomizer may
+  repeat its value on every object. Request a field with `objectUniqueField` when its values must not
+  repeat, and a randomizer that returns a constant for it then fails on the second object.
 
 ## Honest gaps
 

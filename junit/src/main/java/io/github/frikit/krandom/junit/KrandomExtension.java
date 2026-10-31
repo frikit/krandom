@@ -7,6 +7,7 @@ package io.github.frikit.krandom.junit;
 
 import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Krandom;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Base64;
@@ -33,8 +34,9 @@ import org.junit.platform.commons.support.AnnotationSupport;
  *
  * <p>Every test runs with a deterministic seed: either pinned via {@link KrandomSeed} (method
  * level wins over class level, enclosing classes are searched for {@code @Nested} tests) or a
- * random per-test seed when unpinned. The seed is injectable as a {@link GeneratorConfig} or
- * {@link GeneratorConfig.Builder} test parameter, both pre-seeded with the test's seed.
+ * random per-test seed when unpinned. The seed is injectable as a {@link Krandom} session, a
+ * {@link GeneratorConfig} or a {@link GeneratorConfig.Builder} test parameter, all pre-seeded with
+ * the test's seed.
  *
  * <p><b>Scopes.</b> Test-method parameters and test-class constructor parameters (under the
  * default {@code PER_METHOD} lifecycle) share the test method's configuration. Parameters of
@@ -45,6 +47,14 @@ import org.junit.platform.commons.support.AnnotationSupport;
  * class-scoped configuration never leaks into a test method, so a method-level
  * {@code @KrandomSeed} always applies. When a test fails, the class-scoped seeds of its enclosing
  * classes are reported next to the test's own seed, and the printed replay commands restore them.
+ *
+ * <p><b>Sessions.</b> Each of these configurations has one {@link Krandom} session, built from it
+ * when first injected. Every {@code Krandom} parameter of one test (its constructor,
+ * {@code @BeforeEach}, test method and {@code @AfterEach}) is the same instance, so the streams
+ * continue from one method to the next. Each test, repetition and parameterized invocation has a
+ * session of its own, so tests running concurrently do not share one. The class-scoped session is
+ * a separate instance that tests neither reuse nor advance; a class-level {@link KrandomSeed} gives
+ * it the seed of those tests, so their sessions then repeat its values.
  *
  * <p><b>Configuration.</b> The {@code krandom.junit.*} settings below are read as JUnit Platform
  * configuration parameters, so a launcher configuration parameter, a JVM system property of the
@@ -164,6 +174,9 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
      */
     private record ContextKey(String uniqueId) {}
 
+    /** Store key of the session of exactly one extension context, for the reason given on {@link ContextKey}. */
+    private record SessionKey(String uniqueId) {}
+
     private record ConfiguredValue(String value, String source) {}
 
     /** The class-scoped configuration of one enclosing test class. */
@@ -187,16 +200,31 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
         Class<?> type = parameterContext.getParameter().getType();
-        return type == GeneratorConfig.class || type == GeneratorConfig.Builder.class;
+        return type == Krandom.class || type == GeneratorConfig.class || type == GeneratorConfig.Builder.class;
     }
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
         GeneratorConfig config = seedInfo(extensionContext).config();
-        if (parameterContext.getParameter().getType() == GeneratorConfig.class) {
+        Class<?> type = parameterContext.getParameter().getType();
+        if (type == Krandom.class) {
+            return session(extensionContext, config);
+        }
+        if (type == GeneratorConfig.class) {
             return config;
         }
         return config.toBuilder();
+    }
+
+    /**
+     * Returns the one session of this exact context, so that every parameter resolved for it
+     * continues the same streams. {@link Krandom#of} refuses only caller-owned randomness, and every
+     * configuration this extension creates owns a seed instead, whether from {@link KrandomSeed}, a
+     * replay override or a recipe.
+     */
+    private static Krandom session(ExtensionContext context, GeneratorConfig config) {
+        return context.getStore(NAMESPACE)
+                .computeIfAbsent(new SessionKey(context.getUniqueId()), key -> Krandom.of(config), Krandom.class);
     }
 
     @Override

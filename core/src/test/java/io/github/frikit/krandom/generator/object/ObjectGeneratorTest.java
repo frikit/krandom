@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.object;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -20,8 +21,10 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Seedable;
 import io.github.frikit.krandom.generator.core.model.Address;
 import io.github.frikit.krandom.generator.core.model.Person;
 import io.github.frikit.krandom.generator.core.model.PersonRecord;
@@ -31,16 +34,37 @@ import io.github.frikit.krandom.generator.core.model.PersonWithDateTimes;
 import io.github.frikit.krandom.generator.core.model.Status;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.AbstractCollection;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -1364,6 +1388,1769 @@ class ObjectGeneratorTest {
             assertEquals(0, context.depth());
             assertEquals(-1, context.recordIndex());
             assertTrue(error.getCause() instanceof IllegalArgumentException);
+        }
+    }
+
+    // ── Required members at the depth limit ───────────────────────────────────
+
+    @Nested
+    @DisplayName("required members at objectMaxDepth")
+    class RequiredMemberAtDepthLimitTest {
+
+        record Leaf(String value) {}
+
+        record Mid(@NotNull Leaf leaf) {}
+
+        record Top(@NotNull Mid mid) {}
+
+        record Outermost(@NotNull Top top) {}
+
+        record AccessorOwner(Leaf leaf) {
+            @Override
+            @NotNull public Leaf leaf() {
+                return leaf;
+            }
+        }
+
+        record AccessorTop(AccessorOwner mid) {}
+
+        static class FieldOwner {
+            @NotNull Leaf leaf;
+        }
+
+        record FieldTop(FieldOwner mid) {}
+
+        static class InheritingOwner extends FieldOwner {}
+
+        record InheritingTop(InheritingOwner mid) {}
+
+        record ElementTop(List<Mid> mids) {}
+
+        static class GetterOwner {
+            Leaf leaf;
+
+            @NotNull public Leaf getLeaf() {
+                return leaf;
+            }
+        }
+
+        record GetterTop(GetterOwner mid) {}
+
+        interface HasLeaf {
+            @NotNull Leaf getLeaf();
+        }
+
+        static class InterfaceOwner implements HasLeaf {
+            Leaf leaf;
+
+            @Override
+            public Leaf getLeaf() {
+                return leaf;
+            }
+        }
+
+        record InterfaceTop(InterfaceOwner mid) {}
+
+        static class ParameterOwner {
+            final Leaf leaf;
+
+            ParameterOwner(@NotNull Leaf leaf) {
+                this.leaf = leaf;
+            }
+        }
+
+        record ParameterTop(ParameterOwner mid) {}
+
+        static class AssignedOwner {
+            @NotNull Leaf leaf;
+
+            AssignedOwner(Leaf leaf) {
+                this.leaf = leaf;
+            }
+        }
+
+        record AssignedTop(AssignedOwner mid) {}
+
+        static class InitializedOwner {
+            @NotNull Leaf leaf = new Leaf("preset");
+        }
+
+        record InitializedTop(InitializedOwner mid) {}
+
+        static class Bag extends AbstractCollection<String> {
+            @Override
+            public Iterator<String> iterator() {
+                return List.<String>of().iterator();
+            }
+
+            @Override
+            public int size() {
+                return 0;
+            }
+        }
+
+        record RequiredBagOwner(@NotEmpty Bag bag) {}
+
+        record RequiredBagTop(RequiredBagOwner mid) {}
+
+        record NullableOwner(Leaf leaf, Collection<String> values, Bag bag, Shape shape, Object anything) {}
+
+        record NullableTop(NullableOwner mid) {}
+
+        record SizedOwner(
+                @Size(min = 1) Collection<String> values,
+                @Size(min = 1) Bag bag) {}
+
+        record SizedTop(SizedOwner mid) {}
+
+        interface Shape {}
+
+        record Circle(int radius) implements Shape {}
+
+        record RequiredShapeOwner(@NotNull Shape shape) {}
+
+        record RequiredShapeTop(RequiredShapeOwner mid) {}
+
+        record RequiredInterfaceCollectionOwner(@NotNull Collection<String> values) {}
+
+        record RequiredInterfaceCollectionTop(RequiredInterfaceCollectionOwner mid) {}
+
+        record NotEmptyInterfaceCollectionOwner(@NotEmpty Collection<String> values) {}
+
+        record NotEmptyInterfaceCollectionTop(NotEmptyInterfaceCollectionOwner mid) {}
+
+        record RequiredObjectOwner(@NotNull Object anything) {}
+
+        record RequiredObjectTop(RequiredObjectOwner mid) {}
+
+        record ContainerOwner(
+                @NotEmpty List<Leaf> list,
+                @NotEmpty Set<Leaf> set,
+                @NotEmpty Map<String, Leaf> byName,
+                Map<Leaf, String> byLeaf,
+                List<@NotNull Leaf> requiredElements,
+                Set<@NotNull Leaf> requiredSetElements,
+                Map<String, @NotNull Leaf> requiredValues,
+                Map<@NotNull Leaf, String> requiredKeys,
+                Optional<@NotNull Leaf> requiredValue,
+                @NotNull Optional<Leaf> optional,
+                @NotNull Leaf[] array) {}
+
+        record ContainerTop(ContainerOwner mid) {}
+
+        record NotEmptyLeafKeysOwner(@NotEmpty Map<Leaf, String> byLeaf) {}
+
+        record NotEmptyLeafKeysTop(NotEmptyLeafKeysOwner mid) {}
+
+        private static GeneratorConfig limitedTo(int maxDepth) {
+            return GeneratorConfig.builder()
+                    .objectMaxDepth(maxDepth)
+                    .collectionSize(2, 2)
+                    .build();
+        }
+
+        private static GenerationFailureContext assertDepthFailure(
+                Class<?> root, GeneratorConfig config, String path, Class<?> owner, int limit) {
+            ObjectGenerationException error =
+                    assertThrows(ObjectGenerationException.class, () -> new ObjectGenerator<>(root, config).generate());
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(path, context.path());
+            assertEquals(owner, context.ownerType());
+            assertEquals(limit, context.depth());
+            BeanValidationSupport.ConstraintConflictException cause =
+                    assertInstanceOf(BeanValidationSupport.ConstraintConflictException.class, error.getCause());
+            assertEquals(
+                    "required member would be null at objectMaxDepth " + limit
+                            + "; raise objectMaxDepth or override the member",
+                    cause.getMessage());
+            return context;
+        }
+
+        private static void assertUnsupportedFailure(Class<?> root, String path, String declaredType) {
+            ObjectGenerationException error = assertThrows(
+                    ObjectGenerationException.class, () -> new ObjectGenerator<>(root, limitedTo(1)).generate());
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
+            assertEquals(path, context.path());
+            assertEquals(declaredType, context.declaredType());
+            assertInstanceOf(UnsupportedOperationException.class, error.getCause());
+        }
+
+        @Test
+        @DisplayName("a @NotNull record component fails with its path, instead of being left null")
+        void requiredRecordComponentFails() {
+            GenerationFailureContext context =
+                    assertDepthFailure(Top.class, limitedTo(1), "Top.mid.leaf", Mid.class, 1);
+
+            assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
+            assertEquals(GenerationOperation.GENERATE, context.operation());
+            assertEquals(Leaf.class.getTypeName(), context.declaredType());
+            assertEquals(-1, context.recordIndex());
+        }
+
+        @Test
+        @DisplayName("the failure names the whole path and the limit when the limit is deeper")
+        void deeperLimitNamesTheWholePath() {
+            assertDepthFailure(Outermost.class, limitedTo(2), "Outermost.top.mid.leaf", Mid.class, 2);
+        }
+
+        @Test
+        @DisplayName("a larger objectMaxDepth generates the member")
+        void largerLimitGeneratesTheMember() {
+            Top top = new ObjectGenerator<>(Top.class, limitedTo(2)).generate();
+
+            assertNotNull(top.mid().leaf().value());
+        }
+
+        @Test
+        @DisplayName("a @NotNull class field fails")
+        void requiredFieldFails() {
+            assertDepthFailure(FieldTop.class, limitedTo(1), "FieldTop.mid.leaf", FieldOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("an inherited @NotNull field fails at the member's path, not its declaring class")
+        void requiredInheritedFieldFailsAtMemberPath() {
+            assertDepthFailure(InheritingTop.class, limitedTo(1), "InheritingTop.mid.leaf", FieldOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("a @NotNull member of a list element fails at the element's path")
+        void requiredMemberOfListElementFailsAtElementPath() {
+            assertDepthFailure(ElementTop.class, limitedTo(1), "ElementTop.mids[].leaf", Mid.class, 1);
+        }
+
+        @Test
+        @DisplayName("a field whose getter is @NotNull fails")
+        void requiredGetterFails() {
+            assertDepthFailure(GetterTop.class, limitedTo(1), "GetterTop.mid.leaf", GetterOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("a field whose interface accessor is @NotNull fails")
+        void requiredInterfaceAccessorFails() {
+            assertDepthFailure(InterfaceTop.class, limitedTo(1), "InterfaceTop.mid.leaf", InterfaceOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("a record component whose accessor is @NotNull fails")
+        void requiredRecordAccessorFails() {
+            assertDepthFailure(AccessorTop.class, limitedTo(1), "AccessorTop.mid.leaf", AccessorOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("a @NotNull constructor parameter fails")
+        void requiredConstructorParameterFails() {
+            assertDepthFailure(ParameterTop.class, limitedTo(1), "ParameterTop.mid.leaf", ParameterOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("a @NotNull field fails after an unconstrained constructor parameter left it null")
+        void requiredFieldAssignedFromPlainParameterFails() {
+            assertDepthFailure(AssignedTop.class, limitedTo(1), "AssignedTop.mid.leaf", AssignedOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("@NotEmpty on a collection class reaches the limit and fails")
+        void notEmptyCollectionClassFails() {
+            assertDepthFailure(RequiredBagTop.class, limitedTo(1), "RequiredBagTop.mid.bag", RequiredBagOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("a field that already has a value is not generated, so it keeps its initializer")
+        void initializedRequiredFieldKeepsItsValue() {
+            InitializedTop top = new ObjectGenerator<>(InitializedTop.class, limitedTo(1)).generate();
+
+            assertEquals("preset", top.mid().leaf.value());
+        }
+
+        @Test
+        @DisplayName("members with no required constraint stay null")
+        void nullableMembersStayNull() {
+            NullableTop top = new ObjectGenerator<>(NullableTop.class, limitedTo(1)).generate();
+
+            assertNull(top.mid().leaf());
+            assertNull(top.mid().values());
+            assertNull(top.mid().bag());
+            assertNull(top.mid().shape());
+            assertNull(top.mid().anything());
+        }
+
+        @Test
+        @DisplayName("@Size alone stays null, because Bean Validation accepts null for it")
+        void sizedMembersStayNull() {
+            SizedTop top = new ObjectGenerator<>(SizedTop.class, limitedTo(1)).generate();
+
+            assertNull(top.mid().values());
+            assertNull(top.mid().bag());
+        }
+
+        @Test
+        @DisplayName("a required member that no depth could generate fails as an unsupported type")
+        void requiredUnsupportedMembersFailAsUnsupported() {
+            assertUnsupportedFailure(RequiredShapeTop.class, "RequiredShapeTop.mid.shape", Shape.class.getTypeName());
+            assertUnsupportedFailure(
+                    RequiredInterfaceCollectionTop.class,
+                    "RequiredInterfaceCollectionTop.mid.values",
+                    "java.util.Collection<java.lang.String>");
+            assertUnsupportedFailure(
+                    NotEmptyInterfaceCollectionTop.class,
+                    "NotEmptyInterfaceCollectionTop.mid.values",
+                    "java.util.Collection<java.lang.String>");
+            assertUnsupportedFailure(RequiredObjectTop.class, "RequiredObjectTop.mid.anything", "java.lang.Object");
+        }
+
+        @Test
+        @DisplayName("a subtype mapping makes a required interface member a depth failure")
+        void mappedRequiredInterfaceFailsOnDepth() {
+            GeneratorConfig mapped = limitedTo(1).toBuilder()
+                    .objectSubtype(Shape.class, Circle.class)
+                    .build();
+
+            assertDepthFailure(
+                    RequiredShapeTop.class, mapped, "RequiredShapeTop.mid.shape", RequiredShapeOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("containers are not cut off, and a constraint on a type argument leaves their contents alone")
+        void containersKeepTruncatedContents() {
+            ContainerOwner owner = new ObjectGenerator<>(ContainerTop.class, limitedTo(1))
+                    .generate()
+                    .mid();
+
+            assertFalse(owner.list().isEmpty());
+            assertTrue(owner.list().stream().allMatch(Objects::isNull));
+            assertEquals(1, owner.set().size());
+            assertTrue(owner.set().contains(null));
+            assertFalse(owner.byName().isEmpty());
+            assertTrue(owner.byName().values().stream().allMatch(Objects::isNull));
+            assertTrue(owner.byLeaf().isEmpty());
+            assertEquals(Arrays.asList(null, null), owner.requiredElements());
+            assertEquals(1, owner.requiredSetElements().size());
+            assertTrue(owner.requiredSetElements().contains(null));
+            assertEquals(2, owner.requiredValues().size());
+            assertTrue(owner.requiredValues().values().stream().allMatch(Objects::isNull));
+            assertTrue(owner.requiredKeys().isEmpty());
+            assertEquals(Optional.empty(), owner.requiredValue());
+            assertEquals(Optional.empty(), owner.optional());
+            assertEquals(2, owner.array().length);
+            assertNull(owner.array()[0]);
+        }
+
+        @Test
+        @DisplayName("@NotEmpty on a map with nested keys still fails on its size")
+        void notEmptyMapWithNestedKeysFailsOnSize() {
+            ObjectGenerationException error = assertThrows(
+                    ObjectGenerationException.class,
+                    () -> new ObjectGenerator<>(NotEmptyLeafKeysTop.class, limitedTo(1)).generate());
+
+            assertEquals(
+                    "NotEmptyLeafKeysTop.mid.byLeaf",
+                    error.getContext().orElseThrow().path());
+            assertInstanceOf(BeanValidationSupport.ConstraintConflictException.class, error.getCause());
+            assertTrue(error.getCause().getMessage().contains("declared minimum size of 1"));
+        }
+
+        @Test
+        @DisplayName("objectIgnoreErrors keeps the null and reports the failure to the listener")
+        void lenientModeKeepsNullAndNotifiesListener() {
+            List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+            GeneratorConfig lenient = limitedTo(1).toBuilder()
+                    .objectIgnoreErrors(true)
+                    .generationFailureListener(diagnostics::add)
+                    .build();
+
+            Top top = new ObjectGenerator<>(Top.class, lenient).generate();
+
+            assertNull(top.mid().leaf());
+            assertEquals(1, diagnostics.size());
+            GenerationFailureDiagnostic diagnostic = diagnostics.getFirst();
+            assertEquals("Top.mid.leaf", diagnostic.context().path());
+            assertEquals(
+                    GenerationFailureCategory.UNSUPPORTED_TYPE,
+                    diagnostic.context().category());
+            assertEquals(Mid.class, diagnostic.context().ownerType());
+            assertEquals(1, diagnostic.context().depth());
+            assertEquals(BeanValidationSupport.ConstraintConflictException.class.getName(), diagnostic.causeType());
+        }
+
+        @Test
+        @DisplayName("objectIgnoreErrors also keeps the null for a required member no depth could generate")
+        void lenientModeKeepsNullForRequiredUnsupportedMember() {
+            List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+            GeneratorConfig lenient = limitedTo(1).toBuilder()
+                    .objectIgnoreErrors(true)
+                    .generationFailureListener(diagnostics::add)
+                    .build();
+
+            RequiredShapeTop top = new ObjectGenerator<>(RequiredShapeTop.class, lenient).generate();
+
+            assertNull(top.mid().shape());
+            assertEquals(1, diagnostics.size());
+            assertEquals(
+                    "RequiredShapeOwner.shape", diagnostics.getFirst().context().path());
+            assertEquals(
+                    UnsupportedOperationException.class.getName(),
+                    diagnostics.getFirst().causeType());
+        }
+
+        @Test
+        @DisplayName("strict mode reports the failure to the listener and throws")
+        void strictModeNotifiesListener() {
+            List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+            GeneratorConfig strict = limitedTo(1).toBuilder()
+                    .generationFailureListener(diagnostics::add)
+                    .build();
+
+            assertThrows(ObjectGenerationException.class, () -> new ObjectGenerator<>(Top.class, strict).generate());
+
+            assertEquals(
+                    List.of("Top.mid.leaf", "Top.mid.leaf"),
+                    diagnostics.stream().map(d -> d.context().path()).toList());
+        }
+
+        @Test
+        @DisplayName("field and type overrides supply the member before the limit applies")
+        void overridesRunBeforeTheLimit() {
+            GeneratorConfig fieldOverride = limitedTo(1).toBuilder()
+                    .objectOverride(Mid.class, "leaf", () -> new Leaf("field"))
+                    .build();
+            GeneratorConfig typeOverride = limitedTo(1).toBuilder()
+                    .objectOverride(Leaf.class, () -> new Leaf("type"))
+                    .build();
+
+            assertEquals(
+                    "field",
+                    new ObjectGenerator<>(Top.class, fieldOverride)
+                            .generate()
+                            .mid()
+                            .leaf()
+                            .value());
+            assertEquals(
+                    "type",
+                    new ObjectGenerator<>(Top.class, typeOverride)
+                            .generate()
+                            .mid()
+                            .leaf()
+                            .value());
+        }
+
+        @Test
+        @DisplayName("an excluded member stays null, because it is never generated")
+        void excludedMemberStaysNull() {
+            GeneratorConfig excluded =
+                    limitedTo(1).toBuilder().objectExcludeField("leaf").build();
+
+            assertNull(
+                    new ObjectGenerator<>(Top.class, excluded).generate().mid().leaf());
+        }
+    }
+
+    @Nested
+    @DisplayName("unique fields")
+    class UniqueFieldTest {
+
+        enum Tier {
+            BRONZE,
+            SILVER,
+            GOLD
+        }
+
+        record BoundedId(@Min(1) @Max(3) int id) {}
+
+        record OneId(@Min(1) @Max(1) int id) {}
+
+        record Flag(boolean flag) {}
+
+        record Tiered(Tier tier) {}
+
+        record Toggle(boolean active) {}
+
+        record Code(String code) {}
+
+        record Contact(String firstName, String email) {}
+
+        record FakeRanged(@FakeRange(min = 1, max = 4) int code) {}
+
+        record FakeFlag(@Fake("active") boolean code) {}
+
+        record Randomized(@Randomizer(ThreeValues.class) String code) {}
+
+        record ConstantlyRandomized(
+                @Randomizer(ConstantValue.class) String code) {}
+
+        record SeedablyRandomized(
+                @Randomizer(SeedablePick.class) int code) {}
+
+        record FailinglyRandomized(
+                @Randomizer(FailingValue.class) String code) {}
+
+        record AccountRef(@Min(1) @Max(2) int accountId) {}
+
+        record BoundedCustomer(@Min(1) @Max(100) int customerId) {}
+
+        record CustomerRef(long customerId) {}
+
+        record RequiredTierRef(@NotNull Tier accountId) {}
+
+        record RequiredLongRef(@NotNull Long accountId) {}
+
+        record BooleanId(boolean id) {}
+
+        record TierId(Tier id) {}
+
+        record PatternedId(@Pattern(regexp = "[a-c]") String id) {}
+
+        record FakeRangedId(@FakeRange(min = 1, max = 4) int id) {}
+
+        record FakeFlagId(@Fake("active") boolean id) {}
+
+        record ConstantlyRandomizedId(
+                @Randomizer(ConstantValue.class) String id) {}
+
+        record Enabled(boolean enabled) {}
+
+        record CodeAndId(
+                @Min(1) @Max(50) int code, @Min(1) @Max(2) int id) {}
+
+        record BooleanRef(boolean accountId) {}
+
+        record TierRef(Tier accountId) {}
+
+        record TwoIds(
+                @Min(1) @Max(2) int id, @Min(1) @Max(2) int accountId) {}
+
+        record OrderRef(long orderId, long customerId) {}
+
+        record Buyer(long id) {}
+
+        record Purchase(long id, Buyer buyer) {}
+
+        record SiblingIds(LeftId left, RightId right) {}
+
+        record Inner(@Min(1) @Max(1) int id) {}
+
+        record Outer(Inner mid) {}
+
+        record InheritedIdHolder(DerivedId mid) {}
+
+        record Mixed(@Min(1) @Max(5) int id, int count, String name) {}
+
+        record Impossible(
+                @Size(min = 3, max = 3) @Pattern(regexp = "[a-z]{5}") String id) {}
+
+        record NullOnly(@Null String id) {}
+
+        record Ids(@Size(min = 2, max = 2) List<@Min(1) @Max(3) Integer> id) {}
+
+        static class MutableId {
+            @Min(1) @Max(3) int id;
+        }
+
+        static class BaseId {
+            @Min(1) @Max(1) int id;
+        }
+
+        static class DerivedId extends BaseId {}
+
+        static class ConstructorId {
+            final int id;
+
+            ConstructorId(@Min(1) @Max(2) int id) {
+                this.id = id;
+            }
+        }
+
+        static class MutableContact {
+            String email;
+
+            MutableContact(String email) {
+                this.email = email;
+            }
+        }
+
+        static class DefaultValuedId {
+            int id;
+
+            DefaultValuedId(int id) {
+                this.id = id;
+            }
+        }
+
+        static class DroppedArgument {
+            String email;
+
+            DroppedArgument(String email) {
+                Objects.requireNonNull(email);
+            }
+        }
+
+        static class StringCode {
+            String code;
+        }
+
+        static class IntCodeChild extends StringCode {
+            IntCodeChild(int code) {
+                Objects.checkIndex(code, 2);
+            }
+        }
+
+        static class BooleanConstructorId {
+            boolean id;
+
+            BooleanConstructorId(boolean id) {
+                this.id = id;
+            }
+        }
+
+        static class ReplacedId {
+            @Min(1) @Max(2) int id;
+
+            ReplacedId(@Min(1) @Max(2) int id) {
+                this.id = id;
+            }
+        }
+
+        static class OptionalConstructorId {
+            Optional<String> id;
+
+            OptionalConstructorId(Optional<String> id) {
+                this.id = id;
+            }
+        }
+
+        static class SelfTypedId {
+            int tag = 1;
+            SelfTypedId id;
+
+            SelfTypedId(SelfTypedId id) {
+                this.id = id;
+            }
+
+            SelfTypedId tagged(int newTag) {
+                tag = newTag;
+                return this;
+            }
+
+            @Override
+            public boolean equals(Object other) {
+                return other instanceof SelfTypedId selfTyped && selfTyped.tag == tag;
+            }
+
+            @Override
+            public int hashCode() {
+                return tag;
+            }
+        }
+
+        static class InheritedFlag {
+            boolean id;
+        }
+
+        static class InheritedFlagChild extends InheritedFlag {
+            InheritedFlagChild(boolean id) {
+                this.id = id;
+            }
+        }
+
+        static class StaticIdBase {
+            static final int id = 0;
+        }
+
+        static class StaticIdLeft extends StaticIdBase {
+            final int value;
+
+            StaticIdLeft(@Min(1) @Max(1) int id) {
+                value = id;
+            }
+        }
+
+        static class StaticIdRight extends StaticIdBase {
+            final int value;
+
+            StaticIdRight(@Min(1) @Max(1) int id) {
+                value = id;
+            }
+        }
+
+        record StaticIds(StaticIdLeft left, StaticIdRight right) {}
+
+        static class ElementBase {
+            List<Integer> id;
+        }
+
+        static class ElementLeft extends ElementBase {
+            ElementLeft(List<Integer> id) {
+                this.id = id;
+            }
+        }
+
+        static class ElementRight extends ElementBase {
+            ElementRight(List<Integer> id) {
+                this.id = id;
+            }
+        }
+
+        record ElementPair(ElementLeft left, ElementRight right) {}
+
+        static class SavedSelf {
+            static SavedSelf current;
+
+            final SavedSelf saved;
+            SavedSelf id;
+
+            SavedSelf(SavedSelf id) {
+                this.id = id;
+                saved = id;
+                current = this;
+            }
+        }
+
+        static class ZeroConstructorId {
+            @Min(0) @Max(0) int id;
+
+            ZeroConstructorId(@Min(0) @Max(0) int id) {
+                this.id = id;
+            }
+        }
+
+        static class ShadowedId {
+            int id;
+        }
+
+        static class ShadowingId extends ShadowedId {
+            int id;
+
+            ShadowingId(int id) {
+                Objects.checkIndex(id, 2);
+            }
+        }
+
+        record CaseVariants(int id, int ID) {}
+
+        static class SharedId {
+            @Min(1) @Max(2) int id;
+        }
+
+        static class LeftId extends SharedId {}
+
+        static class RightId extends SharedId {}
+
+        public static class ThreeValues implements Generator<String> {
+            private int next;
+
+            @Override
+            public String generate() {
+                return List.of("a", "b", "c").get(next++ % 3);
+            }
+        }
+
+        public static class ConstantValue implements Generator<String> {
+            @Override
+            public String generate() {
+                return "fixed";
+            }
+        }
+
+        public static class SeedablePick implements Generator<Integer>, Seedable {
+            private Random random = new Random(0L);
+
+            @Override
+            public Integer generate() {
+                return random.nextInt(3);
+            }
+
+            @Override
+            public void reseed(long seed) {
+                random = new Random(seed);
+            }
+        }
+
+        public static class FailingValue implements Generator<String> {
+            @Override
+            public String generate() {
+                throw new IllegalStateException("boom");
+            }
+        }
+
+        private GeneratorConfig.Builder unique(String fieldName) {
+            return GeneratorConfig.builder().seed(42L).objectUniqueField(fieldName);
+        }
+
+        /** Draws the domain's size, which must give every value once, then one more, which must fail. */
+        private <T> void assertDistinctThenFails(
+                Class<T> type, GeneratorConfig config, Function<T, Object> field, Set<?> domain, String path) {
+            ObjectGenerator<T> generator = new ObjectGenerator<>(type, config);
+            Set<Object> values = new HashSet<>();
+            for (int i = 0; i < domain.size(); i++) {
+                values.add(field.apply(generator.generate()));
+            }
+            assertEquals(domain, values);
+            ObjectGenerationException error = assertThrows(ObjectGenerationException.class, generator::generate);
+            assertEquals(path, error.getContext().orElseThrow().path());
+            assertTrue(error.getMessage().contains("unique value at '" + path + "'"), error.getMessage());
+        }
+
+        /** Draws more than the domain holds, so the field must repeat its values with no failure. */
+        private <T> void assertRepeats(
+                Class<T> type, GeneratorConfig config, Function<T, Object> field, Set<?> domain) {
+            List<T> generated = new ObjectGenerator<>(type, config).generateList(domain.size() * 2 + 1);
+
+            Set<Object> values = generated.stream().map(field).collect(Collectors.toSet());
+            assertTrue(domain.containsAll(values), values.toString());
+        }
+
+        private GeneratorConfig fixedClock(GeneratorConfig.Builder builder) {
+            return builder.clock(Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneOffset.UTC))
+                    .build();
+        }
+
+        private GeneratorConfig replayOf(GeneratorConfig config) {
+            String recipe = config.getGenerationRecipe().orElseThrow().serialize();
+            return GenerationRecipe.parse(recipe).toGeneratorConfig();
+        }
+
+        @Test
+        @DisplayName("a boolean has two values")
+        void booleanHasTwoValues() {
+            assertDistinctThenFails(Flag.class, unique("flag").build(), Flag::flag, Set.of(true, false), "Flag.flag");
+        }
+
+        @Test
+        @DisplayName("an enum has its constants")
+        void enumHasItsConstants() {
+            assertDistinctThenFails(
+                    Tiered.class, unique("tier").build(), Tiered::tier, Set.of(Tier.values()), "Tiered.tier");
+        }
+
+        @Test
+        @DisplayName("a Bean Validation range has its values")
+        void beanValidationRangeHasItsValues() {
+            assertDistinctThenFails(
+                    BoundedId.class, unique("id").build(), BoundedId::id, Set.of(1, 2, 3), "BoundedId.id");
+            assertDistinctThenFails(OneId.class, unique("id").build(), OneId::id, Set.of(1), "OneId.id");
+        }
+
+        @Test
+        @DisplayName("a semantic field has its values")
+        void semanticFieldHasItsValues() {
+            assertDistinctThenFails(
+                    Toggle.class, unique("active").build(), Toggle::active, Set.of(true, false), "Toggle.active");
+        }
+
+        @Test
+        @DisplayName("a mutable field and a populated instance share one uniqueness scope")
+        void mutableFieldsAndPopulationAreTracked() {
+            assertDistinctThenFails(
+                    MutableId.class, unique("id").build(), value -> value.id, Set.of(1, 2, 3), "MutableId.id");
+
+            ObjectGenerator<MutableId> generator =
+                    new ObjectGenerator<>(MutableId.class, unique("id").build());
+            Set<Integer> ids = new HashSet<>();
+            ids.add(generator.generate().id);
+            ids.add(generator.populate(new MutableId()).id);
+            ids.add(generator.populate(new MutableId()).id);
+            assertEquals(Set.of(1, 2, 3), ids);
+            assertThrows(ObjectGenerationException.class, () -> generator.populate(new MutableId()));
+        }
+
+        @Test
+        @DisplayName("a constructor argument is tracked")
+        void constructorArgumentIsTracked() {
+            assertDistinctThenFails(
+                    ConstructorId.class, unique("id").build(), value -> value.id, Set.of(1, 2), "ConstructorId.id");
+        }
+
+        @Test
+        @DisplayName("a constant override is no repeat of its own constructor argument, whatever the mode")
+        void constantOverrideIsNoRepeatOfItsOwnConstructorArgument() {
+            for (boolean overrideDefaultInitialization : List.of(false, true)) {
+                List<GeneratorConfig.Builder> overrides = List.of(
+                        unique("email").objectOverride(MutableContact.class, "email", () -> "owner@example.test"),
+                        unique("email").objectOverride(String.class, () -> "owner@example.test"));
+
+                for (GeneratorConfig.Builder override : overrides) {
+                    assertDistinctThenFails(
+                            MutableContact.class,
+                            override.objectOverrideDefaultInitialization(overrideDefaultInitialization)
+                                    .build(),
+                            value -> value.email,
+                            Set.of("owner@example.test"),
+                            "MutableContact.email");
+                }
+            }
+        }
+
+        @Test
+        @DisplayName("a constructor override that returns the default is no repeat of itself")
+        void constructorOverrideReturningTheDefaultIsNoRepeatOfItself() {
+            GeneratorConfig config = unique("id")
+                    .objectOverride(DefaultValuedId.class, "id", () -> 0)
+                    .build();
+
+            assertDistinctThenFails(DefaultValuedId.class, config, value -> value.id, Set.of(0), "DefaultValuedId.id");
+        }
+
+        @Test
+        @DisplayName("an override the constructor drops still reaches the field")
+        void overrideDroppedByTheConstructorReachesTheField() {
+            GeneratorConfig config = unique("email")
+                    .objectOverride(DroppedArgument.class, "email", () -> "owner@example.test")
+                    .build();
+
+            assertDistinctThenFails(
+                    DroppedArgument.class,
+                    config,
+                    value -> value.email,
+                    Set.of("owner@example.test"),
+                    "DroppedArgument.email");
+        }
+
+        @Test
+        @DisplayName("a higher-priority override still wins for the field of a constructor argument")
+        void higherPriorityOverrideWinsForTheFieldOfAConstructorArgument() {
+            GeneratorConfig config = GeneratorConfig.builder()
+                    .objectOverride(DroppedArgument.class, "email", () -> "named@example.test")
+                    .objectOverride(FieldPredicates.named("email"), context -> "predicate@example.test")
+                    .build();
+
+            assertEquals(
+                    "predicate@example.test", new ObjectGenerator<>(DroppedArgument.class, config).generate().email);
+        }
+
+        @Test
+        @DisplayName("a constructor override does not reach a same-named field it does not target")
+        void constructorOverrideDoesNotReachAnUntargetedField() {
+            GeneratorConfig config = GeneratorConfig.builder()
+                    .objectOverride(IntCodeChild.class, "code", () -> 1)
+                    .build();
+
+            assertNotNull(new ObjectGenerator<>(IntCodeChild.class, config).generate().code);
+        }
+
+        @Test
+        @DisplayName("a generated constructor argument its field replaces gives its value back")
+        void generatedConstructorArgumentGivesItsValueBack() {
+            assertDistinctThenFails(
+                    BooleanConstructorId.class,
+                    unique("id").build(),
+                    value -> value.id,
+                    Set.of(true, false),
+                    "BooleanConstructorId.id");
+            assertDistinctThenFails(
+                    ReplacedId.class,
+                    unique("id").objectOverrideDefaultInitialization(true).build(),
+                    value -> value.id,
+                    Set.of(1, 2),
+                    "ReplacedId.id");
+        }
+
+        @Test
+        @DisplayName("a constructor argument that was never tracked gives nothing back")
+        void untrackedConstructorArgumentGivesNothingBack() {
+            GeneratorConfig config = unique("id")
+                    .objectOverride(String.class, () -> "fixed")
+                    .objectOverride(FieldPredicates.named("id"), () -> Optional.of("fixed"))
+                    .build();
+
+            assertDistinctThenFails(
+                    OptionalConstructorId.class,
+                    config,
+                    value -> value.id,
+                    Set.of(Optional.of("fixed")),
+                    "OptionalConstructorId.id");
+        }
+
+        @Test
+        @DisplayName("a lenient constructor argument's fallback gives nothing back")
+        void lenientConstructorArgumentFallbackGivesNothingBack() {
+            List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+            ObjectGenerator<BooleanConstructorId> generator = new ObjectGenerator<>(
+                    BooleanConstructorId.class,
+                    unique("id")
+                            .objectIgnoreErrors(true)
+                            .generationFailureListener(diagnostics::add)
+                            .build());
+            generator.generateList(2);
+            assertTrue(diagnostics.isEmpty());
+
+            assertFalse(generator.generate().id);
+
+            // The argument fails, then so does the field: the fallback did not free the earlier false.
+            assertEquals(2, diagnostics.size());
+        }
+
+        @Test
+        @DisplayName("a value tracked inside a nested object does not count as the constructor argument's own")
+        void nestedTrackedValueDoesNotCountAsTheConstructorArgumentsOwn() {
+            AtomicInteger belowRoot = new AtomicInteger(1);
+            ObjectGenerator<SelfTypedId> generator = new ObjectGenerator<>(
+                    SelfTypedId.class,
+                    unique("id")
+                            .objectOverride(
+                                    FieldPredicates.named("id"),
+                                    context -> new SelfTypedId(null)
+                                            .tagged(context.getDepth() == 0 ? 1 : belowRoot.incrementAndGet()))
+                            .build());
+
+            assertEquals(1, generator.generate().id.tag);
+
+            assertEquals(
+                    "SelfTypedId.id",
+                    assertThrows(ObjectGenerationException.class, generator::generate)
+                            .getContext()
+                            .orElseThrow()
+                            .path());
+        }
+
+        @Test
+        @DisplayName("a lenient fallback equal to an earlier value gives that value nothing back")
+        void lenientFallbackEqualToAnEarlierValueGivesNothingBack() {
+            List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+            ObjectGenerator<ZeroConstructorId> generator = new ObjectGenerator<>(
+                    ZeroConstructorId.class,
+                    unique("id")
+                            .objectIgnoreErrors(true)
+                            .generationFailureListener(diagnostics::add)
+                            .build());
+            generator.generate();
+            assertTrue(diagnostics.isEmpty());
+
+            assertEquals(0, generator.generate().id);
+
+            // The argument fails, then so does the field: the fallback is not the value tracked earlier.
+            assertEquals(2, diagnostics.size());
+        }
+
+        @Test
+        @DisplayName("a constructor argument is given back once, by the field of the same type and name")
+        void constructorArgumentIsGivenBackOnlyByItsOwnField() {
+            AtomicInteger inherited = new AtomicInteger();
+            GeneratorConfig config = unique("id")
+                    .objectOverride(ShadowingId.class, "id", () -> 1)
+                    .objectOverride(ShadowedId.class, "id", inherited::incrementAndGet)
+                    .build();
+
+            assertDistinctThenFails(ShadowingId.class, config, value -> value.id, Set.of(1), "ShadowingId.id");
+        }
+
+        @Test
+        @DisplayName("names that differ only by case are different fields")
+        void namesDifferingByCaseAreDifferentFields() {
+            ObjectGenerator<CaseVariants> generator = new ObjectGenerator<>(
+                    CaseVariants.class,
+                    unique("id")
+                            .objectOverride(CaseVariants.class, "id", () -> 1)
+                            .objectOverride(CaseVariants.class, "ID", () -> 1)
+                            .build());
+
+            assertEquals(new CaseVariants(1, 1), generator.generate());
+            assertEquals(
+                    "CaseVariants.id",
+                    assertThrows(ObjectGenerationException.class, generator::generate)
+                            .getContext()
+                            .orElseThrow()
+                            .path());
+        }
+
+        @Test
+        @DisplayName("@FakeRange has the values of its range")
+        void fakeRangeHasItsValues() {
+            assertDistinctThenFails(
+                    FakeRanged.class, unique("code").build(), FakeRanged::code, Set.of(1, 2, 3), "FakeRanged.code");
+        }
+
+        @Test
+        @DisplayName("@Fake is tracked under the field's own name")
+        void fakeIsTracked() {
+            assertDistinctThenFails(
+                    FakeFlag.class, unique("code").build(), FakeFlag::code, Set.of(true, false), "FakeFlag.code");
+        }
+
+        @Test
+        @DisplayName("@Randomizer is drawn again on a repeat, and a constant one fails on the next object")
+        void randomizerIsDrawnAgainOnARepeat() {
+            assertDistinctThenFails(
+                    Randomized.class,
+                    unique("code").build(),
+                    Randomized::code,
+                    Set.of("a", "b", "c"),
+                    "Randomized.code");
+            assertDistinctThenFails(
+                    ConstantlyRandomized.class,
+                    unique("code").build(),
+                    ConstantlyRandomized::code,
+                    Set.of("fixed"),
+                    "ConstantlyRandomized.code");
+        }
+
+        @Test
+        @DisplayName("a seedable @Randomizer keeps drawing when it is retried")
+        void seedableRandomizerKeepsDrawingWhenRetried() {
+            assertDistinctThenFails(
+                    SeedablyRandomized.class,
+                    unique("code").build(),
+                    SeedablyRandomized::code,
+                    Set.of(0, 1, 2),
+                    "SeedablyRandomized.code");
+        }
+
+        @Test
+        @DisplayName("every kind of override fails on the next object when it returns a constant")
+        void everyOverrideKindFailsOnARepeatedConstant() {
+            List<GeneratorConfig.Builder> overrides = List.of(
+                    unique("code").objectOverride(Code.class, "code", () -> "fixed"),
+                    unique("code").objectOverride(Code.class, "code", context -> "fixed"),
+                    unique("code").objectOverride(FieldPredicates.named("code"), () -> "fixed"),
+                    unique("code").objectOverride(FieldPredicates.named("code"), context -> "fixed"),
+                    unique("code").objectOverride(String.class, () -> "fixed"),
+                    unique("code").objectOverride(String.class, context -> "fixed"));
+
+            for (GeneratorConfig.Builder override : overrides) {
+                assertDistinctThenFails(Code.class, override.build(), Code::code, Set.of("fixed"), "Code.code");
+            }
+        }
+
+        @Test
+        @DisplayName("an override is drawn again on a repeat")
+        void overrideIsDrawnAgainOnARepeat() {
+            Iterator<String> draws = List.of("a", "a", "b", "a", "b", "c").iterator();
+            ObjectGenerator<Code> generator = new ObjectGenerator<>(
+                    Code.class,
+                    unique("code")
+                            .objectOverride(Code.class, "code", () -> draws.next())
+                            .build());
+
+            assertEquals(
+                    List.of("a", "b", "c"),
+                    generator.generateList(3).stream().map(Code::code).toList());
+        }
+
+        @Test
+        @DisplayName("a null is no repeat")
+        void nullIsNoRepeat() {
+            ObjectGenerator<NullOnly> constrained =
+                    new ObjectGenerator<>(NullOnly.class, unique("id").build());
+            ObjectGenerator<Code> overridden = new ObjectGenerator<>(
+                    Code.class,
+                    unique("code")
+                            .objectOverride(Code.class, "code", () -> null)
+                            .build());
+
+            for (int i = 0; i < 3; i++) {
+                assertNull(constrained.generate().id());
+                assertNull(overridden.generate().code());
+            }
+        }
+
+        @Test
+        @DisplayName("a constant override on a requested name fails on the next object, and a new generator restarts")
+        void constantOverrideOnRequestedName() {
+            GeneratorConfig.Builder pinned =
+                    unique("email").objectOverride(Contact.class, "email", () -> "owner@example.test");
+
+            assertDistinctThenFails(
+                    Contact.class, pinned.build(), Contact::email, Set.of("owner@example.test"), "Contact.email");
+
+            // A new generator is a new scope.
+            assertEquals(
+                    "owner@example.test",
+                    new ObjectGenerator<>(Contact.class, pinned.build())
+                            .generate()
+                            .email());
+        }
+
+        @Test
+        @DisplayName("a default name repeats a constant override of any kind")
+        void defaultNameRepeatsAConstantOverride() {
+            List<GeneratorConfig.Builder> overrides = List.of(
+                    GeneratorConfig.builder().objectOverride(Contact.class, "email", () -> "fixed@example.org"),
+                    GeneratorConfig.builder().objectOverride(Contact.class, "email", context -> "fixed@example.org"),
+                    GeneratorConfig.builder().objectOverride(FieldPredicates.named("email"), () -> "fixed@example.org"),
+                    GeneratorConfig.builder()
+                            .objectOverride(FieldPredicates.named("email"), context -> "fixed@example.org"),
+                    GeneratorConfig.builder().objectOverride(String.class, () -> "fixed@example.org"),
+                    GeneratorConfig.builder().objectOverride(String.class, context -> "fixed@example.org"));
+
+            for (GeneratorConfig.Builder override : overrides) {
+                assertRepeats(Contact.class, override.build(), Contact::email, Set.of("fixed@example.org"));
+            }
+        }
+
+        @Test
+        @DisplayName("a default name repeats a constant override through a constructor")
+        void defaultNameRepeatsAConstantOverrideThroughAConstructor() {
+            for (boolean overrideDefaultInitialization : List.of(false, true)) {
+                GeneratorConfig config = GeneratorConfig.builder()
+                        .objectOverride(MutableContact.class, "email", () -> "owner@example.test")
+                        .objectOverrideDefaultInitialization(overrideDefaultInitialization)
+                        .build();
+
+                assertRepeats(MutableContact.class, config, value -> value.email, Set.of("owner@example.test"));
+            }
+            assertRepeats(
+                    DroppedArgument.class,
+                    GeneratorConfig.builder()
+                            .objectOverride(DroppedArgument.class, "email", () -> "owner@example.test")
+                            .build(),
+                    value -> value.email,
+                    Set.of("owner@example.test"));
+        }
+
+        @Test
+        @DisplayName("a default name keeps a constructor argument's value when its field is generated again")
+        void defaultNameKeepsAConstructorArgumentsValue() {
+            ObjectGenerator<BooleanConstructorId> own = new ObjectGenerator<>(
+                    BooleanConstructorId.class,
+                    GeneratorConfig.builder().seed(1L).build());
+            own.generate();
+            assertThrows(ObjectGenerationException.class, own::generate);
+
+            ObjectGenerator<InheritedFlagChild> inherited = new ObjectGenerator<>(
+                    InheritedFlagChild.class, GeneratorConfig.builder().seed(1L).build());
+            inherited.generate();
+            assertThrows(ObjectGenerationException.class, inherited::generate);
+        }
+
+        @Test
+        @DisplayName("a default name repeats under a bounded constraint, which a requested name does not")
+        void defaultNameRepeatsUnderABoundedConstraint() {
+            GeneratorConfig defaults = GeneratorConfig.builder().seed(42L).build();
+
+            assertRepeats(
+                    BoundedCustomer.class,
+                    defaults,
+                    BoundedCustomer::customerId,
+                    IntStream.rangeClosed(1, 100).boxed().collect(Collectors.toSet()));
+            assertRepeats(BoundedId.class, defaults, BoundedId::id, Set.of(1, 2, 3));
+            assertRepeats(PatternedId.class, defaults, PatternedId::id, Set.of("a", "b", "c"));
+            List<Integer> elements = new ObjectGenerator<>(Ids.class, defaults)
+                    .generateList(5).stream()
+                            .flatMap(value -> value.id().stream())
+                            .toList();
+            assertEquals(10, elements.size());
+            assertTrue(Set.of(1, 2, 3).containsAll(elements), elements.toString());
+        }
+
+        @Test
+        @DisplayName("a default name repeats an annotation's values")
+        void defaultNameRepeatsAnAnnotationsValues() {
+            GeneratorConfig defaults = GeneratorConfig.builder().seed(42L).build();
+
+            assertRepeats(FakeRangedId.class, defaults, FakeRangedId::id, Set.of(1, 2, 3));
+            assertRepeats(FakeFlagId.class, defaults, FakeFlagId::id, Set.of(true, false));
+            assertRepeats(ConstantlyRandomizedId.class, defaults, ConstantlyRandomizedId::id, Set.of("fixed"));
+        }
+
+        @Test
+        @DisplayName("a default name stays tracked on the built-in and enum routes, and fails when it runs out")
+        void defaultNameStaysTrackedOnTheBuiltInAndEnumRoutes() {
+            GeneratorConfig defaults = GeneratorConfig.builder().seed(42L).build();
+
+            assertDistinctThenFails(BooleanId.class, defaults, BooleanId::id, Set.of(true, false), "BooleanId.id");
+            assertDistinctThenFails(TierId.class, defaults, TierId::id, Set.of(Tier.values()), "TierId.id");
+        }
+
+        @Test
+        @DisplayName(
+                "a semantic alias repeats outside the semantic route, even when the name it stands for is requested")
+        void semanticAliasIsNotARequestedName() {
+            List<GeneratorConfig> configs = List.of(
+                    GeneratorConfig.builder().seed(42L).build(),
+                    unique("id").build(),
+                    GeneratorConfig.builder().seed(42L).objectUniqueFields("id").build());
+
+            for (GeneratorConfig config : configs) {
+                assertRepeats(AccountRef.class, config, AccountRef::accountId, Set.of(1, 2));
+                assertRepeats(BooleanRef.class, config, BooleanRef::accountId, Set.of(true, false));
+                assertRepeats(TierRef.class, config, TierRef::accountId, Set.of(Tier.values()));
+                assertRepeats(RequiredTierRef.class, config, RequiredTierRef::accountId, Set.of(Tier.values()));
+                assertTrue(new ObjectGenerator<>(RequiredLongRef.class, config)
+                        .generateList(SAMPLES).stream().allMatch(value -> value.accountId() != null));
+            }
+            assertRepeats(
+                    Code.class,
+                    GeneratorConfig.builder()
+                            .seed(42L)
+                            .objectUniqueField("id")
+                            .objectOverride(Code.class, "code", () -> "fixed")
+                            .build(),
+                    Code::code,
+                    Set.of("fixed"));
+            assertRepeats(
+                    CustomerRef.class,
+                    unique("id")
+                            .objectOverride(CustomerRef.class, "customerId", () -> 7L)
+                            .build(),
+                    CustomerRef::customerId,
+                    Set.of(7L));
+        }
+
+        @Test
+        @DisplayName("a semantic alias of a requested name stays tracked on the semantic route")
+        void semanticAliasStaysTrackedOnTheSemanticRoute() {
+            assertDistinctThenFails(
+                    Enabled.class, unique("active").build(), Enabled::enabled, Set.of(true, false), "Enabled.enabled");
+        }
+
+        @Test
+        @DisplayName("objectUniqueField keeps the default names, and only the name it adds is hard")
+        void objectUniqueFieldAddsToTheDefaults() {
+            GeneratorConfig config = unique("code").build();
+
+            List<CodeAndId> values = new ObjectGenerator<>(CodeAndId.class, config).generateList(10);
+
+            assertEquals(10, values.stream().map(CodeAndId::code).distinct().count());
+            assertEquals(Set.of(1, 2), values.stream().map(CodeAndId::id).collect(Collectors.toSet()));
+            assertDistinctThenFails(BooleanId.class, config, BooleanId::id, Set.of(true, false), "BooleanId.id");
+        }
+
+        @Test
+        @DisplayName("objectUniqueFields replaces the default names")
+        void objectUniqueFieldsReplacesTheDefaults() {
+            GeneratorConfig config = GeneratorConfig.builder()
+                    .seed(42L)
+                    .objectUniqueFields("code")
+                    .build();
+
+            assertRepeats(BooleanId.class, config, BooleanId::id, Set.of(true, false));
+            assertRepeats(TierId.class, config, TierId::id, Set.of(Tier.values()));
+            assertDistinctThenFails(FakeRanged.class, config, FakeRanged::code, Set.of(1, 2, 3), "FakeRanged.code");
+        }
+
+        @Test
+        @DisplayName("objectUniqueFields with no names disables uniqueness, seeded or not")
+        void objectUniqueFieldsWithNoNamesDisablesUniqueness() {
+            for (GeneratorConfig.Builder builder :
+                    List.of(GeneratorConfig.builder().seed(42L), GeneratorConfig.builder())) {
+                GeneratorConfig config = builder.objectUniqueFields().build();
+
+                assertRepeats(BooleanId.class, config, BooleanId::id, Set.of(true, false));
+                assertRepeats(TierId.class, config, TierId::id, Set.of(Tier.values()));
+                assertRepeats(FakeRanged.class, config, FakeRanged::code, Set.of(1, 2, 3));
+            }
+        }
+
+        @Test
+        @DisplayName("toBuilder keeps the default names default and the requested names requested")
+        void toBuilderKeepsWhichNamesWereRequested() {
+            GeneratorConfig defaults = GeneratorConfig.builder().seed(42L).build();
+            assertRepeats(BoundedId.class, defaults.toBuilder().seed(7L).build(), BoundedId::id, Set.of(1, 2, 3));
+            assertDistinctThenFails(
+                    BooleanId.class,
+                    defaults.toBuilder().seed(7L).build(),
+                    BooleanId::id,
+                    Set.of(true, false),
+                    "BooleanId.id");
+
+            GeneratorConfig requested = unique("id").build();
+            assertDistinctThenFails(
+                    BoundedId.class,
+                    requested.toBuilder().seed(7L).build(),
+                    BoundedId::id,
+                    Set.of(1, 2, 3),
+                    "BoundedId.id");
+            assertRepeats(
+                    AccountRef.class, requested.toBuilder().seed(7L).build(), AccountRef::accountId, Set.of(1, 2));
+
+            GeneratorConfig none =
+                    GeneratorConfig.builder().seed(42L).objectUniqueFields().build();
+            assertRepeats(BooleanId.class, none.toBuilder().seed(7L).build(), BooleanId::id, Set.of(true, false));
+        }
+
+        @Test
+        @DisplayName("a replayed recipe keeps a default name default, with the original's values")
+        void replayKeepsADefaultNameDefault() {
+            GeneratorConfig original = fixedClock(GeneratorConfig.builder().seed(42L));
+            GeneratorConfig replay = replayOf(original);
+
+            assertRepeats(BoundedId.class, replay, BoundedId::id, Set.of(1, 2, 3));
+            assertEquals(
+                    new ObjectGenerator<>(BoundedId.class, original).generateList(10),
+                    new ObjectGenerator<>(BoundedId.class, replay).generateList(10));
+            assertDistinctThenFails(BooleanId.class, replay, BooleanId::id, Set.of(true, false), "BooleanId.id");
+        }
+
+        @Test
+        @DisplayName("a replayed recipe keeps a requested name requested, with the original's values")
+        void replayKeepsARequestedNameRequested() {
+            GeneratorConfig original = fixedClock(unique("id"));
+            GeneratorConfig replay = replayOf(original);
+
+            assertDistinctThenFails(BoundedId.class, replay, BoundedId::id, Set.of(1, 2, 3), "BoundedId.id");
+            assertEquals(
+                    new ObjectGenerator<>(BoundedId.class, original).generateList(3),
+                    new ObjectGenerator<>(BoundedId.class, replay).generateList(3));
+            assertRepeats(AccountRef.class, replay, AccountRef::accountId, Set.of(1, 2));
+        }
+
+        @Test
+        @DisplayName("a replayed recipe keeps replaced names, and no names at all")
+        void replayKeepsReplacedAndEmptyNames() {
+            GeneratorConfig replaced =
+                    replayOf(fixedClock(GeneratorConfig.builder().seed(42L).objectUniqueFields("code")));
+            assertRepeats(BooleanId.class, replaced, BooleanId::id, Set.of(true, false));
+            assertDistinctThenFails(FakeRanged.class, replaced, FakeRanged::code, Set.of(1, 2, 3), "FakeRanged.code");
+
+            GeneratorConfig none =
+                    replayOf(fixedClock(GeneratorConfig.builder().seed(42L).objectUniqueFields()));
+            assertRepeats(BooleanId.class, none, BooleanId::id, Set.of(true, false));
+            assertRepeats(FakeRanged.class, none, FakeRanged::code, Set.of(1, 2, 3));
+        }
+
+        @Test
+        @DisplayName("a constructor argument that fills an inherited field shares that field's values")
+        void constructorArgumentSharesAnInheritedFieldsValues() {
+            for (long seed = 1; seed <= 6; seed++) {
+                assertDistinctThenFails(
+                        InheritedFlagChild.class,
+                        GeneratorConfig.builder()
+                                .seed(seed)
+                                .objectUniqueField("id")
+                                .build(),
+                        value -> value.id,
+                        Set.of(true, false),
+                        "InheritedFlagChild.id");
+                assertDistinctThenFails(
+                        InheritedFlagChild.class,
+                        GeneratorConfig.builder()
+                                .seed(seed)
+                                .objectUniqueField("id")
+                                .objectOverrideDefaultInitialization(true)
+                                .build(),
+                        value -> value.id,
+                        Set.of(true, false),
+                        "InheritedFlagChild.id");
+            }
+        }
+
+        @Test
+        @DisplayName("a static field does not join the constructor arguments of unrelated subclasses")
+        void staticFieldDoesNotJoinUnrelatedConstructorArguments() {
+            StaticIds values =
+                    new ObjectGenerator<>(StaticIds.class, unique("id").build()).generate();
+
+            assertEquals(1, values.left().value);
+            assertEquals(1, values.right().value);
+        }
+
+        @Test
+        @DisplayName("the elements of constructor arguments that fill one inherited field share its values")
+        void elementsOfConstructorArgumentsShareAnInheritedFieldsValues() {
+            ObjectGenerator<ElementPair> generator = new ObjectGenerator<>(
+                    ElementPair.class,
+                    unique("id")
+                            .collectionSize(1, 1)
+                            .objectOverride(Integer.class, () -> 1)
+                            .build());
+
+            assertEquals(
+                    "ElementPair.right.id[]",
+                    assertThrows(ObjectGenerationException.class, generator::generate)
+                            .getContext()
+                            .orElseThrow()
+                            .path());
+        }
+
+        @Test
+        @DisplayName("a value a nested object's field registers is not its parent's constructor argument's own")
+        void nestedRegistrationOfTheArgumentItselfIsNotGivenBack() {
+            SavedSelf.current = null;
+            ObjectGenerator<SavedSelf> generator = new ObjectGenerator<>(
+                    SavedSelf.class,
+                    unique("id")
+                            .objectOverride(
+                                    FieldPredicates.named("id"),
+                                    context -> context.getDepth() == 0 ? SavedSelf.current.saved : SavedSelf.current)
+                            .build());
+
+            assertEquals(
+                    "SavedSelf.id",
+                    assertThrows(ObjectGenerationException.class, generator::generate)
+                            .getContext()
+                            .orElseThrow()
+                            .path());
+        }
+
+        @Test
+        @DisplayName("an empty Optional cached by the JDK is not given back as this argument's own value")
+        void cachedEmptyOptionalIsNotGivenBack() {
+            GeneratorConfig config = unique("id")
+                    .objectOptionalEmptyProbability(1.0)
+                    .objectOverride(FieldPredicates.named("id"), () -> Optional.empty())
+                    .build();
+
+            assertDistinctThenFails(
+                    OptionalConstructorId.class,
+                    config,
+                    value -> value.id,
+                    Set.of(Optional.empty()),
+                    "OptionalConstructorId.id");
+        }
+
+        @Test
+        @DisplayName("each field has its own values, whether a semantic alias or the same name in a nested type")
+        void eachFieldHasItsOwnValues() {
+            ObjectGenerator<TwoIds> ranges = new ObjectGenerator<>(
+                    TwoIds.class, unique("id").objectUniqueField("accountId").build());
+            List<TwoIds> both = ranges.generateList(2);
+            assertEquals(Set.of(1, 2), both.stream().map(TwoIds::id).collect(Collectors.toSet()));
+            assertEquals(Set.of(1, 2), both.stream().map(TwoIds::accountId).collect(Collectors.toSet()));
+            assertThrows(ObjectGenerationException.class, ranges::generate);
+
+            ObjectGenerator<OrderRef> pinnedAliases = new ObjectGenerator<>(
+                    OrderRef.class,
+                    GeneratorConfig.builder()
+                            .objectUniqueFields("orderId", "customerId")
+                            .objectOverride(OrderRef.class, "orderId", () -> 1L)
+                            .objectOverride(OrderRef.class, "customerId", () -> 1L)
+                            .build());
+            assertEquals(new OrderRef(1L, 1L), pinnedAliases.generate());
+            assertEquals(
+                    "OrderRef.orderId",
+                    assertThrows(ObjectGenerationException.class, pinnedAliases::generate)
+                            .getContext()
+                            .orElseThrow()
+                            .path());
+
+            ObjectGenerator<Purchase> pinnedNested = new ObjectGenerator<>(
+                    Purchase.class,
+                    unique("id")
+                            .objectOverride(Purchase.class, "id", () -> 1L)
+                            .objectOverride(Buyer.class, "id", () -> 1L)
+                            .build());
+            assertEquals(new Purchase(1L, new Buyer(1L)), pinnedNested.generate());
+            assertEquals(
+                    "Purchase.id",
+                    assertThrows(ObjectGenerationException.class, pinnedNested::generate)
+                            .getContext()
+                            .orElseThrow()
+                            .path());
+        }
+
+        @Test
+        @DisplayName("an inherited field is one field, however many subclasses reach it")
+        void inheritedFieldIsOneField() {
+            ObjectGenerator<SiblingIds> generator =
+                    new ObjectGenerator<>(SiblingIds.class, unique("id").build());
+
+            SiblingIds first = generator.generate();
+            assertNotEquals(first.left().id, first.right().id);
+            assertEquals(
+                    "SiblingIds.left.id",
+                    assertThrows(ObjectGenerationException.class, generator::generate)
+                            .getContext()
+                            .orElseThrow()
+                            .path());
+        }
+
+        @Test
+        @DisplayName("structural-only generation honours a requested name on every route, and has no aliases")
+        void structuralOnlyGenerationHasNoAliases() {
+            GeneratorConfig structural = unique("id")
+                    .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                    .build();
+
+            assertRepeats(AccountRef.class, structural, AccountRef::accountId, Set.of(1, 2));
+            assertDistinctThenFails(BoundedId.class, structural, BoundedId::id, Set.of(1, 2, 3), "BoundedId.id");
+
+            GeneratorConfig defaults = GeneratorConfig.builder()
+                    .seed(42L)
+                    .objectSemanticMode(ObjectGenerationSemanticMode.STRUCTURAL_ONLY)
+                    .build();
+            assertRepeats(BoundedId.class, defaults, BoundedId::id, Set.of(1, 2, 3));
+            assertRepeats(BooleanRef.class, defaults, BooleanRef::accountId, Set.of(true, false));
+            assertDistinctThenFails(BooleanId.class, defaults, BooleanId::id, Set.of(true, false), "BooleanId.id");
+        }
+
+        @Test
+        @DisplayName("the elements of a collection are tracked under the field's name")
+        void collectionElementsAreTracked() {
+            ObjectGenerator<Ids> generator =
+                    new ObjectGenerator<>(Ids.class, unique("id").build());
+
+            List<Integer> first = generator.generate().id();
+            assertEquals(2, new HashSet<>(first).size());
+            ObjectGenerationException error = assertThrows(ObjectGenerationException.class, generator::generate);
+            assertEquals("Ids.id[]", error.getContext().orElseThrow().path());
+        }
+
+        @Test
+        @DisplayName("an exhausted domain fails with the path and the reason, and tells the listener")
+        void exhaustedDomainFailsWithPathAndReason() {
+            List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+            ObjectGenerator<OneId> generator = new ObjectGenerator<>(
+                    OneId.class,
+                    unique("id").generationFailureListener(diagnostics::add).build());
+            generator.generate();
+            assertTrue(diagnostics.isEmpty());
+
+            ObjectGenerationException error = assertThrows(ObjectGenerationException.class, generator::generate);
+
+            GenerationFailureContext context = error.getContext().orElseThrow();
+            assertEquals("OneId.id", context.path());
+            assertEquals(GenerationFailureCategory.UNSUPPORTED_TYPE, context.category());
+            assertEquals(GenerationOperation.GENERATE, context.operation());
+            assertEquals(OneId.class, context.ownerType());
+            assertEquals("int", context.declaredType());
+            assertEquals(0, context.depth());
+            assertEquals(
+                    "Could not generate a unique value at 'OneId.id' (declared type int, depth 0)", error.getMessage());
+            assertTrue(error.getCause().getMessage().contains("OneId.id' after 256 attempts"));
+            assertTrue(error.getCause().getMessage().contains("objectUniquenessMaxAttempts"));
+            assertTrue(error.getCause().getMessage().contains("objectUniqueFields"));
+            assertEquals(1, diagnostics.size());
+            assertEquals(context, diagnostics.getFirst().context());
+            assertEquals(
+                    error.getCause().getClass().getName(),
+                    diagnostics.getFirst().causeType());
+            assertTrue(diagnostics.getFirst().causeType().endsWith("UniqueFieldTracker$ExhaustedException"));
+        }
+
+        @Test
+        @DisplayName("objectUniquenessMaxAttempts is the number of draws for one value")
+        void maxAttemptsIsTheNumberOfDrawsForOneValue() {
+            AtomicInteger draws = new AtomicInteger();
+            ObjectGenerator<Code> generator = new ObjectGenerator<>(
+                    Code.class,
+                    unique("code")
+                            .objectUniquenessMaxAttempts(5)
+                            .objectOverride(Code.class, "code", () -> {
+                                draws.incrementAndGet();
+                                return "fixed";
+                            })
+                            .build());
+            generator.generate();
+            assertEquals(1, draws.get());
+
+            ObjectGenerationException error = assertThrows(ObjectGenerationException.class, generator::generate);
+
+            assertEquals(6, draws.get());
+            assertTrue(error.getCause().getMessage().contains("after 5 attempts"));
+        }
+
+        @Test
+        @DisplayName("a nested failure keeps the whole path and the reason")
+        void nestedFailureKeepsPathAndReason() {
+            List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+            ObjectGenerator<Outer> generator = new ObjectGenerator<>(
+                    Outer.class,
+                    unique("id").generationFailureListener(diagnostics::add).build());
+            generator.generate();
+
+            ObjectGenerationException error = assertThrows(ObjectGenerationException.class, generator::generate);
+
+            assertEquals("Outer.mid.id", error.getContext().orElseThrow().path());
+            assertTrue(error.getCause().getMessage().contains("Inner.id' after 256 attempts"));
+            assertEquals(
+                    List.of("Outer.mid.id", "Outer.mid.id"),
+                    diagnostics.stream().map(d -> d.context().path()).toList());
+        }
+
+        @Test
+        @DisplayName("an inherited field's failure is named by the path the object was reached on")
+        void inheritedFieldFailureUsesTheMemberPath() {
+            ObjectGenerator<InheritedIdHolder> generator =
+                    new ObjectGenerator<>(InheritedIdHolder.class, unique("id").build());
+            generator.generate();
+
+            GenerationFailureContext context = assertThrows(ObjectGenerationException.class, generator::generate)
+                    .getContext()
+                    .orElseThrow();
+
+            assertEquals("InheritedIdHolder.mid.id", context.path());
+            assertEquals(BaseId.class, context.ownerType());
+        }
+
+        @Test
+        @DisplayName("objectIgnoreErrors gives the default for the type and tells the listener each time")
+        void lenientModeGivesTheDefaultAndNotifiesListener() {
+            List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+            ObjectGenerator<BoundedId> generator = new ObjectGenerator<>(
+                    BoundedId.class,
+                    unique("id")
+                            .objectIgnoreErrors(true)
+                            .generationFailureListener(diagnostics::add)
+                            .build());
+
+            assertEquals(
+                    Set.of(1, 2, 3),
+                    generator.generateList(3).stream().map(BoundedId::id).collect(Collectors.toSet()));
+            assertTrue(diagnostics.isEmpty());
+
+            assertEquals(0, generator.generate().id());
+            assertEquals(0, generator.generate().id());
+
+            assertEquals(
+                    List.of("BoundedId.id", "BoundedId.id"),
+                    diagnostics.stream().map(d -> d.context().path()).toList());
+            assertTrue(diagnostics.getFirst().causeType().endsWith("UniqueFieldTracker$ExhaustedException"));
+
+            ObjectGenerator<Code> overridden = new ObjectGenerator<>(
+                    Code.class,
+                    unique("code")
+                            .objectIgnoreErrors(true)
+                            .objectOverride(Code.class, "code", () -> "fixed")
+                            .build());
+            assertEquals("fixed", overridden.generate().code());
+            assertNull(overridden.generate().code());
+        }
+
+        @Test
+        @DisplayName("the same seed gives the same values, retries included, on every stream policy")
+        void sameSeedGivesTheSameValuesAcrossRetries() {
+            for (ObjectFieldStreamPolicy policy : ObjectFieldStreamPolicy.values()) {
+                GeneratorConfig config =
+                        unique("id").objectFieldStreamPolicy(policy).build();
+                ObjectGenerator<Mixed> first = new ObjectGenerator<>(Mixed.class, config);
+                ObjectGenerator<Mixed> second = new ObjectGenerator<>(Mixed.class, config);
+
+                List<Mixed> values = first.generateList(5);
+
+                assertEquals(values, second.generateList(5), policy.name());
+                assertEquals(
+                        Set.of(1, 2, 3, 4, 5),
+                        values.stream().map(Mixed::id).collect(Collectors.toSet()),
+                        policy.name());
+                assertThrows(ObjectGenerationException.class, first::generate, policy.name());
+            }
+        }
+
+        @Test
+        @DisplayName("a failing @Randomizer reports its own failure, not exhaustion")
+        void failingRandomizerReportsItsOwnFailure() {
+            ObjectGenerator<FailinglyRandomized> generator = new ObjectGenerator<>(
+                    FailinglyRandomized.class, unique("code").build());
+
+            ObjectGenerationException error = assertThrows(ObjectGenerationException.class, generator::generate);
+
+            assertEquals(
+                    GenerationFailureCategory.CUSTOM_GENERATOR,
+                    error.getContext().orElseThrow().category());
+            assertInstanceOf(IllegalStateException.class, error.getCause());
+        }
+
+        @Test
+        @DisplayName("an unsatisfiable constraint stays a constraint failure, once per object")
+        void unsatisfiableConstraintStaysAConstraintFailure() {
+            ObjectGenerationException error = assertThrows(
+                    ObjectGenerationException.class,
+                    () -> new ObjectGenerator<>(Impossible.class, unique("id").build()).generate());
+
+            assertTrue(
+                    error.getMessage().startsWith("Unsatisfiable constraints at 'Impossible.id'"), error.getMessage());
+            assertInstanceOf(BeanValidationSupport.ConstraintConflictException.class, error.getCause());
+
+            List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+            ObjectGenerator<Impossible> lenient = new ObjectGenerator<>(
+                    Impossible.class,
+                    unique("id")
+                            .objectIgnoreErrors(true)
+                            .generationFailureListener(diagnostics::add)
+                            .build());
+            assertNull(lenient.generate().id());
+            assertNull(lenient.generate().id());
+            assertEquals(2, diagnostics.size());
         }
     }
 }

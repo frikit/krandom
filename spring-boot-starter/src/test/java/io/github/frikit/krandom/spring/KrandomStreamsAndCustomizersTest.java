@@ -15,6 +15,7 @@ import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.object.ObjectGenerator;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import io.github.frikit.krandom.generator.provider.ProviderHub;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -96,6 +97,27 @@ class KrandomStreamsAndCustomizersTest {
                     assertEquals(fields(new ObjectGenerator<>(Account.class, child).generate()), fields(account));
                     assertEquals(true, account.code.length() >= 12 && account.code.length() <= 13, account.code);
                 });
+    }
+
+    @Test
+    @DisplayName("named streams keep which unique fields were requested")
+    void namedStreamsKeepRequestedUniqueFields() {
+        GeneratorConfig.Builder pinned =
+                GeneratorConfig.builder().seed(42L).objectOverride(Account.class, "code", () -> "fixed");
+
+        KrandomObjectFakerFactory requested =
+                new KrandomObjectFakerFactory(pinned.objectUniqueField("code").build());
+        ObjectGenerator<Account> generator = requested.generator(Account.class, "requested");
+        assertEquals("fixed", generator.generate().code);
+        assertThrows(ObjectGenerationException.class, generator::generate);
+
+        KrandomObjectFakerFactory none =
+                new KrandomObjectFakerFactory(pinned.objectUniqueFields().build());
+        assertEquals(
+                List.of("fixed", "fixed"),
+                none.generator(Account.class, "none").generateList(2).stream()
+                        .map(account -> account.code)
+                        .toList());
     }
 
     @Test

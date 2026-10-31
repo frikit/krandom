@@ -20,7 +20,33 @@ through Spring Boot 3.5 dependency management, can still pass a seeded `Generato
 
 ## Seed reporting on failure
 
-Register the extension and inject a seeded `GeneratorConfig` into any test:
+Register the extension and inject a seeded `Krandom` session, the object that returns everyday
+fixture values, into any test:
+
+```java
+import io.github.frikit.krandom.generator.Krandom;
+import io.github.frikit.krandom.junit.KrandomExtension;
+
+@ExtendWith(KrandomExtension.class)
+class CheckoutTest {
+
+    private Customer customer;
+
+    @BeforeEach
+    void createCustomer(Krandom fake) {
+        customer = new Customer(fake.fullName(), fake.email());
+    }
+
+    @Test
+    void refusesAnotherEmail(Krandom fake) {
+        // The session of createCustomer: this draws the next email, it does not start the stream again.
+        assertFalse(checkout.accepts(customer, fake.email()));
+    }
+}
+```
+
+To generate objects, or to use a generator the session does not cover, inject the seeded
+`GeneratorConfig` instead:
 
 ```java
 import io.github.frikit.krandom.generator.GeneratorConfig;
@@ -131,17 +157,36 @@ Rules:
 
 | Parameter type | Resolves to |
 |:---|:---|
+| `Krandom` | The test's one session, built from its `GeneratorConfig` |
 | `GeneratorConfig` | A config pre-seeded with the test's seed |
 | `GeneratorConfig.Builder` | A builder copied from the test's recipe/config, for adding locale or other options before `build()` |
 
 All injections within one test share the same seed, so two injected configs generate identical
-sequences.
+sequences. `@KrandomSeed`, replay overrides and recipes therefore reach the session too, and the seed
+in a failure report reproduces the session's values.
+
+Every `Krandom` parameter of one test is the same instance, so its streams continue from one method
+to the next. `Krandom.of(config)` builds a new session, whose streams start again: it draws what the
+injected session drew, from the first value. Inject the session wherever a test needs it rather than
+building it again in a helper.
 
 ```java
 @Test
 void localizedFixture(GeneratorConfig.Builder builder) {
     GeneratorConfig config = builder.locale(Locale.GERMANY).build();
     String city = Generators.ofCity(config).generate();
+}
+```
+
+The injected session uses the test's configuration as it stands. For a session with other options,
+build it once from the injected builder and keep it for the test:
+
+```java
+private Krandom fake;
+
+@BeforeEach
+void createSession(GeneratorConfig.Builder builder) {
+    fake = Krandom.of(builder.locale(Locale.UK).build());
 }
 ```
 
@@ -174,6 +219,59 @@ other replay overrides or `@KrandomSeed`; test methods and unlisted classes are 
 the data in source instead, annotate each class with its reported class-scoped seed and keep the
 test's own `@KrandomSeed`.
 
+## Sessions in each scope
+
+A `Krandom` parameter follows the table above: each configuration has one session, built from it when
+first injected.
+
+| Declared on | Receives |
+|:---|:---|
+| the constructor (default `PER_METHOD` lifecycle), `@BeforeEach`, the test method and `@AfterEach` of one test | one session, whose streams continue from one method to the next |
+| any other test | another session; a test neither continues nor advances the streams of another |
+| a `@RepeatedTest` repetition or a `@ParameterizedTest` invocation | a session of its own, as each has its own configuration |
+| a `@Nested` test, including the constructors and `@BeforeEach`/`@AfterEach` methods of enclosing classes that run for it | one session, as for any other test |
+| `@BeforeAll`/`@AfterAll` methods, or the constructor under `@TestInstance(PER_CLASS)` | one class-level session per test class, so a `@Nested` class has its own |
+
+The class-level session and a test's session are always separate instances. A test does not receive
+the class-level session and does not advance it, so its streams continue from `@BeforeAll` to
+`@AfterAll` whatever the tests drew in between. How their values relate depends on their seeds:
+
+- Without a pin, the class-level session and each test's session have separate random seeds. A failure
+  reports these seeds, and the printed replay commands restore them.
+- A class-level `@KrandomSeed` applies to both, as does a seed or recipe override, so they have one
+  seed and start the same streams. The first `fake.email()` of a test is then the first `fake.email()`
+  of `@BeforeAll` again. For the same reason every test under the pin draws the same values, as does
+  every repetition and invocation, and a `@Nested` class that inherits the pin repeats the class-level
+  values of its enclosing class. A method-level `@KrandomSeed` gives one test a seed of its own.
+
+When tests must not repeat the values created in `@BeforeAll`, for example under a unique constraint,
+derive a session with streams of its own there:
+
+```java
+@BeforeAll
+static void createSharedCustomer(Krandom fake) {
+    Krandom shared = Krandom.of(fake.streamConfig("shared-fixtures"));
+    sharedCustomer = new Customer(shared.fullName(), shared.email());
+}
+```
+
+### Parallel execution
+
+A session is not thread-safe, and tests running at the same time do not share one: each test context
+has its own, including methods under `@Execution(CONCURRENT)` and repeated or parameterized invocations.
+The `@BeforeEach`, test and `@AfterEach` methods of one test run one after another, as do a class's
+`@BeforeAll` methods, `PER_CLASS` constructor and `@AfterAll` methods, and `@Nested` classes running at
+the same time have separate class-level sessions.
+
+A session is shared only if your code passes it on, and these uses are not safe:
+
+- a class-level session kept in a field and used by test methods that run concurrently;
+- a `@TestFactory` method's session captured by dynamic tests that run concurrently, because the factory
+  method and its `@BeforeEach` and `@AfterEach` methods have one session and dynamic tests get no other;
+- one session used from several threads that a test starts.
+
+Give each thread a session of its own instead, for example `Krandom.of(fake.streamConfig("worker-" + i))`.
+
 ## Composing with the Spring Boot starter
 
 JUnit extensions stack, so the extension combines with the starter's `@KrandomTest` slice: keep
@@ -204,7 +302,7 @@ By default injected configurations keep a **live** clock, and the failure recipe
 instant at which the failure was reported, not the instant at which the test generated its data.
 The failure output says so (`was read when the failure was reported`). Time-relative values such as
 `future(7)` dates or ages can therefore differ on replay when the test ran for a while or crossed a
-day boundary.
+day boundary. An injected session's `today()` and `birthday(...)` follow the same clock.
 
 For time-sensitive tests, set `krandom.junit.snapshot-clock=true` to capture one clock per
 configuration before parameter injection. The injected configuration and the failure recipe then

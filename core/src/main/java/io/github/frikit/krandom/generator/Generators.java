@@ -818,7 +818,7 @@ public final class Generators {
      * Returns a generator that produces strings matching the supported subset of regular
      * expressions, using explicit configuration.
      *
-     * @param pattern simplified regular expression; must not be {@code null}
+     * @param pattern regular expression, in the syntax {@link RegexGenerator} supports; must not be {@code null}
      * @param config  generator configuration; must not be {@code null}
      * @return regex generator
      */
@@ -1400,7 +1400,8 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces random {@link java.time.Instant} values (1970–2100 at UTC midnight).
+     * Returns a generator that produces random {@link java.time.Instant} values (1970–2100, with a time of
+     * day to the millisecond).
      */
     public static InstantGenerator ofInstant() {
         return new InstantGenerator();
@@ -1572,7 +1573,8 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that produces random {@link ZoneOffset} values.
+     * Returns a generator that produces random {@link ZoneOffset} values ({@code -12:00} to {@code +14:00}
+     * in 15-minute steps).
      */
     public static ZoneOffsetGenerator ofZoneOffset() {
         return new ZoneOffsetGenerator();

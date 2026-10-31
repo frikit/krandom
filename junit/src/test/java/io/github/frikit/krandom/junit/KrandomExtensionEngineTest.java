@@ -5,26 +5,36 @@
  */
 package io.github.frikit.krandom.junit;
 
+import static io.github.frikit.krandom.junit.EngineTestSupport.draw;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
 import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Krandom;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionConfigurationException;
@@ -233,6 +243,50 @@ class KrandomExtensionEngineTest {
                 1,
                 Set.copyOf(ConcurrentPinnedFixture.RECORDED).size(),
                 "concurrent tests must not share or advance one another's random source");
+    }
+
+    @Test
+    void repeatedAndParameterizedInvocationsEachGetASessionOfTheirOwn() {
+        InvocationSessionFixture.SESSIONS.clear();
+        InvocationSessionFixture.FIRST_DRAWS.clear();
+
+        EngineExecutionResults results = runFixture(InvocationSessionFixture.class);
+
+        results.testEvents()
+                .assertStatistics(statistics -> statistics.succeeded(4).failed(0));
+        assertEquals(4, Set.copyOf(InvocationSessionFixture.SESSIONS).size());
+        int first = draw(EngineTestSupport.newSession(4343L));
+        assertEquals(
+                List.of(first, first, first, first),
+                InvocationSessionFixture.FIRST_DRAWS,
+                "under a pin, each invocation starts the same streams");
+    }
+
+    @Test
+    void testsRunningAtTheSameTimeEachGetASessionOfTheirOwn() {
+        ConcurrentSessionFixture.SESSIONS.clear();
+        ConcurrentSessionFixture.DRAWS.clear();
+
+        EngineExecutionResults results = EngineTestSupport.run(
+                ConcurrentSessionFixture.class,
+                Map.of(
+                        "junit.jupiter.execution.parallel.enabled", "true",
+                        "junit.jupiter.execution.parallel.config.strategy", "fixed",
+                        // More threads than tests, as a repeated or parameterized test's own task also holds one.
+                        "junit.jupiter.execution.parallel.config.fixed.parallelism",
+                                Integer.toString(2 * ConcurrentSessionFixture.TESTS)));
+
+        results.testEvents()
+                .assertStatistics(statistics ->
+                        statistics.succeeded(ConcurrentSessionFixture.TESTS).failed(0));
+        assertEquals(
+                ConcurrentSessionFixture.TESTS,
+                Set.copyOf(ConcurrentSessionFixture.SESSIONS).size());
+        Krandom afresh = EngineTestSupport.newSession(ConcurrentSessionFixture.SEED);
+        List<Integer> expected = ConcurrentSessionFixture.drawAll(afresh);
+        for (List<Integer> draws : ConcurrentSessionFixture.DRAWS) {
+            assertEquals(expected, draws, "a test sharing its session would have skipped values of the stream");
+        }
     }
 
     @Test
@@ -513,6 +567,101 @@ class KrandomExtensionEngineTest {
         @Test
         void fourth(GeneratorConfig config) {
             RECORDED.add(config.createRandom().nextLong());
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionEngineTest")
+    @KrandomSeed(4343L)
+    static class InvocationSessionFixture {
+
+        static final List<Krandom> SESSIONS = new CopyOnWriteArrayList<>();
+        static final List<Integer> FIRST_DRAWS = new CopyOnWriteArrayList<>();
+
+        private Krandom fromBeforeEach;
+
+        @BeforeEach
+        void setUp(Krandom fake) {
+            fromBeforeEach = fake;
+        }
+
+        @RepeatedTest(2)
+        void repeated(Krandom fake) {
+            record(fake);
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = {1, 2})
+        void parameterized(int ignored, Krandom fake) {
+            record(fake);
+        }
+
+        private void record(Krandom fake) {
+            assertSame(fromBeforeEach, fake, "@BeforeEach belongs to the invocation it runs for");
+            SESSIONS.add(fake);
+            FIRST_DRAWS.add(draw(fake));
+            draw(fake);
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionEngineTest")
+    @KrandomSeed(ConcurrentSessionFixture.SEED)
+    @Execution(ExecutionMode.CONCURRENT)
+    static class ConcurrentSessionFixture {
+
+        static final long SEED = 7L;
+        static final int TESTS = 6;
+        static final List<Krandom> SESSIONS = new CopyOnWriteArrayList<>();
+        static final List<List<Integer>> DRAWS = new CopyOnWriteArrayList<>();
+
+        /** Holds each test and invocation until all of them are running, so they draw at the same time. */
+        private static final CyclicBarrier ALL_RUNNING = new CyclicBarrier(TESTS);
+
+        private Krandom fromBeforeEach;
+
+        static List<Integer> drawAll(Krandom fake) {
+            List<Integer> draws = new ArrayList<>();
+            for (int i = 0; i < 1000; i++) {
+                draws.add(draw(fake));
+            }
+            return draws;
+        }
+
+        @BeforeEach
+        void setUp(Krandom fake) {
+            fromBeforeEach = fake;
+        }
+
+        @Test
+        void first(Krandom fake) throws Exception {
+            drawOnceAllAreRunning(fake);
+        }
+
+        @Test
+        void second(Krandom fake) throws Exception {
+            drawOnceAllAreRunning(fake);
+        }
+
+        @RepeatedTest(2)
+        void repeated(Krandom fake) throws Exception {
+            drawOnceAllAreRunning(fake);
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = {1, 2})
+        void parameterized(int ignored, Krandom fake) throws Exception {
+            drawOnceAllAreRunning(fake);
+        }
+
+        @AfterEach
+        void tearDown(Krandom fake) {
+            assertSame(fromBeforeEach, fake);
+        }
+
+        private void drawOnceAllAreRunning(Krandom fake) throws Exception {
+            assertSame(fromBeforeEach, fake);
+            SESSIONS.add(fake);
+            ALL_RUNNING.await(30, TimeUnit.SECONDS);
+            DRAWS.add(drawAll(fake));
         }
     }
 

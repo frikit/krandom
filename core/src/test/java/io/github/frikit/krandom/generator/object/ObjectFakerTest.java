@@ -19,6 +19,7 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import jakarta.validation.constraints.NotNull;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -350,6 +351,48 @@ class ObjectFakerTest {
 
         assertEquals(3, users.size());
         assertTrue(users.stream().allMatch(user -> "Ada".equals(user.firstName)));
+    }
+
+    @Test
+    @DisplayName("a constant root rule repeats on a default name")
+    void constantRootRuleRepeatsOnADefaultName() {
+        List<FixtureUser> users = new ObjectFaker<>(FixtureUser.class)
+                .ruleFor("email", () -> "ada@example.com")
+                .generateList(5);
+
+        assertTrue(users.stream().allMatch(user -> "ada@example.com".equals(user.email)));
+    }
+
+    @Test
+    @DisplayName("a root rule is an override, so a constant on a requested name fails on the next object")
+    void constantRootRuleOnARequestedNameFailsOnTheNextObject() {
+        ObjectFaker<FixtureUser> faker = new ObjectFaker<>(
+                        FixtureUser.class,
+                        GeneratorConfig.builder().objectUniqueField("email").build())
+                .ruleFor("email", () -> "ada@example.com");
+
+        assertEquals("ada@example.com", faker.generate().email);
+
+        ObjectGenerationException error = assertThrows(ObjectGenerationException.class, faker::generate);
+        assertEquals("FixtureUser.email", error.getContext().orElseThrow().path());
+    }
+
+    @Test
+    @DisplayName("dependent and nested rules run after generation, so they may repeat a value on a unique field")
+    void postGenerationRulesMayRepeatValuesOnUniqueFields() {
+        List<FixtureUser> users = new ObjectFaker<>(FixtureUser.class)
+                .ruleFor("firstName", () -> "Ada")
+                .ruleFor("lastName", () -> "Lovelace")
+                .ruleFor("email", generated -> generated.firstName.toLowerCase() + "@example.com")
+                .generateList(5);
+        assertTrue(users.stream().allMatch(user -> "ada@example.com".equals(user.email)));
+
+        List<FixtureUserWithAddress> located = new ObjectFaker<>(
+                        FixtureUserWithAddress.class,
+                        GeneratorConfig.builder().objectUniqueField("city").build())
+                .ruleFor("address.city", () -> "Berlin")
+                .generateList(5);
+        assertTrue(located.stream().allMatch(user -> "Berlin".equals(user.address.city)));
     }
 
     @Test
@@ -1203,6 +1246,30 @@ class ObjectFakerTest {
         assertSame(faker, faker.assertConfigurationIsValid());
     }
 
+    @Test
+    @DisplayName("a nested rule runs after generation, so a required member at the depth limit still fails")
+    void nestedRuleDoesNotPreventRequiredMemberFailureAtDepthLimit() {
+        ObjectFaker<RequiredTop> faker = new ObjectFaker<>(
+                        RequiredTop.class,
+                        GeneratorConfig.builder().objectMaxDepth(1).build())
+                .ruleFor("mid.leaf", () -> new RequiredLeaf("rule"));
+
+        ObjectGenerationException error = assertThrows(ObjectGenerationException.class, faker::generate);
+
+        assertEquals("RequiredTop.mid.leaf", error.getContext().orElseThrow().path());
+    }
+
+    @Test
+    @DisplayName("a larger depth limit lets a nested rule set a required member")
+    void nestedRuleSetsRequiredMemberWithinDepthLimit() {
+        ObjectFaker<RequiredTop> faker = new ObjectFaker<>(
+                        RequiredTop.class,
+                        GeneratorConfig.builder().objectMaxDepth(2).build())
+                .ruleFor("mid.leaf", () -> new RequiredLeaf("rule"));
+
+        assertEquals("rule", faker.generate().mid().leaf().value());
+    }
+
     static final class FixtureUser {
         String firstName;
         String lastName;
@@ -1281,6 +1348,12 @@ class ObjectFakerTest {
     record FixtureRecordWithNestedRecord(String firstName, FixtureAddressRecord address) {}
 
     record FixtureAddressRecord(String city, String postalCode) {}
+
+    record RequiredLeaf(String value) {}
+
+    record RequiredMid(@NotNull RequiredLeaf leaf) {}
+
+    record RequiredTop(RequiredMid mid) {}
 
     record BrokenAddressRecord(String city, String postalCode) {
 

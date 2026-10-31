@@ -12,10 +12,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.datetime.ZoneOffsetGenerator;
 import io.github.frikit.krandom.generator.schema.Field;
 import io.github.frikit.krandom.generator.schema.Schema;
 import io.github.frikit.krandom.generator.schema.SchemaValueProvider;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -94,6 +100,29 @@ class KrandomJacksonTest {
         assertTrue(rowNode.path("company").path("name").isTextual());
         assertTrue(rowNode.path("company").path("address").path("city").isTextual());
         assertTrue(rowNode.path("card").path("number").isTextual());
+    }
+
+    @Test
+    @DisplayName("a generated offset's ISO text has hh:mm, which Jackson's Date parser needs")
+    void generatedOffsetsParseAsJacksonDates() throws Exception {
+        ObjectMapper mapper = KrandomJackson.newObjectMapper();
+        ZoneOffsetGenerator offsets =
+                new ZoneOffsetGenerator(GeneratorConfig.builder().seed(42L).build());
+        LocalDateTime local = LocalDateTime.of(2020, 1, 1, 10, 15, 30);
+
+        for (int i = 0; i < 500; i++) {
+            OffsetDateTime value = local.atOffset(offsets.generate());
+            String text = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(value);
+            assertTrue(text.matches("2020-01-01T10:15:30(Z|[+-]\\d{2}:\\d{2})"), text);
+            assertEquals(
+                    value.toInstant(),
+                    mapper.readValue(mapper.writeValueAsString(text), Date.class)
+                            .toInstant());
+        }
+        assertThrows(
+                InvalidFormatException.class,
+                () -> mapper.readValue("\"2020-01-01T10:15:30+07:17:55\"", Date.class),
+                "the parser refuses seconds in an offset, so the loop above is a real check");
     }
 
     @Test

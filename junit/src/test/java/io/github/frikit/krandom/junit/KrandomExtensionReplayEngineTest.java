@@ -14,16 +14,20 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Krandom;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
+import java.time.LocalDate;
 import java.util.Base64;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -174,7 +178,112 @@ class KrandomExtensionReplayEngineTest {
         }
     }
 
-    private static void assertReplayed(List<Long> values, String what) {
+    @Test
+    void reportedSeedReproducesTheValuesOfTheSession() {
+        FailingSessionFixture.EMAILS.clear();
+
+        EngineTestSupport.Captured run = EngineTestSupport.runCapturingStderr(FailingSessionFixture.class);
+
+        run.results().testEvents().assertStatistics(stats -> stats.failed(1));
+        long seed =
+                Long.parseLong(EngineTestSupport.singleReportEntry(run.results(), KrandomExtension.REPORT_ENTRY_KEY));
+        Krandom rebuilt = EngineTestSupport.newSession(seed);
+        assertEquals(
+                List.of(rebuilt.email(), rebuilt.email()),
+                FailingSessionFixture.EMAILS,
+                "annotating the test with the reported seed must repeat what its session drew");
+    }
+
+    @Test
+    void printedRecipeAndReportedSeedReplayTheSession() {
+        FailingSessionFixture.EMAILS.clear();
+        EngineTestSupport.Captured first = EngineTestSupport.runCapturingStderr(FailingSessionFixture.class);
+        first.results().testEvents().assertStatistics(stats -> stats.failed(1));
+        List<String> failing = List.copyOf(FailingSessionFixture.EMAILS);
+        Matcher gradle = GRADLE_REPLAY.matcher(first.stderr());
+        assertTrue(gradle.find(), first.stderr());
+        String seed = EngineTestSupport.singleReportEntry(first.results(), KrandomExtension.REPORT_ENTRY_KEY);
+
+        FailingSessionFixture.EMAILS.clear();
+        EngineTestSupport.run(FailingSessionFixture.class, Map.of("krandom.junit.recipe", gradle.group(1)));
+        assertEquals(failing, FailingSessionFixture.EMAILS);
+
+        FailingSessionFixture.EMAILS.clear();
+        EngineTestSupport.run(FailingSessionFixture.class, Map.of("krandom.junit.seed", seed));
+        assertEquals(failing, FailingSessionFixture.EMAILS);
+    }
+
+    @Test
+    void printedCommandsReplayClassLevelAndTestSessions() {
+        ClassSessionFailingFixture.reset();
+        EngineTestSupport.Captured first = EngineTestSupport.runCapturingStderr(ClassSessionFailingFixture.class);
+        first.results().testEvents().assertStatistics(stats -> stats.failed(1));
+        Matcher gradle = GRADLE_CLASS_REPLAY.matcher(first.stderr());
+        assertTrue(gradle.find(), "a class-level session's seed must be reported, was: " + first.stderr());
+
+        EngineExecutionResults replay = EngineTestSupport.run(
+                ClassSessionFailingFixture.class,
+                Map.of("krandom.junit.class-recipe", gradle.group(1), "krandom.junit.recipe", gradle.group(2)));
+
+        replay.testEvents().assertStatistics(stats -> stats.failed(1));
+        assertReplayed(ClassSessionFailingFixture.OUTER_VALUES, "the session of the outer @BeforeAll");
+        assertReplayed(ClassSessionFailingFixture.INNER_VALUES, "the session of the nested @BeforeAll");
+        assertReplayed(ClassSessionFailingFixture.TEST_VALUES, "the session of the failing test");
+    }
+
+    @Test
+    void recipeOverrideAppliesToTheSessionOverTheAnnotation() {
+        PinnedSessionFixture.reset();
+        GeneratorConfig recorded = GeneratorConfig.builder()
+                .seed("checkout-replay")
+                .locale(Locale.GERMANY)
+                .build();
+
+        EngineExecutionResults results = EngineTestSupport.run(
+                PinnedSessionFixture.class,
+                Map.of(
+                        "krandom.junit.recipe",
+                        encoded(recorded.getGenerationRecipe().orElseThrow())));
+
+        results.testEvents().assertStatistics(stats -> stats.succeeded(1).failed(0));
+        assertEquals(Locale.GERMANY, PinnedSessionFixture.config.getLocale());
+        assertEquals(
+                "checkout-replay", PinnedSessionFixture.config.getStringSeed().orElseThrow());
+        assertEquals(Krandom.of(recorded).city(), PinnedSessionFixture.city);
+    }
+
+    @Test
+    void seedOverrideAppliesToTheSessionOverTheAnnotation() {
+        PinnedSessionFixture.reset();
+
+        EngineExecutionResults results =
+                EngineTestSupport.run(PinnedSessionFixture.class, Map.of("krandom.junit.seed", "24680"));
+
+        results.testEvents().assertStatistics(stats -> stats.succeeded(1).failed(0));
+        assertEquals(24680L, PinnedSessionFixture.config.getSeed().orElseThrow());
+        assertEquals(EngineTestSupport.newSession(24680L).city(), PinnedSessionFixture.city);
+    }
+
+    @Test
+    void snapshotClockFixesTheSessionAndAPrintedRecipeReplaysItsDates() {
+        FailingDatedSessionFixture.reset();
+        EngineTestSupport.Captured first = EngineTestSupport.runCapturingStderr(
+                FailingDatedSessionFixture.class, Map.of("krandom.junit.snapshot-clock", "true"));
+        first.results().testEvents().assertStatistics(stats -> stats.failed(1));
+        Clock clock = FailingDatedSessionFixture.clock;
+        assertEquals(Clock.fixed(clock.instant(), clock.getZone()), clock);
+        assertEquals(LocalDate.now(clock), FailingDatedSessionFixture.TODAYS.get(0));
+        Matcher gradle = GRADLE_REPLAY.matcher(first.stderr());
+        assertTrue(gradle.find(), first.stderr());
+
+        EngineTestSupport.run(FailingDatedSessionFixture.class, Map.of("krandom.junit.recipe", gradle.group(1)));
+
+        assertEquals(clock.instant(), FailingDatedSessionFixture.clock.instant());
+        assertReplayed(FailingDatedSessionFixture.TODAYS, "the session's today()");
+        assertReplayed(FailingDatedSessionFixture.BIRTHDAYS, "the session's birthday()");
+    }
+
+    private static void assertReplayed(List<?> values, String what) {
         assertEquals(2, values.size(), what);
         assertEquals(values.get(0), values.get(1), what + " must replay");
     }
@@ -334,6 +443,102 @@ class KrandomExtensionReplayEngineTest {
                 TEST_VALUES.add(config.createRandom().nextLong());
                 fail("intentional fixture failure that depends on class-scoped and test data");
             }
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionReplayEngineTest")
+    @ExtendWith(KrandomExtension.class)
+    static class FailingSessionFixture {
+
+        static final List<String> EMAILS = new CopyOnWriteArrayList<>();
+
+        @BeforeEach
+        void setUp(Krandom fake) {
+            EMAILS.add(fake.email());
+        }
+
+        @Test
+        void boom(Krandom fake) {
+            EMAILS.add(fake.email());
+            fail("intentional fixture failure that depends on the session's values");
+        }
+    }
+
+    /** Injects only sessions, so that the class-level seeds reported can only have come from them. */
+    @Disabled("fixture for KrandomExtensionReplayEngineTest")
+    @ExtendWith(KrandomExtension.class)
+    static class ClassSessionFailingFixture {
+
+        static final List<String> OUTER_VALUES = new CopyOnWriteArrayList<>();
+        static final List<String> INNER_VALUES = new CopyOnWriteArrayList<>();
+        static final List<String> TEST_VALUES = new CopyOnWriteArrayList<>();
+
+        static void reset() {
+            OUTER_VALUES.clear();
+            INNER_VALUES.clear();
+            TEST_VALUES.clear();
+        }
+
+        @BeforeAll
+        static void outerSetUp(Krandom fake) {
+            OUTER_VALUES.add(fake.email());
+        }
+
+        @Nested
+        class Inner {
+
+            @BeforeAll
+            static void innerSetUp(Krandom fake) {
+                INNER_VALUES.add(fake.email());
+            }
+
+            @Test
+            void boom(Krandom fake) {
+                TEST_VALUES.add(fake.email());
+                fail("intentional fixture failure that depends on class-level and test sessions");
+            }
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionReplayEngineTest")
+    @KrandomSeed(99L)
+    static class PinnedSessionFixture {
+
+        static GeneratorConfig config;
+        static String city;
+
+        static void reset() {
+            config = null;
+            city = null;
+        }
+
+        @Test
+        void record(Krandom fake) {
+            config = fake.getConfig();
+            city = fake.city();
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionReplayEngineTest")
+    @ExtendWith(KrandomExtension.class)
+    static class FailingDatedSessionFixture {
+
+        static final List<LocalDate> TODAYS = new CopyOnWriteArrayList<>();
+        static final List<LocalDate> BIRTHDAYS = new CopyOnWriteArrayList<>();
+        static Clock clock;
+
+        static void reset() {
+            TODAYS.clear();
+            BIRTHDAYS.clear();
+            clock = null;
+        }
+
+        @Test
+        void boom(Krandom fake) {
+            clock = fake.getConfig().getClock();
+            TODAYS.add(fake.today());
+            BIRTHDAYS.add(fake.birthday(25, 80));
+            fail("intentional fixture failure that depends on the session's dates");
         }
     }
 

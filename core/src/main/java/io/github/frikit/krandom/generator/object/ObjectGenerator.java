@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,9 @@ import org.objenesis.ObjenesisStd;
  *       preferred; otherwise one unambiguous declared constructor is populated through the same
  *       resolver used for fields. Objenesis bypass is available only through {@link
  *       ObjectConstructionPolicy#UNSAFE_CONSTRUCTOR_BYPASS}.</li>
- *   <li><b>Nested objects</b> — resolved recursively up to the configured object max depth.</li>
+ *   <li><b>Nested objects</b> — resolved recursively up to the configured object max depth. A member
+ *       past that depth is left {@code null}, unless it is required (for example {@code @NotNull}),
+ *       which fails generation with the member's path.</li>
  *   <li><b>Enum fields</b> — a random constant is selected.</li>
  *   <li><b>Arrays</b> — auto-populated using the shared collection-size defaults
  *       (default 1 to 10 elements).</li>
@@ -65,12 +68,17 @@ import org.objenesis.ObjenesisStd;
  * not perturb existing members; nested objects establish their own member streams from the parent
  * member seed. Caller-owned, secure, and unseeded configurations retain sequential behavior.
  *
- * <p><b>Unique fields</b> ({@code id} and {@code email} unless configured with
- * {@link GeneratorConfig.Builder#objectUniqueFields(String...)}) stay unique across every object a
- * generator produces, including nested objects. The generator remembers each value it hands out, so
- * memory grows with the number of generated unique values: create a new generator to start a fresh
- * uniqueness scope, or configure no unique fields ({@code objectUniqueFields()}) for unbounded
- * streams.
+ * <p><b>Unique fields.</b> A name requested with {@link GeneratorConfig.Builder#objectUniqueField(String)}
+ * or {@link GeneratorConfig.Builder#objectUniqueFields(String...)} stays unique across every object a
+ * generator produces, including nested objects, however its value is produced. Each field has its own
+ * values, so {@code Order.id} and a nested {@code Customer.id} can be equal. A repeat draws again, up to
+ * {@link GeneratorConfig.Builder#objectUniquenessMaxAttempts(int)} times, and then generation fails, so
+ * an override that returns a constant fails on the next object. Unless replaced, {@code id},
+ * {@code email} and a few other names are unique by default, but only as a plausible default: semantic,
+ * built-in and enum values are checked, while an override, annotation or constraint may repeat its
+ * values. The generator remembers each value it hands out, so memory grows with the number of generated
+ * unique values: create a new generator to start a fresh uniqueness scope, or configure no unique fields
+ * ({@code objectUniqueFields()}) for unbounded streams.
  *
  * <p><b>Usage</b>
  * <pre>{@code
@@ -325,7 +333,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 typeBindings,
                 objectPath);
         SemanticCoherenceAdjuster coherenceAdjuster =
-                new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth);
+                new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth, objectPath);
         try {
             return type.isRecord()
                     ? generateRecord(resolver, coherenceAdjuster)
@@ -436,10 +444,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
             populateClass(
                     instance,
                     resolver,
-                    new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth),
+                    new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth, objectPath),
                     collectSettableFields(type),
                     config.isOverrideDefaultInitialization(),
-                    Set.of());
+                    Set.of(),
+                    Map.of());
             return instance;
         } catch (ModuleAccessException e) {
             throw moduleAccessFailure(e.getDeclaringType(), e);
@@ -514,9 +523,17 @@ public final class ObjectGenerator<T> implements Generator<T> {
         validateConstructibleType();
         List<Field> settableFields = collectSettableFields(type);
         Set<String> overriddenConstructorMembers = new HashSet<>();
+        Map<String, @Nullable Object> trackedConstructorArguments = new HashMap<>();
         // may throw ReflectiveOperationException for throwing constructors
-        T instance = instantiate(resolver, overriddenConstructorMembers);
-        populateClass(instance, resolver, coherenceAdjuster, settableFields, true, overriddenConstructorMembers);
+        T instance = instantiate(resolver, overriddenConstructorMembers, trackedConstructorArguments);
+        populateClass(
+                instance,
+                resolver,
+                coherenceAdjuster,
+                settableFields,
+                true,
+                overriddenConstructorMembers,
+                trackedConstructorArguments);
         return instance;
     }
 
@@ -643,7 +660,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
             SemanticCoherenceAdjuster coherenceAdjuster,
             List<Field> settableFields,
             boolean allowOverwriteExisting,
-            Set<String> overriddenConstructorMembers) {
+            Set<String> overriddenConstructorMembers,
+            Map<String, @Nullable Object> trackedConstructorArguments) {
         ObjectGenerationFailurePolicy failurePolicy = new ObjectGenerationFailurePolicy(
                 config.isIgnoreErrors(), config.getGeneratorConfig().getGenerationFailureListener());
         for (Field field : settableFields) {
@@ -655,6 +673,14 @@ public final class ObjectGenerator<T> implements Generator<T> {
                     && hasNonDefaultValue(instance, field)
                     && (overriddenConstructorMembers.contains(field.getName()) || !hasExplicitFieldOverride(field))) {
                 continue;
+            }
+            // The field's new value replaces its constructor argument, which is no longer in use.
+            if (trackedConstructorArguments.containsKey(field.getName())
+                    && UniqueFieldTracker.fieldKey(type, field.getName())
+                            .equals(UniqueFieldTracker.fieldKey(field.getDeclaringClass(), field.getName()))) {
+                uniqueFieldTracker.release(
+                        UniqueFieldTracker.fieldKey(type, field.getName()),
+                        trackedConstructorArguments.get(field.getName()));
             }
             Object value = resolver.resolveAndGenerateMember(
                     field.getGenericType(),
@@ -700,7 +726,10 @@ public final class ObjectGenerator<T> implements Generator<T> {
      *
      * @throws ReflectiveOperationException if the constructor is found but throws at runtime
      */
-    private T instantiate(FieldGeneratorResolver resolver, Set<String> overriddenConstructorMembers)
+    private T instantiate(
+            FieldGeneratorResolver resolver,
+            Set<String> overriddenConstructorMembers,
+            Map<String, @Nullable Object> trackedConstructorArguments)
             throws ReflectiveOperationException {
         try {
             Constructor<T> ctor = type.getDeclaredConstructor();
@@ -710,7 +739,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
             if (config.getConstructionPolicy() == ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS) {
                 return OBJENESIS.newInstance(type);
             }
-            return invokeUniqueDeclaredConstructor(resolver, overriddenConstructorMembers);
+            return invokeUniqueDeclaredConstructor(resolver, overriddenConstructorMembers, trackedConstructorArguments);
         }
     }
 
@@ -732,7 +761,10 @@ public final class ObjectGenerator<T> implements Generator<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private T invokeUniqueDeclaredConstructor(FieldGeneratorResolver resolver, Set<String> overriddenConstructorMembers)
+    private T invokeUniqueDeclaredConstructor(
+            FieldGeneratorResolver resolver,
+            Set<String> overriddenConstructorMembers,
+            Map<String, @Nullable Object> trackedConstructorArguments)
             throws ReflectiveOperationException {
         Constructor<?>[] candidates = type.getDeclaredConstructors();
         if (candidates.length != 1) {
@@ -758,6 +790,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 arguments[index] = defaultForType(parameter.getType());
                 continue;
             }
+            uniqueFieldTracker.forgetLastAdded();
             arguments[index] = resolver.resolveAndGenerateMember(
                     parameter.getParameterizedType(),
                     parameter.getType(),
@@ -766,6 +799,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
                     depth,
                     parameter,
                     memberStreamIdentity(type, "constructor", memberName));
+            // Only a requested name gets a replaced argument's value back. Any other name keeps it as used.
+            if (uniqueFieldTracker.addedLast(UniqueFieldTracker.fieldKey(type, memberName), arguments[index])
+                    && config.isRequestedUniqueField(memberName)) {
+                trackedConstructorArguments.put(memberName, arguments[index]);
+            }
         }
         try {
             return constructor.newInstance(arguments);

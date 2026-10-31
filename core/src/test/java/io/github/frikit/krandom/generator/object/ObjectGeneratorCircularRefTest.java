@@ -9,9 +9,15 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.core.model.CircularNode;
+import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import jakarta.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Set;
@@ -100,5 +106,55 @@ class ObjectGeneratorCircularRefTest {
         assertTrue(
                 Collections.disjoint(firstNodes, secondNodes),
                 "separate generate() calls must not share node identities");
+    }
+
+    @Test
+    @DisplayName("a @NotNull self-typed member below the depth limit is cut by the cycle guard and stays null")
+    void requiredSelfTypedMemberBelowTheLimitStaysNull() {
+        RequiredNode root = new ObjectGenerator<>(RequiredNode.class).generate();
+
+        assertNotNull(root.next, "the first self-typed member is generated");
+        assertNull(root.next.next, "the cycle guard cuts the next one, whatever its constraints");
+    }
+
+    @Test
+    @DisplayName("a @NotNull self-typed member at the depth limit fails like any required member")
+    void requiredSelfTypedMemberAtTheLimitFails() {
+        GeneratorConfig limit = GeneratorConfig.builder().objectMaxDepth(1).build();
+
+        ObjectGenerationException error = assertThrows(
+                ObjectGenerationException.class, () -> new ObjectGenerator<>(RequiredNode.class, limit).generate());
+
+        GenerationFailureContext context = error.getContext().orElseThrow();
+        assertEquals("RequiredNode.next.next", context.path());
+        assertEquals(RequiredNode.class, context.ownerType());
+        assertEquals(1, context.depth());
+        assertTrue(error.getCause().getMessage().contains("objectMaxDepth 1"));
+    }
+
+    @Test
+    @DisplayName("a larger depth limit moves a @NotNull self-typed member to the cycle guard")
+    void largerLimitMovesRequiredSelfTypedMemberToTheCycleGuard() {
+        GeneratorConfig limit = GeneratorConfig.builder().objectMaxDepth(2).build();
+
+        RequiredNode root = new ObjectGenerator<>(RequiredNode.class, limit).generate();
+
+        assertNotNull(root.next);
+        assertNull(root.next.next);
+    }
+
+    @Test
+    @DisplayName("an unannotated self-typed member at the depth limit stays null")
+    void nullableSelfTypedMemberAtTheLimitStaysNull() {
+        GeneratorConfig limit = GeneratorConfig.builder().objectMaxDepth(1).build();
+
+        CircularNode root = new ObjectGenerator<>(CircularNode.class, limit).generate();
+
+        assertNotNull(root.getNext());
+        assertNull(root.getNext().getNext());
+    }
+
+    static class RequiredNode {
+        @NotNull RequiredNode next;
     }
 }

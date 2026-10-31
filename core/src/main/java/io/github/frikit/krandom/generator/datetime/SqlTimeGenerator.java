@@ -8,15 +8,17 @@ package io.github.frikit.krandom.generator.datetime;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.sql.Time;
+import java.time.LocalTime;
 import java.util.Objects;
 import java.util.Random;
 
 /**
- * Generates random {@link Time} values.
+ * Generates random {@link Time} values, to the second. A {@code Time} is a time of day, so a seeded
+ * value reads the same whichever of the JDK's time zones is the JVM's default.
  */
 public final class SqlTimeGenerator implements Generator<Time> {
 
-    private static final long MILLIS_PER_DAY = 24L * 60L * 60L * 1000L;
+    private static final int SECONDS_PER_DAY = 24 * 60 * 60;
 
     private final Random random;
 
@@ -31,6 +33,6 @@ public final class SqlTimeGenerator implements Generator<Time> {
 
     @Override
     public Time generate() {
-        return new Time(random.nextLong(MILLIS_PER_DAY));
+        return Time.valueOf(LocalTime.ofSecondOfDay(random.nextInt(SECONDS_PER_DAY)));
     }
 }

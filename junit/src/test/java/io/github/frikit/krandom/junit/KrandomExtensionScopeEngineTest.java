@@ -5,31 +5,146 @@
  */
 package io.github.frikit.krandom.junit;
 
+import static io.github.frikit.krandom.junit.EngineTestSupport.draw;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Krandom;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
 
 /**
- * Verifies that configurations resolved against a test <em>class</em> (for {@code @BeforeAll}
- * parameters or {@code PER_CLASS} constructors) never leak into test methods, and that
- * constructor injection under the default lifecycle observes the test method's own seed.
+ * Verifies that configurations and sessions resolved against a test <em>class</em> (for
+ * {@code @BeforeAll} parameters or {@code PER_CLASS} constructors) never leak into test methods,
+ * and that constructor injection under the default lifecycle observes the test method's own seed
+ * and session.
  */
 class KrandomExtensionScopeEngineTest {
+
+    @Test
+    void everyTestGetsASessionOfItsOwn() {
+        SessionPerTestFixture.SESSIONS.clear();
+        SessionPerTestFixture.FIRST_DRAWS.clear();
+
+        EngineExecutionResults results = EngineTestSupport.run(SessionPerTestFixture.class);
+
+        results.testEvents().assertStatistics(stats -> stats.succeeded(2).failed(0));
+        assertEquals(2, Set.copyOf(SessionPerTestFixture.SESSIONS).size(), "each test has its own instance");
+        int first = draw(EngineTestSupport.newSession(60L));
+        assertEquals(
+                List.of(first, first),
+                SessionPerTestFixture.FIRST_DRAWS,
+                "a test starts its streams, whichever test drew before it");
+    }
+
+    @Test
+    void classCallbacksShareOneSessionThatTestsNeitherReuseNorAdvance() {
+        ClassSessionFixture.reset();
+
+        EngineExecutionResults results = EngineTestSupport.run(ClassSessionFixture.class);
+
+        results.containerEvents().assertStatistics(stats -> stats.failed(0));
+        results.testEvents().assertStatistics(stats -> stats.succeeded(2).failed(0));
+        assertSame(ClassSessionFixture.fromBeforeAll, ClassSessionFixture.fromAfterAll);
+        assertEquals(2, Set.copyOf(ClassSessionFixture.TEST_SESSIONS).size());
+        assertFalse(ClassSessionFixture.TEST_SESSIONS.contains(ClassSessionFixture.fromBeforeAll));
+        Krandom afresh = EngineTestSupport.newSession(70L);
+        int first = draw(afresh);
+        assertEquals(first, ClassSessionFixture.drawnInBeforeAll);
+        assertEquals(
+                draw(afresh),
+                ClassSessionFixture.drawnInAfterAll,
+                "@AfterAll continues after @BeforeAll: tests in between do not advance the class-level session");
+        assertEquals(
+                List.of(first, first),
+                ClassSessionFixture.TEST_DRAWS,
+                "a class-level pin gives both scopes one seed, so a test repeats the class-level session's values");
+    }
+
+    @Test
+    void unpinnedClassLevelAndTestSessionsHaveSeparateSeedsAndAMethodPinApplies() {
+        UnpinnedClassSessionFixture.reset();
+
+        EngineExecutionResults results = EngineTestSupport.run(UnpinnedClassSessionFixture.class);
+
+        results.containerEvents().assertStatistics(stats -> stats.failed(0));
+        results.testEvents().assertStatistics(stats -> stats.succeeded(3).failed(0));
+        assertSame(UnpinnedClassSessionFixture.classConfig, UnpinnedClassSessionFixture.classSession.getConfig());
+        assertEquals(
+                3,
+                Set.of(
+                                UnpinnedClassSessionFixture.classConfig
+                                        .getSeed()
+                                        .orElseThrow(),
+                                UnpinnedClassSessionFixture.TEST_SEEDS.get(0),
+                                UnpinnedClassSessionFixture.TEST_SEEDS.get(1))
+                        .size());
+        assertEquals(8L, UnpinnedClassSessionFixture.pinnedSeed);
+    }
+
+    @Test
+    void perClassConstructorSharesTheClassLevelSession() {
+        PerClassSessionFixture.CLASS_SESSIONS.clear();
+        PerClassSessionFixture.TEST_SESSIONS.clear();
+
+        EngineExecutionResults results = EngineTestSupport.run(PerClassSessionFixture.class);
+
+        results.containerEvents().assertStatistics(stats -> stats.failed(0));
+        results.testEvents().assertStatistics(stats -> stats.succeeded(2).failed(0));
+        assertEquals(3, PerClassSessionFixture.CLASS_SESSIONS.size());
+        assertEquals(1, Set.copyOf(PerClassSessionFixture.CLASS_SESSIONS).size());
+        assertEquals(2, Set.copyOf(PerClassSessionFixture.TEST_SESSIONS).size());
+        assertTrue(Collections.disjoint(PerClassSessionFixture.CLASS_SESSIONS, PerClassSessionFixture.TEST_SESSIONS));
+    }
+
+    @Test
+    void nestedClassesHaveAClassLevelSessionOfTheirOwnAndEnclosingCallbacksShareTheTestSession() {
+        NestedSessionFixture.reset();
+
+        EngineExecutionResults results = EngineTestSupport.run(NestedSessionFixture.class);
+
+        results.containerEvents().assertStatistics(stats -> stats.failed(0));
+        results.testEvents().assertStatistics(stats -> stats.succeeded(2).failed(0));
+        assertNotSame(NestedSessionFixture.outerClassSession, NestedSessionFixture.innerClassSession);
+        assertEquals(2, Set.copyOf(NestedSessionFixture.TEST_SESSIONS).size());
+        assertFalse(NestedSessionFixture.TEST_SESSIONS.contains(NestedSessionFixture.outerClassSession));
+        assertFalse(NestedSessionFixture.TEST_SESSIONS.contains(NestedSessionFixture.innerClassSession));
+        int first = draw(EngineTestSupport.newSession(90L));
+        assertEquals(first, NestedSessionFixture.outerClassDraw);
+        assertEquals(first, NestedSessionFixture.innerClassDraw, "a nested class inherits the pin, so draws the same");
+    }
+
+    @Test
+    void factoryMethodAndItsCallbacksShareOneSessionThatDynamicTestsCapture() {
+        FactorySessionFixture.SESSIONS.clear();
+
+        EngineExecutionResults results = EngineTestSupport.run(FactorySessionFixture.class);
+
+        results.testEvents().assertStatistics(stats -> stats.succeeded(1).failed(0));
+        assertEquals(4, FactorySessionFixture.SESSIONS.size());
+        assertEquals(1, Set.copyOf(FactorySessionFixture.SESSIONS).size());
+    }
 
     @Test
     void beforeAllInjectionDoesNotOverrideMethodSeeds() {
@@ -135,6 +250,246 @@ class KrandomExtensionScopeEngineTest {
     }
 
     // ── Fixtures: disabled in the regular suite, executed only via EngineTestKit ────────────
+
+    @Disabled("fixture for KrandomExtensionScopeEngineTest")
+    @KrandomSeed(60L)
+    static class SessionPerTestFixture {
+
+        static final List<Krandom> SESSIONS = new CopyOnWriteArrayList<>();
+        static final List<Integer> FIRST_DRAWS = new CopyOnWriteArrayList<>();
+
+        @Test
+        void first(Krandom fake) {
+            record(fake);
+        }
+
+        @Test
+        void second(Krandom fake) {
+            record(fake);
+        }
+
+        /** Draws more than it records, so that a test following in a shared session would see later values. */
+        private static void record(Krandom fake) {
+            SESSIONS.add(fake);
+            FIRST_DRAWS.add(draw(fake));
+            draw(fake);
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionScopeEngineTest")
+    @KrandomSeed(70L)
+    static class ClassSessionFixture {
+
+        static final List<Krandom> TEST_SESSIONS = new CopyOnWriteArrayList<>();
+        static final List<Integer> TEST_DRAWS = new CopyOnWriteArrayList<>();
+        static Krandom fromBeforeAll;
+        static Krandom fromAfterAll;
+        static int drawnInBeforeAll;
+        static int drawnInAfterAll;
+
+        static void reset() {
+            TEST_SESSIONS.clear();
+            TEST_DRAWS.clear();
+            fromBeforeAll = null;
+            fromAfterAll = null;
+            drawnInBeforeAll = 0;
+            drawnInAfterAll = 0;
+        }
+
+        @BeforeAll
+        static void setUp(Krandom fake) {
+            fromBeforeAll = fake;
+            drawnInBeforeAll = draw(fake);
+        }
+
+        @AfterAll
+        static void tearDown(Krandom fake) {
+            fromAfterAll = fake;
+            drawnInAfterAll = draw(fake);
+        }
+
+        @Test
+        void first(Krandom fake) {
+            TEST_SESSIONS.add(fake);
+            TEST_DRAWS.add(draw(fake));
+        }
+
+        @Test
+        void second(Krandom fake) {
+            TEST_SESSIONS.add(fake);
+            TEST_DRAWS.add(draw(fake));
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionScopeEngineTest")
+    @ExtendWith(KrandomExtension.class)
+    static class UnpinnedClassSessionFixture {
+
+        static final List<Long> TEST_SEEDS = new CopyOnWriteArrayList<>();
+        static Krandom classSession;
+        static GeneratorConfig classConfig;
+        static long pinnedSeed;
+
+        static void reset() {
+            TEST_SEEDS.clear();
+            classSession = null;
+            classConfig = null;
+            pinnedSeed = 0L;
+        }
+
+        @BeforeAll
+        static void setUp(Krandom fake, GeneratorConfig config) {
+            classSession = fake;
+            classConfig = config;
+        }
+
+        @Test
+        void first(Krandom fake) {
+            TEST_SEEDS.add(fake.getConfig().getSeed().orElseThrow());
+        }
+
+        @Test
+        void second(Krandom fake) {
+            TEST_SEEDS.add(fake.getConfig().getSeed().orElseThrow());
+        }
+
+        @KrandomSeed(8L)
+        @Test
+        void pinned(Krandom fake) {
+            pinnedSeed = fake.getConfig().getSeed().orElseThrow();
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionScopeEngineTest")
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    @KrandomSeed(80L)
+    static class PerClassSessionFixture {
+
+        static final List<Krandom> CLASS_SESSIONS = new CopyOnWriteArrayList<>();
+        static final List<Krandom> TEST_SESSIONS = new CopyOnWriteArrayList<>();
+
+        PerClassSessionFixture(Krandom fake) {
+            CLASS_SESSIONS.add(fake);
+        }
+
+        @BeforeAll
+        void setUp(Krandom fake) {
+            CLASS_SESSIONS.add(fake);
+        }
+
+        @AfterAll
+        void tearDown(Krandom fake) {
+            CLASS_SESSIONS.add(fake);
+        }
+
+        @Test
+        void first(Krandom fake) {
+            TEST_SESSIONS.add(fake);
+        }
+
+        @Test
+        void second(Krandom fake) {
+            TEST_SESSIONS.add(fake);
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionScopeEngineTest")
+    @KrandomSeed(90L)
+    static class NestedSessionFixture {
+
+        static final List<Krandom> TEST_SESSIONS = new CopyOnWriteArrayList<>();
+        static Krandom outerClassSession;
+        static Krandom innerClassSession;
+        static int outerClassDraw;
+        static int innerClassDraw;
+
+        static void reset() {
+            TEST_SESSIONS.clear();
+            outerClassSession = null;
+            innerClassSession = null;
+            outerClassDraw = 0;
+            innerClassDraw = 0;
+        }
+
+        private final Krandom outerConstructorSession;
+        private Krandom outerBeforeEachSession;
+
+        NestedSessionFixture(Krandom fake) {
+            this.outerConstructorSession = fake;
+        }
+
+        @BeforeAll
+        static void outerSetUp(Krandom fake) {
+            outerClassSession = fake;
+            outerClassDraw = draw(fake);
+        }
+
+        @BeforeEach
+        void outerBeforeEach(Krandom fake) {
+            outerBeforeEachSession = fake;
+        }
+
+        @AfterEach
+        void outerAfterEach(Krandom fake) {
+            assertSame(outerBeforeEachSession, fake);
+        }
+
+        @Nested
+        class Inner {
+
+            private final Krandom innerConstructorSession;
+
+            Inner(Krandom fake) {
+                this.innerConstructorSession = fake;
+            }
+
+            @BeforeAll
+            static void innerSetUp(Krandom fake) {
+                innerClassSession = fake;
+                innerClassDraw = draw(fake);
+            }
+
+            @Test
+            void first(Krandom fake) {
+                record(fake);
+            }
+
+            @Test
+            void second(Krandom fake) {
+                record(fake);
+            }
+
+            private void record(Krandom fake) {
+                assertSame(outerConstructorSession, fake);
+                assertSame(innerConstructorSession, fake);
+                assertSame(outerBeforeEachSession, fake);
+                TEST_SESSIONS.add(fake);
+            }
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionScopeEngineTest")
+    @ExtendWith(KrandomExtension.class)
+    static class FactorySessionFixture {
+
+        static final List<Krandom> SESSIONS = new CopyOnWriteArrayList<>();
+
+        @BeforeEach
+        void setUp(Krandom fake) {
+            SESSIONS.add(fake);
+        }
+
+        @TestFactory
+        List<DynamicTest> factory(Krandom fake) {
+            SESSIONS.add(fake);
+            return List.of(DynamicTest.dynamicTest("captures the factory's session", () -> SESSIONS.add(fake)));
+        }
+
+        @AfterEach
+        void tearDown(Krandom fake) {
+            SESSIONS.add(fake);
+        }
+    }
 
     @Disabled("fixture for KrandomExtensionScopeEngineTest")
     @ExtendWith(KrandomExtension.class)

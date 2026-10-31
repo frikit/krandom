@@ -69,6 +69,11 @@ GeneratorConfig config = GeneratorConfig.builder()
 User user = Generators.ofObject(User.class, config).generate();
 ```
 
+An override may repeat its value on every object. To
+[request a unique field]({{ '/guides/object-generation/' | relative_url }}#unique-fields), add
+`objectUniqueField("email")`, and the constant override above then fails on a second object from the same
+generator.
+
 ## Domain generators
 
 k-random faker/DataFaker randomizers map to kRandom facade methods and fluent namespaces:

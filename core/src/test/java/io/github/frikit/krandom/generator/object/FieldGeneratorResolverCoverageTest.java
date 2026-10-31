@@ -27,10 +27,12 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -211,6 +213,29 @@ class FieldGeneratorResolverCoverageTest {
                 .atZone(ZoneOffset.UTC)
                 .toLocalDate()
                 .isAfter(max));
+    }
+
+    @Test
+    @DisplayName("the unseeded Instant generator for a date range draws a time of day from the source it is given")
+    void unseededInstantGeneratorDrawsATimeOfDayFromItsSource() throws Exception {
+        LocalDate day = LocalDate.of(2024, 2, 29);
+        Class<?>[] parameters = {GeneratorConfig.class, Random.class, LocalDate.class, LocalDate.class};
+        GeneratorConfig unseeded = GeneratorConfig.builder().build();
+        Generator<Instant> generator =
+                invokeStatic("buildInstantGenerator", parameters, unseeded, new Random(9L), day, day);
+        Generator<Instant> sameSource =
+                invokeStatic("buildInstantGenerator", parameters, unseeded, new Random(9L), day, day);
+        Set<Integer> hours = new HashSet<>();
+
+        for (int i = 0; i < 1_000; i++) {
+            Instant instant = generator.generate();
+            assertEquals(sameSource.generate(), instant);
+            assertEquals(day, instant.atZone(ZoneOffset.UTC).toLocalDate(), instant.toString());
+            assertEquals(0, instant.getNano() % 1_000_000, instant.toString());
+            hours.add(instant.atZone(ZoneOffset.UTC).getHour());
+        }
+
+        assertEquals(24, hours.size(), "every hour of the UTC day must be reachable: " + hours);
     }
 
     @Test

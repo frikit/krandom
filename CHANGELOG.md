@@ -6,11 +6,177 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `GeneratorConfig.getObjectRequestedUniqueFieldNames()`, the names given to `objectUniqueField` and
+  `objectUniqueFields`.
+- `config { objectUniqueFields(...) }` in the Kotlin DSL, which had no way to request unique fields. It
+  replaces the names that are unique by default.
+- `KrandomExtension` now injects `Krandom` parameters. A session is built from the same configuration
+  as the `GeneratorConfig` parameter, so `@KrandomSeed`, replay overrides and recipes apply, and a
+  failure's seed reproduces its values. Every `Krandom` parameter of one test, across its constructor,
+  `@BeforeEach`, test method and `@AfterEach`, is the same session, so streams continue from one method
+  to the next. Each test, repetition and parameterized invocation has its own session, and
+  `@BeforeAll`, `@AfterAll` and `PER_CLASS` constructors share one for each class.
+
 ### Changed
 
+- A recipe now records which unique fields were requested, in the new setting
+  `object.requested-unique-fields`, as a replay must treat them the same way. Replay requires it and
+  `object.unique-fields`, so a recipe without them, such as one from an earlier version, is rejected.
 - Update Spring Boot to 4.1.2 (the `krandom-spring-boot-starter` dependency), the Gradle wrapper to
   9.8.2, Error Prone to 2.51.0, and NullAway to 0.14.3; align the consumer examples with Spring Boot
   4.1.2 and Maven Surefire 3.6.1.
+- Generated UTC offsets now follow one rule, `-12:00` to `+14:00` in 15-minute steps, in
+  `ZoneOffsetGenerator`, `OffsetTimeGenerator`, `OffsetDateTimeGenerator`, and the `ZoneOffset`,
+  `OffsetTime`, and `OffsetDateTime` members of generated objects, including semantic fields such as
+  `createdAt`. `ZoneOffsetGenerator` and `OffsetTimeGenerator` drew any second in plus or minus 18:00,
+  such as `+07:17:55`. `OffsetDateTimeGenerator` and the object engine's `ZoneOffset` and `OffsetTime`
+  drew quarter hours up to plus or minus 18:00. An `OffsetDateTime` member took a random zone's offset,
+  such as `-00:44:30`, and now keeps only that local date-time. The range and grid are a fixture
+  convention covering the offsets in actual use, not a standard: RFC 3339 excludes seconds from an
+  offset but imposes neither, and JSON imposes nothing. `OffsetDateTimeGenerator.between` still bounds
+  the instant, and a `ZonedDateTime` or `Calendar` keeps its zone's offset. Seeded output changes for
+  these offsets and for values that depend on them, such as an `updatedAt` aligned with an
+  `OffsetDateTime` `createdAt`, an `age` read from an `OffsetDateTime` `birthDate`, or a field sharing a
+  stream with a unique `OffsetDateTime` field whose retries change.
+- `InstantGenerator` and the `Instant` members of generated objects are now generated with a time of
+  day, to the millisecond, within the selected UTC day. They were always midnight UTC, so time-of-day
+  logic was never exercised and two instants on one day compared equal. This improves coverage and does
+  not guarantee distinct instants. The coherence pass can still write midnight, when it aligns an
+  `Instant` with a sibling that holds only a date or derives a `birthDate` from a constrained or
+  overridden `age`. A date range still includes the whole of its last day, through `23:59:59.999Z`. A
+  semantic `createdAt` or `updatedAt` with no configured range can now be later than a fixed clock's
+  current time on the clock's date, as a `LocalDateTime`, `Date`, or `Timestamp` field already could, and
+  `STRICT` mode can copy such a value over a `@Past` sibling. Seeded output changes for `Instant` values
+  and for values that depend on them, such as a `Date` `updatedAt` aligned with an `Instant` `createdAt`.
+
+### Fixed
+
+- `@Email` fields no longer get an ordinary domain under the default
+  `EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS`. They drew a random `.com`, `.net` or `.org` domain,
+  such as `fbww@dgeedi.org`. They now use `example.com`, `example.net` or `example.org`, or a `.test`
+  domain when `@Size` rules those out. A domain in the annotation's `regexp` or a `@Pattern` is used
+  as written, and `REALISTIC_UNCLASSIFIED` keeps the old shape. Seeded output changes for these
+  fields.
+- Sibling fields no longer give a generated email an ordinary domain under that policy. A
+  `companyEmail` beside a `companyName` used to become `hello@acmelabs.com`, and an `email` beside a
+  `domain` took that domain's generated value. In an object with an email field, a domain derived
+  from a company name now ends in `.test`, and a generated `domain` takes the email's reserved domain.
+  A domain or URL set through an override is still used verbatim, and `REALISTIC_UNCLASSIFIED` keeps
+  `.com`. Seeded output changes for objects with these fields.
+- A unique `domain` field now numbers a subdomain (`n1.acme.test`). It used to append to the
+  top-level domain (`acme.test1`), which left the reserved space.
+- `AvatarUrlGenerator` no longer writes the size in the digits of the JVM's default locale, which
+  gave `size=٢٥٦` on an Arabic JVM.
+- `SqlTimeGenerator` now generates a time of day, to the second, so a seeded `java.sql.Time` reads the
+  same whichever of the JDK's time zones is the JVM's default. It used to change with the zone.
+  Seeded output changes.
+- `SchemaParser` now applies a field's constraints together, so a generated value meets all of them,
+  and a combination with no value is rejected with its schema path. Seeded output changes for the
+  schemas below.
+- A `pattern` or `format` no longer ignores `minLength` and `maxLength`. `^A{8}$` with `maxLength` 3
+  generated `AAAAAAAA`, and is now rejected. Values are drawn again until one fits, up to 10,000 times
+  each. This samples rather than analyses, so a combination that rarely fits can also be rejected,
+  while parsing or on a later record. `^[a-z]+$` with `minLength` 20 used to generate values that were
+  too short, and now generates 20 to 40 characters, as a pattern's `*`, `+` and `{n,}` can repeat up to
+  twice `minLength`, or up to 10,000 times.
+- A `const` or `enum` value must now meet the field's `type`, length bounds, `pattern`, numeric bounds,
+  `minItems`, `maxItems`, `items` and `properties`. An `enum` keeps the values that do: `[a, bbbb]`
+  with `maxLength` 1 now generates only `a`. A `const` that breaks one is rejected, including a `const`
+  missing from the `enum` beside it, which used to win. `format` is not checked on these values,
+  because it is an annotation in Draft 2020-12.
+- Numeric bounds now intersect. `minimum` 100 with `exclusiveMinimum` 0 used to draw as low as 1.
+  OpenAPI 3.0's `exclusiveMinimum` and `exclusiveMaximum` flags now work: `maximum` 1 with
+  `exclusiveMaximum: true` used to draw up to 1,000,000 on a `number`, and `exclusiveMinimum: false`
+  used to exclude the minimum on an `integer`.
+- An `integer` now rounds a fractional bound inward. `minimum` 1.5 used to allow 1, and a bound beyond
+  the range of a `long` used to wrap around or saturate.
+- These are no longer rejected or left to fail while generating: `minLength` 0, `maxLength` 0, which
+  generates the empty string, a lone `minimum` or `maximum` beyond the default range, such as `minimum`
+  2000000 on a `number`, and a lone `minItems` above the default array size or `maxItems` below it.
+  `minItems` above `maxItems` now fails while parsing.
+- A schema with no `type` now honours `pattern`, `format` and length bounds. It used to generate any
+  text.
+- `nullable: true` no longer adds `null` to a `const` or `enum` that leaves it out, and `type: string`
+  now holds for a name that matches a provider of another type: `datetimeTimestamp` generated a `Long`
+  and now generates its digits as a string.
+- A `number` now stays within a bound that a double cannot hold. `minimum` 9007199254740993 used to
+  allow 9007199254740992. A range wider than a double holds, such as `minimum` -1.7976931348623157E308
+  with `maximum` 1.7976931348623157E308, now generates values, where it used to fail while generating.
+- `format: idn-email` now generates emails, which are all valid for it. It used to generate a random
+  string.
+- A `@NotNull` nested object member is no longer left `null` at `objectMaxDepth`. With
+  `objectMaxDepth(1)`, `record Top(Mid mid)` and `record Mid(@NotNull Leaf leaf)` used to give
+  `Top[mid=Mid[leaf=null]]`. Generation now fails with an `ObjectGenerationException` naming
+  `Top.mid.leaf`, whether `@NotNull` is on a field, getter, record component or constructor parameter.
+  Raise `objectMaxDepth` to generate the member, or give it an override. `objectIgnoreErrors(true)`
+  keeps the `null` and reports to `generationFailureListener`. A member with no required constraint,
+  or only `@Size`, is still left `null`, and so is an element of `List<@NotNull Leaf>`. Below the limit,
+  a cycle is still cut with `null`, even on a `@NotNull` member. A nested `ObjectFaker` rule runs after
+  generation, so it needs a larger `objectMaxDepth` too.
+- A field requested with `objectUniqueField` or `objectUniqueFields` now stays unique however its value
+  is produced. Only semantic, built-in and enum values were checked, so `objectUniqueField("id")` with
+  `@Min(1) @Max(1000) int id` repeated values with no error. Overrides, `@Randomizer`, `@Fake`,
+  `@FakeRange` and Bean Validation constraints are now checked too, and a repeat draws again. So a
+  constant override on a requested field now fails on the next object from the same generator. A
+  requested name is matched as given: requesting `id` does not do this for `customerId`. Dependent and
+  nested `ObjectFaker` rules run after generation and are not checked. A repeat uses up a draw, so seeded
+  output changes for objects where one happens. The names unique by default, such as `email` and `id`, are
+  not requested: an override, annotation or constraint on one of them may still repeat its values.
+- Each unique field now has its own values. All the aliases of a name, and the same name on different
+  types, used to share one set. `orderId` and `customerId` can now be equal, and so can `Order.id` and a
+  nested `Customer.id`. A field inherited from a superclass is one field, whichever subclass reaches it,
+  and a constructor argument shares the values of the field with its name. Seeded output changes for
+  objects where two such fields would have drawn the same value.
+- A unique field whose values run out now fails through the object engine's failure handling. It used
+  to throw an error without a path, and without telling `generationFailureListener`, whatever
+  `objectIgnoreErrors` said. In a nested object the reason was lost as well. The error now names the
+  path, such as `Outer.mid.id`. `objectIgnoreErrors(true)` gives the field the default for its type,
+  or `null` for a derived value such as an email, and tells the listener.
+- The coherence pass no longer overwrites a requested `createdAt`, `updatedAt`, `birthDate`, `age`,
+  `price`, `amount`, `balance`, `active` or `status` with a derived value, which could repeat. The field
+  keeps its generated value, and the other field of the pair adapts where it can. So two requested
+  fields can be left out of line with each other: uniqueness wins.
+- A derived value that a unique field already holds is no longer numbered. A generated unique `domain`
+  with no email beside it was always `n1.`-prefixed, and with `objectUniquenessMaxAttempts(1)` it failed
+  on the first object. Seeded output changes for such a field. A field initializer stays as the class
+  set it, where a unique `domain` initializer was numbered from the second object on.
+- `objectUniqueFields()` with no names no longer breaks a seeded configuration. Generating with it, or
+  asking it for a recipe, failed with `setting value must be a non-blank single-line value`. A recipe now
+  writes an empty set of names as `-`.
+- `RegexGenerator` no longer generates values that do not match its pattern. For any pattern, every value
+  now satisfies `Pattern.compile(pattern).matcher(value).matches()`, or the constructor throws
+  `IllegalArgumentException`. `^(?:abc)$` generated `?:abc`, `\bfoo\b` generated `bfoob`, `[\d]` drew `\`
+  and `d`, and `a+?` generated `aaa?`. This also covers `Generators.ofRegex`, `regexify`, `@Pattern`,
+  `@Email(regexp = ...)` and a JSON Schema `pattern`. Patterns it already got right keep their seeded
+  values, apart from the two changes noted below. Values do change for a pattern that matched only by
+  accident, such as `\S*$+`, which wrote the `+` into the value, or `[\D]`, which drew the letter `D`.
+- `RegexGenerator` now supports non-capturing and named groups, `|` at the top level, escapes inside a
+  character class, such as `[\w.-]`, a `]` first in a class, lazy quantifiers, `\f`, `\a`, `\e`, `\xhh`,
+  `\x{h...h}`, `\uhhhh`, and a repeated supplementary character. `^`, `$`, `\A`, `\Z`, `\z` and `\b` are
+  now checked at construction: they are accepted where they hold on every value, such as `\b(foo|bar)\b`,
+  and rejected elsewhere, such as `a^b`, which generated `ab`.
+- `.` now draws from printable ASCII. It always generated a literal dot, so `.{5}` gave `.....`. Seeded
+  output changes for a pattern with a `.`.
+- `RegexGenerator` now rejects at construction what it cannot honour, with a message naming the construct
+  and its position: lookaround, atomic groups, backreferences, inline flags, possessive quantifiers, a
+  quantifier with nothing to repeat, `\B`, `\G`, `\b{g}`, `\R`, `\X`, `\h`, `\H`, `\v`, `\V`, `\p`, `\P`,
+  `\N`, `\c`, octal `\0`, `\Q`, class intersection and nesting, a supplementary character in a class, and
+  surrogates. A malformed pattern now fails with `java.util.regex`'s own error. `[abc`, `\d{3` and `\q`
+  used to be accepted, and `a{5,2}` failed only while generating.
+- `a{20,}` now generates 20 `a`s, where it failed while generating. `*`, `+` and `{n,}` repeat at most 10
+  times, or `n` times when that is more. A `GeneratorConfig` whose minimum string length is above 5 now
+  raises 10 to twice that length, up to 10,000, so that a value can reach it, and a JSON Schema `minLength`
+  or a `@Size` minimum does the same. `[0-9]+` with `@Size(min = 20)` used to fail, and now works. Seeded
+  output changes for a pattern with an open-ended repetition under such a minimum.
+- A pattern `RegexGenerator` cannot generate from no longer fails a `@Pattern` or `@Email` field that
+  another source can meet, as it is still enforced on every candidate. `\p{L}+` with
+  `@Size(min = 2, max = 5)` used to fail, and now works. Where nothing can meet it, the failure names the
+  unsupported construct. That includes a pattern the wrong text used to satisfy by luck: `^(?!admin).*$`
+  alone generated `?!admin`, and now fails. Seeded output can change for a field whose pattern is no
+  longer a source.
+- A JSON Schema `pattern` that `RegexGenerator` cannot generate from is now rejected with its schema path.
 
 ## [2.9.0] - 2026-10-19
 

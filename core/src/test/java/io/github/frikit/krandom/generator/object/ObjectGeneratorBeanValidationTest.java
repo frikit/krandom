@@ -5,12 +5,25 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.EmailDomainPolicy;
+import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.core.model.PersonWithAllConstraints;
 import io.github.frikit.krandom.generator.core.model.PersonWithConstraints;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
+import java.util.Set;
+import org.hibernate.validator.HibernateValidator;
+import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,6 +32,28 @@ import org.junit.jupiter.api.Test;
 class ObjectGeneratorBeanValidationTest {
 
     private static final int SAMPLES = 50;
+    private static final Validator VALIDATOR = Validation.byProvider(HibernateValidator.class)
+            .configure()
+            .messageInterpolator(new ParameterMessageInterpolator())
+            .buildValidatorFactory()
+            .getValidator();
+
+    record PlainEmail(@Email String email) {}
+
+    record ShortEmail(@Email @Size(max = 14) String email) {}
+
+    record ShortestEmail(@Email @Size(min = 8, max = 8) String email) {}
+
+    record ExactEmail(@Email @Size(min = 15, max = 15) String email) {}
+
+    record LongestEmail(@Email @Size(min = 22, max = 22) String email) {}
+
+    record TooShortEmail(@Email @Size(max = 7) String email) {}
+
+    record TooLongEmail(@Email @Size(min = 23) String email) {}
+
+    record CorporateEmail(
+            @Email(regexp = "[a-z]{3,8}@corp\\.com") String email) {}
 
     @Test
     @DisplayName("@Size(min=3, max=10) on String is respected")
@@ -54,6 +89,79 @@ class ObjectGeneratorBeanValidationTest {
                     .getEmail();
             assertNotNull(email);
             assertTrue(email.contains("@"), "email '" + email + "' does not contain '@'");
+        }
+    }
+
+    @Test
+    @DisplayName("@Email stays on reserved domains under the default email policy")
+    void emailConstraintStaysOnReservedDomains() {
+        ObjectGenerator<PlainEmail> generator = new ObjectGenerator<>(
+                PlainEmail.class, GeneratorConfig.builder().seed(7L).build());
+        for (int i = 0; i < SAMPLES; i++) {
+            String email = generator.generate().email();
+            assertTrue(email.matches("[a-z]+@example\\.(com|net|org)"), email);
+        }
+    }
+
+    @Test
+    @DisplayName("@Email with a @Size too short for example.* uses the reserved .test domain")
+    void emailConstraintWithShortSizeUsesTheTestDomain() {
+        ObjectGenerator<ShortEmail> generator = new ObjectGenerator<>(
+                ShortEmail.class, GeneratorConfig.builder().seed(7L).build());
+        for (int i = 0; i < SAMPLES; i++) {
+            String email = generator.generate().email();
+            assertTrue(email.matches("[a-z]+@[a-z]+\\.test") && email.length() <= 14, email);
+        }
+    }
+
+    @Test
+    @DisplayName("@Email with an exact @Size gives a valid address from every seed")
+    void emailConstraintWithAnExactSizeGivesAValidAddressFromEverySeed() {
+        for (long seed = 0; seed < 200; seed++) {
+            GeneratorConfig config = GeneratorConfig.builder().seed(seed).build();
+            assertValid(new ObjectGenerator<>(ShortestEmail.class, config).generate());
+            assertValid(new ObjectGenerator<>(ExactEmail.class, config).generate());
+            assertValid(new ObjectGenerator<>(LongestEmail.class, config).generate());
+        }
+    }
+
+    @Test
+    @DisplayName("@Email with a @Size no reserved address fits is refused")
+    void emailConstraintWithASizeNoReservedAddressFitsIsRefused() {
+        GeneratorConfig config = GeneratorConfig.builder().seed(7L).build();
+
+        assertThrows(ObjectGenerationException.class, new ObjectGenerator<>(TooShortEmail.class, config)::generate);
+        assertThrows(ObjectGenerationException.class, new ObjectGenerator<>(TooLongEmail.class, config)::generate);
+    }
+
+    private static void assertValid(Object value) {
+        assertEquals(Set.of(), VALIDATOR.validate(value), value.toString());
+    }
+
+    @Test
+    @DisplayName("@Email follows the realistic email policy")
+    void emailConstraintFollowsTheRealisticEmailPolicy() {
+        ObjectGenerator<PlainEmail> generator = new ObjectGenerator<>(
+                PlainEmail.class,
+                GeneratorConfig.builder()
+                        .seed(7L)
+                        .emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED)
+                        .build());
+        for (int i = 0; i < SAMPLES; i++) {
+            String email = generator.generate().email();
+            assertTrue(email.matches("[a-z]+@[a-z]+\\.(com|net|org)"), email);
+            assertFalse(email.contains("@example."), email);
+        }
+    }
+
+    @Test
+    @DisplayName("@Email with its own regexp keeps that domain under the default email policy")
+    void emailConstraintWithItsOwnRegexpKeepsThatDomain() {
+        ObjectGenerator<CorporateEmail> generator = new ObjectGenerator<>(
+                CorporateEmail.class, GeneratorConfig.builder().seed(7L).build());
+        for (int i = 0; i < SAMPLES; i++) {
+            String email = generator.generate().email();
+            assertTrue(email.endsWith("@corp.com"), email);
         }
     }
 

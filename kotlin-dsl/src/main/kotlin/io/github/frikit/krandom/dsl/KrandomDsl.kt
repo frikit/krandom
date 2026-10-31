@@ -380,6 +380,14 @@ class ConfigScope(
         builder.objectMaxDepth(depth)
     }
 
+    /**
+     * Requests the fields whose values must not repeat across a generator's objects, however they are
+     * produced. This replaces the names that are unique by default, and with no names nothing is unique.
+     */
+    fun objectUniqueFields(vararg fieldNames: String) {
+        builder.objectUniqueFields(*fieldNames)
+    }
+
     /** Selects the explicit object construction policy (safe by default in v2). */
     fun constructionPolicy(policy: io.github.frikit.krandom.generator.`object`.ObjectConstructionPolicy) {
         builder.objectConstructionPolicy(policy)

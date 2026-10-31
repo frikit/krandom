@@ -8,6 +8,8 @@ package io.github.frikit.krandom.junit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Krandom;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -57,6 +59,16 @@ final class EngineTestSupport {
                 .toList();
         assertEquals(1, entries.size(), "expected exactly one '" + key + "' report entry");
         return entries.get(0).getKeyValuePairs().get(key);
+    }
+
+    /** Draws the next value of one session stream, wide enough that a repeat means a restarted stream. */
+    static int draw(Krandom session) {
+        return session.intBetween(Integer.MIN_VALUE, Integer.MAX_VALUE);
+    }
+
+    /** Builds a new session with this seed, whose streams start from their beginning. */
+    static Krandom newSession(long seed) {
+        return Krandom.of(GeneratorConfig.builder().seed(seed).build());
     }
 
     record Captured(EngineExecutionResults results, String stderr) {}

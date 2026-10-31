@@ -311,10 +311,10 @@ class SemanticCoherenceAdjusterTest {
         company.companyName = "Acme Labs";
         adjuster.adjustInstance(
                 ManualCoherenceHolder.class, company, declaredFields(ManualCoherenceHolder.class), true);
-        assertEquals("acmelabs.com", company.domain);
-        assertEquals("https://www.acmelabs.com", company.url);
-        assertEquals("hello@acmelabs.com", company.companyEmail);
-        assertEquals("https://www.acmelabs.com", company.companyUrl);
+        assertEquals("acmelabs.test", company.domain);
+        assertEquals("https://www.acmelabs.test", company.url);
+        assertEquals("hello@acmelabs.test", company.companyEmail);
+        assertEquals("https://www.acmelabs.test", company.companyUrl);
 
         SemanticCoherenceAdjuster emailAdjuster =
                 new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
@@ -454,7 +454,7 @@ class SemanticCoherenceAdjusterTest {
                 singleWord,
                 declaredFields(ManualCompanyFallbackEmailHolder.class),
                 true);
-        assertEquals("hello@acmelabs.com", singleWord.email);
+        assertEquals("hello@acmelabs.test", singleWord.email);
 
         ManualCompanyFallbackEmailHolder multiWord = new ManualCompanyFallbackEmailHolder();
         multiWord.fullName = "株式会社 株式会社";
@@ -464,7 +464,54 @@ class SemanticCoherenceAdjusterTest {
                 multiWord,
                 declaredFields(ManualCompanyFallbackEmailHolder.class),
                 true);
-        assertEquals("hello@widgetsco.com", multiWord.email);
+        assertEquals("hello@widgetsco.test", multiWord.email);
+    }
+
+    @Test
+    @DisplayName("generated emails take a real sibling domain only when an override supplied it")
+    void generatedEmailsTakeARealSiblingDomainOnlyWhenAnOverrideSuppliedIt() throws Exception {
+        SemanticCoherenceAdjuster adjuster =
+                new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
+
+        ManualCoherenceHolder generatedUrl = new ManualCoherenceHolder();
+        generatedUrl.url = "https://www.widgets.com/path";
+        adjuster.adjustInstance(
+                ManualCoherenceHolder.class, generatedUrl, declaredFields(ManualCoherenceHolder.class), true);
+        assertNull(generatedUrl.companyEmail);
+
+        ManualCompanyContactHolder generatedCompanyUrl = new ManualCompanyContactHolder();
+        generatedCompanyUrl.companyUrl = "https://www.widgets.com/path";
+        adjuster.adjustInstance(
+                ManualCompanyContactHolder.class,
+                generatedCompanyUrl,
+                declaredFields(ManualCompanyContactHolder.class),
+                true);
+        assertNull(generatedCompanyUrl.companyEmail);
+
+        ManualCoherenceHolder suppliedUrl = new ManualCoherenceHolder();
+        suppliedUrl.url = "https://www.widgets.com/path";
+        new SemanticCoherenceAdjuster(
+                        ObjectGeneratorConfig.builder()
+                                .override(ManualCoherenceHolder.class, "url", () -> "unused")
+                                .build(),
+                        new UniqueFieldTracker())
+                .adjustInstance(
+                        ManualCoherenceHolder.class, suppliedUrl, declaredFields(ManualCoherenceHolder.class), true);
+        assertEquals("hello@widgets.com", suppliedUrl.companyEmail);
+
+        ManualCompanyContactHolder suppliedCompanyUrl = new ManualCompanyContactHolder();
+        suppliedCompanyUrl.companyUrl = "https://www.widgets.com/path";
+        new SemanticCoherenceAdjuster(
+                        ObjectGeneratorConfig.builder()
+                                .override(ManualCompanyContactHolder.class, "companyUrl", () -> "unused")
+                                .build(),
+                        new UniqueFieldTracker())
+                .adjustInstance(
+                        ManualCompanyContactHolder.class,
+                        suppliedCompanyUrl,
+                        declaredFields(ManualCompanyContactHolder.class),
+                        true);
+        assertEquals("hello@widgets.com", suppliedCompanyUrl.companyEmail);
     }
 
     @Test
