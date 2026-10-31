@@ -97,6 +97,12 @@ public final class ProviderCatalog {
             ProviderValidity.CONFIGURATION_DEPENDENT,
             ProviderTestSafety.CONFIGURATION_DEPENDENT,
             ProviderSafetyPolicy.EMAIL_DOMAIN);
+    private static final ProviderSafetyMetadata NETWORK_SAFETY = new ProviderSafetyMetadata(
+            ProviderValidity.GUARANTEED,
+            ProviderValidity.NOT_APPLICABLE,
+            ProviderValidity.CONFIGURATION_DEPENDENT,
+            ProviderTestSafety.CONFIGURATION_DEPENDENT,
+            ProviderSafetyPolicy.NETWORK);
     private static final ProviderSafetyMetadata BANKING_SAFETY = new ProviderSafetyMetadata(
             ProviderValidity.CONFIGURATION_DEPENDENT,
             ProviderValidity.CONFIGURATION_DEPENDENT,
@@ -318,8 +324,10 @@ public final class ProviderCatalog {
                                 CompanyUrlGenerator::new,
                                 List.of("company_url"),
                                 "companyurl")
-                        .withSchemaProjections(projections(stringFormat(
-                                "company.url", (provider, config) -> provider.generate(), "uri", "company_url"))),
+                        .withSafetyMetadata(NETWORK_SAFETY)
+                        .withSchemaProjections(projections(ProviderCatalog.<CompanyUrlGenerator>stringFormat(
+                                        "company.url", (provider, config) -> provider.generate(), "uri", "company_url")
+                                .withSafetyMetadata(NETWORK_SAFETY))),
                 descriptor(
                                 "company.buzzword",
                                 CompanyBuzzwordGenerator.class,
@@ -424,20 +432,32 @@ public final class ProviderCatalog {
                                 .withSafetyMetadata(PHONE_NUMBER_SAFETY))),
                 descriptor("address", StreetAddressGenerator.class, StreetAddressGenerator::new, List.of()),
                 descriptor("internet.url", URLGenerator.class, URLGenerator::new, List.of("network", "url"), "url")
-                        .withSchemaProjections(projections(stringFormat(
-                                "internet.url", (provider, config) -> provider.generate(), "uri", "network", "url"))),
+                        .withSafetyMetadata(NETWORK_SAFETY)
+                        .withSchemaProjections(projections(ProviderCatalog.<URLGenerator>stringFormat(
+                                        "internet.url",
+                                        (provider, config) -> provider.generate(),
+                                        "uri",
+                                        "network",
+                                        "url")
+                                .withSafetyMetadata(NETWORK_SAFETY))),
                 descriptor("internet.domain", DomainGenerator.class, DomainGenerator::new, List.of("domain"), "domain")
-                        .withSchemaProjections(projections(
-                                string("internet.domain", (provider, config) -> provider.generate(), "domain"))),
+                        .withSafetyMetadata(NETWORK_SAFETY)
+                        .withSchemaProjections(projections(ProviderCatalog.<DomainGenerator>string(
+                                        "internet.domain", (provider, config) -> provider.generate(), "domain")
+                                .withSafetyMetadata(NETWORK_SAFETY))),
                 descriptor("internet.hostname", HostnameGenerator.class, HostnameGenerator::new, List.of("hostname"))
-                        .withSchemaProjections(projections(stringFormat(
-                                "internet.hostname",
-                                (provider, config) -> provider.generate(),
-                                "hostname",
-                                "hostname"))),
+                        .withSafetyMetadata(NETWORK_SAFETY)
+                        .withSchemaProjections(projections(ProviderCatalog.<HostnameGenerator>stringFormat(
+                                        "internet.hostname",
+                                        (provider, config) -> provider.generate(),
+                                        "hostname",
+                                        "hostname")
+                                .withSafetyMetadata(NETWORK_SAFETY))),
                 descriptor("internet", URLGenerator.class, URLGenerator::new, List.of())
-                        .withSchemaProjections(projections(
-                                stringFormat("internet", (provider, config) -> provider.generate(), "uri"))),
+                        .withSafetyMetadata(NETWORK_SAFETY)
+                        .withSchemaProjections(projections(ProviderCatalog.<URLGenerator>stringFormat(
+                                        "internet", (provider, config) -> provider.generate(), "uri")
+                                .withSafetyMetadata(NETWORK_SAFETY))),
                 descriptor(
                                 "commerce.product_info",
                                 ProductInfoGenerator.class,

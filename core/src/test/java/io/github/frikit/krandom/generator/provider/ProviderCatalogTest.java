@@ -150,6 +150,29 @@ class ProviderCatalogTest {
     }
 
     @Test
+    @DisplayName("destination providers expose the configuration-aware network safety policy")
+    void destinationProvidersExposeNetworkSafetyPolicy() {
+        for (String key : List.of("internet.url", "internet.domain", "internet.hostname", "internet", "company.url")) {
+            ProviderDescriptor<?> descriptor = descriptorFor(key);
+            ProviderSafetyMetadata metadata = descriptor.getSafetyMetadata();
+
+            assertEquals(ProviderValidity.GUARANTEED, metadata.formatValidity(), key);
+            assertEquals(ProviderValidity.NOT_APPLICABLE, metadata.checksumValidity(), key);
+            assertEquals(ProviderValidity.CONFIGURATION_DEPENDENT, metadata.semanticPlausibility(), key);
+            assertEquals(ProviderTestSafety.CONFIGURATION_DEPENDENT, metadata.testSafety(), key);
+            assertEquals(ProviderSafetyPolicy.NETWORK, metadata.safetyPolicy().orElseThrow(), key);
+            assertEquals(metadata, descriptor.getSchemaProjections().getFirst().getSafetyMetadata(), key);
+        }
+        assertEquals("network.safety-policy", ProviderSafetyPolicy.NETWORK.getSetting());
+        assertEquals(
+                "TEST_SAFE_RESERVED",
+                ProviderSafetyPolicy.NETWORK.selectedValue(GeneratorConfig.builder()
+                        .networkSafetyPolicy(
+                                io.github.frikit.krandom.generator.network.NetworkSafetyPolicy.TEST_SAFE_RESERVED)
+                        .build()));
+    }
+
+    @Test
     @DisplayName("unclassified descriptors make no validity or test-safety claim")
     void unclassifiedDescriptorsMakeNoSafetyClaim() {
         ProviderSafetyMetadata metadata = descriptor("text", List.of()).getSafetyMetadata();

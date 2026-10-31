@@ -130,6 +130,8 @@ class GeneratorCatalogEnvironmentTest {
         for (Locale locale : GENERATION_LOCALES) {
             refusals.add(locale + "/ofEmail.generateFreeEmail IllegalStateException");
             refusals.add(locale + "/ofEmail.generateFreeEmailDomain IllegalStateException");
+            refusals.add(locale + "/ofIPv4.generatePrivate IllegalStateException");
+            refusals.add(locale + "/ofIPv4.generatePublic IllegalStateException");
             refusals.add(locale + "/ofUniversity.factory UnsupportedOperationException");
         }
         for (Locale locale : LOCALES_WITHOUT_MIDDLE_NAMES) {

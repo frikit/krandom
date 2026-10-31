@@ -28,6 +28,7 @@ import io.github.frikit.krandom.generator.identifier.IsbnGenerator;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.location.StreetAddressGenerator;
 import io.github.frikit.krandom.generator.network.HostnameGenerator;
+import io.github.frikit.krandom.generator.network.NetworkSafetyPolicy;
 import io.github.frikit.krandom.generator.network.URLGenerator;
 import io.github.frikit.krandom.generator.network.UriGenerator;
 import io.github.frikit.krandom.generator.text.ParagraphGenerator;
@@ -238,6 +239,7 @@ class ChildStreamPolicyTest {
 
     private static GeneratorConfig.Builder baseConfig() {
         return GeneratorConfig.builder()
+                .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
                 .seed(42L)
                 .clock(FIXED_CLOCK)
                 .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED);

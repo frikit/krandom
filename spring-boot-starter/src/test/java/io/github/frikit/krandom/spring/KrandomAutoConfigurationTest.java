@@ -226,6 +226,7 @@ class KrandomAutoConfigurationTest {
                         "krandom.crypto-address-safety-policy",
                         "krandom.business-tax-identifier-safety-policy",
                         "krandom.identity-document-safety-policy",
+                        "krandom.network-safety-policy",
                         "krandom.object-construction-policy"),
                 metadata.keySet());
         assertTrue(metadata.values().stream()
@@ -292,6 +293,11 @@ class KrandomAutoConfigurationTest {
         assertEquals(
                 defaults.getIdentityDocumentSafetyPolicy().name(),
                 metadata.get("krandom.identity-document-safety-policy")
+                        .path("defaultValue")
+                        .asText());
+        assertEquals(
+                defaults.getNetworkSafetyPolicy().name(),
+                metadata.get("krandom.network-safety-policy")
                         .path("defaultValue")
                         .asText());
         assertEquals(

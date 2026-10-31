@@ -12,7 +12,8 @@ import java.util.Objects;
 import java.util.Random;
 
 /**
- * Generates hostnames such as {@code api.example.com}.
+ * Generates hostnames such as {@code api.techcloud.test}, under the default
+ * {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED}. A supplied subdomain does not choose the destination.
  */
 public final class HostnameGenerator implements Generator<String> {
 
@@ -20,6 +21,7 @@ public final class HostnameGenerator implements Generator<String> {
 
     private final Random random;
     private final DomainGenerator domainGenerator;
+    private final NetworkSafetyPolicy networkSafetyPolicy;
 
     public HostnameGenerator() {
         this(GeneratorConfig.defaults());
@@ -33,6 +35,7 @@ public final class HostnameGenerator implements Generator<String> {
         GeneratorConfig effective = Objects.requireNonNull(config, "config must not be null");
         this.random = effective.createRandom();
         this.domainGenerator = new DomainGenerator(effective.forChildStream("domain"));
+        this.networkSafetyPolicy = effective.getNetworkSafetyPolicy();
     }
 
     @Override
@@ -52,6 +55,7 @@ public final class HostnameGenerator implements Generator<String> {
         if (subdomain.isBlank()) {
             throw new IllegalArgumentException("subdomain must not be blank");
         }
+        URLGenerator.requireSubdomain(networkSafetyPolicy, subdomain);
         return subdomain + "." + domainGenerator.generate();
     }
 }

@@ -10,6 +10,7 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.location.PhoneNumberGenerator;
+import io.github.frikit.krandom.generator.network.NetworkSafetyPolicy;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -65,7 +66,7 @@ public final class CompanyInfoGenerator implements Generator<CompanyInfo> {
     public CompanyInfo generate() {
         String name = companyNameGenerator.generate();
         String email = emailGenerator.generate(name);
-        String website = "https://www." + email.substring(email.indexOf('@') + 1);
+        String website = "https://www." + websiteDomain(email.substring(email.indexOf('@') + 1));
         AddressInfo address = addressInfoGenerator.generate();
         return new CompanyInfo(
                 name,
@@ -76,6 +77,13 @@ public final class CompanyInfoGenerator implements Generator<CompanyInfo> {
                 website,
                 phoneNumberGenerator.generate(),
                 address);
+    }
+
+    /** The email's domain, whose top-level domain may be a realistic one that a generated URL must not use. */
+    private String websiteDomain(String emailDomain) {
+        return config.getNetworkSafetyPolicy() == NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED
+                ? emailDomain
+                : emailDomain.substring(0, emailDomain.lastIndexOf('.')) + ".test";
     }
 
     /**

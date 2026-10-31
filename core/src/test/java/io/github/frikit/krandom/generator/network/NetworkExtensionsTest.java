@@ -24,13 +24,16 @@ import org.junit.jupiter.api.Test;
 @DisplayName("Network extension generators")
 class NetworkExtensionsTest {
 
+    private static GeneratorConfig.Builder realisticConfig() {
+        return GeneratorConfig.builder().networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED);
+    }
+
     private static final InetAddressValidator VALIDATOR = InetAddressValidator.getInstance();
 
     @Test
     @DisplayName("IPv4 private/public/cidr generation works")
     void ipv4ExtendedMethods() {
-        IPv4Generator gen =
-                new IPv4Generator(GeneratorConfig.builder().seed(42L).build());
+        IPv4Generator gen = new IPv4Generator(realisticConfig().seed(42L).build());
 
         String privateIp = gen.generatePrivate();
         assertTrue(VALIDATOR.isValidInet4Address(privateIp));
@@ -67,7 +70,7 @@ class NetworkExtensionsTest {
     @Test
     @DisplayName("IPv4 private generation reaches all RFC1918 ranges")
     void ipv4PrivateRangeCoverage() {
-        IPv4Generator gen = new IPv4Generator();
+        IPv4Generator gen = new IPv4Generator(realisticConfig().build());
         boolean saw10 = false;
         boolean saw172 = false;
         boolean saw192 = false;
@@ -83,7 +86,7 @@ class NetworkExtensionsTest {
     @Test
     @DisplayName("IPv4 public generation includes edge first octets and excludes reserved private windows")
     void ipv4PublicCoverage() {
-        IPv4Generator gen = new IPv4Generator();
+        IPv4Generator gen = new IPv4Generator(realisticConfig().build());
         boolean saw172Public = false;
         boolean saw192Public = false;
         boolean sawOther = false;
@@ -113,8 +116,7 @@ class NetworkExtensionsTest {
     @Test
     @DisplayName("IPv4 public branch covers both 172 second-octet paths")
     void ipv4Public172SecondOctetBranchCoverage() throws Exception {
-        IPv4Generator trueBranch =
-                new IPv4Generator(GeneratorConfig.builder().seed(1L).build());
+        IPv4Generator trueBranch = new IPv4Generator(realisticConfig().seed(1L).build());
         Field randomField = IPv4Generator.class.getDeclaredField("random");
         randomField.setAccessible(true);
         randomField.set(trueBranch, new Random() {
@@ -138,8 +140,7 @@ class NetworkExtensionsTest {
         int secondTrue = Integer.parseInt(trueBranch.generatePublic().split("\\.")[1]);
         assertTrue(secondTrue < 16);
 
-        IPv4Generator falseBranch =
-                new IPv4Generator(GeneratorConfig.builder().seed(1L).build());
+        IPv4Generator falseBranch = new IPv4Generator(realisticConfig().seed(1L).build());
         randomField.set(falseBranch, new Random() {
 
             private int call;
@@ -165,8 +166,7 @@ class NetworkExtensionsTest {
     @Test
     @DisplayName("IPv4 public covers 192.* branch with second-octet remap")
     void ipv4Public192SecondOctetRemap() throws Exception {
-        IPv4Generator generator =
-                new IPv4Generator(GeneratorConfig.builder().seed(1L).build());
+        IPv4Generator generator = new IPv4Generator(realisticConfig().seed(1L).build());
         Field randomField = IPv4Generator.class.getDeclaredField("random");
         randomField.setAccessible(true);
         randomField.set(generator, new Random() {
@@ -193,8 +193,7 @@ class NetworkExtensionsTest {
     @Test
     @DisplayName("IPv4 public covers 192.* branch without second-octet remap")
     void ipv4Public192SecondOctetNoRemap() throws Exception {
-        IPv4Generator generator =
-                new IPv4Generator(GeneratorConfig.builder().seed(1L).build());
+        IPv4Generator generator = new IPv4Generator(realisticConfig().seed(1L).build());
         Field randomField = IPv4Generator.class.getDeclaredField("random");
         randomField.setAccessible(true);
         randomField.set(generator, new Random() {

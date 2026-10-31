@@ -54,6 +54,7 @@ krandom.clock-zone=Europe/Berlin
 # explicit safety and construction policies (relaxed enum names)
 krandom.banking-safety-policy=realistic-unclassified
 krandom.national-id-safety-policy=realistic-unclassified
+krandom.network-safety-policy=test-safe-reserved
 krandom.object-construction-policy=safe
 ```
 

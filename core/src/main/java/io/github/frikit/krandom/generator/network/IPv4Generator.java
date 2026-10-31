@@ -13,7 +13,10 @@ import java.util.Random;
 /**
  * Generates random IPv4 addresses in dotted-decimal notation (RFC 791).
  *
- * <p><b>RFC compliance</b>
+ * <p>The default {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} draws from the {@code .1} to {@code .254} host
+ * addresses of the RFC 5737 documentation blocks {@code 192.0.2.0/24}, {@code 198.51.100.0/24}, and
+ * {@code 203.0.113.0/24}, which is 762 addresses. Under
+ * {@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED}:
  * <ul>
  *   <li>RFC 791 — address format: four decimal octets in [0, 255] separated by {@code .}</li>
  *   <li>First octet restricted to [0, 223] — excludes Class D multicast (224–239, RFC 3171)
@@ -42,6 +45,9 @@ import java.util.Random;
  * {@code Generators.threadLocal(...)} for deterministic concurrent use.
  */
 public final class IPv4Generator implements Generator<String> {
+
+    /** The RFC 5737 documentation blocks, each with the host addresses {@code .1} to {@code .254}. */
+    private static final String[] TEST_NETS = {"192.0.2", "198.51.100", "203.0.113"};
 
     private final GeneratorConfig config;
     private final Random random;
@@ -80,6 +86,9 @@ public final class IPv4Generator implements Generator<String> {
      */
     @Override
     public String generate() {
+        if (isReserved()) {
+            return reservedAddress();
+        }
         // nextInt(n) returns [0, n-1] — all ranges are inclusive on both ends as intended.
         int octet1 = random.nextInt(224); // [0, 223]: unicast only (excludes multicast/reserved)
         int octet2 = random.nextInt(256); // [0, 255]
@@ -88,10 +97,32 @@ public final class IPv4Generator implements Generator<String> {
         return octet1 + "." + octet2 + "." + octet3 + "." + octet4;
     }
 
+    private boolean isReserved() {
+        return config.getNetworkSafetyPolicy() == NetworkSafetyPolicy.TEST_SAFE_RESERVED;
+    }
+
+    private String reservedAddress() {
+        return TEST_NETS[random.nextInt(TEST_NETS.length)] + "." + (1 + random.nextInt(254));
+    }
+
+    private void requireRealistic(String kind) {
+        if (isReserved()) {
+            throw new IllegalStateException(kind + " addresses can identify real hosts and are disabled under "
+                    + "TEST_SAFE_RESERVED; enable them only for isolated fixtures with GeneratorConfig.builder()"
+                    + ".networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED).build()");
+        }
+    }
+
     /**
      * Generates a private RFC1918 IPv4 address.
+     *
+     * <p>Such an address can identify a real internal service, so this method requires
+     * {@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED}.
+     *
+     * @throws IllegalStateException under {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED}
      */
     public String generatePrivate() {
+        requireRealistic("Private");
         int choice = random.nextInt(3);
         return switch (choice) {
             case 0 -> "10." + random.nextInt(256) + "." + random.nextInt(256) + "." + random.nextInt(256);
@@ -102,8 +133,14 @@ public final class IPv4Generator implements Generator<String> {
 
     /**
      * Generates a public (non-private, non-loopback, non-link-local) IPv4 address.
+     *
+     * <p>Such an address can belong to a real host, so this method requires
+     * {@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED}.
+     *
+     * @throws IllegalStateException under {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED}
      */
     public String generatePublic() {
+        requireRealistic("Public");
         int[] allowedFirstOctets = {
             1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
             31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57,
@@ -136,9 +173,15 @@ public final class IPv4Generator implements Generator<String> {
     }
 
     /**
-     * Generates IPv4 CIDR notation such as {@code 203.0.113.0/24}.
+     * Generates IPv4 CIDR notation such as {@code 203.0.113.7/24}: an address and a prefix length, whose
+     * host bits are not cleared. Under {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} the prefix is at
+     * least 24, so the whole range stays inside one RFC 5737 block.
      */
     public String generateCidr() {
+        if (isReserved()) {
+            int reservedPrefix = 24 + random.nextInt(7); // [24, 30]
+            return reservedAddress() + "/" + reservedPrefix;
+        }
         int prefix = 8 + random.nextInt(23); // [8, 30]
         return generatePublic() + "/" + prefix;
     }

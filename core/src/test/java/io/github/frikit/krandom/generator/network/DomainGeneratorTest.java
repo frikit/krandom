@@ -263,7 +263,10 @@ class DomainGeneratorTest {
 
     @Test
     void testLocaleInfluencesTLD() {
-        DomainGenerator deGenerator = new DomainGenerator(Locale.GERMANY);
+        DomainGenerator deGenerator = new DomainGenerator(GeneratorConfig.builder()
+                .locale(Locale.GERMANY)
+                .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build());
         Set<String> domains = new HashSet<>();
         for (int i = 0; i < 100; i++) {
             domains.add(deGenerator.generate());
@@ -315,7 +318,10 @@ class DomainGeneratorTest {
 
     @Test
     void testGenerateUsesLocaleTLDSometimes() {
-        DomainGenerator frGenerator = new DomainGenerator(Locale.FRANCE);
+        DomainGenerator frGenerator = new DomainGenerator(GeneratorConfig.builder()
+                .locale(Locale.FRANCE)
+                .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build());
         boolean foundFrTLD = false;
         boolean foundPopularTLD = false;
 

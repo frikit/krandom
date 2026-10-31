@@ -28,6 +28,9 @@ generator where shown by the API.
   text; the `…Object` names generate the corresponding JDK object.
 - `ofHttpMethod`, `ofHttpStatusCode`, `ofHttpFixture`
 
+Addresses and names are reserved fixture destinations by default; see the
+[network contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#network-contract).
+
 ## Date, time, and locale
 
 - `ofLocalDate`, `ofLocalTime`, `ofLocalDateTime`, `ofInstant`, `ofZonedDateTime`,

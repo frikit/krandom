@@ -233,6 +233,7 @@ public class KrandomProperties {
     private io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy cryptoAddressSafetyPolicy;
     private io.github.frikit.krandom.generator.BusinessTaxIdentifierSafetyPolicy businessTaxIdentifierSafetyPolicy;
     private io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy;
+    private io.github.frikit.krandom.generator.network.NetworkSafetyPolicy networkSafetyPolicy;
     private io.github.frikit.krandom.generator.object.ObjectConstructionPolicy objectConstructionPolicy;
 
     /**
@@ -441,6 +442,25 @@ public class KrandomProperties {
     public void setIdentityDocumentSafetyPolicy(
             io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy) {
         this.identityDocumentSafetyPolicy = identityDocumentSafetyPolicy;
+    }
+
+    /**
+     * Returns the network safety policy.
+     *
+     * @return the policy, or {@code null} to use the core default
+     */
+    public io.github.frikit.krandom.generator.network.NetworkSafetyPolicy getNetworkSafetyPolicy() {
+        return networkSafetyPolicy;
+    }
+
+    /**
+     * Sets the network safety policy.
+     *
+     * @param networkSafetyPolicy policy to use, or {@code null} for the core default
+     */
+    public void setNetworkSafetyPolicy(
+            io.github.frikit.krandom.generator.network.NetworkSafetyPolicy networkSafetyPolicy) {
+        this.networkSafetyPolicy = networkSafetyPolicy;
     }
 
     /**

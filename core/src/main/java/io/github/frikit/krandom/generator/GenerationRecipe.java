@@ -10,6 +10,7 @@ import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.network.NetworkSafetyPolicy;
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.object.ObjectFieldStreamPolicy;
 import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
@@ -444,6 +445,7 @@ public final class GenerationRecipe {
         builder.identityDocumentSafetyPolicy(
                 IdentityDocumentSafetyPolicy.valueOf(requiredSetting("identity-document.safety-policy")));
         builder.emailDomainPolicy(EmailDomainPolicy.valueOf(requiredSetting("email.domain-policy")));
+        builder.networkSafetyPolicy(NetworkSafetyPolicy.valueOf(requiredSetting("network.safety-policy")));
         applyEnum(builder, "object.semantic-mode", builder::objectSemanticMode);
         applyDouble(builder, "object.null-probability", builder::objectNullProbability);
         applyDouble(builder, "object.optional-empty-probability", builder::objectOptionalEmptyProbability);
@@ -537,7 +539,8 @@ public final class GenerationRecipe {
                     "business-tax-identifier.safety-policy",
                     "crypto-address.safety-policy",
                     "securities-identifier.safety-policy",
-                    "email.domain-policy" -> true;
+                    "email.domain-policy",
+                    "network.safety-policy" -> true;
             default -> false;
         };
     }

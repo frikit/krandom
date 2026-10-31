@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.user;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.network.NetworkSafetyPolicy;
 import io.github.frikit.krandom.generator.text.SentenceGenerator;
 import java.util.Locale;
 import java.util.Objects;
@@ -14,6 +15,9 @@ import java.util.Random;
 
 /**
  * Generates social-profile fixtures.
+ *
+ * <p>Under the default {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} a profile link is under the reserved
+ * {@code .test} top-level domain, such as {@code https://github.test/vsmith553}.
  */
 public final class SocialProfileGenerator implements Generator<SocialProfile> {
 
@@ -23,6 +27,7 @@ public final class SocialProfileGenerator implements Generator<SocialProfile> {
     private final SocialHandleGenerator handleGenerator;
     private final FullNameGenerator fullNameGenerator;
     private final SentenceGenerator sentenceGenerator;
+    private final String linkTld;
 
     public SocialProfileGenerator() {
         this(GeneratorConfig.defaults());
@@ -40,6 +45,8 @@ public final class SocialProfileGenerator implements Generator<SocialProfile> {
         this.handleGenerator = new SocialHandleGenerator(effective.forChildStream("socialHandle"));
         this.fullNameGenerator = new FullNameGenerator(effective.forChildStream("fullName"));
         this.sentenceGenerator = new SentenceGenerator(effective.forChildStream("sentence"));
+        this.linkTld =
+                effective.getNetworkSafetyPolicy() == NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED ? "com" : "test";
     }
 
     @Override
@@ -47,7 +54,7 @@ public final class SocialProfileGenerator implements Generator<SocialProfile> {
         String platform = PLATFORMS[random.nextInt(PLATFORMS.length)];
         String handle = handleGenerator.generateForPlatform(platform);
         String slug = handle.startsWith("@") ? handle.substring(1) : handle;
-        String profileUrl = "https://" + platform + ".com/" + slug;
+        String profileUrl = "https://" + platform + "." + linkTld + "/" + slug;
         String bio = sentenceGenerator.generate().replaceAll("\\s+", " ").trim();
         return new SocialProfile(platform, handle, profileUrl, fullNameGenerator.generate(), bio);
     }

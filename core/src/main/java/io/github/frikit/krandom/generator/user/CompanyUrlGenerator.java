@@ -8,20 +8,26 @@ package io.github.frikit.krandom.generator.user;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.network.DomainGenerator;
+import io.github.frikit.krandom.generator.network.NetworkSafetyPolicy;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
 /**
  * Generates company website URLs.
+ *
+ * <p>Under the default {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} the host is under the reserved {@code .test}
+ * top-level domain, also when a company name is supplied.
  */
 public final class CompanyUrlGenerator implements Generator<String> {
 
     private static final String[] PROTOCOLS = {"https", "http"};
+    private static final String RESERVED_TLD = "test";
 
     private final DomainGenerator domainGenerator;
     private final CompanyNameGenerator companyNameGenerator;
     private final Random random;
+    private final NetworkSafetyPolicy networkSafetyPolicy;
 
     /**
      * Creates a company URL generator with default configuration.
@@ -45,6 +51,7 @@ public final class CompanyUrlGenerator implements Generator<String> {
         this.domainGenerator = new DomainGenerator(safe);
         this.companyNameGenerator = new CompanyNameGenerator(safe);
         this.random = safe.createRandom();
+        this.networkSafetyPolicy = safe.getNetworkSafetyPolicy();
     }
 
     @Override
@@ -70,7 +77,9 @@ public final class CompanyUrlGenerator implements Generator<String> {
         if (slug.isBlank()) {
             slug = "company";
         }
-        String tld = domainGenerator.getTLD();
+        String tld = networkSafetyPolicy == NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED
+                ? domainGenerator.getTLD()
+                : RESERVED_TLD;
         return "https://www." + slug + "." + tld;
     }
 }

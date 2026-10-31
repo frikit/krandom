@@ -18,6 +18,12 @@ import org.jspecify.annotations.Nullable;
  * <p>This generator creates domain names using random words combined with popular
  * or custom TLDs. Supports both generic and country-code TLDs.
  *
+ * <p>Under the default {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} a domain the generator chooses
+ * ends in the reserved {@code .test} instead, such as {@code techcloud.test}. A TLD passed to
+ * {@link #generate(String)} is used verbatim. A TLD or a label alone is vocabulary, not a destination,
+ * so {@link #getTLD()}, {@link #getPopularTLD()}, and {@link #generateName()} draw the same way under
+ * either policy.
+ *
  * <p><strong>Popular TLDs:</strong>
  * .com, .net, .org, .io, .co, .dev, .app, .tech, .online, .site
  *
@@ -37,9 +43,9 @@ import org.jspecify.annotations.Nullable;
  *
  * <p><strong>Basic Usage:</strong>
  * <pre>{@code
- * // Random domain with popular TLD
+ * // Random domain under the reserved .test
  * DomainGenerator gen = new DomainGenerator();
- * String domain = gen.generate();              // "techcloud.com"
+ * String domain = gen.generate();              // "techcloud.test"
  *
  * // Domain with specific TLD
  * String customDomain = gen.generate("io");    // "datahub.io"
@@ -48,15 +54,13 @@ import org.jspecify.annotations.Nullable;
  * String tld = gen.getTLD();                   // "net"
  * }</pre>
  *
- * <p><strong>Locale-Aware Generation:</strong>
+ * <p><strong>Locale-Aware Generation</strong>, under {@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED}:
  * <pre>{@code
- * // US domains
- * DomainGenerator usGen = new DomainGenerator(Locale.US);
- * String usDomain = usGen.generate();  // Might include ".us" TLD
- *
- * // German domains
- * DomainGenerator deGen = new DomainGenerator(Locale.GERMANY);
- * String deDomain = deGen.generate();  // Might include ".de" TLD
+ * GeneratorConfig config = GeneratorConfig.builder()
+ *     .locale(Locale.GERMANY)
+ *     .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
+ *     .build();
+ * String deDomain = new DomainGenerator(config).generate();  // Might include ".de" TLD
  * }</pre>
  *
  * <p><strong>Thread Safety:</strong>
@@ -66,6 +70,8 @@ import org.jspecify.annotations.Nullable;
  * {@code Generators.threadLocal(...)} for deterministic concurrent use.
  */
 public final class DomainGenerator implements Generator<String> {
+
+    private static final String RESERVED_TLD = "test";
 
     private static final String[] POPULAR_TLDS = {
         "com", "net", "org", "io", "co", "dev", "app", "tech", "online", "site", "xyz", "pro"
@@ -145,14 +151,16 @@ public final class DomainGenerator implements Generator<String> {
     /**
      * {@inheritDoc}
      *
-     * <p>Generates a domain name with a random TLD (could be popular or locale-specific).
+     * <p>Generates a domain name under {@code .test}, or under
+     * {@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED} with a random TLD (popular or locale-specific).
      *
      * @return a domain name; never {@code null}
      */
     @Override
     public String generate() {
         String name = generateDomainLabel();
-        String tld = random.nextBoolean() && localeTLD != null ? localeTLD : getRandomPopularTLD();
+        String tld =
+                config.getNetworkSafetyPolicy() == NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED ? getTLD() : RESERVED_TLD;
         return name + "." + tld;
     }
 

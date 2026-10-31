@@ -17,6 +17,7 @@ import io.github.frikit.krandom.generator.finance.CryptoAddressSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.PaymentCardSafetyPolicy;
 import io.github.frikit.krandom.generator.finance.SecuritiesIdentifierSafetyPolicy;
 import io.github.frikit.krandom.generator.location.PhoneNumberSafetyPolicy;
+import io.github.frikit.krandom.generator.network.NetworkSafetyPolicy;
 import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
@@ -53,7 +54,8 @@ class GenerationRecipeTest {
             "phone-number.safety-policy",
             "national-id.safety-policy",
             "identity-document.safety-policy",
-            "email.domain-policy");
+            "email.domain-policy",
+            "network.safety-policy");
 
     @Test
     @DisplayName("serializes a stable human-readable recipe and parses it exactly")
@@ -320,6 +322,26 @@ class GenerationRecipeTest {
         assertRejected(
                 "fieldName must contain at least one letter or digit",
                 policyComplete(7L).setting("object.requested-unique-fields", "-,id"));
+    }
+
+    @Test
+    @DisplayName("records and replays the network safety policy")
+    void replaysNetworkSafetyPolicy() {
+        for (NetworkSafetyPolicy policy : NetworkSafetyPolicy.values()) {
+            GenerationRecipe recipe = GeneratorConfig.builder()
+                    .seed(42L)
+                    .networkSafetyPolicy(policy)
+                    .build()
+                    .getGenerationRecipe()
+                    .orElseThrow();
+
+            assertEquals(policy.name(), recipe.getSettings().get("network.safety-policy"));
+            assertEquals(
+                    policy,
+                    GenerationRecipe.parse(recipe.serialize())
+                            .toGeneratorConfig()
+                            .getNetworkSafetyPolicy());
+        }
     }
 
     @Test

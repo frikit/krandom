@@ -104,6 +104,54 @@ never send mail. The free-provider methods (`generateFreeEmail`, `getFreeEmailPr
 explicitly, such as `generate("corp.test")`, is always used verbatim. The selected policy is
 recorded in portable generation recipes as `email.domain-policy`.
 
+## Network contract
+
+`NetworkSafetyPolicy.TEST_SAFE_RESERVED` is the default for every network destination a generator
+chooses on its own. The promise is a reserved fixture destination, not transport isolation: nothing assigns these
+addresses and names to a real public host, but a network can still route them or resolve them
+privately, so keep integration tests away from them when that matters.
+
+- IPv4 addresses are the `.1` to `.254` hosts of the [RFC 5737](https://www.rfc-editor.org/rfc/rfc5737)
+  documentation blocks `192.0.2.0/24`, `198.51.100.0/24`, and `203.0.113.0/24`, 762 addresses in all.
+- IPv6 addresses are inside the [RFC 3849](https://www.rfc-editor.org/rfc/rfc3849) documentation prefix
+  `2001:db8::/32`.
+- `generateCidr()` stays entirely inside those blocks, with a prefix of 24 to 30 for IPv4 and 32 to 128
+  for IPv6. It is an address and a prefix length, so its host bits are not cleared.
+- Domains, hostnames, URLs, URIs, company URLs, avatar URLs, and social links use names under the
+  [RFC 2606](https://www.rfc-editor.org/rfc/rfc2606) / [RFC 6761](https://www.rfc-editor.org/rfc/rfc6761)
+  `.test` top-level domain, with their usual labels and shape: `digital.test`, `m.digital.test`,
+  `https://www.digital.test/files?id=525`, `https://api.dicebear.test/8.x/identicon/svg?seed=vsmith553`,
+  and `https://github.test/vsmith553`.
+- MAC addresses have the locally administered bit set and the multicast bit clear, so a value cannot
+  collide with a vendor's prefix.
+
+The same holds for the object engine, JSON Schema formats, and providers. A generated `url`, `website`,
+`domain`, or `companyUrl` takes the domain of a sibling only if that domain is reserved or was set
+through an override of a `domain`, `url`, or `companyUrl` member, and a domain derived from `companyName`
+ends in `.test`. An object's `URI` and `URL` members are reserved too.
+
+An explicit argument is used verbatim: `generate("com")` ends in `.com`, and `generateWithDomain` and
+the `domain` of `URLOptions` name the destination. A supplied username, subdomain, scheme, path, company
+name, or size does not, and a URL built from one stays under `.test`: a scheme or subdomain that would
+end the host, such as `real.com/`, fails with `IllegalArgumentException`. Values from your own overrides,
+rules, and randomizers are used as written. A top-level domain or a label alone is vocabulary rather than
+a destination, so `getTLD()`, `generateTld()`, `getPopularTLD()`, and `generateName()` draw as usual.
+`generatePublic()` and `generatePrivate()` return addresses that can identify real hosts and internal
+services, so they require `REALISTIC_UNCLASSIFIED` and otherwise fail with `IllegalStateException`.
+
+A unique generator never leaves these addresses: `Generators.unique(Generators.ofIPv4(config))` and a
+requested unique member fail when the addresses run out. Their retries are bounded, by 10,000 draws for
+each value and by `objectUniquenessMaxAttempts` for a member, so they can fail before every address has
+been used. For an exhaustive allocation, put the addresses in a `FinitePoolGenerator`, which emits each
+one once. A unique `domain`, `url`, or `companyUrl` that the coherence pass derives numbers a subdomain,
+such as `https://n1.www.acme.test`, so it stays reserved too.
+
+`NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED` restores random public addresses, realistic top-level
+domains, and real avatar and social-network hosts, without a safety claim. It suits isolated fixtures that never
+connect to what they generate. User-agent strings are outside this contract: they describe a client
+rather than a destination, and the crawler ones name their vendors' pages as real crawlers do. The
+selected policy is recorded in portable generation recipes as `network.safety-policy`.
+
 ## Regular-expression contract
 
 `RegexGenerator` generates from `java.util.regex` syntax, and `Generators.ofRegex`, `regexify`,

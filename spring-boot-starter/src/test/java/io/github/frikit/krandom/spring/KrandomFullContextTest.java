@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.finance.BankingSafetyPolicy;
+import io.github.frikit.krandom.generator.network.NetworkSafetyPolicy;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Locale;
@@ -32,7 +33,8 @@ import org.springframework.boot.test.context.SpringBootTest;
             "krandom.max-collection-size=4",
             "krandom.clock=2026-01-01T00:00:00Z",
             "krandom.clock-zone=Europe/Paris",
-            "krandom.banking-safety-policy=realistic-unclassified"
+            "krandom.banking-safety-policy=realistic-unclassified",
+            "krandom.network-safety-policy=test-safe-reserved"
         })
 @DisplayName("full Spring Boot context")
 class KrandomFullContextTest {
@@ -60,5 +62,6 @@ class KrandomFullContextTest {
                 generatorConfig.getClock().instant());
         assertEquals(ZoneId.of("Europe/Paris"), generatorConfig.getClock().getZone());
         assertEquals(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED, generatorConfig.getBankingSafetyPolicy());
+        assertEquals(NetworkSafetyPolicy.TEST_SAFE_RESERVED, generatorConfig.getNetworkSafetyPolicy());
     }
 }

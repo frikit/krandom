@@ -22,6 +22,7 @@ import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
+import io.github.frikit.krandom.generator.network.NetworkSafetyPolicy;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import jakarta.validation.constraints.Email;
 import java.math.BigDecimal;
@@ -202,7 +203,10 @@ class ObjectGeneratorSemanticCoherenceTest {
     @Test
     @DisplayName("a domain without an email field keeps its generated value and its URL sibling")
     void aDomainWithoutAnEmailFieldKeepsItsGeneratedValue() {
-        GeneratorConfig config = GeneratorConfig.builder().seed(61L).build();
+        GeneratorConfig config = GeneratorConfig.builder()
+                .seed(61L)
+                .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
 
         DomainWithoutEmail value = new ObjectGenerator<>(DomainWithoutEmail.class, config).generate();
 
@@ -228,6 +232,7 @@ class ObjectGeneratorSemanticCoherenceTest {
         GeneratorConfig config = GeneratorConfig.builder()
                 .seed(61L)
                 .emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED)
+                .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
                 .build();
 
         CompanyNameEmail company = new ObjectGenerator<>(CompanyNameEmail.class, config).generate();
@@ -260,7 +265,10 @@ class ObjectGeneratorSemanticCoherenceTest {
     @Test
     @DisplayName("a company name without an email field keeps deriving an ordinary domain")
     void aCompanyNameWithoutAnEmailFieldKeepsDerivingAnOrdinaryDomain() {
-        GeneratorConfig config = GeneratorConfig.builder().seed(61L).build();
+        GeneratorConfig config = GeneratorConfig.builder()
+                .seed(61L)
+                .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
 
         CompanyWithoutEmail value = new ObjectGenerator<>(CompanyWithoutEmail.class, config).generate();
 
@@ -314,6 +322,7 @@ class ObjectGeneratorSemanticCoherenceTest {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
                 .generatorConfig(GeneratorConfig.builder()
                         .seed(61L)
+                        .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
                         .objectUniqueField("domain")
                         .build())
                 .override(CompanyDomainEmail.class, "companyName", () -> "Acme")
@@ -328,6 +337,177 @@ class ObjectGeneratorSemanticCoherenceTest {
         }
 
         assertEquals(List.of("acme.test", "n1.acme.test", "n2.acme.test"), domains);
+    }
+
+    private static GeneratorConfig.Builder reservedNames() {
+        return GeneratorConfig.builder().seed(61L).networkSafetyPolicy(NetworkSafetyPolicy.TEST_SAFE_RESERVED);
+    }
+
+    private static boolean isReservedUrl(String url) {
+        return url.matches("[a-z]+://(?:[a-z0-9]+\\.)*[a-z0-9]+\\.test(?:[/?].*)?");
+    }
+
+    @Test
+    @DisplayName("the reserved network policy derives .test domains and URLs from a generated domain")
+    void theReservedNetworkPolicyDerivesReservedUrlsFromAGeneratedDomain() {
+        DomainWithoutEmail value =
+                new ObjectGenerator<>(DomainWithoutEmail.class, reservedNames().build()).generate();
+
+        assertTrue(value.domain().matches("[a-z]+\\.test"), value.domain());
+        assertEquals("https://www." + value.domain(), value.companyUrl());
+    }
+
+    @Test
+    @DisplayName("the reserved network policy derives .test from a company name, with or without an email field")
+    void theReservedNetworkPolicyDerivesTestFromACompanyName() {
+        GeneratorConfig config = reservedNames()
+                .objectOverride(CompanyWithoutEmail.class, "companyName", () -> "Acme Labs")
+                .objectOverride(CompanyNameEmail.class, "companyName", () -> "Acme Labs")
+                .build();
+
+        assertEquals(
+                "https://www.acmelabs.test",
+                new ObjectGenerator<>(CompanyWithoutEmail.class, config)
+                        .generate()
+                        .companyUrl());
+        assertEquals(
+                "hello@acmelabs.test",
+                new ObjectGenerator<>(CompanyNameEmail.class, config).generate().companyEmail());
+    }
+
+    @Test
+    @DisplayName("the reserved network policy shares a generated domain with an email field")
+    void theReservedNetworkPolicySharesAGeneratedDomainWithAnEmailField() {
+        PersonDomainEmail value =
+                new ObjectGenerator<>(PersonDomainEmail.class, reservedNames().build()).generate();
+
+        assertTrue(value.domain().endsWith(".test"), value.domain());
+        assertEquals(value.domain(), emailDomain(value.email()));
+    }
+
+    @Test
+    @DisplayName("a realistic email does not lend its domain to a URL under the reserved network policy")
+    void aRealisticEmailDoesNotLendItsDomainToAUrl() {
+        GeneratorConfig config = reservedNames()
+                .emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
+
+        PersonUrlEmail person = new ObjectGenerator<>(PersonUrlEmail.class, config).generate();
+        assertFalse(RESERVED_EMAIL.matcher(person.email()).matches(), person.email());
+        assertTrue(isReservedUrl(person.url()), person.url());
+
+        CompanyUrlEmail company = new ObjectGenerator<>(CompanyUrlEmail.class, config).generate();
+        assertFalse(RESERVED_EMAIL.matcher(company.companyEmail()).matches(), company.companyEmail());
+        assertTrue(isReservedUrl(company.companyUrl()), company.companyUrl());
+
+        BlankDomainHolder holder = new ObjectGenerator<>(BlankDomainHolder.class, config).generate();
+        assertFalse(RESERVED_EMAIL.matcher(holder.email).matches(), holder.email);
+        assertEquals("", holder.domain);
+
+        CompanyEmailBlankUrl blankUrl = new ObjectGenerator<>(CompanyEmailBlankUrl.class, config).generate();
+        assertFalse(RESERVED_EMAIL.matcher(blankUrl.companyEmail).matches(), blankUrl.companyEmail);
+        assertEquals("", blankUrl.companyUrl);
+    }
+
+    @Test
+    @DisplayName("an overridden domain or URL is a supplied destination, and its siblings may share it")
+    void anOverriddenDomainOrUrlIsASuppliedDestination() {
+        GeneratorConfig domainOverride = reservedNames()
+                .objectOverride(DomainWithoutEmail.class, "domain", () -> "corp.com")
+                .build();
+        assertEquals(
+                "https://www.corp.com",
+                new ObjectGenerator<>(DomainWithoutEmail.class, domainOverride)
+                        .generate()
+                        .companyUrl());
+
+        GeneratorConfig urlOverride = reservedNames()
+                .objectOverride(DomainAndUrl.class, "url", () -> "https://corp.com/x")
+                .build();
+        DomainAndUrl value = new ObjectGenerator<>(DomainAndUrl.class, urlOverride).generate();
+        assertEquals("https://corp.com/x", value.url());
+        assertTrue(value.domain().endsWith(".test"), value.domain());
+    }
+
+    @Test
+    @DisplayName("an overridden email or a class's own domain does not choose a destination for a generated URL")
+    void anOverriddenEmailOrInitializerDoesNotChooseADestination() {
+        GeneratorConfig emailOverride = reservedNames()
+                .objectOverride(PersonUrlEmail.class, "email", () -> "jane@corp.com")
+                .build();
+        PersonUrlEmail person = new ObjectGenerator<>(PersonUrlEmail.class, emailOverride).generate();
+        assertEquals("jane@corp.com", person.email());
+        assertTrue(isReservedUrl(person.url()), person.url());
+
+        GeneratorConfig fragmentOverride = reservedNames()
+                .objectOverride(PersonUrlEmail.class, "email", () -> "jane@real.com#.test")
+                .build();
+        PersonUrlEmail fragment = new ObjectGenerator<>(PersonUrlEmail.class, fragmentOverride).generate();
+        assertEquals("jane@real.com#.test", fragment.email());
+        assertTrue(isReservedUrl(fragment.url()), fragment.url());
+
+        PresetOrdinaryDomain preset = new ObjectGenerator<>(
+                        PresetOrdinaryDomain.class, reservedNames().build())
+                .generate();
+        assertEquals("corp.com", preset.domain);
+        assertTrue(isReservedUrl(preset.url), preset.url);
+        assertTrue(isReservedUrl(preset.companyUrl), preset.companyUrl);
+    }
+
+    @Test
+    @DisplayName("a unique URL stays on reserved names across retries, by numbering a subdomain")
+    void aUniqueUrlStaysOnReservedNamesAcrossRetries() {
+        GeneratorConfig urls = reservedNames()
+                .objectUniqueField("url")
+                .objectOverride(DomainAndUrl.class, "domain", () -> "acme.test")
+                .build();
+        ObjectGenerator<DomainAndUrl> urlGenerator = new ObjectGenerator<>(DomainAndUrl.class, urls);
+        assertEquals(
+                List.of("https://www.acme.test", "https://n1.www.acme.test", "https://n2.www.acme.test"),
+                List.of(
+                        urlGenerator.generate().url(),
+                        urlGenerator.generate().url(),
+                        urlGenerator.generate().url()));
+
+        GeneratorConfig companyUrls = reservedNames()
+                .objectUniqueField("companyUrl")
+                .objectOverride(DomainWithoutEmail.class, "domain", () -> "acme.test")
+                .build();
+        ObjectGenerator<DomainWithoutEmail> companyUrlGenerator =
+                new ObjectGenerator<>(DomainWithoutEmail.class, companyUrls);
+        assertEquals(
+                List.of("https://www.acme.test", "https://n1.www.acme.test"),
+                List.of(
+                        companyUrlGenerator.generate().companyUrl(),
+                        companyUrlGenerator.generate().companyUrl()));
+
+        GeneratorConfig fullNames = reservedNames()
+                .objectUniqueField("fullName")
+                .objectOverride(NamePair.class, "firstName", () -> "Ada")
+                .objectOverride(NamePair.class, "lastName", () -> "Lovelace")
+                .build();
+        ObjectGenerator<NamePair> nameGenerator = new ObjectGenerator<>(NamePair.class, fullNames);
+        assertEquals(
+                List.of("Ada Lovelace", "Ada Lovelace1"),
+                List.of(
+                        nameGenerator.generate().fullName(),
+                        nameGenerator.generate().fullName()));
+    }
+
+    @Test
+    @DisplayName("the realistic network policy keeps its numbering of a unique URL")
+    void theRealisticNetworkPolicyKeepsItsNumberingOfAUniqueUrl() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                .seed(61L)
+                .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .objectUniqueField("url")
+                .objectOverride(DomainAndUrl.class, "domain", () -> "acme.com")
+                .build();
+        ObjectGenerator<DomainAndUrl> generator = new ObjectGenerator<>(DomainAndUrl.class, config);
+
+        assertEquals(
+                List.of("https://www.acme.com", "https://www.acme.com1"),
+                List.of(generator.generate().url(), generator.generate().url()));
     }
 
     @Test
@@ -673,6 +853,7 @@ class ObjectGeneratorSemanticCoherenceTest {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
                 .generatorConfig(GeneratorConfig.builder()
                         .seed(61L)
+                        .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
                         .objectUniqueField("domain")
                         .objectUniquenessMaxAttempts(2)
                         .objectIgnoreErrors(true)
@@ -1212,6 +1393,24 @@ class ObjectGeneratorSemanticCoherenceTest {
     record DomainCompanyEmail(String domain, String companyEmail) {}
 
     record CompanyWithoutEmail(String companyName, String companyUrl) {}
+
+    record DomainAndUrl(String domain, String url) {}
+
+    record NamePair(String firstName, String lastName, String fullName) {}
+
+    static class PresetOrdinaryDomain {
+
+        String domain = "corp.com";
+        String url;
+        String companyUrl;
+    }
+
+    static class CompanyEmailBlankUrl {
+
+        String companyEmail;
+        /** Stays blank: its only sibling's domain is an ordinary one, which a generated URL may not take. */
+        String companyUrl = "";
+    }
 
     static class BaseWithDomain {
 
