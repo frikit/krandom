@@ -367,12 +367,16 @@ final class BeanValidationSupport {
     private static Generator<String> textGeneratorFor(
             TextConstraint constraints, Random random, EmailDomainPolicy emailDomainPolicy) {
         List<Generator<String>> sources = new ArrayList<>();
+        // A pattern that cannot be a source is still enforced on each candidate, so another source can meet it.
+        StringBuilder unsupported = new StringBuilder();
+        int patternMinLength =
+                constraints.size() == null ? 1 : constraints.size().min();
         for (TextPattern pattern : constraints.patterns()) {
             if (pattern.source()) {
                 try {
-                    sources.add(regexGenerator(pattern.expression(), random));
+                    sources.add(regexGenerator(pattern.expression(), patternMinLength, random));
                 } catch (IllegalArgumentException unsupportedPattern) {
-                    throw conflict("text constraint uses unsupported regular-expression syntax");
+                    unsupported.append("; ").append(unsupportedPattern.getMessage());
                 }
             }
         }
@@ -386,6 +390,9 @@ final class BeanValidationSupport {
         if (constraints.size() != null) {
             sources.add(stringGeneratorFor(constraints.size(), constraints.nonBlank(), random));
         }
+        if (sources.isEmpty()) {
+            throw conflict("text constraint uses unsupported regular-expression syntax" + unsupported);
+        }
 
         return () -> {
             for (int attempt = 0; attempt < TEXT_GENERATION_ATTEMPTS; attempt++) {
@@ -394,14 +401,24 @@ final class BeanValidationSupport {
                     return candidate;
                 }
             }
-            throw conflict("text constraints did not produce a value in the bounded search budget");
+            throw conflict("text constraints did not produce a value in the bounded search budget" + unsupported);
         };
     }
 
-    // Each regex source replays from its own seed, drawn from the engine's replayable stream.
     private static RegexGenerator regexGenerator(String expression, Random random) {
+        return regexGenerator(expression, 1, random);
+    }
+
+    // Each regex source replays from its own seed, drawn from the engine's replayable stream. The minimum
+    // length lets its open-ended repetitions reach what @Size asks for.
+    private static RegexGenerator regexGenerator(String expression, int minLength, Random random) {
+        int length = Math.clamp(minLength, 1, Integer.MAX_VALUE - 1);
         return new RegexGenerator(
-                expression, GeneratorConfig.builder().seed(random.nextLong()).build());
+                expression,
+                GeneratorConfig.builder()
+                        .seed(random.nextLong())
+                        .stringLength(length, length)
+                        .build());
     }
 
     record TextPattern(String expression, java.util.regex.Pattern compiled, boolean source) {}

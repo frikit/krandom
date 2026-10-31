@@ -21,6 +21,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 import org.hibernate.validator.HibernateValidator;
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 import org.junit.jupiter.api.DisplayName;
@@ -117,6 +118,56 @@ class BeanValidationTextNormalizationTest {
                 Integer.class.getTypeName());
         assertConflict(
                 UnsupportedRegexSyntaxFixture.class, "UnsupportedRegexSyntaxFixture.value", String.class.getTypeName());
+    }
+
+    @Test
+    @DisplayName("regex syntax the generator used to get wrong generates values the regex accepts")
+    void regexSyntaxGeneratesAcceptedValues() {
+        for (long seed = 0; seed < 32; seed++) {
+            GeneratorConfig config = GeneratorConfig.builder().seed(seed).build();
+
+            RegexSyntaxFixture value = new ObjectGenerator<>(RegexSyntaxFixture.class, config).generate();
+
+            assertTrue(
+                    VALIDATOR.validate(value).isEmpty(),
+                    () -> VALIDATOR.validate(value).toString());
+            assertEquals("abc", value.group);
+            assertEquals("foo", value.boundary);
+            assertTrue(value.classEscape.matches("[0-9]{3}"), value.classEscape);
+            assertTrue(value.alternation.matches("a|b"), value.alternation);
+            assertEquals("a".repeat(20), value.longRun);
+            assertTrue(value.longDigits.matches("[0-9]{20,}"), value.longDigits);
+            assertTrue(value.email.matches("[a-zA-Z0-9_-]+@example\\.com"), value.email);
+        }
+    }
+
+    @Test
+    @DisplayName("a pattern that cannot be generated from can still be met by another source")
+    void unsupportedPatternCanBeMetByAnotherSource() {
+        for (long seed = 0; seed < 32; seed++) {
+            GeneratorConfig config = GeneratorConfig.builder().seed(seed).build();
+
+            MetByAnotherSourceFixture value = new ObjectGenerator<>(MetByAnotherSourceFixture.class, config).generate();
+
+            assertTrue(
+                    VALIDATOR.validate(value).isEmpty(),
+                    () -> VALIDATOR.validate(value).toString());
+        }
+    }
+
+    @Test
+    @DisplayName("a pattern nothing else can meet fails, and the failure names the unsupported construct")
+    void unsupportedPatternFailureNamesTheConstruct() {
+        assertConflict(LookaheadOnlyFixture.class, "LookaheadOnlyFixture.value", String.class.getTypeName());
+        assertConflict(
+                LookaheadUnmetBySizeFixture.class, "LookaheadUnmetBySizeFixture.value", String.class.getTypeName());
+
+        for (Class<?> fixtureType : List.of(LookaheadOnlyFixture.class, LookaheadUnmetBySizeFixture.class)) {
+            ObjectGenerationException ex =
+                    assertThrows(ObjectGenerationException.class, () -> new ObjectGenerator<>(fixtureType).generate());
+            String message = ex.getCause().getMessage();
+            assertTrue(message.contains("Unsupported lookahead at position 0"), message);
+        }
     }
 
     private static void assertConflict(Class<?> fixtureType, String path, String declaredType) {
@@ -237,5 +288,46 @@ class BeanValidationTextNormalizationTest {
     static final class UnsupportedRegexSyntaxFixture {
 
         @Pattern(regexp = "a{10001}") String value;
+    }
+
+    static final class RegexSyntaxFixture {
+
+        @Pattern(regexp = "^(?:abc)$")
+        String group;
+
+        @Pattern(regexp = "\\bfoo\\b") String boundary;
+
+        @Pattern(regexp = "[\\d]{3}") String classEscape;
+
+        @Pattern(regexp = "a|b") String alternation;
+
+        @Pattern(regexp = "a{20,}") String longRun;
+
+        @Pattern(regexp = "[0-9]+") @Size(min = 20) String longDigits;
+
+        @Email(regexp = "[\\w-]+@example\\.com") String email;
+    }
+
+    static final class MetByAnotherSourceFixture {
+
+        @Email(regexp = "^(?=.{1,64}@)[a-z]+@example\\.(com|net|org)$")
+        String email;
+
+        @Pattern(regexp = "(?=[a-z])[a-z]+")
+        @Size(min = 3, max = 5) String code;
+
+        @Pattern(regexp = "\\p{L}+") @Size(min = 2, max = 5) String letters;
+    }
+
+    static final class LookaheadOnlyFixture {
+
+        @Pattern(regexp = "(?=a)a")
+        String value;
+    }
+
+    static final class LookaheadUnmetBySizeFixture {
+
+        @Pattern(regexp = "(?=\\d)\\d+")
+        @Size(min = 1, max = 3) String value;
     }
 }

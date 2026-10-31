@@ -114,7 +114,9 @@ public final class TextFormatProvider {
     }
 
     /**
-     * Generates a string that matches the simplified regex pattern.
+     * Generates a string that matches the regular expression, in the syntax {@link RegexGenerator} supports.
+     *
+     * @throws IllegalArgumentException if {@link RegexGenerator} cannot generate from the pattern
      */
     public String regexify(String pattern) {
         Objects.requireNonNull(pattern, "pattern must not be null");

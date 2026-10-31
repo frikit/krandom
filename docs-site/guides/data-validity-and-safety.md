@@ -104,6 +104,50 @@ never send mail. The free-provider methods (`generateFreeEmail`, `getFreeEmailPr
 explicitly, such as `generate("corp.test")`, is always used verbatim. The selected policy is
 recorded in portable generation recipes as `email.domain-policy`.
 
+## Regular-expression contract
+
+`RegexGenerator` generates from `java.util.regex` syntax, and `Generators.ofRegex`, `regexify`,
+`@Pattern`, `@Email(regexp = ...)`, and a JSON Schema `pattern` all use it. For any pattern, either
+every generated value satisfies `Pattern.compile(pattern).matcher(value).matches()`, or the
+constructor throws `IllegalArgumentException`. A malformed pattern fails with `java.util.regex`'s own
+error, and a valid pattern that cannot be honoured fails with a message naming the construct and its
+position. A value never silently fails to match.
+
+A value matches the whole pattern, so `^` and `$` add nothing to it: they hold at its start and end.
+It also passes an unanchored search, which is how JSON Schema reads `pattern`.
+
+Supported:
+
+- Literals, including supplementary characters. Escaped characters: a backslash before anything but
+  an ASCII letter or digit, plus `\t`, `\n`, `\r`, `\f`, `\a`, `\e`, `\xhh`, `\x{h...h}`, and `\uhhhh`.
+- `.`, `\D`, `\W`, and `\S`, which draw from printable ASCII, and `\d`, `\w`, and `\s`, which draw
+  from ASCII.
+- Character classes: `[abc]`, `[a-z]`, and `[^abc]`, with the escapes above as members or range ends,
+  such as `[\w.-]` and `[\x41-\x43]`. A negated class draws from printable ASCII.
+- Quantifiers: `?`, `*`, `+`, `{n}`, `{n,}`, and `{n,m}`, and their lazy forms. A stated count above
+  10,000 is rejected.
+- Groups and alternation: `(a|b)`, `(?:a|b)`, `(?<name>a|b)`, and `|` at any level.
+- `^`, `\A`, `$`, `\Z`, `\z`, and `\b`, where they hold on every value the pattern can generate. That
+  is checked at construction: `\bfoo\b` and `\b(foo|bar)\b` are accepted, while `a^b`,
+  `\b[a-z -]+\b`, and `\b\w*\b`, whose values could start with a space or be empty, are rejected.
+
+Rejected at construction:
+
+- Lookahead, lookbehind, atomic groups, and backreferences.
+- Inline flags such as `(?i)`.
+- Possessive quantifiers such as `a++`, and a quantifier with nothing to repeat such as `a{2}{3}`.
+- `\B`, `\G`, `\b{g}`, `\R`, `\X`, `\h`, `\H`, `\v`, `\V`, `\p`, `\P`, `\N`, `\c`, octal `\0`, and
+  quoting with `\Q`.
+- In a character class: `&&` intersection, a nested class, a supplementary character, and negating
+  all of printable ASCII.
+- A surrogate on its own or in an escape. Write a supplementary character as itself or as
+  `\x{h...h}`.
+
+`*`, `+`, and `{n,}` have no upper bound in a pattern, so generation gives them one: they repeat at
+most 10 times, or `n` times when that is more. A `GeneratorConfig` whose minimum string length is
+above 5 raises 10 to twice that length, up to 10,000, so that a generated string can reach it. A JSON
+Schema `minLength` or a `@Size` minimum does the same.
+
 ## Fail-closed finance and identity contracts
 
 The following output families are `DISABLED` by default. Calling `generate()` without the matching

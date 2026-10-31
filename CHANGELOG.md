@@ -52,9 +52,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - A `pattern` or `format` no longer ignores `minLength` and `maxLength`. `^A{8}$` with `maxLength` 3
   generated `AAAAAAAA`, and is now rejected. Values are drawn again until one fits, up to 10,000 times
   each. This samples rather than analyses, so a combination that rarely fits can also be rejected,
-  while parsing or on a later record. `RegexGenerator` repeats `*`, `+` and `{n,}` at most 10 times, so
-  `^[a-z]+$` with `minLength` 20 is rejected too, where it used to generate values that were too
-  short. `^[a-z]{20,40}$` works.
+  while parsing or on a later record. `^[a-z]+$` with `minLength` 20 used to generate values that were
+  too short, and now generates 20 to 40 characters, as a pattern's `*`, `+` and `{n,}` can repeat up to
+  twice `minLength`, or up to 10,000 times.
 - A `const` or `enum` value must now meet the field's `type`, length bounds, `pattern`, numeric bounds,
   `minItems`, `maxItems`, `items` and `properties`. An `enum` keeps the values that do: `[a, bbbb]`
   with `maxLength` 1 now generates only `a`. A `const` that breaks one is rejected, including a `const`
@@ -119,6 +119,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `objectUniqueFields()` with no names no longer breaks a seeded configuration. Generating with it, or
   asking it for a recipe, failed with `setting value must be a non-blank single-line value`. A recipe now
   writes an empty set of names as `-`.
+- `RegexGenerator` no longer generates values that do not match its pattern. For any pattern, every value
+  now satisfies `Pattern.compile(pattern).matcher(value).matches()`, or the constructor throws
+  `IllegalArgumentException`. `^(?:abc)$` generated `?:abc`, `\bfoo\b` generated `bfoob`, `[\d]` drew `\`
+  and `d`, and `a+?` generated `aaa?`. This also covers `Generators.ofRegex`, `regexify`, `@Pattern`,
+  `@Email(regexp = ...)` and a JSON Schema `pattern`. Patterns it already got right keep their seeded
+  values, apart from the two changes noted below. Values do change for a pattern that matched only by
+  accident, such as `\S*$+`, which wrote the `+` into the value, or `[\D]`, which drew the letter `D`.
+- `RegexGenerator` now supports non-capturing and named groups, `|` at the top level, escapes inside a
+  character class, such as `[\w.-]`, a `]` first in a class, lazy quantifiers, `\f`, `\a`, `\e`, `\xhh`,
+  `\x{h...h}`, `\uhhhh`, and a repeated supplementary character. `^`, `$`, `\A`, `\Z`, `\z` and `\b` are
+  now checked at construction: they are accepted where they hold on every value, such as `\b(foo|bar)\b`,
+  and rejected elsewhere, such as `a^b`, which generated `ab`.
+- `.` now draws from printable ASCII. It always generated a literal dot, so `.{5}` gave `.....`. Seeded
+  output changes for a pattern with a `.`.
+- `RegexGenerator` now rejects at construction what it cannot honour, with a message naming the construct
+  and its position: lookaround, atomic groups, backreferences, inline flags, possessive quantifiers, a
+  quantifier with nothing to repeat, `\B`, `\G`, `\b{g}`, `\R`, `\X`, `\h`, `\H`, `\v`, `\V`, `\p`, `\P`,
+  `\N`, `\c`, octal `\0`, `\Q`, class intersection and nesting, a supplementary character in a class, and
+  surrogates. A malformed pattern now fails with `java.util.regex`'s own error. `[abc`, `\d{3` and `\q`
+  used to be accepted, and `a{5,2}` failed only while generating.
+- `a{20,}` now generates 20 `a`s, where it failed while generating. `*`, `+` and `{n,}` repeat at most 10
+  times, or `n` times when that is more. A `GeneratorConfig` whose minimum string length is above 5 now
+  raises 10 to twice that length, up to 10,000, so that a value can reach it, and a JSON Schema `minLength`
+  or a `@Size` minimum does the same. `[0-9]+` with `@Size(min = 20)` used to fail, and now works. Seeded
+  output changes for a pattern with an open-ended repetition under such a minimum.
+- A pattern `RegexGenerator` cannot generate from no longer fails a `@Pattern` or `@Email` field that
+  another source can meet, as it is still enforced on every candidate. `\p{L}+` with
+  `@Size(min = 2, max = 5)` used to fail, and now works. Where nothing can meet it, the failure names the
+  unsupported construct. That includes a pattern the wrong text used to satisfy by luck: `^(?!admin).*$`
+  alone generated `?!admin`, and now fails. Seeded output can change for a field whose pattern is no
+  longer a source.
+- A JSON Schema `pattern` that `RegexGenerator` cannot generate from is now rejected with its schema path.
 
 ## [2.9.0] - 2026-10-19
 

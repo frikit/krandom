@@ -68,7 +68,9 @@ import org.jspecify.annotations.Nullable;
  * it fits {@code minLength} and {@code maxLength}, up to a fixed number of attempts. A combination that
  * leaves no value is rejected with its schema path, while parsing where that can be told. A combination
  * of length bounds with a {@code pattern} or {@code format} is judged by sampling rather than analysis,
- * so one that rarely fits can also be rejected, and can fail on a later record.
+ * so one that rarely fits can also be rejected, and can fail on a later record. A {@code pattern} that
+ * {@link RegexGenerator} cannot generate from is rejected with its schema path, unless a {@code const} or
+ * {@code enum} beside it names the values, as those are only checked against it.
  *
  * <p>Field names are matched against krandom's semantic resolver for realistic data.
  * For example, a property named "email" with type "string" will produce email addresses.
@@ -446,8 +448,11 @@ public final class SchemaParser {
         // semantic values only when no length bounds are declared.
         String pattern = stringOrNull(schema.get("pattern"));
         if (pattern != null) {
-            new RegexGenerator(pattern); // validate the pattern while parsing
-            return fittingLength(ctx -> matching(pattern, ctx.random().nextLong()), schema, path, config);
+            validatePattern(pattern, path);
+            // RegexGenerator's open-ended repetitions have to be able to reach the declared minimum.
+            int minLength = Math.clamp(intOrDefault(schema.get("minLength"), 1), 1, Integer.MAX_VALUE - 1);
+            return fittingLength(
+                    ctx -> matching(pattern, minLength, ctx.random().nextLong()), schema, path, config);
         }
 
         if (format != null) {
@@ -510,13 +515,29 @@ public final class SchemaParser {
         }
         throw new IllegalArgumentException("JSON Schema length bounds could not be met at " + path + ": none of "
                 + attempts + " generated values fit " + schema
-                + " (a pattern's *, + and {n,} repeat at most 10 times)");
+                + " (a pattern's *, + and {n,} repeat up to 10 times, or up to twice minLength, at most 10000 times)");
     }
 
-    private static String matching(String pattern, long seed) {
+    /** Parses the pattern while the schema is parsed, so that one it cannot generate from fails with its path. */
+    private static void validatePattern(String pattern, String path) {
+        try {
+            new RegexGenerator(pattern);
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException(
+                    "JSON Schema pattern cannot generate values at " + path + ": " + exception.getMessage(), exception);
+        }
+    }
+
+    private static String matching(String pattern, int minLength, long seed) {
         // Each value draws its own seed from the field's stream, so a fresh generator per value keeps
         // the record replayable without sharing mutable state; the parsed pattern itself is cached.
-        return new RegexGenerator(pattern, GeneratorConfig.builder().seed(seed).build()).generate();
+        return new RegexGenerator(
+                        pattern,
+                        GeneratorConfig.builder()
+                                .seed(seed)
+                                .stringLength(minLength, minLength)
+                                .build())
+                .generate();
     }
 
     private static @Nullable SchemaValueProvider resolveFormat(String format, GeneratorConfig config) {

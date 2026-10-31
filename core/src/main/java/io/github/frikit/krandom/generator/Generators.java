@@ -818,7 +818,7 @@ public final class Generators {
      * Returns a generator that produces strings matching the supported subset of regular
      * expressions, using explicit configuration.
      *
-     * @param pattern simplified regular expression; must not be {@code null}
+     * @param pattern regular expression, in the syntax {@link RegexGenerator} supports; must not be {@code null}
      * @param config  generator configuration; must not be {@code null}
      * @return regex generator
      */

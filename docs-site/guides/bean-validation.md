@@ -65,9 +65,12 @@ constraint. Outputs from explicit custom rules remain caller-owned and are not p
 
 String composition rotates through pattern, email, numeric, and sized-text candidate sources and
 accepts only a value satisfying the complete annotation contract. Search stops after 256 candidates.
-Malformed Java regexes, regex syntax outside `RegexGenerator`'s supported generation subset,
-incompatible repeatable patterns, and exhausted searches use the same structured strict/lenient
-failure policy as other object-generation errors.
+A pattern outside [`RegexGenerator`'s supported syntax]({{ '/guides/data-validity-and-safety/' | relative_url }}#regular-expression-contract),
+such as one with a lookahead, is not a source, but it is still enforced on every candidate, so another
+source can meet it. If no source is left, or the search runs out, the failure names the unsupported
+construct. Malformed Java regexes, incompatible repeatable patterns, and exhausted searches use the
+same structured strict/lenient failure policy as other object-generation errors. A `@Size` minimum
+lets a pattern's `*`, `+`, and `{n,}` reach that length, so `[0-9]+` with `@Size(min = 20)` works.
 
 ## Honest exclusions
 

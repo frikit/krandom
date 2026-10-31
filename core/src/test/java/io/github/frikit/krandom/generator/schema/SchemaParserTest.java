@@ -26,9 +26,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayName("SchemaParser")
 class SchemaParserTest {
@@ -1212,12 +1215,94 @@ class SchemaParserTest {
         }
 
         @Test
-        @DisplayName("open-ended repetition stops at ten, so a longer minimum needs a stated count")
-        void openEndedRepetitionStopsAtTen() {
-            assertRejected(Map.of("type", "string", "pattern", "^[a-z]+$", "minLength", 20));
+        @DisplayName("open-ended repetition can reach a declared minimum length")
+        void openEndedRepetitionReachesMinLength() {
+            Set<Integer> lengths = new HashSet<>();
+            for (Object value : values(Map.of("type", "string", "pattern", "^[a-z]+$", "minLength", 20))) {
+                assertTrue(((String) value).matches("[a-z]{20,40}"), "bounds violated: " + value);
+                lengths.add(((String) value).length());
+            }
+            assertTrue(lengths.size() > 10, "lengths must vary: " + lengths);
+
+            for (Object value :
+                    values(Map.of("type", "string", "pattern", "^[a-z]+$", "minLength", 20, "maxLength", 22))) {
+                assertTrue(((String) value).matches("[a-z]{20,22}"), "bounds violated: " + value);
+            }
+            for (Object value : values(Map.of("type", "string", "pattern", "^[a-z]{25,}$", "minLength", 30))) {
+                assertTrue(((String) value).matches("[a-z]{30,60}"), "bounds violated: " + value);
+            }
             for (Object value : values(Map.of("type", "string", "pattern", "^[a-z]{20,40}$", "minLength", 20))) {
                 assertTrue(((String) value).matches("[a-z]{20,40}"), "bounds violated: " + value);
             }
+        }
+
+        @Test
+        @DisplayName("open-ended repetition stops at ten unless a longer minimum asks for more")
+        void openEndedRepetitionDefaultLimit() {
+            Set<Integer> lengths = new HashSet<>();
+            for (Object value : values(Map.of("type", "string", "pattern", "^[a-z]+$"))) {
+                lengths.add(((String) value).length());
+            }
+            assertEquals(10, lengths.stream().max(Integer::compare).orElseThrow());
+
+            lengths.clear();
+            for (Object value : values(Map.of("type", "string", "pattern", "^[a-z]+$", "maxLength", 50))) {
+                lengths.add(((String) value).length());
+            }
+            assertEquals(10, lengths.stream().max(Integer::compare).orElseThrow());
+        }
+
+        @Test
+        @DisplayName("a minimum length beyond the repetition cap is rejected")
+        void openEndedRepetitionCannotPassTheCap() {
+            assertRejected(Map.of("type", "string", "pattern", "^[a-z]+$", "minLength", 10_001));
+            assertRejected(Map.of("type", "string", "pattern", "^[a-z]+$", "minLength", Integer.MAX_VALUE));
+        }
+
+        @ParameterizedTest
+        @ValueSource(
+                strings = {
+                    "^(?:abc)$",
+                    "\\bfoo\\b",
+                    "[\\d]{3}",
+                    "a|b",
+                    "a{20,}",
+                    "^[a-z]+$",
+                    "(?<word>[a-z]+)-\\d",
+                    ".{3}",
+                    "[\\w.-]+@example\\.com",
+                })
+        @DisplayName("every value generated from a pattern matches it")
+        void patternValuesMatch(String regex) {
+            Pattern pattern = Pattern.compile(regex);
+            for (Object value : values(Map.of("type", "string", "pattern", regex))) {
+                assertTrue(pattern.matcher((String) value).matches(), regex + " generated " + value);
+            }
+        }
+
+        @Test
+        @DisplayName("a pattern that cannot be generated from is rejected with its path and what is wrong")
+        void rejectsPatternThatCannotBeGenerated() {
+            Map<String, String> patterns = Map.of(
+                    "(?=a)a", "Unsupported lookahead at position 0",
+                    "(a)\\1", "Unsupported backreference \\1",
+                    "[a", "Unclosed character class",
+                    "a{5,2}", "Illegal repetition range");
+            patterns.forEach((pattern, problem) -> {
+                Map<String, Object> schema =
+                        objectSchema(Map.of("value", Map.of("type", "string", "pattern", pattern)));
+                IllegalArgumentException exception =
+                        assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(schema));
+                assertTrue(exception.getMessage().contains("$.properties.value"), exception.getMessage());
+                assertTrue(exception.getMessage().contains(problem), exception.getMessage());
+            });
+        }
+
+        @Test
+        @DisplayName("a const or enum is only checked against a pattern, so it need not be generated from it")
+        void explicitValuesAreCheckedAgainstAnyPattern() {
+            assertEquals(Set.of("abc"), distinct(Map.of("const", "abc", "pattern", "(?=a)abc")));
+            assertEquals(Set.of("abc"), distinct(Map.of("enum", List.of("abc", "xyz"), "pattern", "(?=a)abc")));
         }
 
         @Test
