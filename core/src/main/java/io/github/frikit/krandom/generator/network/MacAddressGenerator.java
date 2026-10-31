@@ -15,7 +15,7 @@ import java.util.Random;
  * Generates random IEEE 802 MAC addresses.
  *
  * <p>The default format is uppercase hexadecimal octets separated by colons
- * ({@code "XX:XX:XX:XX:XX:XX"}). Under {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} the first octet
+ * ({@code "XX:XX:XX:XX:XX:XX"}). Under the default {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} the first octet
  * has the locally administered bit set and the multicast bit clear.
  *
  * <pre>{@code

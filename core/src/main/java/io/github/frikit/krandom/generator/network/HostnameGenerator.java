@@ -12,7 +12,8 @@ import java.util.Objects;
 import java.util.Random;
 
 /**
- * Generates hostnames such as {@code api.example.com}.
+ * Generates hostnames such as {@code api.techcloud.test}, under the default
+ * {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED}. A supplied subdomain does not choose the destination.
  */
 public final class HostnameGenerator implements Generator<String> {
 

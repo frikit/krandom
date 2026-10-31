@@ -28,7 +28,7 @@ generator where shown by the API.
   text; the `…Object` names generate the corresponding JDK object.
 - `ofHttpMethod`, `ofHttpStatusCode`, `ofHttpFixture`
 
-`NetworkSafetyPolicy` selects whether addresses and names are reserved fixture destinations; see the
+Addresses and names are reserved fixture destinations by default; see the
 [network contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#network-contract).
 
 ## Date, time, and locale

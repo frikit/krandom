@@ -16,7 +16,7 @@ import java.util.Random;
 /**
  * Generates company website URLs.
  *
- * <p>Under {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} the host is under the reserved {@code .test}
+ * <p>Under the default {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} the host is under the reserved {@code .test}
  * top-level domain, also when a company name is supplied.
  */
 public final class CompanyUrlGenerator implements Generator<String> {

@@ -16,7 +16,7 @@ import java.util.Random;
 /**
  * Generates social-profile fixtures.
  *
- * <p>Under {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} a profile link is under the reserved
+ * <p>Under the default {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} a profile link is under the reserved
  * {@code .test} top-level domain, such as {@code https://github.test/vsmith553}.
  */
 public final class SocialProfileGenerator implements Generator<SocialProfile> {

@@ -9,13 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - `NetworkSafetyPolicy`, set with `GeneratorConfig.Builder.networkSafetyPolicy` or
-  `krandom.network-safety-policy` in the Spring starter. `TEST_SAFE_RESERVED` keeps every generated
-  network destination reserved: IPv4 addresses and CIDRs in the RFC 5737 blocks, IPv6 in `2001:db8::/32`,
-  and domains, hostnames, URLs, URIs, company URLs, avatar URLs, and social links under `.test`. MAC
-  addresses are locally administered and unicast, and `generatePublic()` and `generatePrivate()` fail.
-  An explicit TLD or destination is used verbatim. `REALISTIC_UNCLASSIFIED` keeps seeded output as it
-  was. A recipe records the policy in the new setting `network.safety-policy`, and replay requires it,
-  so a recipe without it, such as one from an earlier version, is rejected.
+  `krandom.network-safety-policy` in the Spring starter.
 - `GeneratorConfig.getObjectRequestedUniqueFieldNames()`, the names given to `objectUniqueField` and
   `objectUniqueFields`.
 - `config { objectUniqueFields(...) }` in the Kotlin DSL, which had no way to request unique fields. It
@@ -29,6 +23,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Generated network values are now reserved fixture destinations by default, under
+  `NetworkSafetyPolicy.TEST_SAFE_RESERVED`. They pointed at real targets, such as `218.13.174.12`,
+  `http://digital.us`, `https://github.com/vsmith553`, and real avatar hosts. IPv4 addresses and CIDRs
+  are now in the RFC 5737 blocks, IPv6 in `2001:db8::/32`, and domains, hostnames, URLs, URIs, company
+  URLs, avatar URLs, and social links under `.test`, with their usual labels and shape, as in
+  `https://www.digital.test/files?id=525` and `https://github.test/vsmith553`. MAC addresses are locally
+  administered and unicast. The promise is a reserved destination, not transport isolation. An explicit
+  TLD or destination is used verbatim, while a scheme or subdomain that would end the host is rejected.
+  `generatePublic()` and `generatePrivate()` now fail with `IllegalStateException`, and a unique IP fails
+  when the 762 reserved IPv4 addresses run out. The object engine, JSON Schema formats, and providers
+  follow: a generated `domain`, `url`, or `companyUrl` is reserved, an email beside a generated `domain`
+  takes it, and a `companyName` derives a `.test` domain even with no email field. Seeded output changes
+  for all of these and for values that depend on them. `REALISTIC_UNCLASSIFIED` restores the previous
+  output draw for draw. A recipe records the policy in the new setting `network.safety-policy`, and
+  replay requires it, so a recipe without it, such as one from an earlier version, is rejected.
 - A recipe now records which unique fields were requested, in the new setting
   `object.requested-unique-fields`, as a replay must treat them the same way. Replay requires it and
   `object.unique-fields`, so a recipe without them, such as one from an earlier version, is rejected.

@@ -113,8 +113,8 @@
     {
       "name": "krandom.network-safety-policy",
       "type": "io.github.frikit.krandom.generator.network.NetworkSafetyPolicy",
-      "description": "Safety policy for generated IP addresses, domains, hostnames, and URLs.",
-      "defaultValue": "REALISTIC_UNCLASSIFIED"
+      "description": "Safety policy for generated IP addresses, domains, hostnames, and URLs. The default uses only reserved fixture destinations.",
+      "defaultValue": "TEST_SAFE_RESERVED"
     },
     {
       "name": "krandom.object-construction-policy",

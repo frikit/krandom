@@ -118,14 +118,17 @@ class GeneratorCatalogNetworkSafetyTest {
     @Test
     @DisplayName("no generator names a real destination")
     void noGeneratorNamesARealDestination() {
-        assertEquals(Map.of(), sweep(reservedConfig(), finding -> true));
+        assertEquals(
+                NetworkSafetyPolicy.TEST_SAFE_RESERVED,
+                GeneratorConfig.defaults().getNetworkSafetyPolicy());
+        assertEquals(Map.of(), sweep(defaultConfig(), finding -> true));
     }
 
     @Test
     @DisplayName("a realistic email policy does not let email domains into URLs")
     void aRealisticEmailPolicyDoesNotLetEmailDomainsIntoUrls() {
         Map<String, Set<String>> violations = sweep(
-                reservedConfig().emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED),
+                defaultConfig().emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED),
                 finding -> finding.kind() != Kind.EMAIL_DOMAIN);
         violations.keySet().removeIf(surface -> surface.endsWith("generateFreeEmailDomain"));
 
@@ -241,7 +244,7 @@ class GeneratorCatalogNetworkSafetyTest {
     @DisplayName("every allow-list entry is in use")
     void everyAllowListEntryIsInUse() {
         Set<String> used = new TreeSet<>();
-        sweepTexts(reservedConfig(), (surface, text) -> {
+        sweepTexts(defaultConfig(), (surface, text) -> {
             ALLOWED.forEach((reason, pattern) -> {
                 if (pattern.matcher(text).find()) {
                     used.add(reason);
@@ -256,16 +259,12 @@ class GeneratorCatalogNetworkSafetyTest {
         return destinationsIn(text).stream().map(Finding::value).toList();
     }
 
-    private static GeneratorConfig.Builder reservedConfig() {
-        return openFamilies().networkSafetyPolicy(NetworkSafetyPolicy.TEST_SAFE_RESERVED);
-    }
-
     private static GeneratorConfig.Builder realisticConfig() {
-        return openFamilies().networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED);
+        return defaultConfig().networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED);
     }
 
-    /** Opens the families that fail closed, so that their values are swept too. */
-    private static GeneratorConfig.Builder openFamilies() {
+    /** The default network policy, with the families that fail closed opened, so that their values are swept too. */
+    private static GeneratorConfig.Builder defaultConfig() {
         return GeneratorConfig.builder()
                 .clock(CLOCK)
                 .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)

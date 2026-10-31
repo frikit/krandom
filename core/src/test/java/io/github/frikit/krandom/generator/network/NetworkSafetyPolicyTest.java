@@ -212,6 +212,71 @@ class NetworkSafetyPolicyTest {
     }
 
     @Test
+    @DisplayName("the realistic policy still produces public addresses and realistic hosts")
+    void theRealisticPolicyStillProducesRealisticShapes() {
+        DomainGenerator domains = new DomainGenerator(realistic(Locale.GERMANY));
+        Set<String> tlds = new HashSet<>();
+        AvatarUrlGenerator avatars = new AvatarUrlGenerator(realistic(Locale.US));
+        Set<String> avatarHosts = new HashSet<>();
+        SocialProfileGenerator social = new SocialProfileGenerator(realistic(Locale.US));
+        IPv4Generator addresses = new IPv4Generator(realistic(Locale.US));
+        MacAddressGenerator macs = new MacAddressGenerator(realistic(Locale.US));
+        boolean publicAddress = false;
+        boolean universalMac = false;
+        for (int i = 0; i < DRAWS; i++) {
+            String domain = domains.generate();
+            tlds.add(domain.substring(domain.lastIndexOf('.') + 1));
+            avatarHosts.add(hostOf(avatars.generate()));
+            assertTrue(social.generate().profileUrl().matches("https://[a-z]+\\.com/.+"));
+            publicAddress |= !TEST_NET_ADDRESS.matcher(addresses.generate()).matches();
+            universalMac |= (Integer.parseInt(macs.generate().substring(0, 2), 16) & 0x02) == 0;
+        }
+
+        assertTrue(tlds.containsAll(List.of("de", "com", "net", "org", "io")), tlds.toString());
+        assertEquals(Set.of("api.dicebear.com", "robohash.org", "ui-avatars.com"), avatarHosts);
+        assertTrue(publicAddress);
+        assertTrue(universalMac);
+    }
+
+    @Test
+    @DisplayName("convenience constructors and factories inherit the reserved default")
+    void convenienceConstructorsAndFactoriesInheritTheReservedDefault() {
+        Pattern ipv6 = Pattern.compile("2001:db8(?::[0-9a-f]{1,4}){6}");
+        assertTrue(TEST_NET_ADDRESS.matcher(new IPv4Generator().generate()).matches());
+        assertTrue(ipv6.matcher(new IPv6Generator().generate()).matches());
+        assertTrue(Pattern.compile(TEST_NET_ADDRESS.pattern() + "|" + ipv6.pattern())
+                .matcher(new IPGenerator().generate())
+                .matches());
+        assertEquals(0x02, Integer.parseInt(new MacAddressGenerator().generate().substring(0, 2), 16) & 0x03);
+
+        List<String> names = List.of(
+                new DomainGenerator().generate(),
+                new DomainGenerator(Locale.GERMANY).generate(),
+                new HostnameGenerator().generate(),
+                new HostnameGenerator(Locale.GERMANY).generate(),
+                hostOf(new URLGenerator().generate()),
+                hostOf(new URLGenerator(Locale.GERMANY).generate()),
+                hostOf(new UriGenerator().generate()),
+                hostOf(new UriGenerator(Locale.GERMANY).generate()),
+                hostOf(new CompanyUrlGenerator().generate()),
+                hostOf(new CompanyUrlGenerator(Locale.GERMANY).generate()),
+                hostOf(new AvatarUrlGenerator().generate()),
+                hostOf(new SocialProfileGenerator().generate().profileUrl()),
+                hostOf(new SocialProfileGenerator(Locale.GERMANY).generate().profileUrl()),
+                hostOf(new ProfileGenerator().generate().website()),
+                hostOf(new CompanyInfoGenerator().generate().website()),
+                Generators.ofDomain().generate(),
+                Generators.ofHostname().generate(),
+                Generators.network().domain().generate(),
+                hostOf(Generators.person().avatarUrl().generate()),
+                Generators.ofUriObject().generate().getHost(),
+                Generators.ofUrlObject().generate().getHost());
+        for (String name : names) {
+            assertTrue(name.endsWith(".test"), name);
+        }
+    }
+
+    @Test
     @DisplayName("IPv4 addresses are the 762 host addresses of the RFC 5737 blocks")
     void ipv4AddressesAreTheHostAddressesOfTheDocumentationBlocks() {
         IPv4Generator generator = new IPv4Generator(reserved(1L));

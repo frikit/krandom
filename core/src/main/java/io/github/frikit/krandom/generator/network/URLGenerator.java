@@ -23,8 +23,8 @@ import org.jspecify.annotations.Nullable;
  * <p>This generator creates complete URLs by combining protocols, domains (via {@link DomainGenerator}),
  * optional paths, and optional query parameters.
  *
- * <p>Under {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} a host the generator chooses is under the
- * reserved {@code .test} top-level domain. A domain passed explicitly is used verbatim. A supplied scheme,
+ * <p>Under the default {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} a host the generator chooses is
+ * under the reserved {@code .test} top-level domain. A domain passed explicitly is used verbatim. A supplied scheme,
  * subdomain, or path does not choose the destination, so a scheme or subdomain that would end the host is
  * rejected.
  *
@@ -35,25 +35,28 @@ import org.jspecify.annotations.Nullable;
  * <pre>{@code
  * // Random URL
  * URLGenerator gen = new URLGenerator();
- * String url = gen.generate();  // "https://techcloud.com"
+ * String url = gen.generate();  // "https://techcloud.test"
  *
  * // URL with specific protocol
- * String httpUrl = gen.generate("http");  // "http://datahub.io"
+ * String httpUrl = gen.generate("http");  // "http://datahub.test"
  * }</pre>
  *
  * <p><strong>URLs with Paths:</strong>
  * <pre>{@code
  * // URL with path
- * String withPath = gen.generateWithPath();  // "https://example.com/api/users"
+ * String withPath = gen.generateWithPath();  // "https://techcloud.test/api/users"
  *
  * // URL with path and query
- * String full = gen.generateWithPathAndQuery();  // "https://example.com/api/users?id=123&amp;page=1"
+ * String full = gen.generateWithPathAndQuery();  // "https://techcloud.test/api/users?id=123&amp;page=1"
  * }</pre>
  *
- * <p><strong>Locale-Aware Generation:</strong>
+ * <p><strong>Locale-Aware Generation</strong>, under {@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED}:
  * <pre>{@code
- * URLGenerator deGen = new URLGenerator(Locale.GERMANY);
- * String deUrl = deGen.generate();  // Might include ".de" domain
+ * GeneratorConfig config = GeneratorConfig.builder()
+ *     .locale(Locale.GERMANY)
+ *     .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
+ *     .build();
+ * String deUrl = new URLGenerator(config).generate();  // Might include ".de" domain
  * }</pre>
  *
  * <p><strong>Thread Safety:</strong>

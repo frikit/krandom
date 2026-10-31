@@ -17,9 +17,9 @@ import java.util.Random;
 /**
  * Generates avatar image URLs for user-profile fixtures.
  *
- * <p>{@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED} uses real avatar services' hosts, and
- * {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} the same URL shapes under the reserved {@code .test}
- * top-level domain. A supplied username or size does not change the host.
+ * <p>The default {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} uses real avatar services' URL shapes
+ * under the reserved {@code .test} top-level domain, and
+ * {@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED} their real hosts. A supplied username or size does not change the host.
  */
 public final class AvatarUrlGenerator implements Generator<String> {
 

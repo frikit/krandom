@@ -121,7 +121,9 @@ class IPv6GeneratorTest {
         @Test
         @DisplayName("first group covers a wide range over many samples")
         void firstGroupVariety() {
-            IPv6Generator gen = new IPv6Generator();
+            IPv6Generator gen = new IPv6Generator(io.github.frikit.krandom.generator.GeneratorConfig.builder()
+                    .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                    .build());
             long distinct = gen.stream()
                     .limit(10_000)
                     .map(ip -> ip.split(":")[0])

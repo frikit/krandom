@@ -13,7 +13,7 @@ import java.util.Random;
 /**
  * Generates random IPv4 addresses in dotted-decimal notation (RFC 791).
  *
- * <p>{@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} draws from the {@code .1} to {@code .254} host
+ * <p>The default {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} draws from the {@code .1} to {@code .254} host
  * addresses of the RFC 5737 documentation blocks {@code 192.0.2.0/24}, {@code 198.51.100.0/24}, and
  * {@code 203.0.113.0/24}, which is 762 addresses. Under
  * {@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED}:

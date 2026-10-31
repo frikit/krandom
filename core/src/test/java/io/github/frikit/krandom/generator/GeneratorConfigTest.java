@@ -96,19 +96,19 @@ class GeneratorConfigTest {
         assertEquals(NationalIdSafetyPolicy.DISABLED, c.getNationalIdSafetyPolicy());
         assertEquals(IdentityDocumentSafetyPolicy.DISABLED, c.getIdentityDocumentSafetyPolicy());
         assertEquals(EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS, c.getEmailDomainPolicy());
-        assertEquals(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED, c.getNetworkSafetyPolicy());
+        assertEquals(NetworkSafetyPolicy.TEST_SAFE_RESERVED, c.getNetworkSafetyPolicy());
     }
 
     @Test
     @DisplayName("network safety policy is configurable and retained by toBuilder")
     void networkSafetyPolicyConfigurable() {
         GeneratorConfig config = GeneratorConfig.builder()
-                .networkSafetyPolicy(NetworkSafetyPolicy.TEST_SAFE_RESERVED)
+                .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
                 .build();
 
-        assertEquals(NetworkSafetyPolicy.TEST_SAFE_RESERVED, config.getNetworkSafetyPolicy());
+        assertEquals(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED, config.getNetworkSafetyPolicy());
         assertEquals(
-                NetworkSafetyPolicy.TEST_SAFE_RESERVED,
+                NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED,
                 config.toBuilder().build().getNetworkSafetyPolicy());
         assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().networkSafetyPolicy(null));
     }

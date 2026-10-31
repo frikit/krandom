@@ -21,6 +21,13 @@ import org.junit.jupiter.api.Test;
 @DisplayName("IPv4Generator")
 class IPv4GeneratorTest {
 
+    /** The range tests below are about the realistic address space, which the default leaves out. */
+    private static io.github.frikit.krandom.generator.GeneratorConfig realistic() {
+        return io.github.frikit.krandom.generator.GeneratorConfig.builder()
+                .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
+    }
+
     private static final InetAddressValidator VALIDATOR = InetAddressValidator.getInstance();
     private static final int SAMPLES = 500;
 
@@ -78,7 +85,7 @@ class IPv4GeneratorTest {
         @Test
         @DisplayName("first octet covers the full [0, 223] range over many samples")
         void firstOctetFullRange() {
-            IPv4Generator gen = new IPv4Generator();
+            IPv4Generator gen = new IPv4Generator(realistic());
             boolean seenLow = false; // near 0
             boolean seenHigh = false; // near 223
             boolean seenMid = false; // near 128
@@ -104,7 +111,7 @@ class IPv4GeneratorTest {
         @Test
         @DisplayName("octets 2-4 reach 255 over many samples")
         void octetsReach255() {
-            IPv4Generator gen = new IPv4Generator();
+            IPv4Generator gen = new IPv4Generator(realistic());
             boolean[] seen255 = new boolean[3];
             for (int i = 0; i < 50_000 && !(seen255[0] && seen255[1] && seen255[2]); i++) {
                 String[] parts = gen.generate().split("\\.");
@@ -120,7 +127,7 @@ class IPv4GeneratorTest {
         @Test
         @DisplayName("octets 2-4 reach 0 over many samples")
         void octetsReach0() {
-            IPv4Generator gen = new IPv4Generator();
+            IPv4Generator gen = new IPv4Generator(realistic());
             boolean[] seen0 = new boolean[3];
             for (int i = 0; i < 50_000 && !(seen0[0] && seen0[1] && seen0[2]); i++) {
                 String[] parts = gen.generate().split("\\.");

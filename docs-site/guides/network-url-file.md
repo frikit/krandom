@@ -6,8 +6,8 @@ permalink: /guides/network-url-file/
 
 # Network, URL, and File Data
 
-`NetworkSafetyPolicy` selects whether generated addresses and names are reserved fixture destinations;
-see the [network contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#network-contract).
+Generated addresses and names are reserved fixture destinations by default, such as `192.0.2.17` and
+`https://www.digital.test/files?id=525`; see the [network contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#network-contract).
 
 ## Network values
 

@@ -9,10 +9,11 @@ package io.github.frikit.krandom.generator.network;
  * Safety policy for generated network destinations: IP addresses, CIDRs, domains, hostnames, URLs,
  * URIs, company URLs, avatar URLs, and social links.
  *
- * <p>A random public address or an ordinary domain can belong to a real host. The policy governs
- * destinations that a generator chooses on its own; a destination passed explicitly by the caller,
- * such as the TLD in {@code generate("com")}, is always used verbatim. A supplied username, subdomain,
- * scheme, or size does not choose a destination.
+ * <p>A random public address or an ordinary domain can belong to a real host. The default therefore
+ * uses only destinations reserved for documentation and testing. The policy governs destinations that
+ * a generator chooses on its own; a destination passed explicitly by the caller, such as the TLD in
+ * {@code generate("com")}, is always used verbatim. A supplied username, subdomain, scheme, or size
+ * does not choose a destination.
  */
 public enum NetworkSafetyPolicy {
 

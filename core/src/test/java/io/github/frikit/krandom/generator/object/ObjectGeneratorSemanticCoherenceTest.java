@@ -203,7 +203,10 @@ class ObjectGeneratorSemanticCoherenceTest {
     @Test
     @DisplayName("a domain without an email field keeps its generated value and its URL sibling")
     void aDomainWithoutAnEmailFieldKeepsItsGeneratedValue() {
-        GeneratorConfig config = GeneratorConfig.builder().seed(61L).build();
+        GeneratorConfig config = GeneratorConfig.builder()
+                .seed(61L)
+                .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
 
         DomainWithoutEmail value = new ObjectGenerator<>(DomainWithoutEmail.class, config).generate();
 
@@ -229,6 +232,7 @@ class ObjectGeneratorSemanticCoherenceTest {
         GeneratorConfig config = GeneratorConfig.builder()
                 .seed(61L)
                 .emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED)
+                .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
                 .build();
 
         CompanyNameEmail company = new ObjectGenerator<>(CompanyNameEmail.class, config).generate();
@@ -261,7 +265,10 @@ class ObjectGeneratorSemanticCoherenceTest {
     @Test
     @DisplayName("a company name without an email field keeps deriving an ordinary domain")
     void aCompanyNameWithoutAnEmailFieldKeepsDerivingAnOrdinaryDomain() {
-        GeneratorConfig config = GeneratorConfig.builder().seed(61L).build();
+        GeneratorConfig config = GeneratorConfig.builder()
+                .seed(61L)
+                .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build();
 
         CompanyWithoutEmail value = new ObjectGenerator<>(CompanyWithoutEmail.class, config).generate();
 
@@ -315,6 +322,7 @@ class ObjectGeneratorSemanticCoherenceTest {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
                 .generatorConfig(GeneratorConfig.builder()
                         .seed(61L)
+                        .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
                         .objectUniqueField("domain")
                         .build())
                 .override(CompanyDomainEmail.class, "companyName", () -> "Acme")
@@ -845,6 +853,7 @@ class ObjectGeneratorSemanticCoherenceTest {
         ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
                 .generatorConfig(GeneratorConfig.builder()
                         .seed(61L)
+                        .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
                         .objectUniqueField("domain")
                         .objectUniquenessMaxAttempts(2)
                         .objectIgnoreErrors(true)

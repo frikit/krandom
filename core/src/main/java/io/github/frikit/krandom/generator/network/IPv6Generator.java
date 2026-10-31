@@ -14,7 +14,7 @@ import java.util.StringJoiner;
 /**
  * Generates random IPv6 addresses in colon-separated notation (RFC 4291, RFC 5952).
  *
- * <p>{@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} keeps every address inside the RFC 3849 documentation
+ * <p>The default {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} keeps every address inside the RFC 3849 documentation
  * prefix {@code 2001:db8::/32}. Under {@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED} all 128 bits are
  * random.
  *

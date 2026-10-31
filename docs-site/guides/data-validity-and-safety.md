@@ -106,8 +106,8 @@ recorded in portable generation recipes as `email.domain-policy`.
 
 ## Network contract
 
-`NetworkSafetyPolicy.TEST_SAFE_RESERVED` covers every network destination a generator chooses on its
-own. The promise is a reserved fixture destination, not transport isolation: nothing assigns these
+`NetworkSafetyPolicy.TEST_SAFE_RESERVED` is the default for every network destination a generator
+chooses on its own. The promise is a reserved fixture destination, not transport isolation: nothing assigns these
 addresses and names to a real public host, but a network can still route them or resolve them
 privately, so keep integration tests away from them when that matters.
 
@@ -146,8 +146,8 @@ been used. For an exhaustive allocation, put the addresses in a `FinitePoolGener
 one once. A unique `domain`, `url`, or `companyUrl` that the coherence pass derives numbers a subdomain,
 such as `https://n1.www.acme.test`, so it stays reserved too.
 
-`NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED` allows random public addresses, realistic top-level domains,
-and real avatar and social-network hosts, without a safety claim. It suits isolated fixtures that never
+`NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED` restores random public addresses, realistic top-level
+domains, and real avatar and social-network hosts, without a safety claim. It suits isolated fixtures that never
 connect to what they generate. User-agent strings are outside this contract: they describe a client
 rather than a destination, and the crawler ones name their vendors' pages as real crawlers do. The
 selected policy is recorded in portable generation recipes as `network.safety-policy`.

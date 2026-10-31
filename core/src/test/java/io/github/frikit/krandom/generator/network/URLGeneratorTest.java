@@ -232,7 +232,10 @@ class URLGeneratorTest {
 
     @Test
     void testLocaleInfluencesDomain() {
-        URLGenerator deGenerator = new URLGenerator(Locale.GERMANY);
+        URLGenerator deGenerator = new URLGenerator(GeneratorConfig.builder()
+                .locale(Locale.GERMANY)
+                .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build());
         Set<String> urls = new HashSet<>();
         for (int i = 0; i < 100; i++) {
             urls.add(deGenerator.generate());

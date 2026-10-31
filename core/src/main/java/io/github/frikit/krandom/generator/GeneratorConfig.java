@@ -434,10 +434,10 @@ public final class GeneratorConfig {
     /**
      * Enforceable policy for generated network destinations.
      *
-     * <p>{@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} uses only reserved fixture destinations: the
-     * RFC 5737 and RFC 3849 documentation ranges and names under {@code .test}.
-     * {@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED} is the default for now, and allows random
-     * public addresses and realistic domains in isolated fixtures.
+     * <p>The default {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} uses only reserved fixture
+     * destinations: the RFC 5737 and RFC 3849 documentation ranges and names under {@code .test}.
+     * {@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED} is an explicit opt-in for random public
+     * addresses and realistic domains in isolated fixtures.
      *
      * @return configured network safety policy
      */
@@ -963,7 +963,7 @@ public final class GeneratorConfig {
         private NationalIdSafetyPolicy nationalIdSafetyPolicy = NationalIdSafetyPolicy.DISABLED;
         private IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy = IdentityDocumentSafetyPolicy.DISABLED;
         private EmailDomainPolicy emailDomainPolicy = EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS;
-        private NetworkSafetyPolicy networkSafetyPolicy = NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED;
+        private NetworkSafetyPolicy networkSafetyPolicy = NetworkSafetyPolicy.TEST_SAFE_RESERVED;
         private ChildStreamPolicy childStreamPolicy = ChildStreamPolicy.LEGACY;
         private String providerDatasetVersion = GenerationRecipe.BUILTIN_PROVIDER_DATASET_VERSION;
         private final List<KRandomModule> modules = new ArrayList<>();
@@ -1679,9 +1679,9 @@ public final class GeneratorConfig {
         /**
          * Selects the enforceable policy for generated network destinations.
          *
-         * <p>{@link NetworkSafetyPolicy#TEST_SAFE_RESERVED} uses only reserved fixture destinations.
-         * {@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED} is the default for now; keep it to isolated
-         * fixtures that never connect to what they generate.
+         * <p>The default is {@link NetworkSafetyPolicy#TEST_SAFE_RESERVED}. Select
+         * {@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED} only for isolated fixtures that never connect
+         * to what they generate; it restores random public addresses and realistic domains.
          *
          * @param networkSafetyPolicy network safety policy
          * @return this builder
