@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -95,6 +96,10 @@ public final class ZonedDateTimeGenerator implements Generator<ZonedDateTime>, S
      * Creates a zoned-date-time generator restricted to the given date range.
      * Intended for use by {@code FieldGeneratorResolver} when a date range is configured.
      *
+     * <p>A date-time in a gap in the drawn zone's rules moves forward by the length of the gap. Where that
+     * passes {@code max}, as it does on {@code 2011-12-30}, a day {@code Pacific/Apia} skipped, the value
+     * is the drawn date-time in UTC instead.
+     *
      * @param min earliest date (inclusive)
      * @param max latest date (inclusive)
      */
@@ -131,7 +136,8 @@ public final class ZonedDateTimeGenerator implements Generator<ZonedDateTime>, S
         int second = random.nextInt(60);
         LocalDateTime ldt = LocalDateTime.of(date, LocalTime.of(hour, minute, second));
         ZoneId zone = ZONE_IDS.get(random.nextInt(ZONE_IDS.size()));
-        return ZonedDateTime.of(ldt, zone);
+        ZonedDateTime zoned = ZonedDateTime.of(ldt, zone);
+        return rangeMax != null && zoned.toLocalDate().isAfter(rangeMax) ? ldt.atZone(ZoneOffset.UTC) : zoned;
     }
 
     /**

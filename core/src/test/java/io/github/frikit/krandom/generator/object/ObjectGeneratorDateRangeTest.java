@@ -16,7 +16,9 @@ import io.github.frikit.krandom.generator.core.model.PersonWithDateTimes;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -124,6 +126,27 @@ class ObjectGeneratorDateRangeTest {
     }
 
     @Test
+    @DisplayName("zoned and offset fields stay on a one-day range that a zone skipped, seeded or not")
+    void zonedAndOffsetFieldsStayOnAOneDayRangeThatAZoneSkipped() {
+        // Pacific/Apia and Pacific/Fakaofo went from 2011-12-29 to 2011-12-31.
+        LocalDate skipped = LocalDate.of(2011, 12, 30);
+        GeneratorConfig unseeded =
+                GeneratorConfig.builder().objectDateRange(skipped, skipped).build();
+
+        for (GeneratorConfig config :
+                List.of(unseeded, unseeded.toBuilder().seed(42L).build())) {
+            ObjectGenerator<SkippedDayFields> gen = new ObjectGenerator<>(SkippedDayFields.class, config);
+            for (int i = 0; i < 20_000; i++) {
+                SkippedDayFields value = gen.generate();
+                assertEquals(skipped, value.stamp.toLocalDate(), value.stamp.toString());
+                assertEquals(skipped, value.moment.toLocalDate(), value.moment.toString());
+                assertEquals(skipped, value.createdAt.toLocalDate(), value.createdAt.toString());
+                assertEquals(skipped, value.dateOfBirth.toLocalDate(), value.dateOfBirth.toString());
+            }
+        }
+    }
+
+    @Test
     @DisplayName("dateRange(min > max) throws IllegalArgumentException")
     void invalidRangeThrows() {
         assertThrows(
@@ -135,5 +158,13 @@ class ObjectGeneratorDateRangeTest {
 
         Instant stamp;
         Instant createdAt;
+    }
+
+    static class SkippedDayFields {
+
+        ZonedDateTime stamp;
+        OffsetDateTime moment;
+        ZonedDateTime createdAt;
+        OffsetDateTime dateOfBirth;
     }
 }

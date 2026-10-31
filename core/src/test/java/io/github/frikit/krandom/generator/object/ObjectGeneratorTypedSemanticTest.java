@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -194,6 +195,49 @@ class ObjectGeneratorTypedSemanticTest {
     }
 
     @Test
+    @DisplayName(
+            "in relaxed mode, @Past and @PastOrPresent fields stay before a fixed clock beside a value with an offset")
+    void constrainedFieldsStayBeforeAFixedClockBesideAValueWithAnOffset() {
+        Instant now = Instant.parse("2026-06-04T12:00:00Z");
+        Clock clock = Clock.fixed(now, ZoneOffset.UTC);
+        // One day ending at the clock's date, so that an offset can take a sibling past the end of the range.
+        LocalDate today = LocalDate.now(clock);
+
+        for (long seed = 0; seed < 300; seed++) {
+            GeneratorConfig config = GeneratorConfig.builder()
+                    .seed(seed)
+                    .clock(clock)
+                    .objectDateRange(today, today)
+                    .build();
+
+            OffsetBesidePast updatedPast = new ObjectGenerator<>(OffsetBesidePast.class, config).generate();
+            assertTrue(updatedPast.updatedAt.isBefore(now), updatedPast.updatedAt.toString());
+            assertFalse(
+                    updatedPast.createdAt.toInstant().isAfter(updatedPast.updatedAt), updatedPast.createdAt.toString());
+
+            ZonedBesidePastOrPresent updatedPresent =
+                    new ObjectGenerator<>(ZonedBesidePastOrPresent.class, config).generate();
+            assertTrue(updatedPresent.updatedAt.toInstant().isBefore(now), updatedPresent.updatedAt.toString());
+            assertFalse(
+                    updatedPresent.createdAt.toInstant().isAfter(updatedPresent.updatedAt.toInstant()),
+                    updatedPresent.createdAt.toString());
+
+            PastBesideOffset createdPast = new ObjectGenerator<>(PastBesideOffset.class, config).generate();
+            assertTrue(createdPast.createdAt.toInstant().isBefore(now), createdPast.createdAt.toString());
+            assertFalse(
+                    createdPast.createdAt.toInstant().isAfter(createdPast.updatedAt.toInstant()),
+                    createdPast.updatedAt.toString());
+
+            PastOrPresentBesideZoned createdPresent =
+                    new ObjectGenerator<>(PastOrPresentBesideZoned.class, config).generate();
+            assertTrue(createdPresent.createdAt.isBefore(now), createdPresent.createdAt.toString());
+            assertFalse(
+                    createdPresent.createdAt.isAfter(createdPresent.updatedAt.toInstant()),
+                    createdPresent.updatedAt.toString());
+        }
+    }
+
+    @Test
     @DisplayName("strict mode can copy a sibling past the clock over a @Past Instant, as semantics win")
     void strictModeCanCopyASiblingPastTheClockOverAPastInstant() {
         Instant now = Instant.parse("2026-06-04T12:00:00Z");
@@ -348,6 +392,34 @@ class ObjectGeneratorTypedSemanticTest {
         Instant createdAt;
 
         @PastOrPresent Instant updatedAt;
+    }
+
+    static class OffsetBesidePast {
+
+        OffsetDateTime createdAt;
+
+        @Past Instant updatedAt;
+    }
+
+    static class ZonedBesidePastOrPresent {
+
+        ZonedDateTime createdAt;
+
+        @PastOrPresent OffsetDateTime updatedAt;
+    }
+
+    static class PastBesideOffset {
+
+        @Past OffsetDateTime createdAt;
+
+        OffsetDateTime updatedAt;
+    }
+
+    static class PastOrPresentBesideZoned {
+
+        @PastOrPresent Instant createdAt;
+
+        ZonedDateTime updatedAt;
     }
 
     static class ExtendedTypedSemantics {
