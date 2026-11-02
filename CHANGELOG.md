@@ -44,6 +44,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Update Spring Boot to 4.1.2 (the `krandom-spring-boot-starter` dependency), the Gradle wrapper to
   9.8.2, Error Prone to 2.51.0, and NullAway to 0.14.3; align the consumer examples with Spring Boot
   4.1.2 and Maven Surefire 3.6.1.
+- Update the build and test tooling, with no change for consumers: JaCoCo to 0.8.16, Palantir Java
+  Format to 2.103.0, Logback to 1.6.6, and in CI `gradle/actions` to 6.4.1 and `graalvm/setup-graalvm`
+  to 1.6.8.
 - Generated UTC offsets now follow one rule, `-12:00` to `+14:00` in 15-minute steps, in
   `ZoneOffsetGenerator`, `OffsetTimeGenerator`, `OffsetDateTimeGenerator`, and the `ZoneOffset`,
   `OffsetTime`, and `OffsetDateTime` members of generated objects, including semantic fields such as
