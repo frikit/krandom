@@ -211,6 +211,31 @@ class PhoneNumberGeneratorTest {
     }
 
     @Test
+    @DisplayName("country calling code is the country table's code for every built-in locale")
+    void countryCallingCodeMatchesTheCountryTable() {
+        Set<String> countries = new TreeSet<>();
+        for (SupportedLocale supportedLocale : SupportedLocale.values()) {
+            Locale locale = supportedLocale.locale();
+            PhoneNumberGenerator phone = new PhoneNumberGenerator(locale);
+            String callingCode = new CountryGenerator(locale).currentCallingCode();
+
+            assertEquals(callingCode, phone.generateCountryCallingCode(), locale.toString());
+            assertTrue(phone.generateMsisdn().startsWith(callingCode.substring(1)), locale.toString());
+            countries.add(locale.getCountry());
+        }
+        assertEquals(45, countries.size(), "every country with a built-in phone format: " + countries);
+    }
+
+    @Test
+    @DisplayName("a locale whose country has no phone format keeps the calling code of the format it uses")
+    void countryCallingCodeFollowsTheFormatCountry() {
+        Locale liechtenstein = Locale.of("de", "LI");
+
+        assertEquals("+49", new PhoneNumberGenerator(liechtenstein).generateCountryCallingCode());
+        assertEquals("+423", new CountryGenerator(liechtenstein).currentCallingCode());
+    }
+
+    @Test
     @DisplayName("msisdn returns 14 or 15 digits")
     void msisdn() {
         String value = new PhoneNumberGenerator(Locale.US).generateMsisdn();

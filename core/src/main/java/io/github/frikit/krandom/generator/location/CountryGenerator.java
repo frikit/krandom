@@ -33,154 +33,38 @@ import java.util.stream.Collectors;
  * <p>Country codes come from the ISO 3166-1 table bundled with kRandom: the alpha-2, alpha-3 and numeric
  * codes of all 249 officially assigned countries. Because the table ships with the library, seeded codes
  * are the same on every Java version.
+ *
+ * <p>Every one of those countries also has a calling code, a continent and a time zone, from tables
+ * bundled beside the ISO table; each file records its source, licence, retrieval date and checksum:
+ * <ul>
+ *   <li>A calling code is the ITU-T E.164 country code alone, from libphonenumber, so countries that
+ *       share one have the same value: {@code +1} for every North American Numbering Plan country,
+ *       {@code +44} for the United Kingdom and the crown dependencies.</li>
+ *   <li>A continent is the country's UN M49 region, with the Americas divided into North America and
+ *       South America; a transcontinental country has its M49 region ({@code RU} is Europe, {@code TR}
+ *       is Asia). The continents are {@code Africa}, {@code Antarctica}, {@code Asia}, {@code Europe},
+ *       {@code North America}, {@code Oceania} and {@code South America}.</li>
+ *   <li>A time zone is an IANA time zone ID from the tz database's {@code zone.tab}; a country with
+ *       several zones has the zone of its seat of government ({@code America/New_York} for the United
+ *       States, {@code Europe/Moscow} for Russia).</li>
+ * </ul>
  */
 public final class CountryGenerator implements Generator<String> {
 
     private static final String ISO_CODES_RESOURCE = "krandom/country_codes/iso_3166_1.txt";
+    private static final String CALLING_CODES_RESOURCE = "krandom/country_codes/calling_codes.txt";
+    private static final String CONTINENTS_RESOURCE = "krandom/country_codes/continents.txt";
+    private static final String TIME_ZONES_RESOURCE = "krandom/country_codes/time_zones.txt";
     // Alpha-2 order, the same order as Locale.getISOCountries(), which seeded codes were drawn from before.
     private static final List<CountryCodes> ISO_CODES = parseIsoCodes(CountryResourceLoader.load(ISO_CODES_RESOURCE));
     private static final Map<String, CountryCodes> ISO_CODES_BY_ALPHA2 =
             ISO_CODES.stream().collect(Collectors.toUnmodifiableMap(CountryCodes::alpha2, Function.identity()));
-    private static final Map<String, String> CALLING_BY_COUNTRY = orderedMap(
-            Map.entry("US", "+1"),
-            Map.entry("GB", "+44"),
-            Map.entry("AU", "+61"),
-            Map.entry("DE", "+49"),
-            Map.entry("FR", "+33"),
-            Map.entry("ES", "+34"),
-            Map.entry("IT", "+39"),
-            Map.entry("BR", "+55"),
-            Map.entry("JP", "+81"),
-            Map.entry("CN", "+86"),
-            Map.entry("NL", "+31"),
-            Map.entry("PL", "+48"),
-            Map.entry("RU", "+7"),
-            Map.entry("KR", "+82"),
-            Map.entry("TR", "+90"),
-            Map.entry("SE", "+46"),
-            Map.entry("NO", "+47"),
-            Map.entry("CZ", "+420"),
-            Map.entry("SA", "+966"),
-            Map.entry("IN", "+91"),
-            Map.entry("DK", "+45"),
-            Map.entry("FI", "+358"),
-            Map.entry("HU", "+36"),
-            Map.entry("RO", "+40"),
-            Map.entry("SK", "+421"),
-            Map.entry("UA", "+380"),
-            Map.entry("BG", "+359"),
-            Map.entry("HR", "+385"),
-            Map.entry("GR", "+30"),
-            Map.entry("TH", "+66"),
-            Map.entry("VN", "+84"),
-            Map.entry("ID", "+62"),
-            Map.entry("MY", "+60"),
-            Map.entry("IL", "+972"),
-            Map.entry("CA", "+1"),
-            Map.entry("NZ", "+64"),
-            Map.entry("IE", "+353"),
-            Map.entry("ZA", "+27"),
-            Map.entry("BE", "+32"),
-            Map.entry("CH", "+41"),
-            Map.entry("AT", "+43"),
-            Map.entry("MX", "+52"),
-            Map.entry("AR", "+54"),
-            Map.entry("PT", "+351"),
-            Map.entry("TW", "+886"));
-    private static final Map<String, String> CONTINENT_BY_COUNTRY = orderedMap(
-            Map.entry("US", "North America"),
-            Map.entry("GB", "Europe"),
-            Map.entry("AU", "Oceania"),
-            Map.entry("DE", "Europe"),
-            Map.entry("FR", "Europe"),
-            Map.entry("ES", "Europe"),
-            Map.entry("IT", "Europe"),
-            Map.entry("BR", "South America"),
-            Map.entry("JP", "Asia"),
-            Map.entry("CN", "Asia"),
-            Map.entry("NL", "Europe"),
-            Map.entry("PL", "Europe"),
-            Map.entry("RU", "Europe"),
-            Map.entry("KR", "Asia"),
-            Map.entry("TR", "Asia"),
-            Map.entry("SE", "Europe"),
-            Map.entry("NO", "Europe"),
-            Map.entry("CZ", "Europe"),
-            Map.entry("SA", "Asia"),
-            Map.entry("IN", "Asia"),
-            Map.entry("DK", "Europe"),
-            Map.entry("FI", "Europe"),
-            Map.entry("HU", "Europe"),
-            Map.entry("RO", "Europe"),
-            Map.entry("SK", "Europe"),
-            Map.entry("UA", "Europe"),
-            Map.entry("BG", "Europe"),
-            Map.entry("HR", "Europe"),
-            Map.entry("GR", "Europe"),
-            Map.entry("TH", "Asia"),
-            Map.entry("VN", "Asia"),
-            Map.entry("ID", "Asia"),
-            Map.entry("MY", "Asia"),
-            Map.entry("IL", "Asia"),
-            Map.entry("CA", "North America"),
-            Map.entry("NZ", "Oceania"),
-            Map.entry("IE", "Europe"),
-            Map.entry("ZA", "Africa"),
-            Map.entry("BE", "Europe"),
-            Map.entry("CH", "Europe"),
-            Map.entry("AT", "Europe"),
-            Map.entry("MX", "North America"),
-            Map.entry("AR", "South America"),
-            Map.entry("PT", "Europe"),
-            Map.entry("TW", "Asia"));
-    private static final Map<String, String> TIMEZONE_BY_COUNTRY = orderedMap(
-            Map.entry("US", "America/New_York"),
-            Map.entry("GB", "Europe/London"),
-            Map.entry("AU", "Australia/Sydney"),
-            Map.entry("DE", "Europe/Berlin"),
-            Map.entry("FR", "Europe/Paris"),
-            Map.entry("ES", "Europe/Madrid"),
-            Map.entry("IT", "Europe/Rome"),
-            Map.entry("BR", "America/Sao_Paulo"),
-            Map.entry("JP", "Asia/Tokyo"),
-            Map.entry("CN", "Asia/Shanghai"),
-            Map.entry("NL", "Europe/Amsterdam"),
-            Map.entry("PL", "Europe/Warsaw"),
-            Map.entry("RU", "Europe/Moscow"),
-            Map.entry("KR", "Asia/Seoul"),
-            Map.entry("TR", "Europe/Istanbul"),
-            Map.entry("SE", "Europe/Stockholm"),
-            Map.entry("NO", "Europe/Oslo"),
-            Map.entry("CZ", "Europe/Prague"),
-            Map.entry("SA", "Asia/Riyadh"),
-            Map.entry("IN", "Asia/Kolkata"),
-            Map.entry("DK", "Europe/Copenhagen"),
-            Map.entry("FI", "Europe/Helsinki"),
-            Map.entry("HU", "Europe/Budapest"),
-            Map.entry("RO", "Europe/Bucharest"),
-            Map.entry("SK", "Europe/Bratislava"),
-            Map.entry("UA", "Europe/Kyiv"),
-            Map.entry("BG", "Europe/Sofia"),
-            Map.entry("HR", "Europe/Zagreb"),
-            Map.entry("GR", "Europe/Athens"),
-            Map.entry("TH", "Asia/Bangkok"),
-            Map.entry("VN", "Asia/Ho_Chi_Minh"),
-            Map.entry("ID", "Asia/Jakarta"),
-            Map.entry("MY", "Asia/Kuala_Lumpur"),
-            Map.entry("IL", "Asia/Jerusalem"),
-            Map.entry("CA", "America/Toronto"),
-            Map.entry("NZ", "Pacific/Auckland"),
-            Map.entry("IE", "Europe/Dublin"),
-            Map.entry("ZA", "Africa/Johannesburg"),
-            Map.entry("BE", "Europe/Brussels"),
-            Map.entry("CH", "Europe/Zurich"),
-            Map.entry("AT", "Europe/Vienna"),
-            Map.entry("MX", "America/Mexico_City"),
-            Map.entry("AR", "America/Buenos_Aires"),
-            Map.entry("PT", "Europe/Lisbon"),
-            Map.entry("TW", "Asia/Taipei"));
-    // Random selection indexes these declaration-ordered snapshots; Map.of/Map.ofEntries iteration
-    // order is randomized per JVM and must never feed seeded output.
+    private static final Map<String, String> CALLING_BY_COUNTRY = loadCountryValues(CALLING_CODES_RESOURCE);
+    private static final Map<String, String> CONTINENT_BY_COUNTRY = loadCountryValues(CONTINENTS_RESOURCE);
+    private static final Map<String, String> TIMEZONE_BY_COUNTRY = loadCountryValues(TIME_ZONES_RESOURCE);
+    // Random selection indexes these snapshots, one value per country in the ISO table's order, so a draw
+    // picks a country as generateCodes() does; Map.of/Map.ofEntries iteration order is randomized per JVM
+    // and must never feed seeded output.
     private static final List<String> CALLING_CODES = List.copyOf(CALLING_BY_COUNTRY.values());
     private static final List<String> CONTINENTS = List.copyOf(CONTINENT_BY_COUNTRY.values());
     private static final List<String> TIMEZONES = List.copyOf(TIMEZONE_BY_COUNTRY.values());
@@ -231,13 +115,42 @@ public final class CountryGenerator implements Generator<String> {
         this(GeneratorConfig.builder().locale(locale).build());
     }
 
-    @SafeVarargs
-    private static Map<String, String> orderedMap(Map.Entry<String, String>... entries) {
-        Map<String, String> ordered = new LinkedHashMap<>();
-        for (Map.Entry<String, String> entry : entries) {
-            ordered.put(entry.getKey(), entry.getValue());
+    private static Map<String, String> loadCountryValues(String resourcePath) {
+        return parseCountryValues(CountryResourceLoader.load(resourcePath), ISO_CODES, resourcePath);
+    }
+
+    /**
+     * Parses a table that gives one value for each country of {@code countries}: each row is the country's
+     * alpha-2 code, a space and the value, in the order of {@code countries}.
+     *
+     * @throws IllegalStateException if a country has no row, a row has no value, or the rows are in another order
+     */
+    static Map<String, String> parseCountryValues(String[] rows, List<CountryCodes> countries, String resourcePath) {
+        if (rows.length != countries.size()) {
+            throw new IllegalStateException(resourcePath + " must have " + countries.size()
+                    + " rows, one for each ISO 3166-1 country, found: " + rows.length);
         }
-        return Collections.unmodifiableMap(ordered);
+        Map<String, String> values = new LinkedHashMap<>();
+        for (int i = 0; i < rows.length; i++) {
+            String alpha2 = countries.get(i).alpha2();
+            String[] fields = rows[i].split(" ", 2);
+            if (fields.length != 2 || !fields[0].equals(alpha2)) {
+                throw new IllegalStateException(
+                        resourcePath + " row " + (i + 1) + " must be " + alpha2 + " and its value, found: " + rows[i]);
+            }
+            values.put(alpha2, fields[1]);
+        }
+        return Collections.unmodifiableMap(values);
+    }
+
+    /**
+     * Returns the calling code of an ISO 3166-1 country, for the phone-number formats of this package.
+     *
+     * @param alpha2 an ISO 3166-1 alpha-2 code
+     * @return the country's calling code, such as {@code +44}
+     */
+    static String callingCodeOf(String alpha2) {
+        return Objects.requireNonNull(CALLING_BY_COUNTRY.get(alpha2), alpha2);
     }
 
     static List<CountryCodes> parseIsoCodes(String[] rows) {
@@ -391,18 +304,21 @@ public final class CountryGenerator implements Generator<String> {
     }
 
     /**
-     * Returns a random calling code from the supported locale-country set.
+     * Returns the calling code of a random ISO 3166-1 country. Each of the 249 countries is equally likely,
+     * so a code that several countries share, such as {@code +1}, comes up more often.
      *
-     * @return calling code such as {@code +44}
+     * @return a calling code such as {@code +44}
      */
     public String generateCallingCode() {
         return CALLING_CODES.get(random.nextInt(CALLING_CODES.size()));
     }
 
     /**
-     * Returns the configured locale-country calling code.
+     * Returns the calling code of the configured locale's country.
      *
-     * @return calling code
+     * @return a calling code such as {@code +44}
+     * @throws UnsupportedOperationException if configured locale has no country component, or its country
+     *                                       is not an ISO 3166-1 country
      */
     public String currentCallingCode() {
         String countryCode = requireLocaleCountry();
@@ -414,18 +330,23 @@ public final class CountryGenerator implements Generator<String> {
     }
 
     /**
-     * Returns a random continent from the supported locale-country set.
+     * Returns the continent of a random ISO 3166-1 country. Each of the 249 countries is equally likely, so a
+     * continent with more countries comes up more often.
      *
-     * @return continent label
+     * @return one of {@code Africa}, {@code Antarctica}, {@code Asia}, {@code Europe}, {@code North America},
+     *         {@code Oceania} and {@code South America}
      */
     public String generateContinent() {
         return CONTINENTS.get(random.nextInt(CONTINENTS.size()));
     }
 
     /**
-     * Returns the configured locale-country continent label.
+     * Returns the continent of the configured locale's country.
      *
-     * @return continent label
+     * @return one of {@code Africa}, {@code Antarctica}, {@code Asia}, {@code Europe}, {@code North America},
+     *         {@code Oceania} and {@code South America}
+     * @throws UnsupportedOperationException if configured locale has no country component, or its country
+     *                                       is not an ISO 3166-1 country
      */
     public String currentContinent() {
         String countryCode = requireLocaleCountry();
@@ -437,18 +358,24 @@ public final class CountryGenerator implements Generator<String> {
     }
 
     /**
-     * Returns a random primary timezone from the supported locale-country set.
+     * Returns the time zone of a random ISO 3166-1 country, each of the 249 countries equally likely. A
+     * country with several zones has the zone of its seat of government.
      *
-     * @return timezone id
+     * @return an IANA time zone ID that {@link java.time.ZoneId#of(String)} accepts, such as
+     *         {@code Europe/London}
      */
     public String generateTimezone() {
         return TIMEZONES.get(random.nextInt(TIMEZONES.size()));
     }
 
     /**
-     * Returns the configured locale-country primary timezone id.
+     * Returns the time zone of the configured locale's country; a country with several zones has the zone
+     * of its seat of government.
      *
-     * @return timezone id
+     * @return an IANA time zone ID that {@link java.time.ZoneId#of(String)} accepts, such as
+     *         {@code Europe/London}
+     * @throws UnsupportedOperationException if configured locale has no country component, or its country
+     *                                       is not an ISO 3166-1 country
      */
     public String currentTimezone() {
         String countryCode = requireLocaleCountry();

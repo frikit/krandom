@@ -7,11 +7,12 @@ package io.github.frikit.krandom.generator.location;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Generates locale-specific phone numbers.
@@ -82,52 +83,12 @@ import java.util.Random;
  */
 public final class PhoneNumberGenerator implements Generator<String> {
 
-    private static final Map<String, String> COUNTRY_CALLING_CODES = Map.ofEntries(
-            Map.entry("US", "+1"),
-            Map.entry("GB", "+44"),
-            Map.entry("AU", "+61"),
-            Map.entry("DE", "+49"),
-            Map.entry("FR", "+33"),
-            Map.entry("ES", "+34"),
-            Map.entry("IT", "+39"),
-            Map.entry("BR", "+55"),
-            Map.entry("JP", "+81"),
-            Map.entry("CN", "+86"),
-            Map.entry("NL", "+31"),
-            Map.entry("PL", "+48"),
-            Map.entry("RU", "+7"),
-            Map.entry("KR", "+82"),
-            Map.entry("TR", "+90"),
-            Map.entry("SE", "+46"),
-            Map.entry("NO", "+47"),
-            Map.entry("CZ", "+420"),
-            Map.entry("SA", "+966"),
-            Map.entry("IN", "+91"),
-            Map.entry("DK", "+45"),
-            Map.entry("FI", "+358"),
-            Map.entry("HU", "+36"),
-            Map.entry("RO", "+40"),
-            Map.entry("SK", "+421"),
-            Map.entry("UA", "+380"),
-            Map.entry("BG", "+359"),
-            Map.entry("HR", "+385"),
-            Map.entry("GR", "+30"),
-            Map.entry("TH", "+66"),
-            Map.entry("VN", "+84"),
-            Map.entry("ID", "+62"),
-            Map.entry("MY", "+60"),
-            Map.entry("IL", "+972"),
-            Map.entry("CA", "+1"),
-            Map.entry("NZ", "+64"),
-            Map.entry("IE", "+353"),
-            Map.entry("ZA", "+27"),
-            Map.entry("BE", "+32"),
-            Map.entry("CH", "+41"),
-            Map.entry("AT", "+43"),
-            Map.entry("MX", "+52"),
-            Map.entry("AR", "+54"),
-            Map.entry("PT", "+351"),
-            Map.entry("TW", "+886"));
+    // The countries with a dedicated format method in generate(boolean, boolean); the other format countries
+    // are the plans of PhoneNumberLayouts.
+    private static final Set<String> DEDICATED_FORMAT_COUNTRIES = Set.of(
+            "US", "CA", "GB", "AU", "DE", "FR", "ES", "IT", "BR", "JP", "CN", "NL", "PL", "RU", "KR", "TR", "SE", "NO",
+            "CZ", "SA", "IN");
+    private static final Set<String> FORMAT_COUNTRIES = formatCountries();
 
     private static final int NANPA_FICTITIOUS_EXCHANGE = 555;
     private static final int NANPA_FICTITIOUS_LINE_START = 100;
@@ -418,7 +379,7 @@ public final class PhoneNumberGenerator implements Generator<String> {
     public PhoneNumberGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
-        this.country = FormatCountryResolver.resolveSupportedCountry(locale, COUNTRY_CALLING_CODES.keySet());
+        this.country = FormatCountryResolver.resolveSupportedCountry(locale, FORMAT_COUNTRIES);
         this.random = config.createRandom();
     }
 
@@ -532,13 +493,20 @@ public final class PhoneNumberGenerator implements Generator<String> {
 
     /**
      * Returns the calling code of the country resolved from the locale (for example, {@code +1},
-     * {@code +44}); a language-only locale uses its resolved country as well.
+     * {@code +44}); a language-only locale uses its resolved country as well. The code is the one
+     * {@link CountryGenerator#currentCallingCode()} gives for that country.
      *
      * @return country calling code
      */
     public String generateCountryCallingCode() {
-        // The country was resolved to a supported one at construction, so a code always exists.
-        return Objects.requireNonNull(COUNTRY_CALLING_CODES.get(country), country);
+        // The country was resolved to a format country at construction, and each is an ISO 3166-1 country.
+        return CountryGenerator.callingCodeOf(country);
+    }
+
+    private static Set<String> formatCountries() {
+        Set<String> countries = new HashSet<>(DEDICATED_FORMAT_COUNTRIES);
+        countries.addAll(PhoneNumberLayouts.countries());
+        return Set.copyOf(countries);
     }
 
     /**

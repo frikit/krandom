@@ -1,0 +1,272 @@
+# Continents: ISO 3166-1 alpha-2 code and continent, one country per line, for all 249 countries, in
+# the alpha-2 order of iso_3166_1.txt. The seven continents are Africa, Antarctica, Asia, Europe,
+# North America, Oceania and South America.
+#
+# Source:    UN M49, Standard country or area codes for statistical use, United Nations Statistics
+#            Division, English table: https://unstats.un.org/unsd/methodology/m49/overview/
+# Licence:   none stated; the page falls under the United Nations terms of use,
+#            https://www.un.org/en/about-us/terms-of-use. This file records only the region of each
+#            country, which Unicode CLDR also publishes under the Unicode License v3 (see Checked).
+# Retrieved: 2026-11-04
+# SHA-256:   b9048114f6e7f2abda83bf03d4263c9d7cd1bd7230e3d0461025ee7839a7a1fb  overview page (HTML)
+# Checked:   for every country that M49 places in a region, the rule below gives the same continent
+#            from the territory containment of Unicode CLDR 49, common/supplemental/supplementalData.xml
+#            (Unicode License v3, SHA-256
+#            745150ec1408d50e1a272b65654a5dd645f3e60f5cc2898b576f725b28538d1a).
+#
+# A country's continent is its M49 region, Africa, Asia, Europe or Oceania; in the Americas it is
+# South America (005) or North America (003), which M49 defines as Northern America, Central America
+# and the Caribbean (https://unstats.un.org/unsd/methodology/m49/, SHA-256
+# 4d5cabcb10ad9ef184553b5e64c0a34ba8deeb20dab2e02cd0be3599b93bb01d). A transcontinental country
+# therefore has one continent: RU is Europe; TR, CY, GE, AM, AZ and KZ are Asia; EG is Africa. AQ,
+# which M49 places in no region, is Antarctica. TW, which M49 does not list, is Asia, its region in
+# CLDR (Eastern Asia, 030).
+AD Europe
+AE Asia
+AF Asia
+AG North America
+AI North America
+AL Europe
+AM Asia
+AO Africa
+AQ Antarctica
+AR South America
+AS Oceania
+AT Europe
+AU Oceania
+AW North America
+AX Europe
+AZ Asia
+BA Europe
+BB North America
+BD Asia
+BE Europe
+BF Africa
+BG Europe
+BH Asia
+BI Africa
+BJ Africa
+BL North America
+BM North America
+BN Asia
+BO South America
+BQ North America
+BR South America
+BS North America
+BT Asia
+BV South America
+BW Africa
+BY Europe
+BZ North America
+CA North America
+CC Oceania
+CD Africa
+CF Africa
+CG Africa
+CH Europe
+CI Africa
+CK Oceania
+CL South America
+CM Africa
+CN Asia
+CO South America
+CR North America
+CU North America
+CV Africa
+CW North America
+CX Oceania
+CY Asia
+CZ Europe
+DE Europe
+DJ Africa
+DK Europe
+DM North America
+DO North America
+DZ Africa
+EC South America
+EE Europe
+EG Africa
+EH Africa
+ER Africa
+ES Europe
+ET Africa
+FI Europe
+FJ Oceania
+FK South America
+FM Oceania
+FO Europe
+FR Europe
+GA Africa
+GB Europe
+GD North America
+GE Asia
+GF South America
+GG Europe
+GH Africa
+GI Europe
+GL North America
+GM Africa
+GN Africa
+GP North America
+GQ Africa
+GR Europe
+GS South America
+GT North America
+GU Oceania
+GW Africa
+GY South America
+HK Asia
+HM Oceania
+HN North America
+HR Europe
+HT North America
+HU Europe
+ID Asia
+IE Europe
+IL Asia
+IM Europe
+IN Asia
+IO Africa
+IQ Asia
+IR Asia
+IS Europe
+IT Europe
+JE Europe
+JM North America
+JO Asia
+JP Asia
+KE Africa
+KG Asia
+KH Asia
+KI Oceania
+KM Africa
+KN North America
+KP Asia
+KR Asia
+KW Asia
+KY North America
+KZ Asia
+LA Asia
+LB Asia
+LC North America
+LI Europe
+LK Asia
+LR Africa
+LS Africa
+LT Europe
+LU Europe
+LV Europe
+LY Africa
+MA Africa
+MC Europe
+MD Europe
+ME Europe
+MF North America
+MG Africa
+MH Oceania
+MK Europe
+ML Africa
+MM Asia
+MN Asia
+MO Asia
+MP Oceania
+MQ North America
+MR Africa
+MS North America
+MT Europe
+MU Africa
+MV Asia
+MW Africa
+MX North America
+MY Asia
+MZ Africa
+NA Africa
+NC Oceania
+NE Africa
+NF Oceania
+NG Africa
+NI North America
+NL Europe
+NO Europe
+NP Asia
+NR Oceania
+NU Oceania
+NZ Oceania
+OM Asia
+PA North America
+PE South America
+PF Oceania
+PG Oceania
+PH Asia
+PK Asia
+PL Europe
+PM North America
+PN Oceania
+PR North America
+PS Asia
+PT Europe
+PW Oceania
+PY South America
+QA Asia
+RE Africa
+RO Europe
+RS Europe
+RU Europe
+RW Africa
+SA Asia
+SB Oceania
+SC Africa
+SD Africa
+SE Europe
+SG Asia
+SH Africa
+SI Europe
+SJ Europe
+SK Europe
+SL Africa
+SM Europe
+SN Africa
+SO Africa
+SR South America
+SS Africa
+ST Africa
+SV North America
+SX North America
+SY Asia
+SZ Africa
+TC North America
+TD Africa
+TF Africa
+TG Africa
+TH Asia
+TJ Asia
+TK Oceania
+TL Asia
+TM Asia
+TN Africa
+TO Oceania
+TR Asia
+TT North America
+TV Oceania
+TW Asia
+TZ Africa
+UA Europe
+UG Africa
+UM Oceania
+US North America
+UY South America
+UZ Asia
+VA Europe
+VC North America
+VE South America
+VG North America
+VI North America
+VN Asia
+VU Oceania
+WF Oceania
+WS Oceania
+YE Asia
+YT Africa
+ZA Africa
+ZM Africa
+ZW Africa

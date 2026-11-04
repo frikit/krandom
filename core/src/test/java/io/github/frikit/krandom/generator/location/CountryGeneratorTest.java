@@ -208,37 +208,90 @@ class CountryGeneratorTest {
     }
 
     @Test
-    @DisplayName("seeded calling-code, continent and timezone sequences use a JVM-independent order")
+    @DisplayName("seeded calling-code, continent and timezone sequences draw ISO countries in a JVM-independent order")
     void seededCountryMetadataSequencesAreJvmIndependent() {
         GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
+        CountryGenerator codes = new CountryGenerator(config);
         CountryGenerator calling = new CountryGenerator(config);
         CountryGenerator continent = new CountryGenerator(config);
         CountryGenerator timezone = new CountryGenerator(config);
 
-        List<String> callingCodes = new java.util.ArrayList<>();
-        List<String> continents = new java.util.ArrayList<>();
-        List<String> timezones = new java.util.ArrayList<>();
+        List<String> countryCodes = new ArrayList<>();
+        List<String> callingCodes = new ArrayList<>();
+        List<String> continents = new ArrayList<>();
+        List<String> timezones = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
+            countryCodes.add(codes.generateCode());
             callingCodes.add(calling.generateCallingCode());
             continents.add(continent.generateContinent());
             timezones.add(timezone.generateTimezone());
         }
 
-        assertEquals(List.of("+64", "+49", "+966", "+886", "+1", "+380", "+34", "+32"), callingCodes);
+        // Each draw picks one of the 249 ISO countries, the same country generateCode() picks.
+        assertEquals(List.of("SM", "TK", "NF", "GL", "AD", "KZ", "MQ", "BF"), countryCodes);
+        assertEquals(List.of("+378", "+690", "+672", "+299", "+376", "+7", "+596", "+226"), callingCodes);
         assertEquals(
-                List.of("Oceania", "Europe", "Asia", "Asia", "North America", "Europe", "Europe", "Europe"),
+                List.of("Europe", "Oceania", "Oceania", "North America", "Europe", "Asia", "North America", "Africa"),
                 continents);
         assertEquals(
                 List.of(
-                        "Pacific/Auckland",
-                        "Europe/Berlin",
-                        "Asia/Riyadh",
-                        "Asia/Taipei",
-                        "America/New_York",
-                        "Europe/Kyiv",
-                        "Europe/Madrid",
-                        "Europe/Brussels"),
+                        "Europe/San_Marino",
+                        "Pacific/Fakaofo",
+                        "Pacific/Norfolk",
+                        "America/Nuuk",
+                        "Europe/Andorra",
+                        "Asia/Almaty",
+                        "America/Martinique",
+                        "Africa/Ouagadougou"),
                 timezones);
+    }
+
+    @Test
+    @DisplayName("generated calling codes, continents and timezones come from every ISO country")
+    void generatedCountryMetadataComesFromEveryCountry() {
+        CountryGenerator gen =
+                new CountryGenerator(GeneratorConfig.builder().seed(7L).build());
+        Set<String> callingCodes = new HashSet<>();
+        Set<String> continents = new HashSet<>();
+        Set<String> timezones = new HashSet<>();
+        for (int i = 0; i < 2_000; i++) {
+            callingCodes.add(gen.generateCallingCode());
+            continents.add(gen.generateContinent());
+            timezones.add(gen.generateTimezone());
+        }
+
+        assertTrue(callingCodes.size() > 150, "calling codes: " + callingCodes.size());
+        assertEquals(
+                Set.of("Africa", "Antarctica", "Asia", "Europe", "North America", "Oceania", "South America"),
+                continents);
+        assertTrue(timezones.size() > 200, "timezones: " + timezones.size());
+    }
+
+    @Test
+    @DisplayName("a calling-code, continent or timezone table must list every ISO country once, in ISO order")
+    void malformedCountryValueTablesAreRejected() {
+        List<CountryCodes> countries =
+                List.of(new CountryCodes("AD", "AND", "020"), new CountryCodes("AE", "ARE", "784"));
+
+        Map<String, String> values = CountryGenerator.parseCountryValues(
+                new String[] {"AD North America", "AE Asia"}, countries, "test.txt");
+        assertEquals(List.of("AD", "AE"), List.copyOf(values.keySet()));
+        assertEquals(List.of("North America", "Asia"), List.copyOf(values.values()));
+
+        IllegalStateException missingRow = assertThrows(
+                IllegalStateException.class,
+                () -> CountryGenerator.parseCountryValues(new String[] {"AD +376"}, countries, "test.txt"));
+        assertEquals("test.txt must have 2 rows, one for each ISO 3166-1 country, found: 1", missingRow.getMessage());
+
+        IllegalStateException missingValue = assertThrows(
+                IllegalStateException.class,
+                () -> CountryGenerator.parseCountryValues(new String[] {"AD +376", "AE"}, countries, "test.txt"));
+        assertEquals("test.txt row 2 must be AE and its value, found: AE", missingValue.getMessage());
+
+        IllegalStateException wrongOrder = assertThrows(
+                IllegalStateException.class,
+                () -> CountryGenerator.parseCountryValues(new String[] {"AE +971", "AD +376"}, countries, "test.txt"));
+        assertEquals("test.txt row 1 must be AD and its value, found: AE +971", wrongOrder.getMessage());
     }
 
     @Test
