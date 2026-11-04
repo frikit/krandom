@@ -8,7 +8,9 @@ package io.github.frikit.krandom.generator.base;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -29,7 +31,8 @@ import java.util.regex.Pattern;
  * <p><b>Matching:</b> a value matches the whole pattern, so {@code ^} and {@code $} add nothing to
  * it: they are zero-width assertions that hold at the start and the end of the value. A value that
  * matches as a whole is also found by {@code find()}, so it satisfies an unanchored search such as
- * JSON Schema's {@code pattern}. No flags apply, as {@code Pattern.compile(pattern)} takes none.
+ * JSON Schema's {@code pattern}. The pattern is compiled with no flags, so the only flag that applies
+ * is an inline {@code (?i)}.
  *
  * <p><b>Supported syntax</b>
  * <ul>
@@ -37,36 +40,79 @@ import java.util.regex.Pattern;
  *   <li>Escaped characters: a backslash before anything but an ASCII letter or digit, such as
  *       {@code \.}, plus {@code \t}, {@code \n}, {@code \r}, {@code \f}, {@code \a}, {@code \e},
  *       {@code \xhh}, {@code \x{h...h}} and <code>&#92;uhhhh</code></li>
+ *   <li>Quoting: {@code \Q...\E}, and {@code \Q} to the end of the pattern, read as
+ *       {@code java.util.regex} reads them: a quantifier after {@code \E} repeats the last quoted
+ *       character, so {@code \Qab\E+} generates {@code ab}, {@code abb} and so on</li>
  *   <li>Any character: {@code .} draws from printable ASCII</li>
  *   <li>Predefined classes: {@code \d}, {@code \w}, {@code \s}, and their negations {@code \D},
  *       {@code \W} and {@code \S}, which draw from printable ASCII</li>
- *   <li>Character classes: {@code [abc]}, {@code [a-z]} and {@code [^abc]}, with the escapes above
- *       as members or range ends. A negated class draws from printable ASCII</li>
+ *   <li>Character properties: {@code \p{Name}} and its negation {@code \P{Name}} for the names
+ *       listed below, and the one-letter forms {@code \pL}, {@code \pN}, {@code \PL} and
+ *       {@code \PN}. A property draws from a fixed alphabet. A negated property draws from the
+ *       printable ASCII characters outside it, so {@code \P{ASCII}} and {@code \P{Print}}, which
+ *       leave none, are rejected</li>
+ *   <li>Character classes: {@code [abc]}, {@code [a-z]} and {@code [^abc]}, with the escapes and
+ *       properties above as members, and the escapes as range ends. A negated class draws from
+ *       printable ASCII</li>
  *   <li>Quantifiers: {@code ?}, {@code *}, {@code +}, {@code {n}}, {@code {n,}} and {@code {n,m}},
  *       and their lazy forms, which match the same whole values. Stated counts are capped at
  *       10&nbsp;000</li>
  *   <li>Groups and alternation: {@code (a|b)}, {@code (?:a|b)}, {@code (?<name>a|b)}, and {@code |}
  *       at any level</li>
+ *   <li>Case-insensitive matching: {@code (?i)} and {@code (?-i)}, which hold to the end of the
+ *       enclosing group, and {@code (?i:X)} and {@code (?-i:X)}, which hold inside it. As in
+ *       {@code java.util.regex} without {@code UNICODE_CASE}, only ASCII letters match their other
+ *       case, so a generated ASCII letter can take either case, and every other character keeps
+ *       the one written. A negated class or property under {@code (?i)} leaves out both cases of
+ *       each letter it excludes</li>
  *   <li>Assertions: {@code ^}, {@code \A}, {@code $}, {@code \Z}, {@code \z} and {@code \b}, where
  *       they hold on every value the pattern can generate. That is checked at construction, so
  *       {@code \bfoo\b} and {@code \b(foo|bar)\b} are accepted, while {@code a^b},
  *       {@code \b[a-z -]+\b} and {@code \b\w*\b}, whose values could start with a space or be
- *       empty, are rejected</li>
+ *       empty, are rejected. A non-ASCII character can count as a word character or not, so a
+ *       {@code \b} beside one is rejected</li>
  * </ul>
+ *
+ * <p><b>Character properties.</b> The ASCII ones draw from what they match: {@code Lower}
+ * ({@code a-z}), {@code Upper} ({@code A-Z}), {@code Alpha}, {@code Digit} ({@code 0-9}),
+ * {@code Alnum}, {@code Punct} (the 32 ASCII punctuation characters), {@code Graph}
+ * (U+0021-U+007E), {@code Print} (U+0020-U+007E), {@code Blank} (space and tab), {@code Space}
+ * (space, {@code \t}, {@code \n}, U+000B, {@code \f} and {@code \r}), {@code XDigit}
+ * ({@code 0-9a-fA-F}) and {@code ASCII}, which draws from printable ASCII. The Unicode ones draw
+ * from a fixed sample of what they match:
+ * <ul>
+ *   <li>{@code L} and {@code IsAlphabetic}: {@code A-Z}, {@code a-z}, the Latin-1 letters
+ *       U+00C0-U+00D6, U+00D8-U+00F6 and U+00F8-U+00FF, the Greek letters U+0391-U+03A1,
+ *       U+03A3-U+03A9 and U+03B1-U+03C9, and the Cyrillic letters U+0410-U+044F</li>
+ *   <li>{@code Lu}: the uppercase ones, {@code A-Z}, U+00C0-U+00D6, U+00D8-U+00DE,
+ *       U+0391-U+03A1, U+03A3-U+03A9 and U+0410-U+042F</li>
+ *   <li>{@code Ll}: the lowercase ones, {@code a-z}, U+00DF-U+00F6, U+00F8-U+00FF,
+ *       U+03B1-U+03C9 and U+0430-U+044F</li>
+ *   <li>{@code IsLatin}: {@code A-Z}, {@code a-z}, U+00C0-U+00D6, U+00D8-U+00F6 and
+ *       U+00F8-U+00FF</li>
+ *   <li>{@code Nd} and {@code IsDigit}: {@code 0-9}, the Arabic-Indic digits U+0660-U+0669 and
+ *       the Devanagari digits U+0966-U+096F</li>
+ *   <li>{@code N}: the {@code Nd} sample, and U+00B2, U+00B3, U+00B9 and U+00BC-U+00BE</li>
+ * </ul>
+ * Names are spelled as here. Any other property, including another spelling that
+ * {@code java.util.regex} accepts, such as {@code \p{IsLower}}, {@code \p{Islatin}} or
+ * {@code \p{gc=Lu}}, is rejected at construction with a message naming it.
  *
  * <p><b>Rejected at construction</b>
  * <ul>
  *   <li>Lookahead, lookbehind, atomic groups and backreferences</li>
- *   <li>Inline flags such as {@code (?i)} and {@code (?s:a)}</li>
+ *   <li>Inline flags other than {@code i}, such as {@code (?s)}, {@code (?u)} and {@code (?-m)},
+ *       with a message naming each one</li>
  *   <li>Possessive quantifiers, such as {@code a++}, and a quantifier with nothing to repeat, such as
- *       {@code a{2}{3}}, which {@code java.util.regex} accepts and reads as repeating nothing</li>
+ *       {@code a{2}{3}} or {@code (?i){2}}, which {@code java.util.regex} accepts and reads as
+ *       repeating nothing</li>
  *   <li>Other escapes: {@code \B}, {@code \G}, {@code \b{g}}, {@code \R}, {@code \X}, {@code \h},
- *       {@code \H}, {@code \v}, {@code \V}, {@code \p}, {@code \P}, {@code \N}, {@code \c}, octal
- *       {@code \0} and quoting with {@code \Q}</li>
+ *       {@code \H}, {@code \v}, {@code \V}, {@code \N}, {@code \c} and octal {@code \0}</li>
  *   <li>In a character class: {@code &&} intersection, a nested class, a supplementary character,
  *       and negating all of printable ASCII</li>
  *   <li>A surrogate on its own or in an escape, as two of them could join up in a generated value.
  *       Write a supplementary character as itself or as {@code \x{h...h}}</li>
+ *   <li>A pattern too large to generate, as described below</li>
  * </ul>
  *
  * <p><b>Open-ended repetition:</b> {@code *}, {@code +} and {@code {n,}} have no upper bound in the
@@ -74,6 +120,19 @@ import java.util.regex.Pattern;
  * is more. A {@link GeneratorConfig} whose minimum string length is above 5 raises 10 to twice that
  * length, up to 10&nbsp;000, so that a generated string can reach it. This is why {@code ^[a-z]+$}
  * can meet a JSON Schema {@code minLength} of 20.
+ *
+ * <p><b>Size limits:</b> the constructor works out, from the pattern and the repetition limits
+ * above, the longest value the pattern can generate and the most steps generating one can take. It
+ * rejects the pattern, naming it and the limit, if a value could be longer than 1&nbsp;000&nbsp;000
+ * characters, counted as UTF-16 {@code char}s, or take more than 10&nbsp;000&nbsp;000 steps, where
+ * each element of the pattern, such as a character, class, assertion, group or quantifier, counts
+ * one step each time it is generated. A value is built in a single buffer, so these bound the memory
+ * as well as the time generating it takes. For example {@code (a{1000}){1000}} generates
+ * 1&nbsp;000&nbsp;000 characters and is accepted, {@code ((a{10000}){10000}){10000}} is rejected
+ * rather than run out of memory, and {@code (((){10000}){10000}){10000}}, which generates nothing, is
+ * rejected rather than loop for hours. The limits are fixed and no setting raises them: a pattern over
+ * them has to repeat less, or, when the configuration's minimum string length raised the open-ended
+ * limit, run with a smaller one.
  *
  * <p><b>Usage</b>
  * <pre>{@code
@@ -83,8 +142,8 @@ import java.util.regex.Pattern;
  * // 5 uppercase letters
  * String upper = new RegexGenerator("[A-Z]{5}").generate();   // e.g. "KQTBM"
  *
- * // yes or no
- * String yn = new RegexGenerator("(yes|no)").generate();      // "yes" or "no"
+ * // yes or no, in any case
+ * String yn = new RegexGenerator("(?i)(yes|no)").generate();  // e.g. "yEs" or "NO"
  *
  * // Seeded for reproducibility
  * String fixed = new RegexGenerator("\\d{4}", GeneratorConfig.builder().seed(42L).build()).generate();
@@ -111,14 +170,23 @@ public final class RegexGenerator implements Generator<String> {
     private static final char[] NON_WORD_CHARS;
     private static final char[] WHITESPACE = {' ', '\t', '\n', '\r'};
     private static final char[] NON_WHITESPACE;
-    private static final Map<String, Node> PARSED_PATTERNS = new ConcurrentHashMap<>();
+
+    /** What each supported {@code \p{...}} name draws from. */
+    private static final Map<String, char[]> PROPERTIES;
+
+    private static final Map<String, ParsedPattern> PARSED_PATTERNS = new ConcurrentHashMap<>();
 
     /**
      * Upper bound on explicit {@code {n}} / {@code {n,m}} repetition counts. Patterns requesting
-     * more are rejected at construction time so a single quantifier cannot drive unbounded output
-     * expansion (e.g. {@code a{2000000000}} attempting a multi-gigabyte string).
+     * more are rejected at construction time, before the size limits below are worked out.
      */
     static final int MAX_REPETITIONS = 10_000;
+
+    /** The most UTF-16 {@code char}s a generated value can have. */
+    static final int MAX_LENGTH = 1_000_000;
+
+    /** The most steps, one for each node each time it is generated, that generating a value can take. */
+    static final int MAX_STEPS = 10_000_000;
 
     /** How many times {@code *}, {@code +} and {@code {n,}} repeat, unless the configuration asks for more. */
     private static final int OPEN_ENDED_REPETITIONS = 10;
@@ -164,6 +232,35 @@ public final class RegexGenerator implements Generator<String> {
         NON_DIGITS = toArray(nonDigits);
         NON_WORD_CHARS = toArray(nonWord);
         NON_WHITESPACE = toArray(nonWs);
+
+        // Each sample lists its ranges as pairs of their first and last code points.
+        char[] latin = ranges('A', 'Z', 'a', 'z', 0xC0, 0xD6, 0xD8, 0xF6, 0xF8, 0xFF);
+        char[] letters = ranges(
+                'A', 'Z', 'a', 'z', 0xC0, 0xD6, 0xD8, 0xF6, 0xF8, 0xFF, 0x391, 0x3A1, 0x3A3, 0x3A9, 0x3B1, 0x3C9, 0x410,
+                0x44F);
+        char[] decimalDigits = ranges('0', '9', 0x660, 0x669, 0x966, 0x96F);
+        Map<String, char[]> properties = new LinkedHashMap<>();
+        properties.put("Lower", ranges('a', 'z'));
+        properties.put("Upper", ranges('A', 'Z'));
+        properties.put("ASCII", PRINTABLE);
+        properties.put("Alpha", ranges('a', 'z', 'A', 'Z'));
+        properties.put("Digit", DIGITS);
+        properties.put("Alnum", ranges('a', 'z', 'A', 'Z', '0', '9'));
+        properties.put("Punct", ranges('!', '/', ':', '@', '[', '`', '{', '~'));
+        properties.put("Graph", ranges('!', '~'));
+        properties.put("Print", PRINTABLE);
+        properties.put("Blank", ranges(' ', ' ', '\t', '\t'));
+        properties.put("Space", ranges(' ', ' ', '\t', '\r'));
+        properties.put("XDigit", ranges('0', '9', 'a', 'f', 'A', 'F'));
+        properties.put("L", letters);
+        properties.put("Lu", ranges('A', 'Z', 0xC0, 0xD6, 0xD8, 0xDE, 0x391, 0x3A1, 0x3A3, 0x3A9, 0x410, 0x42F));
+        properties.put("Ll", ranges('a', 'z', 0xDF, 0xF6, 0xF8, 0xFF, 0x3B1, 0x3C9, 0x430, 0x44F));
+        properties.put("N", ranges('0', '9', 0x660, 0x669, 0x966, 0x96F, 0xB2, 0xB3, 0xB9, 0xB9, 0xBC, 0xBE));
+        properties.put("Nd", decimalDigits);
+        properties.put("IsAlphabetic", letters);
+        properties.put("IsDigit", decimalDigits);
+        properties.put("IsLatin", latin);
+        PROPERTIES = Collections.unmodifiableMap(properties);
     }
 
     /**
@@ -171,7 +268,6 @@ public final class RegexGenerator implements Generator<String> {
      */
     private final Node root;
 
-    // ── Node sealed hierarchy ─────────────────────────────────────────────────
     private final Random random;
 
     /**
@@ -184,29 +280,39 @@ public final class RegexGenerator implements Generator<String> {
      * Creates a regex generator using the default fast PRNG.
      *
      * @param pattern the regular expression; must not be {@code null}
-     * @throws IllegalArgumentException if the pattern is malformed or uses a construct this class cannot honour
+     * @throws IllegalArgumentException if the pattern is malformed, uses a construct this class cannot
+     *     honour, or exceeds the size limits
      */
     public RegexGenerator(String pattern) {
-        Objects.requireNonNull(pattern, "pattern must not be null");
-        this.random = new Random();
-        this.openEndedLimit = OPEN_ENDED_REPETITIONS;
-        this.root = parsePattern(pattern);
+        this(Objects.requireNonNull(pattern, "pattern must not be null"), new Random(), OPEN_ENDED_REPETITIONS);
     }
 
     /**
      * Creates a regex generator whose randomness comes from the configuration, so a seeded
      * configuration reproduces the same strings. A minimum string length above 5 raises how far
-     * {@code *}, {@code +} and {@code {n,}} repeat, as the class documentation describes.
+     * {@code *}, {@code +} and {@code {n,}} repeat, as the class documentation describes, and the size
+     * limits apply to the raised repetition.
      *
      * @param pattern the regular expression; must not be {@code null}
      * @param config  generator configuration; must not be {@code null}
-     * @throws IllegalArgumentException if the pattern is malformed or uses a construct this class cannot honour
+     * @throws IllegalArgumentException if the pattern is malformed, uses a construct this class cannot
+     *     honour, or exceeds the size limits under this configuration
      */
     public RegexGenerator(String pattern, GeneratorConfig config) {
-        Objects.requireNonNull(pattern, "pattern must not be null");
-        this.random = Objects.requireNonNull(config, "config must not be null").createRandom();
-        this.openEndedLimit = Math.clamp(2L * config.getMinStringLength(), OPEN_ENDED_REPETITIONS, MAX_REPETITIONS);
-        this.root = parsePattern(pattern);
+        this(
+                Objects.requireNonNull(pattern, "pattern must not be null"),
+                Objects.requireNonNull(config, "config must not be null").createRandom(),
+                Math.clamp(2L * config.getMinStringLength(), OPEN_ENDED_REPETITIONS, MAX_REPETITIONS));
+    }
+
+    private RegexGenerator(String pattern, Random random, int openEndedLimit) {
+        ParsedPattern parsed = PARSED_PATTERNS.computeIfAbsent(pattern, RegexGenerator::parsePatternUncached);
+        if (openEndedLimit > parsed.largestOpenEndedLimit()) {
+            throw tooLarge(pattern, parsed.root(), openEndedLimit);
+        }
+        this.root = parsed.root();
+        this.random = random;
+        this.openEndedLimit = openEndedLimit;
     }
 
     static int parsedPatternCacheSize() {
@@ -217,19 +323,44 @@ public final class RegexGenerator implements Generator<String> {
         PARSED_PATTERNS.clear();
     }
 
-    private static Node parsePattern(String pattern) {
-        return PARSED_PATTERNS.computeIfAbsent(pattern, RegexGenerator::parsePatternUncached);
+    /** The supported {@code \p{...}} names, each with the characters it draws from, for tests. */
+    static Map<String, String> propertyAlphabets() {
+        Map<String, String> alphabets = new LinkedHashMap<>();
+        PROPERTIES.forEach((name, alphabet) -> alphabets.put(name, new String(alphabet)));
+        return alphabets;
     }
 
-    private static Node parsePatternUncached(String pattern) {
+    private static ParsedPattern parsePatternUncached(String pattern) {
         Pattern.compile(pattern); // A malformed pattern fails here, with java.util.regex's own message.
-        return new Parser(pattern).parse();
+        Node root = new Parser(pattern).parse();
+        if (!fits(root, OPEN_ENDED_REPETITIONS)) {
+            throw tooLarge(pattern, root, OPEN_ENDED_REPETITIONS);
+        }
+        return new ParsedPattern(root, largestFittingLimit(root));
     }
 
     private static char[] toArray(List<Character> list) {
         char[] arr = new char[list.size()];
         for (int i = 0; i < list.size(); i++) arr[i] = list.get(i);
         return arr;
+    }
+
+    /** Expands ranges, each given as its first and last code point, in order. */
+    private static char[] ranges(int... bounds) {
+        StringBuilder chars = new StringBuilder();
+        for (int i = 0; i < bounds.length; i += 2) {
+            for (int c = bounds[i]; c <= bounds[i + 1]; c++) chars.append((char) c);
+        }
+        return chars.toString().toCharArray();
+    }
+
+    private static boolean isAsciiLetter(int c) {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+    }
+
+    /** The other case of an ASCII letter. */
+    private static char otherCase(char letter) {
+        return (char) (letter ^ 0x20);
     }
 
     /**
@@ -239,41 +370,123 @@ public final class RegexGenerator implements Generator<String> {
      */
     @Override
     public String generate() {
-        return generateNode(root);
+        StringBuilder value = new StringBuilder();
+        append(root, value);
+        return value.toString();
     }
 
-    private String generateNode(Node node) {
-        return switch (node) {
-            case LiteralNode l -> Character.toString(l.codePoint());
-            case CharClassNode cc -> String.valueOf(cc.pool()[random.nextInt(cc.pool().length)]);
-            case AssertionNode a -> "";
-            case SequenceNode s -> {
-                StringBuilder sb = new StringBuilder();
-                for (Node n : s.nodes()) sb.append(generateNode(n));
-                yield sb.toString();
+    // Every node appends to the one buffer, so nothing larger than the value is built along the way.
+    private void append(Node node, StringBuilder value) {
+        switch (node) {
+            case LiteralNode literal -> value.appendCodePoint(literal.codePoint());
+            case CharClassNode charClass -> value.append(charClass.pool()[random.nextInt(charClass.pool().length)]);
+            case AssertionNode assertion -> {}
+            case SequenceNode sequence -> {
+                for (Node n : sequence.nodes()) append(n, value);
             }
-            case AlternationNode alt -> {
-                SequenceNode chosen = alt.alts().get(random.nextInt(alt.alts().size()));
-                yield generateNode(chosen);
+            case AlternationNode alternation ->
+                append(alternation.alts().get(random.nextInt(alternation.alts().size())), value);
+            case QuantifierNode q -> {
+                int max = maxCount(q, openEndedLimit);
+                int count = q.min() == max ? q.min() : q.min() + random.nextInt(max - q.min() + 1);
+                for (int i = 0; i < count; i++) append(q.child(), value);
+            }
+        }
+    }
+
+    private static int maxCount(QuantifierNode q, int openEndedLimit) {
+        return q.max() == OPEN_ENDED ? Math.max(q.min(), openEndedLimit) : q.max();
+    }
+
+    // ── Size limits ───────────────────────────────────────────────────────────
+
+    /**
+     * The most UTF-16 {@code char}s a node's text can have and the most steps generating it can take,
+     * each capped just above its limit, which keeps every sum and product well inside a {@code long}.
+     */
+    private record Cost(long length, long steps) {}
+
+    private static Cost cost(Node node, int openEndedLimit) {
+        return switch (node) {
+            case LiteralNode literal -> new Cost(Character.charCount(literal.codePoint()), 1);
+            case CharClassNode charClass -> new Cost(1, 1);
+            case AssertionNode assertion -> new Cost(0, 1);
+            case SequenceNode sequence -> {
+                long length = 0;
+                long steps = 1;
+                for (Node n : sequence.nodes()) {
+                    Cost part = cost(n, openEndedLimit);
+                    length = capped(length + part.length(), MAX_LENGTH);
+                    steps = capped(steps + part.steps(), MAX_STEPS);
+                }
+                yield new Cost(length, steps);
+            }
+            case AlternationNode alternation -> {
+                long length = 0;
+                long steps = 0;
+                for (SequenceNode alt : alternation.alts()) {
+                    Cost choice = cost(alt, openEndedLimit);
+                    length = Math.max(length, choice.length());
+                    steps = Math.max(steps, choice.steps());
+                }
+                yield new Cost(length, capped(1 + steps, MAX_STEPS));
             }
             case QuantifierNode q -> {
-                int max = q.max() == OPEN_ENDED ? Math.max(q.min(), openEndedLimit) : q.max();
-                int count = q.min() == max ? q.min() : q.min() + random.nextInt(max - q.min() + 1);
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < count; i++) sb.append(generateNode(q.child()));
-                yield sb.toString();
+                long count = maxCount(q, openEndedLimit);
+                Cost each = cost(q.child(), openEndedLimit);
+                yield new Cost(capped(count * each.length(), MAX_LENGTH), capped(1 + count * each.steps(), MAX_STEPS));
             }
         };
     }
 
-    // ── Fields ────────────────────────────────────────────────────────────────
+    private static long capped(long value, long limit) {
+        return Math.min(value, limit + 1);
+    }
+
+    private static boolean fits(Node root, int openEndedLimit) {
+        Cost cost = cost(root, openEndedLimit);
+        return cost.length() <= MAX_LENGTH && cost.steps() <= MAX_STEPS;
+    }
+
+    /**
+     * The largest open-ended repetition, up to {@link #MAX_REPETITIONS}, at which the pattern stays
+     * within the size limits. It is at least the default, as the parse has checked that.
+     */
+    private static int largestFittingLimit(Node root) {
+        if (fits(root, MAX_REPETITIONS)) {
+            return MAX_REPETITIONS;
+        }
+        // A larger limit never makes a value shorter or quicker, so a binary search finds the boundary.
+        int fitting = OPEN_ENDED_REPETITIONS;
+        int failing = MAX_REPETITIONS;
+        while (failing - fitting > 1) {
+            int middle = (fitting + failing) >>> 1;
+            if (fits(root, middle)) {
+                fitting = middle;
+            } else {
+                failing = middle;
+            }
+        }
+        return fitting;
+    }
+
+    private static IllegalArgumentException tooLarge(String pattern, Node root, int openEndedLimit) {
+        String problem = cost(root, openEndedLimit).length() > MAX_LENGTH
+                ? "Generated values could be longer than the limit of " + MAX_LENGTH + " characters"
+                : "Generating a value could take more than the limit of " + MAX_STEPS + " steps";
+        return new IllegalArgumentException(
+                problem + ", with *, + and {n,} repeating up to " + openEndedLimit + " times, in pattern: " + pattern);
+    }
+
+    // ── Nodes ─────────────────────────────────────────────────────────────────
+
+    /** A parsed pattern, and the largest open-ended repetition its values stay within the size limits at. */
+    private record ParsedPattern(Node root, int largestOpenEndedLimit) {}
 
     private sealed interface Node
             permits LiteralNode, CharClassNode, AssertionNode, SequenceNode, AlternationNode, QuantifierNode {}
 
     private record LiteralNode(int codePoint) implements Node {}
-
-    // ── Constructors ──────────────────────────────────────────────────────────
 
     private record CharClassNode(char[] pool) implements Node {}
 
@@ -285,14 +498,10 @@ public final class RegexGenerator implements Generator<String> {
 
     private record SequenceNode(List<Node> nodes) implements Node {}
 
-    // ── Generator<String> ─────────────────────────────────────────────────────
-
     /**
      * Picks one of several alternative sequences at random.
      */
     private record AlternationNode(List<SequenceNode> alts) implements Node {}
-
-    // ── Generation helpers ────────────────────────────────────────────────────
 
     private record QuantifierNode(Node child, int min, int max) implements Node {}
 
@@ -308,11 +517,88 @@ public final class RegexGenerator implements Generator<String> {
      */
     private static final class Parser {
 
+        /** The letters {@code java.util.regex} reads as inline flags, and the {@code -} that turns them off. */
+        private static final String FLAG_CHARS = "idmsuxUc-";
+
+        /** The pattern as written, for messages. */
+        private final String pattern;
+
+        /** The pattern with its {@code \Q...\E} quoting rewritten as escapes, which is what is parsed. */
         private final String src;
+
+        /** Where each character of {@link #src} comes from in the pattern, and its length at the end. */
+        private final int[] origins;
+
         private int pos = 0;
 
-        Parser(String src) {
-            this.src = src;
+        /** Whether {@code (?i)} is in force at {@link #pos}. */
+        private boolean caseInsensitive = false;
+
+        Parser(String pattern) {
+            this.pattern = pattern;
+            StringBuilder text = new StringBuilder(pattern.length());
+            // Quoting at most doubles a character, and a digit that opens a quote pays for its \x3 with
+            // the \Q before it, so the result is never more than twice as long as the pattern.
+            int[] from = new int[2 * pattern.length() + 1];
+            unquote(pattern, text, from);
+            this.src = text.toString();
+            this.origins = from;
+        }
+
+        /**
+         * Rewrites {@code \Q...\E} quoting as {@code java.util.regex} does before it parses, in
+         * {@code Pattern.RemoveQEQuoting}: a quoted letter, digit or non-ASCII character stays as it is,
+         * except that a digit opening a quote becomes {@code \x3} and the digit, so that it cannot extend
+         * an escape before the quote, and any other quoted character gets a backslash. Text outside a
+         * quote is copied, an escape as a pair, so that an escaped {@code \Q} stays as written.
+         */
+        private static void unquote(String pattern, StringBuilder text, int[] from) {
+            boolean quoted = false;
+            boolean quoteStart = false;
+            int i = 0;
+            while (i < pattern.length()) {
+                int at = i;
+                char c = pattern.charAt(i++);
+                if (c >= 0x80 || isAsciiLetter(c)) {
+                    emit(text, from, c, at);
+                } else if (c >= '0' && c <= '9') {
+                    if (quoteStart) {
+                        emit(text, from, '\\', at);
+                        emit(text, from, 'x', at);
+                        emit(text, from, '3', at);
+                    }
+                    emit(text, from, c, at);
+                } else if (c != '\\') {
+                    if (quoted) {
+                        emit(text, from, '\\', at);
+                    }
+                    emit(text, from, c, at);
+                } else if (quoted) {
+                    if (i < pattern.length() && pattern.charAt(i) == 'E') {
+                        i++;
+                        quoted = false;
+                    } else {
+                        emit(text, from, '\\', at);
+                        emit(text, from, '\\', at);
+                    }
+                } else if (pattern.charAt(i) == 'Q') { // A pattern that compiles cannot end in a lone backslash.
+                    i++;
+                    quoted = true;
+                    quoteStart = true;
+                    continue;
+                } else {
+                    emit(text, from, c, at);
+                    emit(text, from, pattern.charAt(i), i);
+                    i++;
+                }
+                quoteStart = false;
+            }
+            from[text.length()] = pattern.length();
+        }
+
+        private static void emit(StringBuilder text, int[] from, char c, int origin) {
+            from[text.length()] = origin;
+            text.append(c);
         }
 
         /**
@@ -326,7 +612,7 @@ public final class RegexGenerator implements Generator<String> {
 
         private IllegalArgumentException unsupported(String construct, int position) {
             return new IllegalArgumentException(
-                    "Unsupported " + construct + " at position " + position + " in pattern: " + src);
+                    "Unsupported " + construct + " at position " + origins[position] + " in pattern: " + pattern);
         }
 
         // ── Alternation and sequence (concatenation) ──────────────────────────
@@ -351,7 +637,9 @@ public final class RegexGenerator implements Generator<String> {
         private SequenceNode parseSequence() {
             List<Node> nodes = new ArrayList<>();
             while (pos < src.length() && src.charAt(pos) != '|' && src.charAt(pos) != ')') {
-                nodes.add(parseQuantifier(parseAtom()));
+                if (!parseInlineFlags()) {
+                    nodes.add(parseQuantifier(parseAtom()));
+                }
             }
             return new SequenceNode(List.copyOf(nodes));
         }
@@ -371,8 +659,18 @@ public final class RegexGenerator implements Generator<String> {
                 case '^', '$' -> new AssertionNode(String.valueOf(c), pos++);
                 // java.util.regex accepts this and reads it as repeating nothing, unlike every other use of '{'.
                 case '{' -> throw unsupported("quantifier with nothing to repeat", pos);
-                default -> new LiteralNode(parseChar());
+                default -> literal(parseChar());
             };
+        }
+
+        /**
+         * A literal character. Under {@code (?i)} an ASCII letter can take either case, as
+         * {@code java.util.regex} matches it in either, and nothing else changes.
+         */
+        private Node literal(int codePoint) {
+            return caseInsensitive && isAsciiLetter(codePoint)
+                    ? new CharClassNode(new char[] {(char) codePoint, otherCase((char) codePoint)})
+                    : new LiteralNode(codePoint);
         }
 
         /**
@@ -389,22 +687,26 @@ public final class RegexGenerator implements Generator<String> {
             return value;
         }
 
-        // ── Group (a|b) / (?:a|b) / (?<name>a|b) ──────────────────────────────
+        // ── Group (a|b) / (?:a|b) / (?<name>a|b) / (?i:a|b) ───────────────────
 
         private Node parseGroup() {
             int start = pos;
+            // As in java.util.regex, flags set inside a group end with it.
+            boolean outerCaseInsensitive = caseInsensitive;
             pos++; // consume '('
             if (src.charAt(pos) == '?') {
                 parseGroupPrefix(start);
             }
             Node body = parseAlternatives();
             pos++; // consume ')'
+            caseInsensitive = outerCaseInsensitive;
             return body;
         }
 
         /**
-         * Consumes what follows {@code (} in the two group forms that only change what is captured, and
-         * rejects every other form, as each of those changes what the group matches.
+         * Consumes what follows {@code (} in the group forms that only change what is captured or which
+         * flags apply inside, and rejects every other form, as each of those changes what the group
+         * matches.
          */
         private void parseGroupPrefix(int start) {
             switch (src.charAt(pos + 1)) {
@@ -418,8 +720,65 @@ public final class RegexGenerator implements Generator<String> {
                 }
                 case '=', '!' -> throw unsupported("lookahead", start);
                 case '>' -> throw unsupported("atomic group", start);
-                default -> throw unsupported("inline flag", start);
+                default -> {
+                    // (?flags:X), as parseSequence has already taken each (?flags) that stands alone.
+                    int end = flagsEnd(pos + 1);
+                    caseInsensitive = applyFlags(start, pos + 1, end);
+                    pos = end + 1; // consume ':'
+                }
             }
+        }
+
+        /**
+         * Consumes a group such as {@code (?i)} that only sets flags, which then hold to the end of the
+         * enclosing group, and reports whether there was one. Nothing repeats it: {@code java.util.regex}
+         * reads a quantifier after it as repeating nothing.
+         */
+        private boolean parseInlineFlags() {
+            if (!src.startsWith("(?", pos)) {
+                return false;
+            }
+            int end = flagsEnd(pos + 2);
+            if (src.charAt(end) != ')') {
+                return false;
+            }
+            caseInsensitive = applyFlags(pos, pos + 2, end);
+            pos = end + 1;
+            return true;
+        }
+
+        private int flagsEnd(int from) {
+            int end = from;
+            while (FLAG_CHARS.indexOf(src.charAt(end)) >= 0) {
+                end++;
+            }
+            return end;
+        }
+
+        /**
+         * Returns whether case-insensitive matching is on after the flags in {@code [from, end)}, and
+         * rejects every flag but {@code i}, naming each one.
+         */
+        private boolean applyFlags(int groupStart, int from, int end) {
+            boolean on = caseInsensitive;
+            boolean turningOff = false;
+            List<String> others = new ArrayList<>();
+            for (int i = from; i < end; i++) {
+                String flag = String.valueOf(src.charAt(i));
+                if (flag.equals("-")) {
+                    turningOff = true;
+                } else if (flag.equals("i")) {
+                    on = !turningOff;
+                } else if (!others.contains(flag)) {
+                    others.add(flag);
+                }
+            }
+            if (!others.isEmpty()) {
+                throw unsupported(
+                        (others.size() == 1 ? "inline flag " : "inline flags ") + String.join(", ", others),
+                        groupStart);
+            }
+            return on;
         }
 
         // ── Character class [abc] / [a-z] / [^abc] ───────────────────────────
@@ -437,22 +796,52 @@ public final class RegexGenerator implements Generator<String> {
             } while (src.charAt(pos) != ']');
             pos++; // consume ']'
 
-            if (negated) {
-                Set<Character> excludeSet = new HashSet<>(pool);
-                pool.clear();
-                for (char c : PRINTABLE) {
-                    if (!excludeSet.contains(c)) pool.add(c);
-                }
+            if (!negated) {
                 if (pool.isEmpty()) {
-                    throw unsupported("negated character class that excludes all of printable ASCII", start);
+                    // Only a negated property, such as \P{ASCII}, adds nothing.
+                    throw unsupported("character class that excludes all of printable ASCII", start);
                 }
+                return classNode(toArray(pool));
+            }
+            Set<Character> excludeSet = new HashSet<>(pool);
+            if (caseInsensitive) {
+                // java.util.regex matches either case of a member letter, so the class leaves out both.
+                for (char c : pool) {
+                    if (isAsciiLetter(c)) excludeSet.add(otherCase(c));
+                }
+            }
+            pool.clear();
+            for (char c : PRINTABLE) {
+                if (!excludeSet.contains(c)) pool.add(c);
+            }
+            if (pool.isEmpty()) {
+                throw unsupported("negated character class that excludes all of printable ASCII", start);
             }
             return new CharClassNode(toArray(pool));
         }
 
         /**
-         * Adds one predefined class, range or character to the pool. The pool keeps source order and
-         * repeats, so that a class keeps the values it has always drawn for a seed.
+         * A node drawing from the pool. Under {@code (?i)} each ASCII letter's other case joins the pool,
+         * unless it is there already.
+         */
+        private CharClassNode classNode(char[] pool) {
+            if (!caseInsensitive) {
+                return new CharClassNode(pool);
+            }
+            Set<Character> present = new HashSet<>();
+            for (char c : pool) present.add(c);
+            StringBuilder chars = new StringBuilder().append(pool);
+            for (char c : pool) {
+                if (isAsciiLetter(c) && present.add(otherCase(c))) {
+                    chars.append(otherCase(c));
+                }
+            }
+            return new CharClassNode(chars.toString().toCharArray());
+        }
+
+        /**
+         * Adds one predefined class, property, range or character to the pool. The pool keeps source
+         * order and repeats, so that a class keeps the values it has always drawn for a seed.
          */
         private void parseClassItem(List<Character> pool) {
             if (src.startsWith("&&", pos)) {
@@ -461,10 +850,9 @@ public final class RegexGenerator implements Generator<String> {
             if (src.charAt(pos) == '[') {
                 throw unsupported("nested character class", pos);
             }
-            char[] predefined = src.charAt(pos) == '\\' ? predefinedClass(src.charAt(pos + 1)) : null;
-            if (predefined != null) {
-                pos += 2;
-                for (char c : predefined) pool.add(c);
+            char[] members = src.charAt(pos) == '\\' ? parseClassEscape() : null;
+            if (members != null) {
+                for (char c : members) pool.add(c);
                 return;
             }
             char low = parseClassChar();
@@ -489,7 +877,7 @@ public final class RegexGenerator implements Generator<String> {
             return (char) c;
         }
 
-        // ── Escape sequences \d \w etc. ───────────────────────────────────────
+        // ── Escape sequences \d \w \p{L} etc. ─────────────────────────────────
 
         private static char @org.jspecify.annotations.Nullable [] predefinedClass(char escaped) {
             return switch (escaped) {
@@ -503,14 +891,74 @@ public final class RegexGenerator implements Generator<String> {
             };
         }
 
-        private Node parseEscape() {
-            int start = pos;
+        /**
+         * Consumes a predefined class or a property, with {@code pos} at its backslash, and returns what it
+         * draws from, or returns {@code null} and consumes nothing for any other escape.
+         */
+        private char @org.jspecify.annotations.Nullable [] parseClassEscape() {
             char escaped = src.charAt(pos + 1);
+            if (escaped == 'p' || escaped == 'P') {
+                return parseProperty();
+            }
             char[] predefined = predefinedClass(escaped);
             if (predefined != null) {
                 pos += 2;
-                return new CharClassNode(predefined);
             }
+            return predefined;
+        }
+
+        /**
+         * Parses {@code \p{Name}}, {@code \P{Name}}, {@code \pL} or {@code \PL}, with {@code pos} at its
+         * backslash, and returns what it draws from.
+         */
+        private char[] parseProperty() {
+            int start = pos;
+            boolean negated = src.charAt(pos + 1) == 'P';
+            pos += 2;
+            String name;
+            if (src.charAt(pos) == '{') {
+                int close = src.indexOf('}', pos);
+                name = src.substring(pos + 1, close);
+                pos = close + 1;
+            } else {
+                // Every one-letter name java.util.regex knows is an ASCII letter.
+                name = src.substring(pos, pos + 1);
+                pos++;
+            }
+            char[] alphabet = PROPERTIES.get(name);
+            if (alphabet == null) {
+                throw unsupported("character property " + src.substring(start, pos), start);
+            }
+            if (!negated) {
+                return alphabet;
+            }
+            // Each sample holds every printable ASCII character its property matches, so this is exact.
+            Set<Character> excluded = new HashSet<>();
+            for (char c : alphabet) {
+                excluded.add(c);
+                // Under (?i), java.util.regex counts a letter in the property if either case is.
+                if (caseInsensitive && isAsciiLetter(c)) excluded.add(otherCase(c));
+            }
+            // It can leave nothing, which only matters where nothing else in a class adds to it.
+            List<Character> pool = new ArrayList<>();
+            for (char c : PRINTABLE) {
+                if (!excluded.contains(c)) pool.add(c);
+            }
+            return toArray(pool);
+        }
+
+        private Node parseEscape() {
+            int start = pos;
+            char[] members = parseClassEscape();
+            if (members != null) {
+                if (members.length == 0) {
+                    throw unsupported(
+                            "character property " + src.substring(start, pos) + " that excludes all of printable ASCII",
+                            start);
+                }
+                return classNode(members);
+            }
+            char escaped = src.charAt(pos + 1);
             return switch (escaped) {
                 case 'A', 'Z', 'z', 'b' -> {
                     pos += 2;
@@ -520,7 +968,7 @@ public final class RegexGenerator implements Generator<String> {
                     }
                     yield new AssertionNode("\\" + escaped, start);
                 }
-                default -> new LiteralNode(parseChar());
+                default -> literal(parseChar());
             };
         }
 
@@ -560,7 +1008,6 @@ public final class RegexGenerator implements Generator<String> {
         private static String describeEscape(int c) {
             String construct = switch (c) {
                 case '1', '2', '3', '4', '5', '6', '7', '8', '9', 'k' -> "backreference";
-                case 'p', 'P' -> "character property";
                 default -> "escape";
             };
             return construct + " \\" + Character.toString(c);
@@ -620,7 +1067,7 @@ public final class RegexGenerator implements Generator<String> {
             int count = Integer.parseInt(src, start, pos, 10); // java.util.regex has checked that it fits.
             if (count > MAX_REPETITIONS) {
                 throw new IllegalArgumentException("Quantifier repetition " + count
-                        + " exceeds the maximum supported value " + MAX_REPETITIONS + " in pattern: " + src);
+                        + " exceeds the maximum supported value " + MAX_REPETITIONS + " in pattern: " + pattern);
             }
             return count;
         }

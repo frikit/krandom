@@ -138,6 +138,8 @@ class BeanValidationTextNormalizationTest {
             assertEquals("a".repeat(20), value.longRun);
             assertTrue(value.longDigits.matches("[0-9]{20,}"), value.longDigits);
             assertTrue(value.email.matches("[a-zA-Z0-9_-]+@example\\.com"), value.email);
+            // The pattern is now the source: no @Size gives another.
+            assertTrue(value.newSyntax.matches("(?i)[a-c]{2}\\p{Lu}\\Q-1\\E"), value.newSyntax);
         }
     }
 
@@ -306,6 +308,9 @@ class BeanValidationTextNormalizationTest {
         @Pattern(regexp = "[0-9]+") @Size(min = 20) String longDigits;
 
         @Email(regexp = "[\\w-]+@example\\.com") String email;
+
+        @Pattern(regexp = "(?i)[a-c]{2}\\p{Lu}\\Q-1\\E")
+        String newSyntax;
     }
 
     static final class MetByAnotherSourceFixture {
@@ -316,7 +321,7 @@ class BeanValidationTextNormalizationTest {
         @Pattern(regexp = "(?=[a-z])[a-z]+")
         @Size(min = 3, max = 5) String code;
 
-        @Pattern(regexp = "\\p{L}+") @Size(min = 2, max = 5) String letters;
+        @Pattern(regexp = "\\p{InBasicLatin}+") @Size(min = 2, max = 5) String letters;
     }
 
     static final class LookaheadOnlyFixture {

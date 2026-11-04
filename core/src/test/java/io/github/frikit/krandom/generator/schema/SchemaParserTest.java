@@ -1271,6 +1271,9 @@ class SchemaParserTest {
                     "(?<word>[a-z]+)-\\d",
                     ".{3}",
                     "[\\w.-]+@example\\.com",
+                    "(?i)^[a-z]{3}-\\d$",
+                    "\\p{Lu}\\p{Ll}{2,5}",
+                    "\\Qa.b\\E\\p{Nd}",
                 })
         @DisplayName("every value generated from a pattern matches it")
         void patternValuesMatch(String regex) {
@@ -1296,6 +1299,25 @@ class SchemaParserTest {
                 assertTrue(exception.getMessage().contains("$.properties.value"), exception.getMessage());
                 assertTrue(exception.getMessage().contains(problem), exception.getMessage());
             });
+        }
+
+        @Test
+        @DisplayName("a pattern too large once minLength raises its repetition is rejected with its path")
+        void rejectsPatternTooLargeForItsMinimumLength() {
+            // (a+)+ is at most 100 characters as a+ repeats by default, and 10^8 when minLength 5000 raises
+            // that to 10 000 times.
+            for (Object value : values(Map.of("type", "string", "pattern", "(a+)+", "minLength", 1))) {
+                assertTrue(((String) value).matches("a{1,100}"), String.valueOf(value));
+            }
+            Map<String, Object> schema =
+                    objectSchema(Map.of("value", Map.of("type", "string", "pattern", "(a+)+", "minLength", 5_000)));
+            IllegalArgumentException exception =
+                    assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(schema));
+            assertEquals(
+                    "JSON Schema pattern cannot generate values at $.properties.value: Generated values could be longer"
+                            + " than the limit of 1000000 characters, with *, + and {n,} repeating up to 10000 times,"
+                            + " in pattern: (a+)+",
+                    exception.getMessage());
         }
 
         @Test

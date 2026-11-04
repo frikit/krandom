@@ -168,33 +168,85 @@ Supported:
 
 - Literals, including supplementary characters. Escaped characters: a backslash before anything but
   an ASCII letter or digit, plus `\t`, `\n`, `\r`, `\f`, `\a`, `\e`, `\xhh`, `\x{h...h}`, and `\uhhhh`.
+- Quoting with `\Q...\E`, or with `\Q` to the end of the pattern, read as `java.util.regex` reads it:
+  a quantifier after `\E` repeats the last quoted character, so `\Qab\E+` generates `ab`, `abb`, and
+  so on.
 - `.`, `\D`, `\W`, and `\S`, which draw from printable ASCII, and `\d`, `\w`, and `\s`, which draw
   from ASCII.
-- Character classes: `[abc]`, `[a-z]`, and `[^abc]`, with the escapes above as members or range ends,
-  such as `[\w.-]` and `[\x41-\x43]`. A negated class draws from printable ASCII.
+- Character properties: `\p{Name}` and its negation `\P{Name}` for the names in the table below, and
+  `\pL`, `\pN`, `\PL`, and `\PN`. A negated property draws from the printable ASCII characters outside
+  it, so `\P{ASCII}` and `\P{Print}`, which leave none, are rejected.
+- Character classes: `[abc]`, `[a-z]`, and `[^abc]`, with the escapes and properties above as members,
+  and the escapes as range ends, such as `[\w.-]`, `[\p{L}\d]`, and `[\x41-\x43]`. A negated class
+  draws from printable ASCII.
 - Quantifiers: `?`, `*`, `+`, `{n}`, `{n,}`, and `{n,m}`, and their lazy forms. A stated count above
   10,000 is rejected.
 - Groups and alternation: `(a|b)`, `(?:a|b)`, `(?<name>a|b)`, and `|` at any level.
+- Case-insensitive matching: `(?i)` and `(?-i)`, which hold to the end of the enclosing group, and
+  `(?i:X)` and `(?-i:X)`, which hold inside it. As in `java.util.regex` without `UNICODE_CASE`, only
+  ASCII letters match their other case: a generated ASCII letter can take either case, and every other
+  character keeps the one written, so `(?i)ab` generates `ab`, `aB`, `Ab`, and `AB`, and `(?i)é` only
+  `é`. A negated class or property under `(?i)` leaves out both cases of each letter it excludes.
 - `^`, `\A`, `$`, `\Z`, `\z`, and `\b`, where they hold on every value the pattern can generate. That
   is checked at construction: `\bfoo\b` and `\b(foo|bar)\b` are accepted, while `a^b`,
-  `\b[a-z -]+\b`, and `\b\w*\b`, whose values could start with a space or be empty, are rejected.
+  `\b[a-z -]+\b`, and `\b\w*\b`, whose values could start with a space or be empty, are rejected. A
+  non-ASCII character can count as a word character or not, so a `\b` beside one is rejected.
+
+| Property | Draws from |
+|---|---|
+| `Lower`, `Upper` | `a-z` and `A-Z` |
+| `Alpha`, `Digit`, `Alnum` | `a-zA-Z`, `0-9`, and both |
+| `Punct` | The 32 ASCII punctuation characters |
+| `Graph` | U+0021 to U+007E |
+| `Print`, `ASCII` | U+0020 to U+007E, printable ASCII |
+| `Blank` | Space and tab |
+| `Space` | Space, `\t`, `\n`, U+000B, `\f`, and `\r` |
+| `XDigit` | `0-9a-fA-F` |
+| `L`, `IsAlphabetic` | `A-Z`, `a-z`, the Latin-1 letters U+00C0 to U+00D6, U+00D8 to U+00F6, and U+00F8 to U+00FF, the Greek letters U+0391 to U+03A1, U+03A3 to U+03A9, and U+03B1 to U+03C9, and the Cyrillic letters U+0410 to U+044F |
+| `Lu` | The uppercase ones: `A-Z`, U+00C0 to U+00D6, U+00D8 to U+00DE, U+0391 to U+03A1, U+03A3 to U+03A9, and U+0410 to U+042F |
+| `Ll` | The lowercase ones: `a-z`, U+00DF to U+00F6, U+00F8 to U+00FF, U+03B1 to U+03C9, and U+0430 to U+044F |
+| `IsLatin` | `A-Z`, `a-z`, U+00C0 to U+00D6, U+00D8 to U+00F6, and U+00F8 to U+00FF |
+| `Nd`, `IsDigit` | `0-9`, the Arabic-Indic digits U+0660 to U+0669, and the Devanagari digits U+0966 to U+096F |
+| `N` | The `Nd` sample, and U+00B2, U+00B3, U+00B9, and U+00BC to U+00BE |
+
+The ASCII properties draw from everything they match, and the Unicode ones from these fixed samples.
+Names are spelled as in the table: any other property, including another spelling that
+`java.util.regex` accepts, such as `\p{IsLower}`, `\p{Islatin}`, or `\p{gc=Lu}`, is rejected with a
+message naming it.
 
 Rejected at construction:
 
 - Lookahead, lookbehind, atomic groups, and backreferences.
-- Inline flags such as `(?i)`.
-- Possessive quantifiers such as `a++`, and a quantifier with nothing to repeat such as `a{2}{3}`.
-- `\B`, `\G`, `\b{g}`, `\R`, `\X`, `\h`, `\H`, `\v`, `\V`, `\p`, `\P`, `\N`, `\c`, octal `\0`, and
-  quoting with `\Q`.
+- Inline flags other than `i`, such as `(?s)`, `(?u)`, and `(?-m)`, with a message naming each one.
+- Possessive quantifiers such as `a++`, and a quantifier with nothing to repeat such as `a{2}{3}` or
+  `(?i){2}`.
+- `\B`, `\G`, `\b{g}`, `\R`, `\X`, `\h`, `\H`, `\v`, `\V`, `\N`, `\c`, and octal `\0`.
 - In a character class: `&&` intersection, a nested class, a supplementary character, and negating
   all of printable ASCII.
 - A surrogate on its own or in an escape. Write a supplementary character as itself or as
   `\x{h...h}`.
+- A pattern too large to generate, as described below.
 
 `*`, `+`, and `{n,}` have no upper bound in a pattern, so generation gives them one: they repeat at
 most 10 times, or `n` times when that is more. A `GeneratorConfig` whose minimum string length is
 above 5 raises 10 to twice that length, up to 10,000, so that a generated string can reach it. A JSON
 Schema `minLength` or a `@Size` minimum does the same.
+
+With those repetitions, the constructor works out the longest value a pattern can generate and the
+most steps generating one can take. It rejects the pattern, naming it and the limit, if a value could
+be longer than 1,000,000 characters, counted as UTF-16 `char`s, or take more than 10,000,000 steps,
+where each element of the pattern, such as a character, class, assertion, group, or quantifier, counts
+one step each time it is generated. A value is built in one buffer, so these limits bound its memory as
+well as its time. `(a{1000}){1000}` generates 1,000,000 characters and is accepted, while
+`((a{10000}){10000}){10000}` is rejected rather than run out of memory, and
+`(((){10000}){10000}){10000}`, which generates nothing, rather than loop for hours. A raised repetition
+counts: `(a+){1000}` is accepted by default and with a minimum string length of up to 500, and rejected
+above that.
+
+The limits are fixed, and no setting raises them. A pattern over them has to repeat less, or, where a
+minimum string length raised the repetition, run under a smaller one. A JSON Schema `pattern` over them
+is rejected with its schema path, and a `@Pattern` over them is not a source, like any pattern outside
+the supported syntax.
 
 ## UTC-offset contract
 
