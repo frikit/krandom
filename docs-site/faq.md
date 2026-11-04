@@ -8,7 +8,7 @@ permalink: /faq/
 
 ## Which module should I use?
 
-Use `krandom-core` for generation APIs. Add `krandom-jackson` for Jackson serialization support,
+Use `krandom-core` for generation APIs. Add `krandom-jackson` for Jackson 3 serialization support,
 `krandom-junit` for the JUnit seed extension, `krandom-spring-boot-starter` for Spring Boot,
 `krandom-kotest-extensions` for Kotest adapters, or `krandom-kotlin-dsl` for Kotlin fixture rules.
 Import `krandom-bom:2.10.0` to align multiple kRandom modules.

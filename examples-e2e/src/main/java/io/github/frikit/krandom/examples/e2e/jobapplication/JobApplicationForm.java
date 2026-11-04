@@ -5,7 +5,6 @@
  */
 package io.github.frikit.krandom.examples.e2e.jobapplication;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
 import io.github.frikit.krandom.generator.object.ObjectFaker;
@@ -143,13 +142,7 @@ public final class JobApplicationForm {
 
     /** Serializes a freshly generated application to its final JSON. */
     public static String toJson(Locale locale, long seed) {
-        try {
-            return KrandomJackson.newObjectMapper()
-                    .writerWithDefaultPrettyPrinter()
-                    .writeValueAsString(fake(locale, seed));
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException("Failed to serialize job application", e);
-        }
+        return KrandomJackson.newJsonMapper().writerWithDefaultPrettyPrinter().writeValueAsString(fake(locale, seed));
     }
 
     /** Convenience: serialize using this example's default (German) locale. */

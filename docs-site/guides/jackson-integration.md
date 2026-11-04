@@ -8,15 +8,23 @@ permalink: /guides/jackson-integration/
 
 Use `krandom-jackson` when you want Jackson to understand kRandom schema definitions.
 
-## Jackson 2.x only
+## Jackson 3
 
-`krandom-jackson` is built for **Jackson 2.x** (`com.fasterxml.jackson.core:jackson-databind`,
-packages `com.fasterxml.jackson.*`) and brings `jackson-databind` 2.x transitively.
-`KrandomJacksonModule` extends Jackson 2's `SimpleModule`; it cannot be registered with a Jackson 3
-(`tools.jackson.*`) mapper. Spring Boot 4 defaults to Jackson 3, so its auto-configured
-`JsonMapper` does not pick the module up: use a Jackson 2 `ObjectMapper`, for example
-`KrandomJackson.newObjectMapper()`, for kRandom schema serialization. Jackson 2 and Jackson 3 use
-different packages and coexist on one classpath.
+`krandom-jackson` is built for **Jackson 3** (`tools.jackson.core:jackson-databind`, packages
+`tools.jackson.*`) and brings `jackson-databind` 3 transitively. Jackson 3 has no annotations module
+of its own: it uses the 2.x `com.fasterxml.jackson.core:jackson-annotations` (package
+`com.fasterxml.jackson.annotation`), and `jackson-databind` brings the matching version, `2.22` for
+Jackson 3.2. Leave that version to Jackson. The artifact's `3.0-rc` versions are pre-releases that
+Jackson 3 does not use, although Maven Central lists `3.0-rc5` as its latest release.
+
+`KrandomJacksonModule` is a Jackson 3 module. It cannot be registered with a Jackson 2
+(`com.fasterxml.jackson.databind`) `ObjectMapper`: kRandom 2.10.0 is the last release built for
+Jackson 2. On Jackson 2, either stay on that release or register a serializer of your own that writes
+`schema.toJsonSchema()`.
+
+When Spring Boot 4 auto-configures Jackson, it builds a Jackson 3 `JsonMapper` and registers every
+`JacksonModule` bean with it, so a `KrandomJacksonModule` bean is enough there; see
+[Spring Boot Starter]({{ '/guides/spring-boot-starter/' | relative_url }}#jackson-version).
 
 ## Dependency
 
@@ -33,31 +41,42 @@ dependencies {
 }
 ```
 
-## Configure An ObjectMapper
+## Configure A JsonMapper
+
+Jackson 3 mappers are immutable, so add the module while the mapper is built:
 
 ```java
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.frikit.krandom.jackson.KrandomJacksonModule;
+import tools.jackson.databind.json.JsonMapper;
+
+JsonMapper mapper = JsonMapper.builder()
+        .addModule(new KrandomJacksonModule())
+        .build();
+```
+
+`KrandomJackson.configure(builder)` adds the module to any Jackson 3 mapper builder and returns the
+same builder, and `KrandomJackson.newJsonMapper()` is the shortest setup path:
+
+```java
 import io.github.frikit.krandom.jackson.KrandomJackson;
 
-ObjectMapper mapper = KrandomJackson.configure(new ObjectMapper());
+JsonMapper configured = KrandomJackson.configure(JsonMapper.builder()).build();
+JsonMapper mapper = KrandomJackson.newJsonMapper();
 ```
 
-`KrandomJackson.newObjectMapper()` is the shortest setup path:
-
-```java
-ObjectMapper mapper = KrandomJackson.newObjectMapper();
-```
+Jackson 3 methods throw the unchecked `tools.jackson.core.JacksonException`, so serializing needs no
+`try`/`catch`.
 
 ## Serialize A Schema As JSON Schema
 
 ```java
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.schema.Field;
 import io.github.frikit.krandom.generator.schema.Schema;
 import io.github.frikit.krandom.generator.schema.SchemaValueProvider;
 import io.github.frikit.krandom.jackson.KrandomJackson;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -75,10 +94,10 @@ fields.put("company", field.bind("company.info"));
 fields.put("payment", field.bind("finance.payment_info"));
 
 Schema schema = new Schema(cfg, fields);
-ObjectMapper mapper = KrandomJackson.newObjectMapper();
+JsonMapper mapper = KrandomJackson.newJsonMapper();
 
 JsonNode jsonSchema = mapper.valueToTree(schema);
-String type = jsonSchema.path("properties").path("order").path("type").asText(); // "object"
+String type = jsonSchema.path("properties").path("order").path("type").asString(); // "object"
 ```
 
 Serializing a `Schema` is side-effect free: it reads provider JSON Schema metadata and does not
@@ -93,9 +112,15 @@ records, so Jackson serializes them as nested objects:
 Map<String, Object> row = schema.generate();
 
 JsonNode rowJson = mapper.valueToTree(row);
-String orderNumber = rowJson.path("order").path("orderNumber").asText();
-String companyName = rowJson.path("company").path("name").asText();
+String orderNumber = rowJson.path("order").path("orderNumber").asString();
+String companyName = rowJson.path("company").path("name").asString();
+String orderedOn = rowJson.path("order").path("orderedOn").asString(); // ISO-8601 date text
 ```
+
+By default, Jackson 3 serializes `java.time` values, such as an order's `orderedOn` date, as ISO-8601
+text without an extra module, and writes a `java.util.Date` as ISO-8601 text rather than epoch
+milliseconds. It lists a class's properties in alphabetical order, while a record keeps the order of
+its components.
 
 For non-Jackson exports, `Schema` also preserves composite records as structured data:
 

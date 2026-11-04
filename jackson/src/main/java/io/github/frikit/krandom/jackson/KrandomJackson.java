@@ -5,37 +5,39 @@
  */
 package io.github.frikit.krandom.jackson;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Objects;
+import tools.jackson.databind.cfg.MapperBuilder;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Jackson 2.x ({@code com.fasterxml.jackson}) utility for krandom integrations.
+ * Jackson 3 ({@code tools.jackson}) utility for krandom integrations.
  *
- * <p>This module targets Jackson 2 only; it cannot configure a Jackson 3 ({@code tools.jackson})
- * mapper such as the one Spring Boot 4 auto-configures by default.
+ * <p>Jackson 3 mappers are immutable, so krandom's {@link KrandomJacksonModule} is added to a
+ * mapper builder before the mapper is built. This module does not support Jackson 2
+ * ({@code com.fasterxml.jackson.databind}).
  */
 public final class KrandomJackson {
 
     private KrandomJackson() {}
 
     /**
-     * Registers krandom's Jackson module with an existing mapper.
+     * Adds krandom's Jackson module to a mapper builder, such as {@code JsonMapper.builder()}.
      *
-     * @param mapper mapper to configure
-     * @return the same mapper instance
+     * @param builder builder to configure
+     * @param <B> the builder type
+     * @return the same builder instance
      */
-    public static ObjectMapper configure(ObjectMapper mapper) {
-        Objects.requireNonNull(mapper, "mapper must not be null");
-        mapper.registerModule(new KrandomJacksonModule());
-        return mapper;
+    public static <B extends MapperBuilder<?, B>> B configure(B builder) {
+        Objects.requireNonNull(builder, "builder must not be null");
+        return builder.addModule(new KrandomJacksonModule());
     }
 
     /**
-     * Creates a new mapper configured with krandom's Jackson module.
+     * Creates a new JSON mapper with krandom's Jackson module and Jackson 3's defaults otherwise.
      *
      * @return the configured mapper
      */
-    public static ObjectMapper newObjectMapper() {
-        return configure(new ObjectMapper());
+    public static JsonMapper newJsonMapper() {
+        return configure(JsonMapper.builder()).build();
     }
 }

@@ -9,8 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
@@ -27,6 +25,8 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 class JavaGradleIntegrationUsageTest {
 
@@ -41,17 +41,17 @@ class JavaGradleIntegrationUsageTest {
         fields.put("payment", field.bind("finance.payment_info"));
 
         Schema schema = Generators.ofSchema(config, fields);
-        ObjectMapper mapper = KrandomJackson.newObjectMapper();
+        JsonMapper mapper = KrandomJackson.newJsonMapper();
 
         JsonNode jsonSchema = mapper.valueToTree(schema);
 
-        assertEquals("object", jsonSchema.path("type").asText());
+        assertEquals("object", jsonSchema.path("type").asString());
         assertEquals(
                 "object",
-                jsonSchema.path("properties").path("order").path("type").asText());
+                jsonSchema.path("properties").path("order").path("type").asString());
         assertEquals(
                 "object",
-                jsonSchema.path("properties").path("payment").path("type").asText());
+                jsonSchema.path("properties").path("payment").path("type").asString());
     }
 
     @Test
