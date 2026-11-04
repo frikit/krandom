@@ -65,10 +65,32 @@ precedence over type-level overrides, contextual or not.
 
 Constructor parameters behave like the fields they initialize when the class is compiled with
 `-parameters`: by-name overrides, `objectExcludeField` on the parameter name (or `@Exclude` on the
-backing field), Bean Validation constraints declared on the parameter, and semantic providers such
-as `firstName` or `email` all apply. Without compiled parameter names the engine addresses
-arguments by position, so `objectOverride(Money.class, "constructorArg0", ...)` targets the first
-argument and exclusions by name have no effect.
+backing field), Bean Validation constraints, and semantic providers such as `firstName` or `email`
+all apply. Without compiled parameter names the engine addresses arguments by position, so
+`objectOverride(Money.class, "constructorArg0", ...)` targets the first argument and exclusions by
+name have no effect.
+
+An argument meets the Bean Validation constraints declared on its parameter and on the field it
+initializes: the nearest field with the parameter's name and declared type, on the class or a
+superclass. So a constraint on a final field reaches the argument that fills it:
+
+```java
+final class Account {
+    @Size(min = 3, max = 3) private final String code;
+    private final List<@Email String> contacts;
+
+    Account(String code, List<String> contacts) { // code has three characters, each contact is an email
+        this.code = code;
+        this.contacts = contacts;
+    }
+}
+```
+
+The field's getter counts as part of the field, as it does for field population. Where the parameter
+declares a constraint of the same type as the field, the parameter's applies, and where its type
+arguments declare any constraints, as in `List<@Size(max = 5) String>`, its container-element
+constraints apply instead of the field's. A field of another type, such as a `String` filled from an
+`int` parameter, adds nothing, and nor does a static field.
 
 A type override is also a root factory and runs before reflection. Contextual factories win over
 plain factories and receive `"$root"`, the requested type, and depth zero:
@@ -175,7 +197,7 @@ the JVM's default zone, so on a JVM in one of those zones that date reads `2011-
 ## Bean Validation
 
 Object population natively composes 21 Jakarta Validation constraints across fields, getters,
-records, and interface accessors. See the [Bean Validation support matrix]({{ '/guides/bean-validation/' | relative_url }})
+records, interface accessors, and constructor parameters. See the [Bean Validation support matrix]({{ '/guides/bean-validation/' | relative_url }})
 for exact target types, intersection rules, precedence, and exclusions.
 
 ## Depth limit
@@ -207,8 +229,8 @@ and `objectOverride(Leaf.class, ...)` run before the limit is checked. Excluding
 What counts as required:
 
 - `@NotNull` on the member, whether on a field, getter, interface accessor, record component or
-  constructor parameter. `@NotNull` on a final field alone is not seen, because a constructor argument
-  only reads the constraints on its parameter.
+  constructor parameter, or on the field that a constructor parameter initializes, such as a final
+  field filled through the constructor.
 - `@NotEmpty` on a collection class that is generated as a nested object, such as a custom
   `AbstractCollection`. Above the limit such a class is built through its constructor and not filled,
   so it can still be empty. `@NotEmpty` and `@NotBlank` are rejected on other nested object types.

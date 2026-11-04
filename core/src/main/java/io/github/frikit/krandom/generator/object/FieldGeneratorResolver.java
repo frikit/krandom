@@ -2467,7 +2467,13 @@ final class FieldGeneratorResolver {
             return recordComponent.getAnnotatedType();
         }
         if (element instanceof Parameter parameter) {
-            return parameter.getAnnotatedType();
+            // A constructor argument whose type arguments declare no constraints takes those of the field
+            // it initializes, which has the same type, as it does for the constraints on the declaration.
+            AnnotatedType declared = parameter.getAnnotatedType();
+            java.lang.reflect.Field field = BeanValidationSupport.initializedField(parameter);
+            return field != null && !BeanValidationSupport.constrainsTypeArguments(declared)
+                    ? field.getAnnotatedType()
+                    : declared;
         }
         return null;
     }

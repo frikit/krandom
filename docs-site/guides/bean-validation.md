@@ -7,9 +7,12 @@ permalink: /guides/bean-validation/
 # Bean Validation Support
 
 `ObjectGenerator` natively reads 21 Jakarta Validation constraints from fields, JavaBean getters,
-record components, and interface accessor declarations. Supported constraints form one contract:
-compatible annotations are intersected, and an impossible contract fails before a fixture is
-returned.
+record components, interface accessor declarations, and constructor parameters. A constructor
+argument also meets the constraints of the field it initializes, so a constraint on a final field
+reaches the value that fills it: see the
+[construction policy]({{ '/guides/object-generation/' | relative_url }}#construction-policy).
+Supported constraints form one contract: compatible annotations are intersected, and an impossible
+contract fails before a fixture is returned.
 
 ## Dependency
 

@@ -49,7 +49,10 @@ import org.objenesis.ObjenesisStd;
  *   <li><b>Records</b> — all components are populated and the canonical constructor is invoked.</li>
  *   <li><b>Plain classes</b> — constructors are invoked by default. A no-arg constructor is
  *       preferred; otherwise one unambiguous declared constructor is populated through the same
- *       resolver used for fields. Objenesis bypass is available only through {@link
+ *       resolver used for fields. With compiled parameter names, an argument meets the Bean
+ *       Validation constraints of its parameter and of the field it initializes, the nearest field
+ *       with the parameter's name and declared type, so a constraint on a final field reaches the
+ *       value that fills it. Objenesis bypass is available only through {@link
  *       ObjectConstructionPolicy#UNSAFE_CONSTRUCTOR_BYPASS}.</li>
  *   <li><b>Nested objects</b> — resolved recursively up to the configured object max depth. A member
  *       past that depth is left {@code null}, unless it is required (for example {@code @NotNull}),

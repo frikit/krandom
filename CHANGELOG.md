@@ -31,6 +31,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   is, and replay requires it, so a recipe without it, such as one written under the earlier `LEGACY`
   default, is rejected rather than replayed with independent streams.
 
+### Fixed
+
+- A Bean Validation constraint on a field now applies to the constructor argument that fills it. An
+  argument read only the constraints on its parameter, so `@Size(min = 3, max = 3) private final String
+  code` filled through an unannotated `Account(String code)` got any string, and `@NotNull` on such a final
+  field did not fail at `objectMaxDepth`. An argument now meets the constraints of the field it
+  initializes, the nearest field with the parameter's name and declared type, and of that field's getter,
+  wherever the parameter declares none of the same type, and the field's container-element constraints,
+  such as `List<@Email String>`, wherever the parameter's type arguments declare none. As for by-name
+  overrides, this needs parameter names, from `-parameters`. A mutable field that keeps the value its
+  constructor set, as it does by default, now keeps a constrained one too. Record components already read
+  their constraints. Seeded output changes for such arguments, and for the members after them where members
+  share one stream.
+
 ## [2.10.0] - 2026-11-02
 
 ### Added

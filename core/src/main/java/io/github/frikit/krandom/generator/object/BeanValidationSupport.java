@@ -31,8 +31,14 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.AnnotatedParameterizedType;
+import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.RecordComponent;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -58,6 +64,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
@@ -66,6 +73,9 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Derives a constrained {@link Generator} from Bean Validation annotations on a field.
+ *
+ * <p>A field also reads its accessors' constraints, and a constructor parameter reads those of the
+ * field it initializes, wherever it declares none of the same type: see {@link #initializedField}.
  *
  * <p>The Jakarta Validation API is a compile-only dependency of core. When it is absent from the
  * runtime class path, {@link #isAvailable()} is {@code false}, every lookup reports no constraints,
@@ -99,6 +109,14 @@ final class BeanValidationSupport {
             return buildAccessorMethods(type);
         }
     };
+    private static final ClassValue<ConcurrentMap<Parameter, Optional<Field>>> INITIALIZED_FIELDS = new ClassValue<>() {
+        @Override
+        protected ConcurrentMap<Parameter, Optional<Field>> computeValue(Class<?> type) {
+            return new ConcurrentHashMap<>();
+        }
+    };
+    /** Read by name, so that no constraint class is loaded when the API is absent. */
+    private static final String CONSTRAINT_PACKAGE = "jakarta.validation.constraints";
 
     private BeanValidationSupport() {}
 
@@ -133,7 +151,11 @@ final class BeanValidationSupport {
                 new ConstraintModel(false, false, false, null, null, null, null, null);
     }
 
-    private record ConstraintCacheKey(boolean recordComponent, String name, Class<?> rawType) {}
+    /**
+     * A field, a record component's accessor, or a parameter, with the type it is generated as. A record
+     * component is keyed by its accessor, because each lookup of the components returns new objects.
+     */
+    private record ConstraintCacheKey(Object member, Class<?> rawType) {}
 
     private record AccessorMethods(Map<String, List<Method>> declared, Map<String, List<Method>> interfaces) {}
 
@@ -150,7 +172,7 @@ final class BeanValidationSupport {
      * Returns a constrained {@link Generator} for the given element and raw type,
      * or {@code null} if no relevant Bean Validation annotation is present.
      *
-     * @param element the annotated field or record component
+     * @param element the annotated field, record component, parameter, or type node
      * @param rawType the field's erasure
      * @return a constraint-respecting generator, or {@code null}
      */
@@ -206,18 +228,24 @@ final class BeanValidationSupport {
         }
         Objects.requireNonNull(rawType, "rawType must not be null");
         if (element instanceof Field field) {
-            ConstraintCacheKey key = new ConstraintCacheKey(false, field.getName(), rawType);
-            return CONSTRAINT_MODELS
-                    .get(field.getDeclaringClass())
-                    .computeIfAbsent(key, ignored -> buildConstraintModel(element, rawType));
+            return cachedConstraintModel(field.getDeclaringClass(), field, element, rawType);
         }
         if (element instanceof RecordComponent component) {
-            ConstraintCacheKey key = new ConstraintCacheKey(true, component.getName(), rawType);
-            return CONSTRAINT_MODELS
-                    .get(component.getDeclaringRecord())
-                    .computeIfAbsent(key, ignored -> buildConstraintModel(element, rawType));
+            return cachedConstraintModel(component.getDeclaringRecord(), component.getAccessor(), element, rawType);
+        }
+        if (element instanceof Parameter parameter) {
+            Class<?> owner = parameter.getDeclaringExecutable().getDeclaringClass();
+            return cachedConstraintModel(owner, parameter, element, rawType);
         }
         return buildConstraintModel(element, rawType);
+    }
+
+    private static ConstraintModel cachedConstraintModel(
+            Class<?> owner, Object member, AnnotatedElement element, Class<?> rawType) {
+        return CONSTRAINT_MODELS
+                .get(owner)
+                .computeIfAbsent(
+                        new ConstraintCacheKey(member, rawType), ignored -> buildConstraintModel(element, rawType));
     }
 
     private static ConstraintModel buildConstraintModel(AnnotatedElement element, Class<?> rawType) {
@@ -984,6 +1012,44 @@ final class BeanValidationSupport {
         return Math.min(value, max);
     }
 
+    /**
+     * The field a constructor argument initializes: the nearest field with the parameter's name, on the
+     * constructor's class or a superclass, when it is an instance field of the parameter's declared type.
+     * Parameter names are only known when the class was compiled with {@code -parameters}.
+     *
+     * <p>Where the parameter declares no constraint of a type, the argument takes the field's, and its
+     * accessors', so a constraint on a final field reaches the value that fills it.
+     *
+     * @param parameter a constructor or method parameter
+     * @return the initialized field, or {@code null} when there is none
+     */
+    static @Nullable Field initializedField(Parameter parameter) {
+        Executable executable = parameter.getDeclaringExecutable();
+        return INITIALIZED_FIELDS
+                .get(executable.getDeclaringClass())
+                .computeIfAbsent(parameter, BeanValidationSupport::findInitializedField)
+                .orElse(null);
+    }
+
+    private static Optional<Field> findInitializedField(Parameter parameter) {
+        Executable executable = parameter.getDeclaringExecutable();
+        if (!parameter.isNamePresent() || !(executable instanceof Constructor<?>)) {
+            return Optional.empty();
+        }
+        for (Class<?> owner = executable.getDeclaringClass(); owner != Object.class; owner = owner.getSuperclass()) {
+            try {
+                Field field = owner.getDeclaredField(parameter.getName());
+                return !Modifier.isStatic(field.getModifiers())
+                                && field.getGenericType().equals(parameter.getParameterizedType())
+                        ? Optional.of(field)
+                        : Optional.empty();
+            } catch (NoSuchFieldException notDeclaredHere) {
+                // Keep looking in the superclass.
+            }
+        }
+        return Optional.empty();
+    }
+
     private static <A extends java.lang.annotation.Annotation> @Nullable A annotation(
             @Nullable AnnotatedElement element, Class<A> type) {
         if (element == null) {
@@ -998,6 +1064,10 @@ final class BeanValidationSupport {
         }
         if (element instanceof Field field) {
             return accessorAnnotation(field, type);
+        }
+        if (element instanceof Parameter parameter) {
+            Field field = initializedField(parameter);
+            return field != null ? annotation(field, type) : null;
         }
         return null;
     }
@@ -1014,7 +1084,32 @@ final class BeanValidationSupport {
         if (element instanceof Field field) {
             return accessorAnnotations(field, type);
         }
+        if (element instanceof Parameter parameter) {
+            Field field = initializedField(parameter);
+            return field != null ? annotations(field, type) : List.of();
+        }
         return List.of();
+    }
+
+    /**
+     * Whether a Bean Validation constraint annotates a type argument of this type, at any depth, as in
+     * {@code List<@Email String>}. Other type annotations, such as JSpecify's {@code @Nullable}, do not count.
+     */
+    static boolean constrainsTypeArguments(AnnotatedType type) {
+        if (!(type instanceof AnnotatedParameterizedType parameterized)) {
+            return false;
+        }
+        for (AnnotatedType argument : parameterized.getAnnotatedActualTypeArguments()) {
+            for (java.lang.annotation.Annotation annotation : argument.getAnnotations()) {
+                if (annotation.annotationType().getPackageName().equals(CONSTRAINT_PACKAGE)) {
+                    return true;
+                }
+            }
+            if (constrainsTypeArguments(argument)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static <A extends java.lang.annotation.Annotation> List<A> accessorAnnotations(Field field, Class<A> type) {
