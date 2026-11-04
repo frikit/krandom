@@ -12,8 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.provider.ProviderHub;
 import java.io.IOException;
@@ -30,6 +28,9 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 class KrandomAutoConfigurationTest {
 
@@ -230,11 +231,11 @@ class KrandomAutoConfigurationTest {
                         "krandom.object-construction-policy"),
                 metadata.keySet());
         assertTrue(metadata.values().stream()
-                .allMatch(property -> !property.path("description").asText().isBlank()));
+                .allMatch(property -> !property.path("description").asString().isBlank()));
 
         assertEquals(
                 defaults.getLocale().toLanguageTag(),
-                metadata.get("krandom.locale").path("defaultValue").asText());
+                metadata.get("krandom.locale").path("defaultValue").asString());
         assertEquals(
                 defaults.getObjectMaxDepth(),
                 metadata.get("krandom.object-max-depth").path("defaultValue").asInt());
@@ -259,52 +260,52 @@ class KrandomAutoConfigurationTest {
                 defaults.getPaymentCardSafetyPolicy().name(),
                 metadata.get("krandom.payment-card-safety-policy")
                         .path("defaultValue")
-                        .asText());
+                        .asString());
         assertEquals(
                 defaults.getPhoneNumberSafetyPolicy().name(),
                 metadata.get("krandom.phone-number-safety-policy")
                         .path("defaultValue")
-                        .asText());
+                        .asString());
         assertEquals(
                 defaults.getNationalIdSafetyPolicy().name(),
                 metadata.get("krandom.national-id-safety-policy")
                         .path("defaultValue")
-                        .asText());
+                        .asString());
         assertEquals(
                 defaults.getBankingSafetyPolicy().name(),
                 metadata.get("krandom.banking-safety-policy")
                         .path("defaultValue")
-                        .asText());
+                        .asString());
         assertEquals(
                 defaults.getSecuritiesIdentifierSafetyPolicy().name(),
                 metadata.get("krandom.securities-identifier-safety-policy")
                         .path("defaultValue")
-                        .asText());
+                        .asString());
         assertEquals(
                 defaults.getCryptoAddressSafetyPolicy().name(),
                 metadata.get("krandom.crypto-address-safety-policy")
                         .path("defaultValue")
-                        .asText());
+                        .asString());
         assertEquals(
                 defaults.getBusinessTaxIdentifierSafetyPolicy().name(),
                 metadata.get("krandom.business-tax-identifier-safety-policy")
                         .path("defaultValue")
-                        .asText());
+                        .asString());
         assertEquals(
                 defaults.getIdentityDocumentSafetyPolicy().name(),
                 metadata.get("krandom.identity-document-safety-policy")
                         .path("defaultValue")
-                        .asText());
+                        .asString());
         assertEquals(
                 defaults.getNetworkSafetyPolicy().name(),
                 metadata.get("krandom.network-safety-policy")
                         .path("defaultValue")
-                        .asText());
+                        .asString());
         assertEquals(
                 defaults.getObjectConstructionPolicy().name(),
                 metadata.get("krandom.object-construction-policy")
                         .path("defaultValue")
-                        .asText());
+                        .asString());
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
@@ -356,9 +357,9 @@ class KrandomAutoConfigurationTest {
     }
 
     private static void mergeKrandomProperties(InputStream input, Map<String, JsonNode> metadata) throws IOException {
-        JsonNode properties = new ObjectMapper().readTree(input).path("properties");
+        JsonNode properties = JsonMapper.shared().readTree(input).path("properties");
         for (JsonNode property : properties) {
-            String name = property.path("name").asText();
+            String name = property.path("name").asString();
             if (name.startsWith("krandom.")) {
                 metadata.merge(name, property, KrandomAutoConfigurationTest::mergeMetadata);
             }
@@ -366,8 +367,8 @@ class KrandomAutoConfigurationTest {
     }
 
     private static JsonNode mergeMetadata(JsonNode generated, JsonNode additional) {
-        com.fasterxml.jackson.databind.node.ObjectNode merged = generated.deepCopy();
-        merged.setAll((com.fasterxml.jackson.databind.node.ObjectNode) additional);
+        ObjectNode merged = (ObjectNode) generated.deepCopy();
+        merged.setAll((ObjectNode) additional);
         return merged;
     }
 

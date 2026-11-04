@@ -208,7 +208,7 @@ seconds from an offset but imposes neither this range nor this grid, and JSON im
 are not a list of observed offsets either: no zone's rules have used many of the steps, such as
 `+01:15`, since 1980.
 
-A drawn offset has no seconds, so its ISO-8601 text ends in `Z`, `+hh:mm`, or `-hh:mm`. Jackson 2 reads
+A drawn offset has no seconds, so its ISO-8601 text ends in `Z`, `+hh:mm`, or `-hh:mm`. Jackson 3 reads
 that text as a `java.util.Date`, and rejects an offset with seconds, such as `+07:17:55`.
 
 `OffsetDateTimeGenerator.between(start, end)` bounds the instant, whatever offsets the bounds have, and

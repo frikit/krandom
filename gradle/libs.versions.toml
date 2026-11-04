@@ -14,7 +14,7 @@ objenesis = "3.6"
 jakarta-validation = "3.1.1"
 jspecify = "1.0.1"
 hibernate-validator = "9.1.5.Final"
-jackson = "2.22.4"
+jackson = "3.2.4"
 spring-boot = "4.1.2"
 cyclonedx = "3.5.1"
 nmcp = "1.6.2"
@@ -52,7 +52,10 @@ objenesis = { module = "org.objenesis:objenesis", version.ref = "objenesis" }
 jakarta-validation-api = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta-validation" }
 jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
 hibernate-validator = { module = "org.hibernate.validator:hibernate-validator", version.ref = "hibernate-validator" }
-jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+# Jackson 3 (tools.jackson). Jackson 3 has no annotations module of its own: databind depends on the 2.x
+# com.fasterxml.jackson.core:jackson-annotations (2.22 for 3.2) and brings it, so the annotations are not declared
+# here. Never pin them to the Jackson 3 version or to their 3.0-rc pre-releases, which Jackson 3 does not use.
+jackson-databind = { module = "tools.jackson.core:jackson-databind", version.ref = "jackson" }
 spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure", version.ref = "spring-boot" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring-boot" }
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor", version.ref = "spring-boot" }

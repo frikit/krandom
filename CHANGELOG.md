@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- `krandom-jackson` now requires Jackson 3 (`tools.jackson`), the Jackson that Spring Boot 4
+  auto-configures by default, instead of Jackson 2 (`com.fasterxml.jackson`): it depends on
+  `tools.jackson.core:jackson-databind` 3.2.4, which brings the 2.x `jackson-annotations` that
+  Jackson 3 uses. `KrandomJacksonModule` is a Jackson 3 module and cannot be registered with a
+  Jackson 2 `ObjectMapper`, so Jackson 2 users stay on 2.10.0 or register a serializer of their own
+  that writes `Schema.toJsonSchema()`. Jackson 3 mappers are immutable, so
+  `KrandomJackson.configure(ObjectMapper)` is replaced by `configure(builder)`, which adds the module
+  to a mapper builder such as `JsonMapper.builder()` and returns that builder, and `newObjectMapper()`
+  by `newJsonMapper()`, which returns a `JsonMapper`. In Spring Boot 4, a `KrandomJacksonModule` bean
+  is registered with the auto-configured `JsonMapper`.
+- `KrandomJackson.newJsonMapper()` keeps Jackson 3's defaults, so serialized rows differ from those
+  of `newObjectMapper()`. `java.time` values, such as the `orderedOn` date of `commerce.order_info`,
+  are written as ISO-8601 text, where Jackson 2 rejected them and failed the whole row. A
+  `java.util.Date` is ISO-8601 text instead of epoch milliseconds, and a class's properties are in
+  alphabetical order, while a record keeps the order of its components.
+
 ## [2.10.0] - 2026-11-02
 
 ### Added

@@ -8,5 +8,5 @@ module io.github.frikit.krandom.examples.jpms.jackson {
     // core requirement to place krandom-core on the module path.
     requires io.github.frikit.krandom.jackson;
     requires io.github.frikit.krandom;
-    requires com.fasterxml.jackson.databind;
+    requires tools.jackson.databind;
 }
