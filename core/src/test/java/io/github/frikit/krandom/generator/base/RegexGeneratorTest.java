@@ -9,10 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -1023,6 +1025,122 @@ class RegexGeneratorTest {
             // Neither branch above can have gone quiet.
             assertTrue(accepted > 2_000, "accepted " + accepted);
             assertTrue(rejected > 200, "rejected " + rejected);
+        }
+    }
+
+    // ── Size limits ───────────────────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("Size limits")
+    class SizeLimits {
+
+        private static final String NESTED = "((a{10000}){10000}){10000}";
+
+        @Test
+        @DisplayName("nested repetition is rejected at construction, quickly and without running out of memory")
+        void nestedRepetitionIsRejectedQuickly() {
+            IllegalArgumentException exception = assertTimeoutPreemptively(
+                    Duration.ofSeconds(10),
+                    () -> assertThrows(IllegalArgumentException.class, () -> new RegexGenerator(NESTED)));
+            assertEquals(
+                    "Generated values could be longer than the limit of 1000000 characters, with *, + and {n,}"
+                            + " repeating up to 10 times, in pattern: " + NESTED,
+                    exception.getMessage());
+            assertThrows(IllegalArgumentException.class, () -> new RegexGenerator(NESTED, seeded(1L)));
+        }
+
+        @Test
+        @DisplayName("repetition that generates nothing is rejected for the steps it would take")
+        void emptyRepetitionIsRejectedForItsSteps() {
+            String empty = "(((){10000}){10000}){10000}";
+            IllegalArgumentException exception = assertTimeoutPreemptively(
+                    Duration.ofSeconds(10),
+                    () -> assertThrows(IllegalArgumentException.class, () -> new RegexGenerator(empty)));
+            assertEquals(
+                    "Generating a value could take more than the limit of 10000000 steps, with *, + and {n,}"
+                            + " repeating up to 10 times, in pattern: " + empty,
+                    exception.getMessage());
+            assertTrue(assertThrows(IllegalArgumentException.class, () -> new RegexGenerator("((^){10000}){10000}"))
+                    .getMessage()
+                    .contains("10000000 steps"));
+        }
+
+        @Test
+        @DisplayName("a value of exactly the limit is generated, and one character more is rejected")
+        void lengthLimitIsExact() {
+            String value = new RegexGenerator("(a{1000}){1000}").generate();
+            assertEquals(RegexGenerator.MAX_LENGTH, value.length());
+            assertTrue(Pattern.compile("(a{1000}){1000}").matcher(value).matches());
+            assertThrows(IllegalArgumentException.class, () -> new RegexGenerator("(a{1000}){1000}a"));
+            assertThrows(IllegalArgumentException.class, () -> new RegexGenerator("(a{1000}){1001}"));
+            // Length is counted in UTF-16 chars, two for a supplementary character.
+            assertEquals(
+                    RegexGenerator.MAX_LENGTH,
+                    new RegexGenerator("(\\x{1D11E}{1000}){500}").generate().length());
+            assertThrows(IllegalArgumentException.class, () -> new RegexGenerator("(\\x{1D11E}{1000}){501}"));
+            // The longest alternative counts.
+            assertThrows(IllegalArgumentException.class, () -> new RegexGenerator("(a|(b{1000}){1001})"));
+        }
+
+        @Test
+        @DisplayName("steps are one for each node each time it is generated, up to the limit")
+        void stepLimitIsExact() {
+            // 2 + 1002 * 9980 = 9 999 962 steps: the pattern's sequence, the outer quantifier, and 9980 times
+            // the group's sequence, the inner quantifier and its 1000 empty sequences.
+            assertEquals("", new RegexGenerator("((?:){1000}){9980}").generate());
+            assertThrows(IllegalArgumentException.class, () -> new RegexGenerator("((?:){1000}){9981}"));
+            assertEquals("", new RegexGenerator("(?:(?:a|){0}){10000}").generate());
+        }
+
+        @Test
+        @DisplayName("open-ended repetition counts at the limit the configuration gives it")
+        void configuredRepetitionCounts() {
+            // (a+){1000} is 1000 times as long as a+ repeats, so it fits while a+ repeats up to 1000 times.
+            int length = new RegexGenerator("(a+){1000}", seeded(1L)).generate().length();
+            assertTrue(length >= 1_000 && length <= 10_000, "length " + length);
+            int raised = new RegexGenerator("(a+){1000}", minimumLength(500))
+                    .generate()
+                    .length();
+            assertTrue(raised > 10_000 && raised <= RegexGenerator.MAX_LENGTH, "length " + raised);
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class, () -> new RegexGenerator("(a+){1000}", minimumLength(501)));
+            assertEquals(
+                    "Generated values could be longer than the limit of 1000000 characters, with *, + and {n,}"
+                            + " repeating up to 1002 times, in pattern: (a+){1000}",
+                    exception.getMessage());
+            // A pattern with no open-ended repetition, or one that fits at the largest, fits under any configuration.
+            GeneratorConfig longest = minimumLength(Integer.MAX_VALUE - 1);
+            assertEquals(
+                    10_000, new RegexGenerator("a{10000}", longest).generate().length());
+            assertEquals(
+                    10_000, new RegexGenerator("a{10000,}", longest).generate().length());
+            assertEquals(
+                    10_000,
+                    new RegexGenerator("(a{100}){100}", longest).generate().length());
+        }
+
+        @Test
+        @DisplayName("a pattern too large at every configuration is not cached, one too large only for some is")
+        void caching() {
+            RegexGenerator.clearParsedPatternCacheForTests();
+            assertThrows(IllegalArgumentException.class, () -> new RegexGenerator(NESTED));
+            assertThrows(IllegalArgumentException.class, () -> new RegexGenerator(NESTED));
+            assertEquals(0, RegexGenerator.parsedPatternCacheSize());
+
+            assertThrows(IllegalArgumentException.class, () -> new RegexGenerator("(a+){1000}", minimumLength(501)));
+            assertEquals(1, RegexGenerator.parsedPatternCacheSize());
+            assertThrows(IllegalArgumentException.class, () -> new RegexGenerator("(a+){1000}", minimumLength(501)));
+            assertTrue(new RegexGenerator("(a+){1000}", minimumLength(500))
+                    .generate()
+                    .startsWith("a"));
+            assertEquals(1, RegexGenerator.parsedPatternCacheSize());
+        }
+
+        private static GeneratorConfig minimumLength(int length) {
+            return GeneratorConfig.builder()
+                    .seed(1L)
+                    .stringLength(length, length)
+                    .build();
         }
     }
 

@@ -67,6 +67,7 @@ import java.util.regex.Pattern;
  *       and negating all of printable ASCII</li>
  *   <li>A surrogate on its own or in an escape, as two of them could join up in a generated value.
  *       Write a supplementary character as itself or as {@code \x{h...h}}</li>
+ *   <li>A pattern too large to generate, as described below</li>
  * </ul>
  *
  * <p><b>Open-ended repetition:</b> {@code *}, {@code +} and {@code {n,}} have no upper bound in the
@@ -74,6 +75,19 @@ import java.util.regex.Pattern;
  * is more. A {@link GeneratorConfig} whose minimum string length is above 5 raises 10 to twice that
  * length, up to 10&nbsp;000, so that a generated string can reach it. This is why {@code ^[a-z]+$}
  * can meet a JSON Schema {@code minLength} of 20.
+ *
+ * <p><b>Size limits:</b> the constructor works out, from the pattern and the repetition limits
+ * above, the longest value the pattern can generate and the most steps generating one can take. It
+ * rejects the pattern, naming it and the limit, if a value could be longer than 1&nbsp;000&nbsp;000
+ * characters, counted as UTF-16 {@code char}s, or take more than 10&nbsp;000&nbsp;000 steps, where
+ * each element of the pattern, such as a character, class, assertion, group or quantifier, counts
+ * one step each time it is generated. A value is built in a single buffer, so these bound the memory
+ * as well as the time generating it takes. For example {@code (a{1000}){1000}} generates
+ * 1&nbsp;000&nbsp;000 characters and is accepted, {@code ((a{10000}){10000}){10000}} is rejected
+ * rather than run out of memory, and {@code (((){10000}){10000}){10000}}, which generates nothing, is
+ * rejected rather than loop for hours. The limits are fixed and no setting raises them: a pattern over
+ * them has to repeat less, or, when the configuration's minimum string length raised the open-ended
+ * limit, run with a smaller one.
  *
  * <p><b>Usage</b>
  * <pre>{@code
@@ -111,14 +125,19 @@ public final class RegexGenerator implements Generator<String> {
     private static final char[] NON_WORD_CHARS;
     private static final char[] WHITESPACE = {' ', '\t', '\n', '\r'};
     private static final char[] NON_WHITESPACE;
-    private static final Map<String, Node> PARSED_PATTERNS = new ConcurrentHashMap<>();
+    private static final Map<String, ParsedPattern> PARSED_PATTERNS = new ConcurrentHashMap<>();
 
     /**
      * Upper bound on explicit {@code {n}} / {@code {n,m}} repetition counts. Patterns requesting
-     * more are rejected at construction time so a single quantifier cannot drive unbounded output
-     * expansion (e.g. {@code a{2000000000}} attempting a multi-gigabyte string).
+     * more are rejected at construction time, before the size limits below are worked out.
      */
     static final int MAX_REPETITIONS = 10_000;
+
+    /** The most UTF-16 {@code char}s a generated value can have. */
+    static final int MAX_LENGTH = 1_000_000;
+
+    /** The most steps, one for each node each time it is generated, that generating a value can take. */
+    static final int MAX_STEPS = 10_000_000;
 
     /** How many times {@code *}, {@code +} and {@code {n,}} repeat, unless the configuration asks for more. */
     private static final int OPEN_ENDED_REPETITIONS = 10;
@@ -171,7 +190,6 @@ public final class RegexGenerator implements Generator<String> {
      */
     private final Node root;
 
-    // ── Node sealed hierarchy ─────────────────────────────────────────────────
     private final Random random;
 
     /**
@@ -184,29 +202,39 @@ public final class RegexGenerator implements Generator<String> {
      * Creates a regex generator using the default fast PRNG.
      *
      * @param pattern the regular expression; must not be {@code null}
-     * @throws IllegalArgumentException if the pattern is malformed or uses a construct this class cannot honour
+     * @throws IllegalArgumentException if the pattern is malformed, uses a construct this class cannot
+     *     honour, or exceeds the size limits
      */
     public RegexGenerator(String pattern) {
-        Objects.requireNonNull(pattern, "pattern must not be null");
-        this.random = new Random();
-        this.openEndedLimit = OPEN_ENDED_REPETITIONS;
-        this.root = parsePattern(pattern);
+        this(Objects.requireNonNull(pattern, "pattern must not be null"), new Random(), OPEN_ENDED_REPETITIONS);
     }
 
     /**
      * Creates a regex generator whose randomness comes from the configuration, so a seeded
      * configuration reproduces the same strings. A minimum string length above 5 raises how far
-     * {@code *}, {@code +} and {@code {n,}} repeat, as the class documentation describes.
+     * {@code *}, {@code +} and {@code {n,}} repeat, as the class documentation describes, and the size
+     * limits apply to the raised repetition.
      *
      * @param pattern the regular expression; must not be {@code null}
      * @param config  generator configuration; must not be {@code null}
-     * @throws IllegalArgumentException if the pattern is malformed or uses a construct this class cannot honour
+     * @throws IllegalArgumentException if the pattern is malformed, uses a construct this class cannot
+     *     honour, or exceeds the size limits under this configuration
      */
     public RegexGenerator(String pattern, GeneratorConfig config) {
-        Objects.requireNonNull(pattern, "pattern must not be null");
-        this.random = Objects.requireNonNull(config, "config must not be null").createRandom();
-        this.openEndedLimit = Math.clamp(2L * config.getMinStringLength(), OPEN_ENDED_REPETITIONS, MAX_REPETITIONS);
-        this.root = parsePattern(pattern);
+        this(
+                Objects.requireNonNull(pattern, "pattern must not be null"),
+                Objects.requireNonNull(config, "config must not be null").createRandom(),
+                Math.clamp(2L * config.getMinStringLength(), OPEN_ENDED_REPETITIONS, MAX_REPETITIONS));
+    }
+
+    private RegexGenerator(String pattern, Random random, int openEndedLimit) {
+        ParsedPattern parsed = PARSED_PATTERNS.computeIfAbsent(pattern, RegexGenerator::parsePatternUncached);
+        if (openEndedLimit > parsed.largestOpenEndedLimit()) {
+            throw tooLarge(pattern, parsed.root(), openEndedLimit);
+        }
+        this.root = parsed.root();
+        this.random = random;
+        this.openEndedLimit = openEndedLimit;
     }
 
     static int parsedPatternCacheSize() {
@@ -217,13 +245,13 @@ public final class RegexGenerator implements Generator<String> {
         PARSED_PATTERNS.clear();
     }
 
-    private static Node parsePattern(String pattern) {
-        return PARSED_PATTERNS.computeIfAbsent(pattern, RegexGenerator::parsePatternUncached);
-    }
-
-    private static Node parsePatternUncached(String pattern) {
+    private static ParsedPattern parsePatternUncached(String pattern) {
         Pattern.compile(pattern); // A malformed pattern fails here, with java.util.regex's own message.
-        return new Parser(pattern).parse();
+        Node root = new Parser(pattern).parse();
+        if (!fits(root, OPEN_ENDED_REPETITIONS)) {
+            throw tooLarge(pattern, root, OPEN_ENDED_REPETITIONS);
+        }
+        return new ParsedPattern(root, largestFittingLimit(root));
     }
 
     private static char[] toArray(List<Character> list) {
@@ -239,41 +267,123 @@ public final class RegexGenerator implements Generator<String> {
      */
     @Override
     public String generate() {
-        return generateNode(root);
+        StringBuilder value = new StringBuilder();
+        append(root, value);
+        return value.toString();
     }
 
-    private String generateNode(Node node) {
-        return switch (node) {
-            case LiteralNode l -> Character.toString(l.codePoint());
-            case CharClassNode cc -> String.valueOf(cc.pool()[random.nextInt(cc.pool().length)]);
-            case AssertionNode a -> "";
-            case SequenceNode s -> {
-                StringBuilder sb = new StringBuilder();
-                for (Node n : s.nodes()) sb.append(generateNode(n));
-                yield sb.toString();
+    // Every node appends to the one buffer, so nothing larger than the value is built along the way.
+    private void append(Node node, StringBuilder value) {
+        switch (node) {
+            case LiteralNode literal -> value.appendCodePoint(literal.codePoint());
+            case CharClassNode charClass -> value.append(charClass.pool()[random.nextInt(charClass.pool().length)]);
+            case AssertionNode assertion -> {}
+            case SequenceNode sequence -> {
+                for (Node n : sequence.nodes()) append(n, value);
             }
-            case AlternationNode alt -> {
-                SequenceNode chosen = alt.alts().get(random.nextInt(alt.alts().size()));
-                yield generateNode(chosen);
+            case AlternationNode alternation ->
+                append(alternation.alts().get(random.nextInt(alternation.alts().size())), value);
+            case QuantifierNode q -> {
+                int max = maxCount(q, openEndedLimit);
+                int count = q.min() == max ? q.min() : q.min() + random.nextInt(max - q.min() + 1);
+                for (int i = 0; i < count; i++) append(q.child(), value);
+            }
+        }
+    }
+
+    private static int maxCount(QuantifierNode q, int openEndedLimit) {
+        return q.max() == OPEN_ENDED ? Math.max(q.min(), openEndedLimit) : q.max();
+    }
+
+    // ── Size limits ───────────────────────────────────────────────────────────
+
+    /**
+     * The most UTF-16 {@code char}s a node's text can have and the most steps generating it can take,
+     * each capped just above its limit, which keeps every sum and product well inside a {@code long}.
+     */
+    private record Cost(long length, long steps) {}
+
+    private static Cost cost(Node node, int openEndedLimit) {
+        return switch (node) {
+            case LiteralNode literal -> new Cost(Character.charCount(literal.codePoint()), 1);
+            case CharClassNode charClass -> new Cost(1, 1);
+            case AssertionNode assertion -> new Cost(0, 1);
+            case SequenceNode sequence -> {
+                long length = 0;
+                long steps = 1;
+                for (Node n : sequence.nodes()) {
+                    Cost part = cost(n, openEndedLimit);
+                    length = capped(length + part.length(), MAX_LENGTH);
+                    steps = capped(steps + part.steps(), MAX_STEPS);
+                }
+                yield new Cost(length, steps);
+            }
+            case AlternationNode alternation -> {
+                long length = 0;
+                long steps = 0;
+                for (SequenceNode alt : alternation.alts()) {
+                    Cost choice = cost(alt, openEndedLimit);
+                    length = Math.max(length, choice.length());
+                    steps = Math.max(steps, choice.steps());
+                }
+                yield new Cost(length, capped(1 + steps, MAX_STEPS));
             }
             case QuantifierNode q -> {
-                int max = q.max() == OPEN_ENDED ? Math.max(q.min(), openEndedLimit) : q.max();
-                int count = q.min() == max ? q.min() : q.min() + random.nextInt(max - q.min() + 1);
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < count; i++) sb.append(generateNode(q.child()));
-                yield sb.toString();
+                long count = maxCount(q, openEndedLimit);
+                Cost each = cost(q.child(), openEndedLimit);
+                yield new Cost(capped(count * each.length(), MAX_LENGTH), capped(1 + count * each.steps(), MAX_STEPS));
             }
         };
     }
 
-    // ── Fields ────────────────────────────────────────────────────────────────
+    private static long capped(long value, long limit) {
+        return Math.min(value, limit + 1);
+    }
+
+    private static boolean fits(Node root, int openEndedLimit) {
+        Cost cost = cost(root, openEndedLimit);
+        return cost.length() <= MAX_LENGTH && cost.steps() <= MAX_STEPS;
+    }
+
+    /**
+     * The largest open-ended repetition, up to {@link #MAX_REPETITIONS}, at which the pattern stays
+     * within the size limits. It is at least the default, as the parse has checked that.
+     */
+    private static int largestFittingLimit(Node root) {
+        if (fits(root, MAX_REPETITIONS)) {
+            return MAX_REPETITIONS;
+        }
+        // A larger limit never makes a value shorter or quicker, so a binary search finds the boundary.
+        int fitting = OPEN_ENDED_REPETITIONS;
+        int failing = MAX_REPETITIONS;
+        while (failing - fitting > 1) {
+            int middle = (fitting + failing) >>> 1;
+            if (fits(root, middle)) {
+                fitting = middle;
+            } else {
+                failing = middle;
+            }
+        }
+        return fitting;
+    }
+
+    private static IllegalArgumentException tooLarge(String pattern, Node root, int openEndedLimit) {
+        String problem = cost(root, openEndedLimit).length() > MAX_LENGTH
+                ? "Generated values could be longer than the limit of " + MAX_LENGTH + " characters"
+                : "Generating a value could take more than the limit of " + MAX_STEPS + " steps";
+        return new IllegalArgumentException(
+                problem + ", with *, + and {n,} repeating up to " + openEndedLimit + " times, in pattern: " + pattern);
+    }
+
+    // ── Nodes ─────────────────────────────────────────────────────────────────
+
+    /** A parsed pattern, and the largest open-ended repetition its values stay within the size limits at. */
+    private record ParsedPattern(Node root, int largestOpenEndedLimit) {}
 
     private sealed interface Node
             permits LiteralNode, CharClassNode, AssertionNode, SequenceNode, AlternationNode, QuantifierNode {}
 
     private record LiteralNode(int codePoint) implements Node {}
-
-    // ── Constructors ──────────────────────────────────────────────────────────
 
     private record CharClassNode(char[] pool) implements Node {}
 
@@ -285,14 +395,10 @@ public final class RegexGenerator implements Generator<String> {
 
     private record SequenceNode(List<Node> nodes) implements Node {}
 
-    // ── Generator<String> ─────────────────────────────────────────────────────
-
     /**
      * Picks one of several alternative sequences at random.
      */
     private record AlternationNode(List<SequenceNode> alts) implements Node {}
-
-    // ── Generation helpers ────────────────────────────────────────────────────
 
     private record QuantifierNode(Node child, int min, int max) implements Node {}
 

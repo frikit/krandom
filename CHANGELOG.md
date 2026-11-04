@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- `RegexGenerator` now rejects at construction a pattern whose values could be longer than 1,000,000
+  characters, or take more than 10,000,000 steps to generate, naming the pattern and the limit.
+  Nested repetition such as `((a{10000}){10000}){10000}` used to run out of memory while generating,
+  and `(((){10000}){10000}){10000}` to loop for hours. The limits apply to the repetition a
+  configuration gives `*`, `+`, and `{n,}`, so under a minimum string length of 4,000, `(a*)*` and
+  `(\w+ )+`, which generated values of millions of characters, are now rejected. The limits are fixed,
+  with no setting to raise them. A JSON Schema `pattern` over them is rejected with its schema path, and
+  a `@Pattern` over them is no longer a source. Each value is now built in a single buffer, and seeded
+  output does not change for any pattern that was supported and stays within the limits.
+
 ## [2.10.0] - 2026-11-02
 
 ### Added

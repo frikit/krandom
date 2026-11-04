@@ -190,11 +190,28 @@ Rejected at construction:
   all of printable ASCII.
 - A surrogate on its own or in an escape. Write a supplementary character as itself or as
   `\x{h...h}`.
+- A pattern too large to generate, as described below.
 
 `*`, `+`, and `{n,}` have no upper bound in a pattern, so generation gives them one: they repeat at
 most 10 times, or `n` times when that is more. A `GeneratorConfig` whose minimum string length is
 above 5 raises 10 to twice that length, up to 10,000, so that a generated string can reach it. A JSON
 Schema `minLength` or a `@Size` minimum does the same.
+
+With those repetitions, the constructor works out the longest value a pattern can generate and the
+most steps generating one can take. It rejects the pattern, naming it and the limit, if a value could
+be longer than 1,000,000 characters, counted as UTF-16 `char`s, or take more than 10,000,000 steps,
+where each element of the pattern, such as a character, class, assertion, group, or quantifier, counts
+one step each time it is generated. A value is built in one buffer, so these limits bound its memory as
+well as its time. `(a{1000}){1000}` generates 1,000,000 characters and is accepted, while
+`((a{10000}){10000}){10000}` is rejected rather than run out of memory, and
+`(((){10000}){10000}){10000}`, which generates nothing, rather than loop for hours. A raised repetition
+counts: `(a+){1000}` is accepted by default and with a minimum string length of up to 500, and rejected
+above that.
+
+The limits are fixed, and no setting raises them. A pattern over them has to repeat less, or, where a
+minimum string length raised the repetition, run under a smaller one. A JSON Schema `pattern` over them
+is rejected with its schema path, and a `@Pattern` over them is not a source, like any pattern outside
+the supported syntax.
 
 ## UTC-offset contract
 
