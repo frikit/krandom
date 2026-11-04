@@ -1271,6 +1271,9 @@ class SchemaParserTest {
                     "(?<word>[a-z]+)-\\d",
                     ".{3}",
                     "[\\w.-]+@example\\.com",
+                    "(?i)^[a-z]{3}-\\d$",
+                    "\\p{Lu}\\p{Ll}{2,5}",
+                    "\\Qa.b\\E\\p{Nd}",
                 })
         @DisplayName("every value generated from a pattern matches it")
         void patternValuesMatch(String regex) {

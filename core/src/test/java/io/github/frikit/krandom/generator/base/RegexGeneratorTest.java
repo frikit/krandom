@@ -17,6 +17,7 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.LongFunction;
@@ -545,15 +546,6 @@ class RegexGeneratorTest {
             assertValuesMatch(regex, seeds, draws, seed -> new RegexGenerator(regex, seeded(seed)));
         }
 
-        private static Set<String> distinct(String regex) {
-            Set<String> values = new HashSet<>();
-            RegexGenerator generator = new RegexGenerator(regex, seeded(1L));
-            for (int i = 0; i < 2_000; i++) {
-                values.add(generator.generate());
-            }
-            return values;
-        }
-
         @ParameterizedTest
         @ValueSource(
                 strings = {
@@ -728,6 +720,96 @@ class RegexGeneratorTest {
                     "&",
                     "-",
                     "<>",
+                    // Case-insensitive matching, and where it starts and stops
+                    "(?i)abc",
+                    "(?i:abc)",
+                    "(?-i)abc",
+                    "a(?i)b|c",
+                    "(a(?i)b)c",
+                    "(?i:a)b",
+                    "(?i)a(?-i)b",
+                    "(?i)a(?-i:b)c",
+                    "(?i)(a|(?-i)b)c",
+                    "(?)a",
+                    "(?-)a",
+                    "(?i-)a",
+                    "(?i-i)a",
+                    "(?ii)a",
+                    "a(?i)",
+                    "(a(?i))b",
+                    "(?i)",
+                    "(?i:)",
+                    "(?i:a)+",
+                    "(?i)(yes|no)",
+                    "(?i)[a-c]+",
+                    "(?i)[aA]{3}",
+                    "(?i)[Z-a]{3}",
+                    "(?i)[^a-z]{3}",
+                    "(?i)[^K]{3}",
+                    "(?i)[^\\w]",
+                    "(?i)[^\\W]{3}",
+                    "(?i)\\w\\d\\s\\D\\W\\S.",
+                    "(?i)\\x41\\u0062\\x{63}",
+                    "(?i)[\\x41-\\x43]{3}",
+                    "(?i)\u00e9\u00c9",
+                    "(?i)k\u212a",
+                    "(?i)\uD834\uDD1E",
+                    "(?i)\\bfoo\\b",
+                    "(?i)^[a-z]+$",
+                    // Character properties
+                    "\\p{Lower}\\p{Upper}\\p{ASCII}\\p{Alpha}\\p{Digit}\\p{Alnum}",
+                    "\\p{Punct}\\p{Graph}\\p{Print}\\p{Blank}\\p{Space}\\p{XDigit}",
+                    "\\p{L}\\p{Lu}\\p{Ll}\\p{N}\\p{Nd}",
+                    "\\p{IsAlphabetic}\\p{IsDigit}\\p{IsLatin}",
+                    "\\pL\\pN\\PL\\PN",
+                    "\\pLu",
+                    "\\p{L}+",
+                    "\\p{Lu}\\p{Ll}{2,8}",
+                    "[\\p{L}\\d_-]+",
+                    "[\\p{L}-z]+",
+                    "[^\\p{L}]+",
+                    "[^\\P{L}]+",
+                    "[\\P{Alpha}a]+",
+                    "[\\P{ASCII}a]",
+                    "[^\\P{ASCII}]",
+                    "\\P{L}+",
+                    "\\P{Graph}",
+                    "\\P{Lower}\\P{Upper}\\P{Punct}\\P{XDigit}\\P{IsLatin}",
+                    "\\b\\p{Alpha}+\\b",
+                    "(?i)\\p{Lower}\\p{Upper}\\p{Lu}\\p{Ll}\\p{L}\\p{IsLatin}",
+                    "(?i)\\P{Lower}\\P{Upper}\\P{Lu}\\P{Ll}\\P{L}\\P{XDigit}",
+                    "(?i)[^\\p{Lower}][^\\p{Lu}][^\\P{Lower}][^\\P{Ll}]",
+                    "(?i)[\\P{Lower}\\d][\\p{Ll}\\d]",
+                    // Quoting
+                    "\\Qa.b\\E",
+                    "\\Qa.b",
+                    "\\Q(a|b)*\\E",
+                    "\\Qab\\E+",
+                    "\\Qab\\E{2,3}",
+                    "x\\Q\\E+",
+                    "x\\Q\\E\\Q\\E{2}",
+                    "\\Q\\E",
+                    "\\Q1\\E",
+                    "\\Q12\\E{2}",
+                    "\\Q\\\\E",
+                    "\\Qa\\",
+                    "\\Q\\Q\\E",
+                    "\\\\Q",
+                    "\\\\\\Qa.\\E",
+                    "\\Q\\Ea\\Q\\E",
+                    "\\Q$^\\E",
+                    "\\Q \t\\E+",
+                    "\\Q\u00e9\uD834\uDD1E\\E{2}",
+                    "(\\Qa|b\\E)",
+                    "\\Qa\\E\\Qb\\E+",
+                    "\\Qa\\E\\.\\Qb",
+                    "[\\Qa-z\\E]",
+                    "[\\Qa\\E-z]",
+                    "[a\\Q-\\Ez]",
+                    "[\\Q^]\\E]",
+                    "[^\\Q-]\\E]",
+                    "(?i)\\Qab\\E",
+                    "\\Q(?i)\\Ea",
                 })
         @DisplayName("every generated value matches a supported pattern")
         void supportedPatternsAlwaysMatch(String regex) {
@@ -801,16 +883,23 @@ class RegexGeneratorTest {
                     Arguments.of("(?>a|ab)c", "Unsupported atomic group"),
                     Arguments.of("(a)\\1", "Unsupported backreference \\1"),
                     Arguments.of("(?<n>a)\\k<n>", "Unsupported backreference \\k"),
-                    // Flags
-                    Arguments.of("(?i)abc", "Unsupported inline flag"),
-                    Arguments.of("(?i:abc)", "Unsupported inline flag"),
-                    Arguments.of("(?-i)abc", "Unsupported inline flag"),
-                    Arguments.of("(?s).", "Unsupported inline flag"),
-                    Arguments.of("(?m)^a$", "Unsupported inline flag"),
-                    Arguments.of("(?x)a b", "Unsupported inline flag"),
-                    Arguments.of("(?u)a", "Unsupported inline flag"),
-                    Arguments.of("(?U)\\w", "Unsupported inline flag"),
-                    Arguments.of("(?d).", "Unsupported inline flag"),
+                    // Flags other than i, named, whether turned on or off
+                    Arguments.of("(?s).", "Unsupported inline flag s at position 0"),
+                    Arguments.of("(?m)^a$", "Unsupported inline flag m at position 0"),
+                    Arguments.of("(?x)a b", "Unsupported inline flag x at position 0"),
+                    Arguments.of("(?u)a", "Unsupported inline flag u at position 0"),
+                    Arguments.of("(?U)\\w", "Unsupported inline flag U at position 0"),
+                    Arguments.of("(?d).", "Unsupported inline flag d at position 0"),
+                    Arguments.of("(?c)a", "Unsupported inline flag c at position 0"),
+                    Arguments.of("(?iu)a", "Unsupported inline flag u at position 0"),
+                    Arguments.of("(?-s)a", "Unsupported inline flag s at position 0"),
+                    Arguments.of("(?i-x)a", "Unsupported inline flag x at position 0"),
+                    Arguments.of("x(?s:a)", "Unsupported inline flag s at position 1"),
+                    Arguments.of("(?i)(?is:a)", "Unsupported inline flag s at position 4"),
+                    Arguments.of("a(?ss)", "Unsupported inline flag s at position 1"),
+                    Arguments.of("a(?sm)", "Unsupported inline flags s, m at position 1"),
+                    Arguments.of("(?ims-dux:a)", "Unsupported inline flags m, s, d, u, x at position 0"),
+                    Arguments.of("(?i){2}a", "Unsupported quantifier with nothing to repeat at position 4"),
                     // Quantifiers
                     Arguments.of("a?+", "Unsupported possessive quantifier"),
                     Arguments.of("a*+", "Unsupported possessive quantifier"),
@@ -868,15 +957,39 @@ class RegexGeneratorTest {
                     Arguments.of("\\011", "Unsupported escape \\0"),
                     Arguments.of("\\cA", "Unsupported escape \\c"),
                     Arguments.of("\\N{DIGIT ONE}", "Unsupported escape \\N"),
-                    Arguments.of("\\Qa.b\\E", "Unsupported escape \\Q"),
-                    Arguments.of("\\Qa.b", "Unsupported escape \\Q"),
-                    Arguments.of("\\p{Lu}", "Unsupported character property \\p"),
-                    Arguments.of("\\P{Lu}", "Unsupported character property \\P"),
-                    Arguments.of("\\p{Alpha}", "Unsupported character property \\p"),
+                    // Properties outside the documented set, including other spellings java.util.regex accepts
+                    Arguments.of("\\p{IsLower}", "Unsupported character property \\p{IsLower} at position 0"),
+                    Arguments.of("\\p{Islatin}", "Unsupported character property \\p{Islatin} at position 0"),
+                    Arguments.of("\\p{IsL}", "Unsupported character property \\p{IsL} at position 0"),
+                    Arguments.of("\\p{gc=Lu}", "Unsupported character property \\p{gc=Lu} at position 0"),
+                    Arguments.of("\\p{InGreek}", "Unsupported character property \\p{InGreek} at position 0"),
+                    Arguments.of("\\p{javaLowerCase}", "Unsupported character property \\p{javaLowerCase}"),
+                    Arguments.of("\\p{Cntrl}", "Unsupported character property \\p{Cntrl}"),
+                    Arguments.of("\\p{Lt}", "Unsupported character property \\p{Lt}"),
+                    Arguments.of("a\\pM", "Unsupported character property \\pM at position 1"),
+                    Arguments.of("\\PM", "Unsupported character property \\PM at position 0"),
+                    Arguments.of("\\P{Sc}", "Unsupported character property \\P{Sc}"),
+                    Arguments.of(
+                            "\\P{ASCII}",
+                            "Unsupported character property \\P{ASCII} that excludes all of printable ASCII at position 0"),
+                    Arguments.of("(?i)\\P{Print}", "Unsupported character property \\P{Print} that excludes all"),
+                    // Positions inside and after a quote are those of the pattern as written
+                    Arguments.of("\\Qab\\E(?=c)", "Unsupported lookahead at position 6"),
+                    Arguments.of("\\Q.\\E\\b", "Unsupported \\b that cannot hold on every value at position 5"),
+                    Arguments.of("\\Q1\\E(?<=a)", "Unsupported lookbehind at position 5"),
+                    Arguments.of("\\Qa(\\E\uD834", "Unsupported surrogate at position 6"),
+                    Arguments.of("\\Qa\uDD1E\\E", "Unsupported surrogate at position 3"),
                     // Classes
-                    Arguments.of("[\\p{Lu}]", "Unsupported character property \\p"),
+                    Arguments.of("[a\\p{InGreek}]", "Unsupported character property \\p{InGreek} at position 2"),
+                    Arguments.of("[\\P{ASCII}]", "Unsupported character class that excludes all of printable ASCII"),
+                    Arguments.of(
+                            "x[\\P{Print}\\P{ASCII}]",
+                            "Unsupported character class that excludes all of printable ASCII at position 1"),
+                    Arguments.of("[^\\p{Print}]", "Unsupported negated character class that excludes all"),
+                    Arguments.of("[^\\P{Lower}\\p{Lower}]", "Unsupported negated character class that excludes all"),
+                    Arguments.of("(?i)[^\\P{Lower}A-Z]", "Unsupported negated character class that excludes all"),
                     Arguments.of("[\\h]", "Unsupported escape \\h"),
-                    Arguments.of("[\\Qa\\E]", "Unsupported escape \\Q"),
+                    Arguments.of("[\\Q\uD834\uDD1E\\E]", "Unsupported supplementary character in a character class"),
                     Arguments.of("[a-c[x-z]]", "Unsupported nested character class"),
                     Arguments.of("[+-[x]]", "Unsupported nested character class"),
                     Arguments.of("[a-z&&[def]]", "Unsupported character class intersection"),
@@ -931,6 +1044,15 @@ class RegexGeneratorTest {
                     "[\\b]",
                     "(?q)a",
                     "(?<1a>b)",
+                    "(?i-s-m)a",
+                    "\\p",
+                    "\\p{}",
+                    "\\p{L",
+                    "\\p{lower}",
+                    "[a-\\pL]",
+                    "[a-\\p{L}]",
+                    "\\x4\\Q1\\E",
+                    "\\Qa\\E\\",
                 })
         @DisplayName("a malformed pattern fails at construction with java.util.regex's own error")
         void malformedPatternsFailAtConstruction(String regex) {
@@ -1025,6 +1147,306 @@ class RegexGeneratorTest {
             // Neither branch above can have gone quiet.
             assertTrue(accepted > 2_000, "accepted " + accepted);
             assertTrue(rejected > 200, "rejected " + rejected);
+        }
+    }
+
+    // ── Case-insensitive matching ─────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("(?i)")
+    class CaseInsensitive {
+
+        @Test
+        @DisplayName("an ASCII letter takes either case, and every value matches")
+        void asciiLettersTakeEitherCase() {
+            assertEquals(Set.of("ab", "aB", "Ab", "AB"), distinct("(?i)ab"));
+            assertEquals(Set.of("ab", "aB", "Ab", "AB"), distinct("(?i:ab)"));
+            assertEquals(Set.of("a", "A"), distinct("(?i)\\x41|(?i)\\u0061"));
+            assertEquals(Set.of("1-_"), distinct("(?i)1-_"));
+            assertEquals(Set.of("a", "b", "c", "A", "B", "C"), distinct("(?i)[a-c]"));
+            assertEquals(Set.of("a", "A"), distinct("(?i)[aA]"));
+            assertEquals(Set.of("a", "A"), distinct("(?i)\\Qa\\E"));
+        }
+
+        @Test
+        @DisplayName("as java.util.regex does without UNICODE_CASE, only ASCII letters fold")
+        void onlyAsciiLettersFold() {
+            String smallEAcute = Character.toString(0xE9);
+            String capitalEAcute = Character.toString(0xC9);
+            assertEquals(Set.of(smallEAcute), distinct("(?i)" + smallEAcute));
+            assertEquals(Set.of(capitalEAcute), distinct("(?i)[" + capitalEAcute + "]"));
+            // Under UNICODE_CASE, k would also match the Kelvin sign and s the long s.
+            assertEquals(Set.of("k", "K"), distinct("(?i)k"));
+            assertEquals(Set.of("s", "S"), distinct("(?i)s"));
+            Set<String> letters = distinct("(?i)[a-z]");
+            assertEquals(52, letters.size());
+            assertFalse(letters.contains(Character.toString(0x212A)));
+            assertFalse(letters.contains(Character.toString(0x17F)));
+        }
+
+        @Test
+        @DisplayName("a flag holds to the end of its group, across |, and (?flags:X) only inside X")
+        void flagsKeepToTheirGroup() {
+            assertEquals(Set.of("ab", "aB", "c", "C"), distinct("a(?i)b|c"));
+            assertEquals(Set.of("abc", "aBc"), distinct("(a(?i)b)c"));
+            assertEquals(Set.of("ab", "Ab"), distinct("(?i:a)b"));
+            assertEquals(Set.of("ab", "Ab"), distinct("(?i)a(?-i)b"));
+            assertEquals(Set.of("abc", "Abc", "abC", "AbC"), distinct("(?i)a(?-i:b)c"));
+            assertEquals(Set.of("ac", "Ac", "aC", "AC", "bc", "bC"), distinct("(?i)(a|(?-i)b)c"));
+            assertEquals(Set.of("ab"), distinct("(a(?i))b"));
+        }
+
+        @Test
+        @DisplayName("flag groups with nothing to set, or that set and clear i, change nothing")
+        void flagGroupsThatChangeNothing() {
+            assertEquals(Set.of("a"), distinct("(?)a"));
+            assertEquals(Set.of("a"), distinct("(?-)a"));
+            assertEquals(Set.of("a"), distinct("(?i-i)a"));
+            assertEquals(Set.of("a"), distinct("(?-i)a"));
+            assertEquals(Set.of("a", "A"), distinct("(?ii)a"));
+            assertEquals(Set.of("a", "A"), distinct("(?i-)a"));
+            assertEquals(Set.of("a"), distinct("a(?i)"));
+            assertEquals(Set.of(""), distinct("(?i)"));
+            assertEquals(Set.of(""), distinct("(?i:)"));
+        }
+
+        @Test
+        @DisplayName("a negated class leaves out both cases of each letter it names")
+        void negatedClassesLeaveOutBothCases() {
+            Set<String> withoutK = distinct("(?i)[^K]");
+            assertFalse(withoutK.contains("K") || withoutK.contains("k"));
+            assertEquals(93, withoutK.size());
+            assertTrue(distinct("[^K]").contains("k"));
+
+            Set<String> noLetters = distinct("(?i)[^a-z]");
+            assertTrue(
+                    noLetters.stream().noneMatch(value -> Character.isLetter(value.charAt(0))), noLetters.toString());
+            assertEquals(95 - 52, noLetters.size());
+            assertTrue(distinct("[^a-z]").contains("A"));
+        }
+
+        @Test
+        @DisplayName("predefined classes and . are the same under (?i)")
+        void predefinedClassesAreUnchanged() {
+            assertEquals(distinct("\\w"), distinct("(?i)\\w"));
+            assertEquals(distinct("\\W"), distinct("(?i)\\W"));
+            assertEquals(distinct("\\D"), distinct("(?i)\\D"));
+            assertEquals(distinct("."), distinct("(?i)."));
+        }
+    }
+
+    // ── Character properties ──────────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("\\p{...} and \\P{...}")
+    class CharacterProperties {
+
+        private static final Map<String, String> ALPHABETS = RegexGenerator.propertyAlphabets();
+
+        private static String range(int first, int last) {
+            StringBuilder chars = new StringBuilder();
+            for (int c = first; c <= last; c++) chars.append((char) c);
+            return chars.toString();
+        }
+
+        private static Set<String> printableMatching(String regex) {
+            Pattern pattern = Pattern.compile(regex);
+            Set<String> matching = new HashSet<>();
+            for (char c = 0x20; c < 0x7f; c++) {
+                if (pattern.matcher(String.valueOf(c)).matches()) matching.add(String.valueOf(c));
+            }
+            return matching;
+        }
+
+        @Test
+        @DisplayName("the supported names are the documented ones, spelled as documented")
+        void supportedNames() {
+            assertEquals(
+                    List.of(
+                            "Lower",
+                            "Upper",
+                            "ASCII",
+                            "Alpha",
+                            "Digit",
+                            "Alnum",
+                            "Punct",
+                            "Graph",
+                            "Print",
+                            "Blank",
+                            "Space",
+                            "XDigit",
+                            "L",
+                            "Lu",
+                            "Ll",
+                            "N",
+                            "Nd",
+                            "IsAlphabetic",
+                            "IsDigit",
+                            "IsLatin"),
+                    List.copyOf(ALPHABETS.keySet()));
+        }
+
+        @Test
+        @DisplayName("each property draws from its documented alphabet")
+        void documentedAlphabets() {
+            String latin =
+                    range('A', 'Z') + range('a', 'z') + range(0xC0, 0xD6) + range(0xD8, 0xF6) + range(0xF8, 0xFF);
+            String letters =
+                    latin + range(0x391, 0x3A1) + range(0x3A3, 0x3A9) + range(0x3B1, 0x3C9) + range(0x410, 0x44F);
+            String decimalDigits = range('0', '9') + range(0x660, 0x669) + range(0x966, 0x96F);
+            String printable = range(0x20, 0x7E);
+            assertEquals(range('a', 'z'), ALPHABETS.get("Lower"));
+            assertEquals(range('A', 'Z'), ALPHABETS.get("Upper"));
+            assertEquals(printable, ALPHABETS.get("ASCII"));
+            assertEquals(range('a', 'z') + range('A', 'Z'), ALPHABETS.get("Alpha"));
+            assertEquals("0123456789", ALPHABETS.get("Digit"));
+            assertEquals(range('a', 'z') + range('A', 'Z') + "0123456789", ALPHABETS.get("Alnum"));
+            assertEquals("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~", ALPHABETS.get("Punct"));
+            assertEquals(range(0x21, 0x7E), ALPHABETS.get("Graph"));
+            assertEquals(printable, ALPHABETS.get("Print"));
+            assertEquals(" \t", ALPHABETS.get("Blank"));
+            assertEquals(" \t\n\u000B\f\r", ALPHABETS.get("Space"));
+            assertEquals("0123456789abcdefABCDEF", ALPHABETS.get("XDigit"));
+            assertEquals(letters, ALPHABETS.get("L"));
+            assertEquals(
+                    range('A', 'Z')
+                            + range(0xC0, 0xD6)
+                            + range(0xD8, 0xDE)
+                            + range(0x391, 0x3A1)
+                            + range(0x3A3, 0x3A9)
+                            + range(0x410, 0x42F),
+                    ALPHABETS.get("Lu"));
+            assertEquals(
+                    range('a', 'z') + range(0xDF, 0xF6) + range(0xF8, 0xFF) + range(0x3B1, 0x3C9) + range(0x430, 0x44F),
+                    ALPHABETS.get("Ll"));
+            assertEquals(decimalDigits + range(0xB2, 0xB3) + range(0xB9, 0xB9) + range(0xBC, 0xBE), ALPHABETS.get("N"));
+            assertEquals(decimalDigits, ALPHABETS.get("Nd"));
+            assertEquals(letters, ALPHABETS.get("IsAlphabetic"));
+            assertEquals(decimalDigits, ALPHABETS.get("IsDigit"));
+            assertEquals(latin, ALPHABETS.get("IsLatin"));
+        }
+
+        @Test
+        @DisplayName("java.util.regex matches every sampled character to its property, with and without (?i)")
+        void everySampledCharacterMatches() {
+            ALPHABETS.forEach((name, alphabet) -> {
+                Pattern plain = Pattern.compile("\\p{" + name + "}");
+                Pattern folded = Pattern.compile("(?i)\\p{" + name + "}");
+                for (char c : alphabet.toCharArray()) {
+                    String value = String.valueOf(c);
+                    assertTrue(plain.matcher(value).matches(), () -> "\\p{" + name + "} does not match U+" + hex(c));
+                    assertTrue(
+                            folded.matcher(value).matches(), () -> "(?i)\\p{" + name + "} does not match U+" + hex(c));
+                }
+            });
+        }
+
+        @Test
+        @DisplayName("each sample holds every printable ASCII character its property matches, so a negation is exact")
+        void samplesHoldEveryPrintableAsciiMember() {
+            ALPHABETS.forEach((name, alphabet) ->
+                    assertEquals(printableMatching("\\p{" + name + "}"), printableIn(alphabet), name));
+        }
+
+        private static Set<String> printableIn(String alphabet) {
+            Set<String> printable = new HashSet<>();
+            for (char c : alphabet.toCharArray()) {
+                if (c >= 0x20 && c < 0x7f) printable.add(String.valueOf(c));
+            }
+            return printable;
+        }
+
+        @Test
+        @DisplayName("every form of every property draws exactly what java.util.regex matches among what it samples")
+        void everyFormDrawsWhatItMatches() {
+            ALPHABETS.forEach((name, alphabet) -> {
+                for (String flags : List.of("", "(?i)")) {
+                    Set<String> sample = new HashSet<>();
+                    for (char c : alphabet.toCharArray()) {
+                        sample.add(String.valueOf(c));
+                        if (!flags.isEmpty() && Character.isLetter(c) && c < 0x80) {
+                            sample.add(String.valueOf((char) (c ^ 0x20)));
+                        }
+                    }
+                    for (String form : List.of("\\p{%s}", "[\\p{%s}]")) {
+                        String regex = flags + form.formatted(name);
+                        assertEquals(sample, distinct(regex, 10_000), regex);
+                        assertEveryValueMatches(regex);
+                    }
+                    for (String form : List.of("\\P{%s}", "[\\P{%s}]", "[^\\p{%s}]", "[^\\P{%s}]")) {
+                        String regex = flags + form.formatted(name);
+                        Set<String> expected = printableMatching(regex);
+                        if (expected.isEmpty()) {
+                            assertThrows(IllegalArgumentException.class, () -> new RegexGenerator(regex), regex);
+                        } else {
+                            assertEquals(expected, distinct(regex, 10_000), regex);
+                        }
+                    }
+                }
+            });
+        }
+
+        @Test
+        @DisplayName("the one-letter forms are the braced ones")
+        void oneLetterForms() {
+            assertEquals(distinct("\\p{L}"), distinct("\\pL"));
+            assertEquals(distinct("\\p{N}"), distinct("\\pN"));
+            assertEquals(distinct("\\P{L}"), distinct("\\PL"));
+            assertEquals(distinct("\\P{N}"), distinct("\\PN"));
+            // As in java.util.regex, \pLu is \pL followed by u.
+            assertTrue(distinct("\\pLu").stream().allMatch(value -> value.length() == 2 && value.endsWith("u")));
+        }
+
+        private static String hex(char c) {
+            return Integer.toHexString(c).toUpperCase(java.util.Locale.ROOT);
+        }
+    }
+
+    // ── Quoting ───────────────────────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("\\Q...\\E")
+    class Quoting {
+
+        @Test
+        @DisplayName("quoted text is literal, to \\E or to the end of the pattern")
+        void quotedTextIsLiteral() {
+            assertEquals(Set.of("a.b"), distinct("\\Qa.b\\E"));
+            assertEquals(Set.of("a.b"), distinct("\\Qa.b"));
+            assertEquals(Set.of("(a|b)*"), distinct("\\Q(a|b)*\\E"));
+            assertEquals(Set.of("[^a]{2}"), distinct("\\Q[^a]{2}\\E"));
+            assertEquals(Set.of("12"), distinct("\\Q12\\E"));
+            assertEquals(Set.of("$^"), distinct("\\Q$^\\E"));
+            assertEquals(Set.of(""), distinct("\\Q\\E"));
+            assertEquals(Set.of("(?i)a"), distinct("\\Q(?i)\\Ea"));
+        }
+
+        @Test
+        @DisplayName("a quantifier after \\E repeats the last quoted character, or what is before an empty quote")
+        void quantifierAfterAQuote() {
+            assertEquals(Set.of("ab", "abb"), distinct("\\Qab\\E{1,2}"));
+            assertEquals(Set.of("x", "xx"), distinct("x\\Q\\E{1,2}"));
+            // java.util.regex reads this as \x312{1,2}12{0,1}.
+            assertEquals(Set.of("121", "1212", "1221", "12212"), distinct("\\Q12\\E{1,2}12\\Q\\E{0,1}"));
+        }
+
+        @Test
+        @DisplayName("backslashes inside a quote are literal, except the one that ends it")
+        void backslashesInAQuote() {
+            assertEquals(Set.of("\\"), distinct("\\Q\\\\E"));
+            assertEquals(Set.of("a\\"), distinct("\\Qa\\"));
+            assertEquals(Set.of("\\Q"), distinct("\\Q\\Q\\E"));
+            assertEquals(Set.of("\\Q"), distinct("\\\\Q"));
+            assertEquals(Set.of("\\a."), distinct("\\\\\\Qa.\\E"));
+        }
+
+        @Test
+        @DisplayName("in a class, quoted characters are members, and the one after a quote can end a range")
+        void quotingInAClass() {
+            assertEquals(Set.of("a", "-", "c"), distinct("[\\Qa-c\\E]"));
+            assertEquals(Set.of("a", "b", "c"), distinct("[\\Qa\\E-c]"));
+            assertEquals(Set.of("a", "-", "c"), distinct("[a\\Q-\\Ec]"));
+            assertEquals(Set.of("^", "]"), distinct("[\\Q^]\\E]"));
         }
     }
 
@@ -1141,6 +1563,35 @@ class RegexGeneratorTest {
                     .seed(1L)
                     .stringLength(length, length)
                     .build();
+        }
+    }
+
+    private static Set<String> distinct(String regex) {
+        return distinct(regex, 2_000);
+    }
+
+    /** Draws values from one seed, checking each against java.util.regex, and returns the distinct ones. */
+    private static Set<String> distinct(String regex, int draws) {
+        Pattern compiled = Pattern.compile(regex);
+        Set<String> values = new HashSet<>();
+        RegexGenerator generator = new RegexGenerator(regex, seeded(1L));
+        for (int i = 0; i < draws; i++) {
+            String value = generator.generate();
+            assertTrue(
+                    compiled.matcher(value).matches(), () -> "\"" + value + "\" does not match the pattern " + regex);
+            values.add(value);
+        }
+        return values;
+    }
+
+    private static void assertEveryValueMatches(String regex) {
+        Pattern compiled = Pattern.compile(regex);
+        for (long seed = 0; seed < 5; seed++) {
+            RegexGenerator generator = new RegexGenerator(regex, seeded(seed));
+            for (int draw = 0; draw < 100; draw++) {
+                String value = generator.generate();
+                assertTrue(compiled.matcher(value).matches(), () -> "\"" + value + "\" does not match " + regex);
+            }
         }
     }
 
