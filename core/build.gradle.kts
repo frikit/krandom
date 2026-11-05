@@ -95,6 +95,7 @@ pitest {
             "io.github.frikit.krandom.generator.location.RegistryLookup",
             "io.github.frikit.krandom.generator.object.BeanValidationSupport",
             "io.github.frikit.krandom.generator.object.BuiltInProviderResolver",
+            "io.github.frikit.krandom.generator.object.EmailShape",
             "io.github.frikit.krandom.generator.object.FieldGeneratorResolver",
             "io.github.frikit.krandom.generator.object.FieldGeneratorResolver$*",
             "io.github.frikit.krandom.generator.object.ObjectFaker",

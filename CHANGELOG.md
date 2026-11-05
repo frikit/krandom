@@ -40,6 +40,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and generates `{"id": 1}`. A value written as a string, such as a `LocalDate`, now matches its text.
   A `NaN` or infinity inside a `const` or `enum` value is now rejected while parsing, as one at the top
   level already was. Seeded output changes only for an `enum` that now keeps a member it used to drop.
+- An `@Email` field now takes a value from its `regexp` or a `@Pattern` only in the shape Hibernate
+  Validator's `@Email` accepts for a dot-atom address: a local part of at most 64 characters with a dot
+  only between two others, and a domain whose labels have a dash only inside them, at most 63
+  characters a label and 255 in all once converted to ASCII. `a..b@example.com`, `a@example-.com` and
+  `a@example.com.` used to be generated and failed validation. Such a candidate is now drawn again, and
+  the field fails as any exhausted search does if none fits. As in Hibernate Validator, the domain no
+  longer needs a dot, so `user@localhost` from a `@Pattern` is accepted. A quoted local part or an
+  address literal such as `a@[192.0.2.1]`, which Hibernate Validator also accepts, is now refused.
+  Seeded output is unchanged for the built-in `@Email` sources and changes only for a `@Pattern` or
+  `@Email(regexp)` whose candidates the two shapes judge differently. Every address the generators
+  build on their own already passed Hibernate Validator's `@Email`, in every supported locale and under
+  each email-domain and network-safety policy, `.test` addresses included; a sweep of every route to
+  one now checks it, and generated email output is unchanged.
 
 ## [2.10.0] - 2026-11-02
 
