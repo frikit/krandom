@@ -248,7 +248,9 @@ arguments, and one that uses its type parameters fails as an unsupported type. T
 `objectSubtype` mapping takes the arguments of a generic member in the same way.
 
 A concrete sealed class is generated as itself, and a sealed JDK type, such as
-`java.lang.constant.ConstantDesc`, is not generated.
+`java.lang.constant.ConstantDesc`, is not generated. The `krandom-kotlin-dsl` module reads the
+subclasses of a Kotlin sealed type from its metadata and builds them, as the
+[Kotlin DSL guide]({{ '/guides/kotlin-dsl/' | relative_url }}#sealed-types-and-value-classes) describes.
 
 ## Depth limit
 
