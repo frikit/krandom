@@ -1725,7 +1725,6 @@ final class FieldGeneratorResolver {
      *                     {@code null} when no reflection metadata is available
      * @return generated value, or a safe default / {@code null} when the type is unsupported
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Nullable Object resolveAndGenerate(
             Type genericType,
             Class<?> rawType,
@@ -1733,6 +1732,23 @@ final class FieldGeneratorResolver {
             Class<?> ownerType,
             int currentDepth,
             @Nullable AnnotatedElement element) {
+        return resolveAndGenerate(genericType, rawType, fieldName, ownerType, currentDepth, element, element);
+    }
+
+    /**
+     * Resolves a value whose Bean Validation constraints are read from {@code constraintSource}, which is
+     * the element itself except for an array's component type, where it is {@code null}: see
+     * {@link #generateArray}.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private @Nullable Object resolveAndGenerate(
+            Type genericType,
+            Class<?> rawType,
+            String fieldName,
+            Class<?> ownerType,
+            int currentDepth,
+            @Nullable AnnotatedElement element,
+            @Nullable AnnotatedElement constraintSource) {
 
         ResolvedType resolvedType = ResolvedType.resolve(genericType, typeBindings);
         rawType = Objects.requireNonNullElse(resolvedType.rawClass(), rawType);
@@ -1749,10 +1765,10 @@ final class FieldGeneratorResolver {
         BeanValidationSupport.ConstraintModel bvConstraints;
         Generator<?> bvGen;
         try {
-            bvConstraints = BeanValidationSupport.constraintModelFor(element, rawType);
-            bvGen = element != null
+            bvConstraints = BeanValidationSupport.constraintModelFor(constraintSource, rawType);
+            bvGen = constraintSource != null
                     ? BeanValidationSupport.constraintGeneratorFor(
-                            element,
+                            constraintSource,
                             rawType,
                             sequenceRandom,
                             generatorConfig.getClock(),
@@ -1844,7 +1860,7 @@ final class FieldGeneratorResolver {
             if (!resolvedType.isResolved()) {
                 return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
             }
-            return generateArray(resolvedType, rawType, ownerType, fieldName, currentDepth, element);
+            return generateArray(resolvedType, rawType, ownerType, fieldName, currentDepth, element, bvConstraints);
         }
 
         // ── 6b. Set ───────────────────────────────────────────────────────────
@@ -1856,7 +1872,7 @@ final class FieldGeneratorResolver {
             if (isSortedContainer(rawType) && !hasDeterministicOrder(elem)) {
                 return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
             }
-            int elementCount = nextCollectionSize(element);
+            int elementCount = nextCollectionSize(bvConstraints);
             // A sorted set keeps one element per ordering key, so count distinct elements by that order.
             Set<Object> values =
                     isSortedContainer(rawType) ? new TreeSet<>(sortedOrderFor(elem)) : new LinkedHashSet<>();
@@ -1866,7 +1882,7 @@ final class FieldGeneratorResolver {
                 values.add(resolveAndGenerate(
                         elem, fieldName + "[]", ownerType, currentDepth, typeArgumentElement(element, 0)));
             }
-            BeanValidationSupport.ConstraintConflictException shortfall = sizeShortfall(values.size(), element);
+            BeanValidationSupport.ConstraintConflictException shortfall = sizeShortfall(values.size(), bvConstraints);
             if (shortfall != null) {
                 return handleConstraintConflict(rawType, genericType, ownerType, fieldName, currentDepth, shortfall);
             }
@@ -1894,7 +1910,7 @@ final class FieldGeneratorResolver {
             if (isSortedContainer(rawType) && !hasDeterministicOrder(elem)) {
                 return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
             }
-            int elementCount = nextCollectionSize(element);
+            int elementCount = nextCollectionSize(bvConstraints);
             List<Object> els = new ArrayList<>(elementCount);
             for (int i = 0; i < elementCount; i++) {
                 els.add(resolveAndGenerate(
@@ -1936,7 +1952,7 @@ final class FieldGeneratorResolver {
             if (map == null) {
                 return handleNonConstructibleCollection(rawType, genericType, ownerType, fieldName, currentDepth);
             }
-            int elementCount = nextCollectionSize(element);
+            int elementCount = nextCollectionSize(bvConstraints);
             int attempts = 0;
             int maxAttempts = Math.max(10, elementCount * 10);
             while (map.size() < elementCount && attempts++ < maxAttempts) {
@@ -1968,7 +1984,7 @@ final class FieldGeneratorResolver {
                     }
                 }
             }
-            BeanValidationSupport.ConstraintConflictException shortfall = sizeShortfall(map.size(), element);
+            BeanValidationSupport.ConstraintConflictException shortfall = sizeShortfall(map.size(), bvConstraints);
             if (shortfall != null) {
                 return handleConstraintConflict(rawType, genericType, ownerType, fieldName, currentDepth, shortfall);
             }
@@ -2398,25 +2414,47 @@ final class FieldGeneratorResolver {
             Class<?> ownerType,
             int currentDepth,
             @Nullable AnnotatedElement element) {
-        ResolvedType generationType = mostSpecific(type);
-        Class<?> rawType = Objects.requireNonNullElse(generationType.rawClass(), Object.class);
-        return resolveAndGenerate(generationType.declaredType(), rawType, fieldName, ownerType, currentDepth, element);
+        return resolveAndGenerate(type, fieldName, ownerType, currentDepth, element, element);
     }
 
+    private @Nullable Object resolveAndGenerate(
+            ResolvedType type,
+            String fieldName,
+            Class<?> ownerType,
+            int currentDepth,
+            @Nullable AnnotatedElement element,
+            @Nullable AnnotatedElement constraintSource) {
+        ResolvedType generationType = mostSpecific(type);
+        Class<?> rawType = Objects.requireNonNullElse(generationType.rawClass(), Object.class);
+        return resolveAndGenerate(
+                generationType.declaredType(), rawType, fieldName, ownerType, currentDepth, element, constraintSource);
+    }
+
+    /**
+     * Generates an array of the size its constraints and the configured collection size allow.
+     *
+     * <p>Java places an annotation written before an array type, as in {@code @Size(max = 3) String[]},
+     * on the array's component type as well as on the declaration. Bean Validation reads such a
+     * constraint for the array alone, as Hibernate Validator does, so the elements read no constraint
+     * from the component type: {@code @NotEmpty Leaf[]} is a non-empty array of any {@code Leaf}. A
+     * constraint on a type argument inside the component, as in {@code List<@Email String>[]}, still
+     * applies to that container's elements.
+     */
     private Object generateArray(
             ResolvedType declaredArrayType,
             Class<?> runtimeArrayType,
             Class<?> ownerType,
             String fieldName,
             int depth,
-            @Nullable AnnotatedElement element) {
+            @Nullable AnnotatedElement element,
+            BeanValidationSupport.ConstraintModel constraints) {
         Class<?> comp = runtimeArrayType.getComponentType();
         ResolvedType declaredComponentType = Objects.requireNonNull(declaredArrayType.componentType());
-        int elementCount = nextCollectionSize(element);
+        int elementCount = nextCollectionSize(constraints);
         Object arr = Array.newInstance(comp, elementCount);
         for (int i = 0; i < elementCount; i++) {
             Object el = resolveAndGenerate(
-                    declaredComponentType, fieldName + "[]", ownerType, depth, arrayComponentElement(element));
+                    declaredComponentType, fieldName + "[]", ownerType, depth, arrayComponentElement(element), null);
             try {
                 Array.set(arr, i, el);
             } catch (IllegalArgumentException e) {
@@ -2484,8 +2522,8 @@ final class FieldGeneratorResolver {
      * but a declared minimum must not be violated silently.
      */
     private static BeanValidationSupport.@Nullable ConstraintConflictException sizeShortfall(
-            int reached, @Nullable AnnotatedElement element) {
-        BeanValidationSupport.SizeRange declared = BeanValidationSupport.sizeRangeFor(element);
+            int reached, BeanValidationSupport.ConstraintModel constraints) {
+        BeanValidationSupport.SizeRange declared = constraints.size();
         if (declared == null || reached >= declared.min()) {
             return null;
         }
@@ -2493,9 +2531,10 @@ final class FieldGeneratorResolver {
                 "only " + reached + " distinct values available for a declared minimum size of " + declared.min());
     }
 
-    private int nextCollectionSize(@Nullable AnnotatedElement element) {
+    /** The configured collection size, within the declared size where there is one. */
+    private int nextCollectionSize(BeanValidationSupport.ConstraintModel constraints) {
         return BeanValidationSupport.sizeFor(
-                element,
+                constraints.size(),
                 sequenceRandom,
                 generatorConfig.getMinCollectionSize(),
                 generatorConfig.getMaxCollectionSize());

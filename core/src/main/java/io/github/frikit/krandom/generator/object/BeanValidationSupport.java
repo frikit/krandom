@@ -269,7 +269,8 @@ final class BeanValidationSupport {
         NumericRange numeric = numericRangeFor(element, rawType);
         Boolean assertion = assertionFor(element, rawType);
         TemporalConstraint temporal = temporalConstraintFor(element, rawType);
-        TextConstraint text = textConstraintFor(element, rawType, size, notBlank, numeric);
+        TextConstraint text =
+                textConstraintFor(element, rawType, size == null ? null : size.forText(), notBlank, numeric);
         boolean constrained = nullOnly
                 || requiredByAnnotation
                 || size != null
@@ -288,7 +289,11 @@ final class BeanValidationSupport {
                 text);
     }
 
-    static @Nullable SizeRange sizeRangeFor(@Nullable AnnotatedElement element) {
+    /**
+     * The size that {@code @Size}, {@code @NotEmpty} and {@code @NotBlank} allow together, or {@code null}
+     * when none is declared. With no declared maximum, the range reaches {@link Integer#MAX_VALUE}.
+     */
+    static @Nullable SizeRange sizeRangeFor(AnnotatedElement element) {
         if (!AVAILABLE) {
             return null;
         }
@@ -300,8 +305,7 @@ final class BeanValidationSupport {
         }
         int declaredMin = size == null ? 0 : Math.max(0, size.min());
         int min = requiresContent ? Math.max(1, declaredMin) : declaredMin;
-        int declaredMax = size == null ? Integer.MAX_VALUE : size.max();
-        int max = declaredMax == Integer.MAX_VALUE ? Math.max(min, SIZE_UNBOUNDED_CAP) : declaredMax;
+        int max = size == null ? Integer.MAX_VALUE : size.max();
         if (max < min) {
             throw conflict("size constraints have an empty intersection: min " + min + " exceeds max " + max);
         }
@@ -499,15 +503,38 @@ final class BeanValidationSupport {
         return true;
     }
 
-    static int sizeFor(@Nullable AnnotatedElement element, Random random, int defaultMin, int defaultMax) {
-        SizeRange range = sizeRangeFor(element);
-        if (range == null) {
-            return defaultMin == defaultMax ? defaultMin : random.nextInt(defaultMin, defaultMax + 1);
-        }
+    /**
+     * The size of a collection, array or map: the configured range, kept within the declared size where
+     * there is one.
+     *
+     * @param declared the declared size, or {@code null} when none is declared
+     * @param random the stream to draw from
+     * @param configuredMin the configured minimum collection size
+     * @param configuredMax the configured maximum collection size
+     * @return the size to generate
+     */
+    static int sizeFor(@Nullable SizeRange declared, Random random, int configuredMin, int configuredMax) {
+        SizeRange range = declared == null
+                ? new SizeRange(configuredMin, configuredMax)
+                : declared.within(configuredMin, configuredMax);
         return range.next(random);
     }
 
     record SizeRange(int min, int max) {
+
+        /** Text with no declared maximum has at most 255 characters. */
+        SizeRange forText() {
+            return max == Integer.MAX_VALUE ? new SizeRange(min, Math.max(min, SIZE_UNBOUNDED_CAP)) : this;
+        }
+
+        /**
+         * A configured range kept within this one: each configured bound moves to the nearest size this
+         * range allows, so a configured range outside this one gives its nearest bound.
+         */
+        SizeRange within(int configuredMin, int configuredMax) {
+            return new SizeRange(Math.clamp(configuredMin, min, max), Math.clamp(configuredMax, min, max));
+        }
+
         int next(Random random) {
             return min == max ? min : random.nextInt(min, max + 1);
         }
@@ -672,8 +699,7 @@ final class BeanValidationSupport {
         return boundary;
     }
 
-    private static @Nullable TemporalConstraint temporalConstraintFor(
-            @Nullable AnnotatedElement element, Class<?> rawType) {
+    private static @Nullable TemporalConstraint temporalConstraintFor(AnnotatedElement element, Class<?> rawType) {
         boolean futureOnly = annotation(element, Future.class) != null;
         boolean futureOrPresent = annotation(element, FutureOrPresent.class) != null;
         boolean pastOnly = annotation(element, Past.class) != null;
@@ -722,7 +748,7 @@ final class BeanValidationSupport {
 
     record TemporalConstraint(TemporalDirection direction) {}
 
-    private static @Nullable Boolean assertionFor(@Nullable AnnotatedElement element, Class<?> rawType) {
+    private static @Nullable Boolean assertionFor(AnnotatedElement element, Class<?> rawType) {
         boolean assertedTrue = annotation(element, AssertTrue.class) != null;
         boolean assertedFalse = annotation(element, AssertFalse.class) != null;
         if (!assertedTrue && !assertedFalse) {
@@ -1051,10 +1077,7 @@ final class BeanValidationSupport {
     }
 
     private static <A extends java.lang.annotation.Annotation> @Nullable A annotation(
-            @Nullable AnnotatedElement element, Class<A> type) {
-        if (element == null) {
-            return null;
-        }
+            AnnotatedElement element, Class<A> type) {
         if (element instanceof RecordComponent component) {
             return component.getAccessor().getAnnotation(type);
         }

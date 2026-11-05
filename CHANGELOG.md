@@ -30,8 +30,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - A recipe now records the child-stream policy in the setting `child-stream-policy`, whichever policy it
   is, and replay requires it, so a recipe without it, such as one written under the earlier `LEGACY`
   default, is rejected rather than replayed with independent streams.
+- A collection, array, or map with `@Size` or `@NotEmpty` now takes its size from `collectionSize` within
+  the declared bounds, or from the declared bound nearest it where the two do not overlap. The declared
+  bounds alone used to set the size, so `@NotEmpty List<String>` had 1 to 255 elements whatever
+  `collectionSize` said, and `@Size(max = 100)` 0 to 100. Under the default `collectionSize(1, 10)` they
+  now have 1 to 10, `@Size(min = 20)` has 20, and `@Size(max = 2)` with `collectionSize(4, 6)` has 2. With
+  no declared maximum, the size is no longer cut at 255, so `@NotEmpty` with `collectionSize(300, 400)` has
+  300 to 400 elements. A string's length still follows its declared size alone. Seeded output changes for
+  these members.
 
 ### Fixed
+
+- `@NotEmpty` and `@Size` on an array of a type they cannot constrain no longer fail generation at every
+  depth, as `@NotEmpty Leaf[]`, `@Size(max = 4) byte[]` and `@NotEmpty int[]` did. Java places an
+  annotation written before an array type on the array's component type as well as on the declaration,
+  and the engine applied it to each element too. Hibernate Validator reads such a constraint for the
+  array alone, and now so does the engine: an array's component type adds no constraints to its
+  elements. So `@Size(min = 6, max = 6) String[] codes` holds six strings of the configured length,
+  where each used to have six characters. A constraint on a type argument inside the component, as in
+  `List<@Email String>[]`, still applies. Seeded output changes for such arrays.
 
 - A Bean Validation constraint on a field now applies to the constructor argument that fills it. An
   argument read only the constraints on its parameter, so `@Size(min = 3, max = 3) private final String

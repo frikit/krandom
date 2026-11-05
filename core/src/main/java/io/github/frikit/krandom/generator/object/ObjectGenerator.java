@@ -59,9 +59,13 @@ import org.objenesis.ObjenesisStd;
  *       which fails generation with the member's path.</li>
  *   <li><b>Enum fields</b> — a random constant is selected.</li>
  *   <li><b>Arrays</b> — auto-populated using the shared collection-size defaults
- *       (default 1 to 10 elements).</li>
+ *       (default 1 to 10 elements). A {@code @Size} or {@code @NotEmpty} written before an array
+ *       type constrains the array, not its elements, as Bean Validation reads it.</li>
  *   <li><b>Collections ({@code List}, {@code Set}, {@code Map})</b> — auto-populated using the
  *       shared collection-size defaults and the declared generic type.</li>
+ *   <li><b>Constrained sizes</b> — a collection, array, or map with {@code @Size} or
+ *       {@code @NotEmpty} takes the configured collection size within the declared bounds, or the
+ *       declared bound nearest it where the two do not overlap.</li>
  *   <li><b>Circular references</b> — detected via an {@link ObjectPool} and broken by
  *       returning a previously cached instance (or {@code null}) instead of recursing.</li>
  * </ul>

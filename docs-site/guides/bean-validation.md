@@ -43,7 +43,7 @@ time.
 | `@Negative` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Adds an exclusive upper bound at zero and intersects with all other numeric bounds. |
 | `@NegativeOrZero` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Adds an inclusive upper bound at zero and intersects with all other numeric bounds. |
 | `@NotBlank` | `String` | Implies non-null and minimum size one; composes with email, repeatable patterns, numeric text, and size. |
-| `@NotEmpty` | `String`, arrays, `Collection` implementations, `Map` implementations | Implies non-null and minimum size one; an empty size intersection fails. |
+| `@NotEmpty` | `String`, arrays, `Collection` implementations, `Map` implementations | Implies non-null and minimum size one; an empty size intersection fails. A collection, array, or map takes its [size](#arrays-and-collection-sizes) from `collectionSize`. |
 | `@NotNull` | Reference fields, including the `Optional` object | Suppresses null probability. It does not require an `Optional` to contain a value. A nested object member at the [depth limit]({{ '/guides/object-generation/' | relative_url }}#depth-limit) fails rather than being left `null`. |
 | `@Null` | Reference fields | Forces `null`; primitive and required intersections fail. |
 | `@Past` | Supported Java temporal types listed below | Intersects with present/future constraints using the configured clock; an empty direction fails. |
@@ -51,11 +51,26 @@ time.
 | `@Pattern` | `String` | Repeatable patterns and Java regex flags are all enforced with email, numeric, size, and blankness rules. |
 | `@Positive` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Adds an exclusive lower bound at zero and intersects with all other numeric bounds. |
 | `@PositiveOrZero` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Adds an inclusive lower bound at zero and intersects with all other numeric bounds. |
-| `@Size` | `String`, arrays, `Collection` implementations, `Map` implementations | Intersects with `@NotEmpty`/`@NotBlank`; inverted and empty ranges fail. |
+| `@Size` | `String`, arrays, `Collection` implementations, `Map` implementations | Intersects with `@NotEmpty`/`@NotBlank`; inverted and empty ranges fail. A collection, array, or map takes its [size](#arrays-and-collection-sizes) from `collectionSize` within these bounds. |
 
 Supported temporal targets are `Instant`, `LocalDate`, `LocalDateTime`, `ZonedDateTime`,
 `OffsetDateTime`, `Date`, `java.sql.Date`, `Timestamp`, `Calendar`, `LocalTime`, `OffsetTime`,
 `Year`, `YearMonth`, and `MonthDay`.
+
+## Arrays and collection sizes
+
+`@Size` and `@NotEmpty` bound the size of a collection, array, or map, and `collectionSize` chooses
+the size within those bounds. With the default `collectionSize(1, 10)`, `@NotEmpty List<String>` has
+1 to 10 elements, and `@Size(max = 3)` 1 to 3. Where the configured range lies outside the bounds,
+the size is the bound nearest it: `@Size(min = 20)` gives 20 elements under the default, and
+`@Size(max = 2)` with `collectionSize(4, 6)` gives 2.
+
+A constraint written before an array type, as in `@NotEmpty Leaf[]` or `@Size(max = 3) String[]`,
+constrains the array and not its elements. Java places such an annotation on the array's component
+type as well as on the declaration, but Hibernate Validator reads it for the array alone, and so does
+kRandom: `@Size(max = 3) String[]` holds up to three strings of the configured length. A constraint
+on a type argument inside the component still applies, so each list in `List<@Email String>[]` holds
+email addresses.
 
 ## Precedence
 
