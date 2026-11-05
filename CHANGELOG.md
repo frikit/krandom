@@ -6,6 +6,51 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Composite generators now give each child generator its own stream by default, under
+  `ChildStreamPolicy.INDEPENDENT`, which was an opt-in since 2.6.0. With a numeric or textual seed, a
+  child's seed is derived from the parent seed and the child's name, so siblings no longer start in the
+  same state: the payment, invoice, and order numbers of a `PaymentInfo` seeded with `42` were
+  `PAY-359D41BAF78A`, `INV-359D41BAF78A`, and `ORD-359D41BAF78A`, and are now `PAY-7DC1F9C37F29`,
+  `INV-F852387C7D39`, and `ORD-B9D4F25FCB19`. Seeded output changes for every generator with children,
+  such as `FullNameGenerator`, `MiddleNameGenerator`, `EmailGenerator`, `UsernameGenerator`,
+  `WordGenerator`, `SentenceGenerator`, `URLGenerator`, `HostnameGenerator`, `OffsetDateTimeGenerator`,
+  `PersonInfoGenerator`, and `PaymentInfoGenerator`, and for the values built on them, such as
+  `Krandom.fullName()`, `middleName()`, and `email()`, object members such as `fullName`, `email`,
+  `username`, and `streetAddress`, and schema columns such as `person.full_name` and `person.email`. The
+  Spring starter, the JUnit and Kotest extensions, and the Kotlin DSL take the new default.
+  `ChildStreamPolicy.LEGACY` restores the earlier output draw for draw, so the network values of
+  releases before 2.10.0 now take it together with `NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED`.
+  `INDEPENDENT` no longer requires a seed: an unseeded configuration has nothing to derive from, so
+  `forChildStream` returns it unchanged and each child draws from its own fresh `Random` or
+  `SecureRandom`, as before. A caller-owned `Random` is still shared by every child, and a random
+  factory is still called once for each child. Under `INDEPENDENT`, `forChildStream` rejects a blank
+  or multi-line stream name with or without a seed, which the earlier default accepted.
+- A recipe now records the child-stream policy in the setting `child-stream-policy`, whichever policy it
+  is, and replay requires it, so a recipe without it, such as one written under the earlier `LEGACY`
+  default, is rejected rather than replayed with independent streams.
+- `CountryGenerator` now has a calling code, a continent, and a time zone for each of the 249 ISO 3166-1
+  countries, not 45. They come from three tables bundled beside the ISO 3166-1 table,
+  `krandom/country_codes/calling_codes.txt`, `continents.txt`, and `time_zones.txt`, whose headers
+  record the source, licence, retrieval date, and checksum, and the rules for countries a source does
+  not cover: E.164 calling codes from libphonenumber 9.0.42, continents from the UN M49 regions as
+  Unicode CLDR 49 publishes them, with the Americas divided into North America and South America, and
+  time zones from `zone.tab` in the 2026f tz database, taking the zone of the seat of government for a
+  country with several.
+  `currentCallingCode()`, `currentContinent()`, and `currentTimezone()` now answer for any locale whose
+  country is an ISO 3166-1 country, such as `en_NG` (`+234`, `Africa`, `Africa/Lagos`) or `de_LI`
+  (`+423`, `Europe`, `Europe/Vaduz`), where they threw `UnsupportedOperationException`.
+- `CountryGenerator.generateCallingCode()`, `generateContinent()`, and `generateTimezone()` draw from
+  all 249 countries, picking the country that `generateCode()` picks for the same seed, so their seeded
+  output changes: with seed `42` the first calling codes were `+64`, `+49`, and `+966` and are now
+  `+378`, `+690`, and `+672`. A calling code that several countries share, such as `+1`, now comes up
+  more often, and `Antarctica` is a new continent. The values of the 45 earlier countries are
+  unchanged except Argentina's time zone, which is now `America/Argentina/Buenos_Aires`, the name
+  `zone.tab` lists, instead of `America/Buenos_Aires`, an older name that the tz database keeps only
+  as a link; `es_AR` and other `AR` locales get the new name. `PhoneNumberGenerator` takes its calling
+  codes from the same table, and its output is unchanged.
+
 ## [2.10.0] - 2026-11-02
 
 ### Added

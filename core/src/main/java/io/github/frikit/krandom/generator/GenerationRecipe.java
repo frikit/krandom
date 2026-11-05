@@ -297,9 +297,11 @@ public final class GenerationRecipe {
     /**
      * Recreates a portable generator configuration with a fixed clock.
      *
-     * <p>Every safety-policy setting, the email-domain policy and both sets of unique fields are
-     * required, because they select which values generators may produce; the serialized form of a
-     * seeded configuration always records them.
+     * <p>Every safety-policy setting, the email-domain policy, the child-stream policy and both sets
+     * of unique fields are required, because they select which values generators produce; the
+     * serialized form of a seeded configuration always records them. A recipe without
+     * {@code child-stream-policy}, such as one written while {@link ChildStreamPolicy#LEGACY} was
+     * the default and left unrecorded, is rejected rather than replayed under the current default.
      *
      * @return replay configuration
      * @throws IllegalArgumentException if this library does not recognize a recorded setting, or a
@@ -409,10 +411,7 @@ public final class GenerationRecipe {
         if (streamPolicy != null) {
             builder.objectFieldStreamPolicy(ObjectFieldStreamPolicy.valueOf(streamPolicy));
         }
-        String childStreamPolicy = settings.get("child-stream-policy");
-        if (childStreamPolicy != null) {
-            builder.childStreamPolicy(ChildStreamPolicy.valueOf(childStreamPolicy));
-        }
+        builder.childStreamPolicy(ChildStreamPolicy.valueOf(requiredSetting("child-stream-policy")));
         String charset = settings.get("charset");
         if (charset != null) {
             builder.charset(Charset.forName(charset));
