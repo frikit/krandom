@@ -315,7 +315,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   arguments. With `objectSubtype(Box.class, ListBox.class)` and `record ListBox<T>(List<T> items) implements
   Box<T>`, a `Box<Integer>` member holds integers, where the unbound `T` failed as an unsupported type. The
   arguments reach the implementation through any generic supertypes in between, and are passed as declared,
-  not checked. Only members that failed before change.
+  not checked. A type variable that has a bound took the bound instead, so a member whose bound the engine
+  could generate changes too: with `record DateBox<D extends Date>(D value) implements Box<D>`, a
+  `Box<Timestamp>` member now holds a `Timestamp`, where it held a plain `Date`, and its seeded output
+  changes.
 - The Kotlin DSL now calls a private primary constructor, as the object engine calls a private Java
   constructor, where `kotlin.reflect.full.IllegalCallableAccessException` escaped without the object's path.
   A factory function that validates outside the constructor's `init` block is not called, so register a
