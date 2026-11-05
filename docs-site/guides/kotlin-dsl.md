@@ -58,9 +58,9 @@ Field rules and exclusions are scoped to the generated (root) type (2.6+): `excl
 leaves `Customer.name` at its initial value while a nested `Company.name` is still generated. A field
 inherited from a superclass is matched through that superclass field, so it also applies to other
 subclasses of it in the same object graph. Use `ruleForType` for type-wide rules and the Java
-`ObjectFaker` for nested-path rules. Exclusions on immutable data classes built through the primary
-constructor are not yet honoured by the constructor adapter; exclude those fields on mutable types
-or register a rule instead.
+`ObjectFaker` for nested-path rules. An exclusion also applies to a primary-constructor parameter of
+an immutable class: an optional parameter keeps its default, a nullable one is `null`, and a required
+non-null one fails generation.
 
 ## Generate Lists
 
