@@ -87,9 +87,9 @@ is a fixture-schema importer, not a general JSON Schema validator or reference r
 | --- | --- |
 | Root | An object with a non-empty `properties` map is required. |
 | Types | `string`, `integer`, `number`, `boolean`, `array`, `object`, and `null`; a type list may contain exactly one concrete type plus `null`. |
-| Scalars | `const`, a non-empty `enum`, numeric bounds, string length bounds, and a `pattern` in the [syntax `RegexGenerator` supports]({{ '/guides/data-validity-and-safety/' | relative_url }}#regular-expression-contract). |
+| Scalars | `const`, a non-empty `enum`, numeric bounds, `multipleOf`, string length bounds, and a `pattern` in the [syntax `RegexGenerator` supports]({{ '/guides/data-validity-and-safety/' | relative_url }}#regular-expression-contract). |
 | Strings | `email`/`idn-email`, `uri`/`url`, `uuid`, `date`, `date-time`, `time`, `ipv4`, `ipv6`, and `hostname` receive dedicated generation. An unknown *string* format deliberately uses semantic-name or bounded-string fallback rather than pretending to implement it. A schema with no `type` generates a string under the same rules. |
-| Structures | `items` and `minItems`/`maxItems` for arrays; nested `properties` for objects. An array without `items` produces strings. |
+| Structures | `items`, `minItems`/`maxItems`, and `uniqueItems` for arrays; nested `properties` for objects. An array without `items` produces strings. |
 | OpenAPI controls | OpenAPI 3.0 `nullable`, plus `$schema`, `required`, and `additionalProperties` emitted by `toJsonSchema()`. The latter three are accepted as document controls rather than generation constraints. |
 
 Constraints apply together, and a keyword constrains only values of its own JSON type:
@@ -98,9 +98,30 @@ Constraints apply together, and a keyword constrains only values of its own JSON
   `[a, bbbb]` with `maxLength` 1 generates `a`. `format` is not checked on these values, because it is
   an annotation in Draft 2020-12. A `pattern` is checked with `java.util.regex` and searches the
   string, as in JSON Schema.
+- Values compare as JSON values, so a `const` of `{"id": 1}` matches the `enum` member `{"id": 1.0}`.
+  A number compares by its value at any depth, whatever Java type holds it, an array item by item in
+  order, an object member by member under the name it is written with, so the key `1` is the member
+  `"1"`, and a value written as a string, such as a `LocalDate`, by its text. `NaN` and the infinities
+  are not JSON numbers, and an object with two keys written under one name, such as `1` and `"1"`, is
+  not a JSON object, so a `const` or `enum` that holds either, at any depth, is rejected with the schema
+  path.
 - Numeric bounds intersect, so `minimum` 100 with `exclusiveMinimum` 0 starts at 100. OpenAPI 3.0's
   boolean `exclusiveMinimum` and `exclusiveMaximum` work as flags on the inclusive bound. An `integer`
   rounds a fractional bound inward and stays within the range of a `long`.
+- `multipleOf` must be a number above 0, and generates exact multiples within the bounds, as decimals,
+  with no binary rounding: `multipleOf` 0.01 gives values such as `12.34`. An `integer` stays an
+  `Integer` or `Long` and takes the multiples that are whole, so `multipleOf` 2.5 gives multiples of 5. A
+  `number` is a `BigDecimal`. Bounds that hold no multiple, such as `minimum` 1 and `maximum` 4 with
+  `multipleOf` 5, are rejected with the schema path, and a `const` or `enum` keeps only multiples. A
+  missing bound defaults from the declared one, as for any number, and where that default range holds
+  no multiple, the open side reaches the nearest one: `minimum` 0.1 with `multipleOf` 1000000000 gives
+  1000000000. An `integer` multiple must fit a `long`.
+- `uniqueItems: true` gives arrays whose items are distinct JSON values, so `1` and `1.0` count as one.
+  While parsing, a search with a fixed seed looks for `maxItems` distinct items, drawing up to 100 for
+  each. Items that cannot reach `minItems`, such as an `enum` of two values with `minItems` 3, are
+  rejected with the schema path, and where the search finds fewer than `maxItems`, an array holds at
+  most that many. Each array then draws up to 100 items for each item it holds, keeps the distinct ones
+  found if they run out, and fails with the schema path below `minItems`.
 - A `pattern` or `format` value is drawn again until it fits `minLength` and `maxLength`, up to 10,000
   times each. Length is counted in characters, not UTF-16 units.
 - A value generated from a `pattern` matches the whole pattern, which also satisfies the search. A

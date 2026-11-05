@@ -6,6 +6,81 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `SchemaParser` supports `multipleOf` and `uniqueItems`, which it used to accept and ignore, so a
+  generated value could break them. Seeded output changes for every schema that uses either.
+  - `multipleOf` must be a number above 0. It generates exact multiples within the bounds, as decimals
+    with no binary rounding, so `multipleOf` 0.01 gives exact hundredths. An `integer` stays an
+    `Integer` or `Long` and takes the whole multiples, so `multipleOf` 2.5 gives multiples of 5. A
+    `number` with `multipleOf` now generates a `BigDecimal` rather than a `Double`. Bounds that hold no
+    multiple, such as `minimum` 1 and `maximum` 4 with `multipleOf` 5, are rejected with the schema
+    path, and a `const` or `enum` keeps only multiples. A missing bound defaults from the declared one,
+    as for any number, and where that default range holds no multiple, the open side reaches the
+    nearest one, so `minimum` 0.1 with `multipleOf` 1000000000 gives 1000000000. An `integer` multiple
+    must fit a `long`.
+  - `uniqueItems: true` gives arrays whose items are distinct JSON values, so `1` and `1.0` count as
+    one. While parsing, a search with a fixed seed looks for `maxItems` distinct items, drawing up to
+    100 for each. Items that cannot reach `minItems`, such as an `enum` of two values with `minItems` 3,
+    are rejected with the schema path, and where the search finds fewer than `maxItems`, an array holds
+    at most that many, so nested arrays of few values stay cheap. Each array then draws up to 100 items
+    for each item it holds, keeps the distinct ones found if they run out, and fails with the schema
+    path below `minItems`. A `const` or `enum` array with repeated items is rejected or dropped.
+  - A `multipleOf` that is not a number above 0, or a `uniqueItems` that is not a boolean, is rejected
+    with the schema path.
+
+### Changed
+
+- Composite generators now give each child generator its own stream by default, under
+  `ChildStreamPolicy.INDEPENDENT`, which was an opt-in since 2.6.0. With a numeric or textual seed, a
+  child's seed is derived from the parent seed and the child's name, so siblings no longer start in the
+  same state: the payment, invoice, and order numbers of a `PaymentInfo` seeded with `42` were
+  `PAY-359D41BAF78A`, `INV-359D41BAF78A`, and `ORD-359D41BAF78A`, and are now `PAY-7DC1F9C37F29`,
+  `INV-F852387C7D39`, and `ORD-B9D4F25FCB19`. Seeded output changes for every generator with children,
+  such as `FullNameGenerator`, `MiddleNameGenerator`, `EmailGenerator`, `UsernameGenerator`,
+  `WordGenerator`, `SentenceGenerator`, `URLGenerator`, `HostnameGenerator`, `OffsetDateTimeGenerator`,
+  `PersonInfoGenerator`, and `PaymentInfoGenerator`, and for the values built on them, such as
+  `Krandom.fullName()`, `middleName()`, and `email()`, object members such as `fullName`, `email`,
+  `username`, and `streetAddress`, and schema columns such as `person.full_name` and `person.email`. The
+  Spring starter, the JUnit and Kotest extensions, and the Kotlin DSL take the new default.
+  `ChildStreamPolicy.LEGACY` restores the earlier output draw for draw, so the network values of
+  releases before 2.10.0 now take it together with `NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED`.
+  `INDEPENDENT` no longer requires a seed: an unseeded configuration has nothing to derive from, so
+  `forChildStream` returns it unchanged and each child draws from its own fresh `Random` or
+  `SecureRandom`, as before. A caller-owned `Random` is still shared by every child, and a random
+  factory is still called once for each child. Under `INDEPENDENT`, `forChildStream` rejects a blank
+  or multi-line stream name with or without a seed, which the earlier default accepted.
+- A recipe now records the child-stream policy in the setting `child-stream-policy`, whichever policy it
+  is, and replay requires it, so a recipe without it, such as one written under the earlier `LEGACY`
+  default, is rejected rather than replayed with independent streams.
+
+### Fixed
+
+- `SchemaParser` compares `const` and `enum` values as JSON values at every depth: a number by its
+  value, whatever Java type holds it, an array item by item in order, and an object member by member
+  under the name it is written with, which `properties` now also use, so the key `1` is the member
+  `"1"`. Numbers inside objects and arrays were compared by their Java type, so a `const` of `{"id": 1}`
+  beside the `enum` `[{"id": 1.0}]` was rejected as missing from it. It is accepted again, as in 2.9.0,
+  and generates `{"id": 1}`. A value written as a string, such as a `LocalDate`, now matches its text.
+  A `const` or `enum` that holds a `NaN` or infinity at any depth, or an object with two keys written
+  under one name, such as `1` and `"1"`, is now rejected while parsing with the schema path. An `enum`
+  member that the declared type left out was dropped unchecked, so `type: string` with the `enum`
+  `["a", NaN]` was accepted. Seeded output changes only for an `enum` that now keeps a member it used to
+  drop.
+- An `@Email` field now takes a value from its `regexp` or a `@Pattern` only in the shape Hibernate
+  Validator's `@Email` accepts for a dot-atom address: a local part of at most 64 characters with a dot
+  only between two others, and a domain whose labels have a dash only inside them, at most 63
+  characters a label and 255 in all once converted to ASCII. `a..b@example.com`, `a@example-.com` and
+  `a@example.com.` used to be generated and failed validation. Such a candidate is now drawn again, and
+  the field fails as any exhausted search does if none fits. As in Hibernate Validator, the domain no
+  longer needs a dot, so `user@localhost` from a `@Pattern` is accepted. A quoted local part or an
+  address literal such as `a@[192.0.2.1]`, which Hibernate Validator also accepts, is now refused.
+  Seeded output is unchanged for the built-in `@Email` sources and changes only for a `@Pattern` or
+  `@Email(regexp)` whose candidates the two shapes judge differently. Every address the generators
+  build on their own already passed Hibernate Validator's `@Email`, in every supported locale and under
+  each email-domain and network-safety policy, `.test` addresses included; a sweep of every route to
+  one now checks it, and generated email output is unchanged.
+
 ## [2.10.0] - 2026-11-02
 
 ### Added

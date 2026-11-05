@@ -97,6 +97,16 @@ a domain derived from `companyName` ends in `.test` (`hello@acmelabs.test`). An 
 The policy covers only domains a generator chooses: values from your own overrides, rules and
 randomizers, and domains in an `@Email` `regexp` or a `@Pattern`, are used as written.
 
+Every address a generator builds on its own passes Hibernate Validator's `@Email`, in every supported
+locale and under each email-domain and network-safety policy. An `@Email` field takes a value from
+its `regexp` or a `@Pattern` only in the shape Hibernate Validator accepts for a dot-atom address. The
+local part has at most 64 characters: letters, digits, non-ASCII characters and the symbols
+``!#$%&'*+/=?^_`{|}~-``, with a dot only between two of them. The domain is labels of the same
+characters, with a dash only inside a label, joined by single dots, at most 63 characters a label and
+255 in all once converted to ASCII. As in Hibernate Validator, the domain needs no dot. A quoted local
+part or an address literal, such as `a@[192.0.2.1]`, which Hibernate Validator also accepts, is drawn
+again.
+
 `EmailDomainPolicy.REALISTIC_UNCLASSIFIED` restores the popular mailbox-provider domains
 (`gmail.com`, `yahoo.com`, …) and realistic company top-level domains for isolated fixtures that
 never send mail. The free-provider methods (`generateFreeEmail`, `getFreeEmailProvider`,

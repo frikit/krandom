@@ -109,40 +109,54 @@ choose stability when it matters and benchmark your own fixture before bulk-gene
 ### Composite child streams
 
 Composite value generators such as `PaymentInfoGenerator`, `OrderInfoGenerator`, or
-`PersonInfoGenerator` build their child generators from the same configuration. With a seed, every
-child's random source starts at the same state, so sibling values can be correlated — for example
-the payment, invoice, and order identifiers of one seeded `PaymentInfo` share the same suffix. The
-default `ChildStreamPolicy.LEGACY` keeps that published output unchanged.
+`PersonInfoGenerator` build child generators from their configuration. Under the default
+`ChildStreamPolicy.INDEPENDENT` (2.11+), each child receives `config.forChildStream(name)`. With a
+numeric or textual seed, that is a copy whose seed is `GenerationRecipe.deriveChildSeed(seed, name)`
+for a stable per-child stream name, so siblings draw from independent streams and the seed still
+reproduces them: the payment, invoice, and order identifiers of one seeded `PaymentInfo` are
+unrelated, such as `PAY-7DC1F9C37F29`, `INV-F852387C7D39`, and `ORD-B9D4F25FCB19` for seed 42.
+Custom composites follow the same contract by passing `config.forChildStream("childName")` to each
+child they construct.
+
+Without a seed there is nothing to derive from: an unseeded configuration builds under
+`INDEPENDENT`, and `forChildStream` returns it unchanged. Each child then takes its own source from
+`createRandom()`: a fresh unseeded `Random`, or a fresh `SecureRandom` with `secureRandom()`, so
+siblings still draw independent values. A caller-owned `random(...)` instance is shared by every
+child, so the children draw their values in turn from that one sequence. A `randomFactory(...)` is
+called once for each child, and its sources are used as they are, so a factory that returns the same
+seeded source every time correlates the children again. Neither is reseeded.
+
+`ChildStreamPolicy.LEGACY` gives every child the parent's configuration unchanged. With a seed,
+every child's random source then starts at the same state, so sibling values can be correlated: the
+three identifiers of one `PaymentInfo` share a suffix, as in `PAY-359D41BAF78A`,
+`INV-359D41BAF78A`, and `ORD-359D41BAF78A`. It was the default before 2.11, and it reproduces that
+seeded output:
 
 ```java
 GeneratorConfig config = GeneratorConfig.builder()
     .seed(42L)
-    .childStreamPolicy(ChildStreamPolicy.INDEPENDENT)
+    .childStreamPolicy(ChildStreamPolicy.LEGACY)
     .build();
 ```
 
-With `INDEPENDENT`, each child receives `config.forChildStream(name)`: a copy whose seed is
-`GenerationRecipe.deriveChildSeed(seed, name)` for a stable per-child stream name, so siblings draw
-from independent streams while the output stays reproducible. A numeric or textual seed is
-required. Portable recipes record the explicit policy as `child-stream-policy`; an absent setting
-means LEGACY. Custom composites can adopt the same contract by passing
-`config.forChildStream("childName")` to each child they construct.
+Portable recipes record the policy as `child-stream-policy`, whichever it is, and replay requires
+it. A recipe without that setting, such as one written while `LEGACY` was the default, is rejected
+with `Recipe requires setting: child-stream-policy` rather than replayed with different values.
 
-The same applies to separate generators built from one seeded configuration: each starts from the
-root seed, so two `Generators.ofInt(1, 40, config)` instances return the same values, and
-generators of different types draw from the same random sequence. Give each generator its own
-stream by passing `config.forChildStream(name)` under `INDEPENDENT`:
+Separate generators built from one seeded configuration are not children of each other: each starts
+from the root seed, whatever the policy, so two `Generators.ofInt(1, 40, config)` instances return
+the same values, and generators of different types draw from the same random sequence. Give each
+generator its own stream by passing `config.forChildStream(name)`:
 
 ```java
 GeneratorConfig config = GeneratorConfig.builder()
     .seed("checkout-fixtures")
-    .childStreamPolicy(ChildStreamPolicy.INDEPENDENT)
     .build();
 
 Generator<String> firstNames = Generators.ofFirstName(config.forChildStream("firstName"));
 Generator<String> lastNames = Generators.ofLastName(config.forChildStream("lastName"));
 ```
 
-Under the default `LEGACY` policy `forChildStream` returns the configuration unchanged, so it has no
-effect there. `Krandom` does this for you: each of its methods has a stream derived from the seed
-and the method's name, whatever the child-stream policy.
+Under `LEGACY`, `forChildStream` returns the configuration unchanged, so it has no effect there.
+`Krandom` does this for you: each of its methods has a stream derived from the seed and the method's
+name, whatever the child-stream policy.

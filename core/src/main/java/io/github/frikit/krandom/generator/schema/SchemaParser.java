@@ -19,9 +19,11 @@ import io.github.frikit.krandom.generator.network.IPv4Generator;
 import io.github.frikit.krandom.generator.network.IPv6Generator;
 import io.github.frikit.krandom.generator.network.URLGenerator;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -46,9 +48,14 @@ import org.jspecify.annotations.Nullable;
  *   <li>{@code const} — constant value</li>
  *   <li>{@code minimum}/{@code maximum}/{@code exclusiveMinimum}/{@code exclusiveMaximum} — bounded
  *       numeric generation, including OpenAPI 3.0's boolean exclusive flags</li>
+ *   <li>{@code multipleOf} — exact multiples: an integer stays an {@code Integer} or {@code Long}, and a
+ *       number is a {@link BigDecimal}</li>
  *   <li>{@code minLength}/{@code maxLength} — bounded string length</li>
  *   <li>{@code pattern} — regex-based string generation</li>
  *   <li>{@code items} — array element schema</li>
+ *   <li>{@code minItems}/{@code maxItems} — bounded array size</li>
+ *   <li>{@code uniqueItems} — array items that are distinct JSON values, drawn up to 100 times for each
+ *       item</li>
  *   <li>{@code properties} — nested object fields</li>
  *   <li>{@code nullable} (OpenAPI 3.0) — nullable field support</li>
  * </ul>
@@ -64,7 +71,10 @@ import org.jspecify.annotations.Nullable;
  * <p>Constraints apply together, and a keyword constrains only values of its own JSON type. A
  * {@code const} or {@code enum} value must meet the other constraints, and an {@code enum} keeps only
  * the values that do; {@code format} is not one of them, because it is an annotation in Draft 2020-12.
- * Overlapping numeric bounds intersect. A {@code pattern} or {@code format} value is drawn again until
+ * Values compare as JSON values: a number by its value at any depth, so {@code {"id": 1}} equals
+ * {@code {"id": 1.0}}, an array item by item in order, an object member by member under the name it is
+ * written with, and a value written as a string, such as a date, by its text. Overlapping numeric
+ * bounds intersect. A {@code pattern} or {@code format} value is drawn again until
  * it fits {@code minLength} and {@code maxLength}, up to a fixed number of attempts. A combination that
  * leaves no value is rejected with its schema path, while parsing where that can be told. A combination
  * of length bounds with a {@code pattern} or {@code format} is judged by sampling rather than analysis,
@@ -119,6 +129,9 @@ public final class SchemaParser {
 
     /** The same limit while parsing. It is lower, so a combination that passes rarely runs out later. */
     private static final int PARSING_LENGTH_ATTEMPTS = 1_000;
+
+    /** How many items an array with uniqueItems may draw for each item it holds. */
+    private static final int UNIQUE_ITEM_ATTEMPTS = 100;
 
     private static final BigDecimal LONG_MIN = BigDecimal.valueOf(Long.MIN_VALUE);
     private static final BigDecimal LONG_MAX = BigDecimal.valueOf(Long.MAX_VALUE);
@@ -175,11 +188,11 @@ public final class SchemaParser {
 
             @SuppressWarnings("unchecked")
             Map<String, Object> fieldSchema = (Map<String, Object>) fieldSchemaRaw;
-            // nullable widens the type, but a const or enum can still leave null out.
-            boolean nullable = Boolean.TRUE.equals(fieldSchema.get("nullable")) && satisfies(null, fieldSchema);
-
+            // Resolving first rejects a const or enum that is no JSON value with its path.
             SchemaValueProvider provider =
                     resolveProvider(fieldName, "$.properties." + fieldName, fieldSchema, field, config);
+            // nullable widens the type, but a const or enum can still leave null out.
+            boolean nullable = Boolean.TRUE.equals(fieldSchema.get("nullable")) && satisfies(null, fieldSchema);
             if (nullable) {
                 SchemaValueProvider inner = provider;
                 provider = ctx -> ctx.random().nextBoolean() ? null : inner.generate(ctx);
@@ -234,6 +247,15 @@ public final class SchemaParser {
             throw new IllegalArgumentException("JSON Schema format must be a string at " + path);
         }
 
+        if (schema.containsKey("multipleOf")
+                && !(schema.get("multipleOf") instanceof Number step && isPositive(step))) {
+            throw new IllegalArgumentException("JSON Schema multipleOf must be a number above 0 at " + path);
+        }
+
+        if (schema.containsKey("uniqueItems") && !(schema.get("uniqueItems") instanceof Boolean)) {
+            throw new IllegalArgumentException("JSON Schema uniqueItems must be a boolean at " + path);
+        }
+
         Object type = schema.get("type");
         if (type instanceof String namedType) {
             validateSupportedType(namedType, path);
@@ -257,6 +279,15 @@ public final class SchemaParser {
             }
         } else if (type != null) {
             throw new IllegalArgumentException("JSON Schema type must be a string or list at " + path);
+        }
+    }
+
+    /** Whether a number is finite and above 0, as a multipleOf must be. */
+    private static boolean isPositive(Number number) {
+        try {
+            return decimal(number).signum() > 0;
+        } catch (NumberFormatException notFinite) {
+            return false;
         }
     }
 
@@ -345,26 +376,28 @@ public final class SchemaParser {
      */
     private static boolean satisfies(@Nullable Object explicit, Map<?, ?> schema) {
         Object value = JsonSchemaSupport.normalizeStructuredValue(explicit);
-        if (!hasDeclaredType(value, schema)
-                || (schema.containsKey("const") && !sameValue(value, schema.get("const")))
-                || (schema.get("enum") instanceof List<?> values
-                        && values.stream().noneMatch(other -> sameValue(value, other)))) {
+        if (!hasDeclaredType(value, schema) || !isNamedValue(value, schema)) {
             return false;
         }
         if (value instanceof Number number) {
-            return withinNumericBounds(number, schema);
+            return withinNumericBounds(number, schema)
+                    && (!(schema.get("multipleOf") instanceof Number step)
+                            || decimal(number).remainder(decimal(step)).signum() == 0);
         }
         if (value instanceof List<?> list) {
             return list.size() >= intOrDefault(schema.get("minItems"), 0)
                     && list.size() <= intOrDefault(schema.get("maxItems"), Integer.MAX_VALUE)
+                    && (!Boolean.TRUE.equals(schema.get("uniqueItems"))
+                            || jsonValues(list).size() == list.size())
                     && (!(schema.get("items") instanceof Map<?, ?> items)
                             || list.stream().allMatch(item -> satisfies(item, items)));
         }
         if (value instanceof Map<?, ?> object && schema.get("properties") instanceof Map<?, ?> properties) {
+            Map<String, @Nullable Object> members = byName(object);
             return properties.entrySet().stream()
-                    .allMatch(property -> !object.containsKey(property.getKey())
+                    .allMatch(property -> !members.containsKey(property.getKey())
                             || !(property.getValue() instanceof Map<?, ?> propertySchema)
-                            || satisfies(object.get(property.getKey()), propertySchema));
+                            || satisfies(members.get(property.getKey()), propertySchema));
         }
         // A string, or anything else written as one, such as a date. A pattern searches that text; it
         // need not match all of it.
@@ -395,11 +428,82 @@ public final class SchemaParser {
         return types.contains(JsonSchemaSupport.infer(value).get("type"));
     }
 
-    private static boolean sameValue(@Nullable Object value, @Nullable Object explicit) {
-        Object other = JsonSchemaSupport.normalizeStructuredValue(explicit);
-        return value instanceof Number number && other instanceof Number otherNumber
-                ? decimal(number).compareTo(decimal(otherNumber)) == 0
-                : Objects.equals(value, other);
+    /**
+     * Whether a value is the const, and one of the enum, where the schema names them, compared as JSON
+     * values. Every member of the enum is read as one, so an enum with a member that is no JSON value
+     * fails in any order.
+     */
+    private static boolean isNamedValue(@Nullable Object value, Map<?, ?> schema) {
+        boolean constant = schema.containsKey("const");
+        if (!constant && !(schema.get("enum") instanceof List<?>)) {
+            return true;
+        }
+        Object json = jsonValue(value);
+        return (!constant || Objects.equals(json, json(schema.get("const"))))
+                && (!(schema.get("enum") instanceof List<?> members)
+                        || jsonValues(members).contains(json));
+    }
+
+    /** The distinct JSON values among explicit values. */
+    private static Set<@Nullable Object> jsonValues(List<?> values) {
+        Set<@Nullable Object> json = new HashSet<>();
+        for (Object value : values) {
+            json.add(json(value));
+        }
+        return json;
+    }
+
+    /** An explicit value, such as a const or a generated item, as a JSON value. */
+    private static @Nullable Object json(@Nullable Object explicit) {
+        return jsonValue(JsonSchemaSupport.normalizeStructuredValue(explicit));
+    }
+
+    /**
+     * A value as JSON sees it, so that two values are the same JSON value when these are equal: a number
+     * is its exact value, whatever holds it, so 1 equals 1.0; an array is the list of its items, in order;
+     * an object is its members under the names they are written with; and anything written as a string
+     * is its text. NaN and the infinities are rejected, as no JSON number, and so is an object with two
+     * keys written under one name.
+     */
+    private static @Nullable Object jsonValue(@Nullable Object value) {
+        if (value == null || value instanceof Boolean) {
+            return value;
+        }
+        if (value instanceof Number number) {
+            return decimal(number).stripTrailingZeros();
+        }
+        if (value instanceof List<?> items) {
+            List<@Nullable Object> json = new ArrayList<>(items.size());
+            for (Object item : items) {
+                json.add(jsonValue(item));
+            }
+            return json;
+        }
+        if (value instanceof Map<?, ?> object) {
+            Map<String, @Nullable Object> members = byName(object);
+            for (Map.Entry<String, @Nullable Object> member : members.entrySet()) {
+                member.setValue(jsonValue(member.getValue()));
+            }
+            return members;
+        }
+        return value.toString();
+    }
+
+    /**
+     * An object's members under the names the JSON writer gives them, so the key 1 is the member "1". Two
+     * keys written under one name, such as 1 and "1", would make two members of that name, so they are
+     * rejected rather than one hiding the other.
+     */
+    private static Map<String, @Nullable Object> byName(Map<?, ?> object) {
+        Map<String, @Nullable Object> members = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> member : object.entrySet()) {
+            String name = String.valueOf(member.getKey());
+            if (members.containsKey(name)) {
+                throw new IllegalArgumentException("two members of a JSON object are written as \"" + name + "\"");
+            }
+            members.put(name, member.getValue());
+        }
+        return members;
     }
 
     private static boolean withinNumericBounds(Number number, Map<?, ?> schema) {
@@ -594,13 +698,30 @@ public final class SchemaParser {
 
         long min = lowest.longValue();
         long max = highest.longValue();
+        boolean openAbove = !schema.containsKey("maximum") && !schema.containsKey("exclusiveMaximum");
+        boolean openBelow = !schema.containsKey("minimum") && !schema.containsKey("exclusiveMinimum");
         // A missing bound defaults within the declared one: a lone minimum above the int range must not
         // keep the int maximum.
-        if (!schema.containsKey("maximum") && !schema.containsKey("exclusiveMaximum") && min <= Integer.MAX_VALUE) {
+        if (openAbove && min <= Integer.MAX_VALUE) {
             max = Integer.MAX_VALUE;
         }
-        if (!schema.containsKey("minimum") && !schema.containsKey("exclusiveMinimum") && max >= Integer.MIN_VALUE) {
+        if (openBelow && max >= Integer.MIN_VALUE) {
             min = Integer.MIN_VALUE;
+        }
+        if (schema.get("multipleOf") instanceof Number multipleOf) {
+            BigDecimal step = wholeStep(decimal(multipleOf));
+            BigInteger first = quotient(BigDecimal.valueOf(min), step, RoundingMode.CEILING);
+            BigInteger last = quotient(BigDecimal.valueOf(max), step, RoundingMode.FLOOR);
+            // A default is this parser's own choice, so where it leaves no multiple, the open side reaches
+            // the nearest one, if a long holds it.
+            if (first.compareTo(last) > 0) {
+                if (openAbove) {
+                    last = first.min(quotient(highest, step, RoundingMode.FLOOR));
+                } else if (openBelow) {
+                    first = last.max(quotient(lowest, step, RoundingMode.CEILING));
+                }
+            }
+            return multiples(step, first, last, true, path, schema);
         }
 
         long lower = min;
@@ -619,6 +740,9 @@ public final class SchemaParser {
     }
 
     private static SchemaValueProvider resolveNumber(Map<String, Object> schema, String path) {
+        if (schema.get("multipleOf") instanceof Number multipleOf) {
+            return decimalMultiples(decimal(multipleOf), schema, path);
+        }
         // Every bound narrows the range; a side with no bound stays infinite until its default below.
         double lowest = Double.NEGATIVE_INFINITY;
         if (schema.get("minimum") instanceof Number minimum) {
@@ -680,6 +804,115 @@ public final class SchemaParser {
         return Double.isFinite(nearest) && decimal(nearest).compareTo(exact) > 0 ? Math.nextDown(nearest) : nearest;
     }
 
+    /**
+     * The multiples of a step that a number's bounds allow. Each bound gives, exactly, the least or
+     * greatest whole k for which k × step is within it. A missing bound defaults from the declared one, as
+     * for any number; a default is this parser's own choice, so where it leaves no multiple, the open side
+     * reaches the nearest one.
+     */
+    private static SchemaValueProvider decimalMultiples(BigDecimal step, Map<String, Object> schema, String path) {
+        BigDecimal floorValue = null;
+        BigInteger lowest = null;
+        if (schema.get("minimum") instanceof Number minimum) {
+            floorValue = decimal(minimum);
+            lowest = quotient(floorValue, step, RoundingMode.CEILING);
+        }
+        if (exclusiveBound(schema, "exclusiveMinimum", "minimum") instanceof Number exclusive) {
+            BigDecimal bound = decimal(exclusive);
+            BigInteger above = quotient(bound, step, RoundingMode.FLOOR).add(BigInteger.ONE);
+            floorValue = floorValue == null ? bound : floorValue.max(bound);
+            lowest = lowest == null ? above : lowest.max(above);
+        }
+        BigDecimal ceilingValue = null;
+        BigInteger highest = null;
+        if (schema.get("maximum") instanceof Number maximum) {
+            ceilingValue = decimal(maximum);
+            highest = quotient(ceilingValue, step, RoundingMode.FLOOR);
+        }
+        if (exclusiveBound(schema, "exclusiveMaximum", "maximum") instanceof Number exclusive) {
+            BigDecimal bound = decimal(exclusive);
+            BigInteger below = quotient(bound, step, RoundingMode.CEILING).subtract(BigInteger.ONE);
+            ceilingValue = ceilingValue == null ? bound : ceilingValue.min(bound);
+            highest = highest == null ? below : highest.min(below);
+        }
+        BigDecimal limit = BigDecimal.valueOf(NUMBER_DEFAULT_LIMIT);
+        BigDecimal top = ceilingValue;
+        if (top == null) {
+            top = floorValue == null || floorValue.compareTo(limit) < 0
+                    ? limit
+                    : floorValue.add(limit).add(limit);
+        }
+        BigInteger last = highest;
+        if (last == null) {
+            last = quotient(top, step, RoundingMode.FLOOR);
+            if (lowest != null) {
+                last = last.max(lowest);
+            }
+        }
+        BigInteger first = lowest;
+        if (first == null) {
+            BigDecimal bottom = top.compareTo(limit.negate()) > 0
+                    ? limit.negate()
+                    : top.subtract(limit).subtract(limit);
+            first = quotient(bottom, step, RoundingMode.CEILING).min(last);
+        }
+        return multiples(step, first, last, false, path, schema);
+    }
+
+    /**
+     * Draws k × step for a whole k from lowest to highest, exactly. The draw takes 64 more random bits
+     * than the count of multiples needs, so every k is equally likely to within 2^-64, with no retry. An
+     * integer stays an Integer where every multiple fits an int, and a Long otherwise; a number is a
+     * BigDecimal.
+     */
+    private static SchemaValueProvider multiples(
+            BigDecimal step,
+            BigInteger lowest,
+            BigInteger highest,
+            boolean integer,
+            String path,
+            Map<String, Object> schema) {
+        if (lowest.compareTo(highest) > 0) {
+            throw emptyRange("multipleOf", path, schema);
+        }
+        BigInteger count = highest.subtract(lowest).add(BigInteger.ONE);
+        int bits = count.bitLength() + 64;
+        boolean fitsInt = integer
+                && step.multiply(new BigDecimal(lowest)).compareTo(BigDecimal.valueOf(Integer.MIN_VALUE)) >= 0
+                && step.multiply(new BigDecimal(highest)).compareTo(BigDecimal.valueOf(Integer.MAX_VALUE)) <= 0;
+        return ctx -> {
+            BigDecimal value = step.multiply(new BigDecimal(lowest.add(new BigInteger(bits, ctx.random()).mod(count))));
+            if (!integer) {
+                return plain(value);
+            }
+            if (fitsInt) {
+                return value.intValueExact();
+            }
+            return value.longValueExact();
+        };
+    }
+
+    /** The least whole multiple of a step, since an integer that is a multiple of 2.5 is one of 5. */
+    private static BigDecimal wholeStep(BigDecimal step) {
+        BigDecimal stripped = step.stripTrailingZeros();
+        if (stripped.scale() <= 0) {
+            return stripped;
+        }
+        BigInteger unscaled = stripped.unscaledValue();
+        return new BigDecimal(unscaled.divide(unscaled.gcd(BigInteger.TEN.pow(stripped.scale()))));
+    }
+
+    /** A quotient rounded to a whole number, exactly. */
+    private static BigInteger quotient(BigDecimal dividend, BigDecimal divisor, RoundingMode rounding) {
+        return dividend.divide(divisor, 0, rounding).toBigIntegerExact();
+    }
+
+    /** A decimal without trailing zeros or a positive exponent, so 2.50 is 2.5 and 3E+2 is 300. */
+    private static BigDecimal plain(BigDecimal value) {
+        BigDecimal stripped = value.stripTrailingZeros();
+        return stripped.scale() < 0 ? stripped.setScale(0) : stripped;
+    }
+
     private static IllegalArgumentException emptyRange(String kind, String path, Map<String, Object> schema) {
         return new IllegalArgumentException("JSON Schema " + kind + " range has no values at " + path + ": " + schema);
     }
@@ -706,14 +939,51 @@ public final class SchemaParser {
         }
 
         SchemaValueProvider items = itemProvider;
+        if (Boolean.TRUE.equals(schema.get("uniqueItems"))) {
+            // While parsing, a search with a fixed seed looks for maxItems distinct items, and gives the
+            // same verdict on every run. Fewer than minItems fail here; fewer than maxItems are the most an
+            // array then holds, so items with few distinct values never spend the whole budget, which
+            // would multiply at every level of nested arrays.
+            int distinct = distinctItems(
+                            items, new SchemaContext(config.getLocale(), new Random(0L), 0), maxItems, minItems, path)
+                    .size();
+            return ctx -> distinctItems(items, ctx, size(ctx, minItems, distinct), minItems, path);
+        }
         return ctx -> {
-            int size = minItems == maxItems ? minItems : minItems + ctx.random().nextInt(maxItems - minItems + 1);
+            int size = size(ctx, minItems, maxItems);
             List<Object> list = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
                 list.add(items.generate(ctx));
             }
             return list;
         };
+    }
+
+    private static int size(SchemaContext ctx, int minItems, int maxItems) {
+        return minItems == maxItems ? minItems : minItems + ctx.random().nextInt(maxItems - minItems + 1);
+    }
+
+    /**
+     * Draws items until there are size distinct ones, as JSON values, with at most
+     * {@value #UNIQUE_ITEM_ATTEMPTS} draws for each item. Items that run out of distinct values sooner keep
+     * the ones found, which fails only below minItems.
+     */
+    private static List<Object> distinctItems(
+            SchemaValueProvider items, SchemaContext ctx, int size, int minItems, String path) {
+        List<Object> list = new ArrayList<>(size);
+        Set<@Nullable Object> seen = new HashSet<>();
+        long attempts = (long) UNIQUE_ITEM_ATTEMPTS * size;
+        for (long attempt = 0; attempt < attempts && list.size() < size; attempt++) {
+            Object item = items.generate(ctx);
+            if (seen.add(json(item))) {
+                list.add(item);
+            }
+        }
+        if (list.size() < minItems) {
+            throw new IllegalArgumentException("JSON Schema uniqueItems cannot be met at " + path + ": " + attempts
+                    + " items drawn held " + list.size() + " distinct values, below minItems " + minItems);
+        }
+        return list;
     }
 
     @SuppressWarnings("unchecked")
