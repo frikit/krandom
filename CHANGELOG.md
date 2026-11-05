@@ -65,6 +65,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   country, and a locale whose country has no places resolves none rather than borrowing another
   country's through its language. `LocaleDataBundle.Builder.postalPlaces(...)` registers places with a
   bundle. `Vocabulary.all()` lists 42 vocabularies.
+- The object engine now generates a sealed interface or abstract sealed class, as a root or as a member, as
+  one of the concrete classes of its hierarchy, where it failed as an unsupported type. Each class is equally
+  likely, and the choice is drawn from the seeded stream in binary-name order rather than the order the type
+  permits them. The classes are each permitted subclass that is concrete, a record, or an enum, which gives
+  one of its constants, and the classes of each abstract sealed subclass, at any depth. A class already being
+  generated on the member's path is left out while another remains, so a recursive hierarchy such as an
+  expression tree ends in a leaf. A type override or `objectSubtype` mapping for the sealed type wins, one for
+  an abstract subclass makes that subclass a choice, and an abstract subclass with neither fails generation as
+  an unsupported type that names it, whatever the seed. A sealed root is generated as a root of the chosen
+  class would be from the same seed. A concrete sealed class is still generated as itself. A construction
+  adapter can declare a type sealed and list its subclasses through the new default method
+  `ObjectConstructionAdapter.sealedSubclasses`. The choice draws only for sealed members, so seeded output
+  does not change for objects without one.
 
 ### Changed
 
@@ -197,6 +210,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   plugin to 5.2.0, Spotless to 8.11.0, PIT to 1.30.2, Hibernate Validator to 9.1.6.Final, the Instancio
   benchmark competitor to 6.2.1, and in the CI and release workflows `actions/setup-java` to 6.2.0,
   `coursier/setup-action` to 3.1.0, and `softprops/action-gh-release` to 3.0.4.
+- An `objectSubtype` mapping now applies to an interface or abstract root as well as to a member:
+  `new ObjectGenerator<>(PaymentMethod.class, config)` generates the mapped implementation, where it failed
+  as an unsupported root type. A concrete root is still generated as itself.
 
 ### Fixed
 
@@ -264,6 +280,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   also serves `en_CA`, `en_IN`, and other English locales that fall back to it, such as `en_SG`, so
   their cities, and the addresses and payloads built on them, change in the same way: with seed `158`,
   an `en_CA` `AddressInfo` city was `Gateshead` and is now `Gary`.
+- The implementation of an `objectSubtype` mapping for a generic member now takes the member's type
+  arguments. With `objectSubtype(Box.class, ListBox.class)` and `record ListBox<T>(List<T> items) implements
+  Box<T>`, a `Box<Integer>` member holds integers, where the unbound `T` failed as an unsupported type. The
+  arguments reach the implementation through any generic supertypes in between, and are passed as declared,
+  not checked. Only members that failed before change.
 
 ## [2.10.0] - 2026-11-02
 

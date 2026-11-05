@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.object;
 
 import io.github.frikit.krandom.generator.GenerationContext;
+import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
@@ -58,6 +59,14 @@ import org.objenesis.ObjenesisStd;
  *       past that depth is left {@code null}, unless it is required (for example {@code @NotNull}),
  *       which fails generation with the member's path. A container that cannot hold that
  *       {@code null}, such as a {@code Queue}, fails as a rejected insertion at its own path.</li>
+ *   <li><b>Sealed types</b> — a sealed interface or abstract sealed class, as a root or a member, is
+ *       generated as one of the concrete classes of its hierarchy, drawn from the seeded stream in
+ *       binary-name order: each concrete subclass, including a concrete sealed one, each enum's
+ *       constants, and the classes of each abstract sealed subclass. A class already being generated
+ *       is left out while another remains, so a recursive hierarchy ends in a leaf. A type override
+ *       or {@code objectSubtype} mapping for the sealed type wins, and one for an abstract subclass
+ *       makes it a choice; an abstract subclass with neither fails generation whatever the seed. A
+ *       generic subclass takes the type arguments of the declared type.</li>
  *   <li><b>Enum fields</b> — a random constant is selected.</li>
  *   <li><b>Arrays</b> — auto-populated using the shared collection-size defaults
  *       (default 1 to 10 elements). A {@code @Size} or {@code @NotEmpty} written before an array
@@ -332,6 +341,15 @@ public final class ObjectGenerator<T> implements Generator<T> {
         if (factory.isPresent()) {
             return generateFromRootFactory("type override", factory.get()::generate);
         }
+        if (SealedTypes.isAbstract(type)) {
+            Class<?> mapped = config.resolveSubtype(type);
+            if (mapped != type) {
+                return generateAs(mapped);
+            }
+            if (SealedTypes.isSealed(type, uniqueFieldTracker)) {
+                return generateSealed();
+            }
+        }
 
         FieldGeneratorResolver resolver = new FieldGeneratorResolver(
                 config,
@@ -390,6 +408,61 @@ public final class ObjectGenerator<T> implements Generator<T> {
                     null);
             return type.cast(fallback);
         }
+    }
+
+    /**
+     * Generates an interface or abstract root as a concrete class, at this root's path and depth and
+     * from its seed, so that it is generated as a root of that class would be.
+     */
+    private T generateAs(Class<?> concreteType) {
+        return type.cast(new ObjectGenerator<>(
+                        concreteType,
+                        config,
+                        depth,
+                        pool,
+                        generationSeed,
+                        uniqueFieldTracker,
+                        ResolvedType.bindingsFor(concreteType),
+                        objectPath)
+                .generate());
+    }
+
+    /**
+     * Generates a sealed root as one of its concrete subclasses. The choice is drawn from a stream of
+     * its own, so the chosen class is generated from this root's seed.
+     */
+    private T generateSealed() {
+        List<Class<?>> subclasses;
+        try {
+            subclasses = SealedTypes.concreteSubclasses(type, config, uniqueFieldTracker);
+        } catch (RuntimeException unsupported) {
+            throw unsupportedRootFailure(unsupported);
+        }
+        Random choice = generationSeed != null
+                ? new Random(GenerationRecipe.deriveChildSeed(generationSeed, sealedStreamIdentity(type)))
+                : config.getGeneratorConfig().createRandom();
+        Class<?> chosen = subclasses.get(choice.nextInt(subclasses.size()));
+        if (chosen.isEnum()) {
+            Object[] constants = chosen.getEnumConstants();
+            return type.cast(constants[choice.nextInt(constants.length)]);
+        }
+        return generateAs(chosen);
+    }
+
+    private ObjectGenerationException unsupportedRootFailure(RuntimeException cause) {
+        String path = typePath();
+        GenerationFailureContext context = new GenerationFailureContext(
+                GenerationFailureCategory.UNSUPPORTED_TYPE,
+                GenerationOperation.GENERATE,
+                path,
+                type,
+                type.getTypeName(),
+                depth,
+                -1);
+        return new ObjectGenerationException(
+                "Unsupported type at '" + path + "' (declared type " + type.getTypeName() + ", depth " + depth + ")",
+                context,
+                cause);
     }
 
     private ObjectGenerationException constructionFailure(Throwable cause) {
@@ -623,7 +696,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 || config.getTypeOverride(rawType).isPresent();
     }
 
-    private static @Nullable ObjectConstructionAdapter constructionAdapterFor(Class<?> requestedType) {
+    static @Nullable ObjectConstructionAdapter constructionAdapterFor(Class<?> requestedType) {
         for (ObjectConstructionAdapter adapter : ServiceLoader.load(ObjectConstructionAdapter.class)) {
             if (adapter.supports(requestedType)) {
                 return adapter;
@@ -833,6 +906,10 @@ public final class ObjectGenerator<T> implements Generator<T> {
     private static String memberStreamIdentity(Class<?> ownerType, String kind, String memberName) {
         return "object|owner=" + ownerType.getName().length() + ':' + ownerType.getName() + "|kind=" + kind + "|member="
                 + memberName.length() + ':' + memberName;
+    }
+
+    private static String sealedStreamIdentity(Class<?> sealedType) {
+        return "object|sealed=" + sealedType.getName().length() + ':' + sealedType.getName();
     }
 
     private static List<Field> doCollectSettableFields(Class<?> clazz) {

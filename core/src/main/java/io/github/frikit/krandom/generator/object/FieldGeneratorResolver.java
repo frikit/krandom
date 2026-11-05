@@ -1856,14 +1856,7 @@ final class FieldGeneratorResolver {
 
         // ── 5. Enum ───────────────────────────────────────────────────────────
         if (rawType.isEnum()) {
-            Object[] constants = rawType.getEnumConstants();
-            if (constants.length == 0) return null;
-            Long enumSeed = nextDeterministicSeed(generatorConfig, sequenceRandom);
-            Generator<?> enumGenerator = enumSeed != null
-                    ? new EnumGenerator((Class<? extends Enum>) rawType, enumSeed)
-                    : () -> constants[sequenceRandom.nextInt(constants.length)];
-            return generateWithUniqueness(
-                    enumGenerator, null, rawType, genericType, ownerType, fieldName, currentDepth);
+            return generateEnum(rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 6a. Array ─────────────────────────────────────────────────────────
@@ -2025,10 +2018,30 @@ final class FieldGeneratorResolver {
 
         // ── 8. Nested class or record (cycle-safe) ────────────────────────────
         // Abstract/interface field types may be mapped to a concrete implementation
-        // via GeneratorConfig.objectSubtype / ObjectGeneratorConfig.subtype.
+        // via GeneratorConfig.objectSubtype / ObjectGeneratorConfig.subtype, and an
+        // unmapped sealed one takes one of its concrete subclasses.
         Class<?> nestedType = config.resolveSubtype(rawType);
+        String poolTypeSignature = poolTypeSignature(resolvedType);
+        if (SealedTypes.isSealed(nestedType, uniqueFieldTracker)) {
+            List<Class<?>> subclasses;
+            try {
+                subclasses = SealedTypes.concreteSubclasses(nestedType, config, uniqueFieldTracker);
+            } catch (RuntimeException unsupported) {
+                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth, unsupported);
+            }
+            Class<?> chosen = chooseSubclass(subclasses, poolTypeSignature);
+            Generator<?> chosenOverride =
+                    typeOverrideFor(chosen, genericType, fieldName, ownerType, currentDepth, element);
+            if (chosenOverride != null) {
+                return generateIfRequestedUnique(
+                        chosenOverride, chosen, genericType, ownerType, fieldName, currentDepth);
+            }
+            if (chosen.isEnum()) {
+                return generateEnum(chosen, genericType, ownerType, fieldName, currentDepth);
+            }
+            nestedType = chosen;
+        }
         if (isNestableType(nestedType)) {
-            String poolTypeSignature = poolTypeSignature(resolvedType);
             if (pool.isInProgress(nestedType, poolTypeSignature)) {
                 return pool.getCached(nestedType, poolTypeSignature); // break circular reference
             }
@@ -2112,7 +2125,19 @@ final class FieldGeneratorResolver {
             }
         }
 
-        // ── 2. Contextual type-level override (after every field-level override) ──
+        // ── 2. Type-level override, after every field-level override ──────────
+        return typeOverrideFor(rawType, genericType, fieldName, ownerType, currentDepth, element);
+    }
+
+    /** The contextual or plain type override that generates {@code rawType} for this member, if any. */
+    private @Nullable Generator<?> typeOverrideFor(
+            Class<?> rawType,
+            Type genericType,
+            String fieldName,
+            Class<?> ownerType,
+            int currentDepth,
+            @Nullable AnnotatedElement element) {
+        // ── 2. Contextual type-level override ─────────────────────────────────
         var ctxType = config.getContextualTypeOverride(rawType);
         if (ctxType.isPresent()) {
             return withContext(
@@ -2121,6 +2146,35 @@ final class FieldGeneratorResolver {
 
         // ── 2a. Type-level override ───────────────────────────────────────────
         return config.getTypeOverride(rawType).orElse(null);
+    }
+
+    /** One of the enum's constants, or {@code null} for an enum with none. */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private @Nullable Object generateEnum(
+            Class<?> enumType, Type declaredType, Class<?> ownerType, String fieldName, int currentDepth) {
+        Object[] constants = enumType.getEnumConstants();
+        if (constants.length == 0) return null;
+        Long enumSeed = nextDeterministicSeed(generatorConfig, sequenceRandom);
+        Generator<?> enumGenerator = enumSeed != null
+                ? new EnumGenerator((Class<? extends Enum>) enumType, enumSeed)
+                : () -> constants[sequenceRandom.nextInt(constants.length)];
+        return generateWithUniqueness(enumGenerator, null, enumType, declaredType, ownerType, fieldName, currentDepth);
+    }
+
+    /**
+     * Draws one of a sealed type's classes. A class already being generated on this path would repeat
+     * a cycle, so it is left out while another class remains, and a recursive hierarchy such as an
+     * expression tree ends in a leaf.
+     */
+    private Class<?> chooseSubclass(List<Class<?>> subclasses, String poolTypeSignature) {
+        List<Class<?>> open = new ArrayList<>(subclasses.size());
+        for (Class<?> subclass : subclasses) {
+            if (!pool.isInProgress(subclass, poolTypeSignature)) {
+                open.add(subclass);
+            }
+        }
+        List<Class<?>> choices = open.isEmpty() ? subclasses : open;
+        return choices.get(sequenceRandom.nextInt(choices.size()));
     }
 
     private static Generator<?> withContext(ContextualGenerator<?> generator, GenerationContext context) {
@@ -2164,9 +2218,13 @@ final class FieldGeneratorResolver {
 
     private Map<TypeVariable<?>, Type> nestedTypeBindings(ResolvedType resolvedType, Class<?> nestedType) {
         Map<TypeVariable<?>, Type> bindings = new LinkedHashMap<>(typeBindings);
-        bindings.putAll(ResolvedType.bindingsFor(nestedType));
+        Map<TypeVariable<?>, Type> nestedBindings = ResolvedType.bindingsFor(nestedType);
+        bindings.putAll(nestedBindings);
         ResolvedType generationType = Objects.requireNonNullElse(resolvedType.effectiveType(), resolvedType);
-        bindings.putAll(ResolvedType.bindingsFor(generationType.declaredType()));
+        Map<TypeVariable<?>, Type> declaredBindings = ResolvedType.bindingsFor(generationType.declaredType());
+        bindings.putAll(declaredBindings);
+        // A mapped or sealed subclass of a generic declared type takes its arguments.
+        bindings.putAll(ResolvedType.subtypeArguments(nestedBindings, declaredBindings));
         return Map.copyOf(bindings);
     }
 
@@ -2236,6 +2294,22 @@ final class FieldGeneratorResolver {
 
     private @Nullable Object handleUnsupportedType(
             Class<?> rawType, Type declaredType, Class<?> ownerType, String fieldName, int depth) {
+        return handleUnsupportedType(
+                rawType,
+                declaredType,
+                ownerType,
+                fieldName,
+                depth,
+                new UnsupportedOperationException("No generator is registered for the declared type"));
+    }
+
+    private @Nullable Object handleUnsupportedType(
+            Class<?> rawType,
+            Type declaredType,
+            Class<?> ownerType,
+            String fieldName,
+            int depth,
+            RuntimeException cause) {
         String path = ownerType.getSimpleName() + "." + fieldName;
         String declaredTypeName = declaredType.getTypeName();
         GenerationFailureContext context = new GenerationFailureContext(
@@ -2246,8 +2320,6 @@ final class FieldGeneratorResolver {
                 declaredTypeName,
                 depth,
                 -1);
-        UnsupportedOperationException cause =
-                new UnsupportedOperationException("No generator is registered for the declared type");
         return failurePolicy.handle(
                 new ObjectGenerationException(
                         "Unsupported type at '" + path + "' (declared type " + declaredTypeName + ", depth " + depth
@@ -2290,7 +2362,8 @@ final class FieldGeneratorResolver {
      */
     private @Nullable Object handleRequiredMemberAtMaxDepth(
             Class<?> rawType, Type declaredType, Class<?> ownerType, String fieldName, int depth) {
-        if (!isNestableType(config.resolveSubtype(rawType))) {
+        Class<?> nestedType = config.resolveSubtype(rawType);
+        if (!isNestableType(nestedType) && !SealedTypes.isSealed(nestedType, uniqueFieldTracker)) {
             return handleUnsupportedType(rawType, declaredType, ownerType, fieldName, depth);
         }
         // The whole member path: an inherited field's owner is not the nested type on that path.

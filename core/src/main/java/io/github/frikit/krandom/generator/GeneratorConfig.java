@@ -1233,11 +1233,14 @@ public final class GeneratorConfig {
         }
 
         /**
-         * Maps an abstract or interface field type to the concrete implementation that
-         * object generation instantiates for it.
+         * Maps an abstract or interface type to the concrete implementation that object
+         * generation instantiates for it, for a member of that type and for a root of it.
          *
          * <p>kRandom does not scan the classpath for implementations; this explicit
-         * mapping is the supported way to populate abstract and interface fields.
+         * mapping is the supported way to populate abstract and interface fields. A sealed type
+         * needs none, because it is generated as one of its permitted subclasses, but a mapping for
+         * it wins, and a mapping for an abstract subclass that is not sealed makes that
+         * subclass's implementation one of the choices.
          *
          * @param declaredType abstract class or interface declared by fields
          * @param implementationType concrete subtype to instantiate for those fields

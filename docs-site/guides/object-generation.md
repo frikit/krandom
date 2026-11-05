@@ -60,7 +60,8 @@ precedence over type-level overrides, contextual or not.
 | Mutable class with a no-argument constructor | No-argument constructor, then mutable fields | Contextual construction/access failure |
 | Class with exactly one declared constructor | Generated constructor arguments (by parameter name with `-parameters`, otherwise by position), then mutable fields | Contextual construction/access failure |
 | Class with multiple declared constructors | No implicit choice | Register a type factory |
-| Interface or abstract root | No reflective allocation | Register a type factory |
+| Sealed interface or abstract sealed class | One of its concrete subclasses: see [Sealed types](#sealed-types) | Register a type factory or `objectSubtype` mapping |
+| Other interface or abstract root | Its `objectSubtype` mapping, otherwise no reflective allocation | Register a type factory |
 | Local, anonymous, non-static inner, enum, annotation, array, or primitive root | Unsupported | Use a supported wrapper/factory design |
 
 Constructor parameters behave like the fields they initialize when the class is compiled with
@@ -202,6 +203,53 @@ Object population natively composes 21 Jakarta Validation constraints across fie
 records, interface accessors, and constructor parameters. See the [Bean Validation support matrix]({{ '/guides/bean-validation/' | relative_url }})
 for exact target types, intersection rules, precedence, and exclusions.
 
+## Sealed types
+
+A sealed interface or abstract sealed class, as a root or as a member, is generated as one of the
+concrete classes of its hierarchy, so it needs no `objectSubtype` mapping or type factory:
+
+```java
+sealed interface Shape permits Square, Circle {}
+record Circle(double radius) implements Shape {}
+record Square(double side) implements Shape {}
+record Drawing(Shape shape) {}
+
+GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
+Drawing drawing = new ObjectGenerator<>(Drawing.class, config).generate();
+// drawing.shape() is a Circle or a Square, and the same one for the same seed
+```
+
+Each class is equally likely, and the choice is drawn from the seeded stream in binary-name order rather
+than the order the type permits them, so the same seed chooses the same classes. The classes are:
+
+- each permitted subclass that is concrete, a record, or an enum, as itself. An enum gives one of its
+  constants, and a concrete subclass that is sealed too is generated as itself, not as its own subclasses.
+- the classes of each permitted subclass that is a sealed interface or abstract class, at any depth. A
+  class reached through two sealed parents is one choice.
+
+A type override or `objectSubtype` mapping for the sealed type wins over the choice. A permitted subclass
+with a type override is a choice that its override generates, and one with an `objectSubtype` mapping is
+a choice of the mapped class. A permitted subclass that is an interface or abstract class but not sealed,
+such as a Java `non-sealed` interface, needs one of the two: without it, generation fails as an unsupported
+type that names the subclass, whatever the seed. A sealed type with no class to generate, such as a Kotlin
+sealed interface with no subclass, fails the same way. With `objectIgnoreErrors(true)` the member stays
+`null` and `generationFailureListener` is told.
+
+A class already being generated on the member's path is left out of the choice while another class
+remains, so a recursive hierarchy ends in a leaf. For `sealed interface Expr permits Num, Add` and
+`record Add(Expr left, Expr right)`, a generated `Add` holds two `Num` values. Where every class is on the
+path, the cycle is cut as [any other cycle](#depth-limit) is.
+
+A sealed root is generated as a root of the chosen class would be from the same seed. A generic subclass
+takes the type arguments of the declared type: a `Result<String>` member generated as
+`record Ok<T>(T value) implements Result<T>` holds a `String`. The arguments are passed as declared and not
+checked against the subclass. A root is a raw class, so the subclasses of a generic sealed root take no
+arguments, and one that uses its type parameters fails as an unsupported type. The implementation of an
+`objectSubtype` mapping takes the arguments of a generic member in the same way.
+
+A concrete sealed class is generated as itself, and a sealed JDK type, such as
+`java.lang.constant.ConstantDesc`, is not generated.
+
 ## Depth limit
 
 `objectMaxDepth` (default 5) limits how deep nested classes and records are generated. The root is at
@@ -238,8 +286,8 @@ What counts as required:
   so it can still be empty. `@NotEmpty` and `@NotBlank` are rejected on other nested object types.
 - `@Size` alone does not count, because Bean Validation accepts `null` for it.
 
-A required member that no depth could generate, such as an interface with no `objectSubtype` mapping,
-fails as an unsupported type, as it does above the limit.
+A required member that no depth could generate, such as an interface that is not sealed and has no
+`objectSubtype` mapping, fails as an unsupported type, as it does above the limit.
 
 Collections, arrays, maps and optionals are not cut off at the limit, but the nested objects inside them
 are: a `List<Leaf>` holds `null` elements, and a `Map<Leaf, String>` and an `Optional<Leaf>` are empty.
