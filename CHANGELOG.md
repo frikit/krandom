@@ -24,9 +24,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   generated on the member's path is left out while another remains, so a recursive hierarchy such as an
   expression tree ends in a leaf. A type override or `objectSubtype` mapping for the sealed type wins, one for
   an abstract subclass makes that subclass a choice, and an abstract subclass with neither fails generation as
-  an unsupported type that names it, whatever the seed. A sealed root is generated as a root of the chosen
-  class would be from the same seed. A concrete sealed class is still generated as itself. A construction
-  adapter can declare a type sealed and list its subclasses through the new default method
+  an unsupported type that names it, whatever the seed. A sealed root is generated from its seed as a root of
+  the chosen class would be, except that the chosen class counts as being generated, so its members leave it
+  out of their choices while another class remains. A concrete sealed class is still generated as itself. A
+  construction adapter can declare a type sealed and list its subclasses through the new default method
   `ObjectConstructionAdapter.sealedSubclasses`. The choice draws only for sealed members, so seeded output
   does not change for objects without one.
 - The Kotlin DSL generates Kotlin sealed classes and interfaces in the same way, reading their subclasses

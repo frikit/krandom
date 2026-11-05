@@ -240,8 +240,10 @@ remains, so a recursive hierarchy ends in a leaf. For `sealed interface Expr per
 `record Add(Expr left, Expr right)`, a generated `Add` holds two `Num` values. Where every class is on the
 path, the cycle is cut as [any other cycle](#depth-limit) is.
 
-A sealed root is generated as a root of the chosen class would be from the same seed. A generic subclass
-takes the type arguments of the declared type: a `Result<String>` member generated as
+A sealed root is generated from its seed as a root of the chosen class would be, except that the chosen
+class counts as being generated, so the members of a recursive root leave it out of their choices while
+another class remains. A type override for the chosen class generates it, an enum included. A generic
+subclass takes the type arguments of the declared type: a `Result<String>` member generated as
 `record Ok<T>(T value) implements Result<T>` holds a `String`. The arguments are passed as declared and not
 checked against the subclass. A root is a raw class, so the subclasses of a generic sealed root take no
 arguments, and one that uses its type parameters fails as an unsupported type. The implementation of an
