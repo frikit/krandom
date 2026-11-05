@@ -149,6 +149,9 @@ Rules:
 
 - A method-level annotation overrides a class-level one; `@Nested` classes inherit the
   enclosing class's seed.
+- A `@MethodSource` factory takes the class-scoped configuration described below, so a
+  method-level annotation pins the invocations of its `@ParameterizedTest` but not the factory
+  that generates their arguments. Pin the class to fix those arguments.
 - String seeds are supported via `@KrandomSeed(text = "checkout-flow")` and derive the numeric
   seed with the same `fnv1a64-v1` algorithm as `GeneratorConfig.builder().seed(String)`.
 - Setting both `value` and `text` (or neither) is a configuration error and fails the test.
@@ -198,15 +201,18 @@ Where a parameter is declared decides which configuration it receives:
 |:---|:---|
 | a `@Test`/`@ParameterizedTest` method, `@BeforeEach`/`@AfterEach` | the test method's configuration |
 | the test-class constructor (default `PER_METHOD` lifecycle) | the test method's configuration, so fields initialised in the constructor match the test's seed |
-| `@BeforeAll`/`@AfterAll` methods, or the constructor under `@TestInstance(PER_CLASS)` | one class-scoped configuration per test class |
+| `@BeforeAll`/`@AfterAll` methods, the constructor under `@TestInstance(PER_CLASS)`, `@MethodSource` factory methods, or `@BeforeParameterizedClassInvocation`/`@AfterParameterizedClassInvocation` methods | one class-scoped configuration per test class |
 
 The class-scoped configuration uses the class-level `@KrandomSeed` (searching enclosing classes for
 `@Nested` tests), a replay override, or a random seed. It is shared by that class's class-level
-callbacks and never leaks into a test method: every test resolves its own seed, so a method-level
-`@KrandomSeed` always applies. When a test fails, the failure output also lists the seed of every
-class-scoped configuration of its enclosing classes, and the replay commands restore them through
-`KRANDOM_JUNIT_CLASS_RECIPE` (Maven: `-Dkrandom.junit.class-recipe`), so data created in
-`@BeforeAll` replays together with the test's own data:
+methods and never leaks into a test method: every test resolves its own seed, so a method-level
+`@KrandomSeed` always applies to the test. JUnit calls a `@MethodSource` factory for its
+parameterized test as a whole, not for one invocation, so the factory takes the class-scoped
+configuration, as `@BeforeAll` does, and not the seed of an invocation. When a test fails, the
+failure output also lists the seed of every class-scoped configuration of its enclosing classes,
+and the replay commands restore them through `KRANDOM_JUNIT_CLASS_RECIPE` (Maven:
+`-Dkrandom.junit.class-recipe`), so data created in `@BeforeAll` or a factory replays together
+with the test's own data:
 
 ```bash
 KRANDOM_JUNIT_CLASS_RECIPE='com.example.OrderServiceTest=base64:...' KRANDOM_JUNIT_RECIPE=base64:... ./gradlew test --tests 'com.example.OrderServiceTest' --rerun
@@ -221,8 +227,8 @@ test's own `@KrandomSeed`.
 
 ## Sessions in each scope
 
-A `Krandom` parameter follows the table above: each configuration has one session, built from it when
-first injected.
+A `Krandom` parameter receives a session built, when first injected, from the configuration that the
+table above gives its declaration, and shared as follows:
 
 | Declared on | Receives |
 |:---|:---|
@@ -230,11 +236,17 @@ first injected.
 | any other test | another session; a test neither continues nor advances the streams of another |
 | a `@RepeatedTest` repetition or a `@ParameterizedTest` invocation | a session of its own, as each has its own configuration |
 | a `@Nested` test, including the constructors and `@BeforeEach`/`@AfterEach` methods of enclosing classes that run for it | one session, as for any other test |
-| `@BeforeAll`/`@AfterAll` methods, or the constructor under `@TestInstance(PER_CLASS)` | one class-level session per test class, so a `@Nested` class has its own |
+| `@BeforeAll`/`@AfterAll` methods, the constructor under `@TestInstance(PER_CLASS)`, or the `@MethodSource` factory of a `@ParameterizedClass` | one class-level session per test class, so a `@Nested` class has its own |
+| the `@MethodSource` factory of a `@ParameterizedTest` | a session of that parameterized test's own, built from the class-scoped configuration |
+| the `@BeforeParameterizedClassInvocation`/`@AfterParameterizedClassInvocation` methods of one `@ParameterizedClass` invocation | a session of that invocation's own, built from the class-scoped configuration |
 
 The class-level session and a test's session are always separate instances. A test does not receive
 the class-level session and does not advance it, so its streams continue from `@BeforeAll` to
-`@AfterAll` whatever the tests drew in between. How their values relate depends on their seeds:
+`@AfterAll` whatever the tests drew in between. A `@ParameterizedTest` factory and the callbacks of a
+`@ParameterizedClass` invocation do not advance it either: their sessions start the class-level
+streams again, so the first `fake.email()` of a factory is the first `fake.email()` of `@BeforeAll`,
+and the factories of one class start from the same values. How the values of the class-level session
+and of a test's session relate depends on their seeds:
 
 - Without a pin, the class-level session and each test's session have separate random seeds. A failure
   reports these seeds, and the printed replay commands restore them.
@@ -244,8 +256,8 @@ the class-level session and does not advance it, so its streams continue from `@
   every repetition and invocation, and a `@Nested` class that inherits the pin repeats the class-level
   values of its enclosing class. A method-level `@KrandomSeed` gives one test a seed of its own.
 
-When tests must not repeat the values created in `@BeforeAll`, for example under a unique constraint,
-derive a session with streams of its own there:
+When tests or factories must not repeat the values created in `@BeforeAll`, for example under a
+unique constraint, derive a session with streams of its own there, or in the factory:
 
 ```java
 @BeforeAll
@@ -261,7 +273,8 @@ A session is not thread-safe, and tests running at the same time do not share on
 has its own, including methods under `@Execution(CONCURRENT)` and repeated or parameterized invocations.
 The `@BeforeEach`, test and `@AfterEach` methods of one test run one after another, as do a class's
 `@BeforeAll` methods, `PER_CLASS` constructor and `@AfterAll` methods, and `@Nested` classes running at
-the same time have separate class-level sessions.
+the same time have separate class-level sessions. Factories of parameterized tests, and invocations of
+a `@ParameterizedClass`, that run at the same time have separate sessions too.
 
 A session is shared only if your code passes it on, and these uses are not safe:
 

@@ -40,21 +40,29 @@ import org.junit.platform.commons.support.AnnotationSupport;
  *
  * <p><b>Scopes.</b> Test-method parameters and test-class constructor parameters (under the
  * default {@code PER_METHOD} lifecycle) share the test method's configuration. Parameters of
- * {@code @BeforeAll}/{@code @AfterAll} methods, and constructor parameters under
- * {@code @TestInstance(PER_CLASS)}, are resolved against the test class instead: they receive one
- * class-scoped configuration seeded from the class-level {@link KrandomSeed} (or a random seed),
- * shared by those class-level callbacks and independent of every test method's seed. A
+ * {@code @BeforeAll}/{@code @AfterAll} methods, constructor parameters under
+ * {@code @TestInstance(PER_CLASS)}, parameters of {@code @MethodSource} factory methods, and
+ * parameters of {@code @BeforeParameterizedClassInvocation}/{@code @AfterParameterizedClassInvocation}
+ * methods are resolved against the test class instead: they receive one class-scoped configuration
+ * seeded from the class-level {@link KrandomSeed} (or a random seed), shared by those class-level
+ * methods and independent of every test method's seed. A {@code @ParameterizedTest} therefore
+ * keeps its method-level {@code @KrandomSeed} for its invocations, not for its factory. A
  * class-scoped configuration never leaks into a test method, so a method-level
- * {@code @KrandomSeed} always applies. When a test fails, the class-scoped seeds of its enclosing
- * classes are reported next to the test's own seed, and the printed replay commands restore them.
+ * {@code @KrandomSeed} always applies to the test. When a test fails, the class-scoped seeds of its
+ * enclosing classes are reported next to the test's own seed, and the printed replay commands
+ * restore them.
  *
- * <p><b>Sessions.</b> Each of these configurations has one {@link Krandom} session, built from it
- * when first injected. Every {@code Krandom} parameter of one test (its constructor,
- * {@code @BeforeEach}, test method and {@code @AfterEach}) is the same instance, so the streams
- * continue from one method to the next. Each test, repetition and parameterized invocation has a
- * session of its own, so tests running concurrently do not share one. The class-scoped session is
- * a separate instance that tests neither reuse nor advance; a class-level {@link KrandomSeed} gives
- * it the seed of those tests, so their sessions then repeat its values.
+ * <p><b>Sessions.</b> A {@link Krandom} session is built from the configuration above when first
+ * injected. Every {@code Krandom} parameter of one test (its constructor, {@code @BeforeEach}, test
+ * method and {@code @AfterEach}) is the same instance, so the streams continue from one method to
+ * the next. Each test, repetition and parameterized invocation has a session of its own, so tests
+ * running concurrently do not share one. The class-level session of {@code @BeforeAll},
+ * {@code @AfterAll}, {@code PER_CLASS} constructors and the factory of a {@code @ParameterizedClass}
+ * is a separate instance that tests neither reuse nor advance; a class-level {@link KrandomSeed}
+ * gives it the seed of those tests, so their sessions then repeat its values. The factory of a
+ * {@code @ParameterizedTest}, and the invocation callbacks of one {@code @ParameterizedClass}
+ * invocation, have a session of their own built from the class-scoped configuration: it starts the
+ * class-level streams again and leaves the class-level session where it was.
  *
  * <p><b>Configuration.</b> The {@code krandom.junit.*} settings below are read as JUnit Platform
  * configuration parameters, so a launcher configuration parameter, a JVM system property of the
@@ -316,7 +324,11 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
         };
     }
 
-    /** Returns the class-scoped configurations of the enclosing classes, outermost first. */
+    /**
+     * Returns the class-scoped configurations of the enclosing classes, outermost first. A test
+     * template or a class template invocation holds none: {@link #seedInfo} keeps its configuration
+     * under its test class, so each class is listed once.
+     */
     private static Deque<ClassScope> classScopes(ExtensionContext context) {
         Deque<ClassScope> scopes = new ArrayDeque<>();
         for (@Nullable ExtensionContext current = context.getParent().orElse(null);
@@ -334,7 +346,8 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     private static String classScopedLine(ClassScope scope) {
         SeedInfo classInfo = scope.info();
         String prefix = "krandom: class-scoped configuration of '"
-                + scope.testClass().getSimpleName() + "' (@BeforeAll/@AfterAll or PER_CLASS constructor parameters)";
+                + scope.testClass().getSimpleName()
+                + "' (@BeforeAll/@AfterAll, PER_CLASS constructor and @MethodSource factory parameters)";
         return classInfo.pinned()
                 ? prefix + " used pinned seed " + classInfo.seed() + "."
                 : prefix + " used seed " + classInfo.seed() + "; the replay commands restore it. To pin it in source,"
@@ -367,13 +380,55 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     }
 
     /**
-     * Returns the configuration of this exact context, computing and storing it on first access so
+     * Returns the configuration of this context's scope, computing and storing it on first access so
      * that parameter resolution and failure reporting observe the same value.
      */
     private SeedInfo seedInfo(ExtensionContext context) {
-        return context.getStore(NAMESPACE)
-                .computeIfAbsent(
-                        new ContextKey(context.getUniqueId()), key -> computeSeedInfo(context), SeedInfo.class);
+        ExtensionContext scope = scopeContext(context);
+        return scope.getStore(NAMESPACE)
+                .computeIfAbsent(new ContextKey(scope.getUniqueId()), key -> computeSeedInfo(scope), SeedInfo.class);
+    }
+
+    /**
+     * Returns the context that owns the configuration of this context: the context itself for a test
+     * or a test class, and the test class's context for the two contexts JUnit resolves class-level
+     * parameters against besides it. A {@code @MethodSource} factory is called with the context of
+     * the parameterized test as a whole, and {@code @BeforeParameterizedClassInvocation} and
+     * {@code @AfterParameterizedClassInvocation} methods with the context of one invocation of a
+     * {@code @ParameterizedClass}. Neither is a test, so both share the class-scoped configuration
+     * rather than create a second one, which failure reports would list under the same class name.
+     */
+    private static ExtensionContext scopeContext(ExtensionContext context) {
+        ExtensionContext current = context;
+        while (isTestTemplate(current) || isClassTemplateInvocation(current)) {
+            current = current.getParent().orElseThrow();
+        }
+        return current;
+    }
+
+    /**
+     * Whether this is the context of a test template as a whole, such as a {@code @ParameterizedTest}
+     * method, rather than of one of its invocations. It has the test class, test method and parent
+     * that the context of a {@code @Test} method would have, so this reads the type of the last unique
+     * ID segment, which the Jupiter engine names {@code test-template}
+     * ({@code TestTemplateTestDescriptor.SEGMENT_TYPE}). Unique IDs encode {@code /} inside segments,
+     * so the last {@code /} starts the last segment.
+     */
+    private static boolean isTestTemplate(ExtensionContext context) {
+        String uniqueId = context.getUniqueId();
+        return uniqueId.startsWith("[test-template:", uniqueId.lastIndexOf('/') + 1);
+    }
+
+    /**
+     * Whether this is the context of one invocation of a class template, such as a
+     * {@code @ParameterizedClass}: no other context without a test method has a parent of the same
+     * test class.
+     */
+    private static boolean isClassTemplateInvocation(ExtensionContext context) {
+        Optional<Class<?>> parentClass = context.getParent().flatMap(ExtensionContext::getTestClass);
+        return context.getTestMethod().isEmpty()
+                && parentClass.isPresent()
+                && parentClass.equals(context.getTestClass());
     }
 
     /** Returns the configuration stored for this exact context, never one of an ancestor. */
