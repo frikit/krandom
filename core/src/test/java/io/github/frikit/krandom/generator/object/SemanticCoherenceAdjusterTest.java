@@ -1555,6 +1555,10 @@ class SemanticCoherenceAdjusterTest {
         assertArrayEquals(
                 new Object[] {later, 500_000_000},
                 aligned(strict, AgedPairs.FutureTimestampBirthDate.class, later, 500_000_000));
+        java.sql.Date laterDate = java.sql.Date.valueOf(LocalDate.of(2024, 3, 1));
+        assertArrayEquals(
+                new Object[] {laterDate, 292_277_078},
+                aligned(strict, AgedPairs.FutureSqlDateBirthDate.class, laterDate, 292_277_078));
     }
 
     @Test
@@ -1586,6 +1590,18 @@ class SemanticCoherenceAdjusterTest {
                                 birthDateBeside(now, AgedPairs.CalendarBirthDate.class, calendar, 2_024 - 292_278_993))
                         .toInstant());
         assertSame(calendar, birthDateBeside(now, AgedPairs.CalendarBirthDate.class, calendar, 2_024 - 292_278_994));
+
+        // A java.sql.Date reads a date before 1582 in the Julian calendar, whose milliseconds run out thousands of
+        // years sooner: in the first year a Calendar holds, valueOf wraps round, so the birth date stays.
+        java.sql.Date sqlDate = java.sql.Date.valueOf(LocalDate.of(2000, 6, 4));
+        assertSame(sqlDate, birthDateBeside(now, AgedPairs.SqlDateBirthDate.class, sqlDate, 2_024 + 292_275_054));
+        // A date before 1970, or after, is derived as valueOf gives it.
+        assertEquals(
+                java.sql.Date.valueOf(LocalDate.of(1964, 2, 29)),
+                birthDateBeside(now, AgedPairs.SqlDateBirthDate.class, sqlDate, 60));
+        assertEquals(
+                java.sql.Date.valueOf(LocalDate.of(1970, 2, 28)),
+                birthDateBeside(now, AgedPairs.SqlDateBirthDate.class, sqlDate, 54));
     }
 
     /** The birth date the pass leaves beside an overridden age, under a clock fixed at this instant. */
@@ -1816,6 +1832,10 @@ class SemanticCoherenceAdjusterTest {
         record FutureTimestampBirthDate(
                 @Future java.sql.Timestamp birthDate,
                 @Min(500_000_000) int age) {}
+
+        record FutureSqlDateBirthDate(
+                @Future java.sql.Date birthDate,
+                @Min(292_277_078) int age) {}
     }
 
     private static List<Field> declaredFields(Class<?> type) {
