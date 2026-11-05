@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -63,6 +64,10 @@ public final class CalendarGenerator implements Generator<Calendar> {
     /**
      * Creates an unseeded calendar generator restricted to the given date range.
      *
+     * <p>A date-time in a gap in the drawn zone's rules moves forward by the length of the gap. Where that
+     * passes {@code max}, the value is the drawn date-time in UTC instead: {@code Pacific/Apia} skipped
+     * {@code 2011-12-30}, and {@code America/Nuuk} skips 23:00 to midnight on {@code 2024-03-30}.
+     *
      * @param min earliest date, inclusive
      * @param max latest date, inclusive
      */
@@ -72,6 +77,10 @@ public final class CalendarGenerator implements Generator<Calendar> {
 
     /**
      * Creates a calendar generator restricted to the given date range.
+     *
+     * <p>A date-time in a gap in the drawn zone's rules moves forward by the length of the gap. Where that
+     * passes {@code max}, the value is the drawn date-time in UTC instead, as for
+     * {@link #CalendarGenerator(LocalDate, LocalDate)}.
      *
      * @param min    earliest date, inclusive
      * @param max    latest date, inclusive
@@ -112,8 +121,11 @@ public final class CalendarGenerator implements Generator<Calendar> {
     private ZonedDateTime generateZonedDateTime() {
         LocalDate date = rangeMin == null ? generateDefaultDate() : generateRangeDate();
         LocalTime time = LocalTime.of(random.nextInt(24), random.nextInt(60), random.nextInt(60));
+        LocalDateTime dateTime = LocalDateTime.of(date, time);
         ZoneId zone = ZONE_IDS.get(random.nextInt(ZONE_IDS.size()));
-        return ZonedDateTime.of(LocalDateTime.of(date, time), zone);
+        ZonedDateTime zoned = ZonedDateTime.of(dateTime, zone);
+        // As in ZonedDateTimeGenerator, a gap in the zone's rules must not move a value past the range.
+        return rangeMax != null && zoned.toLocalDate().isAfter(rangeMax) ? dateTime.atZone(ZoneOffset.UTC) : zoned;
     }
 
     private LocalDate generateDefaultDate() {

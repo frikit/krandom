@@ -193,8 +193,10 @@ be out of the range too.
 
 A gap in a zone's rules moves a date-time forward. Where that would take a field past the last date of the
 range, a `ZonedDateTime` or `Calendar` holds the drawn date-time at UTC instead, and an `OffsetDateTime` holds
-it at its drawn offset. `Pacific/Apia` and `Pacific/Fakaofo`, for example, skipped `2011-12-30`. A `java.sql.Date` reads
-the JVM's default zone, so on a JVM in one of those zones that date reads `2011-12-31`.
+it at its drawn offset. `Pacific/Apia` and `Pacific/Fakaofo`, for example, skipped `2011-12-30`, and a daylight
+saving gap in `America/Nuuk` skipped 23:00 to midnight on `2024-03-30`. `new ZonedDateTimeGenerator(min, max)`
+and `Generators.ofCalendar(min, max)` hold such a value at UTC too. A `java.sql.Date` reads the JVM's default
+zone, so on a JVM in `Pacific/Apia` or `Pacific/Fakaofo` the date `2011-12-30` reads `2011-12-31`.
 
 ## Bean Validation
 
