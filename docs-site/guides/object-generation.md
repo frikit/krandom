@@ -139,7 +139,11 @@ root factory avoids reflective construction and therefore does not require `open
 Semantic modes:
 
 - `RELAXED`: use semantic field names when available, but let annotations and bean validation win.
-- `STRICT`: semantic field names win whenever a semantic match exists.
+- `STRICT`: semantic field names win whenever a semantic match exists, over `@Randomizer`, `@Fake`, and
+  `@FakeRange` too, and the coherence pass can overwrite annotated and constrained fields. Bean Validation
+  constraints still take precedence when a value is generated, and the pass moves a `createdAt`, `updatedAt`,
+  `birthDate`, or `age` only within its own constraints: see
+  [date ranges and coherence](#date-ranges-and-coherence).
 - `STRUCTURAL_ONLY`: disable field-name semantics and use type-based generation only.
 
 ## Semantic field defaults
@@ -165,7 +169,7 @@ Configured object date ranges still apply to semantic temporal fields. If you se
 
 A `Calendar` or `GregorianCalendar` field is a non-lenient `GregorianCalendar` with ISO week rules, as `Generators.ofCalendar()` gives, drawn as a `ZonedDateTime` field is: in a random zone, with the range on its local date, and with the same semantic windows for `createdAt`, `updatedAt`, and `birthDate`.
 
-Object generation also runs a lightweight coherence pass after sibling values are generated. Common pairs such as `firstName` + `lastName` -> `fullName`, `firstName` + `lastName` + `domain` -> `email`, `domain` -> `url`, `createdAt` / `updatedAt`, `birthDate` / `age`, and `active` / `status` are aligned automatically. Address-like clusters now reuse one locale-backed address snapshot so `streetAddress`, `city`, `state`, `postalCode`, and `country` stay consistent with each other, and money-like clusters keep `price <= amount <= balance` while deriving missing sibling values when one amount is already present. In `RELAXED` mode, that pass still leaves annotated or Bean Validation-constrained target fields alone; explicit field and type overrides always win. Generated emails keep to the [email-domain contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#email-domain-contract), and generated domains and URLs to the [network contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#network-contract): a generated `domain` is reserved, so an email built from name fields beside it takes that domain, and a `companyName` derives a `.test` domain.
+Object generation also runs a lightweight coherence pass after sibling values are generated. Common pairs such as `firstName` + `lastName` -> `fullName`, `firstName` + `lastName` + `domain` -> `email`, `domain` -> `url`, `createdAt` / `updatedAt`, `birthDate` / `age`, and `active` / `status` are aligned automatically. Address-like clusters now reuse one locale-backed address snapshot so `streetAddress`, `city`, `state`, `postalCode`, and `country` stay consistent with each other, and money-like clusters keep `price <= amount <= balance` while deriving missing sibling values when one amount is already present. In `RELAXED` mode, that pass still leaves annotated or Bean Validation-constrained target fields alone. In `STRICT` mode it can overwrite them, but it moves a `createdAt`, `updatedAt`, `birthDate`, or `age` only within its own constraints. Explicit field and type overrides always win. Generated emails keep to the [email-domain contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#email-domain-contract), and generated domains and URLs to the [network contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#network-contract): a generated `domain` is reserved, so an email built from name fields beside it takes that domain, and a `companyName` derives a `.test` domain.
 
 ### Date ranges and coherence
 
@@ -192,6 +196,16 @@ Validation constraint in `RELAXED` mode, need not be in the range: a `@Past` val
 whatever the range. Where it leaves no date in the range that keeps the pair in order, its sibling follows it
 out of the range, because the order wins. A `birthDate` derived from such an `age` keeps that age, so it can
 be out of the range too.
+
+In `STRICT` mode a constrained `createdAt`, `updatedAt`, `birthDate`, or `age` can move, but never out of its
+own Bean Validation constraints, read against the configured clock as Hibernate Validator reads them. Where a
+move would break one, the field cannot move, as above. So a `@Past` or `@PastOrPresent` `updatedAt` does not
+take a `createdAt` that is past the clock, and `createdAt` moves back to it instead. A `@Future` or
+`@FutureOrPresent` `createdAt` does not follow an `updatedAt` into the past. An `age` does not take the age its
+`birthDate` gives where `@Min`, `@Max`, or `@Pattern` rejects it, and `birthDate` follows the `age` instead.
+Where the sibling's own constraints stop it following too, both keep their values, in either mode: a `@Future`
+`createdAt` stays after a `@Past` `updatedAt`, and a `@Past` `birthDate` beside an overridden `age` of 0 keeps
+its date, as today is not past.
 
 A gap in a zone's rules moves a date-time forward. Where that would take a field past the last date of the
 range, a `ZonedDateTime` or `Calendar` holds the drawn date-time at UTC instead, and an `OffsetDateTime` holds

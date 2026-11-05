@@ -246,9 +246,9 @@ only a date is at midnight, and so is a `birthDate` derived from a constrained o
 
 A semantic `createdAt` or `updatedAt` with no configured range ends on the clock's date and includes
 that whole UTC day, as `LocalDateTime`, `Date`, and `Timestamp` fields do, so it can be later than a
-fixed clock's current time. In the default `RELAXED` mode, an `Instant` generated for `@Past` or
-`@PastOrPresent` stays before the clock. `STRICT` mode lets the coherence pass overwrite it, so it can
-take such a value from a sibling.
+fixed clock's current time. An `Instant` generated for `@Past` stays before the clock, and one for
+`@PastOrPresent` does not pass it, in either semantic mode: where the coherence pass would give it such a
+value from a sibling, the sibling moves to it instead.
 
 ## Fail-closed finance and identity contracts
 

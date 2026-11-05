@@ -450,16 +450,22 @@ final class SemanticCoherenceAdjuster {
 
         if (canAssign(updatedAtSlot, allowOverwriteExisting)) {
             Object aligned = alignedValue(createdAt, updatedAtSlot.rawType());
-            // updatedAt moves, unless that leaves the range and createdAt can move to it inside the range.
-            // A sibling that cannot move leaves no such choice, and the two stay in order.
-            if (!isOutsideDateRange(aligned)
-                    || !movesInsideDateRange(createdAtSlot, updatedAt, allowOverwriteExisting)) {
+            // updatedAt moves, unless that breaks its own constraints, or leaves the range where createdAt can
+            // move to it inside the range. A sibling that cannot move leaves updatedAt no such choice.
+            if (keepsConstraints(updatedAtSlot, aligned)
+                    && (!isOutsideDateRange(aligned)
+                            || !movesInsideDateRange(createdAtSlot, updatedAt, allowOverwriteExisting))) {
                 assignConverted(updatedAtSlot, aligned);
                 return;
             }
         }
+        // createdAt moves to an updatedAt that cannot move, unless that breaks its own constraints too. Then
+        // both keep their values, out of order, as two overrides do.
         if (canAssign(createdAtSlot, allowOverwriteExisting)) {
-            assignConverted(createdAtSlot, alignedValue(updatedAt, createdAtSlot.rawType()));
+            Object aligned = alignedValue(updatedAt, createdAtSlot.rawType());
+            if (keepsConstraints(createdAtSlot, aligned)) {
+                assignConverted(createdAtSlot, aligned);
+            }
         }
     }
 
@@ -468,7 +474,23 @@ final class SemanticCoherenceAdjuster {
             return false;
         }
         Object aligned = alignedValue(instant, slot.rawType());
-        return aligned != null && !isOutsideDateRange(aligned);
+        return aligned != null && !isOutsideDateRange(aligned) && keepsConstraints(slot, aligned);
+    }
+
+    /**
+     * True when the pass may write this value to the slot because the slot's own Bean Validation constraints
+     * allow it, read against the configured clock. In RELAXED mode a constrained slot is protected and never
+     * written. In STRICT mode semantics win, but a value that would break a constraint cannot move: this keeps
+     * the dates and ages the pass derives within them. {@code null} is a type the pass cannot write, which it
+     * leaves as it is.
+     */
+    private boolean keepsConstraints(Slot slot, @Nullable Object value) {
+        return value == null
+                || BeanValidationSupport.accepts(
+                        slot.annotatedElement(),
+                        slot.rawType(),
+                        value,
+                        config.getGeneratorConfig().getClock());
     }
 
     /**
@@ -548,9 +570,7 @@ final class SemanticCoherenceAdjuster {
         Integer age = toInteger(ageSlot.getValue());
         if (birthDate != null) {
             if (age != null && isProtected(ageSlot)) {
-                if (canAssign(birthDateSlot, allowOverwriteExisting)) {
-                    assignConverted(birthDateSlot, fromLocalDate(today().minusYears(age), birthDateSlot.rawType()));
-                }
+                followAge(birthDateSlot, age, allowOverwriteExisting);
                 return;
             }
             int derivedAge = ageFromBirthDate(birthDate);
@@ -558,14 +578,29 @@ final class SemanticCoherenceAdjuster {
                 return;
             }
             if (canAssign(ageSlot, allowOverwriteExisting)) {
-                assignConverted(ageSlot, fromAge(derivedAge, ageSlot.rawType()));
-                return;
+                Object derived = fromAge(derivedAge, ageSlot.rawType());
+                if (keepsConstraints(ageSlot, derived)) {
+                    assignConverted(ageSlot, derived);
+                } else if (age != null) {
+                    // An age its constraints keep from the derived one cannot move, so birthDate follows it.
+                    followAge(birthDateSlot, age, allowOverwriteExisting);
+                }
             }
             return;
         }
 
-        if (age != null && canAssign(birthDateSlot, allowOverwriteExisting)) {
-            assignConverted(birthDateSlot, fromLocalDate(today().minusYears(age), birthDateSlot.rawType()));
+        if (age != null) {
+            followAge(birthDateSlot, age, allowOverwriteExisting);
+        }
+    }
+
+    /** Moves birthDate to the date that gives this age, where it can move and its constraints allow it. */
+    private void followAge(Slot birthDateSlot, int age, boolean allowOverwriteExisting) {
+        if (canAssign(birthDateSlot, allowOverwriteExisting)) {
+            Object derived = fromLocalDate(today().minusYears(age), birthDateSlot.rawType());
+            if (keepsConstraints(birthDateSlot, derived)) {
+                assignConverted(birthDateSlot, derived);
+            }
         }
     }
 

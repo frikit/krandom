@@ -489,6 +489,10 @@ final class BeanValidationSupport {
         } catch (NumberFormatException notNumeric) {
             return false;
         }
+        return numericAccepts(range, value);
+    }
+
+    private static boolean numericAccepts(NumericRange range, BigDecimal value) {
         if (range.lower() != null) {
             int comparison = value.compareTo(range.lower().value());
             if (comparison < 0 || (comparison == 0 && !range.lower().inclusive())) {
@@ -714,10 +718,7 @@ final class BeanValidationSupport {
         if (!allowsPast && !allowsPresent && !allowsFuture) {
             throw conflict("temporal constraints have an empty intersection");
         }
-        TemporalDirection direction = allowsFuture
-                ? TemporalDirection.FUTURE
-                : allowsPast ? TemporalDirection.PAST : TemporalDirection.PRESENT;
-        return new TemporalConstraint(direction);
+        return new TemporalConstraint(allowsPast, allowsPresent, allowsFuture);
     }
 
     private static boolean supportsTemporal(Class<?> rawType) {
@@ -744,7 +745,74 @@ final class BeanValidationSupport {
         FUTURE
     }
 
-    record TemporalConstraint(TemporalDirection direction) {}
+    /** The times a temporal constraint allows: before, at, and after the configured clock's present. */
+    record TemporalConstraint(boolean allowsPast, boolean allowsPresent, boolean allowsFuture) {
+
+        /** A generated value lies in the future where that is allowed, else in the past, else at the present. */
+        TemporalDirection direction() {
+            return allowsFuture
+                    ? TemporalDirection.FUTURE
+                    : allowsPast ? TemporalDirection.PAST : TemporalDirection.PRESENT;
+        }
+
+        boolean accepts(Object value, Clock clock) {
+            int comparison = compareWithClock(value, clock);
+            return comparison < 0 ? allowsPast : comparison == 0 ? allowsPresent : allowsFuture;
+        }
+    }
+
+    /**
+     * Compares a value with the clock's present as Hibernate Validator does: a {@code java.time} value with the
+     * {@code now(clock)} of its type, and a {@code Calendar} or {@code Date} by epoch millisecond. These are the
+     * types the coherence pass writes, and {@code java.sql.Date} and {@code Timestamp} are {@code Date}s.
+     */
+    private static int compareWithClock(Object value, Clock clock) {
+        if (value instanceof Instant instant) {
+            return instant.compareTo(clock.instant());
+        }
+        if (value instanceof LocalDate date) {
+            return date.compareTo(LocalDate.now(clock));
+        }
+        if (value instanceof LocalDateTime dateTime) {
+            return dateTime.compareTo(LocalDateTime.now(clock));
+        }
+        if (value instanceof OffsetDateTime offsetDateTime) {
+            return offsetDateTime.compareTo(OffsetDateTime.now(clock));
+        }
+        if (value instanceof ZonedDateTime zonedDateTime) {
+            return zonedDateTime.compareTo(ZonedDateTime.now(clock));
+        }
+        if (value instanceof Calendar calendar) {
+            return Long.compare(calendar.getTimeInMillis(), clock.millis());
+        }
+        return Long.compare(((Date) value).getTime(), clock.millis());
+    }
+
+    /**
+     * Whether a value the coherence pass would write meets the constraints of the element: no value for
+     * {@code @Null}, a date or time against the clock as Hibernate Validator compares it, a number within its
+     * bounds, and a string as its text constraints require. The pass writes no value that another constraint
+     * bounds.
+     *
+     * @param element the field the value is for
+     * @param rawType the field's erasure
+     * @param value a date, a time, a number or a string of that type
+     * @param clock the configured clock
+     * @return whether the element's constraints allow the value
+     */
+    static boolean accepts(AnnotatedElement element, Class<?> rawType, Object value, Clock clock) {
+        ConstraintModel constraints = constraintModelFor(element, rawType);
+        if (constraints.nullOnly()) {
+            return false;
+        }
+        if (constraints.temporal() != null) {
+            return constraints.temporal().accepts(value, clock);
+        }
+        if (constraints.text() != null) {
+            return constraints.text().accepts(value.toString());
+        }
+        return constraints.numeric() == null || numericAccepts(constraints.numeric(), new BigDecimal(value.toString()));
+    }
 
     private static @Nullable Boolean assertionFor(AnnotatedElement element, Class<?> rawType) {
         boolean assertedTrue = annotation(element, AssertTrue.class) != null;

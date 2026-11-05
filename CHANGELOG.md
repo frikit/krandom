@@ -63,6 +63,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- In `STRICT` mode the coherence pass no longer moves a `createdAt`, `updatedAt`, `birthDate`, or `age` out of
+  its own Bean Validation constraints, which `RELAXED` mode leaves alone. Seeded with `42` under a clock fixed at
+  `2026-06-04T12:00Z`, it gave a `@Past` `updatedAt` a `createdAt` past the clock in 974 of 2,000 objects on a
+  one-day `objectDateRange`, gave it the value of a `@Future` `createdAt` in all 2,000, and overwrote
+  `@Min(30) @Max(40) age` with the age its `birthDate` gives in 1,709, and now does so in none. A field that a
+  move would take out of its constraints cannot move, as an overridden one cannot: its sibling follows it, even
+  out of `objectDateRange`, so `createdAt` moves back to a `@Past` `updatedAt`, and `birthDate` to a bounded
+  `age`. Where the sibling's own constraints stop it too, both keep their values, as in `RELAXED` mode, so a
+  `@Future` `createdAt` stays after a `@Past` `updatedAt`. A date or time is read against the configured clock
+  as Hibernate Validator reads it. A move within the constraints still happens, so seeded output changes only for
+  objects that broke one. The pass still overwrites the constraints of the strings, amounts, and statuses it
+  derives in `STRICT` mode, such as `@Size(max = 12)` on an `email`. The `STRICT` documentation now says that
+  Bean Validation constraints take precedence when a value is generated, as they always have.
 - `age` now counts the years since the local date of an `OffsetDateTime`, `ZonedDateTime` or `Calendar`
   `birthDate`, in its own offset or zone, which is the date its generator draws and `objectDateRange` bounds.
   It counted from the UTC date, which is a day off near midnight far from UTC, so around a birthday the age was

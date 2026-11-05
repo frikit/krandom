@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -30,10 +31,18 @@ import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.object.ObjectGeneratorSemanticCoherenceTest.TemporalPairs;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -1417,6 +1426,94 @@ class SemanticCoherenceAdjusterTest {
     }
 
     @Test
+    @DisplayName("in strict mode a constrained timestamp moves only within its constraints, and its sibling follows it")
+    void strictTimestampMovesOnlyWithinItsConstraints() {
+        Instant now = Instant.parse("2024-02-29T12:00:00Z");
+        ObjectGeneratorConfig strict = strictAt(now).build();
+        Instant hourAgo = now.minusSeconds(3_600);
+        Instant twoHoursAgo = now.minusSeconds(7_200);
+        Instant hourLater = now.plusSeconds(3_600);
+        Instant twoHoursLater = now.plusSeconds(7_200);
+
+        // updatedAt moves on while it stays before the clock, and cannot pass it, so createdAt moves back instead.
+        assertArrayEquals(
+                new Object[] {hourAgo, hourAgo},
+                aligned(strict, BoundedPairs.PastUpdatedAt.class, hourAgo, twoHoursAgo));
+        assertArrayEquals(
+                new Object[] {twoHoursAgo, twoHoursAgo},
+                aligned(strict, BoundedPairs.PastUpdatedAt.class, hourLater, twoHoursAgo));
+        // @PastOrPresent allows the clock's instant itself, and @Past does not.
+        assertArrayEquals(
+                new Object[] {now, now}, aligned(strict, BoundedPairs.PastOrPresentUpdatedAt.class, now, twoHoursAgo));
+        assertArrayEquals(
+                new Object[] {twoHoursAgo, twoHoursAgo},
+                aligned(strict, BoundedPairs.PastUpdatedAt.class, now, twoHoursAgo));
+
+        // A createdAt held in the future follows a pinned updatedAt that is still in the future, but not one in the
+        // past.
+        ObjectGeneratorConfig pinnedLater = strictAt(now)
+                .override(BoundedPairs.FutureOrPresentCreatedAt.class, "updatedAt", () -> hourLater)
+                .build();
+        assertArrayEquals(
+                new Object[] {hourLater, hourLater},
+                aligned(pinnedLater, BoundedPairs.FutureOrPresentCreatedAt.class, twoHoursLater, hourLater));
+        ObjectGeneratorConfig pinnedEarlier = strictAt(now)
+                .override(BoundedPairs.FutureOrPresentCreatedAt.class, "updatedAt", () -> hourAgo)
+                .build();
+        assertArrayEquals(
+                new Object[] {twoHoursLater, hourAgo},
+                aligned(pinnedEarlier, BoundedPairs.FutureOrPresentCreatedAt.class, twoHoursLater, hourAgo));
+
+        // Neither can move, so both keep their values, out of order.
+        assertArrayEquals(
+                new Object[] {hourLater, hourAgo}, aligned(strict, BoundedPairs.Apart.class, hourLater, hourAgo));
+    }
+
+    @Test
+    @DisplayName("in strict mode updatedAt leaves the range where createdAt cannot move into it within its constraint")
+    void strictUpdatedAtLeavesTheRangeWhereCreatedAtCannotMoveIntoIt() {
+        // 2024-03-01T11:00Z, past the range at UTC, which updatedAt cannot reach inside the range. createdAt could
+        // move back to 10:00Z inside it, but that is before the clock, so updatedAt follows it out of the range.
+        OffsetDateTime late = OffsetDateTime.parse("2024-02-29T23:00-12:00");
+        Instant morning = Instant.parse("2024-02-29T10:00:00Z");
+        ObjectGeneratorConfig config = strictAt(Instant.parse("2024-02-29T10:30:00Z"))
+                .dateRange(LEAP_DAY, LEAP_DAY)
+                .build();
+
+        Object[] aligned = aligned(config, BoundedPairs.FutureOrPresentOffsetCreatedAt.class, late, morning);
+
+        assertEquals(late, aligned[0]);
+        assertEquals(Instant.parse("2024-03-01T11:00:00Z"), aligned[1]);
+    }
+
+    @Test
+    @DisplayName("in strict mode an age its constraints reject keeps its value, and birthDate follows it")
+    void strictAgeItsConstraintsRejectKeepsItsValue() {
+        Instant now = Instant.parse("2024-02-29T12:00:00Z");
+        ObjectGeneratorConfig strict = strictAt(now).build();
+
+        // 20 is outside @Min(30) @Max(40), so the age stays 35 and the birth date follows it.
+        assertArrayEquals(
+                new Object[] {LEAP_DAY.minusYears(35), 35},
+                aligned(strict, BoundedPairs.RangedAge.class, LEAP_DAY.minusYears(20), 35));
+        // 33 is inside, so the age follows the birth date, as it always has.
+        assertArrayEquals(
+                new Object[] {LEAP_DAY.minusYears(33), 33},
+                aligned(strict, BoundedPairs.RangedAge.class, LEAP_DAY.minusYears(33), 35));
+        // A @Null age takes no value, and leaves the birth date nothing to follow.
+        assertArrayEquals(
+                new Object[] {LEAP_DAY.minusYears(20), null},
+                aligned(strict, BoundedPairs.NullAge.class, LEAP_DAY.minusYears(20), null));
+        // A @Past birth date cannot be today, which an overridden age of 0 gives, so it keeps its value.
+        ObjectGeneratorConfig ageZero = strictAt(now)
+                .override(BoundedPairs.PastBirthDate.class, "age", () -> 0)
+                .build();
+        assertArrayEquals(
+                new Object[] {LEAP_DAY.minusDays(1), 0},
+                aligned(ageZero, BoundedPairs.PastBirthDate.class, LEAP_DAY.minusDays(1), 0));
+    }
+
+    @Test
     @DisplayName("the range check reads a value no date can hold without failing")
     void rangeCheckReadsAValueNoDateCanHoldWithoutFailing() {
         Object[] aligned = aligned(
@@ -1574,12 +1671,47 @@ class SemanticCoherenceAdjusterTest {
         }
     }
 
-    /** Runs the pass over a record's createdAt and updatedAt, and returns what it leaves in them. */
-    private static Object[] aligned(ObjectGeneratorConfig config, Class<?> pair, Object createdAt, Object updatedAt) {
-        Object[] args = {createdAt, updatedAt};
+    /**
+     * Runs the pass over a two-member record, such as one with a createdAt and an updatedAt, and returns what it
+     * leaves in the members.
+     */
+    private static Object[] aligned(ObjectGeneratorConfig config, Class<?> pair, Object first, Object second) {
+        Object[] args = {first, second};
         new SemanticCoherenceAdjuster(config, new UniqueFieldTracker())
                 .adjustRecordArguments(pair, pair.getRecordComponents(), pair.getDeclaredFields(), args);
         return args;
+    }
+
+    /** A strict configuration whose clock is fixed at this instant, in UTC. */
+    private static ObjectGeneratorConfig.Builder strictAt(Instant now) {
+        return ObjectGeneratorConfig.builder()
+                .generatorConfig(GeneratorConfig.builder()
+                        .clock(Clock.fixed(now, ZoneOffset.UTC))
+                        .build())
+                .semanticMode(ObjectGenerationSemanticMode.STRICT);
+    }
+
+    /** Pairs whose members carry the constraints that the strict pass keeps them within. */
+    static final class BoundedPairs {
+
+        record PastUpdatedAt(Instant createdAt, @Past Instant updatedAt) {}
+
+        record PastOrPresentUpdatedAt(
+                Instant createdAt, @PastOrPresent Instant updatedAt) {}
+
+        record FutureOrPresentCreatedAt(@FutureOrPresent Instant createdAt, Instant updatedAt) {}
+
+        record FutureOrPresentOffsetCreatedAt(
+                @FutureOrPresent OffsetDateTime createdAt, Instant updatedAt) {}
+
+        record Apart(@Future Instant createdAt, @Past Instant updatedAt) {}
+
+        record RangedAge(
+                LocalDate birthDate, @Min(30) @Max(40) int age) {}
+
+        record NullAge(LocalDate birthDate, @Null Integer age) {}
+
+        record PastBirthDate(@Past LocalDate birthDate, int age) {}
     }
 
     private static List<Field> declaredFields(Class<?> type) {
