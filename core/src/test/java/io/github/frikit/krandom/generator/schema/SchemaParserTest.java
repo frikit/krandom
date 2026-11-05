@@ -11,11 +11,13 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -2212,6 +2214,35 @@ class SchemaParserTest {
         }
 
         @Test
+        @DisplayName("an open side reaches the nearest multiple where its default range holds none")
+        void openSideReachesTheNearestMultiple() {
+            assertEquals(
+                    Set.of(3_000_000_000L),
+                    CombinedConstraints.distinct(
+                            Map.of("type", "integer", "multipleOf", 3_000_000_000L, "minimum", 1)));
+            assertEquals(
+                    Set.of(-3_000_000_000L),
+                    CombinedConstraints.distinct(
+                            Map.of("type", "integer", "multipleOf", 3_000_000_000L, "maximum", -1)));
+            assertEquals(
+                    decimals("1000000000"),
+                    CombinedConstraints.distinct(Map.of("type", "number", "multipleOf", 1e9, "minimum", 0.1)));
+            assertEquals(
+                    decimals("-1000000000"),
+                    CombinedConstraints.distinct(Map.of("type", "number", "multipleOf", 1e9, "maximum", -0.1)));
+            // The default comes from the declared bound, as for any number: 0.1 keeps the default maximum,
+            // so only the nearest multiple of 1,500,000 is in reach.
+            assertEquals(
+                    decimals("1500000"),
+                    CombinedConstraints.distinct(Map.of("type", "number", "multipleOf", 1_500_000, "minimum", 0.1)));
+            // An integer stays within a long, which holds no multiple of 10^19 above 0.
+            CombinedConstraints.assertRejected(
+                    Map.of("type", "integer", "multipleOf", new BigDecimal("1E19"), "minimum", 1));
+            CombinedConstraints.assertRejected(
+                    Map.of("type", "integer", "multipleOf", new BigDecimal("1E19"), "maximum", -1));
+        }
+
+        @Test
         @DisplayName("a number is an exact decimal multiple within its bounds")
         void numberIsExactDecimalMultipleWithinBounds() {
             assertEquals(
@@ -2346,8 +2377,25 @@ class SchemaParserTest {
         }
 
         @Test
-        @DisplayName("items that run out of distinct values above minItems keep the ones found")
-        void itemsThatRunOutAboveMinItemsKeepTheOnesFound() {
+        @DisplayName("nested arrays of items with few distinct values stay cheap at every level")
+        void nestedArraysOfFewDistinctValuesStayCheap() {
+            Map<String, Object> items = Map.of("const", 1);
+            for (int depth = 0; depth < 8; depth++) {
+                items = uniqueArray(1, 2, items);
+            }
+            Map<String, Object> nested = items;
+            List<Object> values =
+                    assertTimeoutPreemptively(Duration.ofSeconds(20), () -> CombinedConstraints.values(nested));
+            Object only = 1;
+            for (int depth = 0; depth < 8; depth++) {
+                only = List.of(only);
+            }
+            assertEquals(Set.of(only), new HashSet<>(values));
+        }
+
+        @Test
+        @DisplayName("items with fewer distinct values than maxItems give arrays of at most that many")
+        void itemsWithFewerDistinctValuesThanMaxItemsGiveSmallerArrays() {
             Set<Integer> sizes = new HashSet<>();
             for (Object value : CombinedConstraints.values(uniqueArray(1, 5, Map.of("enum", List.of(1, 2))))) {
                 List<?> items = assertInstanceOf(List.class, value);

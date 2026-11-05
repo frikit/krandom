@@ -698,23 +698,30 @@ public final class SchemaParser {
 
         long min = lowest.longValue();
         long max = highest.longValue();
+        boolean openAbove = !schema.containsKey("maximum") && !schema.containsKey("exclusiveMaximum");
+        boolean openBelow = !schema.containsKey("minimum") && !schema.containsKey("exclusiveMinimum");
         // A missing bound defaults within the declared one: a lone minimum above the int range must not
         // keep the int maximum.
-        if (!schema.containsKey("maximum") && !schema.containsKey("exclusiveMaximum") && min <= Integer.MAX_VALUE) {
+        if (openAbove && min <= Integer.MAX_VALUE) {
             max = Integer.MAX_VALUE;
         }
-        if (!schema.containsKey("minimum") && !schema.containsKey("exclusiveMinimum") && max >= Integer.MIN_VALUE) {
+        if (openBelow && max >= Integer.MIN_VALUE) {
             min = Integer.MIN_VALUE;
         }
         if (schema.get("multipleOf") instanceof Number multipleOf) {
             BigDecimal step = wholeStep(decimal(multipleOf));
-            return multiples(
-                    step,
-                    quotient(BigDecimal.valueOf(min), step, RoundingMode.CEILING),
-                    quotient(BigDecimal.valueOf(max), step, RoundingMode.FLOOR),
-                    true,
-                    path,
-                    schema);
+            BigInteger first = quotient(BigDecimal.valueOf(min), step, RoundingMode.CEILING);
+            BigInteger last = quotient(BigDecimal.valueOf(max), step, RoundingMode.FLOOR);
+            // A default is this parser's own choice, so where it leaves no multiple, the open side reaches
+            // the nearest one, if a long holds it.
+            if (first.compareTo(last) > 0) {
+                if (openAbove) {
+                    last = first.min(quotient(highest, step, RoundingMode.FLOOR));
+                } else if (openBelow) {
+                    first = last.max(quotient(lowest, step, RoundingMode.CEILING));
+                }
+            }
+            return multiples(step, first, last, true, path, schema);
         }
 
         long lower = min;
@@ -799,43 +806,57 @@ public final class SchemaParser {
 
     /**
      * The multiples of a step that a number's bounds allow. Each bound gives, exactly, the least or
-     * greatest whole k for which k × step is within it, and a missing bound defaults within the declared
-     * one, as for any number.
+     * greatest whole k for which k × step is within it. A missing bound defaults from the declared one, as
+     * for any number; a default is this parser's own choice, so where it leaves no multiple, the open side
+     * reaches the nearest one.
      */
     private static SchemaValueProvider decimalMultiples(BigDecimal step, Map<String, Object> schema, String path) {
+        BigDecimal floorValue = null;
         BigInteger lowest = null;
-        BigInteger highest = null;
         if (schema.get("minimum") instanceof Number minimum) {
-            lowest = quotient(decimal(minimum), step, RoundingMode.CEILING);
+            floorValue = decimal(minimum);
+            lowest = quotient(floorValue, step, RoundingMode.CEILING);
         }
         if (exclusiveBound(schema, "exclusiveMinimum", "minimum") instanceof Number exclusive) {
-            BigInteger above =
-                    quotient(decimal(exclusive), step, RoundingMode.FLOOR).add(BigInteger.ONE);
+            BigDecimal bound = decimal(exclusive);
+            BigInteger above = quotient(bound, step, RoundingMode.FLOOR).add(BigInteger.ONE);
+            floorValue = floorValue == null ? bound : floorValue.max(bound);
             lowest = lowest == null ? above : lowest.max(above);
         }
+        BigDecimal ceilingValue = null;
+        BigInteger highest = null;
         if (schema.get("maximum") instanceof Number maximum) {
-            highest = quotient(decimal(maximum), step, RoundingMode.FLOOR);
+            ceilingValue = decimal(maximum);
+            highest = quotient(ceilingValue, step, RoundingMode.FLOOR);
         }
         if (exclusiveBound(schema, "exclusiveMaximum", "maximum") instanceof Number exclusive) {
-            BigInteger below =
-                    quotient(decimal(exclusive), step, RoundingMode.CEILING).subtract(BigInteger.ONE);
+            BigDecimal bound = decimal(exclusive);
+            BigInteger below = quotient(bound, step, RoundingMode.CEILING).subtract(BigInteger.ONE);
+            ceilingValue = ceilingValue == null ? bound : ceilingValue.min(bound);
             highest = highest == null ? below : highest.min(below);
         }
         BigDecimal limit = BigDecimal.valueOf(NUMBER_DEFAULT_LIMIT);
-        if (highest == null) {
-            BigDecimal low = lowest == null ? limit.negate() : step.multiply(new BigDecimal(lowest));
-            highest = quotient(low.compareTo(limit) < 0 ? limit : low.add(limit).add(limit), step, RoundingMode.FLOOR);
+        BigDecimal top = ceilingValue;
+        if (top == null) {
+            top = floorValue == null || floorValue.compareTo(limit) < 0
+                    ? limit
+                    : floorValue.add(limit).add(limit);
         }
-        if (lowest == null) {
-            BigDecimal high = step.multiply(new BigDecimal(highest));
-            lowest = quotient(
-                    high.compareTo(limit.negate()) > 0
-                            ? limit.negate()
-                            : high.subtract(limit).subtract(limit),
-                    step,
-                    RoundingMode.CEILING);
+        BigInteger last = highest;
+        if (last == null) {
+            last = quotient(top, step, RoundingMode.FLOOR);
+            if (lowest != null) {
+                last = last.max(lowest);
+            }
         }
-        return multiples(step, lowest, highest, false, path, schema);
+        BigInteger first = lowest;
+        if (first == null) {
+            BigDecimal bottom = top.compareTo(limit.negate()) > 0
+                    ? limit.negate()
+                    : top.subtract(limit).subtract(limit);
+            first = quotient(bottom, step, RoundingMode.CEILING).min(last);
+        }
+        return multiples(step, first, last, false, path, schema);
     }
 
     /**
@@ -919,10 +940,14 @@ public final class SchemaParser {
 
         SchemaValueProvider items = itemProvider;
         if (Boolean.TRUE.equals(schema.get("uniqueItems"))) {
-            // As with length bounds, the first search runs while parsing, so that items with too few
-            // distinct values fail here. It has a fixed seed, which gives it the same verdict on every run.
-            distinctItems(items, new SchemaContext(config.getLocale(), new Random(0L), 0), minItems, minItems, path);
-            return ctx -> distinctItems(items, ctx, size(ctx, minItems, maxItems), minItems, path);
+            // While parsing, a search with a fixed seed looks for maxItems distinct items, and gives the
+            // same verdict on every run. Fewer than minItems fail here; fewer than maxItems are the most an
+            // array then holds, so items with few distinct values never spend the whole budget, which
+            // would multiply at every level of nested arrays.
+            int distinct = distinctItems(
+                            items, new SchemaContext(config.getLocale(), new Random(0L), 0), maxItems, minItems, path)
+                    .size();
+            return ctx -> distinctItems(items, ctx, size(ctx, minItems, distinct), minItems, path);
         }
         return ctx -> {
             int size = size(ctx, minItems, maxItems);

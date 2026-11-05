@@ -15,13 +15,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     `Integer` or `Long` and takes the whole multiples, so `multipleOf` 2.5 gives multiples of 5. A
     `number` with `multipleOf` now generates a `BigDecimal` rather than a `Double`. Bounds that hold no
     multiple, such as `minimum` 1 and `maximum` 4 with `multipleOf` 5, are rejected with the schema
-    path, and a `const` or `enum` keeps only multiples.
+    path, and a `const` or `enum` keeps only multiples. A missing bound defaults from the declared one,
+    as for any number, and where that default range holds no multiple, the open side reaches the
+    nearest one, so `minimum` 0.1 with `multipleOf` 1000000000 gives 1000000000. An `integer` multiple
+    must fit a `long`.
   - `uniqueItems: true` gives arrays whose items are distinct JSON values, so `1` and `1.0` count as
-    one. An array draws up to 100 items for each item it holds. Items that run out of distinct values
-    before the drawn size keep the ones found, and an array below `minItems` fails with the schema path.
-    Items that cannot reach `minItems`, such as an `enum` of two values with `minItems` 3, are rejected
-    while parsing, from a search with a fixed seed. A `const` or `enum` array with repeated items is
-    rejected or dropped.
+    one. While parsing, a search with a fixed seed looks for `maxItems` distinct items, drawing up to
+    100 for each. Items that cannot reach `minItems`, such as an `enum` of two values with `minItems` 3,
+    are rejected with the schema path, and where the search finds fewer than `maxItems`, an array holds
+    at most that many, so nested arrays of few values stay cheap. Each array then draws up to 100 items
+    for each item it holds, keeps the distinct ones found if they run out, and fails with the schema
+    path below `minItems`. A `const` or `enum` array with repeated items is rejected or dropped.
   - A `multipleOf` that is not a number above 0, or a `uniqueItems` that is not a boolean, is rejected
     with the schema path.
 

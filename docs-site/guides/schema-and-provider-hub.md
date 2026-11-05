@@ -112,12 +112,16 @@ Constraints apply together, and a keyword constrains only values of its own JSON
   with no binary rounding: `multipleOf` 0.01 gives values such as `12.34`. An `integer` stays an
   `Integer` or `Long` and takes the multiples that are whole, so `multipleOf` 2.5 gives multiples of 5. A
   `number` is a `BigDecimal`. Bounds that hold no multiple, such as `minimum` 1 and `maximum` 4 with
-  `multipleOf` 5, are rejected with the schema path, and a `const` or `enum` keeps only multiples.
+  `multipleOf` 5, are rejected with the schema path, and a `const` or `enum` keeps only multiples. A
+  missing bound defaults from the declared one, as for any number, and where that default range holds
+  no multiple, the open side reaches the nearest one: `minimum` 0.1 with `multipleOf` 1000000000 gives
+  1000000000. An `integer` multiple must fit a `long`.
 - `uniqueItems: true` gives arrays whose items are distinct JSON values, so `1` and `1.0` count as one.
-  An array draws up to 100 items for each item it holds. Items that run out of distinct values before
-  the drawn size keep the ones found, and an array below `minItems` fails with the schema path. Items
-  that cannot reach `minItems`, such as an `enum` of two values with `minItems` 3, are rejected while
-  parsing, from a search with a fixed seed.
+  While parsing, a search with a fixed seed looks for `maxItems` distinct items, drawing up to 100 for
+  each. Items that cannot reach `minItems`, such as an `enum` of two values with `minItems` 3, are
+  rejected with the schema path, and where the search finds fewer than `maxItems`, an array holds at
+  most that many. Each array then draws up to 100 items for each item it holds, keeps the distinct ones
+  found if they run out, and fails with the schema path below `minItems`.
 - A `pattern` or `format` value is drawn again until it fits `minLength` and `maxLength`, up to 10,000
   times each. Length is counted in characters, not UTF-16 units.
 - A value generated from a `pattern` matches the whole pattern, which also satisfies the search. A
