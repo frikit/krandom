@@ -2042,6 +2042,22 @@ class SchemaParserTest {
         }
 
         @Test
+        @DisplayName("an object member is known by the name it is written under")
+        void objectMemberIsKnownByItsWrittenName() {
+            assertSameJson(Map.of(1, "x"), Map.of("1", "x"));
+            assertSameJson(Map.of("1", "x"), Map.of(1, "x"));
+            assertSameJson(Map.of('k', 2), Map.of("k", 2.0));
+            assertDifferentJson(Map.of(1, "x"), Map.of("2", "x"));
+            // A property's schema applies to the member written under its name.
+            assertEquals(
+                    Set.of(Map.of(1, 5)),
+                    CombinedConstraints.distinct(
+                            Map.of("const", Map.of(1, 5), "properties", Map.of("1", Map.of("type", "integer")))));
+            CombinedConstraints.assertRejected(
+                    Map.of("const", Map.of(1, "x"), "properties", Map.of("1", Map.of("type", "integer"))));
+        }
+
+        @Test
         @DisplayName("values of different JSON types differ")
         void valuesOfDifferentJsonTypesDiffer() {
             assertDifferentJson(Map.of("id", "1"), Map.of("id", 1));

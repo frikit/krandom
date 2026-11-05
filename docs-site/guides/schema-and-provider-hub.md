@@ -100,9 +100,9 @@ Constraints apply together, and a keyword constrains only values of its own JSON
   string, as in JSON Schema.
 - Values compare as JSON values, so a `const` of `{"id": 1}` matches the `enum` member `{"id": 1.0}`.
   A number compares by its value at any depth, whatever Java type holds it, an array item by item in
-  order, an object member by member, and a value written as a string, such as a `LocalDate`, by its
-  text. `NaN` and the infinities are not JSON numbers, so a comparison with one, at any depth, is
-  rejected with the schema path.
+  order, an object member by member under the name it is written with, so the key `1` is the member
+  `"1"`, and a value written as a string, such as a `LocalDate`, by its text. `NaN` and the infinities
+  are not JSON numbers, so a comparison with one, at any depth, is rejected with the schema path.
 - Numeric bounds intersect, so `minimum` 100 with `exclusiveMinimum` 0 starts at 100. OpenAPI 3.0's
   boolean `exclusiveMinimum` and `exclusiveMaximum` work as flags on the inclusive bound. An `integer`
   rounds a fractional bound inward and stays within the range of a `long`.

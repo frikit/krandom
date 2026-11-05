@@ -66,8 +66,9 @@ import org.jspecify.annotations.Nullable;
  * {@code const} or {@code enum} value must meet the other constraints, and an {@code enum} keeps only
  * the values that do; {@code format} is not one of them, because it is an annotation in Draft 2020-12.
  * Values compare as JSON values: a number by its value at any depth, so {@code {"id": 1}} equals
- * {@code {"id": 1.0}}, an array item by item in order, an object member by member, and a value written
- * as a string, such as a date, by its text. Overlapping numeric bounds intersect. A {@code pattern} or {@code format} value is drawn again until
+ * {@code {"id": 1.0}}, an array item by item in order, an object member by member under the name it is
+ * written with, and a value written as a string, such as a date, by its text. Overlapping numeric
+ * bounds intersect. A {@code pattern} or {@code format} value is drawn again until
  * it fits {@code minLength} and {@code maxLength}, up to a fixed number of attempts. A combination that
  * leaves no value is rejected with its schema path, while parsing where that can be told. A combination
  * of length bounds with a {@code pattern} or {@code format} is judged by sampling rather than analysis,
@@ -364,10 +365,11 @@ public final class SchemaParser {
                             || list.stream().allMatch(item -> satisfies(item, items)));
         }
         if (value instanceof Map<?, ?> object && schema.get("properties") instanceof Map<?, ?> properties) {
+            Map<String, @Nullable Object> members = byName(object);
             return properties.entrySet().stream()
-                    .allMatch(property -> !object.containsKey(property.getKey())
+                    .allMatch(property -> !members.containsKey(property.getKey())
                             || !(property.getValue() instanceof Map<?, ?> propertySchema)
-                            || satisfies(object.get(property.getKey()), propertySchema));
+                            || satisfies(members.get(property.getKey()), propertySchema));
         }
         // A string, or anything else written as one, such as a date. A pattern searches that text; it
         // need not match all of it.
@@ -423,15 +425,26 @@ public final class SchemaParser {
                     && IntStream.range(0, items.size())
                             .allMatch(index -> sameJson(items.get(index), otherItems.get(index)));
         }
-        if (value instanceof Map<?, ?> members) {
-            return other instanceof Map<?, ?> otherMembers
-                    && members.size() == otherMembers.size()
+        if (value instanceof Map<?, ?> object) {
+            if (!(other instanceof Map<?, ?> otherObject)) {
+                return false;
+            }
+            Map<String, @Nullable Object> members = byName(object);
+            Map<String, @Nullable Object> otherMembers = byName(otherObject);
+            return members.size() == otherMembers.size()
                     && members.entrySet().stream()
                             .allMatch(member -> otherMembers.containsKey(member.getKey())
                                     && sameJson(member.getValue(), otherMembers.get(member.getKey())));
         }
         return !(other instanceof Number || other instanceof Boolean || other instanceof List || other instanceof Map)
                 && value.toString().equals(other.toString());
+    }
+
+    /** An object's members under the names the JSON writer gives them, so the key 1 is the member "1". */
+    private static Map<String, @Nullable Object> byName(Map<?, ?> object) {
+        Map<String, @Nullable Object> members = new LinkedHashMap<>();
+        object.forEach((key, member) -> members.put(String.valueOf(key), member));
+        return members;
     }
 
     private static boolean withinNumericBounds(Number number, Map<?, ?> schema) {

@@ -34,8 +34,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - `SchemaParser` compares `const` and `enum` values as JSON values at every depth: a number by its
-  value, whatever Java type holds it, an array item by item in order, and an object member by member.
-  Numbers inside objects and arrays were compared by their Java type, so a `const` of `{"id": 1}`
+  value, whatever Java type holds it, an array item by item in order, and an object member by member
+  under the name it is written with, which `properties` now also use, so the key `1` is the member
+  `"1"`. Numbers inside objects and arrays were compared by their Java type, so a `const` of `{"id": 1}`
   beside the `enum` `[{"id": 1.0}]` was rejected as missing from it. It is accepted again, as in 2.9.0,
   and generates `{"id": 1}`. A value written as a string, such as a `LocalDate`, now matches its text.
   A `NaN` or infinity inside a `const` or `enum` value is now rejected while parsing, as one at the top
