@@ -207,6 +207,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   factory took the test's recipe on replay, so the arguments of the failing invocation changed. The
   callbacks of a `@ParameterizedClass` invocation had the same fault. Each test class now reports one
   class-scoped configuration, and the replay commands restore it.
+- `new CalendarGenerator(min, max)` and `Generators.ofCalendar(min, max)`, with or without a configuration, no
+  longer pass the last date of the range when a gap in the drawn zone's rules moves a value forward, as
+  `new ZonedDateTimeGenerator(min, max)` and `Calendar` members already did not. `Pacific/Apia` and
+  `Pacific/Fakaofo` skipped `2011-12-30`, so a one-day range on that date gave `2011-12-31` about once in 300
+  draws, and a daylight saving gap in `America/Nuuk` moved 23:30 on `2024-03-30` to 00:30 on `2024-03-31`. Such
+  a value is now the drawn date-time at UTC. Seeded output changes only for values that drew such a date-time.
 - `@NotEmpty` and `@Size` on an array of a type they cannot constrain no longer fail generation at every
   depth, as `@NotEmpty Leaf[]`, `@Size(max = 4) byte[]` and `@NotEmpty int[]` did. Java places an
   annotation written before an array type on the array's component type as well as on the declaration,
