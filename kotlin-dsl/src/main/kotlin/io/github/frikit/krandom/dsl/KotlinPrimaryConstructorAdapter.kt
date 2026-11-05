@@ -22,6 +22,7 @@ import kotlin.reflect.KTypeParameter
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaConstructor
 import kotlin.reflect.jvm.javaField
@@ -141,7 +142,7 @@ internal class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
     ): Any? {
         val valueClass = type.jvmErasure
         if (!valueClass.isValue) {
-            return context.generate(javaTypeOf(type), valueClass.java, name, element)
+            return context.generate(javaTypeOf(type, context.type), valueClass.java, name, element)
         }
         val constructor = valueClass.primaryConstructor!!.apply { isAccessible = true }
         if (context.hasExplicitOverride(name, valueClass.java)) {
@@ -163,11 +164,19 @@ internal class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
     }
 
     /**
-     * The Java type of [type]. A constructor that takes a value class compiles to a synthetic JVM
-     * constructor whose parameters keep no type arguments, so a parameterized type is rebuilt from
-     * its Kotlin form.
+     * The Java type of [type]. A type parameter of [owner] is the owner's own type variable, which the
+     * resolver binds, also where a value class's type argument passed it on. A constructor that takes a
+     * value class compiles to a synthetic JVM constructor whose parameters keep no type arguments, so a
+     * parameterized type is rebuilt from its Kotlin form.
      */
-    private fun javaTypeOf(type: KType): Type {
+    private fun javaTypeOf(
+        type: KType,
+        owner: Class<*>,
+    ): Type {
+        val ownerParameter = owner.kotlin.typeParameters.indexOf(type.classifier)
+        if (ownerParameter >= 0) {
+            return owner.typeParameters[ownerParameter]
+        }
         val reflected = type.javaType
         return if (reflected is Class<*> && type.arguments.isNotEmpty()) {
             (type.classifier as KClass<*>).createType(type.arguments, type.isMarkedNullable).javaType
@@ -188,10 +197,12 @@ internal class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
         val underlying = constructor.parameters.single().type
         val parameter = underlying.classifier as? KTypeParameter ?: return underlying
         val argument = declared.arguments[valueClass.typeParameters.indexOf(parameter)].type ?: return underlying
-        val argumentClass = argument.classifier as? KClass<*> ?: return underlying
-        // An argument's reflected Java type follows the declared type's, which the value class erases,
-        // so the argument is rebuilt from its Kotlin form.
-        return argumentClass.createType(argument.arguments, underlying.isMarkedNullable || argument.isMarkedNullable)
+        val nullable = underlying.isMarkedNullable || argument.isMarkedNullable
+        // The owner's own type parameter is kept, for the resolver to bind. Any other argument's reflected
+        // Java type follows the declared type's, which the value class erases, so it is rebuilt from its
+        // Kotlin form.
+        val argumentClass = argument.classifier as? KClass<*> ?: return argument.withNullability(nullable)
+        return argumentClass.createType(argument.arguments, nullable)
     }
 
     private fun box(

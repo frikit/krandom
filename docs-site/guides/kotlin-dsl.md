@@ -214,12 +214,14 @@ value class too. A value that the `init` block rejects fails generation, naming 
 parameter: constrain the wrapped value with Bean Validation, as `Pin` does, or register a rule.
 
 A value class as the generated type or as a collection element is generated with the name and the
-constraints declared inside it. A class whose properties are set after construction, such as one with
-a no-argument constructor and `var` properties, is filled through its fields. Kotlin stores a property
-of a value class type there as the value it wraps, which then gets a value under the property's name
-and constraints, including a constraint on its getter, but not the value class's own constraints or
-`init` block. Where the wrapped value cannot hold the property's `null`, as for a nullable property of a
-value class over a primitive, Kotlin stores the value class, which is generated as above.
+constraints declared inside it. As the generated type, a generic value class has no type argument, so
+one that wraps its type parameter needs a rule. A class whose properties are set after construction,
+such as one with a no-argument constructor and `var` properties, is filled through its fields. Kotlin
+stores a property of a value class type there as the value it wraps, which then gets a value under the
+property's name and constraints, including a constraint on its getter, but not the value class's own
+constraints or `init` block. Where the wrapped value cannot hold the property's `null`, as for a nullable
+property of a value class over a primitive, Kotlin stores the value class, which is generated as above.
+A generic value class is stored as an `Object` there, which fails as an unsupported type.
 
 ## Immutable Data Classes, Generics, Defaults, and Constraints
 
