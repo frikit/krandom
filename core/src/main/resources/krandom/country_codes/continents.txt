@@ -2,25 +2,69 @@
 # the alpha-2 order of iso_3166_1.txt. The seven continents are Africa, Antarctica, Asia, Europe,
 # North America, Oceania and South America.
 #
-# Source:    UN M49, Standard country or area codes for statistical use, United Nations Statistics
-#            Division, English table: https://unstats.un.org/unsd/methodology/m49/overview/
-# Licence:   none stated; the page falls under the United Nations terms of use,
-#            https://www.un.org/en/about-us/terms-of-use. This file records only the region of each
-#            country, which Unicode CLDR also publishes under the Unicode License v3 (see Checked).
+# Source:    Unicode CLDR 49, common/supplemental/supplementalData.xml, the territory containment,
+#            which follows the UN M49 regions (Standard country or area codes for statistical use):
+#            https://github.com/unicode-org/cldr/blob/release-49/common/supplemental/supplementalData.xml
+# Licence:   Unicode License v3 (Unicode-3.0); its copyright and permission notice is at the end of
+#            this header.
 # Retrieved: 2026-11-04
-# SHA-256:   b9048114f6e7f2abda83bf03d4263c9d7cd1bd7230e3d0461025ee7839a7a1fb  overview page (HTML)
-# Checked:   for every country that M49 places in a region, the rule below gives the same continent
-#            from the territory containment of Unicode CLDR 49, common/supplemental/supplementalData.xml
-#            (Unicode License v3, SHA-256
-#            745150ec1408d50e1a272b65654a5dd645f3e60f5cc2898b576f725b28538d1a).
+# SHA-256:   745150ec1408d50e1a272b65654a5dd645f3e60f5cc2898b576f725b28538d1a  supplementalData.xml
+# Checked:   for every country that M49 places in a region, the M49 table of the United Nations
+#            Statistics Division gives the same continent:
+#            https://unstats.un.org/unsd/methodology/m49/overview/ (SHA-256
+#            b9048114f6e7f2abda83bf03d4263c9d7cd1bd7230e3d0461025ee7839a7a1fb). The UN pages fall
+#            under the United Nations terms of use and were only read to check the CLDR data.
 #
-# A country's continent is its M49 region, Africa, Asia, Europe or Oceania; in the Americas it is
-# South America (005) or North America (003), which M49 defines as Northern America, Central America
-# and the Caribbean (https://unstats.un.org/unsd/methodology/m49/, SHA-256
-# 4d5cabcb10ad9ef184553b5e64c0a34ba8deeb20dab2e02cd0be3599b93bb01d). A transcontinental country
-# therefore has one continent: RU is Europe; TR, CY, GE, AM, AZ and KZ are Asia; EG is Africa. AQ,
-# which M49 places in no region, is Antarctica. TW, which M49 does not list, is Asia, its region in
-# CLDR (Eastern Asia, 030).
+# A country's continent is its M49 region: Africa (002), Asia (142), Europe (150) or Oceania (009);
+# in the Americas (019) it is South America (005) or North America (003), which M49 defines as
+# Northern America, Central America and the Caribbean (https://unstats.un.org/unsd/methodology/m49/,
+# SHA-256 4d5cabcb10ad9ef184553b5e64c0a34ba8deeb20dab2e02cd0be3599b93bb01d). A transcontinental
+# country therefore has one continent: RU is Europe; TR, CY, GE, AM, AZ and KZ are Asia; EG is
+# Africa. AQ is Antarctica: M49 places it in no region, and CLDR only in its own Outlying Oceania
+# group (QO), which is not an M49 region. TW, which M49 does not list, is in CLDR's Eastern Asia
+# (030), so Asia.
+#
+# Copyright and permission notice of the CLDR data, from the header of supplementalData.xml and the
+# LICENSE file of CLDR release-49 (SHA-256
+# 65eb33419e22a297550a811b5b535f5e532f9a7e0114b516c0ea18afd53c3804):
+#
+# Copyright © 1991-2026 Unicode, Inc.
+#
+# NOTICE TO USER: Carefully read the following legal agreement. BY
+# DOWNLOADING, INSTALLING, COPYING OR OTHERWISE USING DATA FILES, AND/OR
+# SOFTWARE, YOU UNEQUIVOCALLY ACCEPT, AND AGREE TO BE BOUND BY, ALL OF THE
+# TERMS AND CONDITIONS OF THIS AGREEMENT. IF YOU DO NOT AGREE, DO NOT
+# DOWNLOAD, INSTALL, COPY, DISTRIBUTE OR USE THE DATA FILES OR SOFTWARE.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of data files and any associated documentation (the "Data Files") or
+# software and any associated documentation (the "Software") to deal in the
+# Data Files or Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, and/or sell
+# copies of the Data Files or Software, and to permit persons to whom the
+# Data Files or Software are furnished to do so, provided that either (a)
+# this copyright and permission notice appear with all copies of the Data
+# Files or Software, or (b) this copyright and permission notice appear in
+# associated Documentation.
+#
+# THE DATA FILES AND SOFTWARE ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+# KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
+# THIRD PARTY RIGHTS.
+#
+# IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+# BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL DAMAGES,
+# OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+# WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+# ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THE DATA
+# FILES OR SOFTWARE.
+#
+# Except as contained in this notice, the name of a copyright holder shall
+# not be used in advertising or otherwise to promote the sale, use or other
+# dealings in these Data Files or Software without prior written
+# authorization of the copyright holder.
+#
+# SPDX-License-Identifier: Unicode-3.0
 AD Europe
 AE Asia
 AF Asia

@@ -34,9 +34,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   countries, not 45. They come from three tables bundled beside the ISO 3166-1 table,
   `krandom/country_codes/calling_codes.txt`, `continents.txt`, and `time_zones.txt`, whose headers
   record the source, licence, retrieval date, and checksum, and the rules for countries a source does
-  not cover: E.164 calling codes from libphonenumber 9.0.42, continents from the UN M49 regions with
-  the Americas divided into North America and South America, and time zones from `zone.tab` in the
-  2026f tz database, taking the zone of the seat of government for a country with several.
+  not cover: E.164 calling codes from libphonenumber 9.0.42, continents from the UN M49 regions as
+  Unicode CLDR 49 publishes them, with the Americas divided into North America and South America, and
+  time zones from `zone.tab` in the 2026f tz database, taking the zone of the seat of government for a
+  country with several.
   `currentCallingCode()`, `currentContinent()`, and `currentTimezone()` now answer for any locale whose
   country is an ISO 3166-1 country, such as `en_NG` (`+234`, `Africa`, `Africa/Lagos`) or `de_LI`
   (`+423`, `Europe`, `Europe/Vaduz`), where they threw `UnsupportedOperationException`.

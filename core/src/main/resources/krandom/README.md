@@ -141,13 +141,15 @@ for every row of `iso_3166_1.txt`, as `<alpha-2> <value>` (e.g. `GB +44`,
 `US North America`, `GB Europe/London`), in the same order.
 
 - **Content:** the E.164 country calling code (from libphonenumber), the
-  continent (the UN M49 region, with the Americas divided into North America
-  and South America) and the IANA time zone (from the tz database's
-  `zone.tab`). The header of each file records its source, licence, retrieval
-  date and SHA-256 checksum, and the rules for the countries a source does not
-  cover: a calling code is the country code alone (`+1` for every NANP
-  country), a transcontinental country takes its M49 region, and a country with
-  several zones takes the zone of its seat of government.
+  continent (the UN M49 region, from Unicode CLDR's territory containment, with
+  the Americas divided into North America and South America) and the IANA time
+  zone (from the tz database's `zone.tab`). The header of each file records its
+  source, licence, retrieval date and SHA-256 checksum, and the rules for the
+  countries a source does not cover: a calling code is the country code alone
+  (`+1` for every NANP country), a transcontinental country takes its M49
+  region, and a country with several zones takes the zone of its seat of
+  government. `continents.txt` also carries the Unicode License v3 notice that
+  the CLDR data requires.
 - **Rule:** **complete**: every ISO country, in the ISO table's order, which the
   loader checks. Every calling code matches `^\+[1-9][0-9]{0,3}$`, every
   continent is one of the seven, and every zone is a valid `java.time.ZoneId`.

@@ -3,7 +3,8 @@
 #
 # Source:    libphonenumber v9.0.42, resources/PhoneNumberMetadata.xml, the countryCode of each
 #            territory: https://github.com/google/libphonenumber/blob/v9.0.42/resources/PhoneNumberMetadata.xml
-# Licence:   Apache License 2.0
+# Licence:   Apache License 2.0, https://www.apache.org/licenses/LICENSE-2.0; the source file's
+#            notice reads "Copyright (C) 2009 The Libphonenumber Authors"
 # Retrieved: 2026-11-04
 # SHA-256:   b6491939ddaeb9d585a34fe0f0ebd096e83c5ac9a1c5d6dddf38ba4b162b28ca  PhoneNumberMetadata.xml
 #

@@ -40,9 +40,9 @@ import java.util.stream.Collectors;
  *   <li>A calling code is the ITU-T E.164 country code alone, from libphonenumber, so countries that
  *       share one have the same value: {@code +1} for every North American Numbering Plan country,
  *       {@code +44} for the United Kingdom and the crown dependencies.</li>
- *   <li>A continent is the country's UN M49 region, with the Americas divided into North America and
- *       South America; a transcontinental country has its M49 region ({@code RU} is Europe, {@code TR}
- *       is Asia). The continents are {@code Africa}, {@code Antarctica}, {@code Asia}, {@code Europe},
+ *   <li>A continent is the country's UN M49 region, from Unicode CLDR's territory containment, with the
+ *       Americas divided into North America and South America; a transcontinental country has its M49
+ *       region ({@code RU} is Europe, {@code TR} is Asia). The continents are {@code Africa}, {@code Antarctica}, {@code Asia}, {@code Europe},
  *       {@code North America}, {@code Oceania} and {@code South America}.</li>
  *   <li>A time zone is an IANA time zone ID from the tz database's {@code zone.tab}; a country with
  *       several zones has the zone of its seat of government ({@code America/New_York} for the United

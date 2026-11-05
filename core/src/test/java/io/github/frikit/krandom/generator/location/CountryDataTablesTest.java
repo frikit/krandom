@@ -66,17 +66,30 @@ class CountryDataTablesTest {
                 CountryGenerator.parseCountryValues(CountryResourceLoader.load(path), ISO_COUNTRIES, path);
         assertEquals(ISO_COUNTRIES.stream().map(CountryCodes::alpha2).toList(), List.copyOf(values.keySet()));
 
-        List<String> header;
-        try (InputStream in = Objects.requireNonNull(CountryDataTablesTest.class.getResourceAsStream("/" + path))) {
-            header = new String(in.readAllBytes(), UTF_8)
-                    .lines()
-                    .takeWhile(line -> line.startsWith("#"))
-                    .toList();
-        }
+        List<String> header = header(path);
         assertTrue(header.stream().anyMatch(line -> line.startsWith("# Source:")), path);
         assertTrue(header.stream().anyMatch(line -> line.startsWith("# Licence:")), path);
         assertTrue(header.contains("# Retrieved: 2026-11-04"), path);
         assertTrue(header.stream().anyMatch(line -> line.matches("# SHA-256: +[0-9a-f]{64}  \\S.*")), path);
+    }
+
+    @Test
+    @DisplayName("the continent table carries the Unicode License v3 notice that its CLDR source requires")
+    void continentTableCarriesTheUnicodeLicenceNotice() throws IOException {
+        List<String> header = header("krandom/country_codes/continents.txt");
+
+        assertTrue(header.contains("# Copyright © 1991-2026 Unicode, Inc."));
+        assertTrue(header.contains("# Permission is hereby granted, free of charge, to any person obtaining a"));
+        assertTrue(header.contains("# SPDX-License-Identifier: Unicode-3.0"));
+    }
+
+    private static List<String> header(String path) throws IOException {
+        try (InputStream in = Objects.requireNonNull(CountryDataTablesTest.class.getResourceAsStream("/" + path))) {
+            return new String(in.readAllBytes(), UTF_8)
+                    .lines()
+                    .takeWhile(line -> line.startsWith("#"))
+                    .toList();
+        }
     }
 
     @Test
