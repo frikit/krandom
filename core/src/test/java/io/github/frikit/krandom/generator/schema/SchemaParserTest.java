@@ -19,6 +19,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -1942,6 +1943,144 @@ class SchemaParserTest {
             for (Map<String, Object> property : properties) {
                 assertEquals(values(property), values(property));
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("JSON value equality")
+    class JsonValueEquality {
+
+        /** A const beside an enum holding one member is generated only if the two are the same JSON value. */
+        private static void assertSameJson(Object constant, Object member) {
+            assertEquals(
+                    Set.of(constant),
+                    CombinedConstraints.distinct(Map.of("const", constant, "enum", List.of(member))),
+                    () -> constant + " and " + member);
+        }
+
+        private static void assertDifferentJson(Object constant, Object member) {
+            CombinedConstraints.assertRejected(Map.of("const", constant, "enum", List.of(member)));
+        }
+
+        private static Map<String, Object> linked(String key, Object value, String otherKey, Object other) {
+            Map<String, Object> object = new LinkedHashMap<>();
+            object.put(key, value);
+            object.put(otherKey, other);
+            return object;
+        }
+
+        @Test
+        @DisplayName("an object const matches an enum member that writes its number differently, as in 2.9.0")
+        void objectConstMatchesEnumMemberWithNumberWrittenDifferently() {
+            assertSameJson(Map.of("id", 1), Map.of("id", 1.0));
+            assertSameJson(Map.of("id", 1.0), Map.of("id", 1));
+        }
+
+        @Test
+        @DisplayName("numbers compare by value at every depth of arrays and objects")
+        void numbersCompareByValueAtEveryDepth() {
+            assertSameJson(
+                    Map.of("a", List.of(1, Map.of("b", List.of(2.0, 3)), "c"), "d", Map.of("e", 4L)),
+                    Map.of(
+                            "a",
+                            List.of(1.0, Map.of("b", List.of(2, new BigDecimal("3.00"))), "c"),
+                            "d",
+                            Map.of("e", new BigInteger("4"))));
+            assertSameJson(List.of(List.of(1), List.of(List.of(2))), List.of(List.of(1.0), List.of(List.of(2.0f))));
+            // An array is written as a list.
+            assertSameJson(Map.of("ids", new long[] {1L, 2L}), Map.of("ids", List.of(1.0, 2.0)));
+            // So is the content of a nested schema's const or enum.
+            List<Object> arrays = List.of(List.of(Map.of("id", 1.0)));
+            assertEquals(
+                    Set.copyOf(arrays),
+                    CombinedConstraints.distinct(Map.of("enum", arrays, "items", Map.of("const", Map.of("id", 1)))));
+            List<Object> objects = List.of(Map.of("o", Map.of("id", 1.0)));
+            assertEquals(
+                    Set.copyOf(objects),
+                    CombinedConstraints.distinct(Map.of(
+                            "enum", objects, "properties", Map.of("o", Map.of("enum", List.of(Map.of("id", 1)))))));
+        }
+
+        @Test
+        @DisplayName("large integers compare exactly, so a double near one is another number")
+        void largeIntegersCompareExactly() {
+            assertSameJson(Map.of("n", Long.MAX_VALUE), Map.of("n", BigInteger.valueOf(Long.MAX_VALUE)));
+            assertSameJson(
+                    List.of(new BigInteger("123456789012345678901234567890")),
+                    List.of(new BigDecimal("1.23456789012345678901234567890E+29")));
+            // 2^53 + 1 has no double: the nearest, 2^53, is written as another number.
+            assertDifferentJson(Map.of("n", 9_007_199_254_740_993L), Map.of("n", 9_007_199_254_740_992.0));
+            assertDifferentJson(List.of(Long.MAX_VALUE), List.of((double) Long.MAX_VALUE));
+        }
+
+        @Test
+        @DisplayName("decimals, negative zero and exponent forms compare by value")
+        void decimalsNegativeZeroAndExponentsCompareByValue() {
+            assertSameJson(Map.of("p", 0.1), Map.of("p", new BigDecimal("0.10")));
+            assertDifferentJson(Map.of("p", 0.1 + 0.2), Map.of("p", 0.3));
+            assertSameJson(Map.of("z", -0.0), Map.of("z", 0));
+            assertSameJson(List.of(-0.0f), List.of(new BigDecimal("0E-10")));
+            assertSameJson(Map.of("e", 1e2), Map.of("e", 100));
+            assertSameJson(Map.of("e", new BigDecimal("1E+2")), Map.of("e", 100L));
+            assertSameJson(List.of(new BigDecimal("1.5E-3")), List.of(0.0015));
+            assertSameJson(List.of(1.0E300), List.of(new BigDecimal("1E300")));
+            // A float is compared as it is written, and 0.1f is written 0.1.
+            assertSameJson(List.of(0.1f), List.of(0.1));
+        }
+
+        @Test
+        @DisplayName("arrays compare in order, and objects member by member in any order")
+        void arraysCompareInOrderAndObjectsMemberByMember() {
+            assertDifferentJson(List.of(1, 2), List.of(2, 1));
+            assertDifferentJson(List.of(1), List.of(1, 1));
+            assertDifferentJson(List.of(1, 1), List.of(1));
+            assertDifferentJson(Map.of("id", 1), Map.of("id", 1, "x", 2));
+            assertDifferentJson(Map.of("id", 1, "x", 2), Map.of("id", 1));
+            assertDifferentJson(Map.of("a", 1), Map.of("b", 1));
+            assertDifferentJson(Collections.singletonMap("a", null), Collections.singletonMap("b", null));
+            assertSameJson(linked("a", 1, "b", 2), linked("b", 2.0, "a", 1));
+        }
+
+        @Test
+        @DisplayName("values of different JSON types differ")
+        void valuesOfDifferentJsonTypesDiffer() {
+            assertDifferentJson(Map.of("id", "1"), Map.of("id", 1));
+            assertDifferentJson(Map.of("id", 1), Map.of("id", "1"));
+            assertDifferentJson(Collections.singletonMap("id", null), Map.of("id", 0));
+            assertDifferentJson(Map.of("id", 0), Collections.singletonMap("id", null));
+            assertDifferentJson(Map.of("id", true), Map.of("id", 1));
+            assertDifferentJson(Map.of("id", 1), Map.of("id", true));
+            assertDifferentJson(Map.of("id", true), Map.of("id", "true"));
+            assertDifferentJson(Map.of("id", "true"), Map.of("id", true));
+            assertDifferentJson(Map.of("id", true), Map.of("id", false));
+            assertDifferentJson(List.of(List.of()), List.of(Map.of()));
+            assertDifferentJson(List.of(Map.of()), List.of(List.of()));
+            // Text that reads like an array or object is still a string.
+            assertDifferentJson(List.of("[a]"), List.of(List.of("a")));
+            assertDifferentJson(List.of(List.of("a")), List.of("[a]"));
+            assertDifferentJson(List.of("{a=1}"), List.of(Map.of("a", 1)));
+            assertDifferentJson(List.of(Map.of("a", 1)), List.of("{a=1}"));
+            assertSameJson(Map.of("ok", true), Map.of("ok", true));
+            assertSameJson(Collections.singletonMap("v", null), Collections.singletonMap("v", null));
+        }
+
+        @Test
+        @DisplayName("a value written as a string matches its text")
+        void valueWrittenAsStringMatchesItsText() {
+            assertSameJson(Map.of("c", 'x'), Map.of("c", "x"));
+            assertSameJson(List.of(new StringBuilder("ab")), List.of("ab"));
+            LocalDate date = LocalDate.of(2020, 1, 2);
+            assertSameJson(Map.of("on", date), Map.of("on", "2020-01-02"));
+            assertSameJson("2020-01-02", date);
+            assertDifferentJson(Map.of("on", date), Map.of("on", "2020-01-03"));
+        }
+
+        @Test
+        @DisplayName("rejects a const or enum with a non-finite number at any depth, with the path")
+        void rejectsNestedNonFiniteNumbers() {
+            CombinedConstraints.assertRejected(Map.of("const", List.of(Double.NaN)));
+            CombinedConstraints.assertRejected(Map.of("const", Map.of("v", Double.POSITIVE_INFINITY)));
+            CombinedConstraints.assertRejected(Map.of("enum", List.of(Map.of("v", Float.NaN), Map.of("v", 1))));
         }
     }
 

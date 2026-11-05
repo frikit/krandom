@@ -32,6 +32,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -64,7 +65,9 @@ import org.jspecify.annotations.Nullable;
  * <p>Constraints apply together, and a keyword constrains only values of its own JSON type. A
  * {@code const} or {@code enum} value must meet the other constraints, and an {@code enum} keeps only
  * the values that do; {@code format} is not one of them, because it is an annotation in Draft 2020-12.
- * Overlapping numeric bounds intersect. A {@code pattern} or {@code format} value is drawn again until
+ * Values compare as JSON values: a number by its value at any depth, so {@code {"id": 1}} equals
+ * {@code {"id": 1.0}}, an array item by item in order, an object member by member, and a value written
+ * as a string, such as a date, by its text. Overlapping numeric bounds intersect. A {@code pattern} or {@code format} value is drawn again until
  * it fits {@code minLength} and {@code maxLength}, up to a fixed number of attempts. A combination that
  * leaves no value is rejected with its schema path, while parsing where that can be told. A combination
  * of length bounds with a {@code pattern} or {@code format} is judged by sampling rather than analysis,
@@ -396,10 +399,39 @@ public final class SchemaParser {
     }
 
     private static boolean sameValue(@Nullable Object value, @Nullable Object explicit) {
-        Object other = JsonSchemaSupport.normalizeStructuredValue(explicit);
-        return value instanceof Number number && other instanceof Number otherNumber
-                ? decimal(number).compareTo(decimal(otherNumber)) == 0
-                : Objects.equals(value, other);
+        return sameJson(value, JsonSchemaSupport.normalizeStructuredValue(explicit));
+    }
+
+    /**
+     * JSON instance equality between two values as they are written: numbers are equal when their values
+     * are, whatever holds them, so 1 equals 1.0; arrays when their items are, in order; objects when they
+     * have the same members with equal values; and anything written as a string when its text is.
+     */
+    private static boolean sameJson(@Nullable Object value, @Nullable Object other) {
+        if (value == null || other == null) {
+            return value == other;
+        }
+        if (value instanceof Number number) {
+            return other instanceof Number otherNumber && decimal(number).compareTo(decimal(otherNumber)) == 0;
+        }
+        if (value instanceof Boolean) {
+            return value.equals(other);
+        }
+        if (value instanceof List<?> items) {
+            return other instanceof List<?> otherItems
+                    && items.size() == otherItems.size()
+                    && IntStream.range(0, items.size())
+                            .allMatch(index -> sameJson(items.get(index), otherItems.get(index)));
+        }
+        if (value instanceof Map<?, ?> members) {
+            return other instanceof Map<?, ?> otherMembers
+                    && members.size() == otherMembers.size()
+                    && members.entrySet().stream()
+                            .allMatch(member -> otherMembers.containsKey(member.getKey())
+                                    && sameJson(member.getValue(), otherMembers.get(member.getKey())));
+        }
+        return !(other instanceof Number || other instanceof Boolean || other instanceof List || other instanceof Map)
+                && value.toString().equals(other.toString());
     }
 
     private static boolean withinNumericBounds(Number number, Map<?, ?> schema) {
