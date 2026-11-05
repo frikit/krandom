@@ -66,6 +66,15 @@ class ObjectGeneratorInheritedGenericTest {
     }
 
     @Test
+    @DisplayName("a container reached through two inherited type variables takes its element type")
+    void containerThroughVariableChainTakesItsElementType() {
+        ListChainFixture value = new ObjectGenerator<>(ListChainFixture.class, CONFIG).generate();
+
+        assertEquals(2, value.direct.size());
+        value.direct.forEach(item -> assertInstanceOf(String.class, item));
+    }
+
+    @Test
     @DisplayName("unbound type variable fails with its declared path and signature")
     void unboundTypeVariableFailsWithContext() {
         ObjectGenerationException ex = assertThrows(
@@ -100,6 +109,9 @@ class ObjectGeneratorInheritedGenericTest {
     static class BoxedChainMiddle<V> extends GenericFixture<V> {}
 
     static final class BoxedChainFixture extends BoxedChainMiddle<Box<String>> {}
+
+    /** Its {@code T} is bound to {@code V}, and {@code V} to {@code List<String>}. */
+    static final class ListChainFixture extends BoxedChainMiddle<List<String>> {}
 
     static final class UnboundFixture<T> {
 

@@ -324,7 +324,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   With `class Middle<V> extends Fixture<V>` and `class Root extends Middle<Box<String>>`, a `T value` field
   of `Fixture` is a `Box<String>` whose `C content` holds a `String`, where the engine read the arguments
   from `V` alone and the unbound `C` failed as an unsupported type. The same holds for a mapped or sealed
-  subclass reached that way. As for a mapping above, a bounded type variable took its bound, so such an
+  subclass reached that way, and for a collection or map: with `class ListRoot extends Middle<List<String>>`,
+  the same field is a `List<String>`, where it failed as an unsupported type. As for a mapping above, a bounded type variable took its bound, so such an
   object whose bound the engine could generate changes too. Such a member now also shares the cycle key of a
   member declared with its type, so a cycle through it is cut where one through that member is, and a
   recursive object reached that way can change.
