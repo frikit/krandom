@@ -43,9 +43,9 @@ java -version   # must report 21+
   by tests. The integration modules (`jackson`, `junit`, `spring-boot-starter`, `kotest-extensions`,
   and `kotlin-dsl`) generate JaCoCo reports in `<module>/build/reports/jacoco/test` and enforce
   per-module line and branch floors (`integrationCoverageFloors` in the root `build.gradle.kts`,
-  set to the values measured when the floors were introduced); the pre-commit summary prints their
-  line and branch coverage. Raise a module's floor when you add tests; new integration code still
-  needs behavior tests.
+  set from the coverage measured when each floor was introduced or raised); the pre-commit summary
+  prints their line and branch coverage. Raise a module's floor when you add tests; new integration
+  code still needs behavior tests.
 - **Mutation testing**: deterministic, safety-sensitive, object, and schema paths must retain at
   least an 85% mutation score and 98% mutated-class line coverage. Expand targets incrementally
   around meaningful branching, review survivors by behavior, and do not treat 100% as a goal when
