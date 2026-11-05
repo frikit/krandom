@@ -79,6 +79,22 @@ class KotlinValueClassTest :
                 krandom<KSecret>().value.shouldNotBeBlank()
             }
 
+            it("passes a generic owner's type argument through a value class") {
+                val owner = krandom<KGenericOwnerHolder> { config { seed(7L) } }.owner
+
+                owner.boxed.value.shouldBeInstanceOf<String>()
+                owner.plain.shouldBeInstanceOf<String>()
+            }
+
+            it("needs a rule for a generic value class as the generated type or as a var property") {
+                shouldThrow<ObjectGenerationException> { krandom<KBox<String>>() }
+                krandom<KBox<String>> { rule("value") { "ruled" } } shouldBe KBox("ruled")
+
+                val failure = shouldThrow<ObjectGenerationException> { krandom<KMutableGeneric>() }
+                failure.message shouldBe
+                    "Unsupported type at 'KMutableGeneric.boxed' (declared type java.lang.Object, depth 0)"
+            }
+
             it("fails with context for a generic value class whose type argument is a star projection") {
                 val failure = shouldThrow<ObjectGenerationException> { krandom<KStarHolder>() }
 
@@ -234,6 +250,19 @@ data class KSecretHolder(
 
 data class KStarHolder(
     val box: KBox<*>,
+)
+
+data class KGenericOwner<T>(
+    val boxed: KBox<T>,
+    val plain: T,
+)
+
+class KMutableGeneric {
+    var boxed: KBox<String> = KBox("initial")
+}
+
+data class KGenericOwnerHolder(
+    val owner: KGenericOwner<String>,
 )
 
 data class KScore(
