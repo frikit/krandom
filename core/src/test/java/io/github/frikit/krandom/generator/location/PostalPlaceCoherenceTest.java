@@ -61,7 +61,22 @@ class PostalPlaceCoherenceTest {
     }
 
     static Stream<Case> cases() {
-        return Stream.of(new Case(Locale.US, "en_US", Pattern.compile("[0-9]{5}")));
+        Pattern fiveDigits = Pattern.compile("[0-9]{5}");
+        return Stream.of(
+                new Case(Locale.US, "en_US", fiveDigits),
+                new Case(Locale.UK, "en_GB", Pattern.compile("[A-Z]{1,2}[0-9][A-Z0-9]? [0-9][A-Z]{2}")),
+                new Case(Locale.GERMANY, "de_DE", fiveDigits),
+                new Case(Locale.FRANCE, "fr_FR", fiveDigits));
+    }
+
+    /** A locale that resolves another locale's table, and the country its addresses name. */
+    static Stream<Arguments> borrowingLocales() {
+        return Stream.of(
+                Arguments.of(Locale.of("es", "US"), "en_US", "Estados Unidos", "US"),
+                Arguments.of(Locale.of("en", "DE"), "de_DE", "Germany", "DE"),
+                Arguments.of(Locale.ENGLISH, "en_US", "United States", "US"),
+                Arguments.of(Locale.GERMAN, "de_DE", "Deutschland", "DE"),
+                Arguments.of(Locale.FRENCH, "fr_FR", "France", "FR"));
     }
 
     static Stream<Arguments> tables() {
@@ -155,28 +170,16 @@ class PostalPlaceCoherenceTest {
         }
     }
 
-    @Test
-    @DisplayName("another language of a country with places uses that country's places")
-    void otherLanguageOfTheCountryUsesItsPlaces() {
-        List<Row> rows = rows("en_US");
-        Locale spanishUs = Locale.of("es", "US");
+    @ParameterizedTest
+    @MethodSource("borrowingLocales")
+    @DisplayName("another language of a country, or a language without a country, uses the country's places")
+    void borrowingLocalesUseTheCountrysPlaces(Locale locale, String table, String country, String countryCode) {
+        List<Row> rows = rows(table);
         for (long seed = 0; seed < 200; seed++) {
-            AddressInfo info = new AddressInfoGenerator(config(spanishUs, seed)).generate();
+            AddressInfo info = new AddressInfoGenerator(config(locale, seed)).generate();
             assertTrue(rowOf(rows, info.city(), info.state()).postalCodes().contains(info.zip()), info.toString());
-            assertEquals("US", info.countryAbbr());
-            assertEquals("Estados Unidos", info.country());
-        }
-    }
-
-    @Test
-    @DisplayName("a locale without a country takes the country of the places its language resolves")
-    void languageOnlyLocaleTakesTheCountryOfItsPlaces() {
-        List<Row> rows = rows("en_US");
-        for (long seed = 0; seed < 200; seed++) {
-            AddressInfo info = new AddressInfoGenerator(config(Locale.ENGLISH, seed)).generate();
-            assertTrue(rowOf(rows, info.city(), info.state()).postalCodes().contains(info.zip()), info.toString());
-            assertEquals("US", info.countryAbbr());
-            assertEquals("United States", info.country());
+            assertEquals(countryCode, info.countryAbbr());
+            assertEquals(country, info.country());
         }
     }
 
@@ -188,8 +191,31 @@ class PostalPlaceCoherenceTest {
 
         assertTrue(canadianPostalCode.matcher(info.zip()).matches(), info.zip());
         assertEquals("CA", info.countryAbbr());
-        assertNotNull(PostalPlaceDataRegistry.forLocale(Locale.US));
-        assertEquals(null, PostalPlaceDataRegistry.forLocale(Locale.CANADA));
+        for (String fallback : List.of("en_CA", "en_IE", "de_AT", "de_CH", "fr_BE", "fr_CA", "fr_CH")) {
+            Locale locale = Locale.forLanguageTag(fallback.replace('_', '-'));
+            assertEquals(null, PostalPlaceDataRegistry.forLocale(locale), fallback);
+        }
+    }
+
+    @Test
+    @DisplayName("the en_GB places leave out Northern Ireland, which OS Open Names does not cover")
+    void britishPlacesLeaveOutNorthernIreland() {
+        List<Row> rows = rows("en_GB");
+
+        assertEquals(
+                Set.of("England", "Scotland", "Wales"),
+                Set.copyOf(rows.stream().map(Row::region).toList()));
+        for (String city : List.of("Armagh", "Belfast", "Lisburn", "Londonderry", "Newry")) {
+            assertTrue(rows.stream().noneMatch(row -> row.city().equals(city)), city);
+        }
+    }
+
+    @Test
+    @DisplayName("every de_DE place has the one postal code of its administrative seat")
+    void germanPlacesHaveOnePostalCode() {
+        for (Row row : rows("de_DE")) {
+            assertEquals(1, row.postalCodes().size(), row.toString());
+        }
     }
 
     /** A record whose members the object engine fills from one coherent address. */

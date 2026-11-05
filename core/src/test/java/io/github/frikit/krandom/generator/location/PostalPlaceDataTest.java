@@ -78,7 +78,8 @@ class PostalPlaceDataTest {
         assertTrue(PostalPlaceDataRegistry.isRegistered(Locale.US));
         assertFalse(PostalPlaceDataRegistry.isRegistered(Locale.CANADA));
         assertFalse(PostalPlaceDataRegistry.isRegistered(null));
-        assertEquals(Set.of("en_US", "en"), PostalPlaceDataRegistry.registeredKeys());
+        assertEquals(
+                Set.of("en_US", "en", "en_GB", "de_DE", "de", "fr_FR", "fr"), PostalPlaceDataRegistry.registeredKeys());
         assertEquals(252, us.getPlaces().size());
         assertSame(us.getPlaces(), us.getPlaces());
     }

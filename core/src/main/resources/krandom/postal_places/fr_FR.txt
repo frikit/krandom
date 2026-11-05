@@ -1,0 +1,141 @@
+# Postal places - French (France): a city, its région and up to ten of its postal codes on each line,
+# separated by tabs, with the postal codes separated by commas. The région is named as in
+# krandom/states/fr_FR_states.txt.
+#
+# Places:       every city of krandom/cities/fr_FR_cities.txt, taken as the most populous commune of
+#               that name in INSEE's populations municipales for 2023, so Montreuil is Montreuil in
+#               Seine-Saint-Denis and Saint-Denis is Saint-Denis in La Réunion (155,634 inhabitants,
+#               against 149,077 in Seine-Saint-Denis): 107 places in 14 régions. Évry, now part of the
+#               commune of Évry-Courcouronnes, takes that commune's région and the postal code that La
+#               Poste gives its locality Évry, 91000; the only commune still named Évry is a village in
+#               the Yonne.
+# Région:       the commune's région in the Code officiel géographique (COG) of 1 January 2026.
+# Postal codes: the commune's postal codes in La Poste's base officielle des codes postaux; Paris, Lyon
+#               and Marseille take those of their arrondissements municipaux. A commune with more than
+#               ten keeps ten, spread evenly through them in numeric order.
+# Checked:      every code starts with the number of the commune's département, or with 20 in Corse.
+#
+# Source:       - La Poste, Base officielle des codes postaux (laposte-hexasmal), updated 2026-10-08:
+#                 https://data.laposte.fr/data-fair/api/v1/datasets/laposte-hexasmal/raw
+#                 SHA-256 f921ac020ca3b9efebd8f0d01782555fb70d63d1ae36535109c67e4a74bd6e22
+#               - Insee, Code officiel géographique au 1er janvier 2026, communes and régions, updated
+#                 2026-02-24:
+#                 https://www.insee.fr/fr/statistiques/fichier/8740222/v_commune_2026.csv
+#                 SHA-256 7be1153de3a63df48fa0ca77f8490c8a0c5c9c4eb12f5cec1ca7f70b0237b1d3
+#                 https://www.insee.fr/fr/statistiques/fichier/8740222/v_region_2026.csv
+#                 SHA-256 d903566d9c0d263389d279baea6761917b7460749a07bec8ba37dd8f2ff7d98a
+#               - Insee, Populations légales 2023, fichier d'ensemble, published 2025-12-18, read only to
+#                 choose between communes of the same name:
+#                 https://www.insee.fr/fr/statistiques/fichier/8680726/ensemble.zip
+#                 SHA-256 5174fc225398a4c072fb8bb5298b7ccf30c017834c7a4171f44787379d83b3f5
+# Licence:      Licence Ouverte / Open Licence 2.0 (Etalab), the licence of all three files:
+#               https://www.etalab.gouv.fr/licence-ouverte-open-licence
+#               Sources : La Poste ; Insee.
+# Retrieved:    2026-11-05
+Agen	Nouvelle-Aquitaine	47000
+Aix-en-Provence	Provence-Alpes-Côte d'Azur	13080,13090,13100,13290,13540
+Ajaccio	Corse	20000,20090,20167
+Albi	Occitanie	81000
+Amiens	Hauts-de-France	80000,80080,80090
+Angers	Pays de la Loire	49000,49100
+Angoulême	Nouvelle-Aquitaine	16000
+Annecy	Auvergne-Rhône-Alpes	74000,74370,74600,74940,74960
+Antibes	Provence-Alpes-Côte d'Azur	06160,06600
+Argenteuil	Île-de-France	95100
+Arles	Provence-Alpes-Côte d'Azur	13104,13123,13129,13200,13280
+Asnières-sur-Seine	Île-de-France	92600
+Aubagne	Provence-Alpes-Côte d'Azur	13400
+Aubervilliers	Île-de-France	93300
+Aulnay-sous-Bois	Île-de-France	93600
+Avignon	Provence-Alpes-Côte d'Azur	84000,84140
+Bastia	Corse	20200,20600
+Bayonne	Nouvelle-Aquitaine	64100
+Beauvais	Hauts-de-France	60000
+Belfort	Bourgogne-Franche-Comté	90000
+Besançon	Bourgogne-Franche-Comté	25000
+Blois	Centre-Val de Loire	41000
+Bobigny	Île-de-France	93000
+Bordeaux	Nouvelle-Aquitaine	33000,33100,33200,33300,33800
+Boulogne-Billancourt	Île-de-France	92100
+Bourg-en-Bresse	Auvergne-Rhône-Alpes	01000
+Bourges	Centre-Val de Loire	18000
+Brest	Bretagne	29200
+Béziers	Occitanie	34500
+Caen	Normandie	14000
+Calais	Hauts-de-France	62100
+Cannes	Provence-Alpes-Côte d'Azur	06150,06400
+Carcassonne	Occitanie	11000
+Chambéry	Auvergne-Rhône-Alpes	73000
+Champigny-sur-Marne	Île-de-France	94500
+Chartres	Centre-Val de Loire	28000
+Cherbourg-en-Cotentin	Normandie	50100,50110,50120,50130,50460,50470
+Cholet	Pays de la Loire	49300
+Châteauroux	Centre-Val de Loire	36000
+Clermont-Ferrand	Auvergne-Rhône-Alpes	63000,63100
+Colmar	Grand Est	68000
+Colombes	Île-de-France	92700
+Courbevoie	Île-de-France	92400
+Créteil	Île-de-France	94000
+Dijon	Bourgogne-Franche-Comté	21000
+Drancy	Île-de-France	93700
+Dunkerque	Hauts-de-France	59140,59240,59279,59430,59640
+Fréjus	Provence-Alpes-Côte d'Azur	83370,83600
+Grasse	Provence-Alpes-Côte d'Azur	06130,06520
+Grenoble	Auvergne-Rhône-Alpes	38000,38100
+Hyères	Provence-Alpes-Côte d'Azur	83400
+Issy-les-Moulineaux	Île-de-France	92130
+Ivry-sur-Seine	Île-de-France	94200
+La Rochelle	Nouvelle-Aquitaine	17000
+La Seyne-sur-Mer	Provence-Alpes-Côte d'Azur	83500
+Le Havre	Normandie	76600,76610,76620
+Le Mans	Pays de la Loire	72000,72100
+Lens	Hauts-de-France	62300
+Levallois-Perret	Île-de-France	92300
+Lille	Hauts-de-France	59000,59160,59260,59777,59800
+Limoges	Nouvelle-Aquitaine	87000,87100,87280
+Lorient	Bretagne	56100
+Lyon	Auvergne-Rhône-Alpes	69001,69002,69003,69004,69005,69006,69007,69008,69009
+Mantes-la-Jolie	Île-de-France	78200
+Marseille	Provence-Alpes-Côte d'Azur	13001,13003,13004,13006,13008,13009,13011,13013,13014,13016
+Metz	Grand Est	57000,57050,57070
+Montauban	Occitanie	82000
+Montpellier	Occitanie	34000,34070,34080,34090
+Montreuil	Île-de-France	93100
+Mulhouse	Grand Est	68100,68200
+Nancy	Grand Est	54000,54100
+Nanterre	Île-de-France	92000
+Nantes	Pays de la Loire	44000,44100,44200,44300
+Neuilly-sur-Seine	Île-de-France	92200
+Nice	Provence-Alpes-Côte d'Azur	06000,06100,06200,06300
+Niort	Nouvelle-Aquitaine	79000
+Nîmes	Occitanie	30000,30900
+Orléans	Centre-Val de Loire	45000,45100
+Paris	Île-de-France	75001,75003,75005,75008,75010,75012,75014,75017,75019,75116
+Pau	Nouvelle-Aquitaine	64000
+Perpignan	Occitanie	66000,66100
+Pessac	Nouvelle-Aquitaine	33600
+Poitiers	Nouvelle-Aquitaine	86000
+Quimper	Bretagne	29000
+Reims	Grand Est	51100
+Rennes	Bretagne	35000,35200,35700
+Rouen	Normandie	76000,76100
+Rueil-Malmaison	Île-de-France	92500
+Saint-Denis	La Réunion	97400,97417,97490
+Saint-Nazaire	Pays de la Loire	44600
+Saint-Quentin	Hauts-de-France	02100
+Saint-Étienne	Auvergne-Rhône-Alpes	42000,42100,42230
+Sarcelles	Île-de-France	95200
+Strasbourg	Grand Est	67000,67100,67200
+Suresnes	Île-de-France	92150
+Toulon	Provence-Alpes-Côte d'Azur	83000,83100,83200
+Toulouse	Occitanie	31000,31100,31200,31300,31400,31500
+Tourcoing	Hauts-de-France	59200
+Tours	Centre-Val de Loire	37000,37100,37200
+Troyes	Grand Est	10000
+Valence	Auvergne-Rhône-Alpes	26000
+Vannes	Bretagne	56000
+Versailles	Île-de-France	78000
+Villeurbanne	Auvergne-Rhône-Alpes	69100
+Vitry-sur-Seine	Île-de-France	94400
+Épinay-sur-Seine	Île-de-France	93800
+Évry	Île-de-France	91000
