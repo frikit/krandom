@@ -32,9 +32,11 @@ import kotlin.reflect.jvm.jvmErasure
  * Service-loaded bridge that constructs immutable Kotlin values through their primary constructor,
  * boxes value classes through theirs, and lists the subclasses of sealed types.
  *
- * The bridge lives in the Kotlin module so `krandom-core` keeps no Kotlin runtime dependency.
+ * The bridge lives in the Kotlin module so `krandom-core` keeps no Kotlin runtime dependency. It is
+ * internal to Kotlin callers; `ServiceLoader` still finds it, because Kotlin compiles an internal
+ * class and its constructor to public JVM members.
  */
-class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
+internal class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
     override fun supports(type: Class<*>): Boolean {
         if (!type.isAnnotationPresent(Metadata::class.java)) {
             return false
