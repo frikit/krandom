@@ -76,6 +76,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   objects that broke one. The pass still overwrites the constraints of the strings, amounts, and statuses it
   derives in `STRICT` mode, such as `@Size(max = 12)` on an `email`. The `STRICT` documentation now says that
   Bean Validation constraints take precedence when a value is generated, as they always have.
+- An `age` that no `birthDate` of its type can hold, such as an overridden or constrained age of 2,147,483,647,
+  or one of 500,000,000 beside a `Calendar`, which counts milliseconds, now leaves `birthDate` as it is. Deriving
+  the birth date failed generation with a `DateTimeException` or an `IllegalArgumentException`.
 - `age` now counts the years since the local date of an `OffsetDateTime`, `ZonedDateTime` or `Calendar`
   `birthDate`, in its own offset or zone, which is the date its generator draws and `objectDateRange` bounds.
   It counted from the UTC date, which is a day off near midnight far from UTC, so around a birthday the age was

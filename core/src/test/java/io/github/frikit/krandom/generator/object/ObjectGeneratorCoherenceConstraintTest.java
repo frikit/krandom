@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -106,6 +107,10 @@ class ObjectGeneratorCoherenceConstraintTest {
     record NullBirthDate(@Null LocalDate birthDate, int age) {}
 
     record NullAge(LocalDate birthDate, @Null Integer age) {}
+
+    record UnreachableBirthDate(
+            @Future LocalDate birthDate,
+            @Min(Integer.MAX_VALUE) int age) {}
 
     @ParameterizedTest(name = "{0}")
     @EnumSource(
@@ -243,6 +248,21 @@ class ObjectGeneratorCoherenceConstraintTest {
             assertNull(nullBirthDateValue.birthDate(), nullBirthDateValue.toString());
             NullAge nullAgeValue = nullAge.generate();
             assertNull(nullAgeValue.age(), nullAgeValue.toString());
+        }
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @EnumSource(
+            value = ObjectGenerationSemanticMode.class,
+            names = {"RELAXED", "STRICT"})
+    @DisplayName("an age that no birth date can give leaves birthDate as it is, rather than fail")
+    void ageThatNoBirthDateCanGiveLeavesBirthDateAsItIs(ObjectGenerationSemanticMode mode) {
+        ObjectGenerator<UnreachableBirthDate> generator =
+                new ObjectGenerator<>(UnreachableBirthDate.class, config(mode));
+        for (int i = 0; i < SAMPLES; i++) {
+            UnreachableBirthDate value = assertDoesNotThrow(generator::generate);
+            assertValid(value);
+            assertEquals(Integer.MAX_VALUE, value.age());
         }
     }
 
