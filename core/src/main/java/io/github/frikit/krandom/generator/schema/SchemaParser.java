@@ -440,10 +440,20 @@ public final class SchemaParser {
                 && value.toString().equals(other.toString());
     }
 
-    /** An object's members under the names the JSON writer gives them, so the key 1 is the member "1". */
+    /**
+     * An object's members under the names the JSON writer gives them, so the key 1 is the member "1". Two
+     * keys written under one name, such as 1 and "1", would make two members of that name, so they are
+     * rejected rather than one hiding the other.
+     */
     private static Map<String, @Nullable Object> byName(Map<?, ?> object) {
         Map<String, @Nullable Object> members = new LinkedHashMap<>();
-        object.forEach((key, member) -> members.put(String.valueOf(key), member));
+        for (Map.Entry<?, ?> member : object.entrySet()) {
+            String name = String.valueOf(member.getKey());
+            if (members.containsKey(name)) {
+                throw new IllegalArgumentException("two members of a JSON object are written as \"" + name + "\"");
+            }
+            members.put(name, member.getValue());
+        }
         return members;
     }
 

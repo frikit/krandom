@@ -40,7 +40,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   beside the `enum` `[{"id": 1.0}]` was rejected as missing from it. It is accepted again, as in 2.9.0,
   and generates `{"id": 1}`. A value written as a string, such as a `LocalDate`, now matches its text.
   A `NaN` or infinity inside a `const` or `enum` value is now rejected while parsing, as one at the top
-  level already was. Seeded output changes only for an `enum` that now keeps a member it used to drop.
+  level already was, and so is an object in one with two keys written under one name, such as `1` and
+  `"1"`. Seeded output changes only for an `enum` that now keeps a member it used to drop.
 - An `@Email` field now takes a value from its `regexp` or a `@Pattern` only in the shape Hibernate
   Validator's `@Email` accepts for a dot-atom address: a local part of at most 64 characters with a dot
   only between two others, and a domain whose labels have a dash only inside them, at most 63

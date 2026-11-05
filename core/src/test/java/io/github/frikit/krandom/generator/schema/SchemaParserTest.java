@@ -2058,6 +2058,21 @@ class SchemaParserTest {
         }
 
         @Test
+        @DisplayName("rejects an object with two members written under one name, with the path")
+        void rejectsTwoMembersWrittenUnderOneName() {
+            Map<Object, Object> hiddenNaN = new LinkedHashMap<>();
+            hiddenNaN.put(1, Double.NaN);
+            hiddenNaN.put("1", 0);
+            CombinedConstraints.assertRejected(Map.of("const", hiddenNaN));
+            Map<Object, Object> twice = new LinkedHashMap<>();
+            twice.put('a', 1);
+            twice.put("a", 1);
+            CombinedConstraints.assertRejected(Map.of("const", twice));
+            CombinedConstraints.assertRejected(Map.of("enum", List.of(Map.of("a", 1), twice)));
+            CombinedConstraints.assertRejected(Map.of("enum", List.of(List.of(twice))));
+        }
+
+        @Test
         @DisplayName("values of different JSON types differ")
         void valuesOfDifferentJsonTypesDiffer() {
             assertDifferentJson(Map.of("id", "1"), Map.of("id", 1));
