@@ -6,6 +6,50 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Composite generators now give each child generator its own stream by default, under
+  `ChildStreamPolicy.INDEPENDENT`, which was an opt-in since 2.6.0. With a numeric or textual seed, a
+  child's seed is derived from the parent seed and the child's name, so siblings no longer start in the
+  same state: the payment, invoice, and order numbers of a `PaymentInfo` seeded with `42` were
+  `PAY-359D41BAF78A`, `INV-359D41BAF78A`, and `ORD-359D41BAF78A`, and are now `PAY-7DC1F9C37F29`,
+  `INV-F852387C7D39`, and `ORD-B9D4F25FCB19`. Seeded output changes for every generator with children,
+  such as `FullNameGenerator`, `MiddleNameGenerator`, `EmailGenerator`, `UsernameGenerator`,
+  `WordGenerator`, `SentenceGenerator`, `URLGenerator`, `HostnameGenerator`, `OffsetDateTimeGenerator`,
+  `PersonInfoGenerator`, and `PaymentInfoGenerator`, and for the values built on them, such as
+  `Krandom.fullName()`, `middleName()`, and `email()`, object members such as `fullName`, `email`,
+  `username`, and `streetAddress`, and schema columns such as `person.full_name` and `person.email`. The
+  Spring starter, the JUnit and Kotest extensions, and the Kotlin DSL take the new default.
+  `ChildStreamPolicy.LEGACY` restores the earlier output draw for draw, so the network values of
+  releases before 2.10.0 now take it together with `NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED`.
+  `INDEPENDENT` no longer requires a seed: an unseeded configuration has nothing to derive from, so
+  `forChildStream` returns it unchanged and each child draws from its own fresh `Random` or
+  `SecureRandom`, as before. A caller-owned `Random` is still shared by every child, and a random
+  factory is still called once for each child. Under `INDEPENDENT`, `forChildStream` rejects a blank
+  or multi-line stream name with or without a seed, which the earlier default accepted.
+- A recipe now records the child-stream policy in the setting `child-stream-policy`, whichever policy it
+  is, and replay requires it, so a recipe without it, such as one written under the earlier `LEGACY`
+  default, is rejected rather than replayed with independent streams.
+- `KrandomExtension` now gives a `@MethodSource` factory the class-scoped configuration of its test
+  class, the one `@BeforeAll` receives: from the class-level `@KrandomSeed`, a replay override, a class
+  recipe, or a random seed. A method-level `@KrandomSeed` on a `@ParameterizedTest` pinned its factory
+  too and now pins only its invocations, so pin the class to fix the generated arguments. A `Krandom`
+  factory parameter is a session of the parameterized test's own, built from that configuration, so it
+  starts the class-level streams again. The `@BeforeParameterizedClassInvocation` and
+  `@AfterParameterizedClassInvocation` methods of a `@ParameterizedClass` invocation also take the
+  class-scoped configuration, with a session of the invocation's own, where an unpinned invocation had
+  a random seed of its own. Seeded output changes for factories under a method-level pin.
+
+### Fixed
+
+- `KRANDOM_JUNIT_CLASS_RECIPE` now replays what a `@MethodSource` factory generated. JUnit calls the
+  factory with the context of the parameterized test as a whole, which `KrandomExtension` reported as a
+  second class-scoped configuration under the test class's name. Beside a `@BeforeAll` entry, the
+  printed replay command then failed with a configuration error for the duplicate entry; otherwise the
+  factory took the test's recipe on replay, so the arguments of the failing invocation changed. The
+  callbacks of a `@ParameterizedClass` invocation had the same fault. Each test class now reports one
+  class-scoped configuration, and the replay commands restore it.
+
 ## [2.10.0] - 2026-11-02
 
 ### Added
