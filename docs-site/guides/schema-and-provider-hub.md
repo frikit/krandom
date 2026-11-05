@@ -85,12 +85,12 @@ is a fixture-schema importer, not a general JSON Schema validator or reference r
 
 | Construct | Supported behavior |
 | --- | --- |
-| Root | An object with a non-empty `properties` map is required. |
+| Root | An object with a non-empty `properties` map is required. Every record holds each of those properties, as a column, so a root `required` name or property dependency that names another property, or a `minProperties` or `maxProperties` that those properties do not meet, is rejected at `$`. |
 | Types | `string`, `integer`, `number`, `boolean`, `array`, `object`, and `null`; a type list may contain exactly one concrete type plus `null`. |
 | Scalars | `const`, a non-empty `enum`, numeric bounds, `multipleOf`, string length bounds, and a `pattern` in the [syntax `RegexGenerator` supports]({{ '/guides/data-validity-and-safety/' | relative_url }}#regular-expression-contract). |
 | Strings | `email`/`idn-email`, `uri`/`url`, `uuid`, `date`, `date-time`, `time`, `ipv4`, `ipv6`, and `hostname` receive dedicated generation. An unknown *string* format deliberately uses semantic-name or bounded-string fallback rather than pretending to implement it. A schema with no `type` generates a string under the same rules. |
-| Structures | `items` as one schema or as a list of schemas, `additionalItems` beside a list, `minItems`/`maxItems`, and `uniqueItems` for arrays; nested `properties` for objects. An array without `items` produces strings, and `true` and `false` work as schemas that allow any item or none. |
-| OpenAPI controls | OpenAPI 3.0 `nullable`, plus `$schema`, `required`, and `additionalProperties` emitted by `toJsonSchema()`. The latter three are accepted as document controls rather than generation constraints. |
+| Structures | `items` as one schema or as a list of schemas, `additionalItems` beside a list, `minItems`/`maxItems`, and `uniqueItems` for arrays; nested `properties`, `required`, `additionalProperties`, `minProperties`/`maxProperties`, and property `dependencies` for objects. An array without `items` produces strings, and `true` and `false` work as schemas that allow any value or none. |
+| OpenAPI controls | OpenAPI 3.0 `nullable`, plus the `$schema` that `toJsonSchema()` emits, which is accepted as a document control rather than a generation constraint. |
 
 Constraints apply together, and a keyword constrains only values of its own JSON type:
 
@@ -132,6 +132,25 @@ Constraints apply together, and a keyword constrains only values of its own JSON
   path, and `items: false` allows only the empty array. `additionalItems` beside a single `items` schema
   is ignored, as those drafts say. With `uniqueItems`, each item is drawn for the position it fills, so
   an array ends early at a position that has no new value, and fails below `minItems`.
+- A nested object holds every property it declares unless its other keywords ask otherwise.
+  `maxProperties` leaves out optional properties, chosen at random, until the object fits, and
+  `minProperties` adds as few additional properties as it needs, named `property1`, `property2`, and so on, past every
+  name the schema uses, with values from the `additionalProperties` schema, or strings without one. A
+  `required` property that is not in `properties` is generated the same way, and its name chooses a
+  realistic value where it can, so `required: ["email"]` gives an email address. Where
+  `additionalProperties` is `false`, none of these can be added, so the schema is rejected with its path.
+  A property schema `true` generates a string, as `{}` does, and `false` leaves the property out, so a
+  `required` property with either `false` or a value that is no schema is rejected.
+- A property dependency, such as `"dependencies": {"card": ["billing"]}`, brings the properties it
+  names, through every link, beside the property that needs them, so `required` brings them too. A
+  property whose dependencies cannot be generated is left out, and rejected if it is required.
+  `maxProperties` leaves out a property only after every property that depends on it, and properties
+  that depend on each other only together; where `additionalProperties` is `false`, `minProperties` and
+  `maxProperties` must then leave a range as wide as each such group. A schema dependency, which asks an
+  object to meet a second schema, needs schema composition, so it is rejected with its path, such as
+  `$.properties.order.dependencies.card`. `dependencies` is the form of the drafts up to 7, read
+  whatever `$schema` says; `dependentRequired` and `dependentSchemas`, the Draft 2019-09 forms, are
+  rejected.
 - A `pattern` or `format` value is drawn again until it fits `minLength` and `maxLength`, up to 10,000
   times each. Length is counted in characters, not UTF-16 units.
 - A value generated from a `pattern` matches the whole pattern, which also satisfies the search. A
@@ -149,9 +168,10 @@ that passes parsing can still fail on a later record. A pattern's `*`, `+`, and 
 twice `minLength` when that is more than their usual 10 times, up to 10,000, so `^[a-z]+$` with
 `minLength` 20 generates 20 to 40 characters.
 
-`$ref`, dynamic/recursive references, `allOf`, `anyOf`, `oneOf`, `not`, conditional schemas,
-and pattern/dependent-property composition are unsupported. They fail during parsing with the nested
-schema path. Malformed `type`, `format`, `enum`, and `items` values, and a malformed `additionalItems`
+`$ref`, dynamic/recursive references, `allOf`, `anyOf`, `oneOf`, `not`, conditional schemas (`if`,
+`then`, `else`), `contains`, `prefixItems`, `patternProperties`, `propertyNames`, `dependentRequired`,
+`dependentSchemas`, schema dependencies, and the `unevaluated` keywords are unsupported. They fail
+during parsing with the nested schema path. Malformed `type`, `format`, `enum`, and `items` values, and a malformed `additionalItems`
 beside a list of items, also fail during parsing with that path; they never silently become an
 unconstrained field. A Java map that recursively contains itself is
 rejected for the same reason: the importer has no document-ID or reference-resolution model.

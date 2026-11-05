@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -33,6 +34,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import org.jspecify.annotations.Nullable;
 
@@ -59,7 +61,12 @@ import org.jspecify.annotations.Nullable;
  *   <li>{@code minItems}/{@code maxItems} — bounded array size</li>
  *   <li>{@code uniqueItems} — array items that are distinct JSON values, drawn up to 100 times for each
  *       item</li>
- *   <li>{@code properties} — nested object fields</li>
+ *   <li>{@code properties} — nested object fields, where {@code true} allows any value and {@code false}
+ *       leaves the property out</li>
+ *   <li>{@code required}, {@code additionalProperties}, {@code minProperties}/{@code maxProperties} — the
+ *       members of a nested object, which holds every property it declares unless these ask otherwise;
+ *       additional members are named {@code property1}, {@code property2}, and so on</li>
+ *   <li>{@code dependencies} — property dependencies, the form of the drafts up to 7</li>
  *   <li>{@code nullable} (OpenAPI 3.0) — nullable field support</li>
  * </ul>
  *
@@ -67,10 +74,10 @@ import org.jspecify.annotations.Nullable;
  * unsupported type declarations, non-string formats, empty or malformed enums, and an {@code items} that
  * is no schema, boolean, or list of them are rejected with their schema path. A list of items holds the
  * whole tuple by default, and {@code additionalItems} is read only beside one, as in the drafts that
- * define it; {@code prefixItems}, its Draft 2020-12 replacement, is rejected. The parser accepts the
- * control keywords emitted by {@link Schema#toJsonSchema()}, including {@code $schema}, {@code required},
- * and {@code additionalProperties}. References and schema composition ({@code $ref}, {@code allOf},
- * {@code anyOf}, {@code oneOf}, and related conditional keywords) are rejected with a schema path
+ * define it; {@code prefixItems}, its Draft 2020-12 replacement, is rejected. The root generates every
+ * property as a column, so its {@code required} names, property dependencies, and member counts must allow
+ * exactly those. References and schema composition ({@code $ref}, {@code allOf}, {@code anyOf},
+ * {@code oneOf}, schema dependencies, and related conditional keywords) are rejected with a schema path
  * because this parser has no resolver or composition semantics.
  *
  * <p>Constraints apply together, and a keyword constrains only values of its own JSON type. A
@@ -208,8 +215,38 @@ public final class SchemaParser {
         if (providers.isEmpty()) {
             throw new IllegalArgumentException("JSON Schema must have at least one property");
         }
+        checkRootMembers(jsonSchema, providers.keySet());
 
         return new Schema(config, providers);
+    }
+
+    /**
+     * The root generates every property it declares, as a column, and no other, so its required names,
+     * property dependencies, and minProperties and maxProperties must allow exactly those.
+     */
+    private static void checkRootMembers(Map<String, Object> root, Set<String> columns) {
+        String reason = "JSON Schema root object generates exactly its properties, as columns, so ";
+        for (String name : names(root.get("required"))) {
+            if (!columns.contains(name)) {
+                throw new IllegalArgumentException(
+                        reason + "required property '" + name + "' must be one of them at $");
+            }
+        }
+        for (Map.Entry<String, List<String>> dependency :
+                propertyDependencies(root).entrySet()) {
+            for (String name : dependency.getValue()) {
+                if (columns.contains(dependency.getKey()) && !columns.contains(name)) {
+                    throw new IllegalArgumentException(reason + "property '" + name
+                            + "', which dependencies require beside '" + dependency.getKey()
+                            + "', must be one of them at $");
+                }
+            }
+        }
+        if (columns.size() < count(root, "minProperties", 0)
+                || columns.size() > count(root, "maxProperties", Integer.MAX_VALUE)) {
+            throw new IllegalArgumentException(
+                    reason + "its " + columns.size() + " properties must meet minProperties and maxProperties at $");
+        }
     }
 
     private static void validateSupportedKeywords(Map<?, ?> schema, String path, Set<Map<?, ?>> visiting) {
@@ -244,6 +281,9 @@ public final class SchemaParser {
                     validateSupportedKeywords(additionalSchema, path + ".additionalItems", visiting);
                 }
             }
+            if (schema.get("additionalProperties") instanceof Map<?, ?> additionalSchema) {
+                validateSupportedKeywords(additionalSchema, path + ".additionalProperties", visiting);
+            }
         } finally {
             visiting.remove(schema);
         }
@@ -263,6 +303,23 @@ public final class SchemaParser {
                 throw new IllegalArgumentException(
                         "JSON Schema additionalItems must be a schema or a boolean at " + path);
             }
+        }
+
+        for (String keyword : List.of("minProperties", "maxProperties")) {
+            if (schema.containsKey(keyword) && !isCount(schema.get(keyword))) {
+                throw new IllegalArgumentException(
+                        "JSON Schema " + keyword + " must be a whole number of at least 0 at " + path);
+            }
+        }
+        if (schema.containsKey("required") && !isNameList(schema.get("required"))) {
+            throw new IllegalArgumentException("JSON Schema required must be a list of property names at " + path);
+        }
+        if (schema.containsKey("additionalProperties") && !isSchema(schema.get("additionalProperties"))) {
+            throw new IllegalArgumentException(
+                    "JSON Schema additionalProperties must be a schema or a boolean at " + path);
+        }
+        if (schema.containsKey("dependencies")) {
+            validateDependencies(schema.get("dependencies"), path);
         }
 
         if (schema.containsKey("enum")) {
@@ -314,6 +371,83 @@ public final class SchemaParser {
     /** Whether a value is a schema: an object, or true or false, which allow any value or none. */
     private static boolean isSchema(@Nullable Object value) {
         return value instanceof Map<?, ?> || value instanceof Boolean;
+    }
+
+    private static boolean isNameList(@Nullable Object value) {
+        return value instanceof List<?> names && names.stream().allMatch(String.class::isInstance);
+    }
+
+    /** Whether a value is a whole number of at least 0, as a count of properties must be. */
+    private static boolean isCount(@Nullable Object value) {
+        try {
+            return value instanceof Number number
+                    && decimal(number).signum() >= 0
+                    && decimal(number).stripTrailingZeros().scale() <= 0;
+        } catch (NumberFormatException notFinite) {
+            return false;
+        }
+    }
+
+    /**
+     * Accepts property dependencies, which name the properties an object must hold beside one it holds.
+     * A schema dependency asks such an object to meet a second schema too, which needs the schema
+     * composition this parser does not have, so it is rejected, as allOf is.
+     */
+    private static void validateDependencies(@Nullable Object dependencies, String path) {
+        if (dependencies instanceof Map<?, ?> entries) {
+            for (Map.Entry<?, ?> entry : entries.entrySet()) {
+                if (entry.getKey() instanceof String name && isSchema(entry.getValue())) {
+                    throw new IllegalArgumentException("Unsupported JSON Schema schema dependency at " + path
+                            + ".dependencies." + name + ": an object that holds '" + name
+                            + "' must also meet a second schema, which needs schema composition; only a list of"
+                            + " property names is supported");
+                }
+                if (!(entry.getKey() instanceof String) || !isNameList(entry.getValue())) {
+                    throw malformedDependencies(path);
+                }
+            }
+            return;
+        }
+        throw malformedDependencies(path);
+    }
+
+    private static IllegalArgumentException malformedDependencies(String path) {
+        return new IllegalArgumentException(
+                "JSON Schema dependencies must map property names to lists of property names at " + path);
+    }
+
+    /** A count of properties, which the shape check has made a whole number of at least 0, up to an int. */
+    private static int count(Map<?, ?> schema, String keyword, int defaultValue) {
+        return schema.get(keyword) instanceof Number number
+                ? decimal(number).min(BigDecimal.valueOf(Integer.MAX_VALUE)).intValue()
+                : defaultValue;
+    }
+
+    /** A list of names, which the shape check has made sure of, or none. */
+    @SuppressWarnings("unchecked")
+    private static List<String> names(@Nullable Object value) {
+        return value instanceof List<?> names ? (List<String>) names : List.of();
+    }
+
+    /** The property dependencies, the only ones the shape check lets through: names each name brings. */
+    @SuppressWarnings("unchecked")
+    private static Map<String, List<String>> propertyDependencies(Map<?, ?> schema) {
+        return schema.get("dependencies") instanceof Map<?, ?> dependencies
+                ? (Map<String, List<String>>) dependencies
+                : Map.of();
+    }
+
+    /** A property and every property that dependencies require beside it, through every link, in order. */
+    private static List<String> dependents(String name, Map<String, List<String>> dependencies) {
+        List<String> closure = new ArrayList<>(List.of(name));
+        for (int i = 0; i < closure.size(); i++) {
+            for (String dependent : dependencies.getOrDefault(closure.get(i), List.of())) {
+                if (!closure.contains(dependent)) {
+                    closure.add(dependent);
+                }
+            }
+        }
+        return closure;
     }
 
     /** Whether a number is finite and above 0, as a multipleOf must be. */
@@ -425,12 +559,8 @@ public final class SchemaParser {
                             || jsonValues(list).size() == list.size())
                     && itemsMeet(list, schema);
         }
-        if (value instanceof Map<?, ?> object && schema.get("properties") instanceof Map<?, ?> properties) {
-            Map<String, @Nullable Object> members = byName(object);
-            return properties.entrySet().stream()
-                    .allMatch(property -> !members.containsKey(property.getKey())
-                            || !(property.getValue() instanceof Map<?, ?> propertySchema)
-                            || satisfies(members.get(property.getKey()), propertySchema));
+        if (value instanceof Map<?, ?> object) {
+            return membersMeet(byName(object), schema);
         }
         // A string, or anything else written as one, such as a date. A pattern searches that text; it
         // need not match all of it.
@@ -458,6 +588,30 @@ public final class SchemaParser {
             }
         }
         return true;
+    }
+
+    /**
+     * Whether an object's members meet the object keywords: each member its property's schema, or
+     * additionalProperties if it has none; the member count minProperties and maxProperties; and the
+     * names required and those that each member's dependencies require.
+     */
+    private static boolean membersMeet(Map<String, @Nullable Object> members, Map<?, ?> schema) {
+        Map<?, ?> properties = schema.get("properties") instanceof Map<?, ?> declared ? declared : Map.of();
+        for (Map.Entry<String, @Nullable Object> member : members.entrySet()) {
+            String name = member.getKey();
+            Object memberSchema =
+                    properties.containsKey(name) ? properties.get(name) : schema.get("additionalProperties");
+            if (!meets(member.getValue(), memberSchema)) {
+                return false;
+            }
+        }
+        Set<String> names = members.keySet();
+        return names.size() >= count(schema, "minProperties", 0)
+                && names.size() <= count(schema, "maxProperties", Integer.MAX_VALUE)
+                && names.containsAll(names(schema.get("required")))
+                && propertyDependencies(schema).entrySet().stream()
+                        .allMatch(dependency ->
+                                !names.contains(dependency.getKey()) || names.containsAll(dependency.getValue()));
     }
 
     /** Whether a value meets a subschema: true or a missing one allows any value, and false none. */
@@ -1098,31 +1252,186 @@ public final class SchemaParser {
         return list;
     }
 
+    /**
+     * An object holds every property it declares, as it always has, unless its other keywords ask
+     * otherwise. A property that is required, or that a dependency names, is generated through
+     * additionalProperties if it is not declared; maxProperties leaves out optional properties, chosen at
+     * random, until the object fits, and minProperties adds as few additional properties as it needs. A
+     * property whose dependencies cannot be generated is left out. Whatever cannot be met fails here.
+     */
     @SuppressWarnings("unchecked")
     private static SchemaValueProvider resolveNestedObject(
             String path, Map<String, Object> schema, Field field, GeneratorConfig config) {
-        Object propertiesRaw = schema.get("properties");
-        if (!(propertiesRaw instanceof Map<?, ?> propertiesMap) || propertiesMap.isEmpty()) {
-            return ctx -> Collections.emptyMap();
+        // The properties under the names they are written with; a name that is no string is left out.
+        Map<String, Object> declared = new LinkedHashMap<>();
+        if (schema.get("properties") instanceof Map<?, ?> properties) {
+            for (Map.Entry<?, ?> entry : properties.entrySet()) {
+                if (entry.getKey() instanceof String name) {
+                    declared.put(name, entry.getValue());
+                }
+            }
         }
+        Object additional = schema.get("additionalProperties");
+        boolean extensible = !Boolean.FALSE.equals(additional);
+        Map<String, Object> additionalSchema =
+                additional instanceof Map<?, ?> map ? (Map<String, Object>) map : Map.of();
+        Map<String, List<String>> dependencies = propertyDependencies(schema);
+        List<String> required = names(schema.get("required"));
 
-        Map<String, SchemaValueProvider> nestedProviders = new LinkedHashMap<>();
-        for (Map.Entry<?, ?> entry : propertiesMap.entrySet()) {
-            if (entry.getKey() instanceof String name && entry.getValue() instanceof Map<?, ?> propSchema) {
-                nestedProviders.put(
+        // A declared property is generated from its schema, where true is the empty schema; false, or a
+        // value that is no schema, leaves it out. Any other property comes from additionalProperties.
+        Map<String, SchemaValueProvider> providers = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> property : declared.entrySet()) {
+            Object propertySchema = Boolean.TRUE.equals(property.getValue()) ? Map.of() : property.getValue();
+            if (propertySchema instanceof Map<?, ?> map) {
+                String name = property.getKey();
+                providers.put(
                         name,
-                        resolveProvider(
-                                name, path + ".properties." + name, (Map<String, Object>) propSchema, field, config));
+                        resolveProvider(name, path + ".properties." + name, (Map<String, Object>) map, field, config));
+            }
+        }
+        // Like every schema, additionalProperties is resolved even where no object needs it.
+        SchemaValueProvider additionalValue =
+                resolveProvider("", path + ".additionalProperties", additionalSchema, field, config);
+        Predicate<String> available =
+                name -> providers.containsKey(name) || (extensible && !declared.containsKey(name));
+
+        List<String> base = new ArrayList<>();
+        for (String name : required) {
+            for (String member : dependents(name, dependencies)) {
+                if (!available.test(member)) {
+                    throw new IllegalArgumentException((member.equals(name)
+                                    ? "JSON Schema required property '" + name + "'"
+                                    : "JSON Schema property '" + member
+                                            + "', which dependencies require beside required property '" + name
+                                            + "',")
+                            + " cannot be generated at " + path + ": " + unavailable(member, declared));
+                }
+                if (!base.contains(member)) {
+                    base.add(member);
+                }
+            }
+        }
+        // Every declared property whose dependencies can be generated, in the order written, then the
+        // others that are required or that a dependency names.
+        Set<String> chosen = new HashSet<>(base);
+        Set<String> order = new LinkedHashSet<>(declared.keySet());
+        order.addAll(base);
+        for (String name : providers.keySet()) {
+            List<String> needed = dependents(name, dependencies);
+            order.addAll(needed);
+            if (needed.stream().allMatch(available)) {
+                chosen.addAll(needed);
+            }
+        }
+        List<String> members = order.stream().filter(chosen::contains).toList();
+        Map<String, SchemaValueProvider> memberProviders = new LinkedHashMap<>();
+        for (String name : members) {
+            SchemaValueProvider provider = providers.get(name);
+            memberProviders.put(
+                    name,
+                    provider != null
+                            ? provider
+                            : resolveProvider(name, path + ".additionalProperties", additionalSchema, field, config));
+        }
+
+        int fewest = count(schema, "minProperties", 0);
+        int most = count(schema, "maxProperties", Integer.MAX_VALUE);
+        if (fewest > most) {
+            throw emptyRange("property count", path, schema);
+        }
+        if (base.size() > most) {
+            throw new IllegalArgumentException("JSON Schema object at " + path + " must hold " + base.size()
+                    + " properties, the required ones and those their dependencies require, above maxProperties "
+                    + most);
+        }
+        if (!extensible && members.size() < fewest) {
+            throw new IllegalArgumentException("JSON Schema object at " + path + " can hold at most "
+                    + members.size() + " properties, as additionalProperties is false, below minProperties "
+                    + fewest);
+        }
+
+        // Properties that depend on each other are left out together, after every property that depends
+        // on them. Without additional properties to make up for it, the range must be as wide as each such
+        // group, so that leaving one out never takes an object below minProperties.
+        Map<String, Tie> ties = new LinkedHashMap<>();
+        if (members.size() > most) {
+            for (String name : members) {
+                if (!base.contains(name)) {
+                    Set<String> group = new LinkedHashSet<>();
+                    Set<String> needing = new HashSet<>();
+                    for (String other : members) {
+                        if (dependents(other, dependencies).contains(name)) {
+                            needing.add(other);
+                            if (dependents(name, dependencies).contains(other)) {
+                                group.add(other);
+                            }
+                        }
+                    }
+                    if (!extensible && most - fewest + 1 < group.size()) {
+                        throw new IllegalArgumentException("JSON Schema object at " + path + " can leave out "
+                                + group + " only together, as their dependencies tie them, but minProperties "
+                                + fewest + " and maxProperties " + most
+                                + " leave a narrower range, and additionalProperties is false");
+                    }
+                    ties.put(name, new Tie(group, needing));
+                }
             }
         }
 
+        // Additional properties are named property1, property2, and so on, past every name the schema uses.
+        Set<String> taken = new HashSet<>(declared.keySet());
+        taken.addAll(required);
+        dependencies.forEach((name, needed) -> {
+            taken.add(name);
+            taken.addAll(needed);
+        });
         return ctx -> {
-            Map<String, Object> nested = new LinkedHashMap<>(nestedProviders.size());
-            for (Map.Entry<String, SchemaValueProvider> entry : nestedProviders.entrySet()) {
-                nested.put(entry.getKey(), entry.getValue().generate(ctx));
+            Set<String> kept = new HashSet<>(members);
+            while (kept.size() > most) {
+                // Only a group that no other kept property depends on can be left out.
+                List<Set<String>> outermost = new ArrayList<>();
+                for (Map.Entry<String, Tie> tie : ties.entrySet()) {
+                    if (kept.contains(tie.getKey()) && tie.getValue().isOutermost(kept)) {
+                        outermost.add(tie.getValue().group());
+                    }
+                }
+                kept.removeAll(outermost.get(ctx.random().nextInt(outermost.size())));
             }
-            return nested;
+            Map<String, Object> object = new LinkedHashMap<>();
+            for (Map.Entry<String, SchemaValueProvider> member : memberProviders.entrySet()) {
+                if (kept.contains(member.getKey())) {
+                    object.put(member.getKey(), member.getValue().generate(ctx));
+                }
+            }
+            for (int next = 1; object.size() < fewest; next++) {
+                String name = "property" + next;
+                if (!taken.contains(name)) {
+                    object.put(name, additionalValue.generate(ctx));
+                }
+            }
+            return object;
         };
+    }
+
+    /**
+     * An optional property's tie to others: the group of properties that depend on each other with it,
+     * which are left out together, and every property that depends on it, the group included.
+     */
+    private record Tie(Set<String> group, Set<String> needing) {
+
+        /** Whether no kept property outside the group depends on it, so the group can be left out. */
+        boolean isOutermost(Set<String> kept) {
+            return needing.stream().filter(kept::contains).allMatch(group::contains);
+        }
+    }
+
+    /** Why a property cannot be generated. */
+    private static String unavailable(String name, Map<String, Object> declared) {
+        if (!declared.containsKey(name)) {
+            return "it is not in properties, and additionalProperties is false";
+        }
+        return Boolean.FALSE.equals(declared.get(name)) ? "its schema is false" : "its schema is no schema object";
     }
 
     private static SchemaValueProvider randomText(GeneratorConfig config) {
