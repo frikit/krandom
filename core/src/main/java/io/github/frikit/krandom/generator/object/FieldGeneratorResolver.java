@@ -2220,7 +2220,8 @@ final class FieldGeneratorResolver {
         Map<TypeVariable<?>, Type> bindings = new LinkedHashMap<>(typeBindings);
         Map<TypeVariable<?>, Type> nestedBindings = ResolvedType.bindingsFor(nestedType);
         bindings.putAll(nestedBindings);
-        ResolvedType generationType = Objects.requireNonNullElse(resolvedType.effectiveType(), resolvedType);
+        // The type at the end of a chain of type variables, which holds the arguments.
+        ResolvedType generationType = mostSpecific(resolvedType);
         Map<TypeVariable<?>, Type> declaredBindings = ResolvedType.bindingsFor(generationType.declaredType());
         bindings.putAll(declaredBindings);
         // A mapped or sealed subclass of a generic declared type takes its arguments.

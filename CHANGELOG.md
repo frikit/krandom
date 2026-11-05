@@ -148,6 +148,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   could generate changes too: with `record DateBox<D extends Date>(D value) implements Box<D>`, a
   `Box<Timestamp>` member now holds a `Timestamp`, where it held a plain `Date`, and its seeded output
   changes.
+- A generic nested object reached through two or more inherited type variables now takes its type arguments.
+  With `class Middle<V> extends Fixture<V>` and `class Root extends Middle<Box<String>>`, a `T value` field
+  of `Fixture` is a `Box<String>` whose `C content` holds a `String`, where the engine read the arguments
+  from `V` alone and the unbound `C` failed as an unsupported type. The same holds for a mapped or sealed
+  subclass reached that way. As for a mapping above, a bounded type variable took its bound, so such an
+  object whose bound the engine could generate changes too.
 - The Kotlin DSL now calls a private primary constructor, as the object engine calls a private Java
   constructor, where `kotlin.reflect.full.IllegalCallableAccessException` escaped without the object's path.
   A factory function that validates outside the constructor's `init` block is not called, so register a

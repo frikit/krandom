@@ -57,6 +57,15 @@ class ObjectGeneratorInheritedGenericTest {
     }
 
     @Test
+    @DisplayName("a nested generic object reached through two inherited type variables takes its arguments")
+    void nestedObjectThroughVariableChainTakesItsArguments() {
+        BoxedChainFixture value = new ObjectGenerator<>(BoxedChainFixture.class, CONFIG).generate();
+
+        assertInstanceOf(String.class, value.direct.content);
+        value.values.forEach(box -> assertInstanceOf(String.class, box.content));
+    }
+
+    @Test
     @DisplayName("unbound type variable fails with its declared path and signature")
     void unboundTypeVariableFailsWithContext() {
         ObjectGenerationException ex = assertThrows(
@@ -81,6 +90,16 @@ class ObjectGeneratorInheritedGenericTest {
     static class NestedGenericFixture<U> extends GenericFixture<List<U>> {}
 
     static final class IntegerListFixture extends NestedGenericFixture<Integer> {}
+
+    static class Box<C> {
+
+        C content;
+    }
+
+    /** Its {@code T} is bound to {@code V}, and {@code V} to {@code Box<String>}, one link more than above. */
+    static class BoxedChainMiddle<V> extends GenericFixture<V> {}
+
+    static final class BoxedChainFixture extends BoxedChainMiddle<Box<String>> {}
 
     static final class UnboundFixture<T> {
 
