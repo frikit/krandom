@@ -154,6 +154,36 @@ class SemanticCoherenceAdjusterTest {
     }
 
     @Test
+    @DisplayName("a value with an offset or a zone reads its own local date, and every other type its UTC date")
+    void valueWithAnOffsetOrAZoneReadsItsOwnLocalDate() {
+        // 2000-06-04T10:30Z and 2000-06-05T10:30Z: each local date is a day from the one UTC reads.
+        ZonedDateTime kiritimati = ZonedDateTime.parse("2000-06-05T00:30+14:00[Pacific/Kiritimati]");
+        ZonedDateTime pagoPago = ZonedDateTime.parse("2000-06-04T23:30-11:00[Pacific/Pago_Pago]");
+        LocalDate fourth = LocalDate.of(2000, 6, 4);
+        LocalDate fifth = LocalDate.of(2000, 6, 5);
+
+        assertEquals(fifth, SemanticCoherenceAdjuster.toLocalDate(kiritimati.toOffsetDateTime()));
+        assertEquals(fourth, SemanticCoherenceAdjuster.toLocalDate(pagoPago.toOffsetDateTime()));
+        assertEquals(fifth, SemanticCoherenceAdjuster.toLocalDate(kiritimati));
+        assertEquals(fourth, SemanticCoherenceAdjuster.toLocalDate(pagoPago));
+        assertEquals(fifth, SemanticCoherenceAdjuster.toLocalDate(java.util.GregorianCalendar.from(kiritimati)));
+        assertEquals(fourth, SemanticCoherenceAdjuster.toLocalDate(java.util.GregorianCalendar.from(pagoPago)));
+        // Before 1970 too, where the epoch second is negative.
+        assertEquals(
+                LocalDate.of(1950, 6, 5),
+                SemanticCoherenceAdjuster.toLocalDate(OffsetDateTime.parse("1950-06-05T00:30+14:00")));
+        assertEquals(
+                LocalDate.of(1950, 6, 4),
+                SemanticCoherenceAdjuster.toLocalDate(OffsetDateTime.parse("1950-06-04T23:30-12:00")));
+
+        // An Instant, a LocalDateTime and a legacy date hold no offset, and read their UTC date.
+        assertEquals(fourth, SemanticCoherenceAdjuster.toLocalDate(kiritimati.toInstant()));
+        assertEquals(fifth, SemanticCoherenceAdjuster.toLocalDate(java.util.Date.from(pagoPago.toInstant())));
+        assertEquals(fifth, SemanticCoherenceAdjuster.toLocalDate(java.sql.Timestamp.from(pagoPago.toInstant())));
+        assertEquals(fourth, SemanticCoherenceAdjuster.toLocalDate(LocalDateTime.of(2000, 6, 4, 23, 30)));
+    }
+
+    @Test
     @DisplayName("age and status utility methods cover conversion and fallback branches")
     void ageAndStatusUtilityMethodsCoverConversionAndFallbackBranches() throws Exception {
         Instant instant = Instant.parse("2026-04-20T12:34:56Z");

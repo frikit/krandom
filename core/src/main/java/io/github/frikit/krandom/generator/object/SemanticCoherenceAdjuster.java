@@ -514,9 +514,14 @@ final class SemanticCoherenceAdjuster {
         if (min == null || instant == null) {
             return false;
         }
-        long epochDay = Math.floorDiv(instant.getEpochSecond() + offsetSecondsOf(value), SECONDS_PER_DAY);
+        long epochDay = epochDayOf(instant, value);
         return epochDay < min.toEpochDay()
                 || epochDay > Objects.requireNonNull(config.getDateMax()).toEpochDay();
+    }
+
+    /** The epoch day this instant of a value reads: in the value's own offset or zone, if it has one, else UTC. */
+    private static long epochDayOf(Instant instant, @Nullable Object value) {
+        return Math.floorDiv(instant.getEpochSecond() + offsetSecondsOf(value), SECONDS_PER_DAY);
     }
 
     private static int offsetSecondsOf(@Nullable Object value) {
@@ -952,12 +957,17 @@ final class SemanticCoherenceAdjuster {
         return null;
     }
 
+    /**
+     * The date a value reads: the local date of an {@code OffsetDateTime}, a {@code ZonedDateTime} or a
+     * {@code Calendar}, in its own offset or zone, and the UTC date of every other type, as the generators draw
+     * them and the configured range bounds them.
+     */
     static @Nullable LocalDate toLocalDate(@Nullable Object value) {
         if (value instanceof LocalDate localDate) {
             return localDate;
         }
         Instant instant = toInstant(value);
-        return instant != null ? instant.atOffset(ZoneOffset.UTC).toLocalDate() : null;
+        return instant != null ? LocalDate.ofEpochDay(epochDayOf(instant, value)) : null;
     }
 
     static @Nullable BigDecimal moneyValue(@Nullable Slot slot) {

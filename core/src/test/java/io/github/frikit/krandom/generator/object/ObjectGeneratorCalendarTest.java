@@ -24,7 +24,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -214,13 +213,19 @@ class ObjectGeneratorCalendarTest {
             Person person = new ObjectGenerator<>(Person.class, config(i)).generate();
             FixedAgePerson fixed = new ObjectGenerator<>(FixedAgePerson.class, config(i)).generate();
 
-            LocalDate birthDate =
-                    person.birthDate.toInstant().atOffset(ZoneOffset.UTC).toLocalDate();
+            // The age counts the years since the birth date in the calendar's own zone.
+            LocalDate birthDate = person.birthDate
+                    .toInstant()
+                    .atZone(person.birthDate.getTimeZone().toZoneId())
+                    .toLocalDate();
             assertEquals(ChronoUnit.YEARS.between(birthDate, today), person.age);
             assertGregorian(fixed.birthDate);
             assertEquals(
                     today.minusYears(30),
-                    fixed.birthDate.toInstant().atOffset(ZoneOffset.UTC).toLocalDate());
+                    fixed.birthDate
+                            .toInstant()
+                            .atZone(fixed.birthDate.getTimeZone().toZoneId())
+                            .toLocalDate());
         }
     }
 
