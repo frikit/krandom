@@ -16,6 +16,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   pass aligns it with its sibling and with `age`, as it does a `ZonedDateTime`. A calendar is drawn from the
   `ZonedDateTime` generator and draws no seed of its own, so seeded output does not change for objects
   without one.
+- The object engine now generates a sealed interface or abstract sealed class, as a root or as a member, as
+  one of the concrete classes of its hierarchy, where it failed as an unsupported type. Each class is equally
+  likely, and the choice is drawn from the seeded stream in binary-name order rather than the order the type
+  permits them. The classes are each permitted subclass that is concrete, a record, or an enum, which gives
+  one of its constants, and the classes of each abstract sealed subclass, at any depth. A class already being
+  generated on the member's path is left out while another remains, so a recursive hierarchy such as an
+  expression tree ends in a leaf. A type override or `objectSubtype` mapping for the sealed type wins, one for
+  an abstract subclass makes that subclass a choice, and an abstract subclass with neither fails generation as
+  an unsupported type that names it, whatever the seed. A sealed root is generated as a root of the chosen
+  class would be from the same seed. A concrete sealed class is still generated as itself. A construction
+  adapter can declare a type sealed and list its subclasses through the new default method
+  `ObjectConstructionAdapter.sealedSubclasses`. The choice draws only for sealed members, so seeded output
+  does not change for objects without one.
 
 ### Changed
 
@@ -60,6 +73,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   now reads `Locale en_US has no university data, and kRandom ships none. Load a local data pack with
   LocalDataPack.load(directory), register it with DataRegistryContext.builder().registerDataPack(pack), and
   pass that context to GeneratorConfig.Builder.registryContext(context). Registered locales: []`.
+- An `objectSubtype` mapping now applies to an interface or abstract root as well as to a member:
+  `new ObjectGenerator<>(PaymentMethod.class, config)` generates the mapped implementation, where it failed
+  as an unsupported root type. A concrete root is still generated as itself.
 
 ### Fixed
 
@@ -92,6 +108,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   constructor set, as it does by default, now keeps a constrained one too. Record components already read
   their constraints. Seeded output changes for such arguments, and for the members after them where members
   share one stream.
+- The implementation of an `objectSubtype` mapping for a generic member now takes the member's type
+  arguments. With `objectSubtype(Box.class, ListBox.class)` and `record ListBox<T>(List<T> items) implements
+  Box<T>`, a `Box<Integer>` member holds integers, where the unbound `T` failed as an unsupported type. The
+  arguments reach the implementation through any generic supertypes in between, and are passed as declared,
+  not checked. Only members that failed before change.
 
 ## [2.10.0] - 2026-11-02
 

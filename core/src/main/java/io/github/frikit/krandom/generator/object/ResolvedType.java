@@ -11,7 +11,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -67,6 +69,32 @@ record ResolvedType(
         Map<TypeVariable<?>, Type> bindings = new LinkedHashMap<>();
         collectBindings(concreteType, bindings);
         return Map.copyOf(bindings);
+    }
+
+    /**
+     * Binds the type variables of a subclass that fill the parameters of the declared supertype it is
+     * generated for: {@code Ok<T> implements Result<T>}, generated for {@code Result<String>}, has
+     * {@code T} bound to {@code String}, through any generic supertypes in between. The arguments are
+     * not checked against the subclass, as Java's own unchecked conversions are not.
+     *
+     * @param subclassBindings the bindings of the subclass's supertypes, as {@link #bindingsFor(Class)}
+     *     returns them
+     * @param declaredBindings the bindings of the declared supertype
+     * @return the subclass's own variables, bound to the declared arguments they stand for
+     */
+    static Map<TypeVariable<?>, Type> subtypeArguments(
+            Map<TypeVariable<?>, Type> subclassBindings, Map<TypeVariable<?>, Type> declaredBindings) {
+        Map<TypeVariable<?>, Type> bound = new LinkedHashMap<>(declaredBindings);
+        Deque<TypeVariable<?>> pending = new ArrayDeque<>(declaredBindings.keySet());
+        while (!pending.isEmpty()) {
+            TypeVariable<?> variable = pending.pop();
+            if (subclassBindings.get(variable) instanceof TypeVariable<?> filler && !bound.containsKey(filler)) {
+                bound.put(filler, Objects.requireNonNull(bound.get(variable)));
+                pending.push(filler);
+            }
+        }
+        bound.keySet().removeAll(declaredBindings.keySet());
+        return Map.copyOf(bound);
     }
 
     private static void collectBindings(Class<?> type, Map<TypeVariable<?>, Type> bindings) {
