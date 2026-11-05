@@ -108,7 +108,8 @@ broader rule-composition surface.
 In both APIs, an explicit field rule takes precedence over a type rule and generated defaults.
 The DSL validates duplicate field/type rules immediately (a Java `ObjectFaker` rule instead replaces
 an earlier rule for the same path) and unknown root field names when building.
-It supports neither value classes nor sealed/abstract types without a concrete type override.
+It generates [sealed types and value classes](#sealed-types-and-value-classes), while an abstract
+class or interface that is not sealed needs a `ruleForType`.
 These boundaries are intentional: they keep the Kotlin adapter small while the Java API remains the
 single place for complex fixture composition.
 
@@ -140,14 +141,85 @@ rules, nested generic containers, semantic values, deterministic seeds, and Jaka
 annotations all apply. Both `@param:` and `@field:` constraint targets are recognized. An explicit
 field or type rule wins over an optional parameter default.
 
-Kotlin `object` singletons return their one instance. Value classes and sealed/abstract Kotlin
-types are rejected before returning a value; use a concrete type or explicit type override. A
-core-only application also rejects immutable Kotlin types with a message naming
-`krandom-kotlin-dsl`, rather than allocating an invalid instance.
+Kotlin `object` singletons return their one instance, and sealed types and value classes are generated
+as [below](#sealed-types-and-value-classes). An abstract class or interface that is not sealed is
+rejected before returning a value; use a concrete type or a `ruleForType`. A core-only application
+also rejects immutable Kotlin types with a message naming `krandom-kotlin-dsl`, rather than allocating
+an invalid instance.
 
-The adapter always invokes the primary constructor; secondary constructors are never selected.
-Delegated properties initialize normally as part of that construction. A required recursive
+The adapter always invokes the primary constructor, whatever its visibility, as the object engine
+invokes a Java constructor; secondary constructors are never selected. A factory function that
+validates outside the constructor's `init` block is therefore not called, so register a rule for such
+a type. Delegated properties initialize normally as part of that construction. A required recursive
 immutable graph fails contextually rather than returning a value with a runtime null.
+
+## Sealed types and value classes
+
+A sealed class or interface, as the generated type or as a property, is generated as one of the classes
+of its hierarchy. The adapter reads them from the Kotlin metadata, whatever JVM target compiled them:
+
+```kotlin
+sealed interface Payment
+data class Card(val number: String) : Payment
+data class Transfer(val iban: String) : Payment
+data object Cash : Payment
+
+data class Order(val payment: Payment)
+
+val order = krandom<Order> { config { seed(42L) } }
+// order.payment is a Card, a Transfer, or Cash, and the same one for the same seed
+```
+
+Each class is equally likely, and the choice is drawn from the seeded stream in binary-name order. An
+`object` gives its one instance, an enum one of its constants, and a sealed subclass its own classes,
+at any depth. A class already being generated on the property's path is left out while another
+remains, so a recursive hierarchy, such as an expression tree with
+`data class Add(val left: Expr, val right: Expr) : Expr`, ends in a leaf rather than failing on a
+non-null property. A `ruleForType` for the sealed type wins over the choice, and one for a subclass
+generates that subclass when it is chosen. An abstract subclass that is not sealed fails generation,
+naming it, whatever the seed, until it has a `ruleForType`, and so does a sealed type with no subclass.
+A generic sealed property passes its type arguments on: a `Result<String>` generated as
+`data class Ok<T>(val value: T) : Result<T>` holds a `String`. The
+[object generation guide]({{ '/guides/object-generation/' | relative_url }}#sealed-types) has the
+whole contract, which Java sealed types share.
+
+A `@JvmInline value class` is generated as the value it wraps, and boxed through its primary
+constructor, so its `init` block runs. For a constructor parameter, the wrapped value is generated
+under the parameter's name, and with the parameter's constraints, or else those declared inside the
+value class, outermost first:
+
+```kotlin
+@JvmInline value class EmailAddress(val value: String)
+@JvmInline value class Pin(@param:Size(min = 4, max = 4) val digits: String)
+@JvmInline value class Initials(val letters: String)
+@JvmInline value class Cents(val amount: Long)
+
+data class Member(
+    val email: EmailAddress,                              // an email address, from the name
+    val pin: Pin,                                         // four characters, from Pin's constraint
+    @field:Size(min = 2, max = 2) val initials: Initials, // two characters, from this constraint
+    val balance: Cents,
+    val referrer: EmailAddress?,
+)
+
+val member = krandom<Member> { config { seed(42L) } }
+```
+
+Value classes that wrap strings, numbers, nullable values, a type parameter, or other value classes all
+work, and so do Kotlin's unsigned types such as `UInt`. A class whose primary constructor takes a value
+class is always built through it. A `rule` or `ruleForType` for the value class gives the value class,
+and a rule may give the value it wraps instead, which is boxed, as Java code must:
+`rule("pin") { "1234" }` gives `Pin("1234")`. A `ruleForType<String>` reaches the `String` inside a
+value class too. A value that the `init` block rejects fails generation, naming the value class and the
+parameter: constrain the wrapped value with Bean Validation, as `Pin` does, or register a rule.
+
+A value class as the generated type or as a collection element is generated with the name and the
+constraints declared inside it. A class whose properties are set after construction, such as one with
+a no-argument constructor and `var` properties, is filled through its fields. Kotlin stores a property
+of a value class type there as the value it wraps, which then gets a value under the property's name
+and constraints, including a constraint on its getter, but not the value class's own constraints or
+`init` block. Where the wrapped value cannot hold the property's `null`, as for a nullable property of a
+value class over a primitive, Kotlin stores the value class, which is generated as above.
 
 ## Immutable Data Classes, Generics, Defaults, and Constraints
 

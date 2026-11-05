@@ -93,6 +93,7 @@ final class BeanValidationSupport {
     private static final BigDecimal DECIMAL_DEFAULT_SPAN = new BigDecimal("1000000");
     private static final java.util.regex.Pattern EMAIL_SHAPE =
             java.util.regex.Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
+    private static final java.util.regex.Pattern MANGLED_NAME_SUFFIX = java.util.regex.Pattern.compile("-.*");
     private static final Comparator<NumericBound> LOWER_BOUND_ORDER =
             Comparator.comparing(NumericBound::value).thenComparing(bound -> !bound.inclusive());
     private static final Comparator<NumericBound> UPPER_BOUND_ORDER =
@@ -1228,7 +1229,7 @@ final class BeanValidationSupport {
         while (current != Object.class) {
             for (Method method : current.getDeclaredMethods()) {
                 if (method.getParameterCount() == 0) {
-                    declared.computeIfAbsent(method.getName(), ignored -> new ArrayList<>())
+                    declared.computeIfAbsent(accessorName(method), ignored -> new ArrayList<>())
                             .add(method);
                 }
             }
@@ -1240,12 +1241,21 @@ final class BeanValidationSupport {
             for (Method method : interfaceType.getMethods()) {
                 if (method.getParameterCount() == 0) {
                     interfaces
-                            .computeIfAbsent(method.getName(), ignored -> new ArrayList<>())
+                            .computeIfAbsent(accessorName(method), ignored -> new ArrayList<>())
                             .add(method);
                 }
             }
         }
         return new AccessorMethods(immutableMethodMap(declared), immutableMethodMap(interfaces));
+    }
+
+    /**
+     * The name an accessor is looked up by. Kotlin mangles the name of a getter whose property has a
+     * value class type, as in {@code getId-OLSiqns}, so the part from the hyphen, which no Java name
+     * holds, is dropped.
+     */
+    private static String accessorName(Method method) {
+        return MANGLED_NAME_SUFFIX.matcher(method.getName()).replaceFirst("");
     }
 
     private static Map<String, List<Method>> immutableMethodMap(Map<String, List<Method>> methods) {

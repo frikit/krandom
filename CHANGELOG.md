@@ -29,6 +29,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   adapter can declare a type sealed and list its subclasses through the new default method
   `ObjectConstructionAdapter.sealedSubclasses`. The choice draws only for sealed members, so seeded output
   does not change for objects without one.
+- The Kotlin DSL generates Kotlin sealed classes and interfaces in the same way, reading their subclasses
+  from the Kotlin metadata whatever JVM target compiled them, and an `object` subclass gives its instance.
+- The Kotlin DSL generates `@JvmInline` value classes, where they failed with `Kotlin value classes are not
+  supported for object generation; register a type override`. A value class is generated as the value it
+  wraps and boxed through its primary constructor, so its `init` block runs. For a constructor parameter,
+  the wrapped value is generated under the parameter's name and with its constraints, or else with those
+  declared inside the value class, so `val email: EmailAddress` holds an email address. Value classes over
+  strings, numbers, nullable values, a type parameter, Kotlin's unsigned types, and other value classes
+  work as properties, nullable properties, collection elements, and the generated type. A rule or
+  `ruleForType` for the value class supplies it, a rule may give the wrapped value instead, which is boxed,
+  and a `ruleForType<String>` reaches a `String` inside a value class. A value that the `init` block rejects
+  fails with the value class and the parameter named. A class whose primary constructor takes a value
+  class is built through that constructor, where the private and synthetic JVM constructors that Kotlin
+  compiles it to failed as ambiguous.
 
 ### Changed
 
@@ -76,6 +90,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - An `objectSubtype` mapping now applies to an interface or abstract root as well as to a member:
   `new ObjectGenerator<>(PaymentMethod.class, config)` generates the mapped implementation, where it failed
   as an unsupported root type. A concrete root is still generated as itself.
+- In the Kotlin DSL, an abstract class or interface that is not sealed now fails as `Kotlin abstract type
+  <name> requires a concrete type override`, and a sealed one with no subclass as `Sealed type <name> has
+  no subclass to generate; register a type override for it`. Both failed as `Kotlin sealed and abstract
+  types require a concrete type override`.
 
 ### Fixed
 
@@ -113,6 +131,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Box<T>`, a `Box<Integer>` member holds integers, where the unbound `T` failed as an unsupported type. The
   arguments reach the implementation through any generic supertypes in between, and are passed as declared,
   not checked. Only members that failed before change.
+- The Kotlin DSL now calls a private primary constructor, as the object engine calls a private Java
+  constructor, where `kotlin.reflect.full.IllegalCallableAccessException` escaped without the object's path.
+  A factory function that validates outside the constructor's `init` block is not called, so register a
+  rule for such a type.
+- A Bean Validation constraint on the getter of a Kotlin property of a value class type now applies when
+  the engine fills the property's field. Kotlin mangles the name of such a getter, as in `getId-OLSiqns`,
+  and the engine looked only for `getId`. Seeded output changes for such properties.
 
 ## [2.10.0] - 2026-11-02
 

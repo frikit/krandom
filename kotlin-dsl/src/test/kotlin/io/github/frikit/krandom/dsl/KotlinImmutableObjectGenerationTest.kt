@@ -119,20 +119,12 @@ class KotlinImmutableObjectGenerationTest :
                 }
             }
 
-            it("rejects value and sealed classes before a value escapes") {
-                val valueFailure =
-                    shouldThrow<ObjectGenerationException> {
-                        krandom<InlineIdentifier>()
-                    }
-                valueFailure.cause?.message shouldBe
-                    "Kotlin value classes are not supported for object generation; register a type override"
+            it("boxes a value class through its primary constructor") {
+                krandom<InlineIdentifier>().value.shouldNotBeBlank()
+            }
 
-                val sealedFailure =
-                    shouldThrow<ObjectGenerationException> {
-                        krandom<SealedProfile>()
-                    }
-                sealedFailure.cause?.message shouldBe
-                    "Kotlin sealed and abstract types require a concrete type override"
+            it("calls a private primary constructor, as the object engine calls a Java one") {
+                krandom<PrivateConstructorProfile>().value.shouldNotBeBlank()
             }
         }
     })
@@ -191,6 +183,10 @@ class DelegatedProfile(
 
 data class RequiredCycle(
     val child: RequiredCycle,
+)
+
+data class PrivateConstructorProfile private constructor(
+    val value: String,
 )
 
 @JvmInline
