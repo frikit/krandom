@@ -112,6 +112,10 @@ class ObjectGeneratorCoherenceConstraintTest {
             @Future LocalDate birthDate,
             @Min(Integer.MAX_VALUE) int age) {}
 
+    record UnreachableTimestampBirthDate(
+            @Future java.sql.Timestamp birthDate,
+            @Min(500_000_000) int age) {}
+
     @ParameterizedTest(name = "{0}")
     @EnumSource(
             value = ObjectGenerationSemanticMode.class,
@@ -259,10 +263,17 @@ class ObjectGeneratorCoherenceConstraintTest {
     void ageThatNoBirthDateCanGiveLeavesBirthDateAsItIs(ObjectGenerationSemanticMode mode) {
         ObjectGenerator<UnreachableBirthDate> generator =
                 new ObjectGenerator<>(UnreachableBirthDate.class, config(mode));
+        // A Timestamp could wrap such a birth date round to one far in the future, which @Future would allow.
+        ObjectGenerator<UnreachableTimestampBirthDate> timestamps =
+                new ObjectGenerator<>(UnreachableTimestampBirthDate.class, config(mode));
+        Instant tenYearsAhead = NOW.plus(Duration.ofDays(3_660));
         for (int i = 0; i < SAMPLES; i++) {
             UnreachableBirthDate value = assertDoesNotThrow(generator::generate);
             assertValid(value);
             assertEquals(Integer.MAX_VALUE, value.age());
+            UnreachableTimestampBirthDate timestamp = assertDoesNotThrow(timestamps::generate);
+            assertValid(timestamp);
+            assertTrue(timestamp.birthDate().toInstant().isBefore(tenYearsAhead), timestamp.toString());
         }
     }
 
