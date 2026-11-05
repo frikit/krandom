@@ -761,8 +761,9 @@ final class BeanValidationSupport {
 
     /**
      * Compares a value with the clock's present as Hibernate Validator does: a {@code java.time} value with the
-     * {@code now(clock)} of its type, and a {@code Calendar} or {@code Date} by epoch millisecond. These are the
-     * types the coherence pass writes, and {@code java.sql.Date} and {@code Timestamp} are {@code Date}s.
+     * {@code now(clock)} of its type, and a {@code Calendar} or {@code Date} by the instant of its epoch
+     * millisecond with the clock's instant, which can be finer. These are the types the coherence pass writes,
+     * and {@code java.sql.Date} and {@code Timestamp} are {@code Date}s.
      */
     private static int compareWithClock(Object value, Clock clock) {
         if (value instanceof Instant instant) {
@@ -781,9 +782,9 @@ final class BeanValidationSupport {
             return zonedDateTime.compareTo(ZonedDateTime.now(clock));
         }
         if (value instanceof Calendar calendar) {
-            return Long.compare(calendar.getTimeInMillis(), clock.millis());
+            return calendar.toInstant().compareTo(clock.instant());
         }
-        return Long.compare(((Date) value).getTime(), clock.millis());
+        return Instant.ofEpochMilli(((Date) value).getTime()).compareTo(clock.instant());
     }
 
     /**
