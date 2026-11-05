@@ -126,6 +126,23 @@ class ObjectGeneratorSealedTypeTest {
         STOP
     }
 
+    /** The enum sorts first, so the first choice takes it. */
+    sealed interface Switch permits Knob, Flip {}
+
+    record Knob(int position) implements Switch {}
+
+    enum Flip implements Switch {
+        UP,
+        DOWN
+    }
+
+    /** Required children, so a child cut at the depth limit fails. */
+    sealed interface Term permits Lit, Sum {}
+
+    record Lit(int value) implements Term {}
+
+    record Sum(@NotNull Term left, @NotNull Term right) implements Term {}
+
     sealed interface Hollow permits Nothing {}
 
     enum Nothing implements Hollow {}
@@ -572,6 +589,43 @@ class ObjectGeneratorSealedTypeTest {
 
         assertSame(Halt.STOP, new ObjectGenerator<>(Command.class, firstChoice).generate());
         assertEquals(Set.of(Halt.STOP, Move.class), commands);
+    }
+
+    @Test
+    @DisplayName("a type override for an enum chosen at a sealed root generates it")
+    void enumChosenAtRootTakesItsOverride() {
+        ContextualGenerator<Flip> contextual = context -> Flip.DOWN;
+        GeneratorConfig plain = GeneratorConfig.builder()
+                .random(new FirstChoiceRandom())
+                .objectOverride(Flip.class, () -> Flip.DOWN)
+                .build();
+        GeneratorConfig withContext = GeneratorConfig.builder()
+                .random(new FirstChoiceRandom())
+                .objectOverride(Flip.class, contextual)
+                .build();
+        GeneratorConfig none =
+                GeneratorConfig.builder().random(new FirstChoiceRandom()).build();
+
+        assertSame(Flip.UP, new ObjectGenerator<>(Switch.class, none).generate());
+        assertSame(Flip.DOWN, new ObjectGenerator<>(Switch.class, plain).generate());
+        assertSame(Flip.DOWN, new ObjectGenerator<>(Switch.class, withContext).generate());
+    }
+
+    @Test
+    @DisplayName("the class chosen at a sealed root counts as being generated, so its members end in a leaf")
+    void classChosenAtRootCountsAsBeingGenerated() {
+        GeneratorConfig.Builder shallow = GeneratorConfig.builder().objectMaxDepth(1);
+        Set<Class<?>> roots = new HashSet<>();
+        for (long seed = 0; seed < 60; seed++) {
+            Term term = new ObjectGenerator<>(Term.class, shallow.seed(seed).build()).generate();
+            roots.add(term.getClass());
+            if (term instanceof Sum sum) {
+                assertInstanceOf(Lit.class, sum.left());
+                assertInstanceOf(Lit.class, sum.right());
+            }
+        }
+
+        assertEquals(Set.of(Lit.class, Sum.class), roots);
     }
 
     @Test
