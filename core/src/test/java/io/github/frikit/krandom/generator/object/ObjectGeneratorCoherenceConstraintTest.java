@@ -116,6 +116,11 @@ class ObjectGeneratorCoherenceConstraintTest {
             @Future java.sql.Timestamp birthDate,
             @Min(500_000_000) int age) {}
 
+    /** An age whose birth year a Calendar holds, but a java.sql.Date, read in the Julian calendar, does not. */
+    record UnreachableSqlDateBirthDate(
+            @Future java.sql.Date birthDate,
+            @Min(292_277_079) @Max(292_277_079) int age) {}
+
     @ParameterizedTest(name = "{0}")
     @EnumSource(
             value = ObjectGenerationSemanticMode.class,
@@ -266,6 +271,8 @@ class ObjectGeneratorCoherenceConstraintTest {
         // A Timestamp could wrap such a birth date round to one far in the future, which @Future would allow.
         ObjectGenerator<UnreachableTimestampBirthDate> timestamps =
                 new ObjectGenerator<>(UnreachableTimestampBirthDate.class, config(mode));
+        ObjectGenerator<UnreachableSqlDateBirthDate> sqlDates =
+                new ObjectGenerator<>(UnreachableSqlDateBirthDate.class, config(mode));
         Instant tenYearsAhead = NOW.plus(Duration.ofDays(3_660));
         for (int i = 0; i < SAMPLES; i++) {
             UnreachableBirthDate value = assertDoesNotThrow(generator::generate);
@@ -274,6 +281,9 @@ class ObjectGeneratorCoherenceConstraintTest {
             UnreachableTimestampBirthDate timestamp = assertDoesNotThrow(timestamps::generate);
             assertValid(timestamp);
             assertTrue(timestamp.birthDate().toInstant().isBefore(tenYearsAhead), timestamp.toString());
+            UnreachableSqlDateBirthDate sqlDate = assertDoesNotThrow(sqlDates::generate);
+            assertValid(sqlDate);
+            assertTrue(sqlDate.birthDate().getTime() < tenYearsAhead.toEpochMilli(), sqlDate.toString());
         }
     }
 
