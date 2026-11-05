@@ -25,15 +25,16 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.net.URI;
 import java.time.Clock;
-import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.Year;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
@@ -68,6 +69,13 @@ final class SemanticCoherenceAdjuster {
 
     private static final int OFFSET_MAX_SECONDS = 14 * 60 * 60;
     private static final int OFFSET_STEP_SECONDS = 15 * 60;
+
+    /** The first and last years that a {@code long} of milliseconds, as a {@code Date} holds, reaches in full. */
+    private static final long MIN_MILLIS_YEAR =
+            Instant.ofEpochMilli(Long.MIN_VALUE).atOffset(ZoneOffset.UTC).getYear() + 1L;
+
+    private static final long MAX_MILLIS_YEAR =
+            Instant.ofEpochMilli(Long.MAX_VALUE).atOffset(ZoneOffset.UTC).getYear() - 1L;
 
     private final ObjectGeneratorConfig config;
     private final UniqueFieldTracker uniqueFieldTracker;
@@ -606,16 +614,19 @@ final class SemanticCoherenceAdjuster {
     }
 
     /**
-     * The birth date this age gives, in this type, or {@code null} where the type cannot hold it: a
-     * {@code LocalDate} holds no year before -999,999,999, and a {@code Calendar} or {@code Date} counts
-     * milliseconds in a {@code long}, which reach back only about 292 million years.
+     * The birth date this age gives, in this type, or {@code null} where the type cannot hold its year. A
+     * {@code java.time} type holds the years of a {@code LocalDate}. A {@code Calendar} or a {@code Date} counts
+     * milliseconds in a {@code long}, which reach about 292 million years each way, and is held to the years
+     * it holds in full, whatever its zone. The year is checked before the conversion, because
+     * {@code java.sql.Date.valueOf} and, on JDK 21, {@code Timestamp.from} wrap a value round rather than fail.
      */
     private @Nullable Object birthDateFor(int age, Class<?> rawType) {
-        try {
-            return fromLocalDate(today().minusYears(age), rawType);
-        } catch (DateTimeException | IllegalArgumentException unrepresentable) {
-            return null;
-        }
+        LocalDate today = today();
+        long year = (long) today.getYear() - age;
+        boolean javaTime = Temporal.class.isAssignableFrom(rawType);
+        long min = javaTime ? Year.MIN_VALUE : MIN_MILLIS_YEAR;
+        long max = javaTime ? Year.MAX_VALUE : MAX_MILLIS_YEAR;
+        return year >= min && year <= max ? fromLocalDate(today.minusYears(age), rawType) : null;
     }
 
     private void harmonizeActiveStatus(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
