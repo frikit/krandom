@@ -22,7 +22,9 @@ import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import jakarta.validation.constraints.NotNull;
 import java.lang.constant.ConstantDesc;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -188,6 +190,10 @@ class ObjectGeneratorSealedTypeTest {
     record ListBox<T>(List<T> items) implements Box<T> {}
 
     record Crate(Box<Integer> box) {}
+
+    record DateBox<D extends Date>(D value) implements Box<D> {}
+
+    record Ledger(Box<Timestamp> box) {}
 
     interface Plain {}
 
@@ -705,6 +711,21 @@ class ObjectGeneratorSealedTypeTest {
 
         assertTrue(!box.items().isEmpty());
         box.items().forEach(item -> assertInstanceOf(Integer.class, item));
+    }
+
+    @Test
+    @DisplayName("a bounded type variable of a mapped implementation takes the declared argument, not its bound")
+    void boundedMappingTakesDeclaredArgument() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                .seed(1L)
+                .objectSubtype(Box.class, DateBox.class)
+                .build();
+
+        DateBox<?> box = assertInstanceOf(
+                DateBox.class,
+                new ObjectGenerator<>(Ledger.class, config).generate().box());
+
+        assertInstanceOf(Timestamp.class, box.value(), "the bound would give a plain Date");
     }
 
     // ── Construction adapters ─────────────────────────────────────────────────
