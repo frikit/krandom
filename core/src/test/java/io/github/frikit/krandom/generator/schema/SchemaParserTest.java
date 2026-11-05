@@ -1534,7 +1534,6 @@ class SchemaParserTest {
             assertEquals(Set.of("abc"), distinct(Map.of("const", "abc", "minLength", 3, "maxLength", 3)));
             assertEquals(Set.of("abc"), distinct(Map.of("const", "abc", "pattern", "b")));
             assertEquals(Set.of(List.of(1)), distinct(Map.of("const", List.of(1), "items", Map.of("type", "integer"))));
-            assertEquals(Set.of(List.of(1)), distinct(Map.of("const", List.of(1), "items", "not-a-schema")));
             assertEquals(
                     Set.of(Map.of("a", 1)),
                     distinct(Map.of("const", Map.of("a", 1), "properties", Map.of("a", Map.of("type", "integer")))));
@@ -2435,6 +2434,270 @@ class SchemaParserTest {
                     CombinedConstraints.distinct(Map.of("const", List.of(1, 1), "uniqueItems", false)));
             // uniqueItems constrains only arrays.
             assertEquals(Set.of("aa"), CombinedConstraints.distinct(Map.of("const", "aa", "uniqueItems", true)));
+        }
+    }
+
+    @Nested
+    @DisplayName("a list of items and additionalItems")
+    class TupleItems {
+
+        private static final List<Object> ONE_TWO = List.of(Map.of("const", 1), Map.of("const", 2));
+
+        private static Map<String, Object> array(Object... keywordsAndValues) {
+            Map<String, Object> property = new LinkedHashMap<>();
+            property.put("type", "array");
+            for (int i = 0; i < keywordsAndValues.length; i += 2) {
+                property.put((String) keywordsAndValues[i], keywordsAndValues[i + 1]);
+            }
+            return property;
+        }
+
+        private static Set<Integer> sizes(Map<String, Object> property) {
+            Set<Integer> sizes = new HashSet<>();
+            for (Object value : CombinedConstraints.values(property)) {
+                sizes.add(assertInstanceOf(List.class, value).size());
+            }
+            return sizes;
+        }
+
+        @Test
+        @DisplayName("each position follows its own schema, and an array holds the whole tuple by default")
+        void positionsFollowTheirOwnSchemas() {
+            assertEquals(Set.of(List.of(1, 2)), CombinedConstraints.distinct(array("items", ONE_TWO)));
+            for (Object value : CombinedConstraints.values(array(
+                    "items",
+                    List.of(Map.of("type", "integer", "minimum", 1, "maximum", 9), Map.of("type", "boolean"))))) {
+                List<?> items = assertInstanceOf(List.class, value);
+                assertEquals(2, items.size(), items::toString);
+                int first = assertInstanceOf(Integer.class, items.get(0));
+                assertTrue(first >= 1 && first <= 9, items::toString);
+                assertInstanceOf(Boolean.class, items.get(1));
+            }
+        }
+
+        @Test
+        @DisplayName("minItems and maxItems move the size away from the tuple's length")
+        void boundsMoveTheSize() {
+            assertEquals(Set.of(List.of(1)), CombinedConstraints.distinct(array("items", ONE_TWO, "maxItems", 1)));
+            assertEquals(
+                    Set.of(List.of(), List.of(1), List.of(1, 2)),
+                    CombinedConstraints.distinct(array("items", ONE_TWO, "minItems", 0)));
+            // Without additionalItems, the items after the tuple are anything: strings, as for an array
+            // without items.
+            for (Object value :
+                    CombinedConstraints.values(array("items", List.of(Map.of("const", 1)), "minItems", 3))) {
+                List<?> items = assertInstanceOf(List.class, value);
+                assertEquals(3, items.size(), items::toString);
+                assertEquals(1, items.get(0));
+                assertInstanceOf(String.class, items.get(1));
+                assertInstanceOf(String.class, items.get(2));
+            }
+        }
+
+        @Test
+        @DisplayName("additionalItems false ends an array with the tuple")
+        void additionalItemsFalse() {
+            assertEquals(
+                    Set.of(List.of(), List.of(1), List.of(1, 2)),
+                    CombinedConstraints.distinct(
+                            array("items", ONE_TWO, "additionalItems", false, "minItems", 0, "maxItems", 9)));
+            CombinedConstraints.assertRejected(array("items", ONE_TWO, "additionalItems", false, "minItems", 3));
+        }
+
+        @Test
+        @DisplayName("an additionalItems schema gives the items after the tuple, up to maxItems")
+        void additionalItemsSchema() {
+            Map<String, Object> five = Map.of("const", 5);
+            assertEquals(
+                    Set.of(List.of(1, 2, 5)),
+                    CombinedConstraints.distinct(array("items", ONE_TWO, "additionalItems", five, "minItems", 3)));
+            assertEquals(Set.of(2, 3, 4), sizes(array("items", ONE_TWO, "additionalItems", five, "maxItems", 4)));
+            for (Object value :
+                    CombinedConstraints.values(array("items", ONE_TWO, "additionalItems", five, "maxItems", 4))) {
+                List<?> items = assertInstanceOf(List.class, value);
+                assertEquals(List.of(1, 2), items.subList(0, 2));
+                assertTrue(items.subList(2, items.size()).stream().allMatch(item -> item.equals(5)), items::toString);
+            }
+        }
+
+        @Test
+        @DisplayName("additionalItems is ignored beside a single items schema, as the drafts that define it say")
+        void additionalItemsIgnoredBesideOneSchema() {
+            Map<String, Object> one = Map.of("const", 1);
+            assertEquals(
+                    Set.of(List.of(1, 1)),
+                    CombinedConstraints.distinct(
+                            array("items", one, "additionalItems", false, "minItems", 2, "maxItems", 2)));
+            assertEquals(
+                    Set.of(List.of(1)),
+                    CombinedConstraints.distinct(array(
+                            "items", one, "additionalItems", Map.of("$ref", "#/x"), "minItems", 1, "maxItems", 1)));
+            assertEquals(
+                    Set.of(List.of(1)),
+                    CombinedConstraints.distinct(
+                            array("items", one, "additionalItems", "not a schema", "minItems", 1, "maxItems", 1)));
+        }
+
+        @Test
+        @DisplayName("items false allows only the empty array, and a false entry ends the array before it")
+        void falseSchemas() {
+            assertEquals(Set.of(List.of()), CombinedConstraints.distinct(array("items", false)));
+            assertEquals(Set.of(List.of()), CombinedConstraints.distinct(array("items", false, "minItems", 0)));
+            CombinedConstraints.assertRejected(array("items", false, "minItems", 1));
+            List<Object> stops = List.of(Map.of("const", 1), false, Map.of("const", 3));
+            assertEquals(Set.of(List.of(1)), CombinedConstraints.distinct(array("items", stops, "maxItems", 5)));
+            assertEquals(
+                    Set.of(List.of(), List.of(1)),
+                    CombinedConstraints.distinct(array("items", stops, "minItems", 0, "maxItems", 5)));
+            CombinedConstraints.assertRejected(array("items", stops, "minItems", 2));
+            // A false first entry allows only the empty array.
+            assertEquals(Set.of(List.of()), CombinedConstraints.distinct(array("items", List.of(false))));
+        }
+
+        @Test
+        @DisplayName("true allows any item, like an empty schema: a string")
+        void trueSchemas() {
+            for (Object value : CombinedConstraints.values(array("items", List.of(true, Map.of("const", 2))))) {
+                List<?> items = assertInstanceOf(List.class, value);
+                assertInstanceOf(String.class, items.get(0));
+                assertEquals(2, items.get(1));
+            }
+            for (Object value : CombinedConstraints.values(
+                    array("items", List.of(Map.of("const", 1)), "additionalItems", true, "minItems", 2))) {
+                assertInstanceOf(
+                        String.class, assertInstanceOf(List.class, value).get(1));
+            }
+            for (Object value : CombinedConstraints.values(array("items", true, "minItems", 2, "maxItems", 2))) {
+                List<?> items = assertInstanceOf(List.class, value);
+                assertEquals(2, items.size());
+                assertInstanceOf(String.class, items.get(0));
+            }
+            // An empty list of items makes every item an additional one.
+            assertEquals(Set.of(List.of()), CombinedConstraints.distinct(array("items", List.of())));
+            assertEquals(
+                    Set.of(List.of(7, 7)),
+                    CombinedConstraints.distinct(
+                            array("items", List.of(), "additionalItems", Map.of("const", 7), "minItems", 2)));
+        }
+
+        @Test
+        @DisplayName("uniqueItems keeps the items distinct across the tuple and after it")
+        void uniqueTuples() {
+            assertEquals(
+                    Set.of(List.of(1, 2)),
+                    CombinedConstraints.distinct(array(
+                            "uniqueItems", true, "items", List.of(Map.of("const", 1), Map.of("enum", List.of(1, 2))))));
+            // 1 and 1.0 are one JSON value, so a tuple of both cannot be unique.
+            CombinedConstraints.assertRejected(
+                    array("uniqueItems", true, "items", List.of(Map.of("const", 1), Map.of("const", 1.0))));
+            // Where minItems leaves room, the array ends at the position that runs out of distinct values.
+            assertEquals(
+                    Set.of(List.of(1)),
+                    CombinedConstraints.distinct(array(
+                            "uniqueItems",
+                            true,
+                            "minItems",
+                            1,
+                            "items",
+                            List.of(Map.of("const", 1), Map.of("const", 1), Map.of("const", 2)))));
+            for (Object value : CombinedConstraints.values(array(
+                    "uniqueItems",
+                    true,
+                    "items",
+                    List.of(Map.of("const", 1)),
+                    "additionalItems",
+                    Map.of("enum", List.of(1, 2, 3)),
+                    "minItems",
+                    3,
+                    "maxItems",
+                    3))) {
+                List<?> items = assertInstanceOf(List.class, value);
+                assertEquals(1, items.getFirst(), items::toString);
+                assertEquals(Set.of(2, 3), new HashSet<>(items.subList(1, 3)), items::toString);
+            }
+        }
+
+        @Test
+        @DisplayName("a const or enum array meets the tuple, additionalItems and false items")
+        void constAndEnumMeetTheTuple() {
+            List<Object> tuple = List.of(Map.of("type", "integer"), Map.of("type", "string"));
+            assertEquals(
+                    Set.of(List.of(1, "a")),
+                    CombinedConstraints.distinct(Map.of("const", List.of(1, "a"), "items", tuple)));
+            CombinedConstraints.assertRejected(Map.of("const", List.of("a", 1), "items", tuple));
+            assertEquals(
+                    Set.of(List.of(1, "a", true)),
+                    CombinedConstraints.distinct(Map.of("const", List.of(1, "a", true), "items", tuple)));
+            CombinedConstraints.assertRejected(
+                    Map.of("const", List.of(1, "a", true), "items", tuple, "additionalItems", false));
+            CombinedConstraints.assertRejected(Map.of(
+                    "const", List.of(1, "a", true), "items", tuple, "additionalItems", Map.of("type", "string")));
+            assertEquals(
+                    Set.of(List.of(1, "a", "b")),
+                    CombinedConstraints.distinct(Map.of(
+                            "const",
+                            List.of(1, "a", "b"),
+                            "items",
+                            tuple,
+                            "additionalItems",
+                            Map.of("type", "string"))));
+            assertEquals(
+                    Set.of(List.of(1, "a")),
+                    CombinedConstraints.distinct(
+                            Map.of("enum", List.of(List.of(1, "a"), List.of("a", 1)), "items", tuple)));
+            CombinedConstraints.assertRejected(Map.of("const", List.of(1), "items", false));
+            assertEquals(Set.of(List.of()), CombinedConstraints.distinct(Map.of("const", List.of(), "items", false)));
+            CombinedConstraints.assertRejected(Map.of("const", List.of(1, 2), "items", List.of(true, false)));
+            // additionalItems is ignored beside a single items schema here too.
+            assertEquals(
+                    Set.of(List.of(1, 2)),
+                    CombinedConstraints.distinct(Map.of(
+                            "const", List.of(1, 2), "items", Map.of("type", "integer"), "additionalItems", false)));
+        }
+
+        @Test
+        @DisplayName("tuple entries and additionalItems are checked and resolved at their own paths")
+        void pathsAndShapes() {
+            Map<String, Object> conflict = Map.of("type", "string", "pattern", "^A{8}$", "maxLength", 3);
+            CombinedConstraints.assertRejectedAt(
+                    "$.properties.value.items[1]", Map.of("value", array("items", List.of(Map.of(), conflict))));
+            CombinedConstraints.assertRejectedAt(
+                    "$.properties.value.additionalItems",
+                    Map.of("value", array("items", List.of(Map.of()), "additionalItems", conflict)));
+            CombinedConstraints.assertRejectedAt(
+                    "$.properties.value.items[0]", Map.of("value", array("items", List.of(Map.of("$ref", "#/x")))));
+            CombinedConstraints.assertRejectedAt(
+                    "$.properties.value.additionalItems",
+                    Map.of("value", array("items", List.of(), "additionalItems", Map.of("oneOf", List.of()))));
+            for (Object items : List.of("string", 5, List.of(1), List.of(Map.of(), "x"))) {
+                CombinedConstraints.assertRejected(array("items", items));
+            }
+            Map<String, Object> nullItems = array();
+            nullItems.put("items", null);
+            CombinedConstraints.assertRejected(nullItems);
+            CombinedConstraints.assertRejected(array("items", List.of(), "additionalItems", "no"));
+            // The shape is checked wherever the keyword appears, beside a const too.
+            CombinedConstraints.assertRejected(Map.of("type", "string", "items", 5));
+            CombinedConstraints.assertRejected(Map.of("const", List.of(1), "items", "not-a-schema"));
+        }
+
+        @Test
+        @DisplayName("seeded tuples replay")
+        void tuplesReplay() {
+            List<Map<String, Object>> properties = List.of(
+                    array("items", List.of(Map.of("type", "integer"), Map.of("type", "string")), "maxItems", 5),
+                    array(
+                            "uniqueItems",
+                            true,
+                            "items",
+                            List.of(Map.of("type", "integer", "minimum", 1, "maximum", 5)),
+                            "additionalItems",
+                            Map.of("type", "integer", "minimum", 1, "maximum", 5),
+                            "maxItems",
+                            5));
+            for (Map<String, Object> property : properties) {
+                assertEquals(CombinedConstraints.values(property), CombinedConstraints.values(property));
+            }
         }
     }
 

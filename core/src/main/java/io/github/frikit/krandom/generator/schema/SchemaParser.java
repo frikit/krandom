@@ -52,7 +52,10 @@ import org.jspecify.annotations.Nullable;
  *       number is a {@link BigDecimal}</li>
  *   <li>{@code minLength}/{@code maxLength} — bounded string length</li>
  *   <li>{@code pattern} — regex-based string generation</li>
- *   <li>{@code items} — array element schema</li>
+ *   <li>{@code items} — array element schema, or a list of schemas, one for each position, which is the
+ *       tuple form of the drafts up to 2019-09; {@code true} allows any item and {@code false} none</li>
+ *   <li>{@code additionalItems} — beside a list of items, the schema of the items after them, or
+ *       {@code false} for none</li>
  *   <li>{@code minItems}/{@code maxItems} — bounded array size</li>
  *   <li>{@code uniqueItems} — array items that are distinct JSON values, drawn up to 100 times for each
  *       item</li>
@@ -61,10 +64,12 @@ import org.jspecify.annotations.Nullable;
  * </ul>
  *
  * <p>A type list may contain one concrete supported type plus {@code null}. Empty, malformed, and
- * unsupported type declarations, non-string formats, and empty or malformed enums are rejected
- * with their schema path. The parser accepts the control keywords emitted by
- * {@link Schema#toJsonSchema()}, including {@code $schema}, {@code required}, and
- * {@code additionalProperties}. References and schema composition ({@code $ref}, {@code allOf},
+ * unsupported type declarations, non-string formats, empty or malformed enums, and an {@code items} that
+ * is no schema, boolean, or list of them are rejected with their schema path. A list of items holds the
+ * whole tuple by default, and {@code additionalItems} is read only beside one, as in the drafts that
+ * define it; {@code prefixItems}, its Draft 2020-12 replacement, is rejected. The parser accepts the
+ * control keywords emitted by {@link Schema#toJsonSchema()}, including {@code $schema}, {@code required},
+ * and {@code additionalProperties}. References and schema composition ({@code $ref}, {@code allOf},
  * {@code anyOf}, {@code oneOf}, and related conditional keywords) are rejected with a schema path
  * because this parser has no resolver or composition semantics.
  *
@@ -229,6 +234,15 @@ public final class SchemaParser {
             Object items = schema.get("items");
             if (items instanceof Map<?, ?> itemSchema) {
                 validateSupportedKeywords(itemSchema, path + ".items", visiting);
+            } else if (items instanceof List<?> tuple) {
+                for (int position = 0; position < tuple.size(); position++) {
+                    if (tuple.get(position) instanceof Map<?, ?> itemSchema) {
+                        validateSupportedKeywords(itemSchema, path + ".items[" + position + "]", visiting);
+                    }
+                }
+                if (schema.get("additionalItems") instanceof Map<?, ?> additionalSchema) {
+                    validateSupportedKeywords(additionalSchema, path + ".additionalItems", visiting);
+                }
             }
         } finally {
             visiting.remove(schema);
@@ -236,6 +250,21 @@ public final class SchemaParser {
     }
 
     private static void validateSupportedShape(Map<?, ?> schema, String path) {
+        if (schema.containsKey("items")) {
+            Object items = schema.get("items");
+            if (!(items instanceof List<?> tuple ? tuple.stream().allMatch(SchemaParser::isSchema) : isSchema(items))) {
+                throw new IllegalArgumentException(
+                        "JSON Schema items must be a schema, a boolean, or a list of them at " + path);
+            }
+            // additionalItems means something only beside a list of items, and is ignored elsewhere.
+            if (items instanceof List<?>
+                    && schema.containsKey("additionalItems")
+                    && !isSchema(schema.get("additionalItems"))) {
+                throw new IllegalArgumentException(
+                        "JSON Schema additionalItems must be a schema or a boolean at " + path);
+            }
+        }
+
         if (schema.containsKey("enum")) {
             Object enumValues = schema.get("enum");
             if (!(enumValues instanceof List<?> values) || values.isEmpty()) {
@@ -280,6 +309,11 @@ public final class SchemaParser {
         } else if (type != null) {
             throw new IllegalArgumentException("JSON Schema type must be a string or list at " + path);
         }
+    }
+
+    /** Whether a value is a schema: an object, or true or false, which allow any value or none. */
+    private static boolean isSchema(@Nullable Object value) {
+        return value instanceof Map<?, ?> || value instanceof Boolean;
     }
 
     /** Whether a number is finite and above 0, as a multipleOf must be. */
@@ -389,8 +423,7 @@ public final class SchemaParser {
                     && list.size() <= intOrDefault(schema.get("maxItems"), Integer.MAX_VALUE)
                     && (!Boolean.TRUE.equals(schema.get("uniqueItems"))
                             || jsonValues(list).size() == list.size())
-                    && (!(schema.get("items") instanceof Map<?, ?> items)
-                            || list.stream().allMatch(item -> satisfies(item, items)));
+                    && itemsMeet(list, schema);
         }
         if (value instanceof Map<?, ?> object && schema.get("properties") instanceof Map<?, ?> properties) {
             Map<String, @Nullable Object> members = byName(object);
@@ -408,6 +441,28 @@ public final class SchemaParser {
                                 || Pattern.compile(pattern)
                                         .matcher(value.toString())
                                         .find()));
+    }
+
+    /**
+     * Whether every item meets its schema: the items schema, or with a list of items, the one at its
+     * position and additionalItems after them.
+     */
+    private static boolean itemsMeet(List<?> list, Map<?, ?> schema) {
+        Object items = schema.get("items");
+        for (int position = 0; position < list.size(); position++) {
+            Object itemSchema = items instanceof List<?> tuple
+                    ? (position < tuple.size() ? tuple.get(position) : schema.get("additionalItems"))
+                    : items;
+            if (!meets(list.get(position), itemSchema)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Whether a value meets a subschema: true or a missing one allows any value, and false none. */
+    private static boolean meets(@Nullable Object value, @Nullable Object subschema) {
+        return subschema instanceof Map<?, ?> map ? satisfies(value, map) : !Boolean.FALSE.equals(subschema);
     }
 
     private static boolean hasDeclaredType(@Nullable Object value, Map<?, ?> schema) {
@@ -917,46 +972,90 @@ public final class SchemaParser {
         return new IllegalArgumentException("JSON Schema " + kind + " range has no values at " + path + ": " + schema);
     }
 
-    @SuppressWarnings("unchecked")
     private static SchemaValueProvider resolveArray(
             String fieldName, String path, Map<String, Object> schema, Field field, GeneratorConfig config) {
-        // As with string lengths, a missing bound defaults within the declared one.
-        int maxItems = intOrDefault(
-                schema.get("maxItems"),
-                Math.max(config.getMaxCollectionSize(), intOrDefault(schema.get("minItems"), 0)));
-        int minItems = intOrDefault(schema.get("minItems"), Math.min(config.getMinCollectionSize(), maxItems));
+        // A list of items is the tuple form of the drafts up to 2019-09: each position has its own schema,
+        // and additionalItems is the schema of the items after them. A false schema allows no item, so it
+        // ends every array at its position.
+        Object items = schema.get("items");
+        List<SchemaValueProvider> positions = new ArrayList<>();
+        int reach = Integer.MAX_VALUE;
+        SchemaValueProvider rest;
+        if (items instanceof List<?> tuple) {
+            for (int position = 0; position < tuple.size(); position++) {
+                Object itemSchema = tuple.get(position);
+                if (Boolean.FALSE.equals(itemSchema)) {
+                    reach = Math.min(reach, position);
+                }
+                positions.add(itemProvider(
+                        itemSchema,
+                        fieldName + "[" + position + "]",
+                        path + ".items[" + position + "]",
+                        field,
+                        config));
+            }
+            Object additional = schema.get("additionalItems");
+            if (Boolean.FALSE.equals(additional)) {
+                reach = Math.min(reach, tuple.size());
+            }
+            rest = itemProvider(additional, fieldName + "[]", path + ".additionalItems", field, config);
+        } else {
+            if (Boolean.FALSE.equals(items)) {
+                reach = 0;
+            }
+            rest = itemProvider(items, fieldName + "[]", path + ".items", field, config);
+        }
+
+        // As with string lengths, a missing bound defaults within the declared one. Its default is the
+        // tuple, or for other arrays the configured collection size, within what the items allow.
+        int natural = items instanceof List<?> ? Math.min(positions.size(), reach) : config.getMaxCollectionSize();
+        int naturalMin = items instanceof List<?> ? natural : config.getMinCollectionSize();
+        int maxItems = Math.min(
+                reach,
+                intOrDefault(schema.get("maxItems"), Math.max(natural, intOrDefault(schema.get("minItems"), 0))));
+        int minItems = intOrDefault(schema.get("minItems"), Math.min(naturalMin, maxItems));
         if (minItems > maxItems) {
             throw emptyRange("array size", path, schema);
         }
 
-        SchemaValueProvider itemProvider;
-        Object itemsRaw = schema.get("items");
-        if (itemsRaw instanceof Map<?, ?> itemSchema) {
-            itemProvider =
-                    resolveProvider(fieldName + "[]", path + ".items", (Map<String, Object>) itemSchema, field, config);
-        } else {
-            itemProvider = randomText(config);
-        }
-
-        SchemaValueProvider items = itemProvider;
         if (Boolean.TRUE.equals(schema.get("uniqueItems"))) {
             // While parsing, a search with a fixed seed looks for maxItems distinct items, and gives the
             // same verdict on every run. Fewer than minItems fail here; fewer than maxItems are the most an
             // array then holds, so items with few distinct values never spend the whole budget, which
             // would multiply at every level of nested arrays.
             int distinct = distinctItems(
-                            items, new SchemaContext(config.getLocale(), new Random(0L), 0), maxItems, minItems, path)
+                            positions,
+                            rest,
+                            new SchemaContext(config.getLocale(), new Random(0L), 0),
+                            maxItems,
+                            minItems,
+                            path)
                     .size();
-            return ctx -> distinctItems(items, ctx, size(ctx, minItems, distinct), minItems, path);
+            return ctx -> distinctItems(positions, rest, ctx, size(ctx, minItems, distinct), minItems, path);
         }
         return ctx -> {
             int size = size(ctx, minItems, maxItems);
             List<Object> list = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
-                list.add(items.generate(ctx));
+                list.add(itemAt(positions, rest, i).generate(ctx));
             }
             return list;
         };
+    }
+
+    /** The provider of the items a subschema allows, where true or a missing schema allows any: a string. */
+    @SuppressWarnings("unchecked")
+    private static SchemaValueProvider itemProvider(
+            @Nullable Object itemSchema, String name, String path, Field field, GeneratorConfig config) {
+        return itemSchema instanceof Map<?, ?> map
+                ? resolveProvider(name, path, (Map<String, Object>) map, field, config)
+                : randomText(config);
+    }
+
+    /** The provider of the item at a position: the tuple's own, or the one for the items after them. */
+    private static SchemaValueProvider itemAt(
+            List<SchemaValueProvider> positions, SchemaValueProvider rest, int position) {
+        return position < positions.size() ? positions.get(position) : rest;
     }
 
     private static int size(SchemaContext ctx, int minItems, int maxItems) {
@@ -966,15 +1065,21 @@ public final class SchemaParser {
     /**
      * Draws items until there are size distinct ones, as JSON values, with at most
      * {@value #UNIQUE_ITEM_ATTEMPTS} draws for each item. Items that run out of distinct values sooner keep
-     * the ones found, which fails only below minItems.
+     * the ones found, which fails only below minItems. An item is drawn for the position it would fill, so
+     * an array ends at a position whose schema has no new value.
      */
     private static List<Object> distinctItems(
-            SchemaValueProvider items, SchemaContext ctx, int size, int minItems, String path) {
+            List<SchemaValueProvider> positions,
+            SchemaValueProvider rest,
+            SchemaContext ctx,
+            int size,
+            int minItems,
+            String path) {
         List<Object> list = new ArrayList<>(size);
         Set<@Nullable Object> seen = new HashSet<>();
         long attempts = (long) UNIQUE_ITEM_ATTEMPTS * size;
         for (long attempt = 0; attempt < attempts && list.size() < size; attempt++) {
-            Object item = items.generate(ctx);
+            Object item = itemAt(positions, rest, list.size()).generate(ctx);
             if (seen.add(json(item))) {
                 list.add(item);
             }
