@@ -180,6 +180,9 @@ class ObjectGeneratorSealedTypeTest {
     /** Its {@code A} is bound to {@code B}, and {@code B} to {@code Result<String>}. */
     static final class ChainRoot extends Middle<Result<String>> {}
 
+    /** Its {@code A} is bound to {@code B}, and {@code B} to the recursive {@code Term}. */
+    static final class TermChainRoot extends Middle<Term> {}
+
     sealed interface Pair<A, B> permits Same {}
 
     record Same<T>(T first, T second) implements Pair<T, T> {}
@@ -673,6 +676,26 @@ class ObjectGeneratorSealedTypeTest {
     }
 
     // ── Generic hierarchies ───────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("a recursive sealed member reached through inherited type variables still ends in a leaf")
+    void recursiveSealedMemberThroughVariableChainEndsInLeaf() {
+        GeneratorConfig.Builder shallow = GeneratorConfig.builder().objectMaxDepth(2);
+        Set<Class<?>> items = new HashSet<>();
+        for (long seed = 0; seed < 60; seed++) {
+            Object item = new ObjectGenerator<>(
+                            TermChainRoot.class, shallow.seed(seed).build())
+                    .generate()
+                    .item;
+            items.add(item.getClass());
+            if (item instanceof Sum sum) {
+                assertInstanceOf(Lit.class, sum.left());
+                assertInstanceOf(Lit.class, sum.right());
+            }
+        }
+
+        assertEquals(Set.of(Lit.class, Sum.class), items);
+    }
 
     @Test
     @DisplayName("a generic sealed member reached through inherited type variables passes its arguments")

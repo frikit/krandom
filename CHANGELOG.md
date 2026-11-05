@@ -325,7 +325,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   of `Fixture` is a `Box<String>` whose `C content` holds a `String`, where the engine read the arguments
   from `V` alone and the unbound `C` failed as an unsupported type. The same holds for a mapped or sealed
   subclass reached that way. As for a mapping above, a bounded type variable took its bound, so such an
-  object whose bound the engine could generate changes too.
+  object whose bound the engine could generate changes too. Such a member now also shares the cycle key of a
+  member declared with its type, so a cycle through it is cut where one through that member is, and a
+  recursive object reached that way can change.
 - The Kotlin DSL now calls a private primary constructor, as the object engine calls a private Java
   constructor, where `kotlin.reflect.full.IllegalCallableAccessException` escaped without the object's path.
   A factory function that validates outside the constructor's `init` block is not called, so register a

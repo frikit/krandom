@@ -2229,9 +2229,12 @@ final class FieldGeneratorResolver {
         return Map.copyOf(bindings);
     }
 
+    /**
+     * The cycle key of a nested type: the signature at the end of its chain of type variables, so that a
+     * member reached through inherited type variables shares the key of a member declared with its type.
+     */
     private static String poolTypeSignature(ResolvedType resolvedType) {
-        ResolvedType effectiveType = Objects.requireNonNullElse(resolvedType.effectiveType(), resolvedType);
-        return effectiveType.signature();
+        return mostSpecific(resolvedType).signature();
     }
 
     private static ObjectGenerationException contextualizeNestedFailure(
