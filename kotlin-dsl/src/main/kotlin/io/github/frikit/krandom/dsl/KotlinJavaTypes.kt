@@ -78,6 +78,10 @@ internal object KotlinJavaTypes {
     }
 }
 
+// The three types below equal the JDK's reflected types of the same structure, in both directions and
+// with the same hash, as their interfaces require, so a contextual generator that compares or caches by
+// GenerationContext.getDeclaredType() treats them as it treats reflected types.
+
 private class KotlinParameterizedType(
     private val raw: Class<*>,
     private val arguments: List<Type>,
@@ -87,6 +91,14 @@ private class KotlinParameterizedType(
     override fun getActualTypeArguments(): Array<Type> = arguments.toTypedArray()
 
     override fun getOwnerType(): Type? = raw.declaringClass
+
+    override fun equals(other: Any?): Boolean =
+        other is ParameterizedType &&
+            raw == other.rawType &&
+            ownerType == other.ownerType &&
+            actualTypeArguments.contentEquals(other.actualTypeArguments)
+
+    override fun hashCode(): Int = actualTypeArguments.contentHashCode() xor ownerType.hashCode() xor raw.hashCode()
 
     override fun toString(): String = arguments.joinToString(", ", "${raw.typeName}<", ">") { it.typeName }
 }
@@ -98,6 +110,13 @@ private class KotlinWildcardType(
     override fun getUpperBounds(): Array<Type> = arrayOf(upper)
 
     override fun getLowerBounds(): Array<Type> = listOfNotNull(lower).toTypedArray()
+
+    override fun equals(other: Any?): Boolean =
+        other is WildcardType &&
+            upperBounds.contentEquals(other.upperBounds) &&
+            lowerBounds.contentEquals(other.lowerBounds)
+
+    override fun hashCode(): Int = lowerBounds.contentHashCode() xor upperBounds.contentHashCode()
 
     override fun toString(): String =
         when {
@@ -111,6 +130,10 @@ private class KotlinGenericArrayType(
     private val component: Type,
 ) : GenericArrayType {
     override fun getGenericComponentType(): Type = component
+
+    override fun equals(other: Any?): Boolean = other is GenericArrayType && component == other.genericComponentType
+
+    override fun hashCode(): Int = component.hashCode()
 
     override fun toString(): String = "${component.typeName}[]"
 }
