@@ -207,7 +207,7 @@ val integrationCoverageFloors =
         "junit" to ("0.98" to "0.94"),
         "spring-boot-starter" to ("0.95" to "0.82"),
         "kotest-extensions" to ("0.90" to "0.78"),
-        "kotlin-dsl" to ("0.88" to "0.87"),
+        "kotlin-dsl" to ("0.90" to "0.90"),
     )
 check(integrationCoverageFloors.keys == coverageReportModules) {
     "integrationCoverageFloors must list exactly the integration modules: $coverageReportModules"

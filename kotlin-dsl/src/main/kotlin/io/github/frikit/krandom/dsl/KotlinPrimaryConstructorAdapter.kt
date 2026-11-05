@@ -184,22 +184,11 @@ internal class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
             return owner.typeParameters[ownerParameter]
         }
         val reflected = type.javaType
-        if (!rebuilt && (reflected !is Class<*> || type.arguments.isEmpty())) {
-            return reflected
+        return if (rebuilt || (reflected is Class<*> && type.arguments.isNotEmpty())) {
+            KotlinJavaTypes.of(type, owner)
+        } else {
+            reflected
         }
-        // The generic Array class carries no element class, so an array of a class is that class's array.
-        val element =
-            type.arguments
-                .singleOrNull()
-                ?.type
-                ?.takeIf { argument -> argument.arguments.isEmpty() }
-        val elementClass = element?.classifier as? KClass<*>
-        if (type.classifier == Array::class && elementClass != null) {
-            return java.lang.reflect.Array
-                .newInstance(elementClass.javaObjectType, 0)
-                .javaClass
-        }
-        return (type.classifier as KClass<*>).createType(type.arguments, type.isMarkedNullable).javaType
     }
 
     /**
