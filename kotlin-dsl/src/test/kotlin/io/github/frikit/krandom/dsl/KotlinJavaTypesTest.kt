@@ -64,6 +64,50 @@ class KotlinJavaTypesTest :
                     "java.util.List<java.lang.String[]>"
             }
 
+            it("equals the reflected type of the same structure, in both directions and with the same hash") {
+                for (
+                (kotlinType, field) in
+                listOf(
+                    typeOf<List<String>>() to "list",
+                    typeOf<MutableList<out String>>() to "produced",
+                    typeOf<MutableList<in String>>() to "consumed",
+                    typeOf<List<*>>() to "any",
+                    typeOf<Array<List<String>>>() to "arrays",
+                    typeOf<Map.Entry<String, Int>>() to "entry",
+                )
+                ) {
+                    val built = KotlinJavaTypes.of(kotlinType, Any::class.java)
+                    val reflected = ReflectedTypes::class.java.getDeclaredField(field).genericType
+
+                    (built == reflected) shouldBe true
+                    (reflected == built) shouldBe true
+                    built.hashCode() shouldBe reflected.hashCode()
+                }
+            }
+
+            it("differs from a type of another structure") {
+                val list = KotlinJavaTypes.of(typeOf<List<String>>(), Any::class.java)
+                val produced =
+                    KotlinJavaTypes.of(
+                        typeOf<MutableList<out String>>(),
+                        Any::class.java,
+                    ) as ParameterizedType
+                val consumed =
+                    KotlinJavaTypes.of(
+                        typeOf<MutableList<in String>>(),
+                        Any::class.java,
+                    ) as ParameterizedType
+                val arrays = KotlinJavaTypes.of(typeOf<Array<List<String>>>(), Any::class.java)
+
+                (list == KotlinJavaTypes.of(typeOf<List<Int>>(), Any::class.java)) shouldBe false
+                (list == KotlinJavaTypes.of(typeOf<Set<String>>(), Any::class.java)) shouldBe false
+                (list == String::class.java) shouldBe false
+                (produced.actualTypeArguments[0] == consumed.actualTypeArguments[0]) shouldBe false
+                (produced.actualTypeArguments[0] == String::class.java) shouldBe false
+                (arrays == KotlinJavaTypes.of(typeOf<Array<List<Int>>>(), Any::class.java)) shouldBe false
+                (arrays == list) shouldBe false
+            }
+
             it("builds a generic array for an array of a parameterized type or of a type variable") {
                 val ofLists = KotlinJavaTypes.of(typeOf<Array<List<String>>>(), Any::class.java)
                 val ownerParameter = KMixed::class.typeParameters.single().createType()
@@ -81,3 +125,14 @@ class KotlinJavaTypesTest :
             }
         }
     })
+
+/** Fields whose reflected generic types the built types must equal. */
+@Suppress("unused")
+private class ReflectedTypes {
+    val list: List<String> = emptyList()
+    val produced: MutableList<out String> = mutableListOf()
+    val consumed: MutableList<in String> = mutableListOf()
+    val any: List<*> = emptyList<Any>()
+    val arrays: Array<List<String>> = emptyArray()
+    val entry: Map.Entry<String, Int>? = null
+}
