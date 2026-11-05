@@ -25,6 +25,7 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.net.URI;
 import java.time.Clock;
+import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -597,10 +598,23 @@ final class SemanticCoherenceAdjuster {
     /** Moves birthDate to the date that gives this age, where it can move and its constraints allow it. */
     private void followAge(Slot birthDateSlot, int age, boolean allowOverwriteExisting) {
         if (canAssign(birthDateSlot, allowOverwriteExisting)) {
-            Object derived = fromLocalDate(today().minusYears(age), birthDateSlot.rawType());
+            Object derived = birthDateFor(age, birthDateSlot.rawType());
             if (keepsConstraints(birthDateSlot, derived)) {
                 assignConverted(birthDateSlot, derived);
             }
+        }
+    }
+
+    /**
+     * The birth date this age gives, in this type, or {@code null} where the type cannot hold it: a
+     * {@code LocalDate} holds no year before -999,999,999, and a {@code Calendar} or {@code Date} counts
+     * milliseconds in a {@code long}, which reach back only about 292 million years.
+     */
+    private @Nullable Object birthDateFor(int age, Class<?> rawType) {
+        try {
+            return fromLocalDate(today().minusYears(age), rawType);
+        } catch (DateTimeException | IllegalArgumentException unrepresentable) {
+            return null;
         }
     }
 

@@ -195,7 +195,8 @@ A field that cannot move, because of an override, a requested unique name, or an
 Validation constraint in `RELAXED` mode, need not be in the range: a `@Past` value is drawn before the clock
 whatever the range. Where it leaves no date in the range that keeps the pair in order, its sibling follows it
 out of the range, because the order wins. A `birthDate` derived from such an `age` keeps that age, so it can
-be out of the range too.
+be out of the range too, unless no date of its type can hold it, as for an `age` of 2,147,483,647: then
+`birthDate` keeps its value.
 
 In `STRICT` mode a constrained `createdAt`, `updatedAt`, `birthDate`, or `age` can move, but never out of its
 own Bean Validation constraints, read against the configured clock as Hibernate Validator reads them. Where a

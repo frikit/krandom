@@ -1514,6 +1514,38 @@ class SemanticCoherenceAdjusterTest {
     }
 
     @Test
+    @DisplayName("an age that no birth date of its type can hold leaves birthDate as it is, rather than fail")
+    void ageNoBirthDateCanHoldLeavesBirthDateAsItIs() {
+        // Beyond the years a LocalDate holds.
+        ObjectGeneratorConfig hugeAge = ObjectGeneratorConfig.builder()
+                .override(AgedPairs.LocalBirthDate.class, "age", () -> Integer.MAX_VALUE)
+                .build();
+        assertArrayEquals(
+                new Object[] {LEAP_DAY, Integer.MAX_VALUE},
+                aligned(hugeAge, AgedPairs.LocalBirthDate.class, LEAP_DAY, Integer.MAX_VALUE));
+
+        // Within them, but beyond the milliseconds a Calendar holds.
+        java.util.GregorianCalendar calendar =
+                java.util.GregorianCalendar.from(ZonedDateTime.parse("2000-06-04T12:00Z"));
+        ObjectGeneratorConfig calendarAge = ObjectGeneratorConfig.builder()
+                .override(AgedPairs.CalendarBirthDate.class, "age", () -> 500_000_000)
+                .build();
+        assertArrayEquals(
+                new Object[] {calendar, 500_000_000},
+                aligned(calendarAge, AgedPairs.CalendarBirthDate.class, calendar, 500_000_000));
+
+        // In strict mode, an age that its constraints keep from a @Future birth date's leaves both as they are.
+        LocalDate tomorrow = LEAP_DAY.plusDays(1);
+        assertArrayEquals(
+                new Object[] {tomorrow, Integer.MAX_VALUE},
+                aligned(
+                        strictAt(Instant.parse("2024-02-29T12:00:00Z")).build(),
+                        AgedPairs.UnreachableBirthDate.class,
+                        tomorrow,
+                        Integer.MAX_VALUE));
+    }
+
+    @Test
     @DisplayName("the range check reads a value no date can hold without failing")
     void rangeCheckReadsAValueNoDateCanHoldWithoutFailing() {
         Object[] aligned = aligned(
@@ -1712,6 +1744,18 @@ class SemanticCoherenceAdjusterTest {
         record NullAge(LocalDate birthDate, @Null Integer age) {}
 
         record PastBirthDate(@Past LocalDate birthDate, int age) {}
+    }
+
+    /** Pairs of a birth date and an age, for ages that no birth date of its type can hold. */
+    static final class AgedPairs {
+
+        record LocalBirthDate(LocalDate birthDate, int age) {}
+
+        record CalendarBirthDate(java.util.Calendar birthDate, int age) {}
+
+        record UnreachableBirthDate(
+                @Future LocalDate birthDate,
+                @Min(Integer.MAX_VALUE) int age) {}
     }
 
     private static List<Field> declaredFields(Class<?> type) {
