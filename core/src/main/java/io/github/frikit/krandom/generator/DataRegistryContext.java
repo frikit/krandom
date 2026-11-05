@@ -36,9 +36,9 @@ import org.jspecify.annotations.Nullable;
  * this context for the language (a regional registration also serves as its language's fallback),
  * and finally the global language fallback. A scoped regional bundle therefore never replaces
  * another region's built-in data; for example, an {@code en_IN} bundle leaves {@code en_US} names
- * unchanged. Isolated contexts skip both global steps. {@link Vocabulary#NATIONAL_ID} is the one
- * vocabulary whose third step is the country rather than the language, because identity-number
- * formats are national.
+ * unchanged. Isolated contexts skip both global steps. {@link Vocabulary#NATIONAL_ID} and
+ * {@link Vocabulary#POSTAL_PLACE} are the vocabularies whose third step is the country rather than
+ * the language, because identity-number formats and postal geography are national.
  */
 public final class DataRegistryContext {
 

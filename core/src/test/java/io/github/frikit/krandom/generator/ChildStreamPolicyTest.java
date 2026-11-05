@@ -79,7 +79,8 @@ class ChildStreamPolicyTest {
      * legacy implementation before child streams became configurable. The legacy policy must keep
      * them byte-identical. The {@code profile} and {@code simpleProfile} birthdays used to follow the
      * system clock, so their fingerprints were recaptured once birthdays followed the configured
-     * clock.
+     * clock. The composites with an {@code en_US} address were recaptured once an address took its
+     * city, state and ZIP code from one postal place, and named the locale's country.
      */
     private static final Map<String, String> LEGACY_FINGERPRINTS = Map.ofEntries(
             Map.entry("sentence", "f320293937a27329fc0cee1e"),
@@ -97,30 +98,31 @@ class ChildStreamPolicyTest {
             Map.entry("username", "0bc10e0229f82fdc39588e4d"),
             Map.entry("socialProfile", "792648ef3b6b8abbbd533237"),
             Map.entry("middleName", "03807ed314b786ac2c341432"),
-            Map.entry("addressInfo", "d59d23569b064c822a11b2f2"),
+            Map.entry("addressInfo", "33e9fb7bdec903d1fa9681c5"),
             Map.entry("commerce", "17ce302ae4e7a1fb4764c2b5"),
             Map.entry("email", "3e67be363e85ca680a9086f2"),
             Map.entry("emailCompany", "6c049cd0069cb419df34d408"),
-            Map.entry("orderInfo", "7ed5d06bacc49dc04ce388ce"),
+            Map.entry("orderInfo", "61f808e175b8f527ae677bd1"),
             Map.entry("contactInfo", "4ded7f8bf60c7b75fabba896"),
             Map.entry("streetAddress", "1ec7f4fed1d423cc422b036d"),
-            Map.entry("personInfo", "ff25b9f9142457b0ae71dfa0"),
-            Map.entry("shipmentInfo", "16cdf6f7b0defd479b7dcfaa"),
-            Map.entry("profile", "d9de9c062db5cfe2661a0b9f"),
+            Map.entry("personInfo", "4017f14e0910e7b6f79e36ce"),
+            Map.entry("shipmentInfo", "10921da58ff268a88bd5a588"),
+            Map.entry("profile", "79b8d372b12276846097d954"),
             Map.entry("filePath", "0fb9282e391985e741bbe3c3"),
             Map.entry("productInfo", "0845051e287f5b32eb282e5e"),
             Map.entry("jobInfo", "2431a6433c670a55984ff5f3"),
-            Map.entry("invoiceInfo", "cbd1bd0a3ef5666b76a621a7"),
-            Map.entry("companyInfo", "6bd80d864d5d7becc66cb59c"),
-            Map.entry("simpleProfile", "6e6b3359d857f89766cb2814"),
+            Map.entry("invoiceInfo", "dd04c90689bb3cba68faf100"),
+            Map.entry("companyInfo", "032364465628a1ffaeb4cd7b"),
+            Map.entry("simpleProfile", "0130ee2f2bc95a7feca1c321"),
             Map.entry("bankInfo", "c645fe5e79939c29e2b3f272"),
-            Map.entry("paymentInfo", "9a3883a42d73f200840d819b"),
+            Map.entry("paymentInfo", "2afe217878c3700f9b2a9100"),
             Map.entry("creditCardInfo", "52c3d45de401c08fda0f4393"),
             Map.entry("priceTag", "a65eeb3bbeb6f0315a0add90"));
 
     /**
      * The same fingerprints under the default independent policy, captured from the opt-in
-     * {@link ChildStreamPolicy#INDEPENDENT} policy of 2.10.0, before it became the default. The
+     * {@link ChildStreamPolicy#INDEPENDENT} policy of 2.10.0, before it became the default, and for
+     * the composites with an {@code en_US} address recaptured with their legacy fingerprints. The
      * {@code commerce} and {@code streetAddress} entries equal their legacy fingerprints because
      * those {@code generate()} methods only use the parent's own stream.
      */
@@ -140,24 +142,24 @@ class ChildStreamPolicyTest {
             Map.entry("username", "400f9408368e35a7aecf65a7"),
             Map.entry("socialProfile", "10d757591832cff3040a753b"),
             Map.entry("middleName", "9ea3d7c9b397f2429bd6499b"),
-            Map.entry("addressInfo", "42b0e66e7bf030189a471803"),
+            Map.entry("addressInfo", "3faf7240ef852e9c91f27722"),
             Map.entry("commerce", "17ce302ae4e7a1fb4764c2b5"),
             Map.entry("email", "26b800511dedab89fbf82b61"),
             Map.entry("emailCompany", "407b6d86ab579497bcdb5fc8"),
-            Map.entry("orderInfo", "b8adef71987d76dcc3c5652a"),
+            Map.entry("orderInfo", "cb61334ddb9aff365cecb314"),
             Map.entry("contactInfo", "045743f457119e34ef0a942d"),
             Map.entry("streetAddress", "1ec7f4fed1d423cc422b036d"),
-            Map.entry("personInfo", "f94e80bd9aa838d5a63ff4c0"),
-            Map.entry("shipmentInfo", "ca97f679dba637bd787e16c7"),
-            Map.entry("profile", "096b055db978525e5667f352"),
+            Map.entry("personInfo", "00e3fbd744e7620c2711890e"),
+            Map.entry("shipmentInfo", "c2aa678dae6f755a0318d71b"),
+            Map.entry("profile", "4789d71337858e628b1c3e07"),
             Map.entry("filePath", "27bbf3aa053cd6477449445a"),
             Map.entry("productInfo", "f9cd8efdbe56839b0167edda"),
             Map.entry("jobInfo", "8e65091f58b496238fafc2a5"),
-            Map.entry("invoiceInfo", "045c5b745367ca7ad786ae0f"),
-            Map.entry("companyInfo", "dea708123bc9a541da8fbf21"),
-            Map.entry("simpleProfile", "566f7de990aee65e5b44db91"),
+            Map.entry("invoiceInfo", "ba1bd7a22e9b55cc1ef8f19f"),
+            Map.entry("companyInfo", "4a8348e0011ca4dd46fa9b87"),
+            Map.entry("simpleProfile", "bbe06d5e09be6535ea4af6ed"),
             Map.entry("bankInfo", "79da71fb019e2d16c55c379a"),
-            Map.entry("paymentInfo", "985e5b8bce2a7d2e9390226f"),
+            Map.entry("paymentInfo", "03aeb1462e48eb61df9ea5fe"),
             Map.entry("creditCardInfo", "c9a336712de7a0bbbabae13a"),
             Map.entry("priceTag", "7110291b27f59b27c3c81c20"));
 

@@ -130,7 +130,8 @@ seeded source every time correlates the children again. Neither is reseeded.
 every child's random source then starts at the same state, so sibling values can be correlated: the
 three identifiers of one `PaymentInfo` share a suffix, as in `PAY-359D41BAF78A`,
 `INV-359D41BAF78A`, and `ORD-359D41BAF78A`. It was the default before 2.11, and it reproduces that
-seeded output:
+seeded output, except for values whose own data or draws 2.11 changed, such as the addresses of
+locales with [postal places]({{ '/guides/locale-aware-data/' | relative_url }}#coherent-addresses):
 
 ```java
 GeneratorConfig config = GeneratorConfig.builder()

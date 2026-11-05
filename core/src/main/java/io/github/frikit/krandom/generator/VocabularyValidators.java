@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator;
 
+import io.github.frikit.krandom.generator.location.PostalPlace;
 import io.github.frikit.krandom.generator.user.UniversityData;
 import java.util.List;
 import java.util.Objects;
@@ -104,6 +105,18 @@ final class VocabularyValidators {
             }
             if (weights[i] <= 0) {
                 throw new IllegalArgumentException("weight at index " + i + " must be > 0");
+            }
+        }
+    }
+
+    static void postalPlaces(List<PostalPlace> places) {
+        Objects.requireNonNull(places, "places");
+        if (places.isEmpty()) {
+            throw new IllegalArgumentException("places must not be empty");
+        }
+        for (int index = 0; index < places.size(); index++) {
+            if (places.get(index) == null) {
+                throw new IllegalArgumentException("place at index " + index + " must not be null");
             }
         }
     }

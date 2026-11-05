@@ -6,8 +6,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `Vocabulary.POSTAL_PLACE` holds a country's postal places: `PostalPlace` records of a city, the region
+  it lies in, the region's code, and postal codes that serve the city, from a `PostalPlaceDataProvider`.
+  `PostalPlaceDataRegistry` holds the bundled places. For `en_US` they are 252 cities, in all 50 states
+  and DC, with up to ten ZIP codes each, from U.S. Census Bureau files; the header of
+  `krandom/postal_places/en_US.txt` records their sources, licence, retrieval date, and checksums, and
+  how the rows were chosen. As for `Vocabulary.NATIONAL_ID`, a registration serves every locale of its
+  country, and a locale whose country has no places resolves none rather than borrowing another
+  country's through its language. `LocaleDataBundle.Builder.postalPlaces(...)` registers places with a
+  bundle. `Vocabulary.all()` lists 42 vocabularies.
+
 ### Changed
 
+- `AddressInfoGenerator`, `StreetAddressGenerator.generateFullAddress()`, and the object engine's `city`,
+  `state`, and `postalCode` members take an address's city, state, and postal code from one postal place
+  where the locale's country has places, so the three agree. They were drawn independently: with seed
+  `42`, `AddressInfoGenerator` for `Locale.US` gave `8680 Lakeview Holw, Grand Rapids, AL 02649, United
+  States` and now gives `8680 Lakeview Holw, Fontana, CA 92335, United States`. Seeded output changes
+  for the `US` locales, such as `en_US` and `es_US`, and for `Locale.ENGLISH`, and for the payloads built
+  on these addresses: `PersonInfo`, `CompanyInfo`, `OrderInfo`, `ShipmentInfo`, `InvoiceInfo`,
+  `PaymentInfo`, `SimpleProfile`, and `UserProfile`. In every other locale `AddressInfo` keeps its
+  independent draws and its seeded output; the locale-aware data guide lists which locales have places.
+  `ChildStreamPolicy.LEGACY` does not bring the earlier addresses back. Bundled places take precedence
+  over cities or states registered for the same locale without places, which still serve
+  `CityGenerator` and `StateGenerator`.
+- A locale without a country, such as `Locale.ENGLISH`, gives `AddressInfo` the country of the postal
+  places its language resolves, `United States` and `US`, instead of a random country name and an
+  unrelated random code: with seed `42` they were `United Kingdom` and `GL`.
+- `StreetAddressGenerator.generateFullAddress()` ends with the locale's country rather than a random
+  one, in every locale: with seed `42`, `en_US` gave `7389 River Park, Kansas City, NY 02649, United
+  Kingdom` and now gives `7389 River Park, Renton, WA 98056, United States`, and `en_CA` now ends with
+  `Canada` instead of `United Kingdom`. Its places come from a child stream named `postalPlace`. The
+  addresses of `SimpleProfile` and `UserProfile` follow.
 - Composite generators now give each child generator its own stream by default, under
   `ChildStreamPolicy.INDEPENDENT`, which was an opt-in since 2.6.0. With a numeric or textual seed, a
   child's seed is derived from the parent seed and the child's name, so siblings no longer start in the

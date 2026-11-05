@@ -128,7 +128,7 @@ sequence while different names are independent. An unseeded configuration ignore
 
 Composite generators give each child generator its own stream by default (2.11+), as described in
 [composite child streams]({{ '/guides/primitives-and-determinism/' | relative_url }}#composite-child-streams).
-The starter has no property for that policy: to get the earlier seeded output back, define your own
+The starter has no property for that policy: to get the earlier child streams back, define your own
 `GeneratorConfig` bean with `childStreamPolicy(ChildStreamPolicy.LEGACY)`, or replay a `krandom.recipe`
 that records `setting.child-stream-policy=LEGACY`.
 
