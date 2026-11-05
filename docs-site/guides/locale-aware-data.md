@@ -124,7 +124,8 @@ gives United States addresses, `Locale.GERMAN` German ones, and `Locale.FRENCH` 
 
 Every other locale composes an address from independent draws: a city from its city data, a region from
 its state data, and a postal code in its country's format, which need not agree. This covers the other 31
-native locales and the 15 fallback variants. A fallback variant's cities and regions come from another
+native locales, for which no table of cities and postal codes from an openly licensed source is bundled
+yet, and the 15 fallback variants. A fallback variant's cities and regions come from another
 country's data, while its postal codes and country are its own: an `en_CA` address has a US city and state
 and a Canadian postal code. `StreetAddressGenerator.generateFullAddress()` names the locale's country in
 every locale. `Krandom.city()` and `Krandom.postalCode()` draw separately, and so do separate

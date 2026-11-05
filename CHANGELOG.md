@@ -34,8 +34,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `es_US`, `en_GB`, `de_DE`, `en_DE`, and `fr_FR`, and for `Locale.ENGLISH`, `Locale.GERMAN`, and
   `Locale.FRENCH`, and for the payloads built on these addresses: `PersonInfo`, `CompanyInfo`,
   `OrderInfo`, `ShipmentInfo`, `InvoiceInfo`, `PaymentInfo`, `SimpleProfile`, and `UserProfile`. In
-  every other locale `AddressInfo` keeps its independent draws and its seeded output; the locale-aware
-  data guide lists which locales have places, and the limits of each table.
+  every other locale `AddressInfo` keeps its independent draws and its seeded output, apart from the
+  `en_US` city that became `Gary` (see Fixed); the locale-aware data guide lists which locales have
+  places, and the limits of each table.
   `ChildStreamPolicy.LEGACY` does not bring the earlier addresses back. Bundled places take precedence
   over cities or states registered for the same locale without places, which still serve
   `CityGenerator` and `StateGenerator`.
@@ -46,8 +47,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `StreetAddressGenerator.generateFullAddress()` ends with the locale's country rather than a random
   one, in every locale: with seed `42`, `en_US` gave `7389 River Park, Kansas City, NY 02649, United
   Kingdom` and now gives `7389 River Park, Renton, WA 98056, United States`, and `en_CA` now ends with
-  `Canada` instead of `United Kingdom`. Its places come from a child stream named `postalPlace`. The
-  addresses of `SimpleProfile` and `UserProfile` follow.
+  `Canada` instead of `United Kingdom`. Its places come from a child stream named `postalPlace`. In a
+  locale without places the rest of a full address keeps its seeded output, but the country no longer
+  takes a draw, so with a caller-owned `Random`, which every child shares, the values drawn after a
+  full address change too. The addresses of `SimpleProfile` and `UserProfile` follow.
 - Composite generators now give each child generator its own stream by default, under
   `ChildStreamPolicy.INDEPENDENT`, which was an opt-in since 2.6.0. With a numeric or textual seed, a
   child's seed is derived from the parent seed and the child's name, so siblings no longer start in the
@@ -74,7 +77,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - The `en_US` cities listed Gateshead, a town in England. Gary, Indiana, takes its place in the list, so
-  an `en_US` city name that was `Gateshead` for a seed is now `Gary`, and no other city moves.
+  a city drawn from that list as `Gateshead` for a seed is now `Gary`, and no other city moves. The list
+  also serves `en_CA`, `en_IN`, and other English locales that fall back to it, such as `en_SG`, so
+  their cities, and the addresses and payloads built on them, change in the same way: with seed `158`,
+  an `en_CA` `AddressInfo` city was `Gateshead` and is now `Gary`.
 
 ## [2.10.0] - 2026-11-02
 
