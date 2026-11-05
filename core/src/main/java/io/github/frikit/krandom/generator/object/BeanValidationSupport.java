@@ -30,6 +30,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
+import java.lang.reflect.AnnotatedArrayType;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedParameterizedType;
 import java.lang.reflect.AnnotatedType;
@@ -1112,10 +1113,16 @@ final class BeanValidationSupport {
     }
 
     /**
-     * Whether a Bean Validation constraint annotates a type argument of this type, at any depth, as in
-     * {@code List<@Email String>}. Other type annotations, such as JSpecify's {@code @Nullable}, do not count.
+     * Whether a Bean Validation constraint annotates a type argument within this type, at any depth and
+     * inside array components, as in {@code List<@Email String>} or {@code List<@Email String>[]}. These
+     * are the type nodes whose constraints apply. An array's component type itself does not count,
+     * because its constraints do not apply, and nor do other type annotations, such as JSpecify's
+     * {@code @Nullable}.
      */
     static boolean constrainsTypeArguments(AnnotatedType type) {
+        if (type instanceof AnnotatedArrayType array) {
+            return constrainsTypeArguments(array.getAnnotatedGenericComponentType());
+        }
         if (!(type instanceof AnnotatedParameterizedType parameterized)) {
             return false;
         }

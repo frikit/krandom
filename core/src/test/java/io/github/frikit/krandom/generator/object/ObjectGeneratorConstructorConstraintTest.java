@@ -107,6 +107,24 @@ class ObjectGeneratorConstructorConstraintTest {
         }
     }
 
+    static final class GroupedTickets {
+
+        private final List<String>[] groups;
+
+        GroupedTickets(List<@Size(min = 2, max = 2) String>[] groups) {
+            this.groups = groups;
+        }
+    }
+
+    static final class FieldGroupedTickets {
+
+        private final List<@Size(min = 4, max = 4) String>[] groups;
+
+        FieldGroupedTickets(List<String>[] groups) {
+            this.groups = groups;
+        }
+    }
+
     static final class NullableTaggedTicket {
 
         private final List<@Nullable @Size(min = 4, max = 4) String> tags;
@@ -219,6 +237,24 @@ class ObjectGeneratorConstructorConstraintTest {
         ticket.tags.forEach(tag -> assertEquals(2, tag.length(), tag));
         assertFalse(nested.tags.isEmpty());
         nested.tags.values().forEach(tags -> tags.forEach(tag -> assertEquals(2, tag.length(), tag)));
+    }
+
+    @Test
+    @DisplayName("type-argument constraints inside an array component come from the declaration that has them")
+    void typeArgumentConstraintsInsideArrayComponents() {
+        GroupedTickets parameterOwned = new ObjectGenerator<>(GroupedTickets.class, CONFIG).generate();
+        FieldGroupedTickets fieldOwned = new ObjectGenerator<>(FieldGroupedTickets.class, CONFIG).generate();
+
+        assertTrue(parameterOwned.groups.length > 0);
+        for (List<String> group : parameterOwned.groups) {
+            assertFalse(group.isEmpty());
+            group.forEach(tag -> assertEquals(2, tag.length(), tag));
+        }
+        assertTrue(fieldOwned.groups.length > 0);
+        for (List<String> group : fieldOwned.groups) {
+            assertFalse(group.isEmpty());
+            group.forEach(tag -> assertEquals(4, tag.length(), tag));
+        }
     }
 
     @Test
