@@ -3244,8 +3244,14 @@ public final class Generators {
     /**
      * Creates a University fixture generator using local data configured on the supplied context.
      *
+     * <p>kRandom ships no university data, so whatever the locale, this refuses a configuration with
+     * no {@link io.github.frikit.krandom.generator.datapack.LocalDataPack} registered for it: see
+     * {@link UniversityGenerator}.
+     *
      * @param config generator configuration containing a local university data pack
      * @return University fixture generator
+     * @throws UnsupportedOperationException if no university data is configured for the locale; the
+     *                                       message names the data-pack route
      */
     public static UniversityGenerator ofUniversity(GeneratorConfig config) {
         return new UniversityGenerator(config);

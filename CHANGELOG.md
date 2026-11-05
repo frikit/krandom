@@ -53,6 +53,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `GregorianCalendar` with ISO week rules in the configured clock's zone, as other `Calendar` members are. It
   came from `Calendar.getInstance` in that zone, so it was lenient and its week rules, and its calendar system,
   came from the JVM's default locale: a `BuddhistCalendar` under `th_TH`, for example. Its instant is the same.
+- `Generators.ofUniversity`, `UniversityGenerator`, and `Generators.person(config).university()` now name the
+  data-pack route when they refuse a configuration. kRandom still ships no university data, because no
+  university dataset it could bundle has an acceptable source and licence, so they refuse in every locale
+  until a pack is registered. The message said only that the locale had no local university data pack, and
+  now reads `Locale en_US has no university data, and kRandom ships none. Load a local data pack with
+  LocalDataPack.load(directory), register it with DataRegistryContext.builder().registerDataPack(pack), and
+  pass that context to GeneratorConfig.Builder.registryContext(context). Registered locales: []`.
 
 ### Fixed
 
