@@ -86,8 +86,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   wraps and boxed through its primary constructor, so its `init` block runs. For a constructor parameter,
   the wrapped value is generated under the parameter's name and with its constraints, or else with those
   declared inside the value class, so `val email: EmailAddress` holds an email address. A value class over
-  a string, a number, a nullable value, a type parameter, including the owner's own, or another value class
-  works as a constructor parameter, nullable or not, as Kotlin's unsigned types do. A value class also works
+  a string, a number, a nullable value, another value class, or its type parameter, alone or inside a type
+  such as `List<T>`, with an argument that may be the owner's own type parameter, works as a constructor
+  parameter, nullable or not, as Kotlin's unsigned types do. A value class also works
   as a collection element and, unless it is generic, as the generated type and as a `var` property set
   after construction. A rule or
   `ruleForType` for the value class supplies it, a rule may give the wrapped value instead, which is boxed,

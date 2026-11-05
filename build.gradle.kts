@@ -198,7 +198,8 @@ val jacocoToolVersion = libs.versions.jacoco.get()
 
 // Covered ratios measured on 2026-10-12 (line to branch); the spring-boot-starter line floor was
 // re-measured after the 2026-10-13 reformat, which spread statements over more lines. The junit
-// floors were raised on 2026-11-05, when its tests covered 99.6% of lines and 96.4% of branches.
+// floors were raised on 2026-11-05, when its tests covered 99.6% of lines and 96.4% of branches, and
+// the kotlin-dsl floors on 2026-11-05, after the sealed-type and value-class tests.
 // Raise a floor when tests are added; never lower one without a changelog entry explaining why.
 val integrationCoverageFloors =
     mapOf(
@@ -206,7 +207,7 @@ val integrationCoverageFloors =
         "junit" to ("0.98" to "0.94"),
         "spring-boot-starter" to ("0.95" to "0.82"),
         "kotest-extensions" to ("0.90" to "0.78"),
-        "kotlin-dsl" to ("0.85" to "0.85"),
+        "kotlin-dsl" to ("0.88" to "0.87"),
     )
 check(integrationCoverageFloors.keys == coverageReportModules) {
     "integrationCoverageFloors must list exactly the integration modules: $coverageReportModules"
