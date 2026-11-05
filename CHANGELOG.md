@@ -207,6 +207,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   factory took the test's recipe on replay, so the arguments of the failing invocation changed. The
   callbacks of a `@ParameterizedClass` invocation had the same fault. Each test class now reports one
   class-scoped configuration, and the replay commands restore it.
+- `age` now counts the years since the local date of an `OffsetDateTime`, `ZonedDateTime` or `Calendar`
+  `birthDate`, in its own offset or zone, which is the date its generator draws and `objectDateRange` bounds.
+  It counted from the UTC date, which is a day off near midnight far from UTC, so around a birthday the age was
+  a year off: `2000-06-05T00:30+14:00` gave 26 on `2026-06-04`, the day before the 26th birthday, and now gives
+  25. Seeded with `42` under a clock fixed at `2026-11-05T12:00Z`, 142 `OffsetDateTime`, 115 `ZonedDateTime` and
+  95 `Calendar` birth dates in 200,000 of each had such an age, and none do now. Seeded output changes only for
+  those objects.
 - `new CalendarGenerator(min, max)` and `Generators.ofCalendar(min, max)`, with or without a configuration, no
   longer pass the last date of the range when a gap in the drawn zone's rules moves a value forward, as
   `new ZonedDateTimeGenerator(min, max)` and `Calendar` members already did not. `Pacific/Apia` and

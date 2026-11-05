@@ -183,7 +183,9 @@ is outside the range:
   `OffsetDateTime` `createdAt` beside a `LocalDate` `updatedAt` can become midnight UTC.
 
 `createdAt` stays not after `updatedAt`, compared by instant, or by UTC date beside an `updatedAt` that holds
-only a date. A `birthDate` stays in the range, and `age` follows it.
+only a date. A `birthDate` stays in the range, and `age` follows it: the whole years from the date `birthDate`
+reads, by the same rule, to the configured clock's date. So an `OffsetDateTime` `birthDate` of
+`2000-06-05T00:30+14:00` gives an `age` of 25 on `2026-06-04`, although that instant falls on `2000-06-04` at UTC.
 
 A field that cannot move, because of an override, a requested unique name, or an annotation or Bean
 Validation constraint in `RELAXED` mode, need not be in the range: a `@Past` value is drawn before the clock
