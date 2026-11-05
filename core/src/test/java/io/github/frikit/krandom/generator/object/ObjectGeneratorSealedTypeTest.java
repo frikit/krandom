@@ -171,6 +171,15 @@ class ObjectGeneratorSealedTypeTest {
 
     record Response(Result<String> result) {}
 
+    static class Holder<A> {
+        A item;
+    }
+
+    static class Middle<B> extends Holder<B> {}
+
+    /** Its {@code A} is bound to {@code B}, and {@code B} to {@code Result<String>}. */
+    static final class ChainRoot extends Middle<Result<String>> {}
+
     sealed interface Pair<A, B> permits Same {}
 
     record Same<T>(T first, T second) implements Pair<T, T> {}
@@ -664,6 +673,21 @@ class ObjectGeneratorSealedTypeTest {
     }
 
     // ── Generic hierarchies ───────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("a generic sealed member reached through inherited type variables passes its arguments")
+    void genericSealedMemberThroughVariableChainPassesArguments() {
+        Set<Class<?>> classes = new HashSet<>();
+        for (long seed = 0; seed < 40; seed++) {
+            Object item = new ObjectGenerator<>(ChainRoot.class, seeded(seed)).generate().item;
+            classes.add(item.getClass());
+            if (item instanceof Ok<?> ok) {
+                assertInstanceOf(String.class, ok.value());
+            }
+        }
+
+        assertEquals(Set.of(Ok.class, Err.class, Fixed.class), classes);
+    }
 
     @Test
     @DisplayName("a generic sealed member passes its type arguments to the chosen subclass")
