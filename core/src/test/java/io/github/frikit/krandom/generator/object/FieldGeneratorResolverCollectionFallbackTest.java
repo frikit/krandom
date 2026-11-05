@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.object;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -15,6 +16,7 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -109,18 +111,18 @@ class FieldGeneratorResolverCollectionFallbackTest {
     }
 
     @Test
-    @DisplayName("toQueueType filters nulls for concrete queue and returns null for non-constructible subtype")
+    @DisplayName("toQueueType rejects a null for a concrete queue and returns null for non-constructible subtype")
     void toQueueTypeQueueSpecificFallbacks() throws Exception {
         Queue<Object> concreteAllNonNull = invokeToQueueType(ConcreteCustomQueue.class, List.of("a", "b", "c"));
         assertEquals(ConcreteCustomQueue.class, concreteAllNonNull.getClass());
         assertEquals(3, concreteAllNonNull.size());
 
         List<Object> valuesWithNull = Arrays.asList("a", null, "c");
-        Queue<Object> concrete = invokeToQueueType(ConcreteCustomQueue.class, valuesWithNull);
-        assertEquals(ConcreteCustomQueue.class, concrete.getClass());
-        assertEquals(2, concrete.size());
-        assertTrue(concrete.contains("a"));
-        assertTrue(concrete.contains("c"));
+        InvocationTargetException rejected = assertThrows(
+                InvocationTargetException.class, () -> invokeToQueueType(ConcreteCustomQueue.class, valuesWithNull));
+        assertEquals(
+                "CollectionInsertionFailure", rejected.getCause().getClass().getSimpleName());
+        assertInstanceOf(NullPointerException.class, rejected.getCause().getCause());
 
         Queue<Object> priorityQueue = invokeToQueueType(
                 PriorityQueue.class, ResolvedType.resolve(Object.class), Arrays.asList("a", new Object()));
@@ -413,11 +415,6 @@ class FieldGeneratorResolverCollectionFallbackTest {
         @Override
         public boolean addAll(java.util.Collection<? extends E> collection) {
             throw new UnsupportedOperationException("reject addAll");
-        }
-
-        @Override
-        public void clear() {
-            throw new UnsupportedOperationException("reject clear");
         }
     }
 

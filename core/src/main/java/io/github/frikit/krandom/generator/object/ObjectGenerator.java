@@ -56,7 +56,8 @@ import org.objenesis.ObjenesisStd;
  *       ObjectConstructionPolicy#UNSAFE_CONSTRUCTOR_BYPASS}.</li>
  *   <li><b>Nested objects</b> — resolved recursively up to the configured object max depth. A member
  *       past that depth is left {@code null}, unless it is required (for example {@code @NotNull}),
- *       which fails generation with the member's path.</li>
+ *       which fails generation with the member's path. A container that cannot hold that
+ *       {@code null}, such as a {@code Queue}, fails as a rejected insertion at its own path.</li>
  *   <li><b>Enum fields</b> — a random constant is selected.</li>
  *   <li><b>Arrays</b> — auto-populated using the shared collection-size defaults
  *       (default 1 to 10 elements). A {@code @Size} or {@code @NotEmpty} written before an array

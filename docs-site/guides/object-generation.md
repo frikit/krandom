@@ -243,10 +243,18 @@ Collections, arrays, maps and optionals are not cut off at the limit, but the ne
 are: a `List<Leaf>` holds `null` elements, and a `Map<Leaf, String>` and an `Optional<Leaf>` are empty.
 A constraint on a type argument, such as `List<@NotNull Leaf>`, does not change this.
 
+A container that cannot hold `null` cannot hold a cut element either. A `Queue<Leaf>` or `Deque<Leaf>`,
+which is generated as an `ArrayDeque`, a concrete queue such as `ArrayDeque<Leaf>`, a `PriorityQueue`, and
+a `TreeSet`, `SortedSet` or `NavigableSet` of `Comparable` elements therefore fail as any collection that
+rejects an element does: with `COLLECTION_INSERTION` context at the container's path, such as
+`Top.mid.queue`. With `objectIgnoreErrors(true)`, the whole container is `null` and
+`generationFailureListener` is told. A `LinkedList` is a list, so it holds the `null` elements.
+
 Cycles are cut separately. Below the limit, a member that would repeat a nested type already being
 generated, such as `next.next` of a self-typed `@NotNull Node next`, is left `null` whatever its
 constraints. At the limit it fails like any other required member, and a larger `objectMaxDepth` then
-lets generation succeed without giving it a value.
+lets generation succeed without giving it a value. An element cut this way is `null` too, so a queue of
+the cycle's type fails as above, and so does a sorted set of it when the type is `Comparable`.
 
 `ObjectFaker` rules and ignores on nested paths run after generation, so they do not prevent the
 failure: raise `objectMaxDepth` as well, or use `objectOverride`.

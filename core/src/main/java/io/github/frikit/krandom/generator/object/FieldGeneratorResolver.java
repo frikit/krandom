@@ -1320,7 +1320,7 @@ final class FieldGeneratorResolver {
     private static @Nullable Set<Object> toSetType(Class<?> rawType, ResolvedType elementType, List<Object> values) {
         if (rawType == TreeSet.class || rawType == SortedSet.class || rawType == NavigableSet.class) {
             Set<Object> set = new TreeSet<>(sortedOrderFor(elementType));
-            set.addAll(values);
+            addAllOrThrow(set, values);
             return set;
         }
         if (rawType == Set.class) {
@@ -1385,7 +1385,7 @@ final class FieldGeneratorResolver {
             Class<?> rawType, ResolvedType elementType, List<Object> values) {
         if (rawType == PriorityQueue.class) {
             Queue<Object> queue = new PriorityQueue<>(sortedOrderFor(elementType));
-            queue.addAll(values);
+            addAllOrThrow(queue, values);
             return queue;
         }
         Queue<Object> concrete = instantiateCollectionType(rawType, Queue.class);
@@ -1395,7 +1395,7 @@ final class FieldGeneratorResolver {
         }
         if (rawType.isInterface() || java.lang.reflect.Modifier.isAbstract(rawType.getModifiers())) {
             Queue<Object> queue = new java.util.ArrayDeque<>();
-            queue.addAll(values);
+            addAllOrThrow(queue, values);
             return queue;
         }
         return null;
@@ -1464,24 +1464,15 @@ final class FieldGeneratorResolver {
         }
     }
 
+    /**
+     * Fills a collection or reports that it cannot hold the generated values, so that the failure policy
+     * discards it whole. A queue, for example, rejects the null left for a cut nested object.
+     */
     private static void addAllOrThrow(Collection<Object> target, List<Object> values) {
         try {
             target.addAll(values);
-        } catch (RuntimeException firstFailure) {
-            if (target instanceof Queue<?>) {
-                try {
-                    target.clear();
-                    for (Object value : values) {
-                        if (value != null) {
-                            target.add(value);
-                        }
-                    }
-                    return;
-                } catch (RuntimeException fallbackFailure) {
-                    throw new CollectionInsertionFailure(fallbackFailure);
-                }
-            }
-            throw new CollectionInsertionFailure(firstFailure);
+        } catch (RuntimeException failure) {
+            throw new CollectionInsertionFailure(failure);
         }
     }
 
@@ -1879,8 +1870,14 @@ final class FieldGeneratorResolver {
             int attempts = 0;
             int maxAttempts = Math.max(10, elementCount * 10);
             while (values.size() < elementCount && attempts++ < maxAttempts) {
-                values.add(resolveAndGenerate(
-                        elem, fieldName + "[]", ownerType, currentDepth, typeArgumentElement(element, 0)));
+                Object value = resolveAndGenerate(
+                        elem, fieldName + "[]", ownerType, currentDepth, typeArgumentElement(element, 0));
+                try {
+                    values.add(value);
+                } catch (RuntimeException rejected) {
+                    // A set sorted by natural order rejects the null left for a cut nested object.
+                    return handleCollectionInsertionFailure(ownerType, fieldName, genericType, currentDepth, rejected);
+                }
             }
             BeanValidationSupport.ConstraintConflictException shortfall = sizeShortfall(values.size(), bvConstraints);
             if (shortfall != null) {

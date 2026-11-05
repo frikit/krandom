@@ -49,6 +49,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   elements. So `@Size(min = 6, max = 6) String[] codes` holds six strings of the configured length,
   where each used to have six characters. A constraint on a type argument inside the component, as in
   `List<@Email String>[]`, still applies. Seeded output changes for such arrays.
+- A `Queue<Leaf>` cut at `objectMaxDepth` no longer fails with a raw `NullPointerException`, reported at
+  its parent's path as `Could not generate nested value at 'Top.mid'` with `REFLECTION` context. A queue
+  cannot hold the `null` left for a cut nested object, so it now fails as any collection that rejects an
+  element does: strict mode reports `COLLECTION_INSERTION` context at the queue's own path, such as
+  `Top.mid.queue`, and `objectIgnoreErrors(true)` discards the whole queue and tells
+  `generationFailureListener`. The same holds for a `Deque`, a `PriorityQueue`, and a `TreeSet`,
+  `SortedSet` or `NavigableSet` of `Comparable` elements, and for an element cut by a cycle. A concrete
+  queue, such as `ArrayDeque<Leaf>`, used to drop the `null` elements and could come back empty, and now
+  fails the same way. A `LinkedList` is a list, and still holds them.
 
 - A Bean Validation constraint on a field now applies to the constructor argument that fills it. An
   argument read only the constraints on its parameter, so `@Size(min = 3, max = 3) private final String
