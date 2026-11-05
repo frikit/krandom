@@ -1939,7 +1939,19 @@ class SchemaParserTest {
                     Map.of("type", "string", "format", "email", "maxLength", 20),
                     Map.of("enum", List.of(1, 5, 10), "minimum", 5),
                     Map.of("type", "number", "minimum", 100, "exclusiveMinimum", 0, "maximum", 150),
-                    Map.of("type", "integer", "minimum", 100, "exclusiveMinimum", 0, "maximum", 150));
+                    Map.of("type", "integer", "minimum", 100, "exclusiveMinimum", 0, "maximum", 150),
+                    Map.of("type", "number", "multipleOf", 0.01, "minimum", 0, "maximum", 10),
+                    Map.of(
+                            "type",
+                            "array",
+                            "uniqueItems",
+                            true,
+                            "minItems",
+                            3,
+                            "maxItems",
+                            5,
+                            "items",
+                            Map.of("type", "integer", "minimum", 1, "maximum", 10)));
             for (Map<String, Object> property : properties) {
                 assertEquals(values(property), values(property));
             }
@@ -2112,6 +2124,269 @@ class SchemaParserTest {
             CombinedConstraints.assertRejected(Map.of("const", List.of(Double.NaN)));
             CombinedConstraints.assertRejected(Map.of("const", Map.of("v", Double.POSITIVE_INFINITY)));
             CombinedConstraints.assertRejected(Map.of("enum", List.of(Map.of("v", Float.NaN), Map.of("v", 1))));
+            // Every enum member is read, in any order and whatever the declared type leaves out.
+            CombinedConstraints.assertRejected(Map.of("const", "x", "enum", List.of(Double.NaN, "x")));
+            CombinedConstraints.assertRejected(Map.of("const", "x", "enum", List.of("x", Double.NaN)));
+            CombinedConstraints.assertRejected(Map.of("type", "string", "enum", List.of("a", Double.NaN)));
+            // nullable is judged only after the const or enum, so the failure keeps its path.
+            CombinedConstraints.assertRejected(Map.of("nullable", true, "const", Double.NaN));
+            CombinedConstraints.assertRejected(Map.of("nullable", true, "enum", List.of(1, Double.NaN)));
+        }
+    }
+
+    @Nested
+    @DisplayName("multipleOf")
+    class MultipleOf {
+
+        private static Set<BigDecimal> decimals(String... values) {
+            Set<BigDecimal> decimals = new HashSet<>();
+            for (String value : values) {
+                decimals.add(new BigDecimal(value));
+            }
+            return decimals;
+        }
+
+        private static void assertMultiplesWithin(Map<String, Object> property, String low, String high) {
+            for (Object value : CombinedConstraints.values(property)) {
+                BigDecimal number = assertInstanceOf(BigDecimal.class, value);
+                assertEquals(0, number.remainder(new BigDecimal("0.5")).signum(), number::toString);
+                assertTrue(
+                        number.compareTo(new BigDecimal(low)) >= 0 && number.compareTo(new BigDecimal(high)) <= 0,
+                        number::toString);
+            }
+        }
+
+        @Test
+        @DisplayName("an integer is a multiple within its bounds")
+        void integerIsMultipleWithinBounds() {
+            assertEquals(
+                    Set.of(5, 10, 15, 20, 25, 30),
+                    CombinedConstraints.distinct(
+                            Map.of("type", "integer", "multipleOf", 5, "minimum", 1, "maximum", 30)));
+            // The whole multiples of 2.5 are the multiples of 5.
+            assertEquals(
+                    Set.of(0, 5, 10, 15, 20),
+                    CombinedConstraints.distinct(
+                            Map.of("type", "integer", "multipleOf", 2.5, "minimum", 0, "maximum", 20)));
+            assertEquals(
+                    Set.of(6, 9),
+                    CombinedConstraints.distinct(
+                            Map.of("type", "integer", "multipleOf", 3, "exclusiveMinimum", 3, "exclusiveMaximum", 12)));
+            assertEquals(
+                    Set.of(6, 9),
+                    CombinedConstraints.distinct(Map.of(
+                            "type",
+                            "integer",
+                            "multipleOf",
+                            3,
+                            "minimum",
+                            3,
+                            "exclusiveMinimum",
+                            true,
+                            "maximum",
+                            12,
+                            "exclusiveMaximum",
+                            true)));
+        }
+
+        @Test
+        @DisplayName("an integer without bounds keeps to the int range, and beyond it to a long")
+        void integerMultipleKeepsToTheIntRangeOrALong() {
+            for (Object value : CombinedConstraints.values(Map.of("type", "integer", "multipleOf", 7))) {
+                assertEquals(0, assertInstanceOf(Integer.class, value) % 7);
+            }
+            // The multiples of 1 reach both ends of the int range, and are still Integer.
+            for (Object value : CombinedConstraints.values(Map.of("type", "integer", "multipleOf", 1))) {
+                assertInstanceOf(Integer.class, value);
+            }
+            for (Object value :
+                    CombinedConstraints.values(Map.of("type", "integer", "multipleOf", 7, "minimum", 3_000_000_000L))) {
+                long number = assertInstanceOf(Long.class, value);
+                assertTrue(number >= 3_000_000_000L && number % 7 == 0, String.valueOf(number));
+            }
+            for (Object value : CombinedConstraints.values(
+                    Map.of("type", "integer", "multipleOf", 7, "maximum", -3_000_000_000L))) {
+                long number = assertInstanceOf(Long.class, value);
+                assertTrue(number <= -3_000_000_000L && number % 7 == 0, String.valueOf(number));
+            }
+        }
+
+        @Test
+        @DisplayName("a number is an exact decimal multiple within its bounds")
+        void numberIsExactDecimalMultipleWithinBounds() {
+            assertEquals(
+                    decimals("0.25", "0.5", "0.75", "1"),
+                    CombinedConstraints.distinct(
+                            Map.of("type", "number", "multipleOf", 0.25, "minimum", 0.1, "maximum", 1.0)));
+            assertEquals(
+                    decimals("1.5", "2", "2.5"),
+                    CombinedConstraints.distinct(
+                            Map.of("type", "number", "multipleOf", 0.5, "exclusiveMinimum", 1, "exclusiveMaximum", 3)));
+            assertEquals(
+                    decimals("2"),
+                    CombinedConstraints.distinct(Map.of(
+                            "type",
+                            "number",
+                            "multipleOf",
+                            1,
+                            "minimum",
+                            1,
+                            "exclusiveMinimum",
+                            true,
+                            "maximum",
+                            3,
+                            "exclusiveMaximum",
+                            true)));
+            // A step of 100 is written without an exponent.
+            assertEquals(
+                    decimals("100", "200", "300"),
+                    CombinedConstraints.distinct(
+                            Map.of("type", "number", "multipleOf", 100, "minimum", 50, "maximum", 300)));
+        }
+
+        @Test
+        @DisplayName("a step of 0.01 gives exact hundredths, with no binary drift")
+        void hundredthsHaveNoBinaryDrift() {
+            for (Object value : CombinedConstraints.values(
+                    Map.of("type", "number", "multipleOf", 0.01, "minimum", 0, "maximum", 1000))) {
+                BigDecimal number = assertInstanceOf(BigDecimal.class, value);
+                assertEquals(0, number.remainder(new BigDecimal("0.01")).signum(), number::toString);
+                assertTrue(number.scale() <= 2, number::toString);
+            }
+        }
+
+        @Test
+        @DisplayName("a number without a bound keeps to the default range, or within a lone bound beyond it")
+        void numberMultipleKeepsToTheDefaultRange() {
+            assertMultiplesWithin(Map.of("type", "number", "multipleOf", 0.5), "-1000000", "1000000");
+            assertMultiplesWithin(Map.of("type", "number", "multipleOf", 0.5, "minimum", 10), "10", "1000000");
+            assertMultiplesWithin(Map.of("type", "number", "multipleOf", 0.5, "maximum", -10), "-1000000", "-10");
+            assertMultiplesWithin(
+                    Map.of("type", "number", "multipleOf", 0.5, "minimum", 2_000_000), "2000000", "4000000");
+            assertMultiplesWithin(
+                    Map.of("type", "number", "multipleOf", 0.5, "maximum", -2_000_000), "-4000000", "-2000000");
+            // A lone bound at the default limit is beyond it too, so the other side moves past it.
+            Map<String, Object> atUpperLimit = Map.of("type", "number", "multipleOf", 0.5, "minimum", 1_000_000);
+            assertMultiplesWithin(atUpperLimit, "1000000", "3000000");
+            assertTrue(CombinedConstraints.values(atUpperLimit).stream()
+                    .anyMatch(value -> ((BigDecimal) value).compareTo(new BigDecimal("1000000")) > 0));
+            Map<String, Object> atLowerLimit = Map.of("type", "number", "multipleOf", 0.5, "maximum", -1_000_000);
+            assertMultiplesWithin(atLowerLimit, "-3000000", "-1000000");
+            assertTrue(CombinedConstraints.values(atLowerLimit).stream()
+                    .anyMatch(value -> ((BigDecimal) value).compareTo(new BigDecimal("-1000000")) < 0));
+        }
+
+        @Test
+        @DisplayName("rejects bounds that hold no multiple, and a step that is not a number above 0, with the path")
+        void rejectsBoundsWithoutMultipleAndInvalidSteps() {
+            CombinedConstraints.assertRejected(Map.of("type", "integer", "multipleOf", 5, "minimum", 1, "maximum", 4));
+            CombinedConstraints.assertRejected(Map.of("type", "number", "multipleOf", 5, "minimum", 1, "maximum", 4));
+            CombinedConstraints.assertRejected(
+                    Map.of("type", "number", "multipleOf", 0.5, "exclusiveMinimum", 1, "exclusiveMaximum", 1.5));
+            for (Object step : List.of(0, -2, 0.0, Double.NaN, Double.POSITIVE_INFINITY, "5")) {
+                CombinedConstraints.assertRejected(Map.of("type", "integer", "multipleOf", step));
+            }
+            // The keyword is checked wherever it appears.
+            CombinedConstraints.assertRejected(Map.of("type", "string", "multipleOf", 0));
+        }
+
+        @Test
+        @DisplayName("a const or enum keeps only multiples, at any depth")
+        void constAndEnumKeepOnlyMultiples() {
+            assertEquals(
+                    Set.of(5, 10), CombinedConstraints.distinct(Map.of("enum", List.of(5, 7, 10), "multipleOf", 5)));
+            CombinedConstraints.assertRejected(Map.of("const", 7, "multipleOf", 5));
+            // 0.3 is a multiple of 0.1 as written, though not in binary.
+            assertEquals(Set.of(0.3), CombinedConstraints.distinct(Map.of("const", 0.3, "multipleOf", 0.1)));
+            assertEquals(
+                    Set.of(List.of(2, 4)),
+                    CombinedConstraints.distinct(Map.of("const", List.of(2, 4), "items", Map.of("multipleOf", 2))));
+            CombinedConstraints.assertRejected(Map.of("const", List.of(2, 3), "items", Map.of("multipleOf", 2)));
+            // multipleOf constrains only numbers.
+            assertEquals(Set.of("abc"), CombinedConstraints.distinct(Map.of("const", "abc", "multipleOf", 2)));
+        }
+    }
+
+    @Nested
+    @DisplayName("uniqueItems")
+    class UniqueItems {
+
+        private static Map<String, Object> uniqueArray(int minItems, int maxItems, Map<String, Object> items) {
+            return Map.of(
+                    "type", "array", "uniqueItems", true, "minItems", minItems, "maxItems", maxItems, "items", items);
+        }
+
+        @Test
+        @DisplayName("items are distinct as JSON values")
+        void itemsAreDistinctAsJsonValues() {
+            // 1 and 1.0 are one JSON value, so every pair holds 2 and one of them.
+            for (Object value : CombinedConstraints.values(uniqueArray(2, 2, Map.of("enum", List.of(1, 1.0, 2))))) {
+                List<?> items = assertInstanceOf(List.class, value);
+                assertEquals(2, items.size(), items::toString);
+                assertTrue(items.contains(2), items::toString);
+            }
+            // Without uniqueItems, items repeat.
+            Map<String, Object> repeating = new HashMap<>(uniqueArray(2, 2, Map.of("enum", List.of(1))));
+            repeating.put("uniqueItems", false);
+            assertEquals(Set.of(List.of(1, 1)), CombinedConstraints.distinct(repeating));
+            repeating.remove("uniqueItems");
+            assertEquals(Set.of(List.of(1, 1)), CombinedConstraints.distinct(repeating));
+        }
+
+        @Test
+        @DisplayName("items that have just enough distinct values fill the array")
+        void itemsWithJustEnoughDistinctValuesFillTheArray() {
+            Map<String, Object> property = uniqueArray(50, 50, Map.of("type", "integer", "minimum", 1, "maximum", 50));
+            for (long seed : List.of(1L, 2L, 3L)) {
+                for (Object value : CombinedConstraints.values(
+                        property, GeneratorConfig.builder().seed(seed).build())) {
+                    assertEquals(50, new HashSet<>(assertInstanceOf(List.class, value)).size());
+                }
+            }
+        }
+
+        @Test
+        @DisplayName("items that run out of distinct values above minItems keep the ones found")
+        void itemsThatRunOutAboveMinItemsKeepTheOnesFound() {
+            Set<Integer> sizes = new HashSet<>();
+            for (Object value : CombinedConstraints.values(uniqueArray(1, 5, Map.of("enum", List.of(1, 2))))) {
+                List<?> items = assertInstanceOf(List.class, value);
+                assertEquals(items.size(), new HashSet<>(items).size(), items::toString);
+                sizes.add(items.size());
+            }
+            assertEquals(Set.of(1, 2), sizes);
+        }
+
+        @Test
+        @DisplayName("rejects items with too few distinct values for minItems, with the path")
+        void rejectsItemsWithTooFewDistinctValues() {
+            CombinedConstraints.assertRejected(uniqueArray(3, 3, Map.of("enum", List.of("a", "b"))));
+            CombinedConstraints.assertRejected(uniqueArray(2, 4, Map.of("enum", List.of(1, 1.0))));
+            CombinedConstraints.assertRejected(uniqueArray(2, 2, Map.of("type", "boolean", "const", true)));
+            CombinedConstraints.assertRejected(uniqueArray(3, 3, Map.of("type", "boolean")));
+            // Two items from two values make only two arrays, one for each order.
+            CombinedConstraints.assertRejected(uniqueArray(3, 3, uniqueArray(2, 2, Map.of("enum", List.of(1, 2)))));
+            // A nested array is rejected at its own path.
+            CombinedConstraints.assertRejectedAt(
+                    "$.properties.value.items",
+                    Map.of("value", Map.of("type", "array", "items", uniqueArray(2, 2, Map.of("const", 1)))));
+            // uniqueItems must be a boolean.
+            CombinedConstraints.assertRejected(Map.of("type", "array", "uniqueItems", "yes"));
+        }
+
+        @Test
+        @DisplayName("a const or enum array must hold distinct items")
+        void constAndEnumArraysMustHoldDistinctItems() {
+            CombinedConstraints.assertRejected(Map.of("const", List.of(1, 1.0), "uniqueItems", true));
+            assertEquals(
+                    Set.of(List.of(1, 2)),
+                    CombinedConstraints.distinct(
+                            Map.of("enum", List.of(List.of(1, 2), List.of(2, 2.0)), "uniqueItems", true)));
+            assertEquals(
+                    Set.of(List.of(1, 1)),
+                    CombinedConstraints.distinct(Map.of("const", List.of(1, 1), "uniqueItems", false)));
+            // uniqueItems constrains only arrays.
+            assertEquals(Set.of("aa"), CombinedConstraints.distinct(Map.of("const", "aa", "uniqueItems", true)));
         }
     }
 

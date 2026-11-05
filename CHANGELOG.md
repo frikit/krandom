@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `SchemaParser` supports `multipleOf` and `uniqueItems`, which it used to accept and ignore, so a
+  generated value could break them. Seeded output changes for every schema that uses either.
+  - `multipleOf` must be a number above 0. It generates exact multiples within the bounds, as decimals
+    with no binary rounding, so `multipleOf` 0.01 gives exact hundredths. An `integer` stays an
+    `Integer` or `Long` and takes the whole multiples, so `multipleOf` 2.5 gives multiples of 5. A
+    `number` with `multipleOf` now generates a `BigDecimal` rather than a `Double`. Bounds that hold no
+    multiple, such as `minimum` 1 and `maximum` 4 with `multipleOf` 5, are rejected with the schema
+    path, and a `const` or `enum` keeps only multiples.
+  - `uniqueItems: true` gives arrays whose items are distinct JSON values, so `1` and `1.0` count as
+    one. An array draws up to 100 items for each item it holds. Items that run out of distinct values
+    before the drawn size keep the ones found, and an array below `minItems` fails with the schema path.
+    Items that cannot reach `minItems`, such as an `enum` of two values with `minItems` 3, are rejected
+    while parsing, from a search with a fixed seed. A `const` or `enum` array with repeated items is
+    rejected or dropped.
+  - A `multipleOf` that is not a number above 0, or a `uniqueItems` that is not a boolean, is rejected
+    with the schema path.
+
 ### Changed
 
 - Composite generators now give each child generator its own stream by default, under
@@ -39,9 +58,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `"1"`. Numbers inside objects and arrays were compared by their Java type, so a `const` of `{"id": 1}`
   beside the `enum` `[{"id": 1.0}]` was rejected as missing from it. It is accepted again, as in 2.9.0,
   and generates `{"id": 1}`. A value written as a string, such as a `LocalDate`, now matches its text.
-  A `NaN` or infinity inside a `const` or `enum` value is now rejected while parsing, as one at the top
-  level already was, and so is an object in one with two keys written under one name, such as `1` and
-  `"1"`. Seeded output changes only for an `enum` that now keeps a member it used to drop.
+  A `const` or `enum` that holds a `NaN` or infinity at any depth, or an object with two keys written
+  under one name, such as `1` and `"1"`, is now rejected while parsing with the schema path. An `enum`
+  member that the declared type left out was dropped unchecked, so `type: string` with the `enum`
+  `["a", NaN]` was accepted. Seeded output changes only for an `enum` that now keeps a member it used to
+  drop.
 - An `@Email` field now takes a value from its `regexp` or a `@Pattern` only in the shape Hibernate
   Validator's `@Email` accepts for a dot-atom address: a local part of at most 64 characters with a dot
   only between two others, and a domain whose labels have a dash only inside them, at most 63
