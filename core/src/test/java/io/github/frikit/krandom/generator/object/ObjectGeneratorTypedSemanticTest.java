@@ -31,6 +31,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 @DisplayName("ObjectGenerator typed semantics")
 class ObjectGeneratorTypedSemanticTest {
@@ -169,10 +171,12 @@ class ObjectGeneratorTypedSemanticTest {
         assertTrue(passedTheClock, "no draw reached the afternoon of the clock's date");
     }
 
-    @Test
-    @DisplayName(
-            "in relaxed mode, @Past and @PastOrPresent Instants stay before a fixed clock, beside a sibling past it")
-    void constrainedInstantsStayBeforeAFixedClockInRelaxedMode() {
+    @ParameterizedTest(name = "{0}")
+    @EnumSource(
+            value = ObjectGenerationSemanticMode.class,
+            names = {"RELAXED", "STRICT"})
+    @DisplayName("@Past and @PastOrPresent Instants do not pass a fixed clock, beside a sibling past it")
+    void constrainedInstantsDoNotPassAFixedClock(ObjectGenerationSemanticMode mode) {
         Instant now = Instant.parse("2026-06-04T12:00:00Z");
         Clock clock = Clock.fixed(now, ZoneOffset.UTC);
         // The range is the clock's date, so about half of the semantic createdAt draws are past the clock.
@@ -183,21 +187,24 @@ class ObjectGeneratorTypedSemanticTest {
                     .seed(seed)
                     .clock(clock)
                     .objectDateRange(today, today)
+                    .objectSemanticMode(mode)
                     .build();
             PastUpdatedAt past = new ObjectGenerator<>(PastUpdatedAt.class, config).generate();
             assertTrue(past.updatedAt.isBefore(now), past.updatedAt.toString());
             assertFalse(past.createdAt.isAfter(past.updatedAt), past.createdAt + " > " + past.updatedAt);
 
             PastOrPresentUpdatedAt present = new ObjectGenerator<>(PastOrPresentUpdatedAt.class, config).generate();
-            assertTrue(present.updatedAt.isBefore(now), present.updatedAt.toString());
+            assertFalse(present.updatedAt.isAfter(now), present.updatedAt.toString());
             assertFalse(present.createdAt.isAfter(present.updatedAt), present.createdAt + " > " + present.updatedAt);
         }
     }
 
-    @Test
-    @DisplayName(
-            "in relaxed mode, @Past and @PastOrPresent fields stay before a fixed clock beside a value with an offset")
-    void constrainedFieldsStayBeforeAFixedClockBesideAValueWithAnOffset() {
+    @ParameterizedTest(name = "{0}")
+    @EnumSource(
+            value = ObjectGenerationSemanticMode.class,
+            names = {"RELAXED", "STRICT"})
+    @DisplayName("@Past and @PastOrPresent fields do not pass a fixed clock beside a value with an offset")
+    void constrainedFieldsDoNotPassAFixedClockBesideAValueWithAnOffset(ObjectGenerationSemanticMode mode) {
         Instant now = Instant.parse("2026-06-04T12:00:00Z");
         Clock clock = Clock.fixed(now, ZoneOffset.UTC);
         // One day ending at the clock's date, so that an offset can take a sibling past the end of the range.
@@ -208,6 +215,7 @@ class ObjectGeneratorTypedSemanticTest {
                     .seed(seed)
                     .clock(clock)
                     .objectDateRange(today, today)
+                    .objectSemanticMode(mode)
                     .build();
 
             OffsetBesidePast updatedPast = new ObjectGenerator<>(OffsetBesidePast.class, config).generate();
@@ -217,7 +225,7 @@ class ObjectGeneratorTypedSemanticTest {
 
             ZonedBesidePastOrPresent updatedPresent =
                     new ObjectGenerator<>(ZonedBesidePastOrPresent.class, config).generate();
-            assertTrue(updatedPresent.updatedAt.toInstant().isBefore(now), updatedPresent.updatedAt.toString());
+            assertFalse(updatedPresent.updatedAt.toInstant().isAfter(now), updatedPresent.updatedAt.toString());
             assertFalse(
                     updatedPresent.createdAt.toInstant().isAfter(updatedPresent.updatedAt.toInstant()),
                     updatedPresent.createdAt.toString());
@@ -235,29 +243,6 @@ class ObjectGeneratorTypedSemanticTest {
                     createdPresent.createdAt.isAfter(createdPresent.updatedAt.toInstant()),
                     createdPresent.updatedAt.toString());
         }
-    }
-
-    @Test
-    @DisplayName("strict mode can copy a sibling past the clock over a @Past Instant, as semantics win")
-    void strictModeCanCopyASiblingPastTheClockOverAPastInstant() {
-        Instant now = Instant.parse("2026-06-04T12:00:00Z");
-        Clock clock = Clock.fixed(now, ZoneOffset.UTC);
-        LocalDate today = LocalDate.now(clock);
-        boolean overwritten = false;
-
-        for (long seed = 0; seed < 200 && !overwritten; seed++) {
-            GeneratorConfig config = GeneratorConfig.builder()
-                    .seed(seed)
-                    .clock(clock)
-                    .objectDateRange(today, today)
-                    .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
-                    .build();
-            PastUpdatedAt value = new ObjectGenerator<>(PastUpdatedAt.class, config).generate();
-            assertFalse(value.createdAt.isAfter(value.updatedAt), value.createdAt + " > " + value.updatedAt);
-            overwritten = value.updatedAt.isAfter(now);
-        }
-
-        assertTrue(overwritten, "no createdAt past the clock was copied over the @Past updatedAt");
     }
 
     @Test

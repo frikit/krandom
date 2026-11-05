@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.object;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -14,10 +15,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.frikit.krandom.generator.Generator;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.lang.reflect.Field;
@@ -27,6 +30,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.MonthDay;
@@ -36,6 +40,9 @@ import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -212,6 +219,92 @@ class BeanValidationSupportTest {
     }
 
     @Test
+    @DisplayName("accepts reads each date and time type against the clock as Hibernate Validator does")
+    void acceptsReadsEachDateAndTimeTypeAgainstTheClock() throws Exception {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("Asia/Tokyo"));
+        Instant now = clock.instant();
+        Instant before = now.minusSeconds(1);
+        Instant after = now.plusSeconds(1);
+        LocalDate today = LocalDate.now(clock);
+        LocalDateTime localNow = LocalDateTime.now(clock);
+        OffsetDateTime offsetNow = OffsetDateTime.now(clock);
+        ZonedDateTime zonedNow = ZonedDateTime.now(clock);
+        // A value of each type before, at and after the clock's present, after the type it is checked as.
+        List<List<Object>> rows = List.of(
+                List.of(Instant.class, before, now, after),
+                List.of(LocalDate.class, today.minusDays(1), today, today.plusDays(1)),
+                List.of(LocalDateTime.class, localNow.minusSeconds(1), localNow, localNow.plusSeconds(1)),
+                List.of(OffsetDateTime.class, offsetNow.minusSeconds(1), offsetNow, offsetNow.plusSeconds(1)),
+                List.of(ZonedDateTime.class, zonedNow.minusSeconds(1), zonedNow, zonedNow.plusSeconds(1)),
+                List.of(GregorianCalendar.class, calendarAt(before), calendarAt(now), calendarAt(after)),
+                List.of(
+                        java.util.Date.class,
+                        java.util.Date.from(before),
+                        java.util.Date.from(now),
+                        java.util.Date.from(after)),
+                List.of(
+                        java.sql.Date.class,
+                        new java.sql.Date(before.toEpochMilli()),
+                        new java.sql.Date(now.toEpochMilli()),
+                        new java.sql.Date(after.toEpochMilli())),
+                List.of(Timestamp.class, Timestamp.from(before), Timestamp.from(now), Timestamp.from(after)));
+        // Which of before, at and after each bound allows.
+        Map<String, List<Boolean>> allowed = Map.of(
+                "pastBound", List.of(true, false, false),
+                "pastOrPresentBound", List.of(true, true, false),
+                "futureBound", List.of(false, false, true),
+                "futureOrPresentBound", List.of(false, true, true),
+                "presentBound", List.of(false, true, false));
+
+        for (List<Object> row : rows) {
+            Class<?> type = (Class<?>) row.get(0);
+            for (Map.Entry<String, List<Boolean>> bound : allowed.entrySet()) {
+                for (int when = 0; when < 3; when++) {
+                    Object value = row.get(when + 1);
+                    assertEquals(
+                            bound.getValue().get(when),
+                            accepts(bound.getKey(), type, value, clock),
+                            bound.getKey() + " " + type.getSimpleName() + " " + value);
+                }
+            }
+        }
+
+        // A LocalDate is read against the date in the clock's zone, here a day ahead of UTC.
+        Clock tokyoEvening = Clock.fixed(Instant.parse("2026-06-04T20:00:00Z"), ZoneId.of("Asia/Tokyo"));
+        assertTrue(accepts("pastBound", LocalDate.class, LocalDate.of(2026, 6, 4), tokyoEvening));
+    }
+
+    @Test
+    @DisplayName("accepts keeps a number within its bounds and a string to its text constraints, and @Null to none")
+    void acceptsKeepsANumberWithinItsBoundsAndAStringToItsTextConstraints() throws Exception {
+        Clock clock = Clock.systemUTC();
+        assertTrue(accepts("exactLong", long.class, 5L, clock));
+        assertFalse(accepts("exactLong", long.class, 4L, clock));
+        assertFalse(accepts("exactLong", long.class, 6L, clock));
+        assertTrue(accepts("boxedByte", Byte.class, (byte) 10, clock));
+        assertFalse(accepts("boxedByte", Byte.class, (byte) 11, clock));
+        assertTrue(accepts("boxedShort", Short.class, (short) 3, clock));
+        assertFalse(accepts("boxedShort", Short.class, (short) 2, clock));
+        assertTrue(accepts("exactDouble", Double.class, 2.0, clock));
+        assertFalse(accepts("exactDouble", Double.class, 2.5, clock));
+        assertTrue(accepts("positiveFloat", Float.class, 0.5f, clock));
+        assertFalse(accepts("positiveFloat", Float.class, 0.0f, clock));
+        assertFalse(accepts("exclusiveMin", BigDecimal.class, new BigDecimal("1.00"), clock));
+        assertTrue(accepts("exclusiveMin", BigDecimal.class, new BigDecimal("1.01"), clock));
+
+        // A string meets its text constraints, numeric ones among them.
+        assertTrue(accepts("numericText", String.class, "7", clock));
+        assertFalse(accepts("numericText", String.class, "8", clock));
+        assertFalse(accepts("numericText", String.class, "seven", clock));
+        assertTrue(accepts("sizedText", String.class, "abcd", clock));
+        assertFalse(accepts("sizedText", String.class, "abcde", clock));
+
+        // @Null takes no value, and a field with no constraint takes any.
+        assertFalse(accepts("nullOnly", String.class, "x", clock));
+        assertTrue(accepts("unconstrained", Object.class, "x", clock));
+    }
+
+    @Test
     @DisplayName("finds record component and interface accessor annotations")
     void recordAndInterfaceAccessorAnnotations() throws Exception {
         RecordComponent component = ComponentSample.class.getRecordComponents()[0];
@@ -236,6 +329,15 @@ class BeanValidationSupportTest {
 
     private static Generator<?> generatorFor(String fieldName, Class<?> rawType) throws NoSuchFieldException {
         return BeanValidationSupport.constraintGeneratorFor(field(fieldName), rawType, new Random(1L));
+    }
+
+    private static boolean accepts(String fieldName, Class<?> rawType, Object value, Clock clock)
+            throws NoSuchFieldException {
+        return BeanValidationSupport.accepts(field(fieldName), rawType, value, clock);
+    }
+
+    private static GregorianCalendar calendarAt(Instant instant) {
+        return GregorianCalendar.from(instant.atZone(ZoneId.of("Asia/Tokyo")));
     }
 
     interface InterfaceSizedText {
@@ -336,6 +438,16 @@ class BeanValidationSupportTest {
         @Future MonthDay futureMonthDay;
 
         @Future Object futureUnsupported;
+
+        @Past Instant pastBound;
+
+        @PastOrPresent Instant pastOrPresentBound;
+
+        @Future Instant futureBound;
+
+        @FutureOrPresent Instant futureOrPresentBound;
+
+        @PastOrPresent @FutureOrPresent Instant presentBound;
 
         String interfaceSizedText;
 
