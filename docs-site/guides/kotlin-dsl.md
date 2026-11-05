@@ -205,8 +205,8 @@ data class Member(
 val member = krandom<Member> { config { seed(42L) } }
 ```
 
-Value classes that wrap strings, numbers, nullable values, a type parameter, or other value classes all
-work, and so do Kotlin's unsigned types such as `UInt`. A class whose primary constructor takes a value
+Value classes that wrap strings, numbers, nullable values, other value classes, or their type parameter,
+alone or inside a type such as `List<T>`, all work, and so do Kotlin's unsigned types such as `UInt`. A class whose primary constructor takes a value
 class is always built through it. A `rule` or `ruleForType` for the value class gives the value class,
 and a rule may give the value it wraps instead, which is boxed, as Java code must:
 `rule("pin") { "1234" }` gives `Pin("1234")`. A `ruleForType<String>` reaches the `String` inside a

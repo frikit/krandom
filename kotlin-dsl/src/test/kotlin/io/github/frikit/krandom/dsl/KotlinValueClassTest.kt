@@ -86,6 +86,43 @@ class KotlinValueClassTest :
                 owner.plain.shouldBeInstanceOf<String>()
             }
 
+            it("passes type arguments into the type a generic value class wraps") {
+                val batch = krandom<KBatchHolder> { config { seed(8L) } }.batch
+
+                batch.values.shouldNotBeEmpty()
+                batch.values.forEach { value -> value.shouldBeInstanceOf<String>() }
+            }
+
+            it("passes projections and arrays into the type a generic value class wraps") {
+                val variances = krandom<KVariances> { config { seed(9L) } }
+
+                variances.produced.values.forEach { value -> value.shouldBeInstanceOf<String>() }
+                variances.consumed.values.forEach { value -> value.shouldBeInstanceOf<String>() }
+                variances.array.values.forEach { value -> value.shouldBeInstanceOf<String>() }
+            }
+
+            it("gives a generic owner's parameterized types their arguments where its constructor is synthetic") {
+                val mixed = krandom<KMixedHolder> { config { seed(10L) } }.mixed
+
+                mixed.items.shouldNotBeEmpty()
+                mixed.items.forEach { item -> item.shouldBeInstanceOf<String>() }
+                mixed.array.forEach { item -> item.shouldBeInstanceOf<String>() }
+                mixed.names.shouldNotBeEmpty()
+                mixed.names.forEach { name -> name.shouldNotBeBlank() }
+                mixed.counts.forEach { count -> count.shouldBeInstanceOf<Int>() }
+                mixed.lookup.forEach { (key, value) ->
+                    key.shouldBeInstanceOf<String>()
+                    value.shouldBeInstanceOf<Long>()
+                }
+            }
+
+            it("fails with context for a star projection inside the type a generic value class wraps") {
+                val failure = shouldThrow<ObjectGenerationException> { krandom<KStarBatch>() }
+
+                failure.message shouldBe
+                    "Unsupported type at 'KStarBatch.batch' (declared type java.util.List<?>, depth 0)"
+            }
+
             it("needs a rule for a generic value class as the generated type or as a var property") {
                 shouldThrow<ObjectGenerationException> { krandom<KBox<String>>() }
                 krandom<KBox<String>> { rule("value") { "ruled" } } shouldBe KBox("ruled")
@@ -260,6 +297,53 @@ data class KGenericOwner<T>(
 class KMutableGeneric {
     var boxed: KBox<String> = KBox("initial")
 }
+
+@JvmInline
+value class KBatch<T>(
+    val values: List<T>,
+)
+
+@JvmInline
+value class KOutList<T>(
+    val values: MutableList<out T>,
+)
+
+@JvmInline
+value class KInList<T>(
+    val values: MutableList<in T>,
+)
+
+@JvmInline
+value class KArrayBox<T>(
+    val values: Array<T>,
+)
+
+data class KBatchHolder(
+    val batch: KBatch<String>,
+)
+
+data class KVariances(
+    val produced: KOutList<String>,
+    val consumed: KInList<String>,
+    val array: KArrayBox<String>,
+)
+
+data class KMixed<T>(
+    val id: KUserId,
+    val items: List<T>,
+    val array: Array<T>,
+    val names: Array<String>,
+    val counts: Array<Int>,
+    val lookup: Map<String, Long>,
+)
+
+data class KMixedHolder(
+    val mixed: KMixed<String>,
+)
+
+data class KStarBatch(
+    val batch: KBatch<*>,
+)
 
 data class KGenericOwnerHolder(
     val owner: KGenericOwner<String>,

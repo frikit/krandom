@@ -19,6 +19,7 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
+import kotlin.reflect.KTypeProjection
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
@@ -132,17 +133,20 @@ internal class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
     /**
      * Generates an argument of [type]. A value class is generated as the value it wraps, under the
      * parameter's name and constraints, and boxed through its primary constructor, so its `init`
-     * block runs; a rule for the parameter or the value class supplies the value class itself.
+     * block runs; a rule for the parameter or the value class supplies the value class itself. A
+     * [rebuilt] type was built from the type arguments of the value classes that wrap it, so its
+     * reflected Java type does not describe it.
      */
     private fun generateArgument(
         context: ObjectConstructionContext<*>,
         type: KType,
         name: String,
         element: AnnotatedElement?,
+        rebuilt: Boolean = false,
     ): Any? {
         val valueClass = type.jvmErasure
         if (!valueClass.isValue) {
-            return context.generate(javaTypeOf(type, context.type), valueClass.java, name, element)
+            return context.generate(javaTypeOf(type, context.type, rebuilt), valueClass.java, name, element)
         }
         val constructor = valueClass.primaryConstructor!!.apply { isAccessible = true }
         if (context.hasExplicitOverride(name, valueClass.java)) {
@@ -154,9 +158,10 @@ internal class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
                 box(context, valueClass, constructor, ruled, name)
             }
         }
-        val underlying = underlyingType(valueClass, constructor, type)
-        val value = generateArgument(context, underlying, name, element)
-        return if (value == null && !underlying.isMarkedNullable) {
+        val underlying = constructor.parameters.single().type
+        val wrapped = substituted(underlying, valueClass.typeParameters.zip(type.arguments).toMap())
+        val value = generateArgument(context, wrapped, name, element, rebuilt = wrapped !== underlying)
+        return if (value == null && !wrapped.isMarkedNullable) {
             null
         } else {
             box(context, valueClass, constructor, value, name)
@@ -165,44 +170,67 @@ internal class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
 
     /**
      * The Java type of [type]. A type parameter of [owner] is the owner's own type variable, which the
-     * resolver binds, also where a value class's type argument passed it on. A constructor that takes a
-     * value class compiles to a synthetic JVM constructor whose parameters keep no type arguments, so a
-     * parameterized type is rebuilt from its Kotlin form.
+     * resolver binds, also where a value class's type argument passed it on. A [rebuilt] type, and a
+     * parameterized type of a constructor that takes a value class, which compiles to a synthetic JVM
+     * constructor whose parameters keep no type arguments, take the Java type of their Kotlin form.
      */
     private fun javaTypeOf(
         type: KType,
         owner: Class<*>,
+        rebuilt: Boolean,
     ): Type {
         val ownerParameter = owner.kotlin.typeParameters.indexOf(type.classifier)
         if (ownerParameter >= 0) {
             return owner.typeParameters[ownerParameter]
         }
         val reflected = type.javaType
-        return if (reflected is Class<*> && type.arguments.isNotEmpty()) {
-            (type.classifier as KClass<*>).createType(type.arguments, type.isMarkedNullable).javaType
-        } else {
-            reflected
+        if (!rebuilt && (reflected !is Class<*> || type.arguments.isEmpty())) {
+            return reflected
         }
+        // The generic Array class carries no element class, so an array of a class is that class's array.
+        val element =
+            type.arguments
+                .singleOrNull()
+                ?.type
+                ?.takeIf { argument -> argument.arguments.isEmpty() }
+        val elementClass = element?.classifier as? KClass<*>
+        if (type.classifier == Array::class && elementClass != null) {
+            return java.lang.reflect.Array
+                .newInstance(elementClass.javaObjectType, 0)
+                .javaClass
+        }
+        return (type.classifier as KClass<*>).createType(type.arguments, type.isMarkedNullable).javaType
     }
 
     /**
-     * The type a value class wraps, with a type parameter of the value class replaced by the
-     * argument [declared] gives it.
+     * [type] with the type parameters in [bindings] replaced by their arguments at any depth, or [type]
+     * itself when none occurs. A parameter bound to a star projection stays itself at the top, so the
+     * failure names it, and is a star projection inside a type argument.
      */
-    private fun underlyingType(
-        valueClass: KClass<*>,
-        constructor: KFunction<*>,
-        declared: KType,
+    private fun substituted(
+        type: KType,
+        bindings: Map<KTypeParameter, KTypeProjection>,
     ): KType {
-        val underlying = constructor.parameters.single().type
-        val parameter = underlying.classifier as? KTypeParameter ?: return underlying
-        val argument = declared.arguments[valueClass.typeParameters.indexOf(parameter)].type ?: return underlying
-        val nullable = underlying.isMarkedNullable || argument.isMarkedNullable
-        // The owner's own type parameter is kept, for the resolver to bind. Any other argument's reflected
-        // Java type follows the declared type's, which the value class erases, so it is rebuilt from its
-        // Kotlin form.
-        val argumentClass = argument.classifier as? KClass<*> ?: return argument.withNullability(nullable)
-        return argumentClass.createType(argument.arguments, nullable)
+        val classifier = type.classifier
+        if (classifier is KTypeParameter) {
+            val argument = bindings[classifier]?.type ?: return type
+            return argument.withNullability(type.isMarkedNullable || argument.isMarkedNullable)
+        }
+        val arguments =
+            type.arguments.map { projection ->
+                val argument = projection.type
+                val binding = (argument?.classifier as? KTypeParameter)?.let(bindings::get)
+                when {
+                    argument == null -> projection
+                    binding != null && binding.type == null -> KTypeProjection.STAR
+                    else -> KTypeProjection(projection.variance, substituted(argument, bindings))
+                }
+            }
+        return if (arguments == type.arguments) {
+            type
+        } else {
+            (classifier as KClass<*>).createType(arguments, type.isMarkedNullable)
+        }
     }
 
     private fun box(
