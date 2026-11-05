@@ -31,6 +31,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   is, and replay requires it, so a recipe without it, such as one written under the earlier `LEGACY`
   default, is rejected rather than replayed with independent streams.
 
+### Fixed
+
+- The `en_US` cities listed Gateshead, a town in England. Gary, Indiana, takes its place in the list, so
+  an `en_US` city name that was `Gateshead` for a seed is now `Gary`, and no other city moves.
+
 ## [2.10.0] - 2026-11-02
 
 ### Added
