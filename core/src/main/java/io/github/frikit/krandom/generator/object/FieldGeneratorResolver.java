@@ -1269,9 +1269,9 @@ final class FieldGeneratorResolver {
     // ── Primary entry point ───────────────────────────────────────────────────
 
     private ResolvedType containerArgument(Type type, Class<?> containerContract, int index) {
-        ResolvedType resolved = ResolvedType.resolve(type, typeBindings);
+        // The type at the end of a chain of type variables, which holds the container's arguments.
         Type hierarchyType =
-                resolved.effectiveType() != null ? resolved.effectiveType().declaredType() : type;
+                mostSpecific(ResolvedType.resolve(type, typeBindings)).declaredType();
         Map<TypeVariable<?>, Type> bindings = new LinkedHashMap<>(typeBindings);
         bindings.putAll(ResolvedType.bindingsFor(hierarchyType));
         return ResolvedType.resolve(containerContract.getTypeParameters()[index], bindings);
