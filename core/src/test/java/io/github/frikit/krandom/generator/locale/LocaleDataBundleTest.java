@@ -15,8 +15,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Vocabulary;
+import io.github.frikit.krandom.generator.location.AddressInfo;
+import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.location.CityGenerator;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
+import io.github.frikit.krandom.generator.location.PostalPlace;
+import io.github.frikit.krandom.generator.location.PostalPlaceDataProvider;
 import io.github.frikit.krandom.generator.location.StateGenerator;
 import io.github.frikit.krandom.generator.location.StreetAddressGenerator;
 import io.github.frikit.krandom.generator.user.FirstNameGenerator;
@@ -29,6 +33,7 @@ import io.github.frikit.krandom.generator.user.TitleGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdGenerator;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
@@ -159,6 +164,50 @@ class LocaleDataBundleTest {
         assertFalse(context.isRegistered(Vocabulary.CITY, locale));
         assertFalse(context.isRegistered(Vocabulary.COUNTRY, locale));
         assertNotNull(context.provider(Vocabulary.FIRST_NAME, locale));
+    }
+
+    @Test
+    @DisplayName("bundled postal places give the bundle's addresses their city, region and postal code")
+    void postalPlacesDriveBundleAddresses() {
+        Locale locale = Locale.of("es", "MX");
+        PostalPlace guadalajara = new PostalPlace("Guadalajara", "Jalisco", "JAL", List.of("44100", "44160"));
+        LocaleDataBundle bundle =
+                LocaleDataBundle.builder(locale).postalPlaces(guadalajara).build();
+        DataRegistryContext context =
+                DataRegistryContext.builder().registerLocaleData(bundle).build();
+        GeneratorConfig config = GeneratorConfig.builder()
+                .locale(locale)
+                .registryContext(context)
+                .seed(11L)
+                .build();
+
+        PostalPlaceDataProvider provider = context.provider(Vocabulary.POSTAL_PLACE, locale);
+        assertEquals(locale, provider.getLocale());
+        assertEquals(List.of(guadalajara), provider.getPlaces());
+        AddressInfo info = new AddressInfoGenerator(config).generate();
+        assertEquals("Guadalajara", info.city());
+        assertEquals("JAL", info.stateAbbr());
+        assertTrue(guadalajara.postalCodes().contains(info.zip()), info.zip());
+        assertFalse(DataRegistryContext.builder()
+                .isolated()
+                .registerLocaleData(
+                        LocaleDataBundle.builder(locale).cities("Puebla").build())
+                .build()
+                .isRegistered(Vocabulary.POSTAL_PLACE, locale));
+
+        LocaleDataBundle.Builder builder = LocaleDataBundle.builder(locale);
+        assertEquals(
+                "postalPlaces must not be null",
+                assertThrows(NullPointerException.class, () -> builder.postalPlaces((PostalPlace[]) null))
+                        .getMessage());
+        assertEquals(
+                "postalPlaces must not be empty",
+                assertThrows(IllegalArgumentException.class, () -> builder.postalPlaces())
+                        .getMessage());
+        assertEquals(
+                "postalPlaces at index 1 must not be null",
+                assertThrows(IllegalArgumentException.class, () -> builder.postalPlaces(guadalajara, null))
+                        .getMessage());
     }
 
     @Test

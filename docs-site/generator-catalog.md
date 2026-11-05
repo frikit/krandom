@@ -61,6 +61,10 @@ Drawn UTC offsets run from `-12:00` to `+14:00` in 15-minute steps; see the
 - `ofZodiac`, `ofChineseZodiac`, `ofNatoPhonetic`, `ofHobby`,
   `ofProgrammingLanguage`, `ofMbti`
 
+`ofAddressInfo` and a street address generator's `generateFullAddress()` take the city, region, and
+postal code from one place where the locale's country has postal places; see
+[coherent addresses]({{ '/guides/locale-aware-data/' | relative_url }}#coherent-addresses).
+
 ## Company, commerce, vehicle, and domain data
 
 - `ofCompanyName`, `ofCompanyUrl`, `ofCompanyBuzzword`, `ofCompanyCatchPhrase`

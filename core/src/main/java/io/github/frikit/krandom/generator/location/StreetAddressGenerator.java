@@ -32,7 +32,11 @@ public final class StreetAddressGenerator implements Generator<String> {
     private final @org.jspecify.annotations.Nullable CityGenerator cityGenerator;
     private final @org.jspecify.annotations.Nullable StateGenerator stateGenerator;
     private final PostalCodeGenerator postalCodeGenerator;
-    private final @org.jspecify.annotations.Nullable CountryGenerator countryGenerator;
+    private final @org.jspecify.annotations.Nullable AddressCountry country;
+    private final @org.jspecify.annotations.Nullable PlaceDraws placeDraws;
+
+    /** The postal places of the locale's country, and the child stream their draws come from. */
+    private record PlaceDraws(PostalPlaces places, Random random) {}
 
     /**
      * Creates a street-address generator with default configuration (Locale.US).
@@ -54,6 +58,7 @@ public final class StreetAddressGenerator implements Generator<String> {
      * @param config the generator configuration; must not be {@code null}
      * @throws NullPointerException          if {@code config} is {@code null}
      * @throws UnsupportedOperationException if the configured locale has no registered data
+     * @throws IllegalStateException         if the postal places the locale resolves are empty
      */
     public StreetAddressGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
@@ -80,8 +85,12 @@ public final class StreetAddressGenerator implements Generator<String> {
                 ? new StateGenerator(config.forChildStream("state"))
                 : null;
         this.postalCodeGenerator = new PostalCodeGenerator(config.forChildStream("postalCode"));
-        this.countryGenerator = registryContext.isRegistered(Vocabulary.COUNTRY, locale)
-                ? new CountryGenerator(config.forChildStream("country"))
+        PostalPlaces places = PostalPlaces.resolve(config);
+        this.placeDraws = places == null
+                ? null
+                : new PlaceDraws(places, config.forChildStream("postalPlace").createRandom());
+        this.country = registryContext.isRegistered(Vocabulary.COUNTRY, locale)
+                ? new AddressCountry(new CountryGenerator(config.forChildStream("country")), locale, places)
                 : null;
     }
 
@@ -178,20 +187,34 @@ public final class StreetAddressGenerator implements Generator<String> {
      * Generates a full address string combining street, city, state, postal code and country
      * where locale providers are available.
      *
+     * <p>Where the locale's country has postal places ({@link Vocabulary#POSTAL_PLACE}), the city,
+     * the state (its code where it has one) and the postal code come from one place, so they agree.
+     * Elsewhere they are drawn independently from the locale's city and state data and its
+     * postal-code format. The country is the locale's country; a locale without one takes the
+     * country of its postal places, and without those a random country.
+     *
      * @return full address string
      */
     public String generateFullAddress() {
         StringBuilder sb = new StringBuilder(generate());
 
-        if (cityGenerator != null) {
-            sb.append(", ").append(cityGenerator.generate());
+        PlaceDraws draws = placeDraws;
+        if (draws != null) {
+            PostalPlace place = draws.places().pick(draws.random());
+            sb.append(", ").append(place.city());
+            sb.append(", ").append(place.regionCode().isEmpty() ? place.region() : place.regionCode());
+            sb.append(" ").append(PostalPlaces.postalCode(place, draws.random()));
+        } else {
+            if (cityGenerator != null) {
+                sb.append(", ").append(cityGenerator.generate());
+            }
+            if (stateGenerator != null) {
+                sb.append(", ").append(stateGenerator.generate(true));
+            }
+            sb.append(" ").append(postalCodeGenerator.generate());
         }
-        if (stateGenerator != null) {
-            sb.append(", ").append(stateGenerator.generate(true));
-        }
-        sb.append(" ").append(postalCodeGenerator.generate());
-        if (countryGenerator != null) {
-            sb.append(", ").append(countryGenerator.generate());
+        if (country != null) {
+            sb.append(", ").append(country.name());
         }
         return sb.toString();
     }

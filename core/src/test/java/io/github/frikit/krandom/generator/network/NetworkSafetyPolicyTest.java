@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import io.github.frikit.krandom.generator.ChildStreamPolicy;
 import io.github.frikit.krandom.generator.EmailDomainPolicy;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
@@ -51,7 +52,8 @@ class NetworkSafetyPolicyTest {
     /**
      * Output under {@link NetworkSafetyPolicy#REALISTIC_UNCLASSIFIED} for seed 42 and {@link Locale#US},
      * unless named otherwise, recorded from the implementation before the policy existed (commit
-     * ed844edd). One fresh generator per entry, four draws each.
+     * ed844edd), when {@link ChildStreamPolicy#LEGACY} was the default. One fresh generator per
+     * entry, four draws each.
      */
     private static final Map<String, List<String>> REALISTIC_GOLDEN = Map.ofEntries(
             Map.entry("ipv4", List.of("218.13.174.12", "82.241.70.181", "223.23.231.115", "140.97.70.176")),
@@ -153,6 +155,13 @@ class NetworkSafetyPolicyTest {
                 .build();
     }
 
+    /** The realistic policy with the legacy child streams under which {@link #REALISTIC_GOLDEN} was recorded. */
+    private static GeneratorConfig recorded(Locale locale) {
+        return realistic(locale).toBuilder()
+                .childStreamPolicy(ChildStreamPolicy.LEGACY)
+                .build();
+    }
+
     private static <T> void assertEveryDraw(Supplier<T> draw, Function<T, String> text, Pattern shape) {
         for (int i = 0; i < DRAWS; i++) {
             String value = text.apply(draw.get());
@@ -165,32 +174,31 @@ class NetworkSafetyPolicyTest {
     }
 
     @Test
-    @DisplayName("the realistic policy keeps the recorded output draw for draw")
+    @DisplayName("the realistic policy with legacy child streams keeps the recorded output draw for draw")
     void theRealisticPolicyKeepsTheRecordedOutputDrawForDraw() {
         Map<String, Supplier<?>> draws = Map.ofEntries(
-                Map.entry("ipv4", new IPv4Generator(realistic(Locale.US))::generate),
-                Map.entry("ipv4 public", new IPv4Generator(realistic(Locale.US))::generatePublic),
-                Map.entry("ipv4 private", new IPv4Generator(realistic(Locale.US))::generatePrivate),
-                Map.entry("ipv4 cidr", new IPv4Generator(realistic(Locale.US))::generateCidr),
-                Map.entry("ipv6", new IPv6Generator(realistic(Locale.US))::generate),
-                Map.entry("ipv6 cidr", new IPv6Generator(realistic(Locale.US))::generateCidr),
-                Map.entry("ip", new IPGenerator(realistic(Locale.US))::generate),
-                Map.entry("mac", new MacAddressGenerator(realistic(Locale.US))::generate),
-                Map.entry("domain", new DomainGenerator(realistic(Locale.US))::generate),
-                Map.entry("domain de", new DomainGenerator(realistic(Locale.GERMANY))::generate),
-                Map.entry("domain ar", new DomainGenerator(realistic(Locale.forLanguageTag("ar-SA")))::generate),
-                Map.entry("domain tld", new DomainGenerator(realistic(Locale.US))::getTLD),
-                Map.entry("hostname", new HostnameGenerator(realistic(Locale.US))::generate),
-                Map.entry("url", new URLGenerator(realistic(Locale.US))::generate),
-                Map.entry("url path query", new URLGenerator(realistic(Locale.US))::generateWithPathAndQuery),
-                Map.entry("uri", new UriGenerator(realistic(Locale.US))::generate),
-                Map.entry("company url", new CompanyUrlGenerator(realistic(Locale.US))::generate),
+                Map.entry("ipv4", new IPv4Generator(recorded(Locale.US))::generate),
+                Map.entry("ipv4 public", new IPv4Generator(recorded(Locale.US))::generatePublic),
+                Map.entry("ipv4 private", new IPv4Generator(recorded(Locale.US))::generatePrivate),
+                Map.entry("ipv4 cidr", new IPv4Generator(recorded(Locale.US))::generateCidr),
+                Map.entry("ipv6", new IPv6Generator(recorded(Locale.US))::generate),
+                Map.entry("ipv6 cidr", new IPv6Generator(recorded(Locale.US))::generateCidr),
+                Map.entry("ip", new IPGenerator(recorded(Locale.US))::generate),
+                Map.entry("mac", new MacAddressGenerator(recorded(Locale.US))::generate),
+                Map.entry("domain", new DomainGenerator(recorded(Locale.US))::generate),
+                Map.entry("domain de", new DomainGenerator(recorded(Locale.GERMANY))::generate),
+                Map.entry("domain ar", new DomainGenerator(recorded(Locale.forLanguageTag("ar-SA")))::generate),
+                Map.entry("domain tld", new DomainGenerator(recorded(Locale.US))::getTLD),
+                Map.entry("hostname", new HostnameGenerator(recorded(Locale.US))::generate),
+                Map.entry("url", new URLGenerator(recorded(Locale.US))::generate),
+                Map.entry("url path query", new URLGenerator(recorded(Locale.US))::generateWithPathAndQuery),
+                Map.entry("uri", new UriGenerator(recorded(Locale.US))::generate),
+                Map.entry("company url", new CompanyUrlGenerator(recorded(Locale.US))::generate),
                 Map.entry(
-                        "company url from name",
-                        new CompanyUrlGenerator(realistic(Locale.US))::generateFromCompanyName),
-                Map.entry("avatar", new AvatarUrlGenerator(realistic(Locale.US))::generate),
-                Map.entry("social link", socialLinks(new SocialProfileGenerator(realistic(Locale.US)))),
-                Map.entry("profile website", profileWebsites(new ProfileGenerator(realistic(Locale.US)))));
+                        "company url from name", new CompanyUrlGenerator(recorded(Locale.US))::generateFromCompanyName),
+                Map.entry("avatar", new AvatarUrlGenerator(recorded(Locale.US))::generate),
+                Map.entry("social link", socialLinks(new SocialProfileGenerator(recorded(Locale.US)))),
+                Map.entry("profile website", profileWebsites(new ProfileGenerator(recorded(Locale.US)))));
 
         assertEquals(REALISTIC_GOLDEN.keySet(), draws.keySet());
         draws.forEach((name, draw) -> {

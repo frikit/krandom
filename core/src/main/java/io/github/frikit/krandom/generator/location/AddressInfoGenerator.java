@@ -12,9 +12,19 @@ import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Generates structured address payloads with coherent sibling fields.
+ *
+ * <p>Where the locale's country has postal places ({@link Vocabulary#POSTAL_PLACE}), each address
+ * takes its city, state and postal code from one place, so they agree: an {@code en_US} address in
+ * Grand Rapids is in Michigan, with a Grand Rapids ZIP code. {@link PostalPlaceDataRegistry} holds the
+ * built-in places. Elsewhere the city, the state and the postal code are drawn independently, from
+ * the locale's city and state data and its postal-code format.
+ *
+ * <p>The country is the locale's country. A locale without one takes the country of its postal
+ * places, and without those a random country.
  */
 public final class AddressInfoGenerator implements Generator<AddressInfo> {
 
@@ -22,7 +32,8 @@ public final class AddressInfoGenerator implements Generator<AddressInfo> {
     private final Random random;
     private final StreetAddressGenerator streetAddressGenerator;
     private final PostalCodeGenerator postalCodeGenerator;
-    private final CountryGenerator countryGenerator;
+    private final AddressCountry country;
+    private final @Nullable PostalPlaces places;
     private final String[] cities;
     private final String[] states;
     private final String[] stateAbbreviations;
@@ -49,13 +60,16 @@ public final class AddressInfoGenerator implements Generator<AddressInfo> {
      * Creates an address-info generator using explicit configuration.
      *
      * @param config generator configuration
+     * @throws IllegalStateException if the postal places the locale resolves are empty
      */
     public AddressInfoGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.random = config.createRandom();
         this.streetAddressGenerator = new StreetAddressGenerator(config.forChildStream("streetAddress"));
         this.postalCodeGenerator = new PostalCodeGenerator(config.forChildStream("postalCode"));
-        this.countryGenerator = new CountryGenerator(config.forChildStream("country"));
+        CountryGenerator countryGenerator = new CountryGenerator(config.forChildStream("country"));
+        this.places = PostalPlaces.resolve(config);
+        this.country = new AddressCountry(countryGenerator, config.getLocale(), places);
 
         DataRegistryContext registryContext = config.getRegistryContext();
         Locale locale = config.getLocale();
@@ -84,17 +98,31 @@ public final class AddressInfoGenerator implements Generator<AddressInfo> {
         String streetUnit = random.nextInt(3) == 0 ? streetAddressGenerator.generateSecondaryAddress() : "";
         String street = joinNonBlank(" ", streetNumber, streetPrefix, streetName, streetSuffix);
 
-        String city = pick(cities);
+        String city;
+        String state;
+        String stateAbbr;
+        String zip;
+        PostalPlaces resolved = places;
+        if (resolved != null) {
+            PostalPlace place = resolved.pick(random);
+            city = place.city();
+            state = place.region();
+            stateAbbr = place.regionCode();
+            zip = PostalPlaces.postalCode(place, random);
+        } else {
+            city = pick(cities);
+            int stateIndex = states.length == 0 ? -1 : random.nextInt(states.length);
+            state = stateIndex >= 0 ? states[stateIndex] : "";
+            stateAbbr = stateIndex >= 0 && stateIndex < stateAbbreviations.length
+                    ? safe(stateAbbreviations[stateIndex])
+                    : "";
+            zip = postalCodeGenerator.generate();
+        }
 
-        int stateIndex = states.length == 0 ? -1 : random.nextInt(states.length);
-        String state = stateIndex >= 0 ? states[stateIndex] : "";
-        String stateAbbr =
-                stateIndex >= 0 && stateIndex < stateAbbreviations.length ? safe(stateAbbreviations[stateIndex]) : "";
-
-        String zip = postalCodeGenerator.generate();
-        String country = currentOrRandomCountry();
-        String countryAbbr = currentOrRandomCountryCode();
-        String address = formatAddress(street, streetUnit, city, stateAbbr.isBlank() ? state : stateAbbr, zip, country);
+        String countryName = country.name();
+        String countryAbbr = country.code();
+        String address =
+                formatAddress(street, streetUnit, city, stateAbbr.isBlank() ? state : stateAbbr, zip, countryName);
 
         return new AddressInfo(
                 address,
@@ -108,7 +136,7 @@ public final class AddressInfoGenerator implements Generator<AddressInfo> {
                 state,
                 stateAbbr,
                 zip,
-                country,
+                countryName,
                 countryAbbr);
     }
 
@@ -117,22 +145,6 @@ public final class AddressInfoGenerator implements Generator<AddressInfo> {
      */
     public Locale getLocale() {
         return config.getLocale();
-    }
-
-    private String currentOrRandomCountry() {
-        try {
-            return countryGenerator.currentCountry();
-        } catch (UnsupportedOperationException ignored) {
-            return countryGenerator.generate();
-        }
-    }
-
-    private String currentOrRandomCountryCode() {
-        try {
-            return countryGenerator.currentCountryCode();
-        } catch (UnsupportedOperationException ignored) {
-            return countryGenerator.generateCode();
-        }
     }
 
     private String pick(String[] values) {

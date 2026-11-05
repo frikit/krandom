@@ -9,6 +9,8 @@ import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.Vocabulary;
 import io.github.frikit.krandom.generator.location.CityDataProvider;
 import io.github.frikit.krandom.generator.location.CountryDataProvider;
+import io.github.frikit.krandom.generator.location.PostalPlace;
+import io.github.frikit.krandom.generator.location.PostalPlaceDataProvider;
 import io.github.frikit.krandom.generator.location.StateDataProvider;
 import io.github.frikit.krandom.generator.location.StreetAddressDataProvider;
 import io.github.frikit.krandom.generator.user.FirstNameDataProvider;
@@ -19,6 +21,7 @@ import io.github.frikit.krandom.generator.user.SuffixDataProvider;
 import io.github.frikit.krandom.generator.user.TitleDataProvider;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import org.jspecify.annotations.Nullable;
@@ -36,6 +39,7 @@ import org.jspecify.annotations.Nullable;
  *     .states(new String[]{"Jalisco", "Ciudad de México"}, new String[]{"JAL", "CDMX"})
  *     .countries("México")
  *     .streetAddress(new String[]{"Juárez"}, new String[]{"Av"}, new String[]{"Avenida"})
+ *     .postalPlaces(new PostalPlace("Guadalajara", "Jalisco", "JAL", List.of("44100", "44160")))
  *     .build();
  *
  * DataRegistryContext context = DataRegistryContext.builder()
@@ -63,6 +67,7 @@ public final class LocaleDataBundle {
     private final String @Nullable [] streetNames;
     private final String @Nullable [] streetTypesShort;
     private final String @Nullable [] streetTypesLong;
+    private final @Nullable List<PostalPlace> postalPlaces;
     private final @Nullable NationalIdProvider nationalIdProvider;
 
     private LocaleDataBundle(Builder builder) {
@@ -83,6 +88,7 @@ public final class LocaleDataBundle {
         this.streetNames = cloneOrNull(builder.streetNames);
         this.streetTypesShort = cloneOrNull(builder.streetTypesShort);
         this.streetTypesLong = cloneOrNull(builder.streetTypesLong);
+        this.postalPlaces = builder.postalPlaces;
         this.nationalIdProvider = builder.nationalIdProvider;
     }
 
@@ -134,6 +140,10 @@ public final class LocaleDataBundle {
         }
         if (hasStreetAddress()) {
             builder.register(Vocabulary.STREET_ADDRESS, streetAddressProvider());
+        }
+        List<PostalPlace> places = postalPlaces;
+        if (places != null) {
+            builder.register(Vocabulary.POSTAL_PLACE, postalPlaceProvider(places));
         }
         if (nationalIdProvider != null) {
             builder.register(Vocabulary.NATIONAL_ID, nationalIdProvider);
@@ -351,6 +361,20 @@ public final class LocaleDataBundle {
         };
     }
 
+    private PostalPlaceDataProvider postalPlaceProvider(List<PostalPlace> places) {
+        return new PostalPlaceDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return locale;
+            }
+
+            @Override
+            public List<PostalPlace> getPlaces() {
+                return places;
+            }
+        };
+    }
+
     private static String @Nullable [] cloneOrNull(String @Nullable [] values) {
         return values == null ? null : values.clone();
     }
@@ -378,6 +402,7 @@ public final class LocaleDataBundle {
         private String @Nullable [] streetNames;
         private String @Nullable [] streetTypesShort;
         private String @Nullable [] streetTypesLong;
+        private @Nullable List<PostalPlace> postalPlaces;
         private @Nullable NationalIdProvider nationalIdProvider;
 
         private Builder(Locale locale) {
@@ -467,6 +492,29 @@ public final class LocaleDataBundle {
             this.streetNames = streetNames.clone();
             this.streetTypesShort = streetTypesShort.clone();
             this.streetTypesLong = streetTypesLong.clone();
+            return this;
+        }
+
+        /**
+         * Sets the postal places from which addresses of the bundle's country take their city, region
+         * and postal code together; see {@link Vocabulary#POSTAL_PLACE}.
+         *
+         * @param postalPlaces the places, at least one
+         * @return this builder
+         * @throws NullPointerException     if {@code postalPlaces} is {@code null}
+         * @throws IllegalArgumentException if {@code postalPlaces} is empty or holds {@code null}
+         */
+        public Builder postalPlaces(PostalPlace... postalPlaces) {
+            Objects.requireNonNull(postalPlaces, "postalPlaces must not be null");
+            if (postalPlaces.length == 0) {
+                throw new IllegalArgumentException("postalPlaces must not be empty");
+            }
+            for (int i = 0; i < postalPlaces.length; i++) {
+                if (postalPlaces[i] == null) {
+                    throw new IllegalArgumentException("postalPlaces at index " + i + " must not be null");
+                }
+            }
+            this.postalPlaces = List.of(postalPlaces);
             return this;
         }
 
