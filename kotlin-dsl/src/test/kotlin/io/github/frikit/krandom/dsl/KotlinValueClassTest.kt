@@ -101,6 +101,13 @@ class KotlinValueClassTest :
                 variances.array.values.forEach { value -> value.shouldBeInstanceOf<String>() }
             }
 
+            it("passes type arguments into arrays nested inside the type a generic value class wraps") {
+                val nested = krandom<KNestedArraysHolder> { config { seed(11L) } }.nested
+
+                nested.values.shouldNotBeEmpty()
+                nested.values.forEach { array -> array.forEach { value -> value.shouldBeInstanceOf<String>() } }
+            }
+
             it("gives a generic owner's parameterized types their arguments where its constructor is synthetic") {
                 val mixed = krandom<KMixedHolder> { config { seed(10L) } }.mixed
 
@@ -320,6 +327,15 @@ value class KArrayBox<T>(
 
 data class KBatchHolder(
     val batch: KBatch<String>,
+)
+
+@JvmInline
+value class KNestedArrays<T>(
+    val values: List<Array<T>>,
+)
+
+data class KNestedArraysHolder(
+    val nested: KNestedArrays<String>,
 )
 
 data class KVariances(
