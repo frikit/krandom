@@ -88,7 +88,7 @@ is a fixture-schema importer, not a general JSON Schema validator or reference r
 | Root | An object with a non-empty `properties` map is required. Every record holds each of those properties, as a column, so a root `required` name or property dependency that names another property, or a `minProperties` or `maxProperties` that those properties do not meet, is rejected at `$`. |
 | Types | `string`, `integer`, `number`, `boolean`, `array`, `object`, and `null`; a type list may contain exactly one concrete type plus `null`. |
 | Scalars | `const`, a non-empty `enum`, numeric bounds, `multipleOf`, string length bounds, and a `pattern` in the [syntax `RegexGenerator` supports]({{ '/guides/data-validity-and-safety/' | relative_url }}#regular-expression-contract). |
-| Strings | `email`/`idn-email`, `uri`/`url`, `uuid`, `date`, `date-time`, `time`, `ipv4`, `ipv6`, and `hostname` receive dedicated generation. An unknown *string* format deliberately uses semantic-name or bounded-string fallback rather than pretending to implement it. A schema with no `type` generates a string under the same rules. |
+| Strings | Every format Draft 2020-12 defines receives dedicated generation: `date`, and `date-time` and `time` as RFC 3339, with seconds and an offset; `duration` as RFC 3339 days, hours, minutes, and seconds; `email` and `idn-email`; `hostname` and `idn-hostname`; `ipv4` and `ipv6`; `uri`, `uri-reference`, `iri`, `iri-reference`, and `uri-template`, all from one URL generator, as a URI with no quote or brace is each of the others; `uuid`; `json-pointer` and `relative-json-pointer`; and `regex`, as letters, which match themselves. So do OpenAPI's `byte`, as base64, and the `url` alias. OpenAPI's `binary` and `password` allow any string, and no standard validator checks any other format, so they deliberately use the semantic-name or bounded-string fallback. A schema with no `type` generates a string under the same rules. |
 | Structures | `items` as one schema or as a list of schemas, `additionalItems` beside a list, `minItems`/`maxItems`, and `uniqueItems` for arrays; nested `properties`, `required`, `additionalProperties`, `minProperties`/`maxProperties`, and property `dependencies` for objects. An array without `items` produces strings, and `true` and `false` work as schemas that allow any value or none. |
 | OpenAPI controls | OpenAPI 3.0 `nullable`, plus the `$schema` that `toJsonSchema()` emits, which is accepted as a document control rather than a generation constraint. |
 
@@ -107,7 +107,11 @@ Constraints apply together, and a keyword constrains only values of its own JSON
   path.
 - Numeric bounds intersect, so `minimum` 100 with `exclusiveMinimum` 0 starts at 100. OpenAPI 3.0's
   boolean `exclusiveMinimum` and `exclusiveMaximum` work as flags on the inclusive bound. An `integer`
-  rounds a fractional bound inward and stays within the range of a `long`.
+  rounds a fractional bound inward and stays within the range of a `long`. OpenAPI's `int32` format
+  keeps an `integer` within an `int`, so bounds that hold no `int` are rejected with the schema path,
+  and `int64` needs nothing more. Its `float` and `double` formats keep a `number` within their range,
+  applied after the default range, so a `float` without bounds still stays within one million either
+  side of 0.
 - `multipleOf` must be a number above 0, and generates exact multiples within the bounds, as decimals,
   with no binary rounding: `multipleOf` 0.01 gives values such as `12.34`. An `integer` stays an
   `Integer` or `Long` and takes the multiples that are whole, so `multipleOf` 2.5 gives multiples of 5. A
@@ -134,13 +138,13 @@ Constraints apply together, and a keyword constrains only values of its own JSON
   an array ends early at a position that has no new value, and fails below `minItems`.
 - A nested object holds every property it declares unless its other keywords ask otherwise.
   `maxProperties` leaves out optional properties, chosen at random, until the object fits, and
-  `minProperties` adds as few additional properties as it needs, named `property1`, `property2`, and so on, past every
-  name the schema uses, with values from the `additionalProperties` schema, or strings without one. A
-  `required` property that is not in `properties` is generated the same way, and its name chooses a
-  realistic value where it can, so `required: ["email"]` gives an email address. Where
-  `additionalProperties` is `false`, none of these can be added, so the schema is rejected with its path.
-  A property schema `true` generates a string, as `{}` does, and `false` leaves the property out, so a
-  `required` property with either `false` or a value that is no schema is rejected.
+  `minProperties` adds as few additional properties as it needs, named `property1`, `property2`, and so
+  on, past every name the schema uses, with values from the `additionalProperties` schema, or strings
+  without one. A `required` property that is not in `properties` is generated the same way, and its
+  name chooses a realistic value where it can, so `required: ["email"]` gives an email address. Where
+  `additionalProperties` is `false`, none of these can be added, so the schema is rejected with its
+  path. A property schema `true` generates a string, as `{}` does, and `false` leaves the property out,
+  so a `required` property whose schema is `false`, or is no schema at all, is rejected.
 - A property dependency, such as `"dependencies": {"card": ["billing"]}`, brings the properties it
   names, through every link, beside the property that needs them, so `required` brings them too. A
   property whose dependencies cannot be generated is left out, and rejected if it is required.
@@ -160,21 +164,22 @@ Constraints apply together, and a keyword constrains only values of its own JSON
 
 A combination that leaves no value is rejected with its schema path, such as
 `$.properties.parent.properties.code` or `$.properties.pair.items[1]`. That includes a nested `items`,
-tuple entry, `additionalItems`, or property schema, even where an empty array or an object without that
-property would be valid, because the importer resolves every schema it is given. Pattern and format
-lengths are judged by sampling 1,000 values while parsing,
-rather than by analysing the pattern. A combination that rarely fits can be rejected too, and one
-that passes parsing can still fail on a later record. A pattern's `*`, `+`, and `{n,}` repeat up to
-twice `minLength` when that is more than their usual 10 times, up to 10,000, so `^[a-z]+$` with
-`minLength` 20 generates 20 to 40 characters.
+tuple entry, `additionalItems`, `additionalProperties`, or property schema, even where an empty array or
+an object without that property would be valid, because the importer resolves every schema it is
+given. Pattern and format lengths are judged by sampling 1,000 values while parsing, rather than by
+analysing the pattern. A combination that rarely fits can be rejected too, and one that passes parsing
+can still fail on a later record. A pattern's `*`, `+`, and `{n,}` repeat up to twice `minLength` when
+that is more than their usual 10 times, up to 10,000, so `^[a-z]+$` with `minLength` 20 generates 20 to
+40 characters.
 
 `$ref`, dynamic/recursive references, `allOf`, `anyOf`, `oneOf`, `not`, conditional schemas (`if`,
 `then`, `else`), `contains`, `prefixItems`, `patternProperties`, `propertyNames`, `dependentRequired`,
 `dependentSchemas`, schema dependencies, and the `unevaluated` keywords are unsupported. They fail
-during parsing with the nested schema path. Malformed `type`, `format`, `enum`, and `items` values, and a malformed `additionalItems`
-beside a list of items, also fail during parsing with that path; they never silently become an
-unconstrained field. A Java map that recursively contains itself is
-rejected for the same reason: the importer has no document-ID or reference-resolution model.
+during parsing with the nested schema path. Malformed `type`, `format`, `enum`, `items`, `required`,
+`additionalProperties`, `minProperties`, `maxProperties`, and `dependencies` values, and a malformed
+`additionalItems` beside a list of items, also fail during parsing with that path; they never silently
+become an unconstrained field. A Java map that recursively contains itself is rejected for the same
+reason: the importer has no document-ID or reference-resolution model.
 
 Schema export is metadata-driven and side-effect free. Built-in `Field` providers carry an exact
 fragment; a custom lambda with no metadata deliberately exports `{}` to mean **unknown**, not an

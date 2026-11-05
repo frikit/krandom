@@ -365,7 +365,19 @@ class GeneratorCatalogNetworkSafetyTest {
 
     private static void sweepSchema(GeneratorConfig config, BiConsumer<String, String> sink) {
         Map<String, Object> properties = new LinkedHashMap<>();
-        for (String format : List.of("uri", "url", "hostname", "ipv4", "ipv6", "email", "idn-email")) {
+        for (String format : List.of(
+                "uri",
+                "url",
+                "uri-reference",
+                "iri",
+                "iri-reference",
+                "uri-template",
+                "hostname",
+                "idn-hostname",
+                "ipv4",
+                "ipv6",
+                "email",
+                "idn-email")) {
             properties.put("x" + format.replace("-", ""), Map.of("type", "string", "format", format));
         }
         for (String name :

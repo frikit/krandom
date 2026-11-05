@@ -17,10 +17,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.IDN;
+import java.net.URI;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -3140,12 +3145,208 @@ class SchemaParserTest {
         }
     }
 
+    @Nested
+    @DisplayName("formats")
+    class Formats {
+
+        private static final String SECONDS_AND_OFFSET = ":\\d{2}(\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})";
+
+        /** RFC 3339 Appendix A, the duration grammar that Draft 2020-12 names. */
+        private static final Pattern DURATION =
+                Pattern.compile("P(?:(?:\\d+D|\\d+M(?:\\d+D)?|\\d+Y(?:\\d+M(?:\\d+D)?)?)"
+                        + "(?:T(?:\\d+H(?:\\d+M(?:\\d+S)?)?|\\d+M(?:\\d+S)?|\\d+S))?"
+                        + "|T(?:\\d+H(?:\\d+M(?:\\d+S)?)?|\\d+M(?:\\d+S)?|\\d+S)|\\d+W)");
+
+        /** RFC 6901: slash-led segments, which write ~ and / as ~0 and ~1. */
+        private static final String POINTER = "(?:/(?:[^/~]|~[01])*)*";
+
+        private static List<String> strings(String format) {
+            List<String> strings = new ArrayList<>();
+            for (Object value : CombinedConstraints.values(Map.of("type", "string", "format", format))) {
+                strings.add(assertInstanceOf(String.class, value));
+            }
+            return strings;
+        }
+
+        @Test
+        @DisplayName("date-time and time are RFC 3339, with seconds and an offset")
+        void dateTimeAndTimeAreRfc3339() {
+            for (String value : strings("date-time")) {
+                assertTrue(value.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}" + SECONDS_AND_OFFSET), value);
+                assertDoesNotThrow(() -> OffsetDateTime.parse(value), value);
+            }
+            for (String value : strings("time")) {
+                assertTrue(value.matches("\\d{2}:\\d{2}" + SECONDS_AND_OFFSET), value);
+                assertDoesNotThrow(() -> OffsetTime.parse(value), value);
+            }
+        }
+
+        @Test
+        @DisplayName(
+                "a URI is also a URI reference, an IRI, an IRI reference and, with no quote or brace, a URI template")
+        void uriFamily() {
+            for (String format : List.of("uri-reference", "iri", "iri-reference", "uri-template")) {
+                for (String value : strings(format)) {
+                    URI uri = assertDoesNotThrow(() -> new URI(value), value);
+                    assertNotNull(uri.getScheme(), value);
+                    assertTrue(value.chars().noneMatch(ch -> " \"'<>\\^`{|}".indexOf(ch) >= 0), value);
+                }
+            }
+        }
+
+        @Test
+        @DisplayName("a hostname is also an internationalized one")
+        void idnHostname() {
+            for (String value : strings("idn-hostname")) {
+                assertDoesNotThrow(() -> IDN.toASCII(value, IDN.USE_STD3_ASCII_RULES), value);
+                assertTrue(value.matches("[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+"), value);
+            }
+        }
+
+        @Test
+        @DisplayName("duration, json-pointer, relative-json-pointer and regex follow their grammars")
+        void grammars() {
+            Set<String> durations = new HashSet<>(strings("duration"));
+            for (String value : durations) {
+                assertTrue(DURATION.matcher(value).matches(), value);
+            }
+            assertTrue(durations.size() > 100, "durations should vary: " + durations);
+            for (String value : strings("json-pointer")) {
+                assertTrue(value.matches(POINTER) && value.length() > 1, value);
+            }
+            for (String value : strings("relative-json-pointer")) {
+                assertTrue(value.matches("(?:0|[1-9]\\d*)(?:#|" + POINTER + ")"), value);
+            }
+            for (String value : strings("regex")) {
+                assertTrue(Pattern.compile(value).matcher(value).matches(), value);
+            }
+        }
+
+        @Test
+        @DisplayName("OpenAPI byte is base64, and binary, password and unknown formats are strings")
+        void openApiStringFormats() {
+            for (String value : strings("byte")) {
+                assertTrue(value.matches("[A-Za-z0-9+/]+={0,2}") && value.length() % 4 == 0, value);
+                assertTrue(Base64.getDecoder().decode(value).length > 0, value);
+            }
+            for (String format : List.of("binary", "password", "custom-unknown")) {
+                assertTrue(strings(format).stream().noneMatch(String::isEmpty), format);
+            }
+        }
+
+        @Test
+        @DisplayName("a value of these formats is drawn again until it fits the length bounds")
+        void newFormatsMeetLengthBounds() {
+            for (String format : List.of("duration", "json-pointer", "relative-json-pointer", "regex", "byte")) {
+                for (Object value : CombinedConstraints.values(
+                        Map.of("type", "string", "format", format, "minLength", 11, "maxLength", 12))) {
+                    int length = ((String) value).length();
+                    assertTrue(length >= 11 && length <= 12, format + " gave " + value);
+                }
+            }
+        }
+
+        @Test
+        @DisplayName("OpenAPI int32 keeps an integer within an int, and int64 within a long")
+        void integerFormats() {
+            for (Object value : CombinedConstraints.values(Map.of(
+                    "type", "integer", "format", "int32", "minimum", 2_000_000_000L, "maximum", 10_000_000_000L))) {
+                long number = ((Number) value).longValue();
+                assertTrue(number >= 2_000_000_000L && number <= Integer.MAX_VALUE, String.valueOf(number));
+            }
+            for (Object value : CombinedConstraints.values(Map.of(
+                    "type",
+                    "integer",
+                    "format",
+                    "int32",
+                    "multipleOf",
+                    7,
+                    "minimum",
+                    -10_000_000_000L,
+                    "maximum",
+                    10_000_000_000L))) {
+                long number = ((Number) value).longValue();
+                assertTrue(
+                        number >= Integer.MIN_VALUE && number <= Integer.MAX_VALUE && number % 7 == 0,
+                        String.valueOf(number));
+            }
+            CombinedConstraints.assertRejected(Map.of("type", "integer", "format", "int32", "minimum", 3_000_000_000L));
+            CombinedConstraints.assertRejected(
+                    Map.of("type", "integer", "format", "int32", "maximum", -3_000_000_000L));
+            for (Object value : CombinedConstraints.values(
+                    Map.of("type", "integer", "format", "int64", "minimum", 3_000_000_000L))) {
+                assertTrue(((Number) value).longValue() >= 3_000_000_000L, value::toString);
+            }
+        }
+
+        @Test
+        @DisplayName("OpenAPI float and double keep a number within their range")
+        void numberFormats() {
+            for (Object value : CombinedConstraints.values(
+                    Map.of("type", "number", "format", "float", "minimum", -1e300, "maximum", -1e38))) {
+                double number = ((Number) value).doubleValue();
+                assertTrue(number >= -Float.MAX_VALUE && number <= -1e38, String.valueOf(number));
+            }
+            for (Object value : CombinedConstraints.values(
+                    Map.of("type", "number", "format", "float", "minimum", 1e38, "maximum", 1e300))) {
+                double number = ((Number) value).doubleValue();
+                assertTrue(number >= 1e38 && number <= Float.MAX_VALUE, String.valueOf(number));
+            }
+            for (Object value : CombinedConstraints.values(Map.of(
+                    "type", "number", "format", "float", "multipleOf", 1e37, "minimum", -1e39, "maximum", 1e39))) {
+                BigDecimal number = assertInstanceOf(BigDecimal.class, value);
+                assertTrue(number.abs().compareTo(new BigDecimal(Float.MAX_VALUE)) <= 0, number::toString);
+            }
+            CombinedConstraints.assertRejected(Map.of("type", "number", "format", "float", "minimum", 1e39));
+            CombinedConstraints.assertRejected(Map.of("type", "number", "format", "float", "maximum", -1e39));
+            BigDecimal beyondDoubles = new BigDecimal("1e400");
+            for (Object value : CombinedConstraints.values(Map.of(
+                    "type",
+                    "number",
+                    "format",
+                    "double",
+                    "multipleOf",
+                    1e307,
+                    "minimum",
+                    beyondDoubles.negate(),
+                    "maximum",
+                    beyondDoubles))) {
+                BigDecimal number = assertInstanceOf(BigDecimal.class, value);
+                assertTrue(number.abs().compareTo(new BigDecimal(Double.MAX_VALUE)) <= 0, number::toString);
+            }
+            // Without bounds, a float keeps the default range.
+            for (Object value : CombinedConstraints.values(Map.of("type", "number", "format", "float"))) {
+                double number = ((Number) value).doubleValue();
+                assertTrue(Math.abs(number) <= 1_000_000, String.valueOf(number));
+            }
+        }
+    }
+
     @Test
     @DisplayName("seeded format providers reproduce their generated record")
     void seededFormatProvidersReproduce() {
         Map<String, Object> properties = new LinkedHashMap<>();
-        for (String format :
-                List.of("email", "idn-email", "uri", "uuid", "date", "date-time", "time", "ipv4", "ipv6", "hostname")) {
+        for (String format : List.of(
+                "email",
+                "idn-email",
+                "uri",
+                "uri-reference",
+                "iri",
+                "iri-reference",
+                "uri-template",
+                "uuid",
+                "date",
+                "date-time",
+                "time",
+                "duration",
+                "ipv4",
+                "ipv6",
+                "hostname",
+                "idn-hostname",
+                "json-pointer",
+                "relative-json-pointer",
+                "regex",
+                "byte")) {
             properties.put(format, Map.of("type", "string", "format", format));
         }
         GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();

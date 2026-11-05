@@ -11,8 +11,8 @@ import io.github.frikit.krandom.generator.Generators;
 import io.github.frikit.krandom.generator.base.RegexGenerator;
 import io.github.frikit.krandom.generator.base.StringGenerator;
 import io.github.frikit.krandom.generator.datetime.DateGenerator;
-import io.github.frikit.krandom.generator.datetime.LocalDateTimeGenerator;
-import io.github.frikit.krandom.generator.datetime.TimeGenerator;
+import io.github.frikit.krandom.generator.datetime.OffsetDateTimeGenerator;
+import io.github.frikit.krandom.generator.datetime.OffsetTimeGenerator;
 import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
 import io.github.frikit.krandom.generator.network.HostnameGenerator;
 import io.github.frikit.krandom.generator.network.IPv4Generator;
@@ -21,7 +21,10 @@ import io.github.frikit.krandom.generator.network.URLGenerator;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -45,7 +48,11 @@ import org.jspecify.annotations.Nullable;
  * <p>Supports the following JSON Schema keywords:
  * <ul>
  *   <li>{@code type} — string, integer, number, boolean, array, object, null</li>
- *   <li>{@code format} — date, date-time, time, email, idn-email, uri, uuid, ipv4, ipv6, hostname</li>
+ *   <li>{@code format} — every format Draft 2020-12 defines: date, date-time and time as RFC 3339, duration,
+ *       email, idn-email, hostname, idn-hostname, ipv4, ipv6, uri, uri-reference, iri, iri-reference,
+ *       uri-template, uuid, json-pointer, relative-json-pointer, and regex; and OpenAPI's byte, with int32,
+ *       float, and double as ranges for numbers. No standard validator checks any other format, so it gets
+ *       the same values as no format</li>
  *   <li>{@code enum} — random selection from enumerated values</li>
  *   <li>{@code const} — constant value</li>
  *   <li>{@code minimum}/{@code maximum}/{@code exclusiveMinimum}/{@code exclusiveMaximum} — bounded
@@ -71,14 +78,15 @@ import org.jspecify.annotations.Nullable;
  * </ul>
  *
  * <p>A type list may contain one concrete supported type plus {@code null}. Empty, malformed, and
- * unsupported type declarations, non-string formats, empty or malformed enums, and an {@code items} that
- * is no schema, boolean, or list of them are rejected with their schema path. A list of items holds the
- * whole tuple by default, and {@code additionalItems} is read only beside one, as in the drafts that
- * define it; {@code prefixItems}, its Draft 2020-12 replacement, is rejected. The root generates every
- * property as a column, so its {@code required} names, property dependencies, and member counts must allow
- * exactly those. References and schema composition ({@code $ref}, {@code allOf}, {@code anyOf},
- * {@code oneOf}, schema dependencies, and related conditional keywords) are rejected with a schema path
- * because this parser has no resolver or composition semantics.
+ * unsupported type declarations, non-string formats, empty or malformed enums, an {@code items} that is no
+ * schema, boolean, or list of them, and malformed {@code required}, {@code additionalProperties},
+ * {@code minProperties}, {@code maxProperties}, and {@code dependencies} values are rejected with their
+ * schema path. A list of items holds the whole tuple by default, and {@code additionalItems} is read only
+ * beside one, as in the drafts that define it; {@code prefixItems}, its Draft 2020-12 replacement, is
+ * rejected. The root generates every property as a column, so its {@code required} names, property
+ * dependencies, and member counts must allow exactly those. References and schema composition
+ * ({@code $ref}, {@code allOf}, {@code anyOf}, {@code oneOf}, schema dependencies, and related conditional
+ * keywords) are rejected with a schema path because this parser has no resolver or composition semantics.
  *
  * <p>Constraints apply together, and a keyword constrains only values of its own JSON type. A
  * {@code const} or {@code enum} value must meet the other constraints, and an {@code enum} keeps only
@@ -853,18 +861,32 @@ public final class SchemaParser {
                 .generate();
     }
 
+    /**
+     * The values of a format that Draft 2020-12 or OpenAPI defines, or null for any other, which no
+     * standard validator checks. OpenAPI's binary and password allow any string, so they are left to the
+     * same fallback.
+     */
     private static @Nullable SchemaValueProvider resolveFormat(String format, GeneratorConfig config) {
+        SchemaValueProvider drawn = drawnFormat(format, config);
+        if (drawn != null) {
+            return drawn;
+        }
         Function<GeneratorConfig, Generator<?>> factory = switch (format) {
             // Every email is also a valid idn-email.
             case "email", "idn-email" -> Generators::ofEmail;
-            case "uri", "url" -> URLGenerator::new;
+            // Every URI is also a URI reference, an IRI, and an IRI reference, and one without quotes or
+            // braces, as these are, is a URI template that expands to itself.
+            case "uri", "url", "uri-reference", "iri", "iri-reference", "uri-template" -> URLGenerator::new;
             case "uuid" -> UUIDGenerator::new;
             case "date" -> DateGenerator::new;
-            case "date-time" -> LocalDateTimeGenerator::new;
-            case "time" -> TimeGenerator::new;
+            // RFC 3339 writes the seconds and an offset, which toString() can leave out.
+            case "date-time" ->
+                source -> rfc3339(new OffsetDateTimeGenerator(source), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+            case "time" -> source -> rfc3339(new OffsetTimeGenerator(source), DateTimeFormatter.ISO_OFFSET_TIME);
             case "ipv4" -> IPv4Generator::new;
             case "ipv6" -> IPv6Generator::new;
-            case "hostname" -> HostnameGenerator::new;
+            // Every hostname is also a valid internationalized one.
+            case "hostname", "idn-hostname" -> HostnameGenerator::new;
             default -> null;
         };
         if (factory == null) {
@@ -881,6 +903,46 @@ public final class SchemaParser {
                         config.toBuilder().seed(ctx.random().nextLong()).build())
                 .generate()
                 .toString();
+    }
+
+    private static Generator<String> rfc3339(
+            Generator<? extends TemporalAccessor> source, DateTimeFormatter formatter) {
+        return () -> formatter.format(source.generate());
+    }
+
+    /** A format whose values no generator makes, drawn from the field's own stream. */
+    private static @Nullable SchemaValueProvider drawnFormat(String format, GeneratorConfig config) {
+        return switch (format) {
+            // RFC 3339 Appendix A: days, then hours, minutes, and seconds.
+            case "duration" ->
+                ctx -> "P" + ctx.random().nextInt(31) + "DT" + ctx.random().nextInt(24) + "H"
+                        + ctx.random().nextInt(60) + "M" + ctx.random().nextInt(60) + "S";
+            case "json-pointer" -> ctx -> pointer(ctx.random());
+            // How many levels up, then a JSON pointer from there.
+            case "relative-json-pointer" -> ctx -> ctx.random().nextInt(10) + pointer(ctx.random());
+            // Letters alone are a regular expression, which matches them.
+            case "regex" -> randomText(config);
+            // OpenAPI's byte is base64.
+            case "byte" ->
+                ctx -> {
+                    byte[] bytes = new byte[1 + ctx.random().nextInt(16)];
+                    ctx.random().nextBytes(bytes);
+                    return Base64.getEncoder().encodeToString(bytes);
+                };
+            default -> null;
+        };
+    }
+
+    /** A JSON pointer of one to three segments of lowercase letters, which need no escaping. */
+    private static String pointer(Random random) {
+        StringBuilder pointer = new StringBuilder();
+        for (int segments = 1 + random.nextInt(3); segments > 0; segments--) {
+            pointer.append('/');
+            for (int letters = 1 + random.nextInt(8); letters > 0; letters--) {
+                pointer.append((char) ('a' + random.nextInt(26)));
+            }
+        }
+        return pointer.toString();
     }
 
     private static SchemaValueProvider resolveInteger(Map<String, Object> schema, String path) {
@@ -900,6 +962,11 @@ public final class SchemaParser {
         if (exclusiveBound(schema, "exclusiveMaximum", "maximum") instanceof Number exclusive) {
             highest = highest.min(
                     decimal(exclusive).setScale(0, RoundingMode.CEILING).subtract(BigDecimal.ONE));
+        }
+        // OpenAPI's int32 keeps an integer within an int; every integer here is within int64 already.
+        if ("int32".equals(schema.get("format"))) {
+            lowest = lowest.max(BigDecimal.valueOf(Integer.MIN_VALUE));
+            highest = highest.min(BigDecimal.valueOf(Integer.MAX_VALUE));
         }
         if (lowest.compareTo(highest) > 0) {
             throw emptyRange("integer", path, schema);
@@ -974,6 +1041,11 @@ public final class SchemaParser {
         }
         if (lowest == Double.NEGATIVE_INFINITY) {
             lowest = highest > -NUMBER_DEFAULT_LIMIT ? -NUMBER_DEFAULT_LIMIT : highest - 2 * NUMBER_DEFAULT_LIMIT;
+        }
+        BigDecimal magnitude = formatMagnitude(schema);
+        if (magnitude != null) {
+            lowest = Math.max(lowest, -magnitude.doubleValue());
+            highest = Math.min(highest, magnitude.doubleValue());
         }
         // An infinity left here is a bound beyond every double, with no double on its allowed side.
         if (lowest > highest || lowest == Double.POSITIVE_INFINITY || highest == Double.NEGATIVE_INFINITY) {
@@ -1065,7 +1137,24 @@ public final class SchemaParser {
                     : top.subtract(limit).subtract(limit);
             first = quotient(bottom, step, RoundingMode.CEILING).min(last);
         }
+        BigDecimal magnitude = formatMagnitude(schema);
+        if (magnitude != null) {
+            first = first.max(quotient(magnitude.negate(), step, RoundingMode.CEILING));
+            last = last.min(quotient(magnitude, step, RoundingMode.FLOOR));
+        }
         return multiples(step, first, last, false, path, schema);
+    }
+
+    /**
+     * The largest magnitude that OpenAPI's float or double format allows a number, applied after the
+     * default range, so that a float with no bounds keeps it; null for any other format.
+     */
+    private static @Nullable BigDecimal formatMagnitude(Map<String, Object> schema) {
+        Object format = schema.get("format");
+        if ("float".equals(format)) {
+            return new BigDecimal(Float.MAX_VALUE);
+        }
+        return "double".equals(format) ? new BigDecimal(Double.MAX_VALUE) : null;
     }
 
     /**

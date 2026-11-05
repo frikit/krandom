@@ -99,7 +99,26 @@ class SchemaParserReplayTest {
     @DisplayName("columns with the same format or length bounds draw from their own streams")
     void equalColumnsUseTheirOwnStreams() {
         List<Map<String, Object>> properties = new ArrayList<>();
-        for (String format : List.of("email", "uri", "uuid", "date", "date-time", "time", "ipv4", "ipv6", "hostname")) {
+        for (String format : List.of(
+                "email",
+                "uri",
+                "uri-reference",
+                "iri",
+                "iri-reference",
+                "uri-template",
+                "uuid",
+                "date",
+                "date-time",
+                "time",
+                "duration",
+                "ipv4",
+                "ipv6",
+                "hostname",
+                "idn-hostname",
+                "json-pointer",
+                "relative-json-pointer",
+                "regex",
+                "byte")) {
             properties.add(Map.of("type", "string", "format", format));
         }
         properties.add(Map.of("type", "string", "minLength", 8, "maxLength", 12));
