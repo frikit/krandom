@@ -98,6 +98,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   class is built through that constructor, where the private and synthetic JVM constructors that Kotlin
   compiles it to failed as ambiguous, unless it has a no-argument constructor, which still builds it before
   its fields are filled.
+- `SchemaParser` generates `items` written as a list of schemas, one for each position, and
+  `additionalItems` beside it, which it used to accept and ignore, so such an array held strings. These
+  are the tuple forms of the drafts up to 2019-09, read whatever `$schema` says, and `prefixItems`, their
+  Draft 2020-12 replacement, is still rejected. Seeded output changes for every schema with a list of
+  `items` or with `items: false`.
+  - Each position follows its own schema, and the items after the tuple follow `additionalItems`, or
+    are strings without it. An array holds the whole tuple unless `minItems` or `maxItems` moves its
+    size, so `minItems` 0 allows shorter arrays.
+  - `additionalItems: false` ends an array with the tuple, a `false` entry ends it before that position,
+    and `items: false`, which used to give strings, allows only the empty array. A `minItems` past any of
+    them is rejected with the schema path, such as `$.properties.pair`, and a tuple entry is checked at
+    its own, such as `$.properties.pair.items[1]`.
+  - With `uniqueItems`, each item is drawn for the position it fills, so an array ends early at a
+    position that has no new value, and fails below `minItems`.
+  - A `const` or `enum` array must meet the tuple, `additionalItems`, and `items: false`.
+    `additionalItems` beside a single `items` schema is ignored, as those drafts say.
+  - An `items` that is not a schema, a boolean, or a list of them, such as `"string"`, and an
+    `additionalItems` beside a list that is not a schema or a boolean, are now rejected with the schema
+    path. They used to leave the items unconstrained.
 
 ### Changed
 

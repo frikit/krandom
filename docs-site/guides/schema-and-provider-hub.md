@@ -89,7 +89,7 @@ is a fixture-schema importer, not a general JSON Schema validator or reference r
 | Types | `string`, `integer`, `number`, `boolean`, `array`, `object`, and `null`; a type list may contain exactly one concrete type plus `null`. |
 | Scalars | `const`, a non-empty `enum`, numeric bounds, `multipleOf`, string length bounds, and a `pattern` in the [syntax `RegexGenerator` supports]({{ '/guides/data-validity-and-safety/' | relative_url }}#regular-expression-contract). |
 | Strings | `email`/`idn-email`, `uri`/`url`, `uuid`, `date`, `date-time`, `time`, `ipv4`, `ipv6`, and `hostname` receive dedicated generation. An unknown *string* format deliberately uses semantic-name or bounded-string fallback rather than pretending to implement it. A schema with no `type` generates a string under the same rules. |
-| Structures | `items`, `minItems`/`maxItems`, and `uniqueItems` for arrays; nested `properties` for objects. An array without `items` produces strings. |
+| Structures | `items` as one schema or as a list of schemas, `additionalItems` beside a list, `minItems`/`maxItems`, and `uniqueItems` for arrays; nested `properties` for objects. An array without `items` produces strings, and `true` and `false` work as schemas that allow any item or none. |
 | OpenAPI controls | OpenAPI 3.0 `nullable`, plus `$schema`, `required`, and `additionalProperties` emitted by `toJsonSchema()`. The latter three are accepted as document controls rather than generation constraints. |
 
 Constraints apply together, and a keyword constrains only values of its own JSON type:
@@ -122,6 +122,16 @@ Constraints apply together, and a keyword constrains only values of its own JSON
   rejected with the schema path, and where the search finds fewer than `maxItems`, an array holds at
   most that many. Each array then draws up to 100 items for each item it holds, keeps the distinct ones
   found if they run out, and fails with the schema path below `minItems`.
+- A list of `items` is the tuple form of the drafts up to 2019-09: each position follows its own schema,
+  and `additionalItems` is the schema of the items after them. The parser reads both forms whatever
+  `$schema` says, and rejects `prefixItems`, the Draft 2020-12 replacement. An array holds the whole tuple
+  unless `minItems` or `maxItems` moves its size, so `minItems` 0 allows shorter arrays and `maxItems` 4
+  allows two items after a tuple of two. Without `additionalItems`, the items after the tuple are
+  strings, as for an array without `items`. `additionalItems: false` ends an array with the tuple, and a
+  `false` entry ends it before that position, so a `minItems` past either is rejected with the schema
+  path, and `items: false` allows only the empty array. `additionalItems` beside a single `items` schema
+  is ignored, as those drafts say. With `uniqueItems`, each item is drawn for the position it fills, so
+  an array ends early at a position that has no new value, and fails below `minItems`.
 - A `pattern` or `format` value is drawn again until it fits `minLength` and `maxLength`, up to 10,000
   times each. Length is counted in characters, not UTF-16 units.
 - A value generated from a `pattern` matches the whole pattern, which also satisfies the search. A
@@ -130,9 +140,10 @@ Constraints apply together, and a keyword constrains only values of its own JSON
   regex.
 
 A combination that leaves no value is rejected with its schema path, such as
-`$.properties.parent.properties.code`. That includes a nested `items` or property schema, even where
-an empty array or an object without that property would be valid, because the importer resolves every
-schema it is given. Pattern and format lengths are judged by sampling 1,000 values while parsing,
+`$.properties.parent.properties.code` or `$.properties.pair.items[1]`. That includes a nested `items`,
+tuple entry, `additionalItems`, or property schema, even where an empty array or an object without that
+property would be valid, because the importer resolves every schema it is given. Pattern and format
+lengths are judged by sampling 1,000 values while parsing,
 rather than by analysing the pattern. A combination that rarely fits can be rejected too, and one
 that passes parsing can still fail on a later record. A pattern's `*`, `+`, and `{n,}` repeat up to
 twice `minLength` when that is more than their usual 10 times, up to 10,000, so `^[a-z]+$` with
@@ -140,8 +151,9 @@ twice `minLength` when that is more than their usual 10 times, up to 10,000, so 
 
 `$ref`, dynamic/recursive references, `allOf`, `anyOf`, `oneOf`, `not`, conditional schemas,
 and pattern/dependent-property composition are unsupported. They fail during parsing with the nested
-schema path. Malformed `type`, `format`, and `enum` values also fail during parsing with that path;
-they never silently become an unconstrained field. A Java map that recursively contains itself is
+schema path. Malformed `type`, `format`, `enum`, and `items` values, and a malformed `additionalItems`
+beside a list of items, also fail during parsing with that path; they never silently become an
+unconstrained field. A Java map that recursively contains itself is
 rejected for the same reason: the importer has no document-ID or reference-resolution model.
 
 Schema export is metadata-driven and side-effect free. Built-in `Field` providers carry an exact
