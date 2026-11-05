@@ -13,6 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.Generator;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
@@ -39,11 +41,16 @@ import java.time.OffsetTime;
 import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import org.hibernate.validator.HibernateValidator;
+import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -275,6 +282,80 @@ class BeanValidationSupportTest {
     }
 
     @Test
+    @DisplayName(
+            "accepts gives Hibernate Validator's verdict for each date and time type, under a clock finer than a millisecond")
+    void acceptsGivesHibernateValidatorsVerdictUnderAClockFinerThanAMillisecond() throws Exception {
+        // Half a millisecond into a second, so that a value at the clock's millisecond is before its instant.
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00.000500Z"), ZoneId.of("Asia/Tokyo"));
+        Validator hibernate = Validation.byProvider(HibernateValidator.class)
+                .configure()
+                .clockProvider(() -> clock)
+                .messageInterpolator(new ParameterMessageInterpolator())
+                .buildValidatorFactory()
+                .getValidator();
+        Instant now = clock.instant();
+        Instant millisecond = now.truncatedTo(ChronoUnit.MILLIS);
+        LocalDate today = LocalDate.now(clock);
+        LocalDateTime localNow = LocalDateTime.now(clock);
+        OffsetDateTime offsetNow = OffsetDateTime.now(clock);
+        ZonedDateTime zonedNow = ZonedDateTime.now(clock);
+        // The clock's instant at another offset or zone too, which Hibernate Validator compares by local date-time.
+        Map<Class<?>, List<Object>> values = Map.of(
+                InstantBounds.class,
+                List.of(now.minusSeconds(1), millisecond, now, now.plusSeconds(1)),
+                LocalDateBounds.class,
+                List.of(today.minusDays(1), today, today.plusDays(1)),
+                LocalDateTimeBounds.class,
+                List.of(
+                        localNow.minusSeconds(1),
+                        localNow.truncatedTo(ChronoUnit.MILLIS),
+                        localNow,
+                        localNow.plusSeconds(1)),
+                OffsetDateTimeBounds.class,
+                List.of(
+                        offsetNow.minusSeconds(1),
+                        offsetNow.truncatedTo(ChronoUnit.MILLIS),
+                        offsetNow,
+                        offsetNow.withOffsetSameInstant(ZoneOffset.UTC),
+                        offsetNow.plusSeconds(1)),
+                ZonedDateTimeBounds.class,
+                List.of(
+                        zonedNow.minusSeconds(1),
+                        zonedNow.truncatedTo(ChronoUnit.MILLIS),
+                        zonedNow,
+                        zonedNow.withZoneSameInstant(ZoneOffset.UTC),
+                        zonedNow.plusSeconds(1)),
+                CalendarBounds.class,
+                List.of(calendarAt(now.minusSeconds(1)), calendarAt(millisecond), calendarAt(now.plusSeconds(1))),
+                DateBounds.class,
+                List.of(
+                        java.util.Date.from(now.minusSeconds(1)),
+                        java.util.Date.from(millisecond),
+                        java.util.Date.from(now.plusSeconds(1))),
+                SqlDateBounds.class,
+                List.of(
+                        new java.sql.Date(now.minusSeconds(1).toEpochMilli()),
+                        new java.sql.Date(millisecond.toEpochMilli()),
+                        new java.sql.Date(now.plusSeconds(1).toEpochMilli())),
+                TimestampBounds.class,
+                List.of(Timestamp.from(now.minusSeconds(1)), Timestamp.from(now), Timestamp.from(now.plusSeconds(1))));
+
+        for (Map.Entry<Class<?>, List<Object>> type : values.entrySet()) {
+            for (Field field : type.getKey().getDeclaredFields()) {
+                for (Object value : type.getValue()) {
+                    boolean valid = hibernate
+                            .validateValue(type.getKey(), field.getName(), value)
+                            .isEmpty();
+                    assertEquals(
+                            valid,
+                            BeanValidationSupport.accepts(field, field.getType(), value, clock),
+                            type.getKey().getSimpleName() + "." + field.getName() + " " + value);
+                }
+            }
+        }
+    }
+
+    @Test
     @DisplayName("accepts keeps a number within its bounds and a string to its text constraints, and @Null to none")
     void acceptsKeepsANumberWithinItsBoundsAndAStringToItsTextConstraints() throws Exception {
         Clock clock = Clock.systemUTC();
@@ -348,6 +429,123 @@ class BeanValidationSupportTest {
     }
 
     record ComponentSample(@Size(min = 2, max = 2) String code) {}
+
+    static final class InstantBounds {
+
+        @Past Instant past;
+
+        @PastOrPresent Instant pastOrPresent;
+
+        @Future Instant future;
+
+        @FutureOrPresent Instant futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent Instant present;
+    }
+
+    static final class LocalDateBounds {
+
+        @Past LocalDate past;
+
+        @PastOrPresent LocalDate pastOrPresent;
+
+        @Future LocalDate future;
+
+        @FutureOrPresent LocalDate futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent LocalDate present;
+    }
+
+    static final class LocalDateTimeBounds {
+
+        @Past LocalDateTime past;
+
+        @PastOrPresent LocalDateTime pastOrPresent;
+
+        @Future LocalDateTime future;
+
+        @FutureOrPresent LocalDateTime futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent LocalDateTime present;
+    }
+
+    static final class OffsetDateTimeBounds {
+
+        @Past OffsetDateTime past;
+
+        @PastOrPresent OffsetDateTime pastOrPresent;
+
+        @Future OffsetDateTime future;
+
+        @FutureOrPresent OffsetDateTime futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent OffsetDateTime present;
+    }
+
+    static final class ZonedDateTimeBounds {
+
+        @Past ZonedDateTime past;
+
+        @PastOrPresent ZonedDateTime pastOrPresent;
+
+        @Future ZonedDateTime future;
+
+        @FutureOrPresent ZonedDateTime futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent ZonedDateTime present;
+    }
+
+    static final class CalendarBounds {
+
+        @Past Calendar past;
+
+        @PastOrPresent Calendar pastOrPresent;
+
+        @Future Calendar future;
+
+        @FutureOrPresent Calendar futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent Calendar present;
+    }
+
+    static final class DateBounds {
+
+        @Past java.util.Date past;
+
+        @PastOrPresent java.util.Date pastOrPresent;
+
+        @Future java.util.Date future;
+
+        @FutureOrPresent java.util.Date futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent java.util.Date present;
+    }
+
+    static final class SqlDateBounds {
+
+        @Past java.sql.Date past;
+
+        @PastOrPresent java.sql.Date pastOrPresent;
+
+        @Future java.sql.Date future;
+
+        @FutureOrPresent java.sql.Date futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent java.sql.Date present;
+    }
+
+    static final class TimestampBounds {
+
+        @Past Timestamp past;
+
+        @PastOrPresent Timestamp pastOrPresent;
+
+        @Future Timestamp future;
+
+        @FutureOrPresent Timestamp futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent Timestamp present;
+    }
 
     static final class Sample implements InterfaceSizedText {
 
