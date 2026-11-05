@@ -95,6 +95,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   no subclass to generate; register a type override for it`. Both failed as `Kotlin sealed and abstract
   types require a concrete type override`.
 
+### Removed
+
+- Breaking: `krandom-kotlin-dsl` and `krandom-kotest-extensions` now compile in Kotlin's explicit API mode,
+  and the declarations that were public only by Kotlin's default, without being meant as API, are no longer
+  public. `KotlinPrimaryConstructorAdapter`, the construction adapter that `ServiceLoader` finds, is
+  `internal`. The constructors of `KrandomBuilder` and `ConfigScope` are internal, so a builder comes only
+  from `krandom`, `krandomList`, and `krandomGenerator`, and a `ConfigScope` only from `config { }` and
+  `krandomConfig`. `KrandomBuilder`'s empty companion object is private. Every other public declaration of
+  both modules keeps its signature, now with its visibility stated.
+
 ### Fixed
 
 - `@NotEmpty` and `@Size` on an array of a type they cannot constrain no longer fail generation at every

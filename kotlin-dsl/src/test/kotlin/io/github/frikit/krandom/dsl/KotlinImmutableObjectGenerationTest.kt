@@ -185,7 +185,7 @@ data class RequiredCycle(
     val child: RequiredCycle,
 )
 
-data class PrivateConstructorProfile private constructor(
+class PrivateConstructorProfile private constructor(
     val value: String,
 )
 

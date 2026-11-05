@@ -35,7 +35,7 @@ import kotlin.math.nextDown
  * @throws IllegalArgumentException when [config] uses a caller-owned, secure, callback-backed, or
  * custom-registry random source that cannot be converted into a portable seed-owned configuration
  */
-fun <T> krandomArb(
+public fun <T> krandomArb(
     config: GeneratorConfig,
     factory: (GeneratorConfig) -> Generator<T>,
 ): Arb<T> =
@@ -47,7 +47,9 @@ fun <T> krandomArb(
  * Creates a replay-safe Kotest [Arb] for objects by deriving a fresh kRandom configuration from
  * every host [RandomSource] draw, parented by the seed of [config] (`0` when unseeded).
  */
-inline fun <reified T : Any> krandomReplayObjectArb(config: GeneratorConfig = GeneratorConfig.defaults()): Arb<T> =
+public inline fun <reified T : Any> krandomReplayObjectArb(
+    config: GeneratorConfig = GeneratorConfig.defaults(),
+): Arb<T> =
     arbitrary { randomSource ->
         ObjectGenerator(T::class.java, config.forKotestSample(randomSource)).generate()
     }
@@ -61,7 +63,7 @@ inline fun <reified T : Any> krandomReplayObjectArb(config: GeneratorConfig = Ge
  *
  * @throws IllegalArgumentException when [min] is not less than [max]
  */
-fun krandomIntArb(
+public fun krandomIntArb(
     min: Int,
     max: Int,
 ): Arb<Int> {
@@ -83,7 +85,7 @@ fun krandomIntArb(
  *
  * @throws IllegalArgumentException when [min] is not less than [max]
  */
-fun krandomLongArb(
+public fun krandomLongArb(
     min: Long,
     max: Long,
 ): Arb<Long> {
@@ -106,7 +108,7 @@ fun krandomLongArb(
  *
  * @throws IllegalArgumentException when [min] is not less than [max]
  */
-fun krandomDoubleArb(
+public fun krandomDoubleArb(
     min: Double,
     max: Double,
 ): Arb<Double> {
@@ -135,7 +137,7 @@ fun krandomDoubleArb(
  *
  * @throws IllegalArgumentException when [source] is empty
  */
-fun <T : Any> krandomPickArb(source: List<T>): Arb<T> {
+public fun <T : Any> krandomPickArb(source: List<T>): Arb<T> {
     require(source.isNotEmpty()) { "source must not be empty" }
     val elements = source.toList()
     return arbitrary(listOf(elements.first()), PickShrinker(elements)) { randomSource ->
@@ -155,7 +157,7 @@ fun <T : Any> krandomPickArb(source: List<T>): Arb<T> {
  * @throws IllegalArgumentException when [config] cannot be converted into a portable
  * seed-owned configuration
  */
-fun krandomKotestRecipe(config: GeneratorConfig = GeneratorConfig.defaults()): String =
+public fun krandomKotestRecipe(config: GeneratorConfig = GeneratorConfig.defaults()): String =
     config.kotestPortableRecipe().serializeForDiagnostics()
 
 /**
@@ -169,7 +171,7 @@ fun krandomKotestRecipe(config: GeneratorConfig = GeneratorConfig.defaults()): S
  * [GeneratorConfig.snapshotClock] before creating the Arb and pass that same configuration here.
  * This helper cannot recover the clock used earlier by an independently constructed Arb.
  */
-suspend fun <A> checkAllWithRecipe(
+public suspend fun <A> checkAllWithRecipe(
     config: GeneratorConfig,
     arb: Arb<A>,
     property: suspend (A) -> Unit,
@@ -208,7 +210,7 @@ suspend fun <A> checkAllWithRecipe(
  * @throws IllegalArgumentException before sampling when [config] cannot be converted into a
  * portable seed-owned configuration
  */
-suspend fun <A> checkAllWithRecipe(
+public suspend fun <A> checkAllWithRecipe(
     config: GeneratorConfig,
     arbFactory: (GeneratorConfig) -> Arb<A>,
     propTestConfig: PropTestConfig = PropTestConfig(),
