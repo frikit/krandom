@@ -60,13 +60,13 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
-import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.jspecify.annotations.Nullable;
@@ -638,10 +638,8 @@ final class BeanValidationSupport {
         if (rawType == Date.class) return Date.from(instant);
         if (rawType == java.sql.Date.class) return new java.sql.Date(instant.toEpochMilli());
         if (rawType == Timestamp.class) return Timestamp.from(instant);
-        if (rawType == Calendar.class) {
-            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(clock.getZone()));
-            calendar.setTime(Date.from(instant));
-            return calendar;
+        if (rawType == Calendar.class || rawType == GregorianCalendar.class) {
+            return FieldGeneratorResolver.calendarOf(ZonedDateTime.ofInstant(instant, clock.getZone()));
         }
         if (rawType == LocalTime.class) return localTimeFor(future, clock);
         if (rawType == OffsetTime.class)
@@ -667,10 +665,8 @@ final class BeanValidationSupport {
         if (rawType == Date.class) return Date.from(instant);
         if (rawType == java.sql.Date.class) return new java.sql.Date(instant.toEpochMilli());
         if (rawType == Timestamp.class) return Timestamp.from(instant);
-        if (rawType == Calendar.class) {
-            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(clock.getZone()));
-            calendar.setTime(Date.from(instant));
-            return calendar;
+        if (rawType == Calendar.class || rawType == GregorianCalendar.class) {
+            return FieldGeneratorResolver.calendarOf(ZonedDateTime.ofInstant(instant, clock.getZone()));
         }
         if (rawType == LocalTime.class) return LocalTime.now(clock);
         if (rawType == OffsetTime.class) return OffsetTime.now(clock);
@@ -733,6 +729,7 @@ final class BeanValidationSupport {
                 || rawType == java.sql.Date.class
                 || rawType == Timestamp.class
                 || rawType == Calendar.class
+                || rawType == GregorianCalendar.class
                 || rawType == LocalTime.class
                 || rawType == OffsetTime.class
                 || rawType == Year.class

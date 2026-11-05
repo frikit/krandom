@@ -67,9 +67,11 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -115,7 +117,8 @@ import org.jspecify.annotations.Nullable;
  *   <li>Declarative {@link Randomizer} annotation on the field/component</li>
  *   <li>Bean Validation constraint annotation (e.g. {@code @Size}, {@code @Min}, {@code @Max})</li>
  *   <li>Built-in generator for Java primitives / wrappers / {@code String} / JSR-310 types /
- *       {@link UUID} / {@link BigDecimal} / {@link BigInteger}</li>
+ *       legacy {@code Date} and {@link Calendar} types / {@link UUID} / {@link BigDecimal} /
+ *       {@link BigInteger}</li>
  *   <li>Enum: random constant</li>
  *   <li>Array ({@code T[]}): auto-populated with the shared collection-size defaults
  *       (default 1 to 10 elements)</li>
@@ -337,6 +340,8 @@ final class FieldGeneratorResolver {
         // A zone's own offset can have seconds, so an offset date-time keeps only its local date-time.
         Generator<OffsetDateTime> offsetDateTimeGenerator =
                 () -> zonedDateTimeGenerator.generate().toLocalDateTime().atOffset(zoneOffsetGenerator.generate());
+        // A calendar is a zoned date-time from the same generator, so it draws no seed of its own.
+        Generator<GregorianCalendar> calendarGenerator = () -> calendarOf(zonedDateTimeGenerator.generate());
         Generator<java.util.Date> utilDateGenerator = buildUtilDateGenerator(generatorConfig, seedSource, lo, hi);
         Generator<java.sql.Date> sqlDateGenerator = buildSqlDateGenerator(generatorConfig, seedSource, lo, hi);
         Generator<java.sql.Time> sqlTimeGenerator =
@@ -370,11 +375,23 @@ final class FieldGeneratorResolver {
         m.put(java.sql.Date.class, sqlDateGenerator);
         m.put(java.sql.Time.class, sqlTimeGenerator);
         m.put(java.sql.Timestamp.class, sqlTimestampGenerator);
+        m.put(Calendar.class, calendarGenerator);
+        m.put(GregorianCalendar.class, calendarGenerator);
         m.put(UUID.class, uuidGenerator);
         m.put(TimeZone.class, timeZoneGenerator);
         m.put(URI.class, uriGenerator);
         m.put(java.net.URL.class, urlGenerator);
         return Collections.unmodifiableMap(m);
+    }
+
+    /**
+     * A non-lenient Gregorian calendar holding this date-time in its zone, with ISO week rules, as
+     * {@link io.github.frikit.krandom.generator.datetime.CalendarGenerator} gives.
+     */
+    static GregorianCalendar calendarOf(ZonedDateTime value) {
+        GregorianCalendar calendar = GregorianCalendar.from(value);
+        calendar.setLenient(false);
+        return calendar;
     }
 
     private static java.net.URL toUrl(URI uri) {
@@ -915,6 +932,9 @@ final class FieldGeneratorResolver {
         registerTypedSemantic(generators, semanticKey, ZonedDateTime.class, zonedGenerator);
         registerTypedSemantic(generators, semanticKey, OffsetDateTime.class, (Generator<OffsetDateTime>)
                 () -> zonedGenerator.generate().toLocalDateTime().atOffset((ZoneOffset) zoneOffsets.generate()));
+        Generator<GregorianCalendar> calendarGenerator = () -> calendarOf(zonedGenerator.generate());
+        registerTypedSemantic(generators, semanticKey, Calendar.class, calendarGenerator);
+        registerTypedSemantic(generators, semanticKey, GregorianCalendar.class, calendarGenerator);
         registerTypedSemantic(
                 generators,
                 semanticKey,

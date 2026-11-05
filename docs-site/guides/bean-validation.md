@@ -54,8 +54,10 @@ time.
 | `@Size` | `String`, arrays, `Collection` implementations, `Map` implementations | Intersects with `@NotEmpty`/`@NotBlank`; inverted and empty ranges fail. A collection, array, or map takes its [size](#arrays-and-collection-sizes) from `collectionSize` within these bounds. |
 
 Supported temporal targets are `Instant`, `LocalDate`, `LocalDateTime`, `ZonedDateTime`,
-`OffsetDateTime`, `Date`, `java.sql.Date`, `Timestamp`, `Calendar`, `LocalTime`, `OffsetTime`,
-`Year`, `YearMonth`, and `MonthDay`.
+`OffsetDateTime`, `Date`, `java.sql.Date`, `Timestamp`, `Calendar`, `GregorianCalendar`, `LocalTime`,
+`OffsetTime`, `Year`, `YearMonth`, and `MonthDay`. A `Calendar` or `GregorianCalendar` value is a
+non-lenient `GregorianCalendar` with ISO week rules in the configured clock's zone, whatever the JVM's
+default locale.
 
 ## Arrays and collection sizes
 

@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- The object engine now generates `java.util.Calendar` and `GregorianCalendar` members. They failed as
+  unsupported types, although `Generators.ofCalendar()` exists, and a `GregorianCalendar` with `@Past` or
+  another temporal constraint failed too. A member is a non-lenient `GregorianCalendar` with ISO week rules,
+  as from `ofCalendar()`, drawn as a `ZonedDateTime` member is: in a random zone, with `objectDateRange` on
+  its local date, and with the semantic windows of `createdAt`, `updatedAt`, and `birthDate`. The coherence
+  pass aligns it with its sibling and with `age`, as it does a `ZonedDateTime`. A calendar is drawn from the
+  `ZonedDateTime` generator and draws no seed of its own, so seeded output does not change for objects
+  without one.
+
 ### Changed
 
 - Composite generators now give each child generator its own stream by default, under
@@ -38,6 +49,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   no declared maximum, the size is no longer cut at 255, so `@NotEmpty` with `collectionSize(300, 400)` has
   300 to 400 elements. A string's length still follows its declared size alone. Seeded output changes for
   these members.
+- A `Calendar` generated for `@Past`, `@Future`, or another temporal constraint is now a non-lenient
+  `GregorianCalendar` with ISO week rules in the configured clock's zone, as other `Calendar` members are. It
+  came from `Calendar.getInstance` in that zone, so it was lenient and its week rules, and its calendar system,
+  came from the JVM's default locale: a `BuddhistCalendar` under `th_TH`, for example. Its instant is the same.
 
 ### Fixed
 
