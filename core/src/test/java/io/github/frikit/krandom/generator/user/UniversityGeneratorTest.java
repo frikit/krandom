@@ -59,7 +59,14 @@ class UniversityGeneratorTest {
                 .build();
 
         assertThrows(NullPointerException.class, () -> new UniversityGenerator(null));
-        assertThrows(UnsupportedOperationException.class, () -> new UniversityGenerator(missing));
+        UnsupportedOperationException refusal =
+                assertThrows(UnsupportedOperationException.class, () -> new UniversityGenerator(missing));
+        assertEquals(
+                "Locale en_US has no university data, and kRandom ships none. Load a local data pack with"
+                        + " LocalDataPack.load(directory), register it with"
+                        + " DataRegistryContext.builder().registerDataPack(pack), and pass that context to"
+                        + " GeneratorConfig.Builder.registryContext(context). Registered locales: []",
+                refusal.getMessage());
         assertFalse(DataRegistryContext.globalDefault().isRegistered(Vocabulary.UNIVERSITY, Locale.US));
         assertTrue(DataRegistryContext.globalDefault()
                 .registeredKeys(Vocabulary.UNIVERSITY)

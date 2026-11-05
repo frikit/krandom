@@ -83,13 +83,27 @@ class BeanValidationSupportTest {
     void numericAndSizeVariants() throws Exception {
         assertNull(BeanValidationSupport.constraintGeneratorFor(null, String.class));
         assertEquals(4, BeanValidationSupport.sizeFor(null, new Random(1L), 4, 4));
-        assertEquals(0, BeanValidationSupport.sizeFor(field("emptyText"), new Random(1L), 1, 10));
+        assertEquals(
+                0,
+                BeanValidationSupport.sizeFor(
+                        BeanValidationSupport.sizeRangeFor(field("emptyText")), new Random(1L), 1, 10));
 
         String empty = (String) generatorFor("emptyText", String.class).generate();
         assertEquals("", empty);
 
-        int cappedSize = BeanValidationSupport.sizeFor(field("unboundedText"), new Random(1L), 1, 10);
-        assertTrue(cappedSize >= 1 && cappedSize <= 255);
+        BeanValidationSupport.SizeRange unbounded = BeanValidationSupport.sizeRangeFor(field("unboundedText"));
+        assertEquals(new BeanValidationSupport.SizeRange(1, Integer.MAX_VALUE), unbounded);
+        int unboundedSize = BeanValidationSupport.sizeFor(unbounded, new Random(1L), 1, 10);
+        assertTrue(unboundedSize >= 1 && unboundedSize <= 10);
+        assertEquals(
+                new BeanValidationSupport.SizeRange(1, 255),
+                BeanValidationSupport.constraintModelFor(field("unboundedText"), String.class)
+                        .text()
+                        .size());
+        assertEquals(
+                new BeanValidationSupport.SizeRange(300, 300),
+                new BeanValidationSupport.SizeRange(300, Integer.MAX_VALUE).forText());
+        assertEquals(new BeanValidationSupport.SizeRange(2, 4), new BeanValidationSupport.SizeRange(2, 4).forText());
 
         String numericText = (String) generatorFor("numericText", String.class).generate();
         assertTrue(Long.parseLong(numericText) >= 5L && Long.parseLong(numericText) <= 7L);

@@ -49,16 +49,24 @@ import org.objenesis.ObjenesisStd;
  *   <li><b>Records</b> — all components are populated and the canonical constructor is invoked.</li>
  *   <li><b>Plain classes</b> — constructors are invoked by default. A no-arg constructor is
  *       preferred; otherwise one unambiguous declared constructor is populated through the same
- *       resolver used for fields. Objenesis bypass is available only through {@link
+ *       resolver used for fields. With compiled parameter names, an argument meets the Bean
+ *       Validation constraints of its parameter and of the field it initializes, the nearest field
+ *       with the parameter's name and declared type, so a constraint on a final field reaches the
+ *       value that fills it. Objenesis bypass is available only through {@link
  *       ObjectConstructionPolicy#UNSAFE_CONSTRUCTOR_BYPASS}.</li>
  *   <li><b>Nested objects</b> — resolved recursively up to the configured object max depth. A member
  *       past that depth is left {@code null}, unless it is required (for example {@code @NotNull}),
- *       which fails generation with the member's path.</li>
+ *       which fails generation with the member's path. A container that cannot hold that
+ *       {@code null}, such as a {@code Queue}, fails as a rejected insertion at its own path.</li>
  *   <li><b>Enum fields</b> — a random constant is selected.</li>
  *   <li><b>Arrays</b> — auto-populated using the shared collection-size defaults
- *       (default 1 to 10 elements).</li>
+ *       (default 1 to 10 elements). A {@code @Size} or {@code @NotEmpty} written before an array
+ *       type constrains the array, not its elements, as Bean Validation reads it.</li>
  *   <li><b>Collections ({@code List}, {@code Set}, {@code Map})</b> — auto-populated using the
  *       shared collection-size defaults and the declared generic type.</li>
+ *   <li><b>Constrained sizes</b> — a collection, array, or map with {@code @Size} or
+ *       {@code @NotEmpty} takes the configured collection size within the declared bounds, or the
+ *       declared bound nearest it where the two do not overlap.</li>
  *   <li><b>Circular references</b> — detected via an {@link ObjectPool} and broken by
  *       returning a previously cached instance (or {@code null}) instead of recursing.</li>
  * </ul>

@@ -55,7 +55,8 @@ class GenerationRecipeTest {
             "national-id.safety-policy",
             "identity-document.safety-policy",
             "email.domain-policy",
-            "network.safety-policy");
+            "network.safety-policy",
+            "child-stream-policy");
 
     @Test
     @DisplayName("serializes a stable human-readable recipe and parses it exactly")
@@ -173,7 +174,8 @@ class GenerationRecipeTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("requiredSettings")
-    @DisplayName("replay requires every safety and email policy setting, and both sets of unique fields")
+    @DisplayName(
+            "replay requires every safety and email policy setting, the child-stream policy, and both sets of unique fields")
     void replayRequiresSetting(String setting) {
         String complete = GeneratorConfig.builder()
                 .seed(42L)
@@ -205,6 +207,7 @@ class GenerationRecipeTest {
         assertEquals(defaults.getObjectDateMin(), replay.getObjectDateMin());
         assertEquals(defaults.getPaymentCardSafetyPolicy(), replay.getPaymentCardSafetyPolicy());
         assertEquals(defaults.getEmailDomainPolicy(), replay.getEmailDomainPolicy());
+        assertEquals(defaults.getChildStreamPolicy(), replay.getChildStreamPolicy());
     }
 
     @Test

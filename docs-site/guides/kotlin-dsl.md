@@ -198,5 +198,5 @@ val users = krandomList<User>(5) {
 }
 ```
 
-The Kotlin option uses the same core policy as Java. Existing configurations remain LEGACY. For direct configuration
+The Kotlin option uses the same core policy as Java. Object-field streams stay LEGACY unless you select INDEPENDENT. For direct configuration
 consumers, `krandomConfig { seed(42L) }.snapshotClock()` captures an explicit replay clock.

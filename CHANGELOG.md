@@ -6,6 +6,93 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- The object engine now generates `java.util.Calendar` and `GregorianCalendar` members. They failed as
+  unsupported types, although `Generators.ofCalendar()` exists, and a `GregorianCalendar` with `@Past` or
+  another temporal constraint failed too. A member is a non-lenient `GregorianCalendar` with ISO week rules,
+  as from `ofCalendar()`, drawn as a `ZonedDateTime` member is: in a random zone, with `objectDateRange` on
+  its local date, and with the semantic windows of `createdAt`, `updatedAt`, and `birthDate`. The coherence
+  pass aligns it with its sibling and with `age`, as it does a `ZonedDateTime`. A calendar is drawn from the
+  `ZonedDateTime` generator and draws no seed of its own, so seeded output does not change for objects
+  without one.
+
+### Changed
+
+- Composite generators now give each child generator its own stream by default, under
+  `ChildStreamPolicy.INDEPENDENT`, which was an opt-in since 2.6.0. With a numeric or textual seed, a
+  child's seed is derived from the parent seed and the child's name, so siblings no longer start in the
+  same state: the payment, invoice, and order numbers of a `PaymentInfo` seeded with `42` were
+  `PAY-359D41BAF78A`, `INV-359D41BAF78A`, and `ORD-359D41BAF78A`, and are now `PAY-7DC1F9C37F29`,
+  `INV-F852387C7D39`, and `ORD-B9D4F25FCB19`. Seeded output changes for every generator with children,
+  such as `FullNameGenerator`, `MiddleNameGenerator`, `EmailGenerator`, `UsernameGenerator`,
+  `WordGenerator`, `SentenceGenerator`, `URLGenerator`, `HostnameGenerator`, `OffsetDateTimeGenerator`,
+  `PersonInfoGenerator`, and `PaymentInfoGenerator`, and for the values built on them, such as
+  `Krandom.fullName()`, `middleName()`, and `email()`, object members such as `fullName`, `email`,
+  `username`, and `streetAddress`, and schema columns such as `person.full_name` and `person.email`. The
+  Spring starter, the JUnit and Kotest extensions, and the Kotlin DSL take the new default.
+  `ChildStreamPolicy.LEGACY` restores the earlier output draw for draw, so the network values of
+  releases before 2.10.0 now take it together with `NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED`.
+  `INDEPENDENT` no longer requires a seed: an unseeded configuration has nothing to derive from, so
+  `forChildStream` returns it unchanged and each child draws from its own fresh `Random` or
+  `SecureRandom`, as before. A caller-owned `Random` is still shared by every child, and a random
+  factory is still called once for each child. Under `INDEPENDENT`, `forChildStream` rejects a blank
+  or multi-line stream name with or without a seed, which the earlier default accepted.
+- A recipe now records the child-stream policy in the setting `child-stream-policy`, whichever policy it
+  is, and replay requires it, so a recipe without it, such as one written under the earlier `LEGACY`
+  default, is rejected rather than replayed with independent streams.
+- A collection, array, or map with `@Size` or `@NotEmpty` now takes its size from `collectionSize` within
+  the declared bounds, or from the declared bound nearest it where the two do not overlap. The declared
+  bounds alone used to set the size, so `@NotEmpty List<String>` had 1 to 255 elements whatever
+  `collectionSize` said, and `@Size(max = 100)` 0 to 100. Under the default `collectionSize(1, 10)` they
+  now have 1 to 10, `@Size(min = 20)` has 20, and `@Size(max = 2)` with `collectionSize(4, 6)` has 2. With
+  no declared maximum, the size is no longer cut at 255, so `@NotEmpty` with `collectionSize(300, 400)` has
+  300 to 400 elements. A string's length still follows its declared size alone. Seeded output changes for
+  these members.
+- A `Calendar` generated for `@Past`, `@Future`, or another temporal constraint is now a non-lenient
+  `GregorianCalendar` with ISO week rules in the configured clock's zone, as other `Calendar` members are. It
+  came from `Calendar.getInstance` in that zone, so it was lenient and its week rules, and its calendar system,
+  came from the JVM's default locale: a `BuddhistCalendar` under `th_TH`, for example. Its instant is the same.
+- `Generators.ofUniversity`, `UniversityGenerator`, and `Generators.person(config).university()` now name the
+  data-pack route when they refuse a configuration. kRandom still ships no university data, because no
+  university dataset it could bundle has an acceptable source and licence, so they refuse in every locale
+  until a pack is registered. The message said only that the locale had no local university data pack, and
+  now reads `Locale en_US has no university data, and kRandom ships none. Load a local data pack with
+  LocalDataPack.load(directory), register it with DataRegistryContext.builder().registerDataPack(pack), and
+  pass that context to GeneratorConfig.Builder.registryContext(context). Registered locales: []`.
+
+### Fixed
+
+- `@NotEmpty` and `@Size` on an array of a type they cannot constrain no longer fail generation at every
+  depth, as `@NotEmpty Leaf[]`, `@Size(max = 4) byte[]` and `@NotEmpty int[]` did. Java places an
+  annotation written before an array type on the array's component type as well as on the declaration,
+  and the engine applied it to each element too. Hibernate Validator reads such a constraint for the
+  array alone, and now so does the engine: an array's component type adds no constraints to its
+  elements. So `@Size(min = 6, max = 6) String[] codes` holds six strings of the configured length,
+  where each used to have six characters. A constraint on a type argument inside the component, as in
+  `List<@Email String>[]`, still applies. Seeded output changes for such arrays.
+- A `Queue<Leaf>` cut at `objectMaxDepth` no longer fails with a raw `NullPointerException`, reported at
+  its parent's path as `Could not generate nested value at 'Top.mid'` with `REFLECTION` context. A queue
+  cannot hold the `null` left for a cut nested object, so it now fails as any collection that rejects an
+  element does: strict mode reports `COLLECTION_INSERTION` context at the queue's own path, such as
+  `Top.mid.queue`, and `objectIgnoreErrors(true)` discards the whole queue and tells
+  `generationFailureListener`. The same holds for a `Deque`, a `PriorityQueue`, and a `TreeSet`,
+  `SortedSet` or `NavigableSet` of `Comparable` elements, and for an element cut by a cycle. A concrete
+  queue, such as `ArrayDeque<Leaf>`, used to drop the `null` elements and could come back empty, and now
+  fails the same way. A `LinkedList` is a list, and still holds them.
+
+- A Bean Validation constraint on a field now applies to the constructor argument that fills it. An
+  argument read only the constraints on its parameter, so `@Size(min = 3, max = 3) private final String
+  code` filled through an unannotated `Account(String code)` got any string, and `@NotNull` on such a final
+  field did not fail at `objectMaxDepth`. An argument now meets the constraints of the field it
+  initializes, the nearest field with the parameter's name and declared type, and of that field's getter,
+  wherever the parameter declares none of the same type, and the field's container-element constraints,
+  such as `List<@Email String>`, wherever the parameter's type arguments declare none. As for by-name
+  overrides, this needs parameter names, from `-parameters`. A mutable field that keeps the value its
+  constructor set, as it does by default, now keeps a constrained one too. Record components already read
+  their constraints. Seeded output changes for such arguments, and for the members after them where members
+  share one stream.
+
 ## [2.10.0] - 2026-11-02
 
 ### Added

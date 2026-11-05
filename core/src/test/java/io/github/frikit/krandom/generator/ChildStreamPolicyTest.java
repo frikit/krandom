@@ -55,11 +55,19 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @DisplayName("Composite child-stream policy")
 class ChildStreamPolicyTest {
@@ -68,7 +76,7 @@ class ChildStreamPolicyTest {
 
     /**
      * Fingerprints of the first three values of every composite generator, captured from the
-     * legacy implementation before child streams became configurable. The default policy must keep
+     * legacy implementation before child streams became configurable. The legacy policy must keep
      * them byte-identical. The {@code profile} and {@code simpleProfile} birthdays used to follow the
      * system clock, so their fingerprints were recaptured once birthdays followed the configured
      * clock.
@@ -110,10 +118,68 @@ class ChildStreamPolicyTest {
             Map.entry("creditCardInfo", "52c3d45de401c08fda0f4393"),
             Map.entry("priceTag", "a65eeb3bbeb6f0315a0add90"));
 
+    /**
+     * The same fingerprints under the default independent policy, captured from the opt-in
+     * {@link ChildStreamPolicy#INDEPENDENT} policy of 2.10.0, before it became the default. The
+     * {@code commerce} and {@code streetAddress} entries equal their legacy fingerprints because
+     * those {@code generate()} methods only use the parent's own stream.
+     */
+    private static final Map<String, String> INDEPENDENT_FINGERPRINTS = Map.ofEntries(
+            Map.entry("sentence", "ef455c60ad7bd1c55e42c413"),
+            Map.entry("word", "a947c592410a2cd4721ce768"),
+            Map.entry("paragraph", "729efacb53f219cd2e44928b"),
+            Map.entry("offsetDateTime", "c6bf5ecd053c16335541ea34"),
+            Map.entry("url", "945da45b66cfe8ec36823c70"),
+            Map.entry("uri", "d6f3ceb244a25781a90ab489"),
+            Map.entry("hostname", "140af7f858e34fa1674516f8"),
+            Map.entry("companyEmail", "298d21c091a492eda9706aa6"),
+            Map.entry("fullName", "f50583b2b93d58ed6df426f5"),
+            Map.entry("fullNameWithMiddle", "591bbcbf4c604b4e4e400ce7"),
+            Map.entry("fullNameWithInitial", "1e04e611f22ed005f149ef0d"),
+            Map.entry("avatarUrl", "2821714eeab54a71be97163d"),
+            Map.entry("username", "400f9408368e35a7aecf65a7"),
+            Map.entry("socialProfile", "10d757591832cff3040a753b"),
+            Map.entry("middleName", "9ea3d7c9b397f2429bd6499b"),
+            Map.entry("addressInfo", "42b0e66e7bf030189a471803"),
+            Map.entry("commerce", "17ce302ae4e7a1fb4764c2b5"),
+            Map.entry("email", "26b800511dedab89fbf82b61"),
+            Map.entry("emailCompany", "407b6d86ab579497bcdb5fc8"),
+            Map.entry("orderInfo", "b8adef71987d76dcc3c5652a"),
+            Map.entry("contactInfo", "045743f457119e34ef0a942d"),
+            Map.entry("streetAddress", "1ec7f4fed1d423cc422b036d"),
+            Map.entry("personInfo", "f94e80bd9aa838d5a63ff4c0"),
+            Map.entry("shipmentInfo", "ca97f679dba637bd787e16c7"),
+            Map.entry("profile", "096b055db978525e5667f352"),
+            Map.entry("filePath", "27bbf3aa053cd6477449445a"),
+            Map.entry("productInfo", "f9cd8efdbe56839b0167edda"),
+            Map.entry("jobInfo", "8e65091f58b496238fafc2a5"),
+            Map.entry("invoiceInfo", "045c5b745367ca7ad786ae0f"),
+            Map.entry("companyInfo", "dea708123bc9a541da8fbf21"),
+            Map.entry("simpleProfile", "566f7de990aee65e5b44db91"),
+            Map.entry("bankInfo", "79da71fb019e2d16c55c379a"),
+            Map.entry("paymentInfo", "985e5b8bce2a7d2e9390226f"),
+            Map.entry("creditCardInfo", "c9a336712de7a0bbbabae13a"),
+            Map.entry("priceTag", "7110291b27f59b27c3c81c20"));
+
     @Test
-    @DisplayName("the default legacy policy keeps every composite's seeded output unchanged")
-    void legacyPolicyKeepsSeededCompositeOutput() {
+    @DisplayName("independent child streams are the default and keep their seeded output")
+    void independentPolicyIsTheDefault() {
         GeneratorConfig config = baseConfig().build();
+
+        assertEquals(ChildStreamPolicy.INDEPENDENT, config.getChildStreamPolicy());
+        assertEquals(ChildStreamPolicy.INDEPENDENT, GeneratorConfig.defaults().getChildStreamPolicy());
+        assertEquals(INDEPENDENT_FINGERPRINTS, fingerprints(config));
+        assertEquals(
+                INDEPENDENT_FINGERPRINTS,
+                fingerprints(baseConfig()
+                        .childStreamPolicy(ChildStreamPolicy.INDEPENDENT)
+                        .build()));
+    }
+
+    @Test
+    @DisplayName("the legacy policy keeps every composite's earlier seeded output")
+    void legacyPolicyKeepsSeededCompositeOutput() {
+        GeneratorConfig config = legacyConfig();
 
         assertEquals(ChildStreamPolicy.LEGACY, config.getChildStreamPolicy());
         assertEquals(LEGACY_FINGERPRINTS, fingerprints(config));
@@ -122,25 +188,27 @@ class ChildStreamPolicyTest {
     @Test
     @DisplayName("legacy children of a seeded composite start in the same state")
     void legacyChildrenShareOneStartingState() {
-        PaymentInfo payment = new PaymentInfoGenerator(baseConfig().build()).generate();
+        PaymentInfo payment = new PaymentInfoGenerator(legacyConfig()).generate();
 
+        assertEquals("PAY-359D41BAF78A", payment.paymentNumber());
         assertEquals(suffix(payment.paymentNumber()), suffix(payment.invoiceNumber()));
         assertEquals(suffix(payment.paymentNumber()), suffix(payment.orderNumber()));
     }
 
     @Test
-    @DisplayName("independent child streams decorrelate siblings and stay reproducible")
-    void independentPolicyGivesChildrenIndependentStreams() {
-        GeneratorConfig config =
-                baseConfig().childStreamPolicy(ChildStreamPolicy.INDEPENDENT).build();
+    @DisplayName("default child streams decorrelate siblings and stay reproducible")
+    void defaultPolicyGivesChildrenIndependentStreams() {
+        GeneratorConfig config = baseConfig().build();
         PaymentInfo payment = new PaymentInfoGenerator(config).generate();
 
+        assertEquals("PAY-7DC1F9C37F29", payment.paymentNumber());
+        assertEquals("INV-F852387C7D39", payment.invoiceNumber());
+        assertEquals("ORD-B9D4F25FCB19", payment.orderNumber());
         assertNotEquals(suffix(payment.paymentNumber()), suffix(payment.invoiceNumber()));
         assertNotEquals(suffix(payment.paymentNumber()), suffix(payment.orderNumber()));
         assertNotEquals(suffix(payment.invoiceNumber()), suffix(payment.orderNumber()));
         assertEquals(payment, new PaymentInfoGenerator(config).generate());
-        assertEquals(fingerprints(config), fingerprints(config));
-        Map<String, String> legacy = fingerprints(baseConfig().build());
+        Map<String, String> legacy = fingerprints(legacyConfig());
         Map<String, String> independent = fingerprints(config);
         for (String composite : legacy.keySet()) {
             if (!"commerce".equals(composite) && !"streetAddress".equals(composite)) {
@@ -151,18 +219,17 @@ class ChildStreamPolicyTest {
         assertEquals(legacy.get("commerce"), independent.get("commerce"));
         assertEquals(legacy.get("streetAddress"), independent.get("streetAddress"));
         assertNotEquals(
-                new CommerceGenerator(baseConfig().build()).generateUpc(), new CommerceGenerator(config).generateUpc());
+                new CommerceGenerator(legacyConfig()).generateUpc(), new CommerceGenerator(config).generateUpc());
         assertNotEquals(
-                new StreetAddressGenerator(baseConfig().build()).generateFullAddress(),
+                new StreetAddressGenerator(legacyConfig()).generateFullAddress(),
                 new StreetAddressGenerator(config).generateFullAddress());
     }
 
     @Test
-    @DisplayName("independent ISBN generators and nationality names use their own named streams")
+    @DisplayName("default ISBN generators and nationality names use their own named streams")
     void independentIsbnAndNationalityNamesUseNamedStreams() {
-        GeneratorConfig legacy = baseConfig().build();
-        GeneratorConfig independent =
-                baseConfig().childStreamPolicy(ChildStreamPolicy.INDEPENDENT).build();
+        GeneratorConfig legacy = legacyConfig();
+        GeneratorConfig independent = baseConfig().build();
         CommerceGenerator commerce = new CommerceGenerator(independent);
 
         assertEquals(
@@ -192,13 +259,11 @@ class ChildStreamPolicyTest {
     }
 
     @Test
-    @DisplayName("child configurations derive named seeds only under the independent policy")
+    @DisplayName("seeded child configurations derive named seeds under the default policy only")
     void childConfigurationsDeriveNamedSeeds() {
-        GeneratorConfig legacy = baseConfig().build();
-        GeneratorConfig independent = GeneratorConfig.builder()
-                .seed("child-streams")
-                .childStreamPolicy(ChildStreamPolicy.INDEPENDENT)
-                .build();
+        GeneratorConfig legacy = legacyConfig();
+        GeneratorConfig independent =
+                GeneratorConfig.builder().seed("child-streams").build();
 
         assertSame(legacy, legacy.forChildStream("invoice"));
         GeneratorConfig invoice = independent.forChildStream("invoice");
@@ -213,28 +278,95 @@ class ChildStreamPolicyTest {
         assertThrows(NullPointerException.class, () -> independent.forChildStream(null));
     }
 
+    static Stream<Arguments> unseededConfigurations() {
+        return Stream.of(
+                Arguments.of(Named.of("default source", GeneratorConfig.defaults())),
+                Arguments.of(Named.of(
+                        "secure random",
+                        GeneratorConfig.builder().secureRandom().build())),
+                Arguments.of(Named.of(
+                        "caller-owned random",
+                        GeneratorConfig.builder().random(new Random(7L)).build())),
+                Arguments.of(Named.of(
+                        "random factory",
+                        GeneratorConfig.builder().randomFactory(Random::new).build())));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("unseededConfigurations")
+    @DisplayName("an unseeded configuration builds under the default policy and passes itself to every child")
+    void unseededConfigurationsPassThemselvesToChildren(GeneratorConfig config) {
+        assertEquals(ChildStreamPolicy.INDEPENDENT, config.getChildStreamPolicy());
+        assertTrue(config.getSeed().isEmpty());
+        assertSame(config, config.forChildStream("invoice"));
+        for (String name : new String[] {" ", "two\nlines", "two\rlines"}) {
+            IllegalArgumentException error =
+                    assertThrows(IllegalArgumentException.class, () -> config.forChildStream(name));
+            assertEquals("streamIdentity must be a non-blank single-line value", error.getMessage());
+        }
+        assertThrows(NullPointerException.class, () -> config.forChildStream(null));
+    }
+
     @Test
-    @DisplayName("independent child streams require a seed and are recorded in the recipe")
-    void independentPolicyIsSeededAndRecorded() {
-        assertThrows(
-                IllegalStateException.class,
-                () -> GeneratorConfig.builder()
-                        .childStreamPolicy(ChildStreamPolicy.INDEPENDENT)
-                        .build());
+    @DisplayName("unseeded children draw from their own sources, and caller-owned randomness is never reseeded")
+    void unseededChildrenDrawFromTheirOwnSources() {
+        Random shared = new Random(7L);
+        GeneratorConfig owned = GeneratorConfig.builder().random(shared).build();
+        for (GeneratorConfig config : List.of(
+                GeneratorConfig.defaults(),
+                GeneratorConfig.builder().secureRandom().build(),
+                owned)) {
+            PaymentInfo payment = new PaymentInfoGenerator(config).generate();
+
+            assertNotEquals(suffix(payment.paymentNumber()), suffix(payment.invoiceNumber()));
+            assertNotEquals(suffix(payment.paymentNumber()), suffix(payment.orderNumber()));
+            assertNotEquals(suffix(payment.invoiceNumber()), suffix(payment.orderNumber()));
+        }
+        assertSame(shared, owned.forChildStream("invoice").createRandom());
+
+        AtomicInteger calls = new AtomicInteger();
+        GeneratorConfig repeating = GeneratorConfig.builder()
+                .randomFactory(() -> {
+                    calls.incrementAndGet();
+                    return new Random(7L);
+                })
+                .build();
+        repeating.forChildStream("invoice");
+        assertEquals(0, calls.get(), "forChildStream must not call the factory");
+        PaymentInfo payment = new PaymentInfoGenerator(repeating).generate();
+        assertTrue(calls.get() > 1, "every child calls the factory");
+        // A factory that repeats one seed repeats it in every child: its sources are used as they are.
+        assertEquals(suffix(payment.paymentNumber()), suffix(payment.invoiceNumber()));
+        assertEquals(suffix(payment.paymentNumber()), suffix(payment.orderNumber()));
+    }
+
+    @Test
+    @DisplayName("a recipe records either policy, and replay restores it and its values")
+    void recipesRecordAndReplayEitherPolicy() {
         assertThrows(NullPointerException.class, () -> GeneratorConfig.builder().childStreamPolicy(null));
+        for (ChildStreamPolicy policy : ChildStreamPolicy.values()) {
+            GeneratorConfig config = baseConfig().childStreamPolicy(policy).build();
+            GenerationRecipe recipe = config.getGenerationRecipe().orElseThrow();
+            GeneratorConfig replayed =
+                    GenerationRecipe.parse(recipe.serialize()).toGeneratorConfig();
 
-        GeneratorConfig independent =
-                baseConfig().childStreamPolicy(ChildStreamPolicy.INDEPENDENT).build();
-        GenerationRecipe recipe = independent.getGenerationRecipe().orElseThrow();
-        GeneratorConfig replayed = GenerationRecipe.parse(recipe.serialize()).toGeneratorConfig();
+            assertEquals(policy.name(), recipe.getSettings().get("child-stream-policy"));
+            assertEquals(policy, replayed.getChildStreamPolicy());
+            assertEquals(policy, config.toBuilder().build().getChildStreamPolicy());
+            assertEquals(fingerprints(config), fingerprints(replayed));
+        }
+    }
 
-        assertEquals("INDEPENDENT", recipe.getSettings().get("child-stream-policy"));
-        assertEquals(ChildStreamPolicy.INDEPENDENT, replayed.getChildStreamPolicy());
-        assertEquals(
-                ChildStreamPolicy.INDEPENDENT, independent.toBuilder().build().getChildStreamPolicy());
-        assertEquals(new PaymentInfoGenerator(independent).generate(), new PaymentInfoGenerator(replayed).generate());
-        assertTrue(baseConfig().build().getGenerationRecipe().orElseThrow().getSettings().keySet().stream()
-                .noneMatch("child-stream-policy"::equals));
+    @Test
+    @DisplayName("a recipe written under the earlier legacy default, without the policy setting, is rejected")
+    void recipeWithoutThePolicyIsRejected() {
+        String recorded = legacyConfig().getGenerationRecipe().orElseThrow().serialize();
+        String earlier = recorded.replace("setting.child-stream-policy=LEGACY\n", "");
+        GenerationRecipe recipe = GenerationRecipe.parse(earlier);
+
+        assertNotEquals(recorded, earlier);
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class, recipe::toGeneratorConfig);
+        assertEquals("Recipe requires setting: child-stream-policy", error.getMessage());
     }
 
     private static GeneratorConfig.Builder baseConfig() {
@@ -243,6 +375,10 @@ class ChildStreamPolicyTest {
                 .seed(42L)
                 .clock(FIXED_CLOCK)
                 .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED);
+    }
+
+    private static GeneratorConfig legacyConfig() {
+        return baseConfig().childStreamPolicy(ChildStreamPolicy.LEGACY).build();
     }
 
     private static Map<String, String> fingerprints(GeneratorConfig config) {

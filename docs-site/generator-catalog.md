@@ -54,7 +54,8 @@ Drawn UTC offsets run from `-12:00` to `+14:00` in 15-minute steps; see the
   `ofGeohash`
 - `ofCompanyEmail`, `ofCompanyInfo`, `ofJobInfo`, `ofPersonInfo`, `ofSocialHandle`,
   `ofSocialProfile`
-- `ofUniversity` for configuration-scoped verified local data packs
+- `ofUniversity` for configuration-scoped verified local data packs; kRandom ships no university
+  data, so it needs a [local data pack]({{ '/guides/local-data-packs/' | relative_url }})
 - `ofProfession`, `ofIndustry`, `ofJobField`, `ofJobType`, `ofSeniority`,
   `ofPosition`, `ofEducationalAttainment`, `ofMaritalStatus`, `ofBloodType`,
   `ofPronoun`, `ofNationality`

@@ -122,7 +122,10 @@ class KrandomTest {
     @Test
     @DisplayName("each kind draws from its own derived stream, even under the legacy child-stream policy")
     void kindsUseDerivedStreamsUnderLegacyPolicy() {
-        GeneratorConfig legacy = GeneratorConfig.builder().seed(42L).build();
+        GeneratorConfig legacy = GeneratorConfig.builder()
+                .seed(42L)
+                .childStreamPolicy(ChildStreamPolicy.LEGACY)
+                .build();
         Krandom fake = Krandom.of(legacy);
 
         assertEquals(ChildStreamPolicy.LEGACY, legacy.getChildStreamPolicy());
