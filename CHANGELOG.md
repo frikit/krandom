@@ -47,6 +47,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - An `items` that is not a schema, a boolean, or a list of them, such as `"string"`, and an
     `additionalItems` beside a list that is not a schema or a boolean, are now rejected with the schema
     path. They used to leave the items unconstrained.
+- `SchemaParser` supports `minProperties`, `maxProperties`, and property `dependencies`, which it used to
+  accept and ignore, and honours `required` and `additionalProperties`, which it read only as document
+  controls, so a generated object could break any of them. Seeded output changes only for a nested
+  object that these keywords now change, and for one with a property schema `true`.
+  - A nested object still holds every property it declares unless a keyword asks otherwise.
+    `maxProperties` leaves out optional properties, chosen at random, until the object fits, and
+    `minProperties` adds as few additional properties as it needs, named `property1`, `property2`, and
+    so on, past every name the schema uses, with values from the `additionalProperties` schema, or
+    strings without one. A `required` property that is not in `properties` is generated the same way,
+    and its name chooses a realistic value where it can. Where `additionalProperties` is `false`, none
+    can be added, so such a schema is rejected with its path.
+  - A property schema `true` now generates a string, as `{}` does, where the property used to be left
+    out, and `false` leaves the property out. A `required` property whose schema is `false`, or is no
+    schema, is rejected with the schema path.
+  - A property dependency, such as `"dependencies": {"card": ["billing"]}`, brings the properties it
+    names, through every link, beside the property that needs them. A property whose dependencies cannot
+    be generated, because they are not in `properties` and `additionalProperties` is `false`, is left
+    out, and rejected if it is required. `maxProperties` leaves out a property only after every property
+    that depends on it, and properties that depend on each other only together; where
+    `additionalProperties` is `false`, `minProperties` and `maxProperties` must then leave a range as wide
+    as each such group, or the schema is rejected.
+  - A schema dependency, which asks an object that holds one property to meet a second schema too,
+    needs schema composition, which the parser does not have, as for `allOf`. It is now rejected with its
+    schema path, such as `$.properties.order.dependencies.card`, where it used to be ignored.
+    `dependencies` is the form of the drafts up to 7, read whatever `$schema` says, and
+    `dependentRequired` and `dependentSchemas`, the Draft 2019-09 forms, are still rejected.
+  - The root generates every property as a column, so a root `required` name or property dependency that
+    names another property, or a `minProperties` or `maxProperties` that its properties do not meet, is
+    now rejected at `$`.
+  - A `const` or `enum` object must meet `required`, `additionalProperties`, `minProperties`,
+    `maxProperties`, and the property dependencies.
+  - A `minProperties` or `maxProperties` that is not a whole number of at least 0, a `required` that is
+    not a list of names, an `additionalProperties` that is not a schema or a boolean, and a
+    `dependencies` that does not map names to lists of names, are rejected with the schema path. An
+    `additionalProperties` schema is checked and resolved like any other, so a `$ref` inside it, or a
+    combination that leaves it no value, is now rejected.
 
 ### Changed
 
