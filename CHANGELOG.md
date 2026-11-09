@@ -71,14 +71,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   permits them. The classes are each permitted subclass that is concrete, a record, or an enum, which gives
   one of its constants, and the classes of each abstract sealed subclass, at any depth. A class already being
   generated on the member's path is left out while another remains, so a recursive hierarchy such as an
-  expression tree ends in a leaf. A type override or `objectSubtype` mapping for the sealed type wins, one for
-  an abstract subclass makes that subclass a choice, and an abstract subclass with neither fails generation as
-  an unsupported type that names it, whatever the seed. A sealed root is generated from its seed as a root of
-  the chosen class would be, except that the chosen class counts as being generated, so its members leave it
-  out of their choices while another class remains. A concrete sealed class is still generated as itself. A
-  construction adapter can declare a type sealed and list its subclasses through the new default method
-  `ObjectConstructionAdapter.sealedSubclasses`. The choice draws only for sealed members, so seeded output
-  does not change for objects without one.
+  expression tree ends in a leaf, and the chosen class counts as being generated as its own type, so a member
+  of that type inside it is cut as a cycle. A type override or `objectSubtype` mapping for the sealed type
+  wins, one for an abstract subclass makes that subclass a choice, and an abstract subclass with neither fails
+  generation as an unsupported type that names it, whatever the seed. A sealed root is generated from its seed
+  as a root of the chosen class would be, except that the chosen class counts as being generated, so its
+  members leave it out of their choices while another class remains. A concrete sealed class is still
+  generated as itself. A construction adapter can declare a type sealed and list its subclasses through the
+  new default method `ObjectConstructionAdapter.sealedSubclasses`. The choice draws only for sealed members,
+  so seeded output does not change for objects without one.
 - The Kotlin DSL generates Kotlin sealed classes and interfaces in the same way, reading their subclasses
   from the Kotlin metadata whatever JVM target compiled them, and an `object` subclass gives its instance.
 - The Kotlin DSL generates `@JvmInline` value classes, where they failed with `Kotlin value classes are not
@@ -336,6 +337,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   type without arguments is, and a recursive generic sealed type ends in a leaf as other sealed types do. With
   `objectIgnoreErrors(true)`, such an object kept a generated `next` whose members were `null`, and its `next`
   is now `null` itself.
+- A recursive generic member that names its object's type variables, such as `Swap<B, A> swapped` inside a
+  `Swap<A, B>` generated as `Swap<String, Integer>`, now keeps their arguments: its `first` is an `Integer`
+  and its `second` a `String`. The engine read the member's arguments in the nested object, where `A` and `B`
+  named each other, and failed as an unsupported type, or left them `null` with `objectIgnoreErrors(true)`. An
+  argument that names the object's own type variable is now read as the object binds it.
 - The Kotlin DSL now calls a private primary constructor, as the object engine calls a private Java
   constructor, where `kotlin.reflect.full.IllegalCallableAccessException` escaped without the object's path.
   A factory function that validates outside the constructor's `init` block is not called, so register a

@@ -451,9 +451,9 @@ public final class ObjectGenerator<T> implements Generator<T> {
             Object[] constants = chosen.getEnumConstants();
             return type.cast(constants[choice.nextInt(constants.length)]);
         }
-        // The key a member of this sealed type checks, so the members of the chosen class see it.
+        // The chosen class's own type, the key a member's choice of it and a member of that type check.
         ObjectPool activePool = Objects.requireNonNull(pool, "pool must not be null");
-        String poolTypeSignature = type.getTypeName();
+        String poolTypeSignature = ResolvedType.resolvedSignature(chosen, ResolvedType.bindingsFor(chosen));
         activePool.begin(chosen, poolTypeSignature);
         T value = generateAs(chosen);
         activePool.end(chosen, poolTypeSignature, value);

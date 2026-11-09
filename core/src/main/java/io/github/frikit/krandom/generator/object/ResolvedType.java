@@ -249,6 +249,23 @@ record ResolvedType(
         return resolved.toString();
     }
 
+    /**
+     * The resolved signature of {@code type} with its own type parameters read through {@code bindings},
+     * as a member declared with that type reads: {@code Fork<String>} for {@code Fork} with {@code T}
+     * bound to {@code String}.
+     */
+    static String resolvedSignature(Class<?> type, Map<? extends TypeVariable<?>, ? extends Type> bindings) {
+        TypeVariable<?>[] parameters = type.getTypeParameters();
+        if (parameters.length == 0) {
+            return type.getTypeName();
+        }
+        StringJoiner resolved = new StringJoiner(", ", type.getTypeName() + "<", ">");
+        for (TypeVariable<?> parameter : parameters) {
+            resolved.add(resolve(parameter, bindings).resolvedSignature());
+        }
+        return resolved.toString();
+    }
+
     ResolvedType argument(int index) {
         return arguments.get(index);
     }

@@ -238,7 +238,10 @@ sealed interface with no subclass, fails the same way. With `objectIgnoreErrors(
 A class already being generated on the member's path is left out of the choice while another class
 remains, so a recursive hierarchy ends in a leaf. For `sealed interface Expr permits Num, Add` and
 `record Add(Expr left, Expr right)`, a generated `Add` holds two `Num` values. Where every class is on the
-path, the cycle is cut as [any other cycle](#depth-limit) is.
+path, the cycle is cut as [any other cycle](#depth-limit) is. The chosen class counts as being generated as
+its own type, with the type arguments the member gives it, so a member of that type inside it, such as the
+`next` of `record Link<T>(Link<T> next) implements Rope<T>` chosen for a `Rope<String>`, is cut as a cycle
+too.
 
 A sealed root is generated from its seed as a root of the chosen class would be, except that the chosen
 class counts as being generated, so the members of a recursive root leave it out of their choices while

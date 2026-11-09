@@ -2029,7 +2029,7 @@ final class FieldGeneratorResolver {
             } catch (RuntimeException unsupported) {
                 return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth, unsupported);
             }
-            Class<?> chosen = chooseSubclass(subclasses, poolTypeSignature);
+            Class<?> chosen = chooseSubclass(subclasses, resolvedType);
             Generator<?> chosenOverride =
                     typeOverrideFor(chosen, genericType, fieldName, ownerType, currentDepth, element);
             if (chosenOverride != null) {
@@ -2040,6 +2040,8 @@ final class FieldGeneratorResolver {
                 return generateEnum(chosen, genericType, ownerType, fieldName, currentDepth);
             }
             nestedType = chosen;
+            // The chosen class is generated as its own type, so a member of that type inside it sees it.
+            poolTypeSignature = subclassSignature(resolvedType, chosen);
         }
         if (isNestableType(nestedType)) {
             if (pool.isInProgress(nestedType, poolTypeSignature)) {
@@ -2166,15 +2168,23 @@ final class FieldGeneratorResolver {
      * a cycle, so it is left out while another class remains, and a recursive hierarchy such as an
      * expression tree ends in a leaf.
      */
-    private Class<?> chooseSubclass(List<Class<?>> subclasses, String poolTypeSignature) {
+    private Class<?> chooseSubclass(List<Class<?>> subclasses, ResolvedType resolvedType) {
         List<Class<?>> open = new ArrayList<>(subclasses.size());
         for (Class<?> subclass : subclasses) {
-            if (!pool.isInProgress(subclass, poolTypeSignature)) {
+            if (!pool.isInProgress(subclass, subclassSignature(resolvedType, subclass))) {
                 open.add(subclass);
             }
         }
         List<Class<?>> choices = open.isEmpty() ? subclasses : open;
         return choices.get(sequenceRandom.nextInt(choices.size()));
+    }
+
+    /**
+     * The cycle key of a class chosen for a sealed member: its own type, with the type arguments that the
+     * member gives it, as a member declared with that type reads, so its self-references see it.
+     */
+    private String subclassSignature(ResolvedType resolvedType, Class<?> subclass) {
+        return ResolvedType.resolvedSignature(subclass, nestedTypeBindings(resolvedType, subclass));
     }
 
     private static Generator<?> withContext(ContextualGenerator<?> generator, GenerationContext context) {
@@ -2222,7 +2232,13 @@ final class FieldGeneratorResolver {
         bindings.putAll(nestedBindings);
         // The type at the end of a chain of type variables, which holds the arguments.
         ResolvedType generationType = mostSpecific(resolvedType);
-        Map<TypeVariable<?>, Type> declaredBindings = ResolvedType.bindingsFor(generationType.declaredType());
+        Map<TypeVariable<?>, Type> declaredBindings =
+                new LinkedHashMap<>(ResolvedType.bindingsFor(generationType.declaredType()));
+        // An argument that names one of this object's type variables is read as this object binds it. A
+        // recursive generic member, such as Node<T> next inside a Node<String>, or Pair<B, A> inside a
+        // Pair<A, B>, rebinds the same variables in the nested object, where they would name themselves.
+        declaredBindings.replaceAll((variable, argument) ->
+                argument instanceof TypeVariable<?> outer ? typeBindings.getOrDefault(outer, argument) : argument);
         bindings.putAll(declaredBindings);
         // A mapped or sealed subclass of a generic declared type takes its arguments.
         bindings.putAll(ResolvedType.subtypeArguments(nestedBindings, declaredBindings));

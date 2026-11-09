@@ -192,6 +192,22 @@ class ObjectGeneratorSealedTypeTest {
 
     record Forest(Tree<String> tree) {}
 
+    /** A generic hierarchy whose recursive subclass refers to itself, not to the sealed type. */
+    sealed interface Rope<T> permits Strand, Knot {}
+
+    record Strand<T>(T value) implements Rope<T> {}
+
+    record Knot<T>(Knot<T> next) implements Rope<T> {}
+
+    record Coil(Rope<String> rope) {}
+
+    /** The same without type arguments, for a root. */
+    sealed interface Track permits Stop, Segment {}
+
+    record Stop(int position) implements Track {}
+
+    record Segment(Segment next) implements Track {}
+
     sealed interface Pair<A, B> permits Same {}
 
     record Same<T>(T first, T second) implements Pair<T, T> {}
@@ -685,6 +701,39 @@ class ObjectGeneratorSealedTypeTest {
     }
 
     // ── Generic hierarchies ───────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("a class chosen for a sealed member counts as its own type, so its self-reference is cut")
+    void chosenSubclassSelfReferenceIsCut() {
+        Set<Class<?>> ropes = new HashSet<>();
+        for (long seed = 0; seed < 40; seed++) {
+            Rope<String> rope =
+                    new ObjectGenerator<>(Coil.class, seeded(seed)).generate().rope();
+            ropes.add(rope.getClass());
+            if (rope instanceof Knot<String> knot) {
+                assertNull(knot.next(), "next repeats Knot<String>, which is being generated");
+            } else {
+                assertInstanceOf(String.class, ((Strand<String>) rope).value());
+            }
+        }
+
+        assertEquals(Set.of(Strand.class, Knot.class), ropes);
+    }
+
+    @Test
+    @DisplayName("a class chosen at a sealed root counts as its own type, so its self-reference is cut")
+    void classChosenAtRootSelfReferenceIsCut() {
+        Set<Class<?>> tracks = new HashSet<>();
+        for (long seed = 0; seed < 40; seed++) {
+            Track track = new ObjectGenerator<>(Track.class, seeded(seed)).generate();
+            tracks.add(track.getClass());
+            if (track instanceof Segment segment) {
+                assertNull(segment.next(), "next repeats Segment, which is being generated");
+            }
+        }
+
+        assertEquals(Set.of(Stop.class, Segment.class), tracks);
+    }
 
     @Test
     @DisplayName("a recursive generic sealed member ends in a leaf, as a non-generic one does")

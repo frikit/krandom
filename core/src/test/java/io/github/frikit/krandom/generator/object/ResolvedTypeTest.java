@@ -186,6 +186,21 @@ class ResolvedTypeTest {
     }
 
     @Test
+    @DisplayName("reads a class's resolved signature through bindings of its own type parameters")
+    void readsClassResolvedSignatures() {
+        TypeVariable<Class<GenericBase>> baseVariable = GenericBase.class.getTypeParameters()[0];
+
+        assertEquals(StringChild.class.getTypeName(), ResolvedType.resolvedSignature(StringChild.class, Map.of()));
+        assertEquals(
+                GenericBase.class.getTypeName() + "<java.lang.String>",
+                ResolvedType.resolvedSignature(GenericBase.class, Map.of(baseVariable, String.class)));
+        assertEquals(
+                GenericBase.class.getTypeName() + "<T>",
+                ResolvedType.resolvedSignature(GenericBase.class, Map.of()),
+                "an unbound parameter reads as declared");
+    }
+
+    @Test
     @DisplayName("rejects invalid API inputs and unknown Type implementations")
     void validatesInputs() {
         assertThrows(NullPointerException.class, () -> ResolvedType.resolve(null));
