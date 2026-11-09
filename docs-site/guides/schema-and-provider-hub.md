@@ -161,8 +161,9 @@ Constraints apply together, and a keyword constrains only values of its own JSON
   numbers of at least 0, and are read exactly, however large. A generated string, array, or object holds
   at most 1,000,000 characters, items, or members, the limit `RegexGenerator` keeps for a string, so a
   minimum above it is rejected while parsing, naming the keyword, its value, and the schema path, and a
-  maximum above it, even one beyond an `int` such as `maxLength` 3000000000, draws no more than it. A
-  `const` or `enum` is measured against the counts as written.
+  maximum above it, even one beyond an `int` such as `maxLength` 3000000000, draws no more than it. The
+  configured `stringLength` and `collectionSize` are held to it too. A `const` or `enum` is measured
+  against the counts as written.
 - A value generated from a `pattern` matches the whole pattern, which also satisfies the search. A
   `pattern` that `RegexGenerator` cannot generate from, such as one with a lookahead, is rejected with
   its schema path. A `const` or `enum` beside it is only checked against it, so it can use any Java

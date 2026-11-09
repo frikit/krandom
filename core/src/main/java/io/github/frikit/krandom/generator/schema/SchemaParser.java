@@ -84,7 +84,7 @@ import org.jspecify.annotations.Nullable;
  * schema, boolean, or list of them, and malformed {@code required}, {@code additionalProperties}, and
  * {@code dependencies} values and counts are rejected with their schema path. A count is read exactly, and
  * a generated value holds at most 1,000,000 characters, items, or members, so a minimum above that fails
- * with its keyword, value, and path, and a larger maximum draws no more. A list of items holds the whole tuple by default, and {@code additionalItems} is read only
+ * with its keyword, value, and path, and a larger maximum, declared or configured, draws no more. A list of items holds the whole tuple by default, and {@code additionalItems} is read only
  * beside one, as in the drafts that define it; {@code prefixItems}, its Draft 2020-12 replacement, is
  * rejected. The root generates every property as a column, so its {@code required} names, property
  * dependencies, and member counts must allow exactly those. References and schema composition
@@ -848,7 +848,9 @@ public final class SchemaParser {
         // Bounded string length
         // A missing bound defaults within the declared one: maxLength 2 alone must not keep a larger
         // configured minimum length.
-        int maxLength = maximumCount(schema, "maxLength", Math.max(config.getMaxStringLength(), fewest));
+        // The limit holds whether the bound comes from the schema or from the configured string length.
+        int maxLength =
+                Math.min(SIZE_LIMIT, maximumCount(schema, "maxLength", Math.max(config.getMaxStringLength(), fewest)));
         int minLength = schema.containsKey("minLength") ? fewest : Math.min(config.getMinStringLength(), maxLength);
         // Generated text has at least one character, so only maxLength 0 needs the empty string.
         return maxLength == 0 ? ctx -> "" : text(Math.max(minLength, 1), maxLength);
@@ -1319,7 +1321,9 @@ public final class SchemaParser {
         int natural = items instanceof List<?> ? Math.min(positions.size(), reach) : config.getMaxCollectionSize();
         int naturalMin = items instanceof List<?> ? natural : config.getMinCollectionSize();
         int fewest = minimumCount(schema, "minItems", 0, path, "items a generated array");
-        int maxItems = Math.min(reach, maximumCount(schema, "maxItems", Math.max(natural, fewest)));
+        // The limit holds whether the bound comes from the schema, the tuple, or the configured size.
+        int maxItems =
+                Math.min(Math.min(reach, SIZE_LIMIT), maximumCount(schema, "maxItems", Math.max(natural, fewest)));
         int minItems = schema.containsKey("minItems") ? fewest : Math.min(naturalMin, maxItems);
         if (minItems > maxItems) {
             throw emptyRange("array size", path, schema);
@@ -1580,8 +1584,10 @@ public final class SchemaParser {
         return Boolean.FALSE.equals(declared.get(name)) ? "its schema is false" : "its schema is no schema object";
     }
 
+    /** Text of the configured length, held to the limit a generated string keeps. */
     private static SchemaValueProvider randomText(GeneratorConfig config) {
-        return text(config.getMinStringLength(), config.getMaxStringLength());
+        return text(
+                Math.min(config.getMinStringLength(), SIZE_LIMIT), Math.min(config.getMaxStringLength(), SIZE_LIMIT));
     }
 
     /** Text drawn from the field's own stream, so seeded schemas replay and equal columns differ. */

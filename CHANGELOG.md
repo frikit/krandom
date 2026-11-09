@@ -410,9 +410,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   value. A generated string, array, or object now holds at most 1,000,000 characters, items, or
   members, the limit `RegexGenerator` keeps for a string: a minimum above it is rejected while parsing,
   naming the keyword, its value, and the schema path, and a larger maximum, even one beyond an `int`,
-  draws no more than it. A count that is negative, fractional, or no number, which used to be truncated
-  or ignored, is now rejected with the schema path. Seeded output changes only for a schema with a
-  count above 1,000,000.
+  draws no more than it, nor does a larger configured `stringLength` or `collectionSize` where the
+  schema declares no maximum. A count that is negative, fractional, or no number, which used to be
+  truncated or ignored, is now rejected with the schema path. Seeded output changes only where a count
+  or a configured size is above 1,000,000.
 - `SchemaParser` writes `format: date-time` and `format: time` as RFC 3339 requires, with the seconds and
   an offset, such as `2041-07-03T05:12:44+05:30` and `05:12:44.123456789Z`. They came from
   `LocalDateTime` and `LocalTime`, whose text has no offset and can leave out `:00` seconds, so every

@@ -3509,6 +3509,36 @@ class SchemaParserTest {
         }
 
         @Test
+        @DisplayName("configured string lengths and collection sizes are held to the same limit")
+        void configuredSizesKeepToTheLimit() {
+            GeneratorConfig longStrings = GeneratorConfig.builder()
+                    .seed(7L)
+                    .stringLength(1_000_001, 1_000_001)
+                    .build();
+            GeneratorConfig bigCollections = GeneratorConfig.builder()
+                    .seed(7L)
+                    .collectionSize(1_000_001, 1_000_001)
+                    .build();
+            assertEquals(1_000_000, ((String) generatedWith(Map.of("type", "string"), longStrings)).length());
+            assertEquals(
+                    1_000_000,
+                    ((List<?>) generatedWith(Map.of("type", "array", "items", Map.of("const", 1)), bigCollections))
+                            .size());
+            // Items without a schema, and the regex format, draw text of the configured length.
+            List<?> items = (List<?>) generatedWith(Map.of("type", "array", "minItems", 1, "maxItems", 1), longStrings);
+            assertEquals(1_000_000, ((String) items.getFirst()).length());
+            assertEquals(
+                    1_000_000,
+                    ((String) generatedWith(Map.of("type", "string", "format", "regex"), longStrings)).length());
+        }
+
+        private static Object generatedWith(Map<String, Object> property, GeneratorConfig config) {
+            return SchemaParser.fromJsonSchema(objectSchema(Map.of("value", property)), config)
+                    .generate()
+                    .get("value");
+        }
+
+        @Test
         @DisplayName("a count that is negative, fractional or no number is rejected with the path")
         void malformedCounts() {
             for (String keyword : List.of("minLength", "maxLength", "minItems", "maxItems")) {
