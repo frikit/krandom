@@ -2230,11 +2230,13 @@ final class FieldGeneratorResolver {
     }
 
     /**
-     * The cycle key of a nested type: the signature at the end of its chain of type variables, so that a
-     * member reached through inherited type variables shares the key of a member declared with its type.
+     * The cycle key of a nested type: the signature of what it resolves to, as {@link ObjectPool} asks,
+     * so that a member reached through inherited type variables, or declared with type variables that its
+     * object binds, such as {@code Node<T> next} inside a {@code Node<String>}, shares the key of a member
+     * declared with the resolved type.
      */
     private static String poolTypeSignature(ResolvedType resolvedType) {
-        return mostSpecific(resolvedType).signature();
+        return resolvedType.resolvedSignature();
     }
 
     private static ObjectGenerationException contextualizeNestedFailure(

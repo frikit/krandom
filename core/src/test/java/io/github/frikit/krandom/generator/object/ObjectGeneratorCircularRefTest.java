@@ -154,7 +154,25 @@ class ObjectGeneratorCircularRefTest {
         assertNull(root.getNext().getNext());
     }
 
+    @Test
+    @DisplayName("a generic self-typed member is cut where it repeats its resolved type")
+    void genericSelfTypedMemberIsCutAtItsResolvedType() {
+        LinkedHolder holder = new ObjectGenerator<>(LinkedHolder.class).generate();
+
+        assertNotNull(holder.list, "the first Linked<String> is generated");
+        assertNull(holder.list.next, "its Linked<T> next is a Linked<String> again, so the cycle guard cuts it");
+    }
+
     static class RequiredNode {
         @NotNull RequiredNode next;
+    }
+
+    static class Linked<T> {
+        T value;
+        Linked<T> next;
+    }
+
+    static class LinkedHolder {
+        Linked<String> list;
     }
 }

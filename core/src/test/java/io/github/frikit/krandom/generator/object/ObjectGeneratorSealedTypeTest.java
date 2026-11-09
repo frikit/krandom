@@ -183,6 +183,15 @@ class ObjectGeneratorSealedTypeTest {
     /** Its {@code A} is bound to {@code B}, and {@code B} to the recursive {@code Term}. */
     static final class TermChainRoot extends Middle<Term> {}
 
+    /** A recursive generic hierarchy whose children are declared with the type variable. */
+    sealed interface Tree<T> permits Leaf, Fork {}
+
+    record Leaf<T>(T value) implements Tree<T> {}
+
+    record Fork<T>(@NotNull Tree<T> left, @NotNull Tree<T> right) implements Tree<T> {}
+
+    record Forest(Tree<String> tree) {}
+
     sealed interface Pair<A, B> permits Same {}
 
     record Same<T>(T first, T second) implements Pair<T, T> {}
@@ -676,6 +685,26 @@ class ObjectGeneratorSealedTypeTest {
     }
 
     // ── Generic hierarchies ───────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("a recursive generic sealed member ends in a leaf, as a non-generic one does")
+    void recursiveGenericSealedMemberEndsInLeaf() {
+        GeneratorConfig.Builder shallow = GeneratorConfig.builder().objectMaxDepth(2);
+        Set<Class<?>> trees = new HashSet<>();
+        for (long seed = 0; seed < 60; seed++) {
+            Tree<String> tree = new ObjectGenerator<>(
+                            Forest.class, shallow.seed(seed).build())
+                    .generate()
+                    .tree();
+            trees.add(tree.getClass());
+            if (tree instanceof Fork<String> fork) {
+                assertInstanceOf(Leaf.class, fork.left());
+                assertInstanceOf(Leaf.class, fork.right());
+            }
+        }
+
+        assertEquals(Set.of(Leaf.class, Fork.class), trees);
+    }
 
     @Test
     @DisplayName("a recursive sealed member reached through inherited type variables still ends in a leaf")

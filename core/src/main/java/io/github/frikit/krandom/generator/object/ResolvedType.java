@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -226,6 +227,26 @@ record ResolvedType(
 
     String signature() {
         return declaredType.getTypeName();
+    }
+
+    /**
+     * The signature of what this type resolves to: each argument, component and variable reads as its
+     * resolution, so {@code Node<T>} with {@code T} bound to {@code String} reads as {@code Node<String>}
+     * does. A type that resolves to nothing reads as declared.
+     */
+    String resolvedSignature() {
+        if (effectiveType != null) {
+            return effectiveType.resolvedSignature();
+        }
+        if (kind == Kind.GENERIC_ARRAY) {
+            return Objects.requireNonNull(componentType, "componentType").resolvedSignature() + "[]";
+        }
+        if (kind != Kind.PARAMETERIZED || rawClass == null) {
+            return signature();
+        }
+        StringJoiner resolved = new StringJoiner(", ", rawClass.getTypeName() + "<", ">");
+        arguments.forEach(argument -> resolved.add(argument.resolvedSignature()));
+        return resolved.toString();
     }
 
     ResolvedType argument(int index) {

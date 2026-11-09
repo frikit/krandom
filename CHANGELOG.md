@@ -329,6 +329,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   object whose bound the engine could generate changes too. Such a member now also shares the cycle key of a
   member declared with its type, so a cycle through it is cut where one through that member is, and a
   recursive object reached that way can change.
+- A recursive generic object, such as `class Node<T> { T value; Node<T> next; }` reached as `Node<String>`,
+  no longer fails as an unsupported type. The cycle guard read `next` as `Node<T>`, another type than
+  `Node<String>`, so the engine generated `next` and lost `T` inside it. The guard now reads what a type
+  resolves to, as `ObjectPool` documents, so `next` is cut where it repeats `Node<String>`, as the cycle of a
+  type without arguments is, and a recursive generic sealed type ends in a leaf as other sealed types do. With
+  `objectIgnoreErrors(true)`, such an object kept a generated `next` whose members were `null`, and its `next`
+  is now `null` itself.
 - The Kotlin DSL now calls a private primary constructor, as the object engine calls a private Java
   constructor, where `kotlin.reflect.full.IllegalCallableAccessException` escaped without the object's path.
   A factory function that validates outside the constructor's `init` block is not called, so register a
