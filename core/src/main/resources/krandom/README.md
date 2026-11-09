@@ -41,7 +41,7 @@ Native resource coverage by folder:
 | `states/` | 1 | 35 | 35 | all first-level subdivisions + codes | ok |
 | `streets/` | 4 subfolders | 140 | 35 | complete, paired, unique (see below) | ok |
 | `countries/` | 1 | 35 | 35 | full world set (195), localized | all 35 at 195 |
-| `country_codes/` | n/a | 1 | non-locale | all 249 ISO 3166-1 codes | ok |
+| `country_codes/` | n/a | 4 | non-locale | all 249 ISO 3166-1 countries, sourced | ok |
 | `address_types/` | 1 | 36 | 35 | the 6 property-use types, same order everywhere | ok |
 | `address_purposes/` | 1 | 36 | 35 | the 7 address purposes, same order everywhere | ok |
 | `professions/` | 1 | 35 | 35 | ≥ 40 unique professions | all ≥ 40 |
@@ -126,7 +126,7 @@ One file per locale, `<locale>_countries.txt`, one country name per line.
 
 ### `country_codes/`
 
-One non-locale file, `iso_3166_1.txt`: one country per line as
+Four non-locale files. `iso_3166_1.txt` has one country per line as
 `<alpha-2> <alpha-3> <numeric>` (e.g. `GB GBR 826`), in alpha-2 order.
 
 - **Content:** the ISO 3166-1 codes of all 249 officially assigned countries;
@@ -135,6 +135,26 @@ One non-locale file, `iso_3166_1.txt`: one country per line as
   the JDK's `Locale.getISO3Country()` for its alpha-2 code. Keep the alpha-2
   order: seeded country codes index into it.
 - **Loader:** `CountryResourceLoader` / `CountryGenerator`.
+
+`calling_codes.txt`, `continents.txt` and `time_zones.txt` each give one value
+for every row of `iso_3166_1.txt`, as `<alpha-2> <value>` (e.g. `GB +44`,
+`US North America`, `GB Europe/London`), in the same order.
+
+- **Content:** the E.164 country calling code (from libphonenumber), the
+  continent (the UN M49 region, from Unicode CLDR's territory containment, with
+  the Americas divided into North America and South America) and the IANA time
+  zone (from the tz database's `zone.tab`). The header of each file records its
+  source, licence, retrieval date and SHA-256 checksum, and the rules for the
+  countries a source does not cover: a calling code is the country code alone
+  (`+1` for every NANP country), a transcontinental country takes its M49
+  region, and a country with several zones takes the zone of its seat of
+  government. `continents.txt` also carries the Unicode License v3 notice that
+  the CLDR data requires.
+- **Rule:** **complete**: every ISO country, in the ISO table's order, which the
+  loader checks. Every calling code matches `^\+[1-9][0-9]{0,3}$`, every
+  continent is one of the seven, and every zone is a valid `java.time.ZoneId`.
+- **Loader:** `CountryResourceLoader` / `CountryGenerator`; `PhoneNumberGenerator`
+  takes its calling codes from `calling_codes.txt`.
 
 ### `address_types/`
 
