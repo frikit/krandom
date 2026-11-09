@@ -1,0 +1,141 @@
+# Postal places - German (Germany): a city, its Land and its postal code on each line, separated by
+# tabs. The Land is named as in krandom/states/de_DE_states.txt.
+#
+# Places:      every city of krandom/cities/de_DE_cities.txt, taken as the most populous Gemeinde of
+#              that name in the Gemeindeverzeichnis, so Fürth is Fürth in Bayern and Hagen the city in
+#              Nordrhein-Westfalen: 115 places in all 16 Länder. The name is the Gemeinde's name before
+#              its title, so "Hagen, Stadt der FernUniversität" is Hagen; "Cottbus/Chóśebuz" is
+#              Cottbus, "Oldenburg (Oldenburg)" is Oldenburg and "Weiden i.d.OPf." is Weiden in der
+#              Oberpfalz.
+# Postal code: the one postal code the Gemeindeverzeichnis gives a Gemeinde, that of its
+#              administrative seat ("Postleitzahl des Verwaltungssitzes der Gemeinde"), so all the
+#              addresses of one city share their postal code. For some cities it is the city
+#              administration's own code for a large recipient rather than that of a delivery district,
+#              such as 80313 for München (https://www.muenchen.de/leben/service/postleitzahlen.html).
+# Land:        the Land of the first two digits of the Gemeinde's Amtlicher Regionalschlüssel.
+#
+# Source:      Statistisches Bundesamt (Destatis), Gemeindeverzeichnis: Gemeinden in Deutschland nach
+#              Fläche, Bevölkerung und Postleitzahl am 31.12.2024 (Jahr), published August 2025:
+#              https://www.destatis.de/DE/Themen/Laender-Regionen/Regionales/Gemeindeverzeichnis/Administrativ/Archiv/GVAuszugJ/31122024_Auszug_GV.xlsx?__blob=publicationFile
+#              SHA-256 c32057a212e3344f285b4b52beafa20b64b484bad251fd0fd1a3c4c31789eb15
+# Licence:     the terms on the file's contents sheet: "© Daten (im Auftrag der Herausgebergemeinschaft
+#              Statistische Ämter des Bundes und der Länder) Statistisches Bundesamt (Destatis), 2025.
+#              Vervielfältigung und Verbreitung, auch auszugsweise, mit Quellenangabe gestattet."
+#              Quelle: Statistisches Bundesamt (Destatis), Gemeindeverzeichnis, Gebietsstand
+#              31.12.2024; the rows are an extract.
+# Retrieved:   2026-11-05
+Aachen	Nordrhein-Westfalen	52058
+Aschaffenburg	Bayern	63701
+Augsburg	Bayern	86150
+Bamberg	Bayern	96031
+Bayreuth	Bayern	95410
+Bergisch Gladbach	Nordrhein-Westfalen	51465
+Berlin	Berlin	10178
+Bielefeld	Nordrhein-Westfalen	33602
+Bochum	Nordrhein-Westfalen	44787
+Bonn	Nordrhein-Westfalen	53111
+Bottrop	Nordrhein-Westfalen	46236
+Braunschweig	Niedersachsen	38100
+Bremen	Bremen	28195
+Bremerhaven	Bremen	27576
+Celle	Niedersachsen	29221
+Chemnitz	Sachsen	09111
+Cottbus	Brandenburg	03046
+Darmstadt	Hessen	64283
+Dessau-Roßlau	Sachsen-Anhalt	06844
+Dortmund	Nordrhein-Westfalen	44135
+Dresden	Sachsen	01067
+Duisburg	Nordrhein-Westfalen	47051
+Düren	Nordrhein-Westfalen	52349
+Düsseldorf	Nordrhein-Westfalen	40213
+Erfurt	Thüringen	99084
+Erlangen	Bayern	91051
+Essen	Nordrhein-Westfalen	45121
+Esslingen am Neckar	Baden-Württemberg	73728
+Flensburg	Schleswig-Holstein	24937
+Frankfurt am Main	Hessen	60311
+Freiburg im Breisgau	Baden-Württemberg	79098
+Fulda	Hessen	36037
+Fürth	Bayern	90744
+Gelsenkirchen	Nordrhein-Westfalen	45879
+Gera	Thüringen	07545
+Gießen	Hessen	35390
+Görlitz	Sachsen	02826
+Göttingen	Niedersachsen	37083
+Gütersloh	Nordrhein-Westfalen	33330
+Hagen	Nordrhein-Westfalen	58095
+Halle (Saale)	Sachsen-Anhalt	06108
+Hamburg	Hamburg	20038
+Hamm	Nordrhein-Westfalen	59065
+Hanau	Hessen	63450
+Hannover	Niedersachsen	30159
+Heidelberg	Baden-Württemberg	69117
+Heilbronn	Baden-Württemberg	74072
+Herne	Nordrhein-Westfalen	44623
+Hildesheim	Niedersachsen	31134
+Ingolstadt	Bayern	85047
+Iserlohn	Nordrhein-Westfalen	58636
+Jena	Thüringen	07743
+Kaiserslautern	Rheinland-Pfalz	67657
+Karlsruhe	Baden-Württemberg	76133
+Kassel	Hessen	34117
+Kiel	Schleswig-Holstein	24103
+Koblenz	Rheinland-Pfalz	56068
+Konstanz	Baden-Württemberg	78462
+Krefeld	Nordrhein-Westfalen	47798
+Köln	Nordrhein-Westfalen	50667
+Landshut	Bayern	84026
+Leipzig	Sachsen	04109
+Leverkusen	Nordrhein-Westfalen	51373
+Ludwigsburg	Baden-Württemberg	71638
+Ludwigshafen am Rhein	Rheinland-Pfalz	67059
+Lübeck	Schleswig-Holstein	23539
+Lüneburg	Niedersachsen	21335
+Magdeburg	Sachsen-Anhalt	39104
+Mainz	Rheinland-Pfalz	55116
+Mannheim	Baden-Württemberg	68159
+Marburg	Hessen	35037
+Minden	Nordrhein-Westfalen	32423
+Moers	Nordrhein-Westfalen	47441
+Mönchengladbach	Nordrhein-Westfalen	41061
+Mülheim an der Ruhr	Nordrhein-Westfalen	45468
+München	Bayern	80313
+Münster	Nordrhein-Westfalen	48143
+Neuss	Nordrhein-Westfalen	41460
+Nürnberg	Bayern	90403
+Oberhausen	Nordrhein-Westfalen	46045
+Offenbach am Main	Hessen	63065
+Oldenburg	Niedersachsen	26105
+Osnabrück	Niedersachsen	49074
+Paderborn	Nordrhein-Westfalen	33104
+Passau	Bayern	94030
+Pforzheim	Baden-Württemberg	75175
+Plauen	Sachsen	08523
+Potsdam	Brandenburg	14469
+Ravensburg	Baden-Württemberg	88212
+Recklinghausen	Nordrhein-Westfalen	45657
+Regensburg	Bayern	93019
+Remscheid	Nordrhein-Westfalen	42853
+Reutlingen	Baden-Württemberg	72764
+Rosenheim	Bayern	83013
+Rostock	Mecklenburg-Vorpommern	18055
+Saarbrücken	Saarland	66111
+Salzgitter	Niedersachsen	38226
+Schweinfurt	Bayern	97420
+Schwerin	Mecklenburg-Vorpommern	19053
+Siegen	Nordrhein-Westfalen	57072
+Solingen	Nordrhein-Westfalen	42651
+Stralsund	Mecklenburg-Vorpommern	18439
+Stuttgart	Baden-Württemberg	70173
+Trier	Rheinland-Pfalz	54290
+Tübingen	Baden-Württemberg	72070
+Ulm	Baden-Württemberg	89073
+Weiden in der Oberpfalz	Bayern	92637
+Weimar	Thüringen	99423
+Wiesbaden	Hessen	65183
+Wilhelmshaven	Niedersachsen	26382
+Wolfsburg	Niedersachsen	38440
+Worms	Rheinland-Pfalz	67547
+Wuppertal	Nordrhein-Westfalen	42275
+Würzburg	Bayern	97070
+Zwickau	Sachsen	08056

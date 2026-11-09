@@ -52,6 +52,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     path below `minItems`. A `const` or `enum` array with repeated items is rejected or dropped.
   - A `multipleOf` that is not a number above 0, or a `uniqueItems` that is not a boolean, is rejected
     with the schema path.
+- `Vocabulary.POSTAL_PLACE` holds a country's postal places: `PostalPlace` records of a city, the region
+  it lies in, the region's code, and postal codes that serve the city, from a `PostalPlaceDataProvider`.
+  `PostalPlaceDataRegistry` holds the bundled places, curated from openly licensed national data: for
+  `en_US`, 252 cities in all 50 states and DC with up to ten ZIP codes each, from U.S. Census Bureau
+  files (public domain); for `en_GB`, 111 cities in Great Britain with up to ten postcodes each, from OS
+  Open Names (Open Government Licence v3.0); for `de_DE`, 115 cities with the postal code of each city's
+  administrative seat, from the Destatis Gemeindeverzeichnis; and for `fr_FR`, 107 communes with up to
+  ten postal codes each, from La Poste and Insee (Licence Ouverte 2.0). The header of each table in
+  `krandom/postal_places/` records its sources, licence, retrieval date, and checksums, and how the rows
+  were chosen. As for `Vocabulary.NATIONAL_ID`, a registration serves every locale of its
+  country, and a locale whose country has no places resolves none rather than borrowing another
+  country's through its language. `LocaleDataBundle.Builder.postalPlaces(...)` registers places with a
+  bundle. `Vocabulary.all()` lists 42 vocabularies.
 
 ### Changed
 
@@ -153,6 +166,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   now reads `Locale en_US has no university data, and kRandom ships none. Load a local data pack with
   LocalDataPack.load(directory), register it with DataRegistryContext.builder().registerDataPack(pack), and
   pass that context to GeneratorConfig.Builder.registryContext(context). Registered locales: []`.
+- `AddressInfoGenerator`, `StreetAddressGenerator.generateFullAddress()`, and the object engine's `city`,
+  `state`, and `postalCode` members take an address's city, state, and postal code from one postal place
+  where the locale's country has places, so the three agree. They were drawn independently: with seed
+  `42`, `AddressInfoGenerator` for `Locale.US` gave `8680 Lakeview Holw, Grand Rapids, AL 02649, United
+  States` and now gives `8680 Lakeview Holw, Fontana, CA 92335, United States`; for `Locale.GERMANY`,
+  `Oldenburg, Rheinland-Pfalz 52881` became `Mönchengladbach, Nordrhein-Westfalen 41061`. Seeded output
+  changes for the locales of the United States, the United Kingdom, Germany, and France, such as `en_US`,
+  `es_US`, `en_GB`, `de_DE`, `en_DE`, and `fr_FR`, and for `Locale.ENGLISH`, `Locale.GERMAN`, and
+  `Locale.FRENCH`, and for the payloads built on these addresses: `PersonInfo`, `CompanyInfo`,
+  `OrderInfo`, `ShipmentInfo`, `InvoiceInfo`, `PaymentInfo`, `SimpleProfile`, and `UserProfile`. In
+  every other locale `AddressInfo` keeps its independent draws and its seeded output, apart from the
+  `en_US` city that became `Gary` (see Fixed); the locale-aware data guide lists which locales have
+  places, and the limits of each table.
+  `ChildStreamPolicy.LEGACY` does not bring the earlier addresses back. Bundled places take precedence
+  over cities or states registered for the same locale without places, which still serve
+  `CityGenerator` and `StateGenerator`.
+- A locale without a country gives `AddressInfo` the country of the postal places its language resolves
+  instead of a random country name and an unrelated random code: `Locale.ENGLISH` gives `United States`
+  and `US`, where with seed `42` it gave `United Kingdom` and `GL`, and `Locale.GERMAN` gives
+  `Deutschland` and `DE` rather than `Uruguay` and `GL`.
+- `StreetAddressGenerator.generateFullAddress()` ends with the locale's country rather than a random
+  one, in every locale: with seed `42`, `en_US` gave `7389 River Park, Kansas City, NY 02649, United
+  Kingdom` and now gives `7389 River Park, Renton, WA 98056, United States`, and `en_CA` now ends with
+  `Canada` instead of `United Kingdom`. Its places come from a child stream named `postalPlace`. In a
+  locale without places the rest of a full address keeps its seeded output, but the country no longer
+  takes a draw, so with a caller-owned `Random`, which every child shares, the values drawn after a
+  full address change too. The addresses of `SimpleProfile` and `UserProfile` follow.
 
 ### Fixed
 
@@ -215,6 +255,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   build on their own already passed Hibernate Validator's `@Email`, in every supported locale and under
   each email-domain and network-safety policy, `.test` addresses included; a sweep of every route to
   one now checks it, and generated email output is unchanged.
+- The `en_US` cities listed Gateshead, a town in England. Gary, Indiana, takes its place in the list, so
+  a city drawn from that list as `Gateshead` for a seed is now `Gary`, and no other city moves. The list
+  also serves `en_CA`, `en_IN`, and other English locales that fall back to it, such as `en_SG`, so
+  their cities, and the addresses and payloads built on them, change in the same way: with seed `158`,
+  an `en_CA` `AddressInfo` city was `Gateshead` and is now `Gary`.
 
 ## [2.10.0] - 2026-11-02
 

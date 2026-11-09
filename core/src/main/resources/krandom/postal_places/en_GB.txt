@@ -1,0 +1,141 @@
+# Postal places - English (UK): a city, its country within the United Kingdom and up to ten of its
+# postcodes on each line, separated by tabs, with the postcodes separated by commas. The country is
+# named as in krandom/states/en_GB_states.txt.
+#
+# Places:    every city of krandom/cities/en_GB_cities.txt in Great Britain: 111 places, 93 in
+#            England, 12 in Scotland and 6 in Wales. OS Open Names covers Great Britain only, so the
+#            five cities in Northern Ireland (Armagh, Belfast, Lisburn, Londonderry and Newry) have no
+#            place. A city is the OS Open Names city or town of that name with the most postcodes, so
+#            Blackburn is the town in England, not either of the two in Scotland, and Newport is the
+#            city in Wales; Brighton, which is neither a city nor a town there, is the settlement of
+#            that name, and Westminster is the City of Westminster.
+# Postcodes: postcodes whose populated place in OS Open Names is the city, one from each of its
+#            busiest postcode districts: the middle postcode of the district in alphabetical order.
+#            The busiest districts are the ten with the most of the city's postcodes, leaving out any
+#            with fewer than a tenth as many as the busiest one, which drops the city's border
+#            districts and the small non-geographic districts of large users.
+# Country:   the country that OS Open Names gives the city's postcodes. The few Chester postcodes in
+#            Wales are left out.
+#
+# Source:    Ordnance Survey, OS Open Names, 2026-10 release, CSV (opname_csv_gb.zip):
+#            https://api.os.uk/downloads/v1/products/OpenNames/downloads?area=GB&format=CSV&redirect
+#            SHA-256 81ee5ba2c96d8fe5ddbf83fb4f9928e8740563618c6c5eb9376280b399a74532
+#            (MD5 bba5aa44ba375d39de60584099e335cd, as the OS Downloads API lists it)
+# Licence:   Open Government Licence v3.0, the licence of OS OpenData:
+#            https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/
+#            The release's Doc/licence.txt gives these attribution statements:
+#            Contains OS data © Crown Copyright and database rights 2026.
+#            Contains Royal Mail data © Royal Mail copyright and database right 2026.
+#            Contains National Statistics data © Crown copyright and database right 2026
+# Retrieved: 2026-11-05
+Aberdeen	Scotland	AB10 6PR,AB11 6XD,AB12 3ZR,AB15 6JE,AB16 6TB,AB21 9DZ,AB22 8SH,AB23 8HQ,AB24 3RR,AB25 2RY
+Aberystwyth	Wales	SY23 2BY
+Ayr	Scotland	KA7 3LZ,KA8 8JQ
+Bangor	Wales	LL57 2GL
+Barnsley	England	S70 3LG,S71 2QQ,S75 2EH
+Basingstoke	England	RG21 5RA,RG22 5HF,RG23 8BP,RG24 8YS
+Bath	England	BA1 4AR,BA2 3RE
+Bedford	England	MK40 3FA,MK41 7TS,MK42 9AR
+Birmingham	England	B13 8LT,B14 5UA,B23 6HT,B29 6EL,B30 2LN,B31 3JT,B32 2UB,B33 8JR,B37 6RB,B44 8JQ
+Blackburn	England	BB1 5NW,BB2 4JJ
+Blackpool	England	FY1 4HY,FY2 0UQ,FY3 8FL,FY4 3QD,FY5 3FP
+Bolton	England	BL1 5JA,BL2 3QD,BL3 4FU,BL7 9LY
+Bournemouth	England	BH1 3JW,BH2 5RG,BH4 8JT,BH5 1LQ,BH6 4EQ,BH7 6PY,BH8 8QE,BH9 2LY,BH10 5LY,BH11 8SN
+Bradford	England	BD2 3ER,BD3 8AJ,BD4 7NB,BD5 8AZ,BD6 2LN,BD7 3AZ,BD8 8AF,BD9 5JN,BD10 8JR,BD12 8ET
+Brighton	England	BN1 6AY,BN2 4FY
+Bristol	England	BS1 5HL,BS3 3HS,BS4 3DZ,BS5 7HH,BS6 6QE,BS7 8QH,BS8 2XT,BS9 2WE,BS10 6LG,BS13 7RS
+Burnley	England	BB10 2PS,BB11 3QJ,BB12 6DF
+Cambridge	England	CB1 3JQ,CB2 8AX,CB3 1AA,CB4 2GP,CB5 8NT
+Canterbury	England	CT1 2JP,CT2 7TB
+Cardiff	Wales	CF3 3JF,CF5 3NU,CF10 4AN,CF11 7JQ,CF14 4EB,CF15 8FF,CF23 6UL,CF24 3DB
+Carlisle	England	CA1 2SE,CA2 6AT,CA3 9AB
+Chelmsford	England	CM1 4FP,CM2 7EA
+Cheltenham	England	GL50 3JB,GL51 6JZ,GL52 5JE,GL53 7PD
+Chester	England	CH1 4LX,CH2 2FD,CH3 5QX,CH4 7QZ
+Chichester	England	PO19 6SE
+Colchester	England	CO1 2EA,CO2 8FU,CO3 3TS,CO4 5AZ
+Coventry	England	CV1 4AZ,CV2 3BW,CV3 3JN,CV4 9BE,CV5 7NF,CV6 4LG
+Crawley	England	RH10 6HH,RH11 8AE
+Darlington	England	DL1 3RX,DL3 7JD
+Derby	England	DE1 2QS,DE3 0TT,DE21 6DF,DE22 3BT,DE23 6EZ,DE24 8DF,DE73 6PF
+Doncaster	England	DN1 2RP,DN2 5JG,DN4 6RD
+Dudley	England	DY1 2UN,DY2 7TA
+Dundee	Scotland	DD1 4BJ,DD2 3AG,DD3 7NR,DD4 7RY
+Dunfermline	Scotland	KY11 8AS,KY12 7LX
+Durham	England	DH1 3UP
+Eastbourne	England	BN20 8DQ,BN21 2XY,BN22 8DB,BN23 7EH
+Edinburgh	Scotland	EH3 6TQ,EH4 4RR,EH5 2GJ,EH6 6HB,EH7 5RY,EH10 5RR,EH11 2TX,EH12 7HP,EH14 3AQ,EH16 5PL
+Exeter	England	EX1 2UQ,EX2 7DB,EX4 4RY
+Falkirk	Scotland	FK1 5BL,FK2 7QE
+Gateshead	England	NE8 3FL,NE9 6LW,NE10 8NN,NE11 9EQ
+Glasgow	Scotland	G12 8LA,G13 2XL,G20 7JU,G31 3HT,G32 7NR,G33 3HJ,G41 3RY,G51 3JW,G52 2QA,G53 6SA
+Gloucester	England	GL1 3QN,GL2 2DT,GL3 3NR,GL4 4PW
+Grimsby	England	DN31 2HX,DN32 8AU,DN33 2LG,DN34 5BE,DN37 9JW
+Guildford	England	GU1 2UY,GU2 8DT,GU4 7HT
+Halifax	England	HX1 3RS,HX2 8DZ,HX3 5SW,HX6 2LU
+Harrogate	England	HG1 3NB,HG2 7RF,HG3 2ST
+Hartlepool	England	TS24 7QG,TS25 3JF,TS26 8AL
+Hastings	England	TN34 2PB,TN35 5FJ,TN37 7DN,TN38 0YP
+Hereford	England	HR1 1US,HR2 7EY,HR4 9AH
+Huddersfield	England	HD1 4JL,HD2 1ZP,HD3 3ZF,HD4 6DD,HD5 8UP,HD7 4HH
+Inverness	Scotland	IV1 1TB,IV2 4HG,IV3 8AW
+Ipswich	England	IP1 4NG,IP2 8NL,IP3 8QF,IP4 3NF,IP8 3RZ
+Kilmarnock	Scotland	KA1 3HU,KA3 2JF
+Kingston upon Hull	England	HU1 2LY,HU2 8DR,HU3 3PY,HU4 6UE,HU5 3SQ,HU6 8JQ,HU7 4HR,HU8 8PE,HU9 3UD
+Lancaster	England	LA1 3PY
+Leeds	England	LS6 2WF,LS8 3AP,LS9 7BJ,LS10 3NA,LS11 6TD,LS12 3UH,LS13 3AR,LS14 5JP,LS16 6SF,LS17 7BT
+Leicester	England	LE1 4SN,LE2 6LB,LE3 5EE,LE4 5FE,LE5 3HN
+Lincoln	England	LN1 3AS,LN2 4JG,LN5 8AL,LN6 3RL
+Liverpool	England	L3 5RR,L4 4PR,L6 4BQ,L8 5RH,L9 4RR,L11 3DS,L12 5EA,L13 5TT,L18 4QR,L25 5LL
+Luton	England	LU1 3JW,LU2 7QW,LU3 2QG,LU4 8HZ,LU5 4PU
+Maidstone	England	ME14 2UT,ME15 7TP,ME16 8DU
+Manchester	England	M8 5BG,M9 6EH,M11 3BJ,M14 6DE,M15 5GE,M18 8AP,M19 2GX,M20 3HF,M21 8AP,M40 5AA
+Mansfield	England	NG18 4AF,NG19 6SA
+Middlesbrough	England	TS1 4BP,TS3 7HZ,TS4 3AG,TS5 6RH,TS7 8JL,TS8 9GT
+Milton Keynes	England	MK4 3DS,MK5 7DA,MK6 3AU,MK7 7NA,MK8 1LF,MK10 9AA,MK11 1PN,MK12 5LX,MK13 7NY,MK14 6EU
+Newcastle upon Tyne	England	NE1 4PA,NE2 2PA,NE3 3JD,NE4 7ST,NE5 3BQ,NE6 3PR,NE7 7LS,NE13 9DD,NE15 7QY
+Newport	Wales	NP10 8RF,NP19 7GS,NP20 4FH
+Northampton	England	NN1 4AT,NN2 7LS,NN3 6FE,NN4 7BN,NN5 6HD
+Norwich	England	NR1 3AY,NR2 3EP,NR3 3AD,NR4 6SW,NR5 8HN,NR6 6LW,NR7 8DF
+Nottingham	England	NG1 4AA,NG2 3GU,NG3 4GE,NG5 5BE,NG6 8FN,NG7 3JL,NG8 4AU
+Oldham	England	OL1 3PS,OL4 2JP,OL8 2TD,OL9 6TA
+Oxford	England	OX1 3RQ,OX2 7NA,OX3 7ZW,OX4 3TT
+Paisley	Scotland	PA1 2HP,PA2 7JT,PA3 3FD
+Perth	Scotland	PH1 2QE,PH2 7AA
+Peterborough	England	PE1 4AS,PE2 8DZ,PE3 8DA,PE4 6RE,PE7 8JF
+Plymouth	England	PL1 4AN,PL2 2LL,PL3 5LU,PL4 7NA,PL5 2TJ,PL6 6QA,PL7 2LF,PL9 8QE
+Poole	England	BH12 3HN,BH13 7AY,BH14 8HX,BH15 3BP,BH17 8AF,BH18 8NG
+Portsmouth	England	PO1 3JG,PO2 7QQ,PO3 5UH,PO4 8NS,PO5 2QY,PO6 3BL,PO16 9DQ
+Preston	England	PR1 5JP,PR2 2RQ
+Reading	England	RG1 5PT,RG2 7NG,RG6 5AE,RG30 3LD,RG31 6HE
+Rochdale	England	OL11 3NU,OL12 6XX,OL16 2YB
+Rotherham	England	S60 2ST,S61 3AG,S65 2LJ
+Salford	England	M3 6ET,M5 4HS,M6 6SN,M7 3PJ,M50 2XH
+Salisbury	England	SP1 2SH,SP2 8DQ
+Scarborough	England	YO11 2TR,YO12 6DR
+Sheffield	England	S2 3DF,S5 7LX,S6 4AD,S8 7SR,S9 3EP,S10 3FA,S11 8RS,S12 3GD,S13 8HR,S20 5BA
+Slough	England	SL1 3TE,SL2 2LS,SL3 7TN
+Southampton	England	SO14 3EF,SO15 3NF,SO16 6DF,SO17 2BN,SO18 4EE,SO19 7BN
+Southend-on-Sea	England	SS0 7TD,SS1 2UA,SS2 5JL,SS9 5EG
+St Albans	England	AL1 3XS,AL3 5JQ,AL4 9AW
+Stirling	Scotland	FK7 7PJ,FK8 1TX,FK9 5GE
+Stockport	England	SK1 3JG,SK2 6BP,SK3 8LY,SK4 3JS,SK5 8ED
+Stockton-on-Tees	England	TS18 3NP,TS19 7PH,TS20 1UZ
+Stoke-on-Trent	England	ST1 4LD,ST2 7NG,ST3 5BW,ST4 5QN,ST6 5NH
+Sunderland	England	SR1 2HP,SR2 7QW,SR3 2RT,SR4 7LG,SR5 3SJ,SR6 8NE
+Swansea	Wales	SA1 5RF,SA2 7PP,SA3 4UG,SA5 7HZ,SA6 7AX,SA7 9NE
+Swindon	England	SN1 3PW,SN2 2NT,SN3 3BZ,SN5 6JF,SN25 2PR,SN38 1SB
+Telford	England	TF1 3PN,TF2 8AS,TF3 2HN,TF4 3AD,TF5 0JA,TF7 5EP,TF8 7JJ,WV99 1RF
+Torquay	England	TQ1 3HS,TQ2 7GY
+Wakefield	England	WF1 3QQ,WF2 7PY,WF3 4FT
+Walsall	England	WS1 3DJ,WS2 8UG,WS4 2EB,WS5 3NA
+Warrington	England	WA1 3HJ,WA2 7QD,WA3 6TE,WA4 3AB,WA5 2SF
+Watford	England	WD17 3DN,WD18 6NZ,WD19 6EY,WD24 5LH,WD25 7JN
+Westminster	England	NW8 8DF,W1D 4UL,W1F 8BB,W1G 8EH,W1H 4QL,W1J 7AL,W1K 4BP,W1U 4QY,W1W 7BB,W2 4RU
+Wigan	England	WN1 2RG,WN2 1DX,WN3 5XF,WN5 9DB,WN6 7PR
+Winchester	England	SO22 5LB,SO23 7RY
+Wolverhampton	England	WV1 2UL,WV2 3AG,WV3 8AD,WV4 5LP,WV6 8HQ,WV9 5PU,WV10 8AL,WV11 2NF,WV13 3PA
+Worcester	England	WR1 2LF,WR2 5FD,WR3 7YA,WR4 9BU,WR5 2GA
+Worthing	England	BN11 3QD,BN12 4UH,BN13 2PH,BN14 8AZ
+Wrexham	Wales	LL11 2EG,LL12 7RP,LL13 8JG
+York	England	YO1 7LF,YO10 4DR,YO23 1HN,YO24 3BX,YO26 5EJ,YO30 5ZL,YO31 7LD

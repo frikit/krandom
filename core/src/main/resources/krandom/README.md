@@ -44,6 +44,7 @@ Native resource coverage by folder:
 | `country_codes/` | n/a | 4 | non-locale | all 249 ISO 3166-1 countries, sourced | ok |
 | `address_types/` | 1 | 36 | 35 | the 6 property-use types, same order everywhere | ok |
 | `address_purposes/` | 1 | 36 | 35 | the 7 address purposes, same order everywhere | ok |
+| `postal_places/` | 1 | 4 | 4 (`en_US`, `en_GB`, `de_DE`, `fr_FR`) | cities with their region and postal codes, sourced | ok |
 | `professions/` | 1 | 35 | 35 | ≥ 40 unique professions | all ≥ 40 |
 | `titles/` | 1 | 35 | 35 | ≥ 4 unique honorifics | ok |
 | `text/` | n/a | 1 set | non-locale | complete standard set | ok |
@@ -183,6 +184,28 @@ One file per locale, `address_purposes/<locale>.txt`, plus the English
 - **Rule:** exactly these seven, **in the same order in every locale**, unique.
 - **Loader:** `LocaleTextResourceLoader` / `BuiltInAddressPurposeDataProvider`
   (via `AddressPurposeDataRegistry`).
+
+### `postal_places/`
+
+One file per locale whose country has postal places, `postal_places/<locale>.txt`,
+one place per line: a city, its region and its postal codes, separated by tabs,
+with the postal codes separated by commas, e.g.
+
+```text
+Grand Rapids	Michigan	49503,49504,49505,49506,49507
+```
+
+- **Content:** cities of the locale's country, each with the first-level region
+  it lies in and up to ten postal codes that serve it, all real. Addresses take
+  their city, region and postal code from one row, so they agree. Only native
+  locales have a file: a fallback variant's cities come from another country.
+- **Rule:** every region is named exactly as in the locale's `states/` file,
+  whose code the place takes; every row has at least one postal code, in the
+  country's format. The header records the source, licence, retrieval date and
+  SHA-256 checksum of every file the rows were built from, and how the rows were
+  chosen. Keep the table a bounded, curated subset, not a national list.
+- **Loader:** `PostalPlaceResourceLoader` / `BuiltInPostalPlaceDataProvider`
+  (via `PostalPlaceDataRegistry`).
 
 ### `professions/`
 
