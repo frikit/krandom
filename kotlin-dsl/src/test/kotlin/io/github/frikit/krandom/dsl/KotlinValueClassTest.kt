@@ -89,6 +89,22 @@ class KotlinValueClassTest :
                 present.maybe.shouldBeInstanceOf<KCount>()
             }
 
+            it("makes a nullable value class over a nullable value null itself, not a wrapper of null") {
+                val nullable =
+                    ObjectGenerator(
+                        KNoteHolder::class.java,
+                        GeneratorConfig.builder().objectNullProbability(1.0).build(),
+                    ).generate()
+                val present = krandom<KNoteHolder> { config { seed(13L) } }
+
+                nullable.constrained shouldBe null
+                nullable.maybe shouldBe null
+                nullable.held shouldBe KNote(null)
+                present.constrained shouldBe null
+                present.maybe.shouldBeInstanceOf<KNote>()
+                present.maybe?.text.shouldBeInstanceOf<String>()
+            }
+
             it("boxes a value class through a private constructor, as a Java one is called") {
                 krandom<KSecretHolder>().secret.value.shouldNotBeBlank()
                 krandom<KSecret>().value.shouldNotBeBlank()
@@ -306,6 +322,12 @@ value class KCount(
 data class KCountHolder(
     @field:Null val constrained: KCount?,
     val maybe: KCount?,
+)
+
+data class KNoteHolder(
+    @field:Null val constrained: KNote?,
+    val maybe: KNote?,
+    val held: KNote,
 )
 
 data class KNullables(
