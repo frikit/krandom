@@ -790,13 +790,13 @@ final class BeanValidationSupport {
 
     /**
      * Whether a value the coherence pass would write meets the constraints of the element: no value for
-     * {@code @Null}, a date or time against the clock as Hibernate Validator compares it, a number within its
-     * bounds, and a string as its text constraints require. The pass writes no value that another constraint
-     * bounds.
+     * {@code @Null}, the value {@code @AssertTrue} or {@code @AssertFalse} asks for, a date or time against the
+     * clock as Hibernate Validator compares it, a number within its bounds, and a string as its text
+     * constraints require. The pass writes no value that another constraint bounds.
      *
      * @param element the field the value is for
      * @param rawType the field's erasure
-     * @param value a date, a time, a number or a string of that type
+     * @param value a boolean, a date, a time, a number or a string of that type
      * @param clock the configured clock
      * @return whether the element's constraints allow the value
      */
@@ -804,6 +804,9 @@ final class BeanValidationSupport {
         ConstraintModel constraints = constraintModelFor(element, rawType);
         if (constraints.nullOnly()) {
             return false;
+        }
+        if (constraints.assertion() != null) {
+            return constraints.assertion().equals(value);
         }
         if (constraints.temporal() != null) {
             return constraints.temporal().accepts(value, clock);

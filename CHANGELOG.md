@@ -332,6 +332,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- In `ObjectGenerationSemanticMode.STRICT`, the coherence pass no longer writes a derived string, amount,
+  status, or active flag that breaks the field's own Bean Validation constraints, as it already did not for
+  dates and ages. Seeded with `42` under a clock fixed at `2026-06-04T12:00Z`, of 2,000 objects each, it broke
+  `@Size(max = 12)` on an `email` in 2,000, `@Size(min = 3, max = 3)` on a `fullName` in 2,000, `@Size(max = 10)`
+  on a `url` in 2,000, `@Size(max = 5)` on a `city` in 1,849, `@Size(max = 6)` on a `status` in 280,
+  `@PositiveOrZero @Max(100)` on an `amount` beside a `price` in 1,985, and `@AssertTrue` on an `active` flag
+  beside a `status` held at `SUSPENDED` in 2,000, and now breaks none. Where a derived value would break a
+  constraint, the field keeps its generated value, which meets it, and a sibling that depends on it follows it
+  where it can: a `price` moves down to a bounded `amount`, an `amount` down to a capped `balance`, and `active`
+  follows a `status` that cannot take `INACTIVE`. A unique field's numbered value must meet the constraints too.
+  A derived value within the constraints is still written, so seeded output changes only for objects that broke
+  one.
 - `KRANDOM_JUNIT_CLASS_RECIPE` now replays what a `@MethodSource` factory generated. JUnit calls the
   factory with the context of the parameterized test as a whole, which `KrandomExtension` reported as a
   second class-scoped configuration under the test class's name. Beside a `@BeforeAll` entry, the

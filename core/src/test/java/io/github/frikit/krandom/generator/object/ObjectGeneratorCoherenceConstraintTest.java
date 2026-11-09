@@ -15,6 +15,7 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Max;
@@ -24,6 +25,10 @@ import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -295,6 +300,63 @@ class ObjectGeneratorCoherenceConstraintTest {
             UnreachableSqlDateBirthDate sqlDate = assertDoesNotThrow(sqlDates::generate);
             assertValid(sqlDate);
             assertTrue(sqlDate.birthDate().getTime() < tenYearsAhead.toEpochMilli(), sqlDate.toString());
+        }
+    }
+
+    record ShortEmail(
+            String firstName,
+            String lastName,
+            @Size(max = 12) String email) {}
+
+    record FixedFullName(
+            String firstName,
+            String lastName,
+            @Size(min = 3, max = 3) String fullName) {}
+
+    record ShortStatus(boolean active, @Size(max = 6) String status) {}
+
+    record ShortCity(String streetAddress, @Size(max = 5) String city, String postalCode) {}
+
+    record ShortUrl(String domain, @Size(max = 10) String url) {}
+
+    record CappedAmount(
+            BigDecimal price, @PositiveOrZero @Max(100) BigDecimal amount) {}
+
+    record AssertedActive(@AssertTrue boolean active, String status) {}
+
+    @ParameterizedTest(name = "{0}")
+    @EnumSource(
+            value = ObjectGenerationSemanticMode.class,
+            names = {"RELAXED", "STRICT"})
+    @DisplayName("a derived string, amount or status keeps to the field's own constraints")
+    void derivedStringAmountOrStatusKeepsToTheFieldsOwnConstraints(ObjectGenerationSemanticMode mode) {
+        GeneratorConfig config = config(mode);
+        ObjectGenerator<ShortEmail> emails = new ObjectGenerator<>(ShortEmail.class, config);
+        ObjectGenerator<FixedFullName> fullNames = new ObjectGenerator<>(FixedFullName.class, config);
+        ObjectGenerator<ShortStatus> statuses = new ObjectGenerator<>(ShortStatus.class, config);
+        ObjectGenerator<ShortCity> cities = new ObjectGenerator<>(ShortCity.class, config);
+        ObjectGenerator<ShortUrl> urls = new ObjectGenerator<>(ShortUrl.class, config);
+        ObjectGenerator<CappedAmount> amounts = new ObjectGenerator<>(CappedAmount.class, config);
+        // A status held at SUSPENDED would take an @AssertTrue flag to false.
+        ObjectGenerator<AssertedActive> actives = new ObjectGenerator<>(
+                AssertedActive.class,
+                ObjectGeneratorConfig.builder()
+                        .generatorConfig(config)
+                        .override(AssertedActive.class, "status", () -> "SUSPENDED")
+                        .build());
+
+        for (int i = 0; i < SAMPLES; i++) {
+            assertValid(emails.generate());
+            assertValid(fullNames.generate());
+            assertValid(statuses.generate());
+            assertValid(cities.generate());
+            assertValid(urls.generate());
+            assertValid(actives.generate());
+            // A price above what the amount allows follows the amount down instead, at the cents the pass keeps.
+            CappedAmount amount = amounts.generate();
+            assertValid(amount);
+            assertFalse(
+                    amount.amount().setScale(2, RoundingMode.HALF_UP).compareTo(amount.price()) < 0, amount.toString());
         }
     }
 

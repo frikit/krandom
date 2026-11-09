@@ -219,7 +219,32 @@ final class SemanticCoherenceAdjuster {
         if (normalized == null) {
             return;
         }
-        slot.setValue(applyUniqueness(slot, semanticKey, normalized));
+        assignDerived(slot, semanticKey, normalized);
+    }
+
+    /**
+     * Writes a derived string to the slot, numbered where its field must be unique, where the slot's own
+     * constraints allow it. Where they do not, the slot keeps its value, which met them when it was generated,
+     * as a slot the pass cannot assign does. The string is checked before it is numbered, so that a rejected
+     * one takes no unique value, and again after, as a number can lengthen it.
+     *
+     * @return whether the slot took the string
+     */
+    private boolean assignDerived(Slot slot, String semanticKey, String candidate) {
+        if (!keepsConstraints(slot, candidate)) {
+            return false;
+        }
+        Object assigned = applyUniqueness(slot, semanticKey, candidate);
+        if (!keepsConstraints(slot, assigned)) {
+            return false;
+        }
+        slot.setValue(assigned);
+        return true;
+    }
+
+    /** True when the pass can assign the slot and the slot's own constraints allow this value. */
+    private boolean canTake(Slot slot, boolean allowOverwriteExisting, Object value) {
+        return canAssign(slot, allowOverwriteExisting) && keepsConstraints(slot, value);
     }
 
     private @Nullable AddressInfo coherentAddressInfo() {
@@ -245,10 +270,9 @@ final class SemanticCoherenceAdjuster {
             String declaredDomain =
                     sharedDomain(normalizeDomain(stringValue(domainSlot.getValue())), slotsBySemanticKey);
             if (declaredDomain != null) {
-                if (canAssign(domainSlot, allowOverwriteExisting)) {
-                    Object assigned = applyUniqueness(domainSlot, "domain", declaredDomain);
-                    domainSlot.setValue(assigned);
-                    return normalizeDomain(stringValue(assigned));
+                if (canAssign(domainSlot, allowOverwriteExisting)
+                        && assignDerived(domainSlot, "domain", declaredDomain)) {
+                    return normalizeDomain(stringValue(domainSlot.getValue()));
                 }
                 return declaredDomain;
             }
@@ -267,12 +291,12 @@ final class SemanticCoherenceAdjuster {
             resolvedDomain = normalizeDomain(emailDomain(stringValue(slotsBySemanticKey.get("companyemail"))));
         }
 
-        if (networkSafeDomain(resolvedDomain, slotsBySemanticKey) != null
+        String safeDomain = networkSafeDomain(resolvedDomain, slotsBySemanticKey);
+        if (safeDomain != null
                 && domainSlot != null
-                && canAssign(domainSlot, allowOverwriteExisting)) {
-            Object assigned = applyUniqueness(domainSlot, "domain", resolvedDomain);
-            domainSlot.setValue(assigned);
-            resolvedDomain = normalizeDomain(stringValue(assigned));
+                && canAssign(domainSlot, allowOverwriteExisting)
+                && assignDerived(domainSlot, "domain", safeDomain)) {
+            resolvedDomain = normalizeDomain(stringValue(domainSlot.getValue()));
         }
         return resolvedDomain;
     }
@@ -291,7 +315,7 @@ final class SemanticCoherenceAdjuster {
             return;
         }
 
-        fullNameSlot.setValue(applyUniqueness(fullNameSlot, "fullname", firstName + " " + lastName));
+        assignDerived(fullNameSlot, "fullname", firstName + " " + lastName);
     }
 
     private void harmonizeEmail(
@@ -318,7 +342,7 @@ final class SemanticCoherenceAdjuster {
             domain = "example.com";
         }
 
-        emailSlot.setValue(applyUniqueness(emailSlot, "email", localPart + "@" + domain));
+        assignDerived(emailSlot, "email", localPart + "@" + domain);
     }
 
     private void harmonizeCompanyEmail(
@@ -344,7 +368,7 @@ final class SemanticCoherenceAdjuster {
             return;
         }
 
-        companyEmailSlot.setValue(applyUniqueness(companyEmailSlot, "companyemail", "hello@" + domain));
+        assignDerived(companyEmailSlot, "companyemail", "hello@" + domain);
     }
 
     /** Keeps a domain out of a fixture's shared domain when an email field would inherit it unsafely. */
@@ -414,7 +438,7 @@ final class SemanticCoherenceAdjuster {
             return;
         }
 
-        urlSlot.setValue(applyUniqueness(urlSlot, "url", "https://www." + domain));
+        assignDerived(urlSlot, "url", "https://www." + domain);
     }
 
     private void harmonizeCompanyUrl(
@@ -441,7 +465,7 @@ final class SemanticCoherenceAdjuster {
             return;
         }
 
-        companyUrlSlot.setValue(applyUniqueness(companyUrlSlot, "companyurl", "https://www." + domain));
+        assignDerived(companyUrlSlot, "companyurl", "https://www." + domain);
     }
 
     private void harmonizeTimestamps(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
@@ -490,8 +514,8 @@ final class SemanticCoherenceAdjuster {
      * True when the pass may write this value to the slot because the slot's own Bean Validation constraints
      * allow it, read against the configured clock. In RELAXED mode a constrained slot is protected and never
      * written. In STRICT mode semantics win, but a value that would break a constraint cannot move: this keeps
-     * the dates and ages the pass derives within them. {@code null} is a type the pass cannot write, which it
-     * leaves as it is.
+     * every value the pass derives, a date, an age, a string, an amount or a status, within them. {@code null}
+     * is a type the pass cannot write, which it leaves as it is.
      */
     private boolean keepsConstraints(Slot slot, @Nullable Object value) {
         return value == null
@@ -671,17 +695,17 @@ final class SemanticCoherenceAdjuster {
                 return;
             }
             Object statusValue = statusValueFor(active, statusSlot.rawType());
-            if (statusValue != null && canAssign(statusSlot, allowOverwriteExisting)) {
+            if (statusValue != null && canTake(statusSlot, allowOverwriteExisting, statusValue)) {
                 statusSlot.setValue(statusValue);
                 return;
             }
-            if (statusActive != null && canAssign(activeSlot, allowOverwriteExisting)) {
+            if (statusActive != null && canTake(activeSlot, allowOverwriteExisting, statusActive)) {
                 activeSlot.setValue(statusActive);
             }
             return;
         }
 
-        if (statusActive != null && canAssign(activeSlot, allowOverwriteExisting)) {
+        if (statusActive != null && canTake(activeSlot, allowOverwriteExisting, statusActive)) {
             activeSlot.setValue(statusActive);
         }
     }
@@ -700,53 +724,71 @@ final class SemanticCoherenceAdjuster {
         BigDecimal amount = moneyValue(amountSlot);
         BigDecimal balance = moneyValue(balanceSlot);
 
-        boolean backfillPrice = price == null & amount != null & canAssign(priceSlot, allowOverwriteExisting);
+        boolean backfillPrice = price == null & canTakeMoney(priceSlot, allowOverwriteExisting, amount, currencyCode);
         if (backfillPrice) {
             price = assignMoney(priceSlot, amount, currencyCode);
         }
-        boolean backfillAmount = amount == null & price != null & canAssign(amountSlot, allowOverwriteExisting);
+        boolean backfillAmount = amount == null & canTakeMoney(amountSlot, allowOverwriteExisting, price, currencyCode);
         if (backfillAmount) {
             amount = assignMoney(amountSlot, price, currencyCode);
         }
-        boolean backfillBalance = balance == null & amount != null & canAssign(balanceSlot, allowOverwriteExisting);
+        boolean backfillBalance =
+                balance == null & canTakeMoney(balanceSlot, allowOverwriteExisting, amount, currencyCode);
         if (backfillBalance) {
             balance = assignMoney(balanceSlot, amount, currencyCode);
         }
 
+        // Where one side of an order cannot take the other's amount, the other follows it, as for dates.
         boolean amountBelowPrice = isLessThan(amount, price);
         if (amountBelowPrice) {
-            if (canAssign(amountSlot, allowOverwriteExisting)) {
+            if (canTakeMoney(amountSlot, allowOverwriteExisting, price, currencyCode)) {
                 amount = assignMoney(amountSlot, price, currencyCode);
-            } else if (canAssign(priceSlot, allowOverwriteExisting)) {
+            } else if (canTakeMoney(priceSlot, allowOverwriteExisting, amount, currencyCode)) {
                 price = assignMoney(priceSlot, amount, currencyCode);
             }
         }
 
         boolean balanceBelowAmount = isLessThan(balance, amount);
         if (balanceBelowAmount) {
-            if (canAssign(balanceSlot, allowOverwriteExisting)) {
+            if (canTakeMoney(balanceSlot, allowOverwriteExisting, amount, currencyCode)) {
                 balance = assignMoney(balanceSlot, amount, currencyCode);
-            } else if (canAssign(amountSlot, allowOverwriteExisting)) {
+            } else if (canTakeMoney(amountSlot, allowOverwriteExisting, balance, currencyCode)) {
                 amount = assignMoney(amountSlot, balance, currencyCode);
             }
         }
 
-        boolean formatPriceString = shouldFormatMoneyString(price, priceSlot, allowOverwriteExisting);
+        boolean formatPriceString = shouldFormatMoneyString(price, priceSlot, allowOverwriteExisting, currencyCode);
         if (formatPriceString) {
             assignMoney(priceSlot, price, currencyCode);
         }
-        boolean formatAmountString = shouldFormatMoneyString(amount, amountSlot, allowOverwriteExisting);
+        boolean formatAmountString = shouldFormatMoneyString(amount, amountSlot, allowOverwriteExisting, currencyCode);
         if (formatAmountString) {
             assignMoney(amountSlot, amount, currencyCode);
         }
-        boolean formatBalanceString = shouldFormatMoneyString(balance, balanceSlot, allowOverwriteExisting);
+        boolean formatBalanceString =
+                shouldFormatMoneyString(balance, balanceSlot, allowOverwriteExisting, currencyCode);
         if (formatBalanceString) {
             assignMoney(balanceSlot, balance, currencyCode);
         }
     }
 
-    private boolean canAssign(@Nullable Slot slot, boolean allowOverwriteExisting) {
-        if (slot == null || isProtected(slot)) {
+    /**
+     * True when the slot can take this amount: the pass can assign it, and its own constraints allow the amount
+     * as its type holds it, a string with the currency code. No amount is nothing to take.
+     */
+    private boolean canTakeMoney(
+            @Nullable Slot slot,
+            boolean allowOverwriteExisting,
+            @Nullable BigDecimal value,
+            @Nullable String currencyCode) {
+        if (value == null || slot == null || !canAssign(slot, allowOverwriteExisting)) {
+            return false;
+        }
+        return keepsConstraints(slot, moneyValueFor(value, slot.rawType(), currencyCode));
+    }
+
+    private boolean canAssign(Slot slot, boolean allowOverwriteExisting) {
+        if (isProtected(slot)) {
             return false;
         }
         if (allowOverwriteExisting) {
@@ -774,7 +816,8 @@ final class SemanticCoherenceAdjuster {
         }
 
         // RELAXED lets declared annotations and bean validation constraints take precedence over
-        // semantics; STRICT deliberately lets semantics win.
+        // semantics. STRICT lets semantics win over the annotations, and over a constraint where the
+        // derived value meets it.
         if (config.getSemanticMode() == ObjectGenerationSemanticMode.RELAXED) {
             if (field.isAnnotationPresent(Randomizer.class) || field.isAnnotationPresent(FakeRange.class)) {
                 return true;
@@ -1211,14 +1254,15 @@ final class SemanticCoherenceAdjuster {
         return value instanceof Boolean bool ? bool : null;
     }
 
-    boolean shouldFormatMoneyString(@Nullable BigDecimal value, @Nullable Slot slot, boolean allowOverwriteExisting) {
-        if (value == null || slot == null) {
+    boolean shouldFormatMoneyString(
+            @Nullable BigDecimal value,
+            @Nullable Slot slot,
+            boolean allowOverwriteExisting,
+            @Nullable String currencyCode) {
+        if (slot == null || slot.rawType() != String.class) {
             return false;
         }
-        if (slot.rawType() != String.class) {
-            return false;
-        }
-        return canAssign(slot, allowOverwriteExisting);
+        return canTakeMoney(slot, allowOverwriteExisting, value, currencyCode);
     }
 
     static boolean isLessThan(@Nullable BigDecimal left, @Nullable BigDecimal right) {

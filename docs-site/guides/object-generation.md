@@ -141,10 +141,9 @@ Semantic modes:
 
 - `RELAXED`: use semantic field names when available, but let annotations and bean validation win.
 - `STRICT`: semantic field names win whenever a semantic match exists, over `@Randomizer`, `@Fake`, and
-  `@FakeRange` too, and the coherence pass can overwrite annotated and constrained fields. Bean Validation
-  constraints still take precedence when a value is generated, and the pass moves a `createdAt`, `updatedAt`,
-  `birthDate`, or `age` only within its own constraints: see
-  [date ranges and coherence](#date-ranges-and-coherence).
+  `@FakeRange` too, and the coherence pass can overwrite annotated fields. Bean Validation constraints still
+  take precedence when a value is generated, and the pass writes a derived value into a constrained field only
+  where the field's own constraints allow it: see [coherence and constraints](#coherence-and-constraints).
 - `STRUCTURAL_ONLY`: disable field-name semantics and use type-based generation only.
 
 ## Semantic field defaults
@@ -170,7 +169,20 @@ Configured object date ranges still apply to semantic temporal fields. If you se
 
 A `Calendar` or `GregorianCalendar` field is a non-lenient `GregorianCalendar` with ISO week rules, as `Generators.ofCalendar()` gives, drawn as a `ZonedDateTime` field is: in a random zone, with the range on its local date, and with the same semantic windows for `createdAt`, `updatedAt`, and `birthDate`.
 
-Object generation also runs a lightweight coherence pass after sibling values are generated. Common pairs such as `firstName` + `lastName` -> `fullName`, `firstName` + `lastName` + `domain` -> `email`, `domain` -> `url`, `createdAt` / `updatedAt`, `birthDate` / `age`, and `active` / `status` are aligned automatically. Address-like clusters now reuse one locale-backed address snapshot so `streetAddress`, `city`, `state`, `postalCode`, and `country` stay consistent with each other, and money-like clusters keep `price <= amount <= balance` while deriving missing sibling values when one amount is already present. In `RELAXED` mode, that pass still leaves annotated or Bean Validation-constrained target fields alone. In `STRICT` mode it can overwrite them, but it moves a `createdAt`, `updatedAt`, `birthDate`, or `age` only within its own constraints. Explicit field and type overrides always win. Generated emails keep to the [email-domain contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#email-domain-contract), and generated domains and URLs to the [network contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#network-contract): a generated `domain` is reserved, so an email built from name fields beside it takes that domain, and a `companyName` derives a `.test` domain.
+Object generation also runs a lightweight coherence pass after sibling values are generated. Common pairs such as `firstName` + `lastName` -> `fullName`, `firstName` + `lastName` + `domain` -> `email`, `domain` -> `url`, `createdAt` / `updatedAt`, `birthDate` / `age`, and `active` / `status` are aligned automatically. Address-like clusters now reuse one locale-backed address snapshot so `streetAddress`, `city`, `state`, `postalCode`, and `country` stay consistent with each other, and money-like clusters keep `price <= amount <= balance` while deriving missing sibling values when one amount is already present. In `RELAXED` mode, that pass still leaves annotated or Bean Validation-constrained target fields alone. In `STRICT` mode it can overwrite them, but it writes a derived value into a constrained field only where the field's own constraints allow it: see [coherence and constraints](#coherence-and-constraints). Explicit field and type overrides always win. Generated emails keep to the [email-domain contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#email-domain-contract), and generated domains and URLs to the [network contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#network-contract): a generated `domain` is reserved, so an email built from name fields beside it takes that domain, and a `companyName` derives a `.test` domain.
+
+### Coherence and constraints
+
+In `STRICT` mode the coherence pass writes a derived value into a field with a Bean Validation constraint only
+where the value meets the field's own constraints, read as Hibernate Validator reads them. Where it would break
+one, the field keeps the value it was generated with, which meets them, as a field the pass cannot assign does.
+So a `@Size(max = 12)` `email` keeps its generated value rather than take `ada.lovelace@example.com`, and a
+`@Size(min = 3, max = 3)` `fullName` rather than take `Ada Lovelace`, which a `@Size(max = 20)` `fullName` takes.
+A unique field's numbered value must meet the constraints too. A sibling that depends on such a field follows
+it where it can: a `price` above what a `@Max(100)` `amount` allows moves down to the amount, and an `active`
+flag follows a `@Size(max = 6)` `status` that cannot take `INACTIVE`. Where neither can move, both keep their
+values, as two overrides do. Dates and ages follow the same rule: see
+[date ranges and coherence](#date-ranges-and-coherence).
 
 ### Date ranges and coherence
 

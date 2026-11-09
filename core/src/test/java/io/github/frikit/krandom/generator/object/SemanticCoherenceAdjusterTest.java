@@ -31,6 +31,7 @@ import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.object.ObjectGeneratorSemanticCoherenceTest.TemporalPairs;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Max;
@@ -38,6 +39,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -311,10 +313,10 @@ class SemanticCoherenceAdjusterTest {
                 new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
         ManualStringMoneyHolder stringHolder = new ManualStringMoneyHolder();
         SemanticCoherenceAdjuster.Slot stringPriceSlot = rawSlot(stringHolder, "price");
-        assertFalse((Boolean) adjuster.shouldFormatMoneyString(new BigDecimal("1.00"), null, true));
-        assertFalse((Boolean) adjuster.shouldFormatMoneyString(null, stringPriceSlot, true));
+        assertFalse((Boolean) adjuster.shouldFormatMoneyString(new BigDecimal("1.00"), null, true, "USD"));
+        assertFalse((Boolean) adjuster.shouldFormatMoneyString(null, stringPriceSlot, true, "USD"));
         assertFalse((Boolean) adjuster.shouldFormatMoneyString(
-                new BigDecimal("1.00"), rawSlot(new ManualMoneyHolder(), "price"), true));
+                new BigDecimal("1.00"), rawSlot(new ManualMoneyHolder(), "price"), true, "USD"));
 
         assertFalse((Boolean) SemanticCoherenceAdjuster.isLessThan(new BigDecimal("1.00"), null));
     }
@@ -1053,8 +1055,10 @@ class SemanticCoherenceAdjusterTest {
     }
 
     @Test
-    @DisplayName("relaxed mode protects annotated and validated fields while strict mode does not")
-    void relaxedModeProtectsAnnotatedAndValidatedFieldsWhileStrictModeDoesNot() throws Exception {
+    @DisplayName(
+            "relaxed mode protects annotated and validated fields, and strict mode overwrites them within their constraints")
+    void relaxedModeProtectsAnnotatedAndValidatedFieldsAndStrictModeOverwritesThemWithinTheirConstraints()
+            throws Exception {
         ProtectedSemanticHolder relaxed = new ProtectedSemanticHolder();
         relaxed.firstName = "Ada";
         relaxed.lastName = "Lovelace";
@@ -1081,8 +1085,155 @@ class SemanticCoherenceAdjusterTest {
                 new UniqueFieldTracker());
         strictAdjuster.adjustInstance(
                 ProtectedSemanticHolder.class, strict, declaredFields(ProtectedSemanticHolder.class), true);
-        assertEquals("Ada Lovelace", strict.fullName);
+        // "Ada Lovelace" breaks @Size(min = 3, max = 3), so the full name keeps the value that met it.
+        assertEquals("RAW", strict.fullName);
         assertEquals("ada.lovelace@example.com", strict.email);
+    }
+
+    @Test
+    @DisplayName("in strict mode a derived string is written only where the field's own constraints allow it")
+    void strictDerivedStringIsWrittenOnlyWhereItsConstraintsAllowIt() throws Exception {
+        ConstrainedContact contact = new ConstrainedContact();
+        contact.firstName = "Ada";
+        contact.lastName = "Lovelace";
+        contact.fullName = "RAW";
+        contact.email = "a@b.test";
+        contact.domain = "x.test";
+        contact.url = "https://x";
+        contact.companyName = "Acme";
+        contact.companyEmail = "c@x.test";
+        contact.companyUrl = "https://y";
+
+        strictAdjuster()
+                .adjustInstance(ConstrainedContact.class, contact, declaredFields(ConstrainedContact.class), true);
+
+        // "Ada Lovelace" fits @Size(max = 20), and the domain keeps its own value, which fits too.
+        assertEquals("Ada Lovelace", contact.fullName);
+        assertEquals("x.test", contact.domain);
+        // "ada.lovelace@x.test", "hello@x.test" and "https://www.x.test" are each too long for their fields.
+        assertEquals("a@b.test", contact.email);
+        assertEquals("c@x.test", contact.companyEmail);
+        assertEquals("https://x", contact.url);
+        assertEquals("https://y", contact.companyUrl);
+    }
+
+    @Test
+    @DisplayName(
+            "in strict mode a domain that its constraints keep from the derived one stays, and its siblings use that one")
+    void strictDomainThatItsConstraintsKeepFromTheDerivedOneStays() throws Exception {
+        // The domain's own value, read as acme.test, would no longer match its pattern.
+        PatternedDomain patterned = new PatternedDomain();
+        patterned.domain = "WWW.ACME.TEST";
+        patterned.url = "https://x";
+        strictAdjuster().adjustInstance(PatternedDomain.class, patterned, declaredFields(PatternedDomain.class), true);
+        assertEquals("WWW.ACME.TEST", patterned.domain);
+        assertEquals("https://www.acme.test", patterned.url);
+
+        // The domain the email gives is too long for the field, which keeps its own value.
+        ShortDomain shortDomain = new ShortDomain();
+        shortDomain.email = "a@example.com";
+        shortDomain.domain = "abc";
+        strictAdjuster().adjustInstance(ShortDomain.class, shortDomain, declaredFields(ShortDomain.class), true);
+        assertEquals("abc", shortDomain.domain);
+        assertEquals("a@example.com", shortDomain.email);
+    }
+
+    @Test
+    @DisplayName("in strict mode a bounded amount keeps its value, and price follows it down")
+    void strictBoundedAmountKeepsItsValueAndPriceFollowsIt() throws Exception {
+        ConstrainedMoney money = new ConstrainedMoney();
+        money.price = new BigDecimal("500.00");
+        money.amount = new BigDecimal("50.00");
+        money.balance = new BigDecimal("70.00");
+        strictAdjuster().adjustInstance(ConstrainedMoney.class, money, declaredFields(ConstrainedMoney.class), true);
+        // 500.00 breaks the amount's @Max(100), so the price moves down to the amount instead.
+        assertEquals(new BigDecimal("50.00"), money.price);
+        assertEquals(new BigDecimal("50.00"), money.amount);
+        assertEquals(new BigDecimal("70.00"), money.balance);
+
+        // A balance capped below the amount keeps its value, and the amount follows it down.
+        CappedBalance capped = new CappedBalance();
+        capped.price = new BigDecimal("20.00");
+        capped.amount = new BigDecimal("90.00");
+        capped.balance = new BigDecimal("60.00");
+        strictAdjuster().adjustInstance(CappedBalance.class, capped, declaredFields(CappedBalance.class), true);
+        assertEquals(new BigDecimal("60.00"), capped.amount);
+        assertEquals(new BigDecimal("60.00"), capped.balance);
+
+        // A price that the amount would break is not backfilled from it.
+        CappedPrice backfill = new CappedPrice();
+        backfill.amount = new BigDecimal("50.00");
+        strictAdjuster().adjustInstance(CappedPrice.class, backfill, declaredFields(CappedPrice.class), true);
+        assertNull(backfill.price);
+
+        // A price string that its pattern keeps from the currency code stays as it is.
+        PatternedPrice patterned = new PatternedPrice();
+        patterned.price = "12.34";
+        patterned.currency = "EUR";
+        strictAdjuster().adjustInstance(PatternedPrice.class, patterned, declaredFields(PatternedPrice.class), true);
+        assertEquals("12.34", patterned.price);
+    }
+
+    @Test
+    @DisplayName(
+            "in strict mode a status or an active flag keeps a value its constraints require, and the other follows")
+    void strictStatusOrActiveFlagKeepsAValueItsConstraintsRequire() throws Exception {
+        // "INACTIVE" is too long for @Size(max = 6), so the status stays, and the flag follows it.
+        ConstrainedStatus status = new ConstrainedStatus();
+        status.active = false;
+        status.status = "ACTIVE";
+        strictAdjuster().adjustInstance(ConstrainedStatus.class, status, declaredFields(ConstrainedStatus.class), true);
+        assertEquals("ACTIVE", status.status);
+        assertTrue(status.active);
+
+        // An @AssertTrue flag cannot follow a status pinned at SUSPENDED, so both keep their values.
+        AssertedActive asserted = new AssertedActive();
+        asserted.active = true;
+        asserted.status = "SUSPENDED";
+        new SemanticCoherenceAdjuster(
+                        ObjectGeneratorConfig.builder()
+                                .semanticMode(ObjectGenerationSemanticMode.STRICT)
+                                .override(AssertedActive.class, "status", () -> "SUSPENDED")
+                                .build(),
+                        new UniqueFieldTracker())
+                .adjustInstance(AssertedActive.class, asserted, declaredFields(AssertedActive.class), true);
+        assertTrue(asserted.active);
+        assertEquals("SUSPENDED", asserted.status);
+    }
+
+    @Test
+    @DisplayName("in strict mode a unique derived string that numbering takes past its constraints is not written")
+    void strictUniqueDerivedStringNumberedPastItsConstraintsIsNotWritten() throws Exception {
+        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .generatorConfig(GeneratorConfig.builder()
+                                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                                .objectUniqueField("email")
+                                .build())
+                        .build(),
+                new UniqueFieldTracker());
+        // "alice.smith@example.com" has the 23 characters that @Size(max = 23) allows, and its numbered form has 24.
+        ExactLengthEmail first = new ExactLengthEmail();
+        first.firstName = "Alice";
+        first.lastName = "Smith";
+        first.email = "first@example.com";
+        adjuster.adjustInstance(ExactLengthEmail.class, first, declaredFields(ExactLengthEmail.class), true);
+        assertEquals("alice.smith@example.com", first.email);
+
+        ExactLengthEmail second = new ExactLengthEmail();
+        second.firstName = "Alice";
+        second.lastName = "Smith";
+        second.email = "second@example.com";
+        adjuster.adjustInstance(ExactLengthEmail.class, second, declaredFields(ExactLengthEmail.class), true);
+        assertEquals("second@example.com", second.email);
+    }
+
+    private static SemanticCoherenceAdjuster strictAdjuster() {
+        return new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .semanticMode(ObjectGenerationSemanticMode.STRICT)
+                        .build(),
+                new UniqueFieldTracker());
     }
 
     @Test
@@ -1985,6 +2136,93 @@ class SemanticCoherenceAdjusterTest {
 
         @Randomizer(AnnotatedValueGenerator.class)
         String email;
+    }
+
+    static class ConstrainedContact {
+
+        String firstName;
+        String lastName;
+
+        @Size(max = 20) String fullName;
+
+        @Size(max = 12) String email;
+
+        @Size(max = 10) String domain;
+
+        @Size(max = 10) String url;
+
+        String companyName;
+
+        @Size(max = 10) String companyEmail;
+
+        @Size(max = 10) String companyUrl;
+    }
+
+    static class PatternedDomain {
+
+        @Pattern(regexp = "WWW\\.[A-Z]+\\.TEST") String domain;
+
+        String url;
+    }
+
+    static class ShortDomain {
+
+        String email;
+
+        @Size(max = 5) String domain;
+    }
+
+    static class ConstrainedMoney {
+
+        BigDecimal price;
+
+        @Max(100) BigDecimal amount;
+
+        BigDecimal balance;
+    }
+
+    static class CappedBalance {
+
+        BigDecimal price;
+        BigDecimal amount;
+
+        @Max(60) BigDecimal balance;
+    }
+
+    static class CappedPrice {
+
+        @Max(10) BigDecimal price;
+
+        BigDecimal amount;
+    }
+
+    static class PatternedPrice {
+
+        @Pattern(regexp = "\\d+\\.\\d{2}") String price;
+
+        String currency;
+    }
+
+    static class ConstrainedStatus {
+
+        boolean active;
+
+        @Size(max = 6) String status;
+    }
+
+    static class AssertedActive {
+
+        @AssertTrue boolean active;
+
+        String status;
+    }
+
+    static class ExactLengthEmail {
+
+        String firstName;
+        String lastName;
+
+        @Size(max = 23) String email;
     }
 
     record ManualRecord(String firstName, String lastName, String fullName) {}
