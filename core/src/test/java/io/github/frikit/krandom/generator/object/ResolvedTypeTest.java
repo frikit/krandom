@@ -162,6 +162,45 @@ class ResolvedTypeTest {
     }
 
     @Test
+    @DisplayName("reads the signature of what a type resolves to")
+    void readsResolvedSignatures() throws Exception {
+        TypeVariable<Class<Shapes>> shapeVariable = Shapes.class.getTypeParameters()[0];
+        TypeVariable<Class<GenericMiddle>> middleVariable = GenericMiddle.class.getTypeParameters()[0];
+        ResolvedType array =
+                ResolvedType.resolve(field("genericArray").getGenericType(), Map.of(shapeVariable, String.class));
+        ResolvedType parameterized =
+                ResolvedType.resolve(GenericMiddle.class.getGenericSuperclass(), Map.of(middleVariable, Integer.class));
+        ResolvedType unbound = ResolvedType.resolve(Unbounded.class.getTypeParameters()[0]);
+
+        assertEquals("java.lang.String", ResolvedType.resolve(String.class).resolvedSignature());
+        assertEquals("T[]", array.signature());
+        assertEquals("java.lang.String[]", array.resolvedSignature());
+        assertEquals(GenericBase.class.getTypeName() + "<java.util.List<U>>", parameterized.signature());
+        assertEquals(
+                GenericBase.class.getTypeName() + "<java.util.List<java.lang.Integer>>",
+                parameterized.resolvedSignature());
+        assertEquals(
+                "java.util.List<java.lang.Number>",
+                ResolvedType.resolve(field("upper").getGenericType()).resolvedSignature());
+        assertEquals("T", unbound.resolvedSignature(), "a type that resolves to nothing reads as declared");
+    }
+
+    @Test
+    @DisplayName("reads a class's resolved signature through bindings of its own type parameters")
+    void readsClassResolvedSignatures() {
+        TypeVariable<Class<GenericBase>> baseVariable = GenericBase.class.getTypeParameters()[0];
+
+        assertEquals(StringChild.class.getTypeName(), ResolvedType.resolvedSignature(StringChild.class, Map.of()));
+        assertEquals(
+                GenericBase.class.getTypeName() + "<java.lang.String>",
+                ResolvedType.resolvedSignature(GenericBase.class, Map.of(baseVariable, String.class)));
+        assertEquals(
+                GenericBase.class.getTypeName() + "<T>",
+                ResolvedType.resolvedSignature(GenericBase.class, Map.of()),
+                "an unbound parameter reads as declared");
+    }
+
+    @Test
     @DisplayName("rejects invalid API inputs and unknown Type implementations")
     void validatesInputs() {
         assertThrows(NullPointerException.class, () -> ResolvedType.resolve(null));
@@ -200,6 +239,7 @@ class ResolvedTypeTest {
         ResolvedType unresolvedParameterized = ResolvedType.resolve(withoutRawClass);
         assertNull(unresolvedParameterized.rawClass());
         assertTrue(unresolvedParameterized.unresolvedReason().contains("no concrete raw class"));
+        assertEquals(unresolvedParameterized.signature(), unresolvedParameterized.resolvedSignature());
 
         WildcardType withoutBounds = new WildcardType() {
             @Override

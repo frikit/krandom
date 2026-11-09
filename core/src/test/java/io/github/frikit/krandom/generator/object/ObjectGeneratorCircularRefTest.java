@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.object;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -154,7 +155,47 @@ class ObjectGeneratorCircularRefTest {
         assertNull(root.getNext().getNext());
     }
 
+    @Test
+    @DisplayName("a generic self-typed member is cut where it repeats its resolved type")
+    void genericSelfTypedMemberIsCutAtItsResolvedType() {
+        LinkedHolder holder = new ObjectGenerator<>(LinkedHolder.class).generate();
+
+        assertNotNull(holder.list, "the first Linked<String> is generated");
+        assertNull(holder.list.next, "its Linked<T> next is a Linked<String> again, so the cycle guard cuts it");
+    }
+
+    @Test
+    @DisplayName("a recursive generic member with permuted arguments keeps them")
+    void permutedRecursiveMemberKeepsItsArguments() {
+        SwapHolder holder = new ObjectGenerator<>(SwapHolder.class).generate();
+
+        assertInstanceOf(String.class, holder.swap.first);
+        assertInstanceOf(Integer.class, holder.swap.second);
+        assertInstanceOf(Integer.class, holder.swap.swapped.first, "Swap<B, A> reads B as Integer");
+        assertInstanceOf(String.class, holder.swap.swapped.second, "and A as String");
+        assertNull(holder.swap.swapped.swapped, "the next swap repeats Swap<String, Integer>, so the guard cuts it");
+    }
+
     static class RequiredNode {
         @NotNull RequiredNode next;
+    }
+
+    static class Swap<A, B> {
+        A first;
+        B second;
+        Swap<B, A> swapped;
+    }
+
+    static class SwapHolder {
+        Swap<String, Integer> swap;
+    }
+
+    static class Linked<T> {
+        T value;
+        Linked<T> next;
+    }
+
+    static class LinkedHolder {
+        Linked<String> list;
     }
 }

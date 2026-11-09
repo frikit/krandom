@@ -65,6 +65,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   country, and a locale whose country has no places resolves none rather than borrowing another
   country's through its language. `LocaleDataBundle.Builder.postalPlaces(...)` registers places with a
   bundle. `Vocabulary.all()` lists 42 vocabularies.
+- The object engine now generates a sealed interface or abstract sealed class, as a root or as a member, as
+  one of the concrete classes of its hierarchy, where it failed as an unsupported type. Each class is equally
+  likely, and the choice is drawn from the seeded stream in binary-name order rather than the order the type
+  permits them. The classes are each permitted subclass that is concrete, a record, or an enum, which gives
+  one of its constants, and the classes of each abstract sealed subclass, at any depth. A class already being
+  generated on the member's path is left out while another remains, so a recursive hierarchy such as an
+  expression tree ends in a leaf, and the chosen class counts as being generated as its own type, so a member
+  of that type inside it is cut as a cycle. A type override or `objectSubtype` mapping for the sealed type
+  wins, one for an abstract subclass makes that subclass a choice, and an abstract subclass with neither fails
+  generation as an unsupported type that names it, whatever the seed. A sealed root is generated from its seed
+  as a root of the chosen class would be, except that the chosen class counts as being generated, so its
+  members leave it out of their choices while another class remains. A concrete sealed class is still
+  generated as itself. A construction adapter can declare a type sealed and list its subclasses through the
+  new default method `ObjectConstructionAdapter.sealedSubclasses`. The choice draws only for sealed members,
+  so seeded output does not change for objects without one.
+- The Kotlin DSL generates Kotlin sealed classes and interfaces in the same way, reading their subclasses
+  from the Kotlin metadata whatever JVM target compiled them, and an `object` subclass gives its instance.
+- The Kotlin DSL generates `@JvmInline` value classes, where they failed with `Kotlin value classes are not
+  supported for object generation; register a type override`. A value class is generated as the value it
+  wraps and boxed through its primary constructor, so its `init` block runs. For a constructor parameter,
+  the wrapped value is generated under the parameter's name and with its constraints, or else with those
+  declared inside the value class, so `val email: EmailAddress` holds an email address. A value class over
+  a string, a number, a nullable value, another value class, or its type parameter, alone or inside a type
+  such as `List<T>`, with an argument that may be the owner's own type parameter, works as a constructor
+  parameter, nullable or not, as Kotlin's unsigned types do. A value class also works
+  as a collection element and, unless it is generic, as the generated type and as a `var` property set
+  after construction. A rule or
+  `ruleForType` for the value class supplies it, a rule may give the wrapped value instead, which is boxed,
+  and a `ruleForType<String>` reaches a `String` inside a value class. A value that the `init` block rejects
+  fails with the value class and the parameter named. A class whose primary constructor takes a value
+  class is built through that constructor, where the private and synthetic JVM constructors that Kotlin
+  compiles it to failed as ambiguous, unless it has a no-argument constructor, which still builds it before
+  its fields are filled.
 
 ### Changed
 
@@ -197,6 +230,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   plugin to 5.2.0, Spotless to 8.11.0, PIT to 1.30.2, Hibernate Validator to 9.1.6.Final, the Instancio
   benchmark competitor to 6.2.1, and in the CI and release workflows `actions/setup-java` to 6.2.0,
   `coursier/setup-action` to 3.1.0, and `softprops/action-gh-release` to 3.0.4.
+- An `objectSubtype` mapping now applies to an interface or abstract root as well as to a member:
+  `new ObjectGenerator<>(PaymentMethod.class, config)` generates the mapped implementation, where it failed
+  as an unsupported root type. A concrete root is still generated as itself.
+- In the Kotlin DSL, an abstract class or interface that is not sealed now fails as `Kotlin abstract type
+  <name> requires a concrete type override`, and a sealed one with no subclass as `Sealed type <name> has
+  no subclass to generate; register a type override for it`. Both failed as `Kotlin sealed and abstract
+  types require a concrete type override`.
+
+### Removed
+
+- Breaking: `krandom-kotlin-dsl` and `krandom-kotest-extensions` now compile in Kotlin's explicit API mode,
+  and the declarations that were public only by Kotlin's default, without being meant as API, are no longer
+  public. `KotlinPrimaryConstructorAdapter`, the construction adapter that `ServiceLoader` finds, is
+  `internal`. The constructors of `KrandomBuilder` and `ConfigScope` are internal, so a builder comes only
+  from `krandom`, `krandomList`, and `krandomGenerator`, and a `ConfigScope` only from `config { }` and
+  `krandomConfig`. `KrandomBuilder`'s empty companion object is private. Every other public declaration of
+  both modules keeps its signature, now with its visibility stated.
 
 ### Fixed
 
@@ -300,6 +350,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   also serves `en_CA`, `en_IN`, and other English locales that fall back to it, such as `en_SG`, so
   their cities, and the addresses and payloads built on them, change in the same way: with seed `158`,
   an `en_CA` `AddressInfo` city was `Gateshead` and is now `Gary`.
+- The implementation of an `objectSubtype` mapping for a generic member now takes the member's type
+  arguments. With `objectSubtype(Box.class, ListBox.class)` and `record ListBox<T>(List<T> items) implements
+  Box<T>`, a `Box<Integer>` member holds integers, where the unbound `T` failed as an unsupported type. The
+  arguments reach the implementation through any generic supertypes in between, and are passed as declared,
+  not checked. A type variable that has a bound took the bound instead, so a member whose bound the engine
+  could generate changes too: with `record DateBox<D extends Date>(D value) implements Box<D>`, a
+  `Box<Timestamp>` member now holds a `Timestamp`, where it held a plain `Date`, and its seeded output
+  changes.
+- A generic nested object reached through two or more inherited type variables now takes its type arguments.
+  With `class Middle<V> extends Fixture<V>` and `class Root extends Middle<Box<String>>`, a `T value` field
+  of `Fixture` is a `Box<String>` whose `C content` holds a `String`, where the engine read the arguments
+  from `V` alone and the unbound `C` failed as an unsupported type. The same holds for a mapped or sealed
+  subclass reached that way, and for a collection or map: with `class ListRoot extends Middle<List<String>>`,
+  the same field is a `List<String>`, where it failed as an unsupported type. As for a mapping above, a bounded type variable took its bound, so such an
+  object whose bound the engine could generate changes too. Such a member now also shares the cycle key of a
+  member declared with its type, so a cycle through it is cut where one through that member is, and a
+  recursive object reached that way can change.
+- A recursive generic object, such as `class Node<T> { T value; Node<T> next; }` reached as `Node<String>`,
+  no longer fails as an unsupported type. The cycle guard read `next` as `Node<T>`, another type than
+  `Node<String>`, so the engine generated `next` and lost `T` inside it. The guard now reads what a type
+  resolves to, as `ObjectPool` documents, so `next` is cut where it repeats `Node<String>`, as the cycle of a
+  type without arguments is, and a recursive generic sealed type ends in a leaf as other sealed types do. With
+  `objectIgnoreErrors(true)`, such an object kept a generated `next` whose members were `null`, and its `next`
+  is now `null` itself.
+- A recursive generic member that names its object's type variables, such as `Swap<B, A> swapped` inside a
+  `Swap<A, B>` generated as `Swap<String, Integer>`, now keeps their arguments: its `first` is an `Integer`
+  and its `second` a `String`. The engine read the member's arguments in the nested object, where `A` and `B`
+  named each other, and failed as an unsupported type, or left them `null` with `objectIgnoreErrors(true)`. An
+  argument that names the object's own type variable is now read as the object binds it.
+- The Kotlin DSL now calls a private primary constructor, as the object engine calls a private Java
+  constructor, where `kotlin.reflect.full.IllegalCallableAccessException` escaped without the object's path.
+  A factory function that validates outside the constructor's `init` block is not called, so register a
+  rule for such a type.
+- A Bean Validation constraint on the getter of a Kotlin property of a value class type now applies when
+  the engine fills the property's field. Kotlin mangles the name of such a getter, as in `getId-OLSiqns`,
+  and the engine looked only for `getId`. Seeded output changes for such properties.
 
 ## [2.10.0] - 2026-11-02
 

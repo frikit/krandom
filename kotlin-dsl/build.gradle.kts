@@ -4,6 +4,8 @@ plugins {
 
 kotlin {
     jvmToolchain(21)
+    // Every public declaration states its visibility and type, so nothing becomes API by default.
+    explicitApi()
 }
 
 dependencies {

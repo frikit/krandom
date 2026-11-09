@@ -103,6 +103,7 @@ pitest {
             "io.github.frikit.krandom.generator.object.ObjectGenerator",
             "io.github.frikit.krandom.generator.object.ObjectModel",
             "io.github.frikit.krandom.generator.object.PropertyPath",
+            "io.github.frikit.krandom.generator.object.SealedTypes",
             "io.github.frikit.krandom.generator.object.SemanticCoherenceAdjuster",
             "io.github.frikit.krandom.generator.object.SemanticCoherenceAdjuster$*",
             "io.github.frikit.krandom.generator.text.NextWordGenerator",
