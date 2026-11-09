@@ -121,6 +121,11 @@ class ObjectGeneratorCoherenceConstraintTest {
             @Future java.sql.Date birthDate,
             @Min(292_277_079) @Max(292_277_079) int age) {}
 
+    /** An age that gives year 0, which a java.sql.Date reads back as year 1. */
+    record EraLostSqlDateBirthDate(
+            @Past java.sql.Date birthDate,
+            @Min(2_026) @Max(2_026) int age) {}
+
     @ParameterizedTest(name = "{0}")
     @EnumSource(
             value = ObjectGenerationSemanticMode.class,
@@ -273,8 +278,14 @@ class ObjectGeneratorCoherenceConstraintTest {
                 new ObjectGenerator<>(UnreachableTimestampBirthDate.class, config(mode));
         ObjectGenerator<UnreachableSqlDateBirthDate> sqlDates =
                 new ObjectGenerator<>(UnreachableSqlDateBirthDate.class, config(mode));
+        ObjectGenerator<EraLostSqlDateBirthDate> eraLost =
+                new ObjectGenerator<>(EraLostSqlDateBirthDate.class, config(mode));
         Instant tenYearsAhead = NOW.plus(Duration.ofDays(3_660));
+        LocalDate elevenYearsAgo = TODAY.minusYears(11);
         for (int i = 0; i < SAMPLES; i++) {
+            EraLostSqlDateBirthDate yearZero = assertDoesNotThrow(eraLost::generate);
+            assertValid(yearZero);
+            assertTrue(yearZero.birthDate().toLocalDate().isAfter(elevenYearsAgo), yearZero.toString());
             UnreachableBirthDate value = assertDoesNotThrow(generator::generate);
             assertValid(value);
             assertEquals(Integer.MAX_VALUE, value.age());

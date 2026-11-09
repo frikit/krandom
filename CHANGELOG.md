@@ -224,7 +224,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   or one of 500,000,000 beside a `Calendar`, `Date`, `java.sql.Date`, or `Timestamp`, which count milliseconds,
   now leaves `birthDate` as it is. Deriving the birth date failed generation with a `DateTimeException` or an
   `IllegalArgumentException`, or gave a `java.sql.Date` and, on JDK 21, a `Timestamp` a value that had wrapped
-  round to a year millions of years ahead, which a `@Future` one then took in `STRICT` mode.
+  round to a year millions of years ahead, which a `@Future` one then took in `STRICT` mode. A `java.sql.Date`
+  also keeps its value where the age gives a year before 1, whose era `valueOf` drops, or a day that the JVM's
+  zone or the 1582 change of calendar skipped, which `valueOf` moves: it took a date that read back as another,
+  or, for `0000-02-29`, as none.
 - `age` now counts the years since the local date of an `OffsetDateTime`, `ZonedDateTime` or `Calendar`
   `birthDate`, in its own offset or zone, which is the date its generator draws and `objectDateRange` bounds.
   It counted from the UTC date, which is a day off near midnight far from UTC, so around a birthday the age was

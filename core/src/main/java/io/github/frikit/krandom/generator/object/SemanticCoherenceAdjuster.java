@@ -614,27 +614,42 @@ final class SemanticCoherenceAdjuster {
     }
 
     /**
-     * The birth date this age gives, in this type, or {@code null} where the type cannot hold it. A
-     * {@code java.time} type holds the years of a {@code LocalDate}. A {@code Calendar} or a {@code Date} counts
-     * milliseconds in a {@code long}, which reach about 292 million years each way, and is held to the years
-     * it holds in full, whatever its zone. The year is checked before the conversion, because
-     * {@code java.sql.Date.valueOf} and, on JDK 21, {@code Timestamp.from} wrap a value round rather than fail.
-     * {@code java.sql.Date.valueOf} also reads a date before 1582 in the Julian calendar, whose milliseconds run
-     * out thousands of years sooner, so its result is checked too: a date before 1970 has a negative count in
-     * any zone, and one wrapped round within these years a positive one.
+     * The birth date this age gives, in this type, or {@code null} where the type cannot hold it. The year is
+     * checked before the conversion, because {@code java.sql.Date.valueOf} and, on JDK 21, {@code Timestamp.from}
+     * wrap a value round rather than fail. A {@code java.sql.Date} is then checked to read back as the date it
+     * was given: {@code valueOf} moves a day that a zone, or the change from the Julian calendar in 1582,
+     * skipped.
      */
     private @Nullable Object birthDateFor(int age, Class<?> rawType) {
         LocalDate today = today();
         long year = (long) today.getYear() - age;
-        boolean javaTime = Temporal.class.isAssignableFrom(rawType);
-        long min = javaTime ? Year.MIN_VALUE : MIN_MILLIS_YEAR;
-        long max = javaTime ? Year.MAX_VALUE : MAX_MILLIS_YEAR;
-        if (year < min || year > max) {
+        if (year < firstYearHeldBy(rawType) || year > lastYearHeldBy(rawType)) {
             return null;
         }
-        Object birthDate = fromLocalDate(today.minusYears(age), rawType);
-        boolean wrapped = birthDate instanceof java.sql.Date sqlDate && year < 1970 && sqlDate.getTime() >= 0;
-        return wrapped ? null : birthDate;
+        LocalDate date = today.minusYears(age);
+        Object birthDate = fromLocalDate(date, rawType);
+        boolean moved = birthDate instanceof java.sql.Date sqlDate
+                && !sqlDate.toLocalDate().equals(date);
+        return moved ? null : birthDate;
+    }
+
+    /**
+     * The first year whose every date a type holds. A {@code java.time} type holds the years of a
+     * {@code LocalDate}. A {@code java.sql.Date} holds the years of the common era, from 1: {@code valueOf} drops
+     * the era of an earlier one, so that year 0 reads back as year 1. A {@code Calendar} or another {@code Date}
+     * counts milliseconds in a {@code long}, which reach about 292 million years back, and holds the years it
+     * reaches in full, whatever its zone.
+     */
+    private static long firstYearHeldBy(Class<?> rawType) {
+        if (Temporal.class.isAssignableFrom(rawType)) {
+            return Year.MIN_VALUE;
+        }
+        return rawType == java.sql.Date.class ? 1 : MIN_MILLIS_YEAR;
+    }
+
+    /** The last year whose every date a type holds, as {@link #firstYearHeldBy} reads the first. */
+    private static long lastYearHeldBy(Class<?> rawType) {
+        return Temporal.class.isAssignableFrom(rawType) ? Year.MAX_VALUE : MAX_MILLIS_YEAR;
     }
 
     private void harmonizeActiveStatus(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {

@@ -1559,6 +1559,11 @@ class SemanticCoherenceAdjusterTest {
         assertArrayEquals(
                 new Object[] {laterDate, 292_277_078},
                 aligned(strict, AgedPairs.FutureSqlDateBirthDate.class, laterDate, 292_277_078));
+        // An age of 2,024 gives 0000-02-29, which a java.sql.Date cannot hold, although its milliseconds are past.
+        java.sql.Date earlierDate = java.sql.Date.valueOf(LocalDate.of(2024, 2, 28));
+        assertArrayEquals(
+                new Object[] {earlierDate, 2_024},
+                aligned(strict, AgedPairs.PastSqlDateBirthDate.class, earlierDate, 2_024));
     }
 
     @Test
@@ -1591,17 +1596,27 @@ class SemanticCoherenceAdjusterTest {
                         .toInstant());
         assertSame(calendar, birthDateBeside(now, AgedPairs.CalendarBirthDate.class, calendar, 2_024 - 292_278_994));
 
-        // A java.sql.Date reads a date before 1582 in the Julian calendar, whose milliseconds run out thousands of
-        // years sooner: in the first year a Calendar holds, valueOf wraps round, so the birth date stays.
+        // A java.sql.Date holds the years of the common era, from 1: valueOf drops the era of an earlier year, so
+        // that year 0 reads back as year 1, and 0000-02-29 does not read back at all. Further back, in the first
+        // year a Calendar holds, valueOf wraps round. In each case the birth date stays.
         java.sql.Date sqlDate = java.sql.Date.valueOf(LocalDate.of(2000, 6, 4));
+        assertEquals(
+                java.sql.Date.valueOf(LocalDate.of(1, 2, 28)),
+                birthDateBeside(now, AgedPairs.SqlDateBirthDate.class, sqlDate, 2_024 - 1));
+        assertSame(sqlDate, birthDateBeside(now, AgedPairs.SqlDateBirthDate.class, sqlDate, 2_024));
         assertSame(sqlDate, birthDateBeside(now, AgedPairs.SqlDateBirthDate.class, sqlDate, 2_024 + 292_275_054));
-        // A date before 1970, or after, is derived as valueOf gives it.
+        // A date in the Julian calendar before 1582, or after it, is derived as valueOf gives it.
+        assertEquals(
+                java.sql.Date.valueOf(LocalDate.of(1000, 2, 28)),
+                birthDateBeside(now, AgedPairs.SqlDateBirthDate.class, sqlDate, 1_024));
         assertEquals(
                 java.sql.Date.valueOf(LocalDate.of(1964, 2, 29)),
                 birthDateBeside(now, AgedPairs.SqlDateBirthDate.class, sqlDate, 60));
-        assertEquals(
-                java.sql.Date.valueOf(LocalDate.of(1970, 2, 28)),
-                birthDateBeside(now, AgedPairs.SqlDateBirthDate.class, sqlDate, 54));
+        // valueOf moves a date that the change from the Julian calendar skipped, 1582-10-05 to 1582-10-14, on by
+        // ten days, so such a birth date stays too.
+        assertSame(
+                sqlDate,
+                birthDateBeside(Instant.parse("2024-10-10T12:00:00Z"), AgedPairs.SqlDateBirthDate.class, sqlDate, 442));
     }
 
     /** The birth date the pass leaves beside an overridden age, under a clock fixed at this instant. */
@@ -1836,6 +1851,10 @@ class SemanticCoherenceAdjusterTest {
         record FutureSqlDateBirthDate(
                 @Future java.sql.Date birthDate,
                 @Min(292_277_078) int age) {}
+
+        record PastSqlDateBirthDate(
+                @Past java.sql.Date birthDate,
+                @Min(2_024) @Max(2_024) int age) {}
     }
 
     private static List<Field> declaredFields(Class<?> type) {
