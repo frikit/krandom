@@ -448,9 +448,9 @@ public final class SchemaParser {
         // semantic values only when no length bounds are declared.
         String pattern = stringOrNull(schema.get("pattern"));
         if (pattern != null) {
-            validatePattern(pattern, path);
             // RegexGenerator's open-ended repetitions have to be able to reach the declared minimum.
             int minLength = Math.clamp(intOrDefault(schema.get("minLength"), 1), 1, Integer.MAX_VALUE - 1);
+            validatePattern(pattern, minLength, path);
             return fittingLength(
                     ctx -> matching(pattern, minLength, ctx.random().nextLong()), schema, path, config);
         }
@@ -518,10 +518,14 @@ public final class SchemaParser {
                 + " (a pattern's *, + and {n,} repeat up to 10 times, or up to twice minLength, at most 10000 times)");
     }
 
-    /** Parses the pattern while the schema is parsed, so that one it cannot generate from fails with its path. */
-    private static void validatePattern(String pattern, String path) {
+    /**
+     * Builds the pattern's generator while the schema is parsed, as each value will, so that a pattern it
+     * cannot generate from, or one too large once the minimum length raises its repetition, fails with its
+     * path.
+     */
+    private static void validatePattern(String pattern, int minLength, String path) {
         try {
-            new RegexGenerator(pattern);
+            matchingGenerator(pattern, minLength, 0L);
         } catch (IllegalArgumentException exception) {
             throw new IllegalArgumentException(
                     "JSON Schema pattern cannot generate values at " + path + ": " + exception.getMessage(), exception);
@@ -531,13 +535,16 @@ public final class SchemaParser {
     private static String matching(String pattern, int minLength, long seed) {
         // Each value draws its own seed from the field's stream, so a fresh generator per value keeps
         // the record replayable without sharing mutable state; the parsed pattern itself is cached.
+        return matchingGenerator(pattern, minLength, seed).generate();
+    }
+
+    private static RegexGenerator matchingGenerator(String pattern, int minLength, long seed) {
         return new RegexGenerator(
-                        pattern,
-                        GeneratorConfig.builder()
-                                .seed(seed)
-                                .stringLength(minLength, minLength)
-                                .build())
-                .generate();
+                pattern,
+                GeneratorConfig.builder()
+                        .seed(seed)
+                        .stringLength(minLength, minLength)
+                        .build());
     }
 
     private static @Nullable SchemaValueProvider resolveFormat(String format, GeneratorConfig config) {

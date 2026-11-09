@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `RegexGenerator` now supports `(?i)` and `(?-i)`, which hold to the end of the enclosing group, and
+  `(?i:X)` and `(?-i:X)`, which hold inside it. As in `java.util.regex` without `UNICODE_CASE`, only
+  ASCII letters match their other case, so a generated ASCII letter can take either case and every
+  other character keeps the one written: `(?i)ab` generates `ab`, `aB`, `Ab`, and `AB`, and `(?i)é` only
+  `é`. A negated class under `(?i)` leaves out both cases of each letter it names. Other inline flags
+  are still rejected, and the message now names them, as in `Unsupported inline flag s`.
+- `RegexGenerator` now supports `\p{Name}` and `\P{Name}`, inside and outside a class, for `Lower`,
+  `Upper`, `ASCII`, `Alpha`, `Digit`, `Alnum`, `Punct`, `Graph`, `Print`, `Blank`, `Space`, `XDigit`,
+  `L`, `Lu`, `Ll`, `N`, `Nd`, `IsAlphabetic`, `IsDigit`, and `IsLatin`, and the one-letter `\pL`, `\pN`,
+  `\PL`, and `\PN`. The ASCII ones draw from what they match, and the Unicode ones from a fixed sample of
+  ASCII, Latin-1, Greek, and Cyrillic letters and ASCII, Arabic-Indic, and Devanagari digits, listed in
+  the data-validity guide. `\P{Name}` draws from the printable ASCII characters outside the property.
+  Any other property, or another spelling of these such as `\p{IsLower}`, is rejected, and the message
+  now names it.
+- `RegexGenerator` now supports quoting with `\Q...\E`, read as `java.util.regex` reads it, so a
+  quantifier after `\E` repeats the last quoted character: `\Qab\E+` generates `ab`, `abb`, and so on.
+
 ### Changed
 
 - Composite generators now give each child generator its own stream by default, under
@@ -45,6 +64,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   are written as ISO-8601 text, where Jackson 2 rejected them and failed the whole row. A
   `java.util.Date` is ISO-8601 text instead of epoch milliseconds, and a class's properties are in
   alphabetical order, while a record keeps the order of its components.
+- `RegexGenerator` now rejects at construction a pattern whose values could be longer than 1,000,000
+  characters, or take more than 10,000,000 steps to generate, naming the pattern and the limit.
+  Nested repetition such as `((a{10000}){10000}){10000}` used to run out of memory while generating,
+  and `(((){10000}){10000}){10000}` to loop for hours. The limits apply to the repetition a
+  configuration gives `*`, `+`, and `{n,}`, so under a minimum string length of 4,000, `(a*)*` and
+  `(\w+ )+`, which generated values of millions of characters, are now rejected. The limits are fixed,
+  with no setting to raise them. A JSON Schema `pattern` over them is rejected with its schema path, and
+  a `@Pattern` over them is no longer a source. Each value is now built in a single buffer, and seeded
+  output does not change for any pattern that was supported and stays within the limits.
+- A `@Pattern` or `@Email(regexp = ...)` that uses `(?i)`, `\p{...}`, or `\Q...\E` is now a source of
+  values. It used to be only checked against the values of another source, such as a `@Size` string,
+  or to fail where there was none. Seeded output changes for such fields. A JSON Schema `pattern` with
+  these constructs used to be rejected and is now accepted.
 
 ## [2.10.0] - 2026-11-02
 
