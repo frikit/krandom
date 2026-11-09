@@ -565,8 +565,12 @@ public final class ProviderCatalog {
                                 integer("datetime.timestamp", (provider, config) -> provider.generateUnixTime()),
                                 stringFormat("datetime", (provider, config) -> provider.generateString(), "date"))),
                 descriptor("datetime.time", TimeGenerator.class, TimeGenerator::new, List.of("time"))
+                        // A time of day with no offset is RFC 3339's time without the timezone component.
                         .withSchemaProjections(projections(stringFormat(
-                                "datetime.time", (provider, config) -> provider.generateString(), "time", "time"))),
+                                "datetime.time",
+                                (provider, config) -> provider.generateString(),
+                                "time-local",
+                                "time"))),
                 descriptor("datetime", DateGenerator.class, DateGenerator::new, List.of()),
                 descriptor("text.word", WordGenerator.class, WordGenerator::new, List.of("word"))
                         .withSchemaProjections(projections(

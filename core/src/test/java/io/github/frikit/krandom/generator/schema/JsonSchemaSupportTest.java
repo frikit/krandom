@@ -77,8 +77,9 @@ class JsonSchemaSupportTest {
         assertEquals("number", ((Map<?, ?>) properties.get("boxedDouble")).get("type"));
         assertEquals("number", ((Map<?, ?>) properties.get("decimal")).get("type"));
         assertEquals("date", ((Map<?, ?>) properties.get("date")).get("format"));
-        assertEquals("time", ((Map<?, ?>) properties.get("time")).get("format"));
-        assertEquals("date-time", ((Map<?, ?>) properties.get("localDateTime")).get("format"));
+        // RFC 3339's time and date-time need an offset, which these values do not have.
+        assertEquals("time-local", ((Map<?, ?>) properties.get("time")).get("format"));
+        assertEquals("date-time-local", ((Map<?, ?>) properties.get("localDateTime")).get("format"));
         assertEquals("date-time", ((Map<?, ?>) properties.get("offsetDateTime")).get("format"));
         assertEquals("date-time", ((Map<?, ?>) properties.get("zonedDateTime")).get("format"));
         assertEquals("array", ((Map<?, ?>) properties.get("tags")).get("type"));

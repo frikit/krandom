@@ -337,10 +337,15 @@ final class JsonSchemaSupport {
         if (type == LocalDate.class) {
             return stringFormat("date");
         }
+        // RFC 3339's time and date-time need an offset, which a local time or date-time does not have, so
+        // these take the OpenAPI Format Registry's forms without the timezone component.
         if (type == LocalTime.class) {
-            return stringFormat("time");
+            return stringFormat("time-local");
         }
-        if (type == LocalDateTime.class || type == OffsetDateTime.class || type == ZonedDateTime.class) {
+        if (type == LocalDateTime.class) {
+            return stringFormat("date-time-local");
+        }
+        if (type == OffsetDateTime.class || type == ZonedDateTime.class) {
             return stringFormat("date-time");
         }
         if (type.isEnum()) {

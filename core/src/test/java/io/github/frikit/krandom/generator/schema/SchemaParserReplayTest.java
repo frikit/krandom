@@ -110,6 +110,8 @@ class SchemaParserReplayTest {
                 "date",
                 "date-time",
                 "time",
+                "date-time-local",
+                "time-local",
                 "duration",
                 "ipv4",
                 "ipv6",

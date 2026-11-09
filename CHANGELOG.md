@@ -310,6 +310,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   <name> requires a concrete type override`, and a sealed one with no subclass as `Sealed type <name> has
   no subclass to generate; register a type override for it`. Both failed as `Kotlin sealed and abstract
   types require a concrete type override`.
+- JSON Schema export writes a `LocalDateTime` record member as `format: date-time-local`, and a
+  `LocalTime` member and the `datetime.time` provider as `format: time-local`, where it wrote `date-time`
+  and `time`. RFC 3339's `date-time` and `time` need an offset, which these values do not have, so a
+  schema exported from such a type and parsed back, which now generates RFC 3339 values with an offset,
+  gave values the type cannot hold. Both formats come from the
+  [OpenAPI Format Registry](https://spec.openapis.org/registry/format/), which describes them as
+  RFC 3339 date-time and time without the timezone component. `SchemaParser` now generates both in ISO
+  local form, with the seconds, from the ranges of `date-time` and `time`. An `OffsetDateTime` or
+  `ZonedDateTime` member is still `date-time`.
 
 ### Removed
 

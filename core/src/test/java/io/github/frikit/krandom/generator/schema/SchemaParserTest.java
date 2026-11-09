@@ -21,6 +21,8 @@ import java.net.IDN;
 import java.net.URI;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.util.ArrayList;
@@ -3214,6 +3216,36 @@ class SchemaParserTest {
         }
 
         @Test
+        @DisplayName("date-time-local and time-local are RFC 3339 without the offset, in the ranges of the others")
+        void localDateTimeAndTime() {
+            for (String value : strings("date-time-local")) {
+                assertTrue(value.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"), value);
+                int year = LocalDateTime.parse(value).getYear();
+                assertTrue(year >= 1970 && year <= 2100, value);
+            }
+            for (String value : strings("time-local")) {
+                assertTrue(value.matches("\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?"), value);
+                assertDoesNotThrow(() -> LocalTime.parse(value), value);
+            }
+        }
+
+        /** Members whose types a schema exported from them must keep apart. */
+        record Moments(LocalDateTime localDateTime, LocalTime localTime, OffsetDateTime offsetDateTime) {}
+
+        @Test
+        @DisplayName("a schema exported from local and offset date-times parses back to values each type holds")
+        void exportedDateTimesRoundTrip() {
+            Map<String, Object> exported = JsonSchemaSupport.record(Moments.class);
+            for (Map<String, Object> record : SchemaParser.fromJsonSchema(
+                            exported, GeneratorConfig.builder().seed(7L).build())
+                    .generateBatch(300)) {
+                assertDoesNotThrow(() -> LocalDateTime.parse((String) record.get("localDateTime")), record::toString);
+                assertDoesNotThrow(() -> LocalTime.parse((String) record.get("localTime")), record::toString);
+                assertDoesNotThrow(() -> OffsetDateTime.parse((String) record.get("offsetDateTime")), record::toString);
+            }
+        }
+
+        @Test
         @DisplayName(
                 "a URI is also a URI reference, an IRI, an IRI reference and, with no quote or brace, a URI template")
         void uriFamily() {
@@ -3507,6 +3539,8 @@ class SchemaParserTest {
                 "date",
                 "date-time",
                 "time",
+                "date-time-local",
+                "time-local",
                 "duration",
                 "ipv4",
                 "ipv6",

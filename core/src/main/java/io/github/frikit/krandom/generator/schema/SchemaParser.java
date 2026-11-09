@@ -11,6 +11,7 @@ import io.github.frikit.krandom.generator.Generators;
 import io.github.frikit.krandom.generator.base.RegexGenerator;
 import io.github.frikit.krandom.generator.base.StringGenerator;
 import io.github.frikit.krandom.generator.datetime.DateGenerator;
+import io.github.frikit.krandom.generator.datetime.LocalDateTimeGenerator;
 import io.github.frikit.krandom.generator.datetime.OffsetDateTimeGenerator;
 import io.github.frikit.krandom.generator.datetime.OffsetTimeGenerator;
 import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
@@ -50,9 +51,10 @@ import org.jspecify.annotations.Nullable;
  *   <li>{@code type} — string, integer, number, boolean, array, object, null</li>
  *   <li>{@code format} — every format Draft 2020-12 defines: date, date-time and time as RFC 3339, duration,
  *       email, idn-email, hostname, idn-hostname, ipv4, ipv6, uri, uri-reference, iri, iri-reference,
- *       uri-template, uuid, json-pointer, relative-json-pointer, and regex; and OpenAPI's byte, with int32
- *       and int64 as integers and float and double as ranges for numbers. No standard validator checks any
- *       other format, so it gets the same values as no format</li>
+ *       uri-template, uuid, json-pointer, relative-json-pointer, and regex; the OpenAPI Format Registry's
+ *       date-time-local and time-local, RFC 3339 without the timezone component; and OpenAPI's byte, with
+ *       int32 and int64 as integers and float and double as ranges for numbers. No standard validator checks
+ *       any other format, so it gets the same values as no format</li>
  *   <li>{@code enum} — random selection from enumerated values</li>
  *   <li>{@code const} — constant value</li>
  *   <li>{@code minimum}/{@code maximum}/{@code exclusiveMinimum}/{@code exclusiveMaximum} — bounded
@@ -935,8 +937,17 @@ public final class SchemaParser {
             case "date" -> DateGenerator::new;
             // RFC 3339 writes the seconds and an offset, which toString() can leave out.
             case "date-time" ->
-                source -> rfc3339(new OffsetDateTimeGenerator(source), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-            case "time" -> source -> rfc3339(new OffsetTimeGenerator(source), DateTimeFormatter.ISO_OFFSET_TIME);
+                source -> formatted(new OffsetDateTimeGenerator(source), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+            case "time" -> source -> formatted(new OffsetTimeGenerator(source), DateTimeFormatter.ISO_OFFSET_TIME);
+            // The OpenAPI Format Registry's RFC 3339 date-time and time without the timezone component, as a
+            // LocalDateTime and a LocalTime export, drawn from the same ranges and written with the seconds.
+            case "date-time-local" ->
+                source -> formatted(new LocalDateTimeGenerator(source), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            case "time-local" ->
+                source -> {
+                    OffsetTimeGenerator times = new OffsetTimeGenerator(source);
+                    return formatted(() -> times.generate().toLocalTime(), DateTimeFormatter.ISO_LOCAL_TIME);
+                };
             case "ipv4" -> IPv4Generator::new;
             case "ipv6" -> IPv6Generator::new;
             // Every hostname is also a valid internationalized one.
@@ -959,7 +970,7 @@ public final class SchemaParser {
                 .toString();
     }
 
-    private static Generator<String> rfc3339(
+    private static Generator<String> formatted(
             Generator<? extends TemporalAccessor> source, DateTimeFormatter formatter) {
         return () -> formatter.format(source.generate());
     }
