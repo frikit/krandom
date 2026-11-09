@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- An `ObjectFaker` path through a member declared as an interface, such as `shape.side` where `shape` is a
+  `Shape` interface, now fails at registration with `Unknown field 'side' on` and the interface's name, as a
+  path into any type without that field does. It failed with a raw `NullPointerException`. An `ObjectFaker`
+  for an interface, which a type override builds, no longer fails the same way in
+  `assertConfigurationIsValid()` and so in `ObjectFaker.strict()`.
+
 ## [2.11.0] - 2026-11-10
 
 ### Added

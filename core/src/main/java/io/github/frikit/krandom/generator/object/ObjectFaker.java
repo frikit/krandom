@@ -801,7 +801,10 @@ public final class ObjectFaker<T> implements Generator<T> {
             }
             return targets;
         }
-        for (Class<?> current = targetType; current != Object.class; current = current.getSuperclass()) {
+        // An interface has no superclass, and no instance fields either.
+        for (Class<?> current = targetType;
+                current != null && current != Object.class;
+                current = current.getSuperclass()) {
             for (Field field : current.getDeclaredFields()) {
                 if (!Modifier.isStatic(field.getModifiers())) {
                     targets.add(
@@ -841,7 +844,9 @@ public final class ObjectFaker<T> implements Generator<T> {
         }
 
         List<Field> matches = new ArrayList<>();
-        for (Class<?> current = ownerType; current != Object.class; current = current.getSuperclass()) {
+        for (Class<?> current = ownerType;
+                current != null && current != Object.class;
+                current = current.getSuperclass()) {
             for (Field field : current.getDeclaredFields()) {
                 if (!Modifier.isStatic(field.getModifiers()) && field.getName().equals(fieldName)) {
                     matches.add(field);
