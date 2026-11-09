@@ -207,6 +207,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   factory took the test's recipe on replay, so the arguments of the failing invocation changed. The
   callbacks of a `@ParameterizedClass` invocation had the same fault. Each test class now reports one
   class-scoped configuration, and the replay commands restore it.
+- In `STRICT` mode the coherence pass no longer moves a `createdAt`, `updatedAt`, `birthDate`, or `age` out of
+  its own Bean Validation constraints, which `RELAXED` mode leaves alone. Seeded with `42` under a clock fixed at
+  `2026-06-04T12:00Z`, it gave a `@Past` `updatedAt` a `createdAt` past the clock in 974 of 2,000 objects on a
+  one-day `objectDateRange`, gave it the value of a `@Future` `createdAt` in all 2,000, and overwrote
+  `@Min(30) @Max(40) age` with the age its `birthDate` gives in 1,709, and now does so in none. A field that a
+  move would take out of its constraints cannot move, as an overridden one cannot: its sibling follows it, even
+  out of `objectDateRange`, so `createdAt` moves back to a `@Past` `updatedAt`, and `birthDate` to a bounded
+  `age`. Where the sibling's own constraints stop it too, both keep their values, as in `RELAXED` mode, so a
+  `@Future` `createdAt` stays after a `@Past` `updatedAt`. A date or time is read against the configured clock
+  as Hibernate Validator reads it. A move within the constraints still happens, so seeded output changes only for
+  objects that broke one. The pass still overwrites the constraints of the strings, amounts, and statuses it
+  derives in `STRICT` mode, such as `@Size(max = 12)` on an `email`. The `STRICT` documentation now says that
+  Bean Validation constraints take precedence when a value is generated, as they always have.
+- An `age` that no `birthDate` of its type can hold, such as an overridden or constrained age of 2,147,483,647,
+  or one of 500,000,000 beside a `Calendar`, `Date`, `java.sql.Date`, or `Timestamp`, which count milliseconds,
+  now leaves `birthDate` as it is. Deriving the birth date failed generation with a `DateTimeException` or an
+  `IllegalArgumentException`, or gave a `java.sql.Date` and, on JDK 21, a `Timestamp` a value that had wrapped
+  round to a year millions of years ahead, which a `@Future` one then took in `STRICT` mode. A `java.sql.Date`
+  also keeps its value where the age gives a year before 1, whose era `valueOf` drops, or a day that the JVM's
+  zone or the 1582 change of calendar skipped, which `valueOf` moves: it took a date that read back as another,
+  or, for `0000-02-29`, as none.
+- A `birthDate` derived from a negative `age` under a clock on 29 February now gives that age. A year ahead it
+  was 28 February, which gives one year less, and it is now 1 March. A positive age is unchanged.
+- `age` now counts the years since the local date of an `OffsetDateTime`, `ZonedDateTime` or `Calendar`
+  `birthDate`, in its own offset or zone, which is the date its generator draws and `objectDateRange` bounds.
+  It counted from the UTC date, which is a day off near midnight far from UTC, so around a birthday the age was
+  a year off: `2000-06-05T00:30+14:00` gave 26 on `2026-06-04`, the day before the 26th birthday, and now gives
+  25. Seeded with `42` under a clock fixed at `2026-11-05T12:00Z`, 142 `OffsetDateTime`, 115 `ZonedDateTime` and
+  95 `Calendar` birth dates in 200,000 of each had such an age, and none do now. Seeded output changes only for
+  those objects.
+- `new CalendarGenerator(min, max)` and `Generators.ofCalendar(min, max)`, with or without a configuration, no
+  longer pass the last date of the range when a gap in the drawn zone's rules moves a value forward, as
+  `new ZonedDateTimeGenerator(min, max)` and `Calendar` members already did not. `Pacific/Apia` and
+  `Pacific/Fakaofo` skipped `2011-12-30`, so a one-day range on that date gave `2011-12-31` about once in 300
+  draws, and a daylight saving gap in `America/Nuuk` moved 23:30 on `2024-03-30` to 00:30 on `2024-03-31`. Such
+  a value is now the drawn date-time at UTC. Seeded output changes only for values that drew such a date-time.
 - `@NotEmpty` and `@Size` on an array of a type they cannot constrain no longer fail generation at every
   depth, as `@NotEmpty Leaf[]`, `@Size(max = 4) byte[]` and `@NotEmpty int[]` did. Java places an
   annotation written before an array type on the array's component type as well as on the declaration,

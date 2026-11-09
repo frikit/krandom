@@ -37,6 +37,8 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -689,7 +691,9 @@ class ObjectGeneratorSemanticCoherenceTest {
         // A date holds no time of day, so a createdAt beside one is compared by its UTC date.
         if (updatedAt instanceof LocalDate || updatedAt instanceof java.sql.Date) {
             assertFalse(
-                    SemanticCoherenceAdjuster.toLocalDate(createdAt)
+                    SemanticCoherenceAdjuster.toInstant(createdAt)
+                            .atOffset(ZoneOffset.UTC)
+                            .toLocalDate()
                             .isAfter(SemanticCoherenceAdjuster.toLocalDate(updatedAt)),
                     context.toString());
         } else {
@@ -823,6 +827,60 @@ class ObjectGeneratorSemanticCoherenceTest {
 
         assertEquals(42, value.ageYears);
         assertEquals(LocalDate.of(1984, 6, 4), value.dateOfBirth);
+    }
+
+    @Test
+    @DisplayName("age counts the years since a birth date in its own offset or zone, near midnight far from UTC")
+    void ageCountsTheYearsSinceABirthDateInItsOwnOffsetOrZone() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneOffset.UTC);
+        // 2000-06-04T10:30Z: the 26th birthday is tomorrow at +14:00, although it is today at UTC.
+        ZonedDateTime kiritimati = ZonedDateTime.parse("2000-06-05T00:30+14:00[Pacific/Kiritimati]");
+        // 2000-06-05T10:30Z: the 26th birthday is today at -11:00, although it is tomorrow at UTC.
+        ZonedDateTime pagoPago = ZonedDateTime.parse("2000-06-04T23:30-11:00[Pacific/Pago_Pago]");
+
+        assertEquals(25, ageBeside(OffsetBirthDate.class, kiritimati.toOffsetDateTime(), clock));
+        assertEquals(26, ageBeside(OffsetBirthDate.class, pagoPago.toOffsetDateTime(), clock));
+        assertEquals(26, ageBeside(OffsetBirthDate.class, OffsetDateTime.parse("2000-06-04T23:30-12:00"), clock));
+        assertEquals(25, ageBeside(ZonedBirthDate.class, kiritimati, clock));
+        assertEquals(26, ageBeside(ZonedBirthDate.class, pagoPago, clock));
+        assertEquals(25, ageBeside(CalendarBirthDate.class, GregorianCalendar.from(kiritimati), clock));
+        assertEquals(26, ageBeside(CalendarBirthDate.class, GregorianCalendar.from(pagoPago), clock));
+        // An Instant holds no offset, so it reads its UTC date, as the generators draw it.
+        assertEquals(26, ageBeside(InstantBirthDateRecord.class, kiritimati.toInstant(), clock));
+    }
+
+    @Test
+    @DisplayName("age matches the local birth date of every OffsetDateTime, ZonedDateTime and Calendar birth date")
+    void ageMatchesTheLocalBirthDateOfEveryBirthDateWithAnOffset() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneOffset.UTC);
+        LocalDate today = LocalDate.now(clock);
+        // The day before a birthday and the birthday, so that a date read at UTC would often give the other age.
+        GeneratorConfig config = GeneratorConfig.builder()
+                .seed(42L)
+                .clock(clock)
+                .objectDateRange(LocalDate.of(2000, 6, 4), LocalDate.of(2000, 6, 5))
+                .build();
+        ObjectGenerator<OffsetBirthDate> offsets = new ObjectGenerator<>(OffsetBirthDate.class, config);
+        ObjectGenerator<ZonedBirthDate> zones = new ObjectGenerator<>(ZonedBirthDate.class, config);
+        ObjectGenerator<CalendarBirthDate> calendars = new ObjectGenerator<>(CalendarBirthDate.class, config);
+        Set<Integer> ages = new HashSet<>();
+
+        for (int i = 0; i < 2_000; i++) {
+            OffsetBirthDate offset = offsets.generate();
+            assertEquals(
+                    ChronoUnit.YEARS.between(offset.birthDate().toLocalDate(), today), offset.age(), offset.toString());
+            ZonedBirthDate zoned = zones.generate();
+            assertEquals(
+                    ChronoUnit.YEARS.between(zoned.birthDate().toLocalDate(), today), zoned.age(), zoned.toString());
+            CalendarBirthDate calendar = calendars.generate();
+            ZonedDateTime local = calendar.birthDate()
+                    .toInstant()
+                    .atZone(calendar.birthDate().getTimeZone().toZoneId());
+            assertEquals(ChronoUnit.YEARS.between(local.toLocalDate(), today), calendar.age(), local.toString());
+            ages.add(offset.age());
+        }
+
+        assertEquals(Set.of(25, 26), ages);
     }
 
     @Test
@@ -1318,6 +1376,15 @@ class ObjectGeneratorSemanticCoherenceTest {
                         .build());
     }
 
+    /** The age the coherence pass gives beside this birth date, which an override holds in place. */
+    private static int ageBeside(Class<? extends BirthDated> type, Object birthDate, Clock clock) {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                .generatorConfig(GeneratorConfig.builder().seed(7L).clock(clock).build())
+                .override(type, "birthDate", () -> birthDate)
+                .build();
+        return new ObjectGenerator<>(type, config).generate().age();
+    }
+
     /** A sibling pinned by an override would give every object the same derived value. */
     private static <T> void assertDistinct(Class<T> type, ObjectGeneratorConfig config, Function<T, Object> field) {
         ObjectGenerator<T> generator = new ObjectGenerator<>(type, config);
@@ -1381,6 +1448,19 @@ class ObjectGeneratorSemanticCoherenceTest {
         Instant birthDate;
         int age;
     }
+
+    interface BirthDated {
+
+        int age();
+    }
+
+    record OffsetBirthDate(OffsetDateTime birthDate, int age) implements BirthDated {}
+
+    record ZonedBirthDate(ZonedDateTime birthDate, int age) implements BirthDated {}
+
+    record CalendarBirthDate(Calendar birthDate, int age) implements BirthDated {}
+
+    record InstantBirthDateRecord(Instant birthDate, int age) implements BirthDated {}
 
     record InstantToInstant(Instant createdAt, Instant updatedAt) {}
 

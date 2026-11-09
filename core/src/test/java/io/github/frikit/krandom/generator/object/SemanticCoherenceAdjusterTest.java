@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -30,10 +31,18 @@ import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.object.ObjectGeneratorSemanticCoherenceTest.TemporalPairs;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -151,6 +160,36 @@ class SemanticCoherenceAdjusterTest {
         assertNull(SemanticCoherenceAdjuster.toInstant(java.sql.Time.valueOf("10:15:30")));
 
         assertNull(SemanticCoherenceAdjuster.fromInstant(instant, String.class));
+    }
+
+    @Test
+    @DisplayName("a value with an offset or a zone reads its own local date, and every other type its UTC date")
+    void valueWithAnOffsetOrAZoneReadsItsOwnLocalDate() {
+        // 2000-06-04T10:30Z and 2000-06-05T10:30Z: each local date is a day from the one UTC reads.
+        ZonedDateTime kiritimati = ZonedDateTime.parse("2000-06-05T00:30+14:00[Pacific/Kiritimati]");
+        ZonedDateTime pagoPago = ZonedDateTime.parse("2000-06-04T23:30-11:00[Pacific/Pago_Pago]");
+        LocalDate fourth = LocalDate.of(2000, 6, 4);
+        LocalDate fifth = LocalDate.of(2000, 6, 5);
+
+        assertEquals(fifth, SemanticCoherenceAdjuster.toLocalDate(kiritimati.toOffsetDateTime()));
+        assertEquals(fourth, SemanticCoherenceAdjuster.toLocalDate(pagoPago.toOffsetDateTime()));
+        assertEquals(fifth, SemanticCoherenceAdjuster.toLocalDate(kiritimati));
+        assertEquals(fourth, SemanticCoherenceAdjuster.toLocalDate(pagoPago));
+        assertEquals(fifth, SemanticCoherenceAdjuster.toLocalDate(java.util.GregorianCalendar.from(kiritimati)));
+        assertEquals(fourth, SemanticCoherenceAdjuster.toLocalDate(java.util.GregorianCalendar.from(pagoPago)));
+        // Before 1970 too, where the epoch second is negative.
+        assertEquals(
+                LocalDate.of(1950, 6, 5),
+                SemanticCoherenceAdjuster.toLocalDate(OffsetDateTime.parse("1950-06-05T00:30+14:00")));
+        assertEquals(
+                LocalDate.of(1950, 6, 4),
+                SemanticCoherenceAdjuster.toLocalDate(OffsetDateTime.parse("1950-06-04T23:30-12:00")));
+
+        // An Instant, a LocalDateTime and a legacy date hold no offset, and read their UTC date.
+        assertEquals(fourth, SemanticCoherenceAdjuster.toLocalDate(kiritimati.toInstant()));
+        assertEquals(fifth, SemanticCoherenceAdjuster.toLocalDate(java.util.Date.from(pagoPago.toInstant())));
+        assertEquals(fifth, SemanticCoherenceAdjuster.toLocalDate(java.sql.Timestamp.from(pagoPago.toInstant())));
+        assertEquals(fourth, SemanticCoherenceAdjuster.toLocalDate(LocalDateTime.of(2000, 6, 4, 23, 30)));
     }
 
     @Test
@@ -1387,6 +1426,230 @@ class SemanticCoherenceAdjusterTest {
     }
 
     @Test
+    @DisplayName("in strict mode a constrained timestamp moves only within its constraints, and its sibling follows it")
+    void strictTimestampMovesOnlyWithinItsConstraints() {
+        Instant now = Instant.parse("2024-02-29T12:00:00Z");
+        ObjectGeneratorConfig strict = strictAt(now).build();
+        Instant hourAgo = now.minusSeconds(3_600);
+        Instant twoHoursAgo = now.minusSeconds(7_200);
+        Instant hourLater = now.plusSeconds(3_600);
+        Instant twoHoursLater = now.plusSeconds(7_200);
+
+        // updatedAt moves on while it stays before the clock, and cannot pass it, so createdAt moves back instead.
+        assertArrayEquals(
+                new Object[] {hourAgo, hourAgo},
+                aligned(strict, BoundedPairs.PastUpdatedAt.class, hourAgo, twoHoursAgo));
+        assertArrayEquals(
+                new Object[] {twoHoursAgo, twoHoursAgo},
+                aligned(strict, BoundedPairs.PastUpdatedAt.class, hourLater, twoHoursAgo));
+        // @PastOrPresent allows the clock's instant itself, and @Past does not.
+        assertArrayEquals(
+                new Object[] {now, now}, aligned(strict, BoundedPairs.PastOrPresentUpdatedAt.class, now, twoHoursAgo));
+        assertArrayEquals(
+                new Object[] {twoHoursAgo, twoHoursAgo},
+                aligned(strict, BoundedPairs.PastUpdatedAt.class, now, twoHoursAgo));
+
+        // A createdAt held in the future follows a pinned updatedAt that is still in the future, but not one in the
+        // past.
+        ObjectGeneratorConfig pinnedLater = strictAt(now)
+                .override(BoundedPairs.FutureOrPresentCreatedAt.class, "updatedAt", () -> hourLater)
+                .build();
+        assertArrayEquals(
+                new Object[] {hourLater, hourLater},
+                aligned(pinnedLater, BoundedPairs.FutureOrPresentCreatedAt.class, twoHoursLater, hourLater));
+        ObjectGeneratorConfig pinnedEarlier = strictAt(now)
+                .override(BoundedPairs.FutureOrPresentCreatedAt.class, "updatedAt", () -> hourAgo)
+                .build();
+        assertArrayEquals(
+                new Object[] {twoHoursLater, hourAgo},
+                aligned(pinnedEarlier, BoundedPairs.FutureOrPresentCreatedAt.class, twoHoursLater, hourAgo));
+
+        // Neither can move, so both keep their values, out of order.
+        assertArrayEquals(
+                new Object[] {hourLater, hourAgo}, aligned(strict, BoundedPairs.Apart.class, hourLater, hourAgo));
+    }
+
+    @Test
+    @DisplayName("in strict mode updatedAt leaves the range where createdAt cannot move into it within its constraint")
+    void strictUpdatedAtLeavesTheRangeWhereCreatedAtCannotMoveIntoIt() {
+        // 2024-03-01T11:00Z, past the range at UTC, which updatedAt cannot reach inside the range. createdAt could
+        // move back to 10:00Z inside it, but that is before the clock, so updatedAt follows it out of the range.
+        OffsetDateTime late = OffsetDateTime.parse("2024-02-29T23:00-12:00");
+        Instant morning = Instant.parse("2024-02-29T10:00:00Z");
+        ObjectGeneratorConfig config = strictAt(Instant.parse("2024-02-29T10:30:00Z"))
+                .dateRange(LEAP_DAY, LEAP_DAY)
+                .build();
+
+        Object[] aligned = aligned(config, BoundedPairs.FutureOrPresentOffsetCreatedAt.class, late, morning);
+
+        assertEquals(late, aligned[0]);
+        assertEquals(Instant.parse("2024-03-01T11:00:00Z"), aligned[1]);
+    }
+
+    @Test
+    @DisplayName("in strict mode an age its constraints reject keeps its value, and birthDate follows it")
+    void strictAgeItsConstraintsRejectKeepsItsValue() {
+        Instant now = Instant.parse("2024-02-29T12:00:00Z");
+        ObjectGeneratorConfig strict = strictAt(now).build();
+
+        // 20 is outside @Min(30) @Max(40), so the age stays 35 and the birth date follows it.
+        assertArrayEquals(
+                new Object[] {LEAP_DAY.minusYears(35), 35},
+                aligned(strict, BoundedPairs.RangedAge.class, LEAP_DAY.minusYears(20), 35));
+        // 33 is inside, so the age follows the birth date, as it always has.
+        assertArrayEquals(
+                new Object[] {LEAP_DAY.minusYears(33), 33},
+                aligned(strict, BoundedPairs.RangedAge.class, LEAP_DAY.minusYears(33), 35));
+        // A @Null age takes no value, and leaves the birth date nothing to follow.
+        assertArrayEquals(
+                new Object[] {LEAP_DAY.minusYears(20), null},
+                aligned(strict, BoundedPairs.NullAge.class, LEAP_DAY.minusYears(20), null));
+        // A @Past birth date cannot be today, which an overridden age of 0 gives, so it keeps its value.
+        ObjectGeneratorConfig ageZero = strictAt(now)
+                .override(BoundedPairs.PastBirthDate.class, "age", () -> 0)
+                .build();
+        assertArrayEquals(
+                new Object[] {LEAP_DAY.minusDays(1), 0},
+                aligned(ageZero, BoundedPairs.PastBirthDate.class, LEAP_DAY.minusDays(1), 0));
+    }
+
+    @Test
+    @DisplayName("an age that no birth date of its type can hold leaves birthDate as it is, rather than fail")
+    void ageNoBirthDateCanHoldLeavesBirthDateAsItIs() {
+        // Beyond the years a LocalDate holds.
+        ObjectGeneratorConfig hugeAge = ObjectGeneratorConfig.builder()
+                .override(AgedPairs.LocalBirthDate.class, "age", () -> Integer.MAX_VALUE)
+                .build();
+        assertArrayEquals(
+                new Object[] {LEAP_DAY, Integer.MAX_VALUE},
+                aligned(hugeAge, AgedPairs.LocalBirthDate.class, LEAP_DAY, Integer.MAX_VALUE));
+
+        // Within them, but beyond the milliseconds a Calendar holds.
+        java.util.GregorianCalendar calendar =
+                java.util.GregorianCalendar.from(ZonedDateTime.parse("2000-06-04T12:00Z"));
+        ObjectGeneratorConfig calendarAge = ObjectGeneratorConfig.builder()
+                .override(AgedPairs.CalendarBirthDate.class, "age", () -> 500_000_000)
+                .build();
+        assertArrayEquals(
+                new Object[] {calendar, 500_000_000},
+                aligned(calendarAge, AgedPairs.CalendarBirthDate.class, calendar, 500_000_000));
+
+        // A java.sql.Date and, on JDK 21, a Timestamp would wrap such a date round, to a year after 84,000,000.
+        java.sql.Date sqlDate = java.sql.Date.valueOf(LocalDate.of(2000, 6, 4));
+        ObjectGeneratorConfig sqlDateAge = ObjectGeneratorConfig.builder()
+                .override(AgedPairs.SqlDateBirthDate.class, "age", () -> 500_000_000)
+                .build();
+        assertArrayEquals(
+                new Object[] {sqlDate, 500_000_000},
+                aligned(sqlDateAge, AgedPairs.SqlDateBirthDate.class, sqlDate, 500_000_000));
+
+        // In strict mode, an age that its constraints keep from a @Future birth date's leaves both as they are,
+        // and a wrapped Timestamp in the future must not take the place of one.
+        ObjectGeneratorConfig strict =
+                strictAt(Instant.parse("2024-02-29T12:00:00Z")).build();
+        LocalDate tomorrow = LEAP_DAY.plusDays(1);
+        assertArrayEquals(
+                new Object[] {tomorrow, Integer.MAX_VALUE},
+                aligned(strict, AgedPairs.UnreachableBirthDate.class, tomorrow, Integer.MAX_VALUE));
+        java.sql.Timestamp later = java.sql.Timestamp.from(Instant.parse("2024-03-01T00:00:00Z"));
+        assertArrayEquals(
+                new Object[] {later, 500_000_000},
+                aligned(strict, AgedPairs.FutureTimestampBirthDate.class, later, 500_000_000));
+        java.sql.Date laterDate = java.sql.Date.valueOf(LocalDate.of(2024, 3, 1));
+        assertArrayEquals(
+                new Object[] {laterDate, 292_277_078},
+                aligned(strict, AgedPairs.FutureSqlDateBirthDate.class, laterDate, 292_277_078));
+        // An age of 2,024 gives 0000-02-29, which a java.sql.Date cannot hold, although its milliseconds are past.
+        java.sql.Date earlierDate = java.sql.Date.valueOf(LocalDate.of(2024, 2, 28));
+        assertArrayEquals(
+                new Object[] {earlierDate, 2_024},
+                aligned(strict, AgedPairs.PastSqlDateBirthDate.class, earlierDate, 2_024));
+    }
+
+    @Test
+    @DisplayName("a birth date derived from an age gives that age, on 29 February too")
+    void birthDateDerivedFromAnAgeGivesThatAgeOnALeapDay() {
+        Instant now = Instant.parse("2024-02-29T12:00:00Z");
+        // A year back, 29 February becomes the 28th, which still gives a whole year to the leap day.
+        assertEquals(LocalDate.of(2023, 2, 28), birthDateBeside(now, AgedPairs.LocalBirthDate.class, LEAP_DAY, 1));
+        assertEquals(LocalDate.of(2020, 2, 29), birthDateBeside(now, AgedPairs.LocalBirthDate.class, LEAP_DAY, 4));
+        // A year ahead, the 28th would be a day short of the year that an age of -1 needs, so it is 1 March.
+        assertEquals(LocalDate.of(2025, 3, 1), birthDateBeside(now, AgedPairs.LocalBirthDate.class, LEAP_DAY, -1));
+        assertEquals(LocalDate.of(2028, 2, 29), birthDateBeside(now, AgedPairs.LocalBirthDate.class, LEAP_DAY, -4));
+
+        // So too where, in strict mode, a constrained age keeps its value and a @Future birth date follows it.
+        LocalDate tomorrow = LEAP_DAY.plusDays(1);
+        assertArrayEquals(
+                new Object[] {LocalDate.of(2025, 3, 1), -1},
+                aligned(strictAt(now).build(), AgedPairs.FutureLocalBirthDate.class, tomorrow, -1));
+    }
+
+    @Test
+    @DisplayName("a birth date in the first or last year its type holds is derived, and one a year beyond is not")
+    void birthDateInTheFirstOrLastYearItsTypeHoldsIsDerived() {
+        Instant now = Instant.parse("2024-02-29T12:00:00Z");
+        // A LocalDate holds the years from -999,999,999 to 999,999,999. Ahead of the leap day, a negative age gives
+        // 1 March, as above.
+        assertEquals(
+                LocalDate.of(-999_999_999, 2, 28),
+                birthDateBeside(now, AgedPairs.LocalBirthDate.class, LEAP_DAY, 2_024 + 999_999_999));
+        assertEquals(LEAP_DAY, birthDateBeside(now, AgedPairs.LocalBirthDate.class, LEAP_DAY, 2_024 + 1_000_000_000));
+        assertEquals(
+                LocalDate.of(999_999_999, 3, 1),
+                birthDateBeside(now, AgedPairs.LocalBirthDate.class, LEAP_DAY, 2_024 - 999_999_999));
+        assertEquals(LEAP_DAY, birthDateBeside(now, AgedPairs.LocalBirthDate.class, LEAP_DAY, 2_024 - 1_000_000_000));
+
+        // A Calendar holds in full the years from -292,275,054 to 292,278,993, which a long of milliseconds reaches.
+        java.util.GregorianCalendar calendar =
+                java.util.GregorianCalendar.from(ZonedDateTime.parse("2000-06-04T12:00Z"));
+        assertEquals(
+                LocalDate.of(-292_275_054, 2, 28).atStartOfDay().toInstant(ZoneOffset.UTC),
+                ((java.util.Calendar)
+                                birthDateBeside(now, AgedPairs.CalendarBirthDate.class, calendar, 2_024 + 292_275_054))
+                        .toInstant());
+        assertSame(calendar, birthDateBeside(now, AgedPairs.CalendarBirthDate.class, calendar, 2_024 + 292_275_055));
+        assertEquals(
+                LocalDate.of(292_278_993, 3, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
+                ((java.util.Calendar)
+                                birthDateBeside(now, AgedPairs.CalendarBirthDate.class, calendar, 2_024 - 292_278_993))
+                        .toInstant());
+        assertSame(calendar, birthDateBeside(now, AgedPairs.CalendarBirthDate.class, calendar, 2_024 - 292_278_994));
+
+        // A java.sql.Date holds the years of the common era, from 1: valueOf drops the era of an earlier year, so
+        // that year 0 reads back as year 1, and 0000-02-29 does not read back at all. Further back, in the first
+        // year a Calendar holds, valueOf wraps round. In each case the birth date stays.
+        java.sql.Date sqlDate = java.sql.Date.valueOf(LocalDate.of(2000, 6, 4));
+        assertEquals(
+                java.sql.Date.valueOf(LocalDate.of(1, 2, 28)),
+                birthDateBeside(now, AgedPairs.SqlDateBirthDate.class, sqlDate, 2_024 - 1));
+        assertSame(sqlDate, birthDateBeside(now, AgedPairs.SqlDateBirthDate.class, sqlDate, 2_024));
+        assertSame(sqlDate, birthDateBeside(now, AgedPairs.SqlDateBirthDate.class, sqlDate, 2_024 + 292_275_054));
+        // A date in the Julian calendar before 1582, or after it, is derived as valueOf gives it.
+        assertEquals(
+                java.sql.Date.valueOf(LocalDate.of(1000, 2, 28)),
+                birthDateBeside(now, AgedPairs.SqlDateBirthDate.class, sqlDate, 1_024));
+        assertEquals(
+                java.sql.Date.valueOf(LocalDate.of(1964, 2, 29)),
+                birthDateBeside(now, AgedPairs.SqlDateBirthDate.class, sqlDate, 60));
+        // valueOf moves a date that the change from the Julian calendar skipped, 1582-10-05 to 1582-10-14, on by
+        // ten days, so such a birth date stays too.
+        assertSame(
+                sqlDate,
+                birthDateBeside(Instant.parse("2024-10-10T12:00:00Z"), AgedPairs.SqlDateBirthDate.class, sqlDate, 442));
+    }
+
+    /** The birth date the pass leaves beside an overridden age, under a clock fixed at this instant. */
+    private static Object birthDateBeside(Instant now, Class<?> pair, Object birthDate, int age) {
+        ObjectGeneratorConfig config = ObjectGeneratorConfig.builder()
+                .generatorConfig(GeneratorConfig.builder()
+                        .clock(Clock.fixed(now, ZoneOffset.UTC))
+                        .build())
+                .override(pair, "age", () -> age)
+                .build();
+        return aligned(config, pair, birthDate, age)[0];
+    }
+
+    @Test
     @DisplayName("the range check reads a value no date can hold without failing")
     void rangeCheckReadsAValueNoDateCanHoldWithoutFailing() {
         Object[] aligned = aligned(
@@ -1544,12 +1807,77 @@ class SemanticCoherenceAdjusterTest {
         }
     }
 
-    /** Runs the pass over a record's createdAt and updatedAt, and returns what it leaves in them. */
-    private static Object[] aligned(ObjectGeneratorConfig config, Class<?> pair, Object createdAt, Object updatedAt) {
-        Object[] args = {createdAt, updatedAt};
+    /**
+     * Runs the pass over a two-member record, such as one with a createdAt and an updatedAt, and returns what it
+     * leaves in the members.
+     */
+    private static Object[] aligned(ObjectGeneratorConfig config, Class<?> pair, Object first, Object second) {
+        Object[] args = {first, second};
         new SemanticCoherenceAdjuster(config, new UniqueFieldTracker())
                 .adjustRecordArguments(pair, pair.getRecordComponents(), pair.getDeclaredFields(), args);
         return args;
+    }
+
+    /** A strict configuration whose clock is fixed at this instant, in UTC. */
+    private static ObjectGeneratorConfig.Builder strictAt(Instant now) {
+        return ObjectGeneratorConfig.builder()
+                .generatorConfig(GeneratorConfig.builder()
+                        .clock(Clock.fixed(now, ZoneOffset.UTC))
+                        .build())
+                .semanticMode(ObjectGenerationSemanticMode.STRICT);
+    }
+
+    /** Pairs whose members carry the constraints that the strict pass keeps them within. */
+    static final class BoundedPairs {
+
+        record PastUpdatedAt(Instant createdAt, @Past Instant updatedAt) {}
+
+        record PastOrPresentUpdatedAt(
+                Instant createdAt, @PastOrPresent Instant updatedAt) {}
+
+        record FutureOrPresentCreatedAt(@FutureOrPresent Instant createdAt, Instant updatedAt) {}
+
+        record FutureOrPresentOffsetCreatedAt(
+                @FutureOrPresent OffsetDateTime createdAt, Instant updatedAt) {}
+
+        record Apart(@Future Instant createdAt, @Past Instant updatedAt) {}
+
+        record RangedAge(
+                LocalDate birthDate, @Min(30) @Max(40) int age) {}
+
+        record NullAge(LocalDate birthDate, @Null Integer age) {}
+
+        record PastBirthDate(@Past LocalDate birthDate, int age) {}
+    }
+
+    /** Pairs of a birth date and an age, for ages that no birth date of its type can hold. */
+    static final class AgedPairs {
+
+        record LocalBirthDate(LocalDate birthDate, int age) {}
+
+        record CalendarBirthDate(java.util.Calendar birthDate, int age) {}
+
+        record SqlDateBirthDate(java.sql.Date birthDate, int age) {}
+
+        record UnreachableBirthDate(
+                @Future LocalDate birthDate,
+                @Min(Integer.MAX_VALUE) int age) {}
+
+        record FutureTimestampBirthDate(
+                @Future java.sql.Timestamp birthDate,
+                @Min(500_000_000) int age) {}
+
+        record FutureSqlDateBirthDate(
+                @Future java.sql.Date birthDate,
+                @Min(292_277_078) int age) {}
+
+        record PastSqlDateBirthDate(
+                @Past java.sql.Date birthDate,
+                @Min(2_024) @Max(2_024) int age) {}
+
+        record FutureLocalBirthDate(
+                @Future LocalDate birthDate,
+                @Min(-1) @Max(-1) int age) {}
     }
 
     private static List<Field> declaredFields(Class<?> type) {
