@@ -96,7 +96,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and a `ruleForType<String>` reaches a `String` inside a value class. A value that the `init` block rejects
   fails with the value class and the parameter named. A class whose primary constructor takes a value
   class is built through that constructor, where the private and synthetic JVM constructors that Kotlin
-  compiles it to failed as ambiguous.
+  compiles it to failed as ambiguous, unless it has a no-argument constructor, which still builds it before
+  its fields are filled.
 
 ### Changed
 

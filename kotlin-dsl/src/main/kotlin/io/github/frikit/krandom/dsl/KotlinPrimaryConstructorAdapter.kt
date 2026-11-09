@@ -51,8 +51,12 @@ internal class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
         }
         val constructor = kotlinType.primaryConstructor ?: return false
         // A constructor that takes a value class is private on the JVM, beside a synthetic public form,
-        // so only its Kotlin form can be called.
-        return constructor.parameters.any { parameter -> parameter.type.jvmErasure.isValue } ||
+        // so only its Kotlin form can be called. A class with a no-argument constructor of its own is
+        // still built through that one and filled field by field, rules on its other fields included.
+        val needsKotlinForm =
+            constructor.parameters.any { parameter -> parameter.type.jvmErasure.isValue } &&
+                type.declaredConstructors.none { candidate -> candidate.parameterCount == 0 }
+        return needsKotlinForm ||
             type.declaredFields.any { field ->
                 !Modifier.isStatic(field.modifiers) && !field.isSynthetic && Modifier.isFinal(field.modifiers)
             }

@@ -193,6 +193,16 @@ class KotlinValueClassTest :
                 krandom<KVarHolder>().id.value.shouldNotBeBlank()
             }
 
+            it("leaves a class with a no-argument constructor to be filled field by field, rules included") {
+                val model = krandom<KModel> { rule(KModel::count) { 42 } }
+                val defaulted = krandom<KDefaultedModel> { rule(KDefaultedModel::count) { 7 } }
+
+                model.count shouldBe 42
+                model.id shouldNotBe KUserId("preset")
+                defaulted.count shouldBe 7
+                defaulted.id shouldNotBe KUserId("preset")
+            }
+
             it("runs the guide's member example") {
                 val member = krandom<GuideMember> { config { seed(42L) } }
 
@@ -380,6 +390,22 @@ class KMutableAccount {
 class KVarHolder(
     var id: KUserId,
 )
+
+/** A mutable class with a value-class parameter and a no-argument constructor of its own. */
+class KModel(
+    var id: KUserId,
+) {
+    constructor() : this(KUserId("preset"))
+
+    var count: Int = 0
+}
+
+/** The same, where the no-argument constructor comes from the parameter's default. */
+class KDefaultedModel(
+    var id: KUserId = KUserId("preset"),
+) {
+    var count: Int = 0
+}
 
 data class KCounter(
     val count: UInt,
