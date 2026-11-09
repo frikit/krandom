@@ -157,6 +157,12 @@ Constraints apply together, and a keyword constrains only values of its own JSON
   rejected.
 - A `pattern` or `format` value is drawn again until it fits `minLength` and `maxLength`, up to 10,000
   times each. Length is counted in characters, not UTF-16 units.
+- `minLength`, `maxLength`, `minItems`, `maxItems`, `minProperties`, and `maxProperties` must be whole
+  numbers of at least 0, and are read exactly, however large. A generated string, array, or object holds
+  at most 1,000,000 characters, items, or members, the limit `RegexGenerator` keeps for a string, so a
+  minimum above it is rejected while parsing, naming the keyword, its value, and the schema path, and a
+  maximum above it, even one beyond an `int` such as `maxLength` 3000000000, draws no more than it. A
+  `const` or `enum` is measured against the counts as written.
 - A value generated from a `pattern` matches the whole pattern, which also satisfies the search. A
   `pattern` that `RegexGenerator` cannot generate from, such as one with a lookahead, is rejected with
   its schema path. A `const` or `enum` beside it is only checked against it, so it can use any Java
@@ -176,7 +182,7 @@ that is more than their usual 10 times, up to 10,000, so `^[a-z]+$` with `minLen
 `then`, `else`), `contains`, `prefixItems`, `patternProperties`, `propertyNames`, `dependentRequired`,
 `dependentSchemas`, schema dependencies, and the `unevaluated` keywords are unsupported. They fail
 during parsing with the nested schema path. Malformed `type`, `format`, `enum`, `items`, `required`,
-`additionalProperties`, `minProperties`, `maxProperties`, and `dependencies` values, and a malformed
+`additionalProperties`, and `dependencies` values, counts such as `maxLength`, and a malformed
 `additionalItems` beside a list of items, also fail during parsing with that path; they never silently
 become an unconstrained field. A Java map that recursively contains itself is rejected for the same
 reason: the importer has no document-ID or reference-resolution model.

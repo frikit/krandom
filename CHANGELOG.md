@@ -394,6 +394,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   constructor set, as it does by default, now keeps a constrained one too. Record components already read
   their constraints. Seeded output changes for such arguments, and for the members after them where members
   share one stream.
+- `SchemaParser` reads `minLength`, `maxLength`, `minItems`, `maxItems`, `minProperties`, and
+  `maxProperties` exactly. It read the first four through `intValue`, so a count beyond an `int`
+  wrapped: `maxItems` 3000000000 parsed and then failed every record with `Illegal Capacity:
+  -1294967296`, a `minLength` that large was ignored, and a `const` was measured against the wrapped
+  value. A generated string, array, or object now holds at most 1,000,000 characters, items, or
+  members, the limit `RegexGenerator` keeps for a string: a minimum above it is rejected while parsing,
+  naming the keyword, its value, and the schema path, and a larger maximum, even one beyond an `int`,
+  draws no more than it. A count that is negative, fractional, or no number, which used to be truncated
+  or ignored, is now rejected with the schema path. Seeded output changes only for a schema with a
+  count above 1,000,000.
 - `SchemaParser` writes `format: date-time` and `format: time` as RFC 3339 requires, with the seconds and
   an offset, such as `2041-07-03T05:12:44+05:30` and `05:12:44.123456789Z`. They came from
   `LocalDateTime` and `LocalTime`, whose text has no offset and can leave out `:00` seconds, so every

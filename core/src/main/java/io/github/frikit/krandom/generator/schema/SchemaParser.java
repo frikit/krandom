@@ -79,9 +79,10 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>A type list may contain one concrete supported type plus {@code null}. Empty, malformed, and
  * unsupported type declarations, non-string formats, empty or malformed enums, an {@code items} that is no
- * schema, boolean, or list of them, and malformed {@code required}, {@code additionalProperties},
- * {@code minProperties}, {@code maxProperties}, and {@code dependencies} values are rejected with their
- * schema path. A list of items holds the whole tuple by default, and {@code additionalItems} is read only
+ * schema, boolean, or list of them, and malformed {@code required}, {@code additionalProperties}, and
+ * {@code dependencies} values and counts are rejected with their schema path. A count is read exactly, and
+ * a generated value holds at most 1,000,000 characters, items, or members, so a minimum above that fails
+ * with its keyword, value, and path, and a larger maximum draws no more. A list of items holds the whole tuple by default, and {@code additionalItems} is read only
  * beside one, as in the drafts that define it; {@code prefixItems}, its Draft 2020-12 replacement, is
  * rejected. The root generates every property as a column, so its {@code required} names, property
  * dependencies, and member counts must allow exactly those. References and schema composition
@@ -152,6 +153,13 @@ public final class SchemaParser {
 
     /** How many items an array with uniqueItems may draw for each item it holds. */
     private static final int UNIQUE_ITEM_ATTEMPTS = 100;
+
+    /**
+     * The most characters, items, or members a generated value holds, the limit RegexGenerator keeps for a
+     * string. A minimum count above it fails while parsing; a maximum above it, even one beyond an int,
+     * draws no more than it.
+     */
+    private static final int SIZE_LIMIT = 1_000_000;
 
     private static final BigDecimal LONG_MIN = BigDecimal.valueOf(Long.MIN_VALUE);
     private static final BigDecimal LONG_MAX = BigDecimal.valueOf(Long.MAX_VALUE);
@@ -257,10 +265,15 @@ public final class SchemaParser {
                 }
             }
         }
-        if (columns.size() < count(root, "minProperties", 0)
-                || columns.size() > count(root, "maxProperties", Integer.MAX_VALUE)) {
-            throw new IllegalArgumentException(
-                    reason + "its " + columns.size() + " properties must meet minProperties and maxProperties at $");
+        BigDecimal size = BigDecimal.valueOf(columns.size());
+        if (root.get("minProperties") instanceof Number fewest
+                && decimal(fewest).compareTo(size) > 0) {
+            throw new IllegalArgumentException(reason + "its property count, " + columns.size()
+                    + ", is below minProperties " + plain(decimal(fewest)) + " at $");
+        }
+        if (root.get("maxProperties") instanceof Number most && decimal(most).compareTo(size) < 0) {
+            throw new IllegalArgumentException(reason + "its property count, " + columns.size()
+                    + ", is above maxProperties " + plain(decimal(most)) + " at $");
         }
     }
 
@@ -320,7 +333,8 @@ public final class SchemaParser {
             }
         }
 
-        for (String keyword : List.of("minProperties", "maxProperties")) {
+        for (String keyword :
+                List.of("minLength", "maxLength", "minItems", "maxItems", "minProperties", "maxProperties")) {
             if (schema.containsKey(keyword) && !isCount(schema.get(keyword))) {
                 throw new IllegalArgumentException(
                         "JSON Schema " + keyword + " must be a whole number of at least 0 at " + path);
@@ -392,7 +406,7 @@ public final class SchemaParser {
         return value instanceof List<?> names && names.stream().allMatch(String.class::isInstance);
     }
 
-    /** Whether a value is a whole number of at least 0, as a count of properties must be. */
+    /** Whether a value is a whole number of at least 0, as a count of characters, items, or members must be. */
     private static boolean isCount(@Nullable Object value) {
         try {
             return value instanceof Number number
@@ -431,10 +445,36 @@ public final class SchemaParser {
                 "JSON Schema dependencies must map property names to lists of property names at " + path);
     }
 
-    /** A count of properties, which the shape check has made a whole number of at least 0, up to an int. */
-    private static int count(Map<?, ?> schema, String keyword, int defaultValue) {
+    /** Whether a count meets the declared minimum and maximum, compared exactly, however large they are. */
+    private static boolean withinCounts(int count, Map<?, ?> schema, String minimumKeyword, String maximumKeyword) {
+        BigDecimal exact = BigDecimal.valueOf(count);
+        return (!(schema.get(minimumKeyword) instanceof Number minimum)
+                        || decimal(minimum).compareTo(exact) <= 0)
+                && (!(schema.get(maximumKeyword) instanceof Number maximum)
+                        || decimal(maximum).compareTo(exact) >= 0);
+    }
+
+    /**
+     * A declared minimum count, which the shape check has made a whole number of at least 0, or a default
+     * where none is declared. One that no generated value can hold, above {@value #SIZE_LIMIT}, fails with
+     * the keyword, its value, and the path.
+     */
+    private static int minimumCount(Map<?, ?> schema, String keyword, int defaultValue, String path, String holder) {
+        if (!(schema.get(keyword) instanceof Number number)) {
+            return defaultValue;
+        }
+        BigDecimal minimum = decimal(number);
+        if (minimum.compareTo(BigDecimal.valueOf(SIZE_LIMIT)) > 0) {
+            throw new IllegalArgumentException("JSON Schema " + keyword + " " + plain(minimum) + " at " + path
+                    + " is more than the " + SIZE_LIMIT + " " + holder + " can hold");
+        }
+        return minimum.intValue();
+    }
+
+    /** A declared maximum count, or a default where none is; one above {@value #SIZE_LIMIT} draws no more. */
+    private static int maximumCount(Map<?, ?> schema, String keyword, int defaultValue) {
         return schema.get(keyword) instanceof Number number
-                ? decimal(number).min(BigDecimal.valueOf(Integer.MAX_VALUE)).intValue()
+                ? decimal(number).min(BigDecimal.valueOf(SIZE_LIMIT)).intValue()
                 : defaultValue;
     }
 
@@ -572,8 +612,7 @@ public final class SchemaParser {
                             || decimal(number).remainder(decimal(step)).signum() == 0);
         }
         if (value instanceof List<?> list) {
-            return list.size() >= intOrDefault(schema.get("minItems"), 0)
-                    && list.size() <= intOrDefault(schema.get("maxItems"), Integer.MAX_VALUE)
+            return withinCounts(list.size(), schema, "minItems", "maxItems")
                     && (!Boolean.TRUE.equals(schema.get("uniqueItems"))
                             || jsonValues(list).size() == list.size())
                     && itemsMeet(list, schema);
@@ -625,8 +664,7 @@ public final class SchemaParser {
             }
         }
         Set<String> names = members.keySet();
-        return names.size() >= count(schema, "minProperties", 0)
-                && names.size() <= count(schema, "maxProperties", Integer.MAX_VALUE)
+        return withinCounts(names.size(), schema, "minProperties", "maxProperties")
                 && names.containsAll(names(schema.get("required")))
                 && propertyDependencies(schema).entrySet().stream()
                         .allMatch(dependency ->
@@ -756,9 +794,7 @@ public final class SchemaParser {
 
     private static boolean withinLengthBounds(String text, Map<?, ?> schema) {
         // JSON Schema counts characters, not UTF-16 units.
-        int length = text.codePointCount(0, text.length());
-        return length >= intOrDefault(schema.get("minLength"), 0)
-                && length <= intOrDefault(schema.get("maxLength"), Integer.MAX_VALUE);
+        return withinCounts(text.codePointCount(0, text.length()), schema, "minLength", "maxLength");
     }
 
     private static boolean declaresLength(Map<?, ?> schema) {
@@ -772,7 +808,9 @@ public final class SchemaParser {
             @Nullable String format,
             Field field,
             GeneratorConfig config) {
-        if (intOrDefault(schema.get("minLength"), 0) > intOrDefault(schema.get("maxLength"), Integer.MAX_VALUE)) {
+        int fewest = minimumCount(schema, "minLength", 0, path, "characters a generated string");
+        int most = maximumCount(schema, "maxLength", Integer.MAX_VALUE);
+        if (fewest > most) {
             throw emptyRange("string length", path, schema);
         }
 
@@ -781,7 +819,7 @@ public final class SchemaParser {
         String pattern = stringOrNull(schema.get("pattern"));
         if (pattern != null) {
             // RegexGenerator's open-ended repetitions have to be able to reach the declared minimum.
-            int minLength = Math.clamp(intOrDefault(schema.get("minLength"), 1), 1, Integer.MAX_VALUE - 1);
+            int minLength = Math.max(fewest, 1);
             validatePattern(pattern, minLength, path);
             return fittingLength(
                     ctx -> matching(pattern, minLength, ctx.random().nextLong()), schema, path, config);
@@ -808,10 +846,8 @@ public final class SchemaParser {
         // Bounded string length
         // A missing bound defaults within the declared one: maxLength 2 alone must not keep a larger
         // configured minimum length.
-        int maxLength = intOrDefault(
-                schema.get("maxLength"),
-                Math.max(config.getMaxStringLength(), intOrDefault(schema.get("minLength"), 0)));
-        int minLength = intOrDefault(schema.get("minLength"), Math.min(config.getMinStringLength(), maxLength));
+        int maxLength = maximumCount(schema, "maxLength", Math.max(config.getMaxStringLength(), fewest));
+        int minLength = schema.containsKey("minLength") ? fewest : Math.min(config.getMinStringLength(), maxLength);
         // Generated text has at least one character, so only maxLength 0 needs the empty string.
         return maxLength == 0 ? ctx -> "" : text(Math.max(minLength, 1), maxLength);
     }
@@ -1271,10 +1307,9 @@ public final class SchemaParser {
         // tuple, or for other arrays the configured collection size, within what the items allow.
         int natural = items instanceof List<?> ? Math.min(positions.size(), reach) : config.getMaxCollectionSize();
         int naturalMin = items instanceof List<?> ? natural : config.getMinCollectionSize();
-        int maxItems = Math.min(
-                reach,
-                intOrDefault(schema.get("maxItems"), Math.max(natural, intOrDefault(schema.get("minItems"), 0))));
-        int minItems = intOrDefault(schema.get("minItems"), Math.min(naturalMin, maxItems));
+        int fewest = minimumCount(schema, "minItems", 0, path, "items a generated array");
+        int maxItems = Math.min(reach, maximumCount(schema, "maxItems", Math.max(natural, fewest)));
+        int minItems = schema.containsKey("minItems") ? fewest : Math.min(naturalMin, maxItems);
         if (minItems > maxItems) {
             throw emptyRange("array size", path, schema);
         }
@@ -1435,8 +1470,8 @@ public final class SchemaParser {
                             : resolveProvider(name, path + ".additionalProperties", additionalSchema, field, config));
         }
 
-        int fewest = count(schema, "minProperties", 0);
-        int most = count(schema, "maxProperties", Integer.MAX_VALUE);
+        int fewest = minimumCount(schema, "minProperties", 0, path, "members a generated object");
+        int most = maximumCount(schema, "maxProperties", Integer.MAX_VALUE);
         if (fewest > most) {
             throw emptyRange("property count", path, schema);
         }
@@ -1618,12 +1653,5 @@ public final class SchemaParser {
 
     private static @Nullable String stringOrNull(@Nullable Object value) {
         return value instanceof String s ? s : null;
-    }
-
-    private static int intOrDefault(@Nullable Object value, int defaultValue) {
-        if (value instanceof Number n) {
-            return n.intValue();
-        }
-        return defaultValue;
     }
 }

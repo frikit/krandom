@@ -3372,6 +3372,125 @@ class SchemaParserTest {
         }
     }
 
+    @Nested
+    @DisplayName("count keywords")
+    class Counts {
+
+        private static final long BEYOND_AN_INT = 3_000_000_000L;
+
+        private static Object generated(Map<String, Object> property) {
+            return SchemaParser.fromJsonSchema(
+                            objectSchema(Map.of("value", property)),
+                            GeneratorConfig.builder().seed(7L).build())
+                    .generate()
+                    .get("value");
+        }
+
+        private static String rejection(Map<String, Object> property) {
+            return assertThrows(
+                            IllegalArgumentException.class,
+                            () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("value", property))))
+                    .getMessage();
+        }
+
+        @Test
+        @DisplayName("a maximum beyond an int parses and generates, drawing no more than 1,000,000")
+        void maximumBeyondAnInt() {
+            int length = assertInstanceOf(String.class, generated(Map.of("type", "string", "maxLength", BEYOND_AN_INT)))
+                    .length();
+            assertTrue(length >= 1 && length <= 1_000_000, String.valueOf(length));
+            int size = assertInstanceOf(
+                            List.class,
+                            generated(Map.of("type", "array", "items", Map.of("const", 1), "maxItems", BEYOND_AN_INT)))
+                    .size();
+            assertTrue(size >= 1 && size <= 1_000_000, String.valueOf(size));
+            assertEquals(
+                    Map.of("a", 1),
+                    generated(Map.of(
+                            "type",
+                            "object",
+                            "properties",
+                            Map.of("a", Map.of("const", 1)),
+                            "maxProperties",
+                            BEYOND_AN_INT)));
+            // A const or enum is measured against it exactly.
+            assertEquals(
+                    Set.of("abc"), CombinedConstraints.distinct(Map.of("const", "abc", "maxLength", BEYOND_AN_INT)));
+            assertEquals(
+                    Set.of(List.of(1)),
+                    CombinedConstraints.distinct(Map.of("const", List.of(1), "maxItems", BEYOND_AN_INT)));
+            assertEquals(
+                    Set.of(Map.of("a", 1)),
+                    CombinedConstraints.distinct(Map.of("const", Map.of("a", 1), "maxProperties", BEYOND_AN_INT)));
+        }
+
+        @Test
+        @DisplayName("a minimum no generated value can hold is rejected with the keyword, the value and the path")
+        void minimumBeyondTheLimit() {
+            String path = " at $.properties.value is more than the 1000000 ";
+            assertEquals(
+                    "JSON Schema minLength 3000000000" + path + "characters a generated string can hold",
+                    rejection(Map.of("type", "string", "minLength", BEYOND_AN_INT)));
+            assertEquals(
+                    "JSON Schema minItems 3000000000" + path + "items a generated array can hold",
+                    rejection(Map.of("type", "array", "minItems", BEYOND_AN_INT)));
+            assertEquals(
+                    "JSON Schema minProperties 3000000000" + path + "members a generated object can hold",
+                    rejection(Map.of("type", "object", "minProperties", BEYOND_AN_INT)));
+            // The limit itself parses, and one more does not, whatever generates the string.
+            for (Map<String, Object> string : List.<Map<String, Object>>of(
+                    Map.of("type", "string"),
+                    Map.of("type", "string", "pattern", "^a+$"),
+                    Map.of("type", "string", "format", "email"))) {
+                Map<String, Object> over = new HashMap<>(string);
+                over.put("minLength", 1_000_001);
+                assertEquals(
+                        "JSON Schema minLength 1000001" + path + "characters a generated string can hold",
+                        rejection(over));
+            }
+            assertDoesNotThrow(() -> SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("value", Map.of("type", "string", "minLength", 1_000_000)))));
+            assertDoesNotThrow(() -> SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("value", Map.of("type", "array", "minItems", 1_000_000)))));
+            assertDoesNotThrow(() -> SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("value", Map.of("type", "object", "minProperties", 1_000_000)))));
+            assertTrue(rejection(Map.of("type", "array", "minItems", 1_000_001)).contains("minItems 1000001"));
+            assertTrue(rejection(Map.of("type", "object", "minProperties", 1_000_001))
+                    .contains("minProperties 1000001"));
+            // A const or enum cannot meet it either.
+            CombinedConstraints.assertRejected(Map.of("const", List.of(1), "minItems", BEYOND_AN_INT));
+            // The root names the count it cannot meet, as written.
+            Map<String, Object> root = new HashMap<>(objectSchema(Map.of("a", Map.of("const", 1))));
+            root.put("minProperties", BEYOND_AN_INT);
+            String reason = "JSON Schema root object generates exactly its properties, as columns, so its property"
+                    + " count, 1, is ";
+            assertEquals(
+                    reason + "below minProperties 3000000000 at $",
+                    assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(root))
+                            .getMessage());
+            root.remove("minProperties");
+            root.put("maxProperties", 0);
+            assertEquals(
+                    reason + "above maxProperties 0 at $",
+                    assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(root))
+                            .getMessage());
+        }
+
+        @Test
+        @DisplayName("a count that is negative, fractional or no number is rejected with the path")
+        void malformedCounts() {
+            for (String keyword : List.of("minLength", "maxLength", "minItems", "maxItems")) {
+                for (Object count : List.of(-1, 1.5, "2", Double.NaN)) {
+                    CombinedConstraints.assertRejected(Map.of(keyword, count));
+                }
+            }
+            // A whole number written as a decimal is a count.
+            for (Object value : CombinedConstraints.values(Map.of("type", "string", "maxLength", 3.0))) {
+                assertTrue(((String) value).length() <= 3, String.valueOf(value));
+            }
+        }
+    }
+
     @Test
     @DisplayName("seeded format providers reproduce their generated record")
     void seededFormatProvidersReproduce() {
