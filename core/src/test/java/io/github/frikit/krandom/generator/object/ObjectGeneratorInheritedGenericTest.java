@@ -75,6 +75,16 @@ class ObjectGeneratorInheritedGenericTest {
     }
 
     @Test
+    @DisplayName("a nested object of the same generic class keeps its own superclass bindings")
+    void nestedObjectOfSameClassKeepsItsSuperclassBindings() {
+        ValueBoxHolder holder = new ObjectGenerator<>(ValueBoxHolder.class, CONFIG).generate();
+
+        assertInstanceOf(Integer.class, holder.box.value);
+        assertInstanceOf(String.class, holder.box.nested.value, "its inherited X is its own T, a String");
+        assertEquals(null, holder.box.nested.nested, "the next ValueBox<String> repeats one being generated");
+    }
+
+    @Test
     @DisplayName("unbound type variable fails with its declared path and signature")
     void unboundTypeVariableFailsWithContext() {
         ObjectGenerationException ex = assertThrows(
@@ -112,6 +122,22 @@ class ObjectGeneratorInheritedGenericTest {
 
     /** Its {@code T} is bound to {@code V}, and {@code V} to {@code List<String>}. */
     static final class ListChainFixture extends BoxedChainMiddle<List<String>> {}
+
+    static class ValueBase<X> {
+
+        X value;
+    }
+
+    /** Its {@code nested} binds {@code T} afresh, and {@code ValueBase}'s {@code X} follows it. */
+    static class ValueBox<T> extends ValueBase<T> {
+
+        ValueBox<String> nested;
+    }
+
+    static final class ValueBoxHolder {
+
+        ValueBox<Integer> box;
+    }
 
     static final class UnboundFixture<T> {
 

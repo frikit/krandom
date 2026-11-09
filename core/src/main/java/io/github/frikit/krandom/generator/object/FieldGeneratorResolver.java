@@ -2234,11 +2234,19 @@ final class FieldGeneratorResolver {
         ResolvedType generationType = mostSpecific(resolvedType);
         Map<TypeVariable<?>, Type> declaredBindings =
                 new LinkedHashMap<>(ResolvedType.bindingsFor(generationType.declaredType()));
-        // An argument that names one of this object's type variables is read as this object binds it. A
-        // recursive generic member, such as Node<T> next inside a Node<String>, or Pair<B, A> inside a
-        // Pair<A, B>, rebinds the same variables in the nested object, where they would name themselves.
-        declaredBindings.replaceAll((variable, argument) ->
-                argument instanceof TypeVariable<?> outer ? typeBindings.getOrDefault(outer, argument) : argument);
+        // The declared type's own arguments are written in this object's type variables, so one that names
+        // a variable is read as this object binds it. A recursive generic member, such as Node<T> next inside
+        // a Node<String>, or Pair<B, A> inside a Pair<A, B>, rebinds the same variables in the nested object,
+        // where they would name themselves. The bindings of the declared class's superclasses are written in
+        // the nested object's own variables, and are left as they are.
+        Class<?> declaredClass = Objects.requireNonNull(generationType.rawClass(), "a nested type is resolved");
+        for (TypeVariable<?> parameter : declaredClass.getTypeParameters()) {
+            declaredBindings.computeIfPresent(
+                    parameter,
+                    (ignored, argument) -> argument instanceof TypeVariable<?> outer
+                            ? typeBindings.getOrDefault(outer, argument)
+                            : argument);
+        }
         bindings.putAll(declaredBindings);
         // A mapped or sealed subclass of a generic declared type takes its arguments.
         bindings.putAll(ResolvedType.subtypeArguments(nestedBindings, declaredBindings));
