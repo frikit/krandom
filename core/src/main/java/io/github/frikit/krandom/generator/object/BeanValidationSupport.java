@@ -91,8 +91,6 @@ final class BeanValidationSupport {
     private static final int TEST_EMAIL_AFFIX_LENGTH = 6;
 
     private static final BigDecimal DECIMAL_DEFAULT_SPAN = new BigDecimal("1000000");
-    private static final java.util.regex.Pattern EMAIL_SHAPE =
-            java.util.regex.Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
     private static final Comparator<NumericBound> LOWER_BOUND_ORDER =
             Comparator.comparing(NumericBound::value).thenComparing(bound -> !bound.inclusive());
     private static final Comparator<NumericBound> UPPER_BOUND_ORDER =
@@ -470,7 +468,7 @@ final class BeanValidationSupport {
             if (nonBlank && candidate.isBlank()) {
                 return false;
             }
-            if (email && !EMAIL_SHAPE.matcher(candidate).matches()) {
+            if (email && !EmailShape.accepts(candidate)) {
                 return false;
             }
             for (TextPattern pattern : patterns) {
