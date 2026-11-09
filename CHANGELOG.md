@@ -193,6 +193,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   locale without places the rest of a full address keeps its seeded output, but the country no longer
   takes a draw, so with a caller-owned `Random`, which every child shares, the values drawn after a
   full address change too. The addresses of `SimpleProfile` and `UserProfile` follow.
+- Update the build and test tooling, with no change for consumers: Error Prone to 2.52.0 and its Gradle
+  plugin to 5.2.0, Spotless to 8.11.0, PIT to 1.30.2, Hibernate Validator to 9.1.6.Final, the Instancio
+  benchmark competitor to 6.2.1, and in the CI and release workflows `actions/setup-java` to 6.2.0,
+  `coursier/setup-action` to 3.1.0, and `softprops/action-gh-release` to 3.0.4.
 
 ### Fixed
 
