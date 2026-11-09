@@ -97,6 +97,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `zone.tab` lists, instead of `America/Buenos_Aires`, an older name that the tz database keeps only
   as a link; `es_AR` and other `AR` locales get the new name. `PhoneNumberGenerator` takes its calling
   codes from the same table, and its output is unchanged.
+- `KrandomExtension` now gives a `@MethodSource` factory the class-scoped configuration of its test
+  class, the one `@BeforeAll` receives: from the class-level `@KrandomSeed`, a replay override, a class
+  recipe, or a random seed. A method-level `@KrandomSeed` on a `@ParameterizedTest` pinned its factory
+  too and now pins only its invocations, so pin the class to fix the generated arguments. A `Krandom`
+  factory parameter is a session of the parameterized test's own, built from that configuration, so it
+  starts the class-level streams again. The `@BeforeParameterizedClassInvocation` and
+  `@AfterParameterizedClassInvocation` methods of a `@ParameterizedClass` invocation also take the
+  class-scoped configuration, with a session of the invocation's own, where an unpinned invocation had
+  a random seed of its own. Seeded output changes for factories under a method-level pin.
+
+### Fixed
+
+- `KRANDOM_JUNIT_CLASS_RECIPE` now replays what a `@MethodSource` factory generated. JUnit calls the
+  factory with the context of the parameterized test as a whole, which `KrandomExtension` reported as a
+  second class-scoped configuration under the test class's name. Beside a `@BeforeAll` entry, the
+  printed replay command then failed with a configuration error for the duplicate entry; otherwise the
+  factory took the test's recipe on replay, so the arguments of the failing invocation changed. The
+  callbacks of a `@ParameterizedClass` invocation had the same fault. Each test class now reports one
+  class-scoped configuration, and the replay commands restore it.
 
 ## [2.10.0] - 2026-11-02
 

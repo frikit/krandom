@@ -17,7 +17,10 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Krandom;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
@@ -26,6 +29,7 @@ import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -34,6 +38,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionConfigurationException;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.BeforeParameterizedClassInvocation;
+import org.junit.jupiter.params.Parameter;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.Event;
@@ -232,6 +241,95 @@ class KrandomExtensionReplayEngineTest {
     }
 
     @Test
+    void printedCommandsReplayAMethodSourceFactoryBesideBeforeAll() {
+        FactoryBesideBeforeAllFailingFixture.reset();
+        EngineTestSupport.Captured first =
+                EngineTestSupport.runCapturingStderr(FactoryBesideBeforeAllFailingFixture.class);
+        first.results().testEvents().assertStatistics(stats -> stats.failed(1));
+        Matcher gradle = GRADLE_CLASS_REPLAY.matcher(first.stderr());
+        assertTrue(gradle.find(), first.stderr());
+        assertEquals(
+                List.of(FactoryBesideBeforeAllFailingFixture.class.getCanonicalName()),
+                classRecipeKeys(gradle.group(1)),
+                "the factory shares the one class-scoped configuration of its class");
+
+        EngineExecutionResults replay = EngineTestSupport.run(
+                FactoryBesideBeforeAllFailingFixture.class,
+                Map.of("krandom.junit.class-recipe", gradle.group(1), "krandom.junit.recipe", gradle.group(2)));
+
+        replay.containerEvents().assertStatistics(stats -> stats.failed(0));
+        replay.testEvents().assertStatistics(stats -> stats.failed(1));
+        assertReplayed(FactoryBesideBeforeAllFailingFixture.BEFORE_ALL_VALUES, "the session of @BeforeAll");
+        assertReplayed(FactoryBesideBeforeAllFailingFixture.FACTORY_VALUES, "the session of the @MethodSource factory");
+        assertReplayed(FactoryBesideBeforeAllFailingFixture.TEST_VALUES, "the session of the failing invocation");
+    }
+
+    @Test
+    void printedCommandsReplayAMethodSourceFactoryThatIsTheOnlyClassLevelParameter() {
+        FactoryOnlyFailingFixture.reset();
+        EngineTestSupport.Captured first = EngineTestSupport.runCapturingStderr(FactoryOnlyFailingFixture.class);
+        first.results().testEvents().assertStatistics(stats -> stats.failed(1));
+        Matcher gradle = GRADLE_CLASS_REPLAY.matcher(first.stderr());
+        assertTrue(gradle.find(), "the factory's configuration must be reported, was: " + first.stderr());
+        assertEquals(List.of(FactoryOnlyFailingFixture.class.getCanonicalName()), classRecipeKeys(gradle.group(1)));
+
+        EngineTestSupport.run(
+                FactoryOnlyFailingFixture.class,
+                Map.of("krandom.junit.class-recipe", gradle.group(1), "krandom.junit.recipe", gradle.group(2)));
+
+        assertReplayed(FactoryOnlyFailingFixture.FACTORY_VALUES, "the @MethodSource factory's data");
+        assertReplayed(FactoryOnlyFailingFixture.TEST_VALUES, "the failing invocation's data");
+    }
+
+    @Test
+    void printedCommandsReplayANestedMethodSourceFactoryAndTheEnclosingBeforeAll() {
+        NestedFactoryFailingFixture.reset();
+        EngineTestSupport.Captured first = EngineTestSupport.runCapturingStderr(NestedFactoryFailingFixture.class);
+        first.results().testEvents().assertStatistics(stats -> stats.failed(1));
+        Matcher gradle = GRADLE_CLASS_REPLAY.matcher(first.stderr());
+        assertTrue(gradle.find(), first.stderr());
+        assertEquals(
+                List.of(
+                        NestedFactoryFailingFixture.class.getCanonicalName(),
+                        NestedFactoryFailingFixture.Inner.class.getCanonicalName()),
+                classRecipeKeys(gradle.group(1)),
+                "each class reports its class-scoped configuration once, outermost first");
+
+        EngineExecutionResults replay = EngineTestSupport.run(
+                NestedFactoryFailingFixture.class,
+                Map.of("krandom.junit.class-recipe", gradle.group(1), "krandom.junit.recipe", gradle.group(2)));
+
+        replay.containerEvents().assertStatistics(stats -> stats.failed(0));
+        assertReplayed(NestedFactoryFailingFixture.OUTER_VALUES, "the outer @BeforeAll data");
+        assertReplayed(NestedFactoryFailingFixture.FACTORY_VALUES, "the nested @MethodSource factory's data");
+        assertReplayed(NestedFactoryFailingFixture.TEST_VALUES, "the failing invocation's data");
+    }
+
+    @Test
+    void printedCommandsReplayAParameterizedClassWithItsInvocationCallbacks() {
+        ParameterizedClassFailingFixture.reset();
+        EngineTestSupport.Captured first = EngineTestSupport.runCapturingStderr(ParameterizedClassFailingFixture.class);
+        first.results().testEvents().assertStatistics(stats -> stats.failed(1));
+        Matcher gradle = GRADLE_CLASS_REPLAY.matcher(first.stderr());
+        assertTrue(gradle.find(), first.stderr());
+        assertEquals(
+                List.of(ParameterizedClassFailingFixture.class.getCanonicalName()),
+                classRecipeKeys(gradle.group(1)),
+                "an invocation of a parameterized class shares the class-scoped configuration of the class");
+
+        EngineExecutionResults replay = EngineTestSupport.run(
+                ParameterizedClassFailingFixture.class,
+                Map.of("krandom.junit.class-recipe", gradle.group(1), "krandom.junit.recipe", gradle.group(2)));
+
+        replay.containerEvents().assertStatistics(stats -> stats.failed(0));
+        replay.testEvents().assertStatistics(stats -> stats.failed(1));
+        assertReplayed(ParameterizedClassFailingFixture.BEFORE_ALL_VALUES, "the @BeforeAll data");
+        assertReplayed(ParameterizedClassFailingFixture.FACTORY_VALUES, "the class factory's data");
+        assertReplayed(ParameterizedClassFailingFixture.INVOCATION_VALUES, "the invocation callback's data");
+        assertReplayed(ParameterizedClassFailingFixture.TEST_VALUES, "the failing test's data");
+    }
+
+    @Test
     void recipeOverrideAppliesToTheSessionOverTheAnnotation() {
         PinnedSessionFixture.reset();
         GeneratorConfig recorded = GeneratorConfig.builder()
@@ -250,6 +348,45 @@ class KrandomExtensionReplayEngineTest {
         assertEquals(
                 "checkout-replay", PinnedSessionFixture.config.getStringSeed().orElseThrow());
         assertEquals(Krandom.of(recorded).city(), PinnedSessionFixture.city);
+    }
+
+    @Test
+    void literalRecipeWithEscapedLineBreaksReplays() {
+        PinnedSessionFixture.reset();
+        GeneratorConfig recorded =
+                GeneratorConfig.builder().seed(13L).locale(Locale.CANADA_FRENCH).build();
+        String literal =
+                recorded.getGenerationRecipe().orElseThrow().serialize().replace("\n", "\\n");
+
+        EngineExecutionResults results =
+                EngineTestSupport.run(PinnedSessionFixture.class, Map.of("krandom.junit.recipe", literal));
+
+        results.testEvents().assertStatistics(stats -> stats.succeeded(1).failed(0));
+        assertEquals(13L, PinnedSessionFixture.config.getSeed().orElseThrow());
+        assertEquals(Locale.CANADA_FRENCH, PinnedSessionFixture.config.getLocale());
+        assertEquals(Krandom.of(recorded).city(), PinnedSessionFixture.city);
+    }
+
+    @Test
+    void snapshotClockKeepsTheClockOfAReplayRecipe() {
+        FailingDatedSessionFixture.reset();
+        Instant recorded = Instant.parse("2020-02-29T12:34:56Z");
+        GenerationRecipe recipe = GeneratorConfig.builder()
+                .seed(5L)
+                .clock(Clock.fixed(recorded, ZoneOffset.UTC))
+                .build()
+                .getGenerationRecipe()
+                .orElseThrow();
+
+        EngineTestSupport.Captured run = EngineTestSupport.runCapturingStderr(
+                FailingDatedSessionFixture.class,
+                Map.of("krandom.junit.snapshot-clock", "true", "krandom.junit.recipe", encoded(recipe)));
+
+        run.results().testEvents().assertStatistics(stats -> stats.failed(1));
+        assertEquals(recorded, FailingDatedSessionFixture.clock.instant(), "the recipe's clock is not replaced");
+        assertEquals(LocalDate.of(2020, 2, 29), FailingDatedSessionFixture.TODAYS.get(0));
+        assertTrue(run.stderr().contains("fixed by the replay recipe"), run.stderr());
+        assertFalse(run.stderr().contains("captured before parameter injection"), run.stderr());
     }
 
     @Test
@@ -288,6 +425,13 @@ class KrandomExtensionReplayEngineTest {
         assertEquals(values.get(0), values.get(1), what + " must replay");
     }
 
+    /** Returns the class names of a printed {@code <test class>=base64:<recipe>,...} value, in order. */
+    private static List<String> classRecipeKeys(String classRecipes) {
+        return Arrays.stream(classRecipes.split(","))
+                .map(entry -> entry.substring(0, entry.indexOf('=')))
+                .toList();
+    }
+
     private static String encoded(GenerationRecipe recipe) {
         return "base64:"
                 + Base64.getUrlEncoder()
@@ -301,6 +445,14 @@ class KrandomExtensionReplayEngineTest {
                 EngineTestSupport.run(PinnedExpectingOverrideFixture.class, Map.of("krandom.junit.seed", "24680"));
 
         results.testEvents().assertStatistics(stats -> stats.succeeded(1).failed(0));
+    }
+
+    @Test
+    void malformedSeedConfigurationParameterIsAConfigurationError() {
+        EngineExecutionResults results = EngineTestSupport.run(
+                PinnedExpectingOverrideFixture.class, Map.of("krandom.junit.seed", "not-a-number"));
+
+        assertSingleConfigurationError(results, "Invalid krandom.junit.seed numeric seed");
     }
 
     @Test
@@ -497,6 +649,146 @@ class KrandomExtensionReplayEngineTest {
                 TEST_VALUES.add(fake.email());
                 fail("intentional fixture failure that depends on class-level and test sessions");
             }
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionReplayEngineTest")
+    @ExtendWith(KrandomExtension.class)
+    static class FactoryBesideBeforeAllFailingFixture {
+
+        static final List<String> BEFORE_ALL_VALUES = new CopyOnWriteArrayList<>();
+        static final List<String> FACTORY_VALUES = new CopyOnWriteArrayList<>();
+        static final List<String> TEST_VALUES = new CopyOnWriteArrayList<>();
+
+        static void reset() {
+            BEFORE_ALL_VALUES.clear();
+            FACTORY_VALUES.clear();
+            TEST_VALUES.clear();
+        }
+
+        @BeforeAll
+        static void setUp(Krandom fake) {
+            BEFORE_ALL_VALUES.add(fake.email());
+        }
+
+        static Stream<String> cities(Krandom fake) {
+            String city = fake.city();
+            FACTORY_VALUES.add(city);
+            return Stream.of(city);
+        }
+
+        @ParameterizedTest
+        @MethodSource("cities")
+        void boom(String city, Krandom fake) {
+            TEST_VALUES.add(city + " " + fake.email());
+            fail("intentional fixture failure that depends on the factory's and the invocation's data");
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionReplayEngineTest")
+    @ExtendWith(KrandomExtension.class)
+    static class FactoryOnlyFailingFixture {
+
+        static final List<Long> FACTORY_VALUES = new CopyOnWriteArrayList<>();
+        static final List<Long> TEST_VALUES = new CopyOnWriteArrayList<>();
+
+        static void reset() {
+            FACTORY_VALUES.clear();
+            TEST_VALUES.clear();
+        }
+
+        static Stream<Long> values(GeneratorConfig config) {
+            long value = config.createRandom().nextLong();
+            FACTORY_VALUES.add(value);
+            return Stream.of(value);
+        }
+
+        @ParameterizedTest
+        @MethodSource("values")
+        void boom(long value, GeneratorConfig config) {
+            TEST_VALUES.add(config.createRandom().nextLong());
+            fail("intentional fixture failure that depends on the factory's and the invocation's data");
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionReplayEngineTest")
+    @ExtendWith(KrandomExtension.class)
+    static class NestedFactoryFailingFixture {
+
+        static final List<Long> OUTER_VALUES = new CopyOnWriteArrayList<>();
+        static final List<Long> FACTORY_VALUES = new CopyOnWriteArrayList<>();
+        static final List<Long> TEST_VALUES = new CopyOnWriteArrayList<>();
+
+        static void reset() {
+            OUTER_VALUES.clear();
+            FACTORY_VALUES.clear();
+            TEST_VALUES.clear();
+        }
+
+        @BeforeAll
+        static void outerSetUp(GeneratorConfig config) {
+            OUTER_VALUES.add(config.createRandom().nextLong());
+        }
+
+        @Nested
+        class Inner {
+
+            static Stream<Long> values(GeneratorConfig config) {
+                long value = config.createRandom().nextLong();
+                FACTORY_VALUES.add(value);
+                return Stream.of(value);
+            }
+
+            @ParameterizedTest
+            @MethodSource("values")
+            void boom(long value, GeneratorConfig config) {
+                TEST_VALUES.add(config.createRandom().nextLong());
+                fail("intentional fixture failure that depends on the nested factory's data");
+            }
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionReplayEngineTest")
+    @ExtendWith(KrandomExtension.class)
+    @ParameterizedClass
+    @MethodSource("cities")
+    static class ParameterizedClassFailingFixture {
+
+        static final List<Long> BEFORE_ALL_VALUES = new CopyOnWriteArrayList<>();
+        static final List<String> FACTORY_VALUES = new CopyOnWriteArrayList<>();
+        static final List<String> INVOCATION_VALUES = new CopyOnWriteArrayList<>();
+        static final List<String> TEST_VALUES = new CopyOnWriteArrayList<>();
+
+        static void reset() {
+            BEFORE_ALL_VALUES.clear();
+            FACTORY_VALUES.clear();
+            INVOCATION_VALUES.clear();
+            TEST_VALUES.clear();
+        }
+
+        @Parameter
+        String city;
+
+        static Stream<String> cities(Krandom fake) {
+            String city = fake.city();
+            FACTORY_VALUES.add(city);
+            return Stream.of(city);
+        }
+
+        @BeforeAll
+        static void setUp(GeneratorConfig config) {
+            BEFORE_ALL_VALUES.add(config.createRandom().nextLong());
+        }
+
+        @BeforeParameterizedClassInvocation(injectArguments = false)
+        static void beforeInvocation(Krandom fake) {
+            INVOCATION_VALUES.add(fake.email());
+        }
+
+        @Test
+        void boom(Krandom fake) {
+            TEST_VALUES.add(city + " " + fake.email());
+            fail("intentional fixture failure that depends on class-level and test data");
         }
     }
 

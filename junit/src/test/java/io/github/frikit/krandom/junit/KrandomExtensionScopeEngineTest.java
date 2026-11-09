@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -32,6 +33,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.AfterParameterizedClassInvocation;
+import org.junit.jupiter.params.BeforeParameterizedClassInvocation;
+import org.junit.jupiter.params.Parameter;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
 
 /**
@@ -144,6 +151,106 @@ class KrandomExtensionScopeEngineTest {
         results.testEvents().assertStatistics(stats -> stats.succeeded(1).failed(0));
         assertEquals(4, FactorySessionFixture.SESSIONS.size());
         assertEquals(1, Set.copyOf(FactorySessionFixture.SESSIONS).size());
+    }
+
+    @Test
+    void methodSourceFactoriesReceiveTheClassScopedConfigurationAndSessionsOfTheirOwn() {
+        FactoryScopeFixture.reset();
+
+        EngineExecutionResults results = EngineTestSupport.run(FactoryScopeFixture.class);
+
+        results.containerEvents().assertStatistics(stats -> stats.failed(0));
+        results.testEvents().assertStatistics(stats -> stats.succeeded(2).failed(0));
+        GeneratorConfig classConfig = FactoryScopeFixture.classSession.getConfig();
+        assertEquals(2, FactoryScopeFixture.FACTORY_CONFIGS.size());
+        for (GeneratorConfig factoryConfig : FactoryScopeFixture.FACTORY_CONFIGS) {
+            assertSame(classConfig, factoryConfig, "a factory receives the class-scoped configuration");
+        }
+        assertEquals(2, Set.copyOf(FactoryScopeFixture.FACTORY_SESSIONS).size(), "each factory has its own session");
+        assertFalse(FactoryScopeFixture.FACTORY_SESSIONS.contains(FactoryScopeFixture.classSession));
+        assertTrue(Collections.disjoint(FactoryScopeFixture.FACTORY_SESSIONS, FactoryScopeFixture.TEST_SESSIONS));
+        for (Krandom factorySession : FactoryScopeFixture.FACTORY_SESSIONS) {
+            assertSame(classConfig, factorySession.getConfig());
+        }
+        Krandom afresh = Krandom.of(classConfig);
+        int first = draw(afresh);
+        assertEquals(first, FactoryScopeFixture.drawnInBeforeAll);
+        assertEquals(
+                List.of(first, first),
+                FactoryScopeFixture.FACTORY_DRAWS,
+                "a factory starts the class-level streams again, whichever factory drew before it");
+        assertEquals(
+                draw(afresh),
+                FactoryScopeFixture.drawnInAfterAll,
+                "@AfterAll continues after @BeforeAll: factories in between do not advance the class-level session");
+        assertFalse(
+                FactoryScopeFixture.TEST_SEEDS.contains(classConfig.getSeed().orElseThrow()),
+                "an unpinned invocation keeps a seed of its own");
+    }
+
+    @Test
+    void aMethodLevelSeedLeavesTheFactoryWithTheClassLevelSeed() {
+        PinnedFactoryFixture.FACTORY_SEEDS.clear();
+        PinnedFactoryFixture.TEST_SEEDS.clear();
+
+        EngineExecutionResults results = EngineTestSupport.run(PinnedFactoryFixture.class);
+
+        results.testEvents().assertStatistics(stats -> stats.succeeded(2).failed(0));
+        assertEquals(List.of(31L), PinnedFactoryFixture.FACTORY_SEEDS);
+        assertEquals(List.of(32L, 32L), PinnedFactoryFixture.TEST_SEEDS);
+    }
+
+    @Test
+    void perClassFactoryReceivesTheConfigurationOfTheConstructor() {
+        PerClassFactoryFixture.reset();
+
+        EngineExecutionResults results = EngineTestSupport.run(PerClassFactoryFixture.class);
+
+        results.containerEvents().assertStatistics(stats -> stats.failed(0));
+        results.testEvents().assertStatistics(stats -> stats.succeeded(1).failed(0));
+        assertSame(PerClassFactoryFixture.constructorConfig, PerClassFactoryFixture.factoryConfig);
+        assertNotSame(PerClassFactoryFixture.constructorConfig, PerClassFactoryFixture.testConfig);
+    }
+
+    @Test
+    void nestedFactoryReceivesTheClassScopedConfigurationOfItsOwnClass() {
+        NestedFactoryFixture.reset();
+
+        EngineExecutionResults results = EngineTestSupport.run(NestedFactoryFixture.class);
+
+        results.containerEvents().assertStatistics(stats -> stats.failed(0));
+        results.testEvents().assertStatistics(stats -> stats.succeeded(1).failed(0));
+        assertSame(NestedFactoryFixture.innerConfig, NestedFactoryFixture.factoryConfig);
+        assertNotSame(NestedFactoryFixture.outerConfig, NestedFactoryFixture.factoryConfig);
+    }
+
+    @Test
+    void parameterizedClassCallbacksShareTheClassScopedConfigurationAndTestsKeepTheirOwn() {
+        ParameterizedClassScopeFixture.reset();
+
+        EngineExecutionResults results = EngineTestSupport.run(ParameterizedClassScopeFixture.class);
+
+        results.containerEvents().assertStatistics(stats -> stats.failed(0));
+        results.testEvents().assertStatistics(stats -> stats.succeeded(4).failed(0));
+        assertEquals(
+                6,
+                ParameterizedClassScopeFixture.CLASS_CONFIGS.size(),
+                "the class factory, @BeforeAll, and each invocation's callbacks and @ParameterizedTest factory"
+                        + " resolve a configuration");
+        assertEquals(1, Set.copyOf(ParameterizedClassScopeFixture.CLASS_CONFIGS).size());
+        GeneratorConfig classConfig = ParameterizedClassScopeFixture.CLASS_CONFIGS.get(0);
+        assertSame(classConfig, ParameterizedClassScopeFixture.classSession.getConfig());
+        assertSame(
+                ParameterizedClassScopeFixture.classSession,
+                ParameterizedClassScopeFixture.factorySession,
+                "JUnit calls the factory of a parameterized class with the context of @BeforeAll");
+        assertEquals(
+                2,
+                Set.copyOf(ParameterizedClassScopeFixture.INVOCATION_SESSIONS).size());
+        assertFalse(ParameterizedClassScopeFixture.INVOCATION_SESSIONS.contains(
+                ParameterizedClassScopeFixture.classSession));
+        assertEquals(4, Set.copyOf(ParameterizedClassScopeFixture.TEST_CONFIGS).size());
+        assertFalse(ParameterizedClassScopeFixture.TEST_CONFIGS.contains(classConfig));
     }
 
     @Test
@@ -488,6 +595,248 @@ class KrandomExtensionScopeEngineTest {
         @AfterEach
         void tearDown(Krandom fake) {
             SESSIONS.add(fake);
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionScopeEngineTest")
+    @ExtendWith(KrandomExtension.class)
+    static class FactoryScopeFixture {
+
+        static final List<GeneratorConfig> FACTORY_CONFIGS = new CopyOnWriteArrayList<>();
+        static final List<Krandom> FACTORY_SESSIONS = new CopyOnWriteArrayList<>();
+        static final List<Integer> FACTORY_DRAWS = new CopyOnWriteArrayList<>();
+        static final List<Krandom> TEST_SESSIONS = new CopyOnWriteArrayList<>();
+        static final List<Long> TEST_SEEDS = new CopyOnWriteArrayList<>();
+        static Krandom classSession;
+        static int drawnInBeforeAll;
+        static int drawnInAfterAll;
+
+        static void reset() {
+            FACTORY_CONFIGS.clear();
+            FACTORY_SESSIONS.clear();
+            FACTORY_DRAWS.clear();
+            TEST_SESSIONS.clear();
+            TEST_SEEDS.clear();
+            classSession = null;
+            drawnInBeforeAll = 0;
+            drawnInAfterAll = 0;
+        }
+
+        private final Krandom constructorSession;
+        private Krandom beforeEachSession;
+
+        FactoryScopeFixture(Krandom fake) {
+            this.constructorSession = fake;
+        }
+
+        @BeforeAll
+        static void setUp(Krandom fake) {
+            classSession = fake;
+            drawnInBeforeAll = draw(fake);
+        }
+
+        @AfterAll
+        static void tearDown(Krandom fake) {
+            assertSame(classSession, fake);
+            drawnInAfterAll = draw(fake);
+        }
+
+        /** Draws more than it records, so that a factory following in a shared session would see later values. */
+        static Stream<Integer> values(Krandom fake, GeneratorConfig config) {
+            FACTORY_CONFIGS.add(config);
+            FACTORY_SESSIONS.add(fake);
+            FACTORY_DRAWS.add(draw(fake));
+            draw(fake);
+            return Stream.of(1);
+        }
+
+        @BeforeEach
+        void beforeEach(Krandom fake) {
+            beforeEachSession = fake;
+        }
+
+        @ParameterizedTest
+        @MethodSource("values")
+        void first(int ignored, Krandom fake) {
+            record(fake);
+        }
+
+        @ParameterizedTest
+        @MethodSource("values")
+        void second(int ignored, Krandom fake) {
+            record(fake);
+        }
+
+        private void record(Krandom fake) {
+            assertSame(constructorSession, fake, "the constructor belongs to the invocation it is called for");
+            assertSame(beforeEachSession, fake, "@BeforeEach belongs to the invocation it runs for");
+            TEST_SESSIONS.add(fake);
+            TEST_SEEDS.add(fake.getConfig().getSeed().orElseThrow());
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionScopeEngineTest")
+    @KrandomSeed(31L)
+    static class PinnedFactoryFixture {
+
+        static final List<Long> FACTORY_SEEDS = new CopyOnWriteArrayList<>();
+        static final List<Long> TEST_SEEDS = new CopyOnWriteArrayList<>();
+
+        static Stream<Integer> values(GeneratorConfig config) {
+            FACTORY_SEEDS.add(config.getSeed().orElseThrow());
+            return Stream.of(1, 2);
+        }
+
+        @KrandomSeed(32L)
+        @ParameterizedTest
+        @MethodSource("values")
+        void pinned(int ignored, GeneratorConfig config) {
+            TEST_SEEDS.add(config.getSeed().orElseThrow());
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionScopeEngineTest")
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    @ExtendWith(KrandomExtension.class)
+    static class PerClassFactoryFixture {
+
+        static GeneratorConfig constructorConfig;
+        static GeneratorConfig factoryConfig;
+        static GeneratorConfig testConfig;
+
+        static void reset() {
+            constructorConfig = null;
+            factoryConfig = null;
+            testConfig = null;
+        }
+
+        PerClassFactoryFixture(GeneratorConfig config) {
+            constructorConfig = config;
+        }
+
+        Stream<Integer> values(GeneratorConfig config) {
+            factoryConfig = config;
+            return Stream.of(1);
+        }
+
+        @ParameterizedTest
+        @MethodSource("values")
+        void test(int ignored, GeneratorConfig config) {
+            testConfig = config;
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionScopeEngineTest")
+    @ExtendWith(KrandomExtension.class)
+    static class NestedFactoryFixture {
+
+        static GeneratorConfig outerConfig;
+        static GeneratorConfig innerConfig;
+        static GeneratorConfig factoryConfig;
+
+        static void reset() {
+            outerConfig = null;
+            innerConfig = null;
+            factoryConfig = null;
+        }
+
+        @BeforeAll
+        static void outerSetUp(GeneratorConfig config) {
+            outerConfig = config;
+        }
+
+        @Nested
+        class Inner {
+
+            @BeforeAll
+            static void innerSetUp(GeneratorConfig config) {
+                innerConfig = config;
+            }
+
+            static Stream<Integer> values(GeneratorConfig config) {
+                factoryConfig = config;
+                return Stream.of(1);
+            }
+
+            @ParameterizedTest
+            @MethodSource("values")
+            void test(int ignored, GeneratorConfig config) {
+                assertNotSame(innerConfig, config);
+            }
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionScopeEngineTest")
+    @ExtendWith(KrandomExtension.class)
+    @ParameterizedClass
+    @MethodSource("values")
+    static class ParameterizedClassScopeFixture {
+
+        static final List<GeneratorConfig> CLASS_CONFIGS = new CopyOnWriteArrayList<>();
+        static final List<Krandom> INVOCATION_SESSIONS = new CopyOnWriteArrayList<>();
+        static final List<GeneratorConfig> TEST_CONFIGS = new CopyOnWriteArrayList<>();
+        static Krandom classSession;
+        static Krandom factorySession;
+        static Krandom invocationSession;
+
+        static void reset() {
+            CLASS_CONFIGS.clear();
+            INVOCATION_SESSIONS.clear();
+            TEST_CONFIGS.clear();
+            classSession = null;
+            factorySession = null;
+            invocationSession = null;
+        }
+
+        @Parameter
+        int value;
+
+        private final GeneratorConfig constructorConfig;
+
+        ParameterizedClassScopeFixture(GeneratorConfig config) {
+            this.constructorConfig = config;
+        }
+
+        static Stream<Integer> values(GeneratorConfig config, Krandom fake) {
+            CLASS_CONFIGS.add(config);
+            factorySession = fake;
+            return Stream.of(1, 2);
+        }
+
+        @BeforeAll
+        static void setUp(GeneratorConfig config, Krandom fake) {
+            CLASS_CONFIGS.add(config);
+            classSession = fake;
+        }
+
+        @BeforeParameterizedClassInvocation(injectArguments = false)
+        static void beforeInvocation(GeneratorConfig config, Krandom fake) {
+            CLASS_CONFIGS.add(config);
+            INVOCATION_SESSIONS.add(fake);
+            invocationSession = fake;
+        }
+
+        @AfterParameterizedClassInvocation(injectArguments = false)
+        static void afterInvocation(Krandom fake) {
+            assertSame(invocationSession, fake, "the callbacks of one invocation share its session");
+        }
+
+        @Test
+        void test(GeneratorConfig config) {
+            assertSame(constructorConfig, config, "the constructor belongs to the test it is called for");
+            TEST_CONFIGS.add(config);
+        }
+
+        static Stream<String> letters(GeneratorConfig config) {
+            CLASS_CONFIGS.add(config);
+            return Stream.of("a");
+        }
+
+        @ParameterizedTest
+        @MethodSource("letters")
+        void parameterized(String letter, GeneratorConfig config) {
+            assertSame(constructorConfig, config, "the constructor belongs to the invocation it is called for");
+            TEST_CONFIGS.add(config);
         }
     }
 
