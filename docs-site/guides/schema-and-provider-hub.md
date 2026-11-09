@@ -85,7 +85,7 @@ is a fixture-schema importer, not a general JSON Schema validator or reference r
 
 | Construct | Supported behavior |
 | --- | --- |
-| Root | An object with a non-empty `properties` map is required. Every record holds each of those properties, as a column, so a root `required` name or property dependency that names another property, or a `minProperties` or `maxProperties` that those properties do not meet, is rejected at `$`. |
+| Root | An object with a non-empty `properties` map of schema objects is required. Every record holds each of those properties, as a column, so a root `required` name or property dependency that names another property, or a `minProperties` or `maxProperties` that those properties do not meet, is rejected at `$`. |
 | Types | `string`, `integer`, `number`, `boolean`, `array`, `object`, and `null`; a type list may contain exactly one concrete type plus `null`. |
 | Scalars | `const`, a non-empty `enum`, numeric bounds, `multipleOf`, string length bounds, and a `pattern` in the [syntax `RegexGenerator` supports]({{ '/guides/data-validity-and-safety/' | relative_url }}#regular-expression-contract). |
 | Strings | Every format Draft 2020-12 defines receives dedicated generation: `date`, and `date-time` and `time` as RFC 3339, with seconds and an offset; `duration` as RFC 3339 days, hours, minutes, and seconds; `email` and `idn-email`; `hostname` and `idn-hostname`; `ipv4` and `ipv6`; `uri`, `uri-reference`, `iri`, `iri-reference`, and `uri-template`, all from one URL generator, as a URI with no quote or brace is each of the others; `uuid`; `json-pointer` and `relative-json-pointer`; and `regex`, as letters, which match themselves. So do OpenAPI's `byte`, as base64, and the `url` alias. OpenAPI's `binary` and `password` allow any string, and no standard validator checks any other format, so they deliberately use the semantic-name or bounded-string fallback. A schema with no `type` generates a string under the same rules. |
@@ -107,11 +107,11 @@ Constraints apply together, and a keyword constrains only values of its own JSON
   path.
 - Numeric bounds intersect, so `minimum` 100 with `exclusiveMinimum` 0 starts at 100. OpenAPI 3.0's
   boolean `exclusiveMinimum` and `exclusiveMaximum` work as flags on the inclusive bound. An `integer`
-  rounds a fractional bound inward and stays within the range of a `long`. OpenAPI's `int32` format
-  keeps an `integer` within an `int`, so bounds that hold no `int` are rejected with the schema path,
-  and `int64` needs nothing more. Its `float` and `double` formats keep a `number` within their range,
-  applied after the default range, so a `float` without bounds still stays within one million either
-  side of 0.
+  rounds a fractional bound inward and stays within the range of a `long`. OpenAPI's `int32` and `int64`
+  formats name integers, so a `number` with either is generated as an `integer`, and `int32` keeps it
+  within an `int`, so bounds that hold no `int` are rejected with the schema path. Its `float` and
+  `double` formats keep a `number` within their range, applied after the default range, so a `float`
+  without bounds still stays within one million either side of 0.
 - `multipleOf` must be a number above 0, and generates exact multiples within the bounds, as decimals,
   with no binary rounding: `multipleOf` 0.01 gives values such as `12.34`. An `integer` stays an
   `Integer` or `Long` and takes the multiples that are whole, so `multipleOf` 2.5 gives multiples of 5. A

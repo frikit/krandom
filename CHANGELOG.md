@@ -153,10 +153,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     `dependencies` that does not map names to lists of names, are rejected with the schema path. An
     `additionalProperties` schema is checked and resolved like any other, so a `$ref` inside it, or a
     combination that leaves it no value, is now rejected.
-- `SchemaParser` generates every format Draft 2020-12 defines, and OpenAPI's `byte`, `int32`, `float`,
-  and `double`. It used to fill the other string formats with semantic or random strings, which a
-  validator that checks formats rejects for some of them, such as `duration` and `json-pointer`, and to
-  ignore a format on a number. Seeded output changes for every schema that uses one of them.
+- `SchemaParser` generates every format Draft 2020-12 defines, and OpenAPI's `byte`, `int32`, `int64`,
+  `float`, and `double`. It used to fill the other string formats with semantic or random strings,
+  which a validator that checks formats rejects for some of them, such as `duration` and
+  `json-pointer`, and to ignore a format on a number. Seeded output changes for every schema that uses
+  one of them.
   - `uri-reference`, `iri`, `iri-reference`, and `uri-template` come from the URL generator, as a URI
     with no quote or brace is each of them, and `idn-hostname` from the hostname generator, as a
     hostname is one.
@@ -164,9 +165,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     one to three segments of lowercase letters, such as `/abc/de`; `relative-json-pointer` puts a level
     count before one; and `regex` is letters, which match themselves. They meet `minLength` and
     `maxLength` as the other formats do.
-  - `byte` is base64. `int32` keeps an `integer` within an `int`, so bounds that hold no `int` are
-    rejected with the schema path, and `float` and `double` keep a `number` within their range, applied
-    after the default range, so a `float` without bounds keeps it.
+  - `byte` is base64. `int32` and `int64` name integers, so a `number` with either is now generated as
+    an `integer`, where it used to get fractions. `int32` keeps it within an `int`, so bounds that hold
+    no `int` are rejected with the schema path, and `float` and `double` keep a `number` within their
+    range, applied after the default range, so a `float` without bounds keeps it.
   - `binary` and `password` allow any string, and no standard validator checks any other format, so
     they keep the semantic-name or bounded-string fallback.
 

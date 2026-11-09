@@ -50,9 +50,9 @@ import org.jspecify.annotations.Nullable;
  *   <li>{@code type} — string, integer, number, boolean, array, object, null</li>
  *   <li>{@code format} — every format Draft 2020-12 defines: date, date-time and time as RFC 3339, duration,
  *       email, idn-email, hostname, idn-hostname, ipv4, ipv6, uri, uri-reference, iri, iri-reference,
- *       uri-template, uuid, json-pointer, relative-json-pointer, and regex; and OpenAPI's byte, with int32,
- *       float, and double as ranges for numbers. No standard validator checks any other format, so it gets
- *       the same values as no format</li>
+ *       uri-template, uuid, json-pointer, relative-json-pointer, and regex; and OpenAPI's byte, with int32
+ *       and int64 as integers and float and double as ranges for numbers. No standard validator checks any
+ *       other format, so it gets the same values as no format</li>
  *   <li>{@code enum} — random selection from enumerated values</li>
  *   <li>{@code const} — constant value</li>
  *   <li>{@code minimum}/{@code maximum}/{@code exclusiveMinimum}/{@code exclusiveMaximum} — bounded
@@ -224,6 +224,13 @@ public final class SchemaParser {
             throw new IllegalArgumentException("JSON Schema must have at least one property");
         }
         checkRootMembers(jsonSchema, providers.keySet());
+        // The root holds no member beyond its properties, but its additionalProperties is resolved, as
+        // every schema is, so a combination that leaves it no value fails here too.
+        if (jsonSchema.get("additionalProperties") instanceof Map<?, ?> additionalSchema) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> rootAdditional = (Map<String, Object>) additionalSchema;
+            resolveProvider("", "$.additionalProperties", rootAdditional, field, config);
+        }
 
         return new Schema(config, providers);
     }
@@ -518,7 +525,11 @@ public final class SchemaParser {
 
         return switch (schemaType) {
             case "integer" -> resolveInteger(fieldSchema, path);
-            case "number" -> resolveNumber(fieldSchema, path);
+            // OpenAPI's int32 and int64 name integers, which a number with either must be.
+            case "number" ->
+                "int32".equals(format) || "int64".equals(format)
+                        ? resolveInteger(fieldSchema, path)
+                        : resolveNumber(fieldSchema, path);
             case "boolean" -> ctx -> ctx.random().nextBoolean();
             case "array" -> resolveArray(fieldName, path, fieldSchema, field, config);
             case "object" -> resolveNestedObject(path, fieldSchema, field, config);

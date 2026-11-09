@@ -3136,6 +3136,16 @@ class SchemaParserTest {
             assertRootRejected(root("minProperties", 3));
             assertRootRejected(root("required", List.of("a", "ghost")));
             assertRootRejected(root("dependencies", Map.of("a", List.of("ghost"))));
+            // The root's additionalProperties generates nothing, but is resolved like every schema.
+            IllegalArgumentException additional = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(root(
+                            "additionalProperties", Map.of("type", "string", "pattern", "^A{8}$", "maxLength", 3))));
+            assertTrue(additional.getMessage().contains("$.additionalProperties"), additional.getMessage());
+            assertEquals(
+                    Map.of("a", "a", "b", "b"),
+                    SchemaParser.fromJsonSchema(root("additionalProperties", Map.of("type", "integer")))
+                            .generate());
             // A dependency of a property the root does not have needs nothing.
             Schema schema = SchemaParser.fromJsonSchema(root(
                     "required",
@@ -3233,11 +3243,15 @@ class SchemaParserTest {
                 assertTrue(DURATION.matcher(value).matches(), value);
             }
             assertTrue(durations.size() > 100, "durations should vary: " + durations);
+            // One to three segments of one to eight lowercase letters, which need no escaping.
+            String segments = "(?:/[a-z]{1,8}){1,3}";
             for (String value : strings("json-pointer")) {
-                assertTrue(value.matches(POINTER) && value.length() > 1, value);
+                assertTrue(value.matches(POINTER) && value.matches(segments), value);
             }
             for (String value : strings("relative-json-pointer")) {
-                assertTrue(value.matches("(?:0|[1-9]\\d*)(?:#|" + POINTER + ")"), value);
+                assertTrue(
+                        value.matches("(?:0|[1-9]\\d*)(?:#|" + POINTER + ")") && value.matches("\\d" + segments),
+                        value);
             }
             for (String value : strings("regex")) {
                 assertTrue(Pattern.compile(value).matcher(value).matches(), value);
@@ -3247,10 +3261,12 @@ class SchemaParserTest {
         @Test
         @DisplayName("OpenAPI byte is base64, and binary, password and unknown formats are strings")
         void openApiStringFormats() {
-            for (String value : strings("byte")) {
+            Set<String> bytes = new HashSet<>(strings("byte"));
+            for (String value : bytes) {
                 assertTrue(value.matches("[A-Za-z0-9+/]+={0,2}") && value.length() % 4 == 0, value);
                 assertTrue(Base64.getDecoder().decode(value).length > 0, value);
             }
+            assertTrue(bytes.size() > 100, "bytes should vary: " + bytes);
             for (String format : List.of("binary", "password", "custom-unknown")) {
                 assertTrue(strings(format).stream().noneMatch(String::isEmpty), format);
             }
@@ -3299,6 +3315,18 @@ class SchemaParserTest {
                     Map.of("type", "integer", "format", "int64", "minimum", 3_000_000_000L))) {
                 assertTrue(((Number) value).longValue() >= 3_000_000_000L, value::toString);
             }
+            // Both name integers, which a number with either must be too.
+            for (Object value : CombinedConstraints.values(Map.of("type", "number", "format", "int32"))) {
+                assertTrue(value instanceof Integer || value instanceof Long, value::toString);
+                long number = ((Number) value).longValue();
+                assertTrue(number >= Integer.MIN_VALUE && number <= Integer.MAX_VALUE, String.valueOf(number));
+            }
+            CombinedConstraints.assertRejected(
+                    Map.of("type", "number", "format", "int32", "minimum", 3_000_000_000L, "maximum", 3_000_000_000L));
+            assertEquals(
+                    Set.of(1, 2, 3),
+                    CombinedConstraints.distinct(
+                            Map.of("type", "number", "format", "int64", "minimum", 0.5, "maximum", 3.5)));
         }
 
         @Test
