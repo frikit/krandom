@@ -1567,16 +1567,35 @@ class SemanticCoherenceAdjusterTest {
     }
 
     @Test
+    @DisplayName("a birth date derived from an age gives that age, on 29 February too")
+    void birthDateDerivedFromAnAgeGivesThatAgeOnALeapDay() {
+        Instant now = Instant.parse("2024-02-29T12:00:00Z");
+        // A year back, 29 February becomes the 28th, which still gives a whole year to the leap day.
+        assertEquals(LocalDate.of(2023, 2, 28), birthDateBeside(now, AgedPairs.LocalBirthDate.class, LEAP_DAY, 1));
+        assertEquals(LocalDate.of(2020, 2, 29), birthDateBeside(now, AgedPairs.LocalBirthDate.class, LEAP_DAY, 4));
+        // A year ahead, the 28th would be a day short of the year that an age of -1 needs, so it is 1 March.
+        assertEquals(LocalDate.of(2025, 3, 1), birthDateBeside(now, AgedPairs.LocalBirthDate.class, LEAP_DAY, -1));
+        assertEquals(LocalDate.of(2028, 2, 29), birthDateBeside(now, AgedPairs.LocalBirthDate.class, LEAP_DAY, -4));
+
+        // So too where, in strict mode, a constrained age keeps its value and a @Future birth date follows it.
+        LocalDate tomorrow = LEAP_DAY.plusDays(1);
+        assertArrayEquals(
+                new Object[] {LocalDate.of(2025, 3, 1), -1},
+                aligned(strictAt(now).build(), AgedPairs.FutureLocalBirthDate.class, tomorrow, -1));
+    }
+
+    @Test
     @DisplayName("a birth date in the first or last year its type holds is derived, and one a year beyond is not")
     void birthDateInTheFirstOrLastYearItsTypeHoldsIsDerived() {
         Instant now = Instant.parse("2024-02-29T12:00:00Z");
-        // A LocalDate holds the years from -999,999,999 to 999,999,999.
+        // A LocalDate holds the years from -999,999,999 to 999,999,999. Ahead of the leap day, a negative age gives
+        // 1 March, as above.
         assertEquals(
                 LocalDate.of(-999_999_999, 2, 28),
                 birthDateBeside(now, AgedPairs.LocalBirthDate.class, LEAP_DAY, 2_024 + 999_999_999));
         assertEquals(LEAP_DAY, birthDateBeside(now, AgedPairs.LocalBirthDate.class, LEAP_DAY, 2_024 + 1_000_000_000));
         assertEquals(
-                LocalDate.of(999_999_999, 2, 28),
+                LocalDate.of(999_999_999, 3, 1),
                 birthDateBeside(now, AgedPairs.LocalBirthDate.class, LEAP_DAY, 2_024 - 999_999_999));
         assertEquals(LEAP_DAY, birthDateBeside(now, AgedPairs.LocalBirthDate.class, LEAP_DAY, 2_024 - 1_000_000_000));
 
@@ -1590,7 +1609,7 @@ class SemanticCoherenceAdjusterTest {
                         .toInstant());
         assertSame(calendar, birthDateBeside(now, AgedPairs.CalendarBirthDate.class, calendar, 2_024 + 292_275_055));
         assertEquals(
-                LocalDate.of(292_278_993, 2, 28).atStartOfDay().toInstant(ZoneOffset.UTC),
+                LocalDate.of(292_278_993, 3, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
                 ((java.util.Calendar)
                                 birthDateBeside(now, AgedPairs.CalendarBirthDate.class, calendar, 2_024 - 292_278_993))
                         .toInstant());
@@ -1855,6 +1874,10 @@ class SemanticCoherenceAdjusterTest {
         record PastSqlDateBirthDate(
                 @Past java.sql.Date birthDate,
                 @Min(2_024) @Max(2_024) int age) {}
+
+        record FutureLocalBirthDate(
+                @Future LocalDate birthDate,
+                @Min(-1) @Max(-1) int age) {}
     }
 
     private static List<Field> declaredFields(Class<?> type) {

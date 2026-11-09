@@ -627,6 +627,11 @@ final class SemanticCoherenceAdjuster {
             return null;
         }
         LocalDate date = today.minusYears(age);
+        // 29 February becomes the 28th in a year without one. A year back, that still gives the age, but a year
+        // ahead, it is a day short of a negative age's whole years, so the birth date is 1 March instead.
+        if (ChronoUnit.YEARS.between(date, today) != age) {
+            date = date.plusDays(1);
+        }
         Object birthDate = fromLocalDate(date, rawType);
         boolean moved = birthDate instanceof java.sql.Date sqlDate
                 && !sqlDate.toLocalDate().equals(date);

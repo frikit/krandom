@@ -228,6 +228,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   also keeps its value where the age gives a year before 1, whose era `valueOf` drops, or a day that the JVM's
   zone or the 1582 change of calendar skipped, which `valueOf` moves: it took a date that read back as another,
   or, for `0000-02-29`, as none.
+- A `birthDate` derived from a negative `age` under a clock on 29 February now gives that age. A year ahead it
+  was 28 February, which gives one year less, and it is now 1 March. A positive age is unchanged.
 - `age` now counts the years since the local date of an `OffsetDateTime`, `ZonedDateTime` or `Calendar`
   `birthDate`, in its own offset or zone, which is the date its generator draws and `objectDateRange` bounds.
   It counted from the UTC date, which is a day off near midnight far from UTC, so around a birthday the age was
