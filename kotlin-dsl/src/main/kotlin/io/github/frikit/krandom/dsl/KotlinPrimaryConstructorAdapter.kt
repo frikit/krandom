@@ -164,7 +164,10 @@ internal class KotlinPrimaryConstructorAdapter : ObjectConstructionAdapter {
         }
         val underlying = constructor.parameters.single().type
         val wrapped = substituted(underlying, valueClass.typeParameters.zip(type.arguments).toMap())
-        val value = generateArgument(context, wrapped, name, element, rebuilt = wrapped !== underlying)
+        // A nullable value class may be null, which a primitive it wraps cannot express, so the wrapped value
+        // is generated as nullable and takes the null policy, such as @Null or objectNullProbability.
+        val generated = if (type.isMarkedNullable) wrapped.withNullability(true) else wrapped
+        val value = generateArgument(context, generated, name, element, rebuilt = generated !== underlying)
         return if (value == null && !wrapped.isMarkedNullable) {
             null
         } else {

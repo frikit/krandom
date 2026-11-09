@@ -19,6 +19,7 @@ import io.kotest.matchers.string.shouldNotBeBlank
 import io.kotest.matchers.types.shouldBeInstanceOf
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.Null
 import jakarta.validation.constraints.Size
 
 class KotlinValueClassTest :
@@ -72,6 +73,20 @@ class KotlinValueClassTest :
                 krandom<KNullables> { config { seed(6L) } }
                     .optionalText.value
                     .shouldBeInstanceOf<String>()
+            }
+
+            it("applies a nullable value class's null policy before generating the primitive it wraps") {
+                val nullable =
+                    ObjectGenerator(
+                        KCountHolder::class.java,
+                        GeneratorConfig.builder().objectNullProbability(1.0).build(),
+                    ).generate()
+                val present = krandom<KCountHolder> { config { seed(12L) } }
+
+                nullable.constrained shouldBe null
+                nullable.maybe shouldBe null
+                present.constrained shouldBe null
+                present.maybe.shouldBeInstanceOf<KCount>()
             }
 
             it("boxes a value class through a private constructor, as a Java one is called") {
@@ -281,6 +296,16 @@ data class KUser(
     val percent: KPercent,
     val ids: List<KUserId>,
     val boxed: KBox<String>,
+)
+
+@JvmInline
+value class KCount(
+    val value: Int,
+)
+
+data class KCountHolder(
+    @field:Null val constrained: KCount?,
+    val maybe: KCount?,
 )
 
 data class KNullables(

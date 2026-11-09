@@ -186,7 +186,8 @@ whole contract, which Java sealed types share.
 A `@JvmInline value class` is generated as the value it wraps, and boxed through its primary
 constructor, so its `init` block runs. For a constructor parameter, the wrapped value is generated
 under the parameter's name, and with the parameter's constraints, or else those declared inside the
-value class, outermost first:
+value class, outermost first. A parameter of a nullable value class is `null` where its null policy, such
+as `@Null` or `objectNullProbability`, says so, even where the value class wraps a primitive:
 
 ```kotlin
 @JvmInline value class EmailAddress(val value: String)
