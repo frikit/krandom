@@ -34,7 +34,9 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Comparator;
+import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -524,6 +526,9 @@ final class SemanticCoherenceAdjuster {
         if (value instanceof ZonedDateTime zonedDateTime) {
             return zonedDateTime.getOffset().getTotalSeconds();
         }
+        if (value instanceof Calendar calendar) {
+            return calendar.getTimeZone().getOffset(calendar.getTimeInMillis()) / 1000;
+        }
         return 0;
     }
 
@@ -931,6 +936,9 @@ final class SemanticCoherenceAdjuster {
         if (value instanceof ZonedDateTime zonedDateTime) {
             return zonedDateTime.toInstant();
         }
+        if (value instanceof Calendar calendar) {
+            return calendar.toInstant();
+        }
         // java.sql.Date and java.sql.Time throw UnsupportedOperationException from toInstant().
         if (value instanceof java.sql.Date sqlDate) {
             return sqlDate.toLocalDate().atStartOfDay().toInstant(ZoneOffset.UTC);
@@ -1219,6 +1227,9 @@ final class SemanticCoherenceAdjuster {
         }
         if (rawType == ZonedDateTime.class) {
             return instant.atZone(offset);
+        }
+        if (rawType == Calendar.class || rawType == GregorianCalendar.class) {
+            return FieldGeneratorResolver.calendarOf(instant.atZone(offset));
         }
         if (rawType == java.util.Date.class) {
             return java.util.Date.from(instant);

@@ -67,9 +67,11 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -115,7 +117,8 @@ import org.jspecify.annotations.Nullable;
  *   <li>Declarative {@link Randomizer} annotation on the field/component</li>
  *   <li>Bean Validation constraint annotation (e.g. {@code @Size}, {@code @Min}, {@code @Max})</li>
  *   <li>Built-in generator for Java primitives / wrappers / {@code String} / JSR-310 types /
- *       {@link UUID} / {@link BigDecimal} / {@link BigInteger}</li>
+ *       legacy {@code Date} and {@link Calendar} types / {@link UUID} / {@link BigDecimal} /
+ *       {@link BigInteger}</li>
  *   <li>Enum: random constant</li>
  *   <li>Array ({@code T[]}): auto-populated with the shared collection-size defaults
  *       (default 1 to 10 elements)</li>
@@ -337,6 +340,8 @@ final class FieldGeneratorResolver {
         // A zone's own offset can have seconds, so an offset date-time keeps only its local date-time.
         Generator<OffsetDateTime> offsetDateTimeGenerator =
                 () -> zonedDateTimeGenerator.generate().toLocalDateTime().atOffset(zoneOffsetGenerator.generate());
+        // A calendar is a zoned date-time from the same generator, so it draws no seed of its own.
+        Generator<GregorianCalendar> calendarGenerator = () -> calendarOf(zonedDateTimeGenerator.generate());
         Generator<java.util.Date> utilDateGenerator = buildUtilDateGenerator(generatorConfig, seedSource, lo, hi);
         Generator<java.sql.Date> sqlDateGenerator = buildSqlDateGenerator(generatorConfig, seedSource, lo, hi);
         Generator<java.sql.Time> sqlTimeGenerator =
@@ -370,11 +375,23 @@ final class FieldGeneratorResolver {
         m.put(java.sql.Date.class, sqlDateGenerator);
         m.put(java.sql.Time.class, sqlTimeGenerator);
         m.put(java.sql.Timestamp.class, sqlTimestampGenerator);
+        m.put(Calendar.class, calendarGenerator);
+        m.put(GregorianCalendar.class, calendarGenerator);
         m.put(UUID.class, uuidGenerator);
         m.put(TimeZone.class, timeZoneGenerator);
         m.put(URI.class, uriGenerator);
         m.put(java.net.URL.class, urlGenerator);
         return Collections.unmodifiableMap(m);
+    }
+
+    /**
+     * A non-lenient Gregorian calendar holding this date-time in its zone, with ISO week rules, as
+     * {@link io.github.frikit.krandom.generator.datetime.CalendarGenerator} gives.
+     */
+    static GregorianCalendar calendarOf(ZonedDateTime value) {
+        GregorianCalendar calendar = GregorianCalendar.from(value);
+        calendar.setLenient(false);
+        return calendar;
     }
 
     private static java.net.URL toUrl(URI uri) {
@@ -915,6 +932,9 @@ final class FieldGeneratorResolver {
         registerTypedSemantic(generators, semanticKey, ZonedDateTime.class, zonedGenerator);
         registerTypedSemantic(generators, semanticKey, OffsetDateTime.class, (Generator<OffsetDateTime>)
                 () -> zonedGenerator.generate().toLocalDateTime().atOffset((ZoneOffset) zoneOffsets.generate()));
+        Generator<GregorianCalendar> calendarGenerator = () -> calendarOf(zonedGenerator.generate());
+        registerTypedSemantic(generators, semanticKey, Calendar.class, calendarGenerator);
+        registerTypedSemantic(generators, semanticKey, GregorianCalendar.class, calendarGenerator);
         registerTypedSemantic(
                 generators,
                 semanticKey,
@@ -1320,7 +1340,7 @@ final class FieldGeneratorResolver {
     private static @Nullable Set<Object> toSetType(Class<?> rawType, ResolvedType elementType, List<Object> values) {
         if (rawType == TreeSet.class || rawType == SortedSet.class || rawType == NavigableSet.class) {
             Set<Object> set = new TreeSet<>(sortedOrderFor(elementType));
-            set.addAll(values);
+            addAllOrThrow(set, values);
             return set;
         }
         if (rawType == Set.class) {
@@ -1385,7 +1405,7 @@ final class FieldGeneratorResolver {
             Class<?> rawType, ResolvedType elementType, List<Object> values) {
         if (rawType == PriorityQueue.class) {
             Queue<Object> queue = new PriorityQueue<>(sortedOrderFor(elementType));
-            queue.addAll(values);
+            addAllOrThrow(queue, values);
             return queue;
         }
         Queue<Object> concrete = instantiateCollectionType(rawType, Queue.class);
@@ -1395,7 +1415,7 @@ final class FieldGeneratorResolver {
         }
         if (rawType.isInterface() || java.lang.reflect.Modifier.isAbstract(rawType.getModifiers())) {
             Queue<Object> queue = new java.util.ArrayDeque<>();
-            queue.addAll(values);
+            addAllOrThrow(queue, values);
             return queue;
         }
         return null;
@@ -1464,24 +1484,15 @@ final class FieldGeneratorResolver {
         }
     }
 
+    /**
+     * Fills a collection or reports that it cannot hold the generated values, so that the failure policy
+     * discards it whole. A queue, for example, rejects the null left for a cut nested object.
+     */
     private static void addAllOrThrow(Collection<Object> target, List<Object> values) {
         try {
             target.addAll(values);
-        } catch (RuntimeException firstFailure) {
-            if (target instanceof Queue<?>) {
-                try {
-                    target.clear();
-                    for (Object value : values) {
-                        if (value != null) {
-                            target.add(value);
-                        }
-                    }
-                    return;
-                } catch (RuntimeException fallbackFailure) {
-                    throw new CollectionInsertionFailure(fallbackFailure);
-                }
-            }
-            throw new CollectionInsertionFailure(firstFailure);
+        } catch (RuntimeException failure) {
+            throw new CollectionInsertionFailure(failure);
         }
     }
 
@@ -1725,7 +1736,6 @@ final class FieldGeneratorResolver {
      *                     {@code null} when no reflection metadata is available
      * @return generated value, or a safe default / {@code null} when the type is unsupported
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Nullable Object resolveAndGenerate(
             Type genericType,
             Class<?> rawType,
@@ -1733,6 +1743,23 @@ final class FieldGeneratorResolver {
             Class<?> ownerType,
             int currentDepth,
             @Nullable AnnotatedElement element) {
+        return resolveAndGenerate(genericType, rawType, fieldName, ownerType, currentDepth, element, element);
+    }
+
+    /**
+     * Resolves a value whose Bean Validation constraints are read from {@code constraintSource}, which is
+     * the element itself except for an array's component type, where it is {@code null}: see
+     * {@link #generateArray}.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private @Nullable Object resolveAndGenerate(
+            Type genericType,
+            Class<?> rawType,
+            String fieldName,
+            Class<?> ownerType,
+            int currentDepth,
+            @Nullable AnnotatedElement element,
+            @Nullable AnnotatedElement constraintSource) {
 
         ResolvedType resolvedType = ResolvedType.resolve(genericType, typeBindings);
         rawType = Objects.requireNonNullElse(resolvedType.rawClass(), rawType);
@@ -1749,10 +1776,10 @@ final class FieldGeneratorResolver {
         BeanValidationSupport.ConstraintModel bvConstraints;
         Generator<?> bvGen;
         try {
-            bvConstraints = BeanValidationSupport.constraintModelFor(element, rawType);
-            bvGen = element != null
+            bvConstraints = BeanValidationSupport.constraintModelFor(constraintSource, rawType);
+            bvGen = constraintSource != null
                     ? BeanValidationSupport.constraintGeneratorFor(
-                            element,
+                            constraintSource,
                             rawType,
                             sequenceRandom,
                             generatorConfig.getClock(),
@@ -1844,7 +1871,7 @@ final class FieldGeneratorResolver {
             if (!resolvedType.isResolved()) {
                 return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
             }
-            return generateArray(resolvedType, rawType, ownerType, fieldName, currentDepth, element);
+            return generateArray(resolvedType, rawType, ownerType, fieldName, currentDepth, element, bvConstraints);
         }
 
         // ── 6b. Set ───────────────────────────────────────────────────────────
@@ -1856,17 +1883,23 @@ final class FieldGeneratorResolver {
             if (isSortedContainer(rawType) && !hasDeterministicOrder(elem)) {
                 return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
             }
-            int elementCount = nextCollectionSize(element);
+            int elementCount = nextCollectionSize(bvConstraints);
             // A sorted set keeps one element per ordering key, so count distinct elements by that order.
             Set<Object> values =
                     isSortedContainer(rawType) ? new TreeSet<>(sortedOrderFor(elem)) : new LinkedHashSet<>();
             int attempts = 0;
             int maxAttempts = Math.max(10, elementCount * 10);
             while (values.size() < elementCount && attempts++ < maxAttempts) {
-                values.add(resolveAndGenerate(
-                        elem, fieldName + "[]", ownerType, currentDepth, typeArgumentElement(element, 0)));
+                Object value = resolveAndGenerate(
+                        elem, fieldName + "[]", ownerType, currentDepth, typeArgumentElement(element, 0));
+                try {
+                    values.add(value);
+                } catch (RuntimeException rejected) {
+                    // A set sorted by natural order rejects the null left for a cut nested object.
+                    return handleCollectionInsertionFailure(ownerType, fieldName, genericType, currentDepth, rejected);
+                }
             }
-            BeanValidationSupport.ConstraintConflictException shortfall = sizeShortfall(values.size(), element);
+            BeanValidationSupport.ConstraintConflictException shortfall = sizeShortfall(values.size(), bvConstraints);
             if (shortfall != null) {
                 return handleConstraintConflict(rawType, genericType, ownerType, fieldName, currentDepth, shortfall);
             }
@@ -1894,7 +1927,7 @@ final class FieldGeneratorResolver {
             if (isSortedContainer(rawType) && !hasDeterministicOrder(elem)) {
                 return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
             }
-            int elementCount = nextCollectionSize(element);
+            int elementCount = nextCollectionSize(bvConstraints);
             List<Object> els = new ArrayList<>(elementCount);
             for (int i = 0; i < elementCount; i++) {
                 els.add(resolveAndGenerate(
@@ -1936,7 +1969,7 @@ final class FieldGeneratorResolver {
             if (map == null) {
                 return handleNonConstructibleCollection(rawType, genericType, ownerType, fieldName, currentDepth);
             }
-            int elementCount = nextCollectionSize(element);
+            int elementCount = nextCollectionSize(bvConstraints);
             int attempts = 0;
             int maxAttempts = Math.max(10, elementCount * 10);
             while (map.size() < elementCount && attempts++ < maxAttempts) {
@@ -1968,7 +2001,7 @@ final class FieldGeneratorResolver {
                     }
                 }
             }
-            BeanValidationSupport.ConstraintConflictException shortfall = sizeShortfall(map.size(), element);
+            BeanValidationSupport.ConstraintConflictException shortfall = sizeShortfall(map.size(), bvConstraints);
             if (shortfall != null) {
                 return handleConstraintConflict(rawType, genericType, ownerType, fieldName, currentDepth, shortfall);
             }
@@ -2398,25 +2431,47 @@ final class FieldGeneratorResolver {
             Class<?> ownerType,
             int currentDepth,
             @Nullable AnnotatedElement element) {
-        ResolvedType generationType = mostSpecific(type);
-        Class<?> rawType = Objects.requireNonNullElse(generationType.rawClass(), Object.class);
-        return resolveAndGenerate(generationType.declaredType(), rawType, fieldName, ownerType, currentDepth, element);
+        return resolveAndGenerate(type, fieldName, ownerType, currentDepth, element, element);
     }
 
+    private @Nullable Object resolveAndGenerate(
+            ResolvedType type,
+            String fieldName,
+            Class<?> ownerType,
+            int currentDepth,
+            @Nullable AnnotatedElement element,
+            @Nullable AnnotatedElement constraintSource) {
+        ResolvedType generationType = mostSpecific(type);
+        Class<?> rawType = Objects.requireNonNullElse(generationType.rawClass(), Object.class);
+        return resolveAndGenerate(
+                generationType.declaredType(), rawType, fieldName, ownerType, currentDepth, element, constraintSource);
+    }
+
+    /**
+     * Generates an array of the size its constraints and the configured collection size allow.
+     *
+     * <p>Java places an annotation written before an array type, as in {@code @Size(max = 3) String[]},
+     * on the array's component type as well as on the declaration. Bean Validation reads such a
+     * constraint for the array alone, as Hibernate Validator does, so the elements read no constraint
+     * from the component type: {@code @NotEmpty Leaf[]} is a non-empty array of any {@code Leaf}. A
+     * constraint on a type argument inside the component, as in {@code List<@Email String>[]}, still
+     * applies to that container's elements.
+     */
     private Object generateArray(
             ResolvedType declaredArrayType,
             Class<?> runtimeArrayType,
             Class<?> ownerType,
             String fieldName,
             int depth,
-            @Nullable AnnotatedElement element) {
+            @Nullable AnnotatedElement element,
+            BeanValidationSupport.ConstraintModel constraints) {
         Class<?> comp = runtimeArrayType.getComponentType();
         ResolvedType declaredComponentType = Objects.requireNonNull(declaredArrayType.componentType());
-        int elementCount = nextCollectionSize(element);
+        int elementCount = nextCollectionSize(constraints);
         Object arr = Array.newInstance(comp, elementCount);
         for (int i = 0; i < elementCount; i++) {
             Object el = resolveAndGenerate(
-                    declaredComponentType, fieldName + "[]", ownerType, depth, arrayComponentElement(element));
+                    declaredComponentType, fieldName + "[]", ownerType, depth, arrayComponentElement(element), null);
             try {
                 Array.set(arr, i, el);
             } catch (IllegalArgumentException e) {
@@ -2467,7 +2522,13 @@ final class FieldGeneratorResolver {
             return recordComponent.getAnnotatedType();
         }
         if (element instanceof Parameter parameter) {
-            return parameter.getAnnotatedType();
+            // A constructor argument whose type arguments declare no constraints takes those of the field
+            // it initializes, which has the same type, as it does for the constraints on the declaration.
+            AnnotatedType declared = parameter.getAnnotatedType();
+            java.lang.reflect.Field field = BeanValidationSupport.initializedField(parameter);
+            return field != null && !BeanValidationSupport.constrainsTypeArguments(declared)
+                    ? field.getAnnotatedType()
+                    : declared;
         }
         return null;
     }
@@ -2478,8 +2539,8 @@ final class FieldGeneratorResolver {
      * but a declared minimum must not be violated silently.
      */
     private static BeanValidationSupport.@Nullable ConstraintConflictException sizeShortfall(
-            int reached, @Nullable AnnotatedElement element) {
-        BeanValidationSupport.SizeRange declared = BeanValidationSupport.sizeRangeFor(element);
+            int reached, BeanValidationSupport.ConstraintModel constraints) {
+        BeanValidationSupport.SizeRange declared = constraints.size();
         if (declared == null || reached >= declared.min()) {
             return null;
         }
@@ -2487,9 +2548,10 @@ final class FieldGeneratorResolver {
                 "only " + reached + " distinct values available for a declared minimum size of " + declared.min());
     }
 
-    private int nextCollectionSize(@Nullable AnnotatedElement element) {
+    /** The configured collection size, within the declared size where there is one. */
+    private int nextCollectionSize(BeanValidationSupport.ConstraintModel constraints) {
         return BeanValidationSupport.sizeFor(
-                element,
+                constraints.size(),
                 sequenceRandom,
                 generatorConfig.getMinCollectionSize(),
                 generatorConfig.getMaxCollectionSize());

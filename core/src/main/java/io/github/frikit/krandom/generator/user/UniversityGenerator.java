@@ -20,6 +20,10 @@ import java.util.Random;
  * {@link io.github.frikit.krandom.generator.datapack.LocalDataPack} and attach it to the
  * {@link DataRegistryContext} in the generator configuration. This keeps data provenance and
  * test fixtures explicit.
+ *
+ * <p>kRandom ships no university data, because no university dataset it could bundle has an
+ * acceptable source and licence, so construction fails in every locale until a pack is registered
+ * for the configured locale or its language. The failure names that route.
  */
 public final class UniversityGenerator implements Generator<UniversityData> {
 
@@ -32,7 +36,8 @@ public final class UniversityGenerator implements Generator<UniversityData> {
      *
      * @param config generator configuration containing a local university data pack
      * @throws NullPointerException          if {@code config} is null
-     * @throws UnsupportedOperationException if no university data is configured for the locale
+     * @throws UnsupportedOperationException if no university data is configured for the locale; the
+     *                                       message names the data-pack route
      */
     public UniversityGenerator(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
@@ -40,9 +45,12 @@ public final class UniversityGenerator implements Generator<UniversityData> {
         Locale locale = config.getLocale();
         UniversityDataProvider provider = context.provider(Vocabulary.UNIVERSITY, locale);
         if (provider == null) {
-            throw new UnsupportedOperationException(
-                    "Locale " + locale + " has no local university data pack. Registered locales: "
-                            + context.registeredKeys(Vocabulary.UNIVERSITY));
+            throw new UnsupportedOperationException("Locale " + locale
+                    + " has no university data, and kRandom ships none. Load a local data pack with"
+                    + " LocalDataPack.load(directory), register it with"
+                    + " DataRegistryContext.builder().registerDataPack(pack), and pass that context to"
+                    + " GeneratorConfig.Builder.registryContext(context). Registered locales: "
+                    + context.registeredKeys(Vocabulary.UNIVERSITY));
         }
         this.random = config.createRandom();
         this.universities = provider.getUniversities();

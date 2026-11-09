@@ -23,8 +23,11 @@ import org.junit.jupiter.api.Test;
 @DisplayName("ObjectGenerator — nested type-use constraints")
 class ObjectGeneratorNestedTypeUseConstraintTest {
 
-    private static final GeneratorConfig CONFIG =
-            GeneratorConfig.builder().seed(3084L).collectionSize(2, 2).build();
+    private static final GeneratorConfig CONFIG = GeneratorConfig.builder()
+            .seed(3084L)
+            .collectionSize(2, 2)
+            .stringLength(3, 3)
+            .build();
 
     @Test
     @DisplayName("type-use constraints apply to optional, collection, and map children")
@@ -32,15 +35,23 @@ class ObjectGeneratorNestedTypeUseConstraintTest {
         NestedTypeUseFixture value = new ObjectGenerator<>(NestedTypeUseFixture.class, CONFIG).generate();
 
         assertTrue(value.optionalScore.orElseThrow() >= 100);
-        for (String code : value.codes) {
-            assertEquals(6, code.length());
-        }
         value.labels.forEach(label -> assertEquals(4, label.length()));
         value.nestedLabels.forEach(labels -> labels.forEach(label -> assertEquals(7, label.length())));
         value.scores.forEach((label, score) -> {
             assertEquals(3, label.length());
             assertTrue(score >= 100);
         });
+    }
+
+    @Test
+    @DisplayName("a constraint written before an array type sizes the array and leaves its elements alone")
+    void constraintBeforeAnArrayTypeSizesTheArray() {
+        NestedTypeUseFixture value = new ObjectGenerator<>(NestedTypeUseFixture.class, CONFIG).generate();
+
+        assertEquals(6, value.codes.length);
+        for (String code : value.codes) {
+            assertEquals(3, code.length(), code);
+        }
     }
 
     @Test
