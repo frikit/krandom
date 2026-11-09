@@ -204,9 +204,23 @@ beans.
 
 ## Jackson version
 
-The starter itself does not depend on Jackson. The separate `krandom-jackson` module targets
-**Jackson 2.x** (`com.fasterxml.jackson`), while Spring Boot 4 defaults to Jackson 3
-(`tools.jackson`). `KrandomJacksonModule` is a Jackson 2 module, so Boot's auto-configured Jackson 3
-`JsonMapper` does not use it; serialize kRandom schemas with a Jackson 2 `ObjectMapper` such as
-`KrandomJackson.newObjectMapper()`. See
+The starter itself does not depend on Jackson. Spring Boot 4 defaults to **Jackson 3**
+(`tools.jackson`), and the separate `krandom-jackson` module is a Jackson 3 module too. When Spring
+Boot auto-configures Jackson (`spring-boot-jackson`), it builds a `JsonMapper` and registers every
+`JacksonModule` bean with it, so a `KrandomJacksonModule` bean makes Boot's mapper serialize kRandom
+schemas as JSON Schema:
+
+```java
+@Configuration(proxyBeanMethods = false)
+class KrandomJacksonConfiguration {
+
+    @Bean
+    KrandomJacksonModule krandomJacksonModule() {
+        return new KrandomJacksonModule();
+    }
+}
+```
+
+Outside Spring, `KrandomJackson.newJsonMapper()` builds such a mapper. kRandom 2.10.0 is the last
+release whose `krandom-jackson` targets Jackson 2. See
 [Jackson Integration]({{ '/guides/jackson-integration/' | relative_url }}).

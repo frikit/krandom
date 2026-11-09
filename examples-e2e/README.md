@@ -18,7 +18,7 @@ Every example follows the same one-line shape:
    field by name and type, **nested records and lists included**, seeded so the
    output is reproducible;
 3. `toJson(...)` serializes to the final JSON via
-   `KrandomJackson.newObjectMapper()`.
+   `KrandomJackson.newJsonMapper()`, a Jackson 3 mapper.
 
 There is one pattern to remember: `new ObjectFaker<>(T.class, config)`, with an
 optional `.ruleFor("field", ...)` to pin a specific field (the Google example

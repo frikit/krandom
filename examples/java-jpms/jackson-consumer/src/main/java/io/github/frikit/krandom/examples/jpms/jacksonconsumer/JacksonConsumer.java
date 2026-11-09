@@ -5,16 +5,16 @@
  */
 package io.github.frikit.krandom.examples.jpms.jacksonconsumer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.frikit.krandom.jackson.KrandomJackson;
+import tools.jackson.databind.json.JsonMapper;
 
 /** Named-module consumer proving the krandom-jackson automatic module resolves and works. */
 public final class JacksonConsumer {
 
     private JacksonConsumer() {}
 
-    public static void main(String[] args) throws Exception {
-        ObjectMapper mapper = KrandomJackson.newObjectMapper();
+    public static void main(String[] args) {
+        JsonMapper mapper = KrandomJackson.newJsonMapper();
         String json = mapper.writeValueAsString(java.util.Map.of("module", "krandom-jackson"));
         if (!json.contains("krandom-jackson")) {
             throw new IllegalStateException("Unexpected serialization output: " + json);

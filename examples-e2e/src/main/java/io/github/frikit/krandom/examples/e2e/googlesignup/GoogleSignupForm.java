@@ -5,7 +5,6 @@
  */
 package io.github.frikit.krandom.examples.e2e.googlesignup;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.object.ObjectFaker;
 import io.github.frikit.krandom.generator.user.BirthdayGenerator;
@@ -67,13 +66,7 @@ public final class GoogleSignupForm {
 
     /** Serializes a freshly generated payload to the JSON the browser would submit. */
     public static String toJson(Locale locale, long seed) {
-        try {
-            return KrandomJackson.newObjectMapper()
-                    .writerWithDefaultPrettyPrinter()
-                    .writeValueAsString(fake(locale, seed));
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException("Failed to serialize Google signup payload", e);
-        }
+        return KrandomJackson.newJsonMapper().writerWithDefaultPrettyPrinter().writeValueAsString(fake(locale, seed));
     }
 
     /** Convenience: serialize using this example's default (UK) locale. */

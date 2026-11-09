@@ -18,7 +18,8 @@ version to Maven local:
 `jackson-consumer` and `junit-consumer` are named modules that require the
 `io.github.frikit.krandom.jackson` and `io.github.frikit.krandom.junit` automatic modules.
 Because automatic modules declare no dependencies, each consumer states the transitive
-requirements (`io.github.frikit.krandom`, `org.junit.jupiter.api`) explicitly. The Kotlin-based
+requirements (`io.github.frikit.krandom`, Jackson 3's `tools.jackson.databind`,
+`org.junit.jupiter.api`) explicitly. The Kotlin-based
 modules (`krandom-kotest-extensions`, `krandom-kotlin-dsl`) and the Spring Boot starter are
 classpath-first; their automatic module names are verified by
 `scripts/verify_module_boundaries.sh`.
