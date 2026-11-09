@@ -84,7 +84,8 @@ import org.jspecify.annotations.Nullable;
  * schema, boolean, or list of them, and malformed {@code required}, {@code additionalProperties}, and
  * {@code dependencies} values and counts are rejected with their schema path. A count is read exactly, and
  * a generated value holds at most 1,000,000 characters, items, or members, so a minimum above that fails
- * with its keyword, value, and path, and a larger maximum, declared or configured, draws no more. A list of items holds the whole tuple by default, and {@code additionalItems} is read only
+ * with its keyword, value, and path, a larger maximum, declared or configured, draws no more, and an object
+ * that would hold more properties fails with its path. A list of items holds the whole tuple by default, and {@code additionalItems} is read only
  * beside one, as in the drafts that define it; {@code prefixItems}, its Draft 2020-12 replacement, is
  * rejected. The root generates every property as a column, so its {@code required} names, property
  * dependencies, and member counts must allow exactly those. References and schema composition
@@ -163,6 +164,10 @@ public final class SchemaParser {
      */
     private static final int SIZE_LIMIT = 1_000_000;
 
+    /** How a rejection of the root's member keywords begins. */
+    private static final String ROOT_COLUMNS =
+            "JSON Schema root object generates exactly its properties, as columns, so ";
+
     private static final BigDecimal LONG_MIN = BigDecimal.valueOf(Long.MIN_VALUE);
     private static final BigDecimal LONG_MAX = BigDecimal.valueOf(Long.MAX_VALUE);
 
@@ -201,6 +206,11 @@ public final class SchemaParser {
         Object propertiesRaw = jsonSchema.get("properties");
         if (!(propertiesRaw instanceof Map<?, ?> propertiesMap)) {
             throw new IllegalArgumentException("JSON Schema object must have a \"properties\" map");
+        }
+        // Checked before anything walks the properties, as the root holds every one of them.
+        if (propertiesMap.size() > SIZE_LIMIT) {
+            throw new IllegalArgumentException(ROOT_COLUMNS + "its property count, " + propertiesMap.size()
+                    + ", is above the " + SIZE_LIMIT + " members a generated object can hold at $");
         }
 
         validateSupportedKeywords(jsonSchema, "$", Collections.newSetFromMap(new IdentityHashMap<>()));
@@ -250,7 +260,7 @@ public final class SchemaParser {
      * property dependencies, and minProperties and maxProperties must allow exactly those.
      */
     private static void checkRootMembers(Map<String, Object> root, Set<String> columns) {
-        String reason = "JSON Schema root object generates exactly its properties, as columns, so ";
+        String reason = ROOT_COLUMNS;
         for (String name : names(root.get("required"))) {
             if (!columns.contains(name)) {
                 throw new IllegalArgumentException(
@@ -271,11 +281,11 @@ public final class SchemaParser {
         if (root.get("minProperties") instanceof Number fewest
                 && decimal(fewest).compareTo(size) > 0) {
             throw new IllegalArgumentException(reason + "its property count, " + columns.size()
-                    + ", is below minProperties " + plain(decimal(fewest)) + " at $");
+                    + ", is below minProperties " + countText(decimal(fewest)) + " at $");
         }
         if (root.get("maxProperties") instanceof Number most && decimal(most).compareTo(size) < 0) {
             throw new IllegalArgumentException(reason + "its property count, " + columns.size()
-                    + ", is above maxProperties " + plain(decimal(most)) + " at $");
+                    + ", is above maxProperties " + countText(decimal(most)) + " at $");
         }
     }
 
@@ -467,10 +477,21 @@ public final class SchemaParser {
         }
         BigDecimal minimum = decimal(number);
         if (minimum.compareTo(BigDecimal.valueOf(SIZE_LIMIT)) > 0) {
-            throw new IllegalArgumentException("JSON Schema " + keyword + " " + plain(minimum) + " at " + path
+            throw new IllegalArgumentException("JSON Schema " + keyword + " " + countText(minimum) + " at " + path
                     + " is more than the " + SIZE_LIMIT + " " + holder + " can hold");
         }
         return minimum.intValue();
+    }
+
+    /**
+     * A count for a message: its digits up to the largest long, and scientific notation beyond, so a count
+     * such as 1E+1000000000 is never written out.
+     */
+    private static String countText(BigDecimal count) {
+        BigDecimal stripped = count.stripTrailingZeros();
+        return stripped.compareTo(BigDecimal.valueOf(Long.MAX_VALUE)) <= 0
+                ? stripped.toBigInteger().toString()
+                : stripped.toString();
     }
 
     /** A declared maximum count, or a default where none is; one above {@value #SIZE_LIMIT} draws no more. */
@@ -1446,7 +1467,7 @@ public final class SchemaParser {
         Predicate<String> available =
                 name -> providers.containsKey(name) || (extensible && !declared.containsKey(name));
 
-        List<String> base = new ArrayList<>();
+        Set<String> base = new LinkedHashSet<>();
         for (String name : required) {
             for (String member : dependents(name, dependencies)) {
                 if (!available.test(member)) {
@@ -1457,9 +1478,7 @@ public final class SchemaParser {
                                             + "',")
                             + " cannot be generated at " + path + ": " + unavailable(member, declared));
                 }
-                if (!base.contains(member)) {
-                    base.add(member);
-                }
+                base.add(member);
             }
         }
         // Every declared property whose dependencies can be generated, in the order written, then the
@@ -1475,6 +1494,10 @@ public final class SchemaParser {
             }
         }
         List<String> members = order.stream().filter(chosen::contains).toList();
+        if (members.size() > SIZE_LIMIT) {
+            throw new IllegalArgumentException("JSON Schema object at " + path + " would hold " + members.size()
+                    + " properties, more than the " + SIZE_LIMIT + " members a generated object can hold");
+        }
         Map<String, SchemaValueProvider> memberProviders = new LinkedHashMap<>();
         for (String name : members) {
             SchemaValueProvider provider = providers.get(name);

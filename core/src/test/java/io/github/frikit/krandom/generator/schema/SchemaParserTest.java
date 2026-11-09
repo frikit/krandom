@@ -3532,6 +3532,60 @@ class SchemaParserTest {
                     ((String) generatedWith(Map.of("type", "string", "format", "regex"), longStrings)).length());
         }
 
+        @Test
+        @DisplayName("an object that would hold more than 1,000,000 members is rejected with its path")
+        void objectsKeepToTheLimit() {
+            List<String> names = new ArrayList<>(1_000_001);
+            for (int i = 0; i <= 1_000_000; i++) {
+                names.add("p" + i);
+            }
+            assertEquals(
+                    "JSON Schema object at $.properties.value would hold 1000001 properties, more than the 1000000"
+                            + " members a generated object can hold",
+                    assertTimeoutPreemptively(
+                            Duration.ofSeconds(30), () -> rejection(Map.of("type", "object", "required", names))));
+            Map<String, Object> columns = new HashMap<>();
+            Map<String, Object> column = Map.of("type", "integer");
+            for (String name : names) {
+                columns.put(name, column);
+            }
+            assertEquals(
+                    "JSON Schema root object generates exactly its properties, as columns, so its property count,"
+                            + " 1000001, is above the 1000000 members a generated object can hold at $",
+                    assertTimeoutPreemptively(
+                                    Duration.ofSeconds(30),
+                                    () -> assertThrows(
+                                            IllegalArgumentException.class,
+                                            () -> SchemaParser.fromJsonSchema(objectSchema(columns))))
+                            .getMessage());
+        }
+
+        @Test
+        @DisplayName("a count with a huge exponent is judged and named without writing out its digits")
+        void hugeExponents() {
+            BigDecimal huge = new BigDecimal("1E+1000000000");
+            assertEquals(
+                    "JSON Schema minLength 1E+1000000000 at $.properties.value is more than the 1000000 characters a"
+                            + " generated string can hold",
+                    assertTimeoutPreemptively(
+                            Duration.ofSeconds(10), () -> rejection(Map.of("type", "string", "minLength", huge))));
+            assertTimeoutPreemptively(Duration.ofSeconds(10), () -> {
+                int length = ((String) generated(Map.of("type", "string", "maxLength", huge))).length();
+                assertTrue(length >= 1 && length <= 1_000_000, String.valueOf(length));
+                assertEquals(Set.of("abc"), CombinedConstraints.distinct(Map.of("const", "abc", "maxLength", huge)));
+            });
+            Map<String, Object> root = new HashMap<>(objectSchema(Map.of("a", Map.of("const", 1))));
+            root.put("minProperties", huge);
+            assertEquals(
+                    "JSON Schema root object generates exactly its properties, as columns, so its property count, 1,"
+                            + " is below minProperties 1E+1000000000 at $",
+                    assertTimeoutPreemptively(
+                                    Duration.ofSeconds(10),
+                                    () -> assertThrows(
+                                            IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(root)))
+                            .getMessage());
+        }
+
         private static Object generatedWith(Map<String, Object> property, GeneratorConfig config) {
             return SchemaParser.fromJsonSchema(objectSchema(Map.of("value", property)), config)
                     .generate()
