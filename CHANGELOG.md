@@ -528,7 +528,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the engine fills the property's field. Kotlin mangles the name of such a getter, as in `getId-OLSiqns`,
   and the engine looked only for `getId`. Seeded output changes for such properties.
 
-## [2.10.0] - 2026-11-02
+## [2.10.0] - 2026-11-10
 
 ### Added
 
