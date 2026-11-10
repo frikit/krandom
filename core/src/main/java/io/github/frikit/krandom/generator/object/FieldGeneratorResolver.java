@@ -1304,7 +1304,7 @@ final class FieldGeneratorResolver {
         return Objects.requireNonNull(mostSpecific(type).rawClass(), "type must be resolved");
     }
 
-    private static boolean isSortedContainer(Class<?> rawType) {
+    static boolean isSortedContainer(Class<?> rawType) {
         return rawType == TreeSet.class
                 || rawType == SortedSet.class
                 || rawType == NavigableSet.class
@@ -1319,7 +1319,7 @@ final class FieldGeneratorResolver {
      * other types their value-based {@code toString()}. Types that only inherit
      * {@link Object#toString()} would be ordered by identity hash codes, which differ between runs.
      */
-    private static boolean hasDeterministicOrder(ResolvedType elementType) {
+    static boolean hasDeterministicOrder(ResolvedType elementType) {
         Class<?> type = resolvedRawClass(elementType);
         return Comparable.class.isAssignableFrom(type) || overridesToString(type);
     }

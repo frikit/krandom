@@ -488,8 +488,8 @@ Nested `include(...)` paths keep the parent object alive and clear sibling field
 `ObjectFaker.strict()` checks the configuration before every `generate()` and `populate(existing)`, and
 `assertConfigurationIsValid()` runs the same check on demand. Either fails with one `FixtureRuleException`
 that lists every problem at once. Each problem is a `FixtureRuleProblem` that names its path, its rule kind
-and its registration number, never a value. `ObjectFaker.strict()` has nothing to do with the `STRICT`
-semantic mode.
+and its registration number, never a value. `ObjectFaker.strict()` has nothing to do with
+`ObjectGenerationSemanticMode.STRICT`.
 
 ```java
 ObjectFaker<OrderDto> faker = new ObjectFaker<>(OrderDto.class)

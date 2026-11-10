@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -716,6 +718,34 @@ class ObjectFakerStrictDiagnosticsTest {
     }
 
     @Test
+    @DisplayName("a sorted container without an order, and a map with an unresolved key, hold no element")
+    void unorderedSortedContainersAndUnresolvedMapsHoldNoElement() {
+        assertTrue(onlyProblem(new ObjectFaker<>(SortedHolder.class).ruleFor("id", () -> "x"))
+                .reason()
+                .endsWith("applies at 'ranked[].id'"));
+        assertEquals(List.of(), problemsOf(new ObjectFaker<>(KeyedBox.class).ruleFor("id", () -> "x")));
+    }
+
+    @Test
+    @DisplayName("an ignore below a mapped implementation that a type override builds is used")
+    void ignoreBelowOverriddenImplementationIsUsed() {
+        GeneratorConfig shallow = GeneratorConfig.builder().objectMaxDepth(1).build();
+        GeneratorConfig built = GeneratorConfig.builder()
+                .objectMaxDepth(1)
+                .objectSubtype(Stage.class, SubStage.class)
+                .objectOverride(SubStage.class, SubStage::new)
+                .build();
+
+        assertProblem(
+                onlyProblem(new ObjectFaker<>(Tour.class, shallow).ignore("stage.spot.name")),
+                Category.UNUSED,
+                FixtureRuleKind.IGNORE,
+                "stage.spot.name",
+                1);
+        assertEquals(List.of(), problemsOf(new ObjectFaker<>(Tour.class, built).ignore("stage.spot.name")));
+    }
+
+    @Test
     @DisplayName("a route through the root's constructor holds for generate() only")
     void constructorRoutesHoldForGenerateOnly() {
         ObjectFaker<ConstructedRoot> faker = new ObjectFaker<>(ConstructedRoot.class)
@@ -1153,6 +1183,38 @@ class ObjectFakerStrictDiagnosticsTest {
     }
 
     record NamedRecord(String name) {}
+
+    static final class RankedPurchase extends BaseEntity implements Comparable<RankedPurchase> {
+        @Override
+        public int compareTo(RankedPurchase other) {
+            return 0;
+        }
+    }
+
+    static final class SortedHolder extends BaseEntity {
+        SortedSet<String> names;
+        SortedSet<RankedPurchase> ranked;
+        SortedSet<Purchase> sorted;
+        TreeMap<Purchase, Purchase> tree;
+    }
+
+    static final class KeyedBox<K> extends BaseEntity {
+        Map<K, Purchase> byKey;
+    }
+
+    static final class Tour {
+        Stage stage;
+    }
+
+    static class Stage {
+        Spot spot;
+    }
+
+    static final class SubStage extends Stage {}
+
+    static final class Spot {
+        String name;
+    }
 
     static final class ConstructedRoot extends BaseEntity {
         final Purchase purchase;

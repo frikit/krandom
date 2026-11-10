@@ -8,9 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- `ObjectFaker.strict()` now reports unused, ambiguous and shadowed fixture rules, together with the root
-  properties that have no rule, include or ignore, in one `FixtureRuleException`, before generating or
-  populating. `assertConfigurationIsValid()`, which `ObjectFaker.strict()` runs, reports the same on demand.
+- `ObjectFaker.strict()`, which has nothing to do with `ObjectGenerationSemanticMode.STRICT`, now reports
+  unused, ambiguous and shadowed fixture rules, together with the root properties that have no rule,
+  include or ignore, in one `FixtureRuleException`, before generating or populating. `assertConfigurationIsValid()`, which `ObjectFaker.strict()` runs, reports the same on demand.
   Each problem is a `FixtureRuleProblem` with its category, its `FixtureRule`, given by `FixtureRuleKind`,
   path and registration number, and a reason that names paths and rules, never a value. The rules,
   includes and ignores of an `ObjectFaker` are numbered in registration order, across profiles and composed
@@ -40,7 +40,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     arguments, `objectSubtype` mappings and sealed types, within `objectMaxDepth` and with the cycle guard's
     keys, and leaves out members that an override, an exclusion, a `@Randomizer`, a kept initializer or
     `@Null` decides, including an element's `@Null` as in `List<@Null Purchase>`, the elements of a
-    collection whose configured size within its `@Size` allows none, and members that an
+    collection whose configured size within its `@Size` allows none, of a sorted collection or map whose
+    elements or keys have no order, and of one whose type arguments do not resolve, and members that an
     `objectNullProbability` or `objectOptionalEmptyProbability` of 1 always leaves absent. A type override
     for the root or for an `objectSubtype` implementation ends the walk, and a path through the root's
     constructor holds for `generate()` only, because `populate(existing)` builds no root. In `generate()`, a

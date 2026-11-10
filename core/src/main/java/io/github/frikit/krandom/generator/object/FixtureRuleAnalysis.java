@@ -403,7 +403,8 @@ final class FixtureRuleAnalysis {
             Field field = memberField(segment);
             if (owner == null
                     || suppliedByOverride(segment.ownerType(), segment.fieldName(), field)
-                    || typeOverridden(segment.valueType())) {
+                    || typeOverridden(segment.valueType())
+                    || typeOverridden(next)) {
                 return null;
             }
             if (config.shouldExclude(field)) {
@@ -712,19 +713,53 @@ final class FixtureRuleAnalysis {
                         depth,
                         inProgress);
             } else if (Set.class.isAssignableFrom(rawType)) {
-                element(declaredType, element, bindings, Set.class, 0, path + "[]", depth, inProgress);
+                elements(declaredType, rawType, element, bindings, Set.class, path, depth, inProgress);
             } else if (List.class.isAssignableFrom(rawType)) {
-                element(declaredType, element, bindings, List.class, 0, path + "[]", depth, inProgress);
+                elements(declaredType, rawType, element, bindings, List.class, path, depth, inProgress);
             } else if (Queue.class.isAssignableFrom(rawType)) {
-                element(declaredType, element, bindings, Queue.class, 0, path + "[]", depth, inProgress);
+                elements(declaredType, rawType, element, bindings, Queue.class, path, depth, inProgress);
             } else if (Map.class.isAssignableFrom(rawType)) {
-                element(declaredType, element, bindings, Map.class, 0, path + ".key", depth, inProgress);
-                element(declaredType, element, bindings, Map.class, 1, path + ".value", depth, inProgress);
+                elements(declaredType, rawType, element, bindings, Map.class, path, depth, inProgress);
             } else if (!rawType.isEnum()
                     && resolved.isResolved()
                     && !(resolved.kind() == ResolvedType.Kind.CLASS && rawType.getTypeParameters().length > 0)
                     && depth < config.getMaxDepth()) {
                 nested(resolved, rawType, bindings, path, depth, inProgress);
+            }
+        }
+
+        /**
+         * Follows a collection's or map's elements, which generation makes only when all of the contract's
+         * type arguments resolve and, for a sorted container, when its elements or keys have an order.
+         */
+        private void elements(
+                Type containerType,
+                Class<?> rawType,
+                @Nullable AnnotatedElement container,
+                Map<TypeVariable<?>, Type> bindings,
+                Class<?> contract,
+                String path,
+                int depth,
+                Set<String> inProgress) {
+            int count = contract.getTypeParameters().length;
+            List<ResolvedType> arguments = new ArrayList<>(count);
+            for (int index = 0; index < count; index++) {
+                ResolvedType argument =
+                        FieldGeneratorResolver.containerArgument(bindings, containerType, contract, index);
+                if (!argument.isResolved()) {
+                    return;
+                }
+                arguments.add(argument);
+            }
+            if (FieldGeneratorResolver.isSortedContainer(rawType)
+                    && !FieldGeneratorResolver.hasDeterministicOrder(arguments.getFirst())) {
+                return;
+            }
+            if (count == 1) {
+                element(containerType, container, bindings, contract, 0, path + "[]", depth, inProgress);
+            } else {
+                element(containerType, container, bindings, contract, 0, path + ".key", depth, inProgress);
+                element(containerType, container, bindings, contract, 1, path + ".value", depth, inProgress);
             }
         }
 
