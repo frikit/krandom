@@ -305,6 +305,30 @@ class GenerationReportTest {
     }
 
     @Test
+    @DisplayName("without a listener a root builds no report metadata, such as the recipe")
+    void rootBuildsNoMetadataWithoutAListener() {
+        CountingClock clock = new CountingClock();
+
+        new ObjectGenerator<>(Signal.class, listening(59L).clock(clock).build()).generate();
+
+        assertEquals(0, clock.reads, "building a recipe reads the clock");
+    }
+
+    @Test
+    @DisplayName("a repeated @Pattern is named, and a root factory's passed-over failure is reported")
+    void repeatedPatternsAndFailedFactoriesAreReported() {
+        List<GenerationReportEntry> patterned = generate(Patterned.class, listening(61L));
+        List<GenerationReportEntry> failed =
+                generate(Line.class, listening(61L).objectIgnoreErrors(true).objectOverride(Line.class, () -> null));
+
+        assertEquals(List.of("Pattern"), entry(patterned, "Patterned.code").constraints());
+        GenerationReportEntry root = entry(failed, "Line");
+        assertEquals(GenerationStep.DEFAULT, root.step());
+        assertEquals(List.of(GenerationDecision.FAILURE_FALLBACK), root.decisions());
+        assertRule(root, FixtureRuleKind.TYPE_OVERRIDE, "Line", -1);
+    }
+
+    @Test
     @DisplayName("a sealed root that picks an enum is reported as an enum")
     void sealedRootPickingAnEnumIsReported() {
         List<GenerationReportEntry> entries = generate(Signal.class, listening(53L));
@@ -762,6 +786,34 @@ class GenerationReportTest {
     }
 
     record Flagged(boolean flag) {}
+
+    static final class Patterned {
+        @jakarta.validation.constraints.Pattern(regexp = "[a-c]{3}") @jakarta.validation.constraints.Pattern(regexp = "a.*") String code;
+    }
+
+    /** A fixed clock that counts its reads. */
+    static final class CountingClock extends java.time.Clock {
+
+        private final java.time.Clock fixed =
+                java.time.Clock.fixed(java.time.Instant.parse("2026-01-01T00:00:00Z"), java.time.ZoneOffset.UTC);
+        int reads;
+
+        @Override
+        public java.time.ZoneId getZone() {
+            return fixed.getZone();
+        }
+
+        @Override
+        public java.time.Clock withZone(java.time.ZoneId zone) {
+            return this;
+        }
+
+        @Override
+        public java.time.Instant instant() {
+            reads++;
+            return fixed.instant();
+        }
+    }
 
     sealed interface Signal permits Light {}
 

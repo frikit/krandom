@@ -1236,7 +1236,11 @@ final class BeanValidationSupport {
                 AssertFalse.class,
                 Email.class,
                 Pattern.class)) {
-            if (annotation(element, type) != null) {
+            // Generation reads a repeated @Pattern, and every other constraint once, as it does here.
+            boolean present = type == Pattern.class
+                    ? !annotations(element, Pattern.class).isEmpty()
+                    : annotation(element, type) != null;
+            if (present) {
                 names.add(type.getSimpleName());
             }
         }

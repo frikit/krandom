@@ -199,12 +199,15 @@ final class GenerationReporter {
     }
 
     /** Reports the root object, which the engine builds, or a type override does. */
-    void root(String path, Class<?> type, @Nullable FixtureRuleKind factory) {
+    void root(String path, Class<?> type, @Nullable FixtureRuleKind factory, @Nullable GenerationDecision decision) {
         Trace trace = new Trace(path);
         if (factory == null) {
             trace.step(type.isEnum() ? GenerationStep.ENUM : GenerationStep.OBJECT, type.getName());
         } else {
             trace.step(GenerationStep.OVERRIDE, "override").rule(FixtureRule.configured(factory, path));
+        }
+        if (decision != null) {
+            failed(trace, decision);
         }
         emit(trace);
     }
