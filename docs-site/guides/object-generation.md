@@ -458,7 +458,7 @@ Supported in the current fixture layer:
   below it still apply unless the new rule is a dependent rule on the parent, which runs last
 - `afterGenerate(...)` / `postProcess(...)`
 - `populate(existing)` for mutable classes
-- `strict()` to validate the complete explicit rule/include/ignore decision before generation
+- `ObjectFaker.strict()` to check the rules before every generation, as described below
 
 Use `ObjectModel<T>` when a fixture definition must be immutable, reusable, and composable:
 
@@ -482,6 +482,52 @@ the model configuration callback rather than captured and shared.
 Nested `include(...)` paths keep the parent object alive and clear sibling fields below that path unless you also include the wider root object.
 
 `ObjectFaker<T>` reuses the same root `GeneratorConfig`, semantic resolver, locale, seed, and override rules as `ObjectGenerator<T>`.
+
+### Checking fixture rules with `ObjectFaker.strict()`
+
+`ObjectFaker.strict()` checks the configuration before every `generate()` and `populate(existing)`, and
+`assertConfigurationIsValid()` runs the same check on demand. Either fails with one `FixtureRuleException`
+that lists every problem at once. Each problem is a `FixtureRuleProblem` that names its path, its rule kind
+and its registration number, never a value. `ObjectFaker.strict()` has nothing to do with the `STRICT`
+semantic mode.
+
+```java
+ObjectFaker<OrderDto> faker = new ObjectFaker<>(OrderDto.class)
+        .ruleFor("customer.address.city", () -> "London")
+        .ruleFor("customer", order -> new CustomerDto())
+        .strict();
+
+faker.generate();
+// FixtureRuleException: ObjectFaker for com.example.OrderDto has 2 fixture rule problems:
+// - UNDECIDED root properties [status]: each needs a rule, an include or an ignore
+// - SHADOWED rule #1 'customer.address.city': dependent rule #2 'customer' runs after it and replaces
+//   the whole of 'customer'
+```
+
+Rules, includes and ignores are numbered in the order they are registered, across profiles and composed
+`ObjectModel` values. The check reports:
+
+| Problem | Reported when |
+|:---|:---|
+| Undecided | A settable root field or record component has no rule, include or ignore. In include mode only the included ones need a rule. |
+| Shadowed | A later rule for the same path replaces a rule. A rule on an ancestor path that runs later overwrites a nested rule. A `GeneratorConfig` contextual field override or contextual predicate override comes before a root rule. A root rule replaces or comes before a `GeneratorConfig` field override for the same member, or a nested or dependent rule overwrites one. A nested or dependent rule sets a member whose name `objectUniqueField` requested, without the uniqueness check. |
+| Unused | A later nested ignore clears the path of a rule. The `GeneratorConfig` excludes the member of a root rule. A `GeneratorConfig` type override builds the root, so `generate()` applies no root rule or root ignore. A nested ignore clears a member that never holds a value, because `objectMaxDepth`, an exclusion or include mode leaves an object on its path `null`. |
+| Ambiguous | A root rule, a root ignore or an include-mode exclusion also applies at another path. |
+
+Rules run in this order: root rules and root context rules during generation, as field overrides; then
+nested rules, nested context rules and dependent rules, each kind in registration order; then nested
+includes prune and nested ignores clear. A root rule, a root ignore and include mode apply by the member's
+declaring class and name, so they also reach that member in a nested object of the root's type, or of
+another subclass of the class that declares an inherited member: `ruleFor("id", () -> 42L)` on
+`Order extends BaseEntity` also sets the `id` of a `Customer extends BaseEntity` generated inside it. A dependent rule,
+such as `ruleFor("id", order -> 42L)`, applies at its own path only. A nested rule past `objectMaxDepth` is
+used: it creates the objects on its path.
+
+A rule that replaces an earlier one for the same path is how a profile or a shared `ObjectModel` is refined
+per test, and `ObjectFaker.strict()` reports the earlier rule as shadowed, so leave `ObjectFaker.strict()`
+out of fixtures that refine rules that way. To see which members keep an initializer, the check creates one
+object of each class it follows with the class's no-argument constructor, as generation does. Without
+`ObjectFaker.strict()`, generation is unchanged.
 
 ## When to use
 

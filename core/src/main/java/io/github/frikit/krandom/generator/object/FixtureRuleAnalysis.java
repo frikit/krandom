@@ -1,0 +1,924 @@
+/*
+ * Copyright (c) 2026 krandom contributors
+ *
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+package io.github.frikit.krandom.generator.object;
+
+import io.github.frikit.krandom.generator.object.FixtureRuleProblem.Category;
+import io.github.frikit.krandom.generator.object.ObjectFaker.RulePath;
+import io.github.frikit.krandom.generator.object.ObjectFaker.RuleTarget;
+import io.github.frikit.krandom.generator.object.exception.FixtureRuleException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.RecordComponent;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.Set;
+import org.jspecify.annotations.Nullable;
+
+/**
+ * Finds the unused, ambiguous and shadowed rules of one {@link ObjectFaker} configuration, as
+ * {@link ObjectFaker#assertConfigurationIsValid()} reports them. It reads the faker's rules and the
+ * {@code GeneratorConfig} it generates with, and generates nothing.
+ *
+ * <p>It models the faker's evaluation order: root rules and root context rules run during generation as
+ * field overrides; then nested rules, nested context rules and dependent rules run in that order, each
+ * kind in registration order, where a replacement of the same kind keeps its place; then nested includes
+ * prune and nested ignores clear.
+ */
+final class FixtureRuleAnalysis {
+
+    private static final int MAX_LISTED_ROUTES = 5;
+
+    private final Class<?> rootType;
+    private final ObjectGeneratorConfig config;
+    private final Map<String, RulePath> rulePaths;
+    private final List<FixtureRule> registrations;
+    private final Set<String> includedRoots;
+    private final List<String> evaluationOrder = new ArrayList<>();
+    private final Map<String, FixtureRule> activeRules = new LinkedHashMap<>();
+    private final Map<String, FixtureRule> activeIncludes = new LinkedHashMap<>();
+    private final Map<String, FixtureRule> activeIgnores = new LinkedHashMap<>();
+    private final Set<FixtureRule> inertRules = new HashSet<>();
+    private final UniqueFieldTracker adapters = new UniqueFieldTracker();
+    private final Map<Class<?>, Optional<Set<Field>>> initializedFields = new HashMap<>();
+    private final List<Finding> findings = new ArrayList<>();
+    private final List<String> undecided;
+
+    /**
+     * Analyses one configuration.
+     *
+     * @param plainRules     the paths of the faker's plain rules, in evaluation order
+     * @param contextRules   the paths of its context rules, in evaluation order
+     * @param dependentRules the paths of its dependent rules, in evaluation order
+     * @param includedRoots  the root properties that include mode generates, or none outside include mode
+     */
+    FixtureRuleAnalysis(
+            Class<?> rootType,
+            ObjectGeneratorConfig config,
+            Map<String, RulePath> rulePaths,
+            List<FixtureRule> registrations,
+            List<String> plainRules,
+            List<String> contextRules,
+            List<String> dependentRules,
+            Set<String> includedRoots) {
+        this.rootType = rootType;
+        this.config = config;
+        this.rulePaths = rulePaths;
+        this.registrations = registrations;
+        this.includedRoots = includedRoots;
+        for (FixtureRule registration : registrations) {
+            switch (registration.kind()) {
+                case INCLUDE -> activeIncludes.putIfAbsent(registration.path(), registration);
+                case IGNORE -> activeIgnores.putIfAbsent(registration.path(), registration);
+                default -> activeRules.put(registration.path(), registration);
+            }
+        }
+        for (FixtureRule rule : activeRules.values()) {
+            if (isInstalledRootRule(rule)) {
+                evaluationOrder.add(rule.path());
+            }
+        }
+        addNested(plainRules);
+        addNested(contextRules);
+        evaluationOrder.addAll(dependentRules);
+        findReplacedRules();
+        findOverwrittenRules();
+        findRulesUnderIgnores();
+        findConfigurationOverlaps();
+        findRootFactoryRules();
+        findIgnoresWithoutValues();
+        findRouteLeaks();
+        this.undecided = findUndecided();
+    }
+
+    private void addNested(List<String> paths) {
+        for (String path : paths) {
+            if (!path(path).isRoot()) {
+                evaluationOrder.add(path);
+            }
+        }
+    }
+
+    /**
+     * Throws the problems for {@code generate()}, or for {@code populate(existing)}, which never builds
+     * the root with a type override, if there are any.
+     */
+    void check(boolean populating) {
+        List<FixtureRuleProblem> problems = problems(populating);
+        if (!undecided.isEmpty() || !problems.isEmpty()) {
+            throw new FixtureRuleException(rootType, undecided, problems);
+        }
+    }
+
+    /** The problems, ordered by registration with {@code GeneratorConfig} entries last. */
+    private List<FixtureRuleProblem> problems(boolean populating) {
+        List<FixtureRuleProblem> problems = new ArrayList<>();
+        for (Finding finding : findings) {
+            if (!(populating && finding.generateOnly())) {
+                problems.add(finding.problem());
+            }
+        }
+        problems.sort(Comparator.comparingInt(problem -> problem.rule().registration() < 0
+                ? Integer.MAX_VALUE
+                : problem.rule().registration()));
+        return problems;
+    }
+
+    // ── Undecided root properties ─────────────────────────────────────────────
+
+    /**
+     * The settable root fields and record components with no rule, include or ignore. In include mode
+     * only the included root properties need a rule.
+     */
+    private List<String> findUndecided() {
+        Set<String> required = new LinkedHashSet<>();
+        for (RuleTarget target : ObjectFaker.allRuleTargets(rootType)) {
+            Field field = target.field();
+            if (field == null || !Modifier.isFinal(field.getModifiers())) {
+                required.add(target.fieldName());
+            }
+        }
+        if (activeIncludes.isEmpty()) {
+            required.removeAll(roots(activeIgnores.keySet()));
+        } else {
+            required.retainAll(roots(activeIncludes.keySet()));
+        }
+        required.removeAll(roots(activeRules.keySet()));
+        return List.copyOf(required);
+    }
+
+    private static Set<String> roots(Set<String> paths) {
+        Set<String> roots = new LinkedHashSet<>();
+        for (String path : paths) {
+            int separator = path.indexOf('.');
+            roots.add(separator < 0 ? path : path.substring(0, separator));
+        }
+        return roots;
+    }
+
+    // ── Shadowed: replaced and overwritten rules ─────────────────────────────
+
+    private void findReplacedRules() {
+        Map<String, FixtureRule> latest = new LinkedHashMap<>();
+        for (FixtureRule registration : registrations) {
+            if (isRule(registration.kind())) {
+                FixtureRule replaced = latest.put(registration.path(), registration);
+                if (replaced != null) {
+                    report(
+                            Category.SHADOWED,
+                            replaced,
+                            "replaced by " + registration.describe() + ", registered later for the same path");
+                }
+            }
+        }
+    }
+
+    private void findOverwrittenRules() {
+        for (int position = 0; position < evaluationOrder.size(); position++) {
+            String path = evaluationOrder.get(position);
+            FixtureRule overwriting = null;
+            for (int later = position + 1; later < evaluationOrder.size(); later++) {
+                String laterPath = evaluationOrder.get(later);
+                if (isStrictAncestor(laterPath, path)) {
+                    overwriting = activeRules.get(laterPath);
+                }
+            }
+            if (overwriting != null) {
+                report(
+                        Category.SHADOWED,
+                        rule(path),
+                        overwriting.describe() + " runs after it and replaces the whole of '" + overwriting.path()
+                                + "'");
+            }
+        }
+    }
+
+    // ── Unused: rules under a later ignore ───────────────────────────────────
+
+    private void findRulesUnderIgnores() {
+        for (FixtureRule rule : activeRules.values()) {
+            for (FixtureRule ignore : activeIgnores.values()) {
+                if (isStrictAncestor(ignore.path(), rule.path())) {
+                    report(
+                            Category.UNUSED,
+                            rule,
+                            ignore.describe() + " clears '" + ignore.path() + "' after the rules run");
+                    break;
+                }
+            }
+        }
+    }
+
+    // ── Overlaps with the GeneratorConfig ────────────────────────────────────
+
+    private void findConfigurationOverlaps() {
+        for (FixtureRule rule : activeRules.values()) {
+            RuleTarget leaf = path(rule.path()).leaf();
+            if (isInstalledRootRule(rule)) {
+                rootOverrideOverlaps(rule, leaf, memberField(leaf));
+            } else {
+                configuredValueOverwritten(rule, leaf);
+            }
+        }
+    }
+
+    /** A root rule or root context rule is installed as a field override for its member's owner and name. */
+    private void rootOverrideOverlaps(FixtureRule rule, RuleTarget leaf, Field field) {
+        String member = memberName(leaf);
+        if (config.shouldExclude(field)) {
+            inertRules.add(rule);
+            report(
+                    Category.UNUSED,
+                    rule,
+                    "the GeneratorConfig excludes " + member + ", so generation never asks the rule for a value");
+            return;
+        }
+        boolean contextField = config.getContextualFieldOverride(leaf.ownerType(), leaf.fieldName())
+                .isPresent();
+        boolean plainField =
+                config.getFieldOverride(leaf.ownerType(), leaf.fieldName()).isPresent();
+        if (rule.kind() == FixtureRuleKind.RULE) {
+            if (contextField) {
+                inertRules.add(rule);
+                report(
+                        Category.SHADOWED,
+                        rule,
+                        "the GeneratorConfig context field override for " + member + " comes first");
+            } else if (config.getContextualFieldPredicateOverride(field).isPresent()) {
+                inertRules.add(rule);
+                report(
+                        Category.SHADOWED,
+                        rule,
+                        "a GeneratorConfig context predicate override that matches " + member + " comes first");
+            } else if (plainField) {
+                report(
+                        Category.SHADOWED,
+                        FixtureRule.configured(FixtureRuleKind.FIELD_OVERRIDE, rule.path()),
+                        "replaced by " + rule.describe() + ", which ObjectFaker installs for " + member);
+            }
+            return;
+        }
+        if (contextField) {
+            report(
+                    Category.SHADOWED,
+                    FixtureRule.configured(FixtureRuleKind.CONTEXT_FIELD_OVERRIDE, rule.path()),
+                    "replaced by " + rule.describe() + ", which ObjectFaker installs for " + member);
+        }
+        if (plainField) {
+            report(
+                    Category.SHADOWED,
+                    FixtureRule.configured(FixtureRuleKind.FIELD_OVERRIDE, rule.path()),
+                    rule.describe() + ", which ObjectFaker installs for " + member + ", comes first");
+        }
+    }
+
+    /** A rule that runs after generation replaces whatever the configuration produced at its path. */
+    private void configuredValueOverwritten(FixtureRule rule, RuleTarget leaf) {
+        String reason = "overwritten by " + rule.describe() + ", which runs after generation";
+        if (config.getContextualFieldOverride(leaf.ownerType(), leaf.fieldName())
+                .isPresent()) {
+            report(
+                    Category.SHADOWED,
+                    FixtureRule.configured(FixtureRuleKind.CONTEXT_FIELD_OVERRIDE, rule.path()),
+                    reason);
+        }
+        if (config.getFieldOverride(leaf.ownerType(), leaf.fieldName()).isPresent()) {
+            report(Category.SHADOWED, FixtureRule.configured(FixtureRuleKind.FIELD_OVERRIDE, rule.path()), reason);
+        }
+        if (config.isRequestedUniqueField(leaf.fieldName())) {
+            report(
+                    Category.SHADOWED,
+                    FixtureRule.configured(FixtureRuleKind.UNIQUE_FIELD, rule.path()),
+                    "the values of " + rule.describe() + " are not checked for uniqueness, because the rule runs"
+                            + " after generation");
+        }
+    }
+
+    private void findRootFactoryRules() {
+        if (!typeOverridden(rootType)) {
+            return;
+        }
+        String reason = "generate() builds " + rootType.getSimpleName()
+                + " with the GeneratorConfig type override, which applies no root rule or root ignore";
+        List<FixtureRule> rootDecisions = new ArrayList<>();
+        for (FixtureRule rule : activeRules.values()) {
+            if (isInstalledRootRule(rule)) {
+                rootDecisions.add(rule);
+            }
+        }
+        for (FixtureRule ignore : activeIgnores.values()) {
+            if (path(ignore.path()).isRoot()) {
+                rootDecisions.add(ignore);
+            }
+        }
+        for (FixtureRule decision : rootDecisions) {
+            findings.add(new Finding(new FixtureRuleProblem(Category.UNUSED, decision, reason), true));
+        }
+    }
+
+    // ── Unused: ignores of members that never hold a value ───────────────────
+
+    private void findIgnoresWithoutValues() {
+        for (FixtureRule ignore : activeIgnores.values()) {
+            RulePath path = path(ignore.path());
+            if (!path.isRoot()) {
+                String reason = whyAlwaysEmpty(path.segments());
+                if (reason != null) {
+                    report(Category.UNUSED, ignore, reason);
+                }
+            }
+        }
+    }
+
+    /**
+     * Why the member that a nested ignore clears never holds a value, or {@code null} when it may. Each
+     * object on the path exists only where a rule supplies it or passes through it, an override or an
+     * initializer may produce it, or generation reaches it within {@code objectMaxDepth}.
+     */
+    private @Nullable String whyAlwaysEmpty(List<RuleTarget> segments) {
+        int leaf = segments.size() - 1;
+        @Nullable Class<?> owner = SealedTypes.isAbstract(rootType) ? null : rootType;
+        for (int index = 0; index <= leaf; index++) {
+            if (ruleSuppliesWithin(segments, index)) {
+                return null;
+            }
+            RuleTarget segment = segments.get(index);
+            Class<?> next = config.resolveSubtype(segment.valueType());
+            @Nullable Class<?> nextOwner = SealedTypes.isAbstract(next) ? null : next;
+            if (rulePassesThrough(segments, index)) {
+                owner = nextOwner;
+                continue;
+            }
+            String prefix = prefix(segments, index);
+            String below = index == leaf ? ", so it always keeps its default" : ", so nothing below it is generated";
+            if (index == 0 && !includedRoots.isEmpty() && !includedRoots.contains(segment.fieldName())) {
+                return "include mode leaves out '" + prefix + "'" + below;
+            }
+            Field field = memberField(segment);
+            if (owner == null
+                    || suppliedByOverride(segment.ownerType(), segment.fieldName(), field)
+                    || typeOverridden(segment.valueType())) {
+                return null;
+            }
+            if (config.shouldExclude(field)) {
+                return startsAtDefault(owner, field) ? "the GeneratorConfig excludes '" + prefix + "'" + below : null;
+            }
+            if (!isGeneratedAsNestedObject(segment.valueType()) || !generationFills(owner, field)) {
+                return null;
+            }
+            if (index >= config.getMaxDepth()) {
+                return "'" + prefix + "' would hold an object at depth " + (index + 1) + ", past objectMaxDepth "
+                        + config.getMaxDepth() + ", so it is always null";
+            }
+            owner = nextOwner;
+        }
+        return null;
+    }
+
+    /** Whether a rule supplies the value of one of the first {@code index + 1} segments, whatever it holds. */
+    private boolean ruleSuppliesWithin(List<RuleTarget> segments, int index) {
+        for (String rulePath : activeRules.keySet()) {
+            List<RuleTarget> ruleSegments = path(rulePath).segments();
+            if (ruleSegments.size() <= index + 1 && sharesPrefix(ruleSegments, segments, ruleSegments.size())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether a nested rule below the first {@code index + 1} segments materializes them. */
+    private boolean rulePassesThrough(List<RuleTarget> segments, int index) {
+        for (String rulePath : activeRules.keySet()) {
+            List<RuleTarget> ruleSegments = path(rulePath).segments();
+            if (ruleSegments.size() > index + 1 && sharesPrefix(ruleSegments, segments, index + 1)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean sharesPrefix(List<RuleTarget> first, List<RuleTarget> second, int length) {
+        for (int i = 0; i < length; i++) {
+            if (!first.get(i).fieldName().equals(second.get(i).fieldName())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Whether a field override, a predicate override or a {@code @Randomizer} supplies this member, which
+     * a constructor parameter, with no field, can take only by name.
+     */
+    private boolean suppliedByOverride(Class<?> owner, String name, @Nullable Field field) {
+        return config.getContextualFieldOverride(owner, name).isPresent()
+                || config.getFieldOverride(owner, name).isPresent()
+                || (field != null
+                        && (config.getContextualFieldPredicateOverride(field).isPresent()
+                                || config.getFieldPredicateOverride(field).isPresent()
+                                || field.isAnnotationPresent(Randomizer.class)));
+    }
+
+    /** Whether a type override, contextual or not, builds every value of this type. */
+    private boolean typeOverridden(Class<?> type) {
+        return config.getContextualTypeOverride(type).isPresent()
+                || config.getTypeOverride(type).isPresent();
+    }
+
+    /** Whether a member of this declared type is a nested object, which {@code objectMaxDepth} cuts. */
+    private boolean isGeneratedAsNestedObject(Class<?> declaredType) {
+        Class<?> nestedType = config.resolveSubtype(declaredType);
+        return FieldGeneratorResolver.isNestableType(nestedType) || SealedTypes.isSealed(nestedType, adapters);
+    }
+
+    // ── Ambiguous: root decisions that also apply at other routes ────────────
+
+    private void findRouteLeaks() {
+        List<Subject> subjects = new ArrayList<>();
+        Set<String> installedKeys = new HashSet<>();
+        Set<Field> fakerExcluded = new HashSet<>();
+        for (FixtureRule rule : activeRules.values()) {
+            if (isInstalledRootRule(rule)) {
+                RuleTarget target = path(rule.path()).leaf();
+                installedKeys.add(key(target.ownerType(), target.fieldName()));
+                if (!inertRules.contains(rule)) {
+                    subjects.add(new Subject(rule, target));
+                }
+            }
+        }
+        for (FixtureRule ignore : activeIgnores.values()) {
+            RulePath path = path(ignore.path());
+            if (path.isRoot()) {
+                fakerExcluded.add(memberField(path.leaf()));
+                subjects.add(new Subject(ignore, path.leaf()));
+            }
+        }
+        if (!includedRoots.isEmpty()) {
+            int firstInclude = activeIncludes.values().iterator().next().registration();
+            for (RuleTarget target : ObjectFaker.allRuleTargets(rootType)) {
+                Field field = memberField(target);
+                if (!includedRoots.contains(target.fieldName()) && !activeIgnores.containsKey(target.fieldName())) {
+                    fakerExcluded.add(field);
+                    if (!Modifier.isFinal(field.getModifiers())) {
+                        subjects.add(new Subject(
+                                FixtureRule.registered(FixtureRuleKind.INCLUDE, target.fieldName(), firstInclude),
+                                target));
+                    }
+                }
+            }
+        }
+        if (subjects.isEmpty()) {
+            return;
+        }
+        new RouteWalk(subjects, installedKeys, fakerExcluded).visitRoot();
+        for (Subject subject : subjects) {
+            if (!subject.routes.isEmpty()) {
+                String scope = subject.rule.kind() == FixtureRuleKind.INCLUDE
+                        ? "include mode leaves out " + memberName(subject.target)
+                        : "ObjectFaker installs it for " + memberName(subject.target);
+                report(
+                        Category.AMBIGUOUS,
+                        subject.rule,
+                        scope + " wherever generation reaches that member, so it also applies at "
+                                + listed(subject.routes));
+            }
+        }
+    }
+
+    private static String listed(Set<String> routes) {
+        StringBuilder listed = new StringBuilder();
+        int shown = 0;
+        for (String route : routes) {
+            if (shown == MAX_LISTED_ROUTES) {
+                break;
+            }
+            listed.append(shown == 0 ? "" : ", ").append('\'').append(route).append('\'');
+            shown++;
+        }
+        if (routes.size() > shown) {
+            listed.append(" and ").append(routes.size() - shown).append(" more");
+        }
+        return listed.toString();
+    }
+
+    /** A root rule, root ignore or include-mode exclusion, which applies by its member's owner and name. */
+    private static final class Subject {
+
+        private final FixtureRule rule;
+        private final RuleTarget target;
+        private final Set<String> routes = new LinkedHashSet<>();
+
+        private Subject(FixtureRule rule, RuleTarget target) {
+            this.rule = rule;
+            this.target = target;
+        }
+    }
+
+    /**
+     * Follows the nested objects that generation reaches from the root, as the resolver does, and records
+     * where each subject's member appears in them. It stops wherever generation would: past
+     * {@code objectMaxDepth}, at a type already being generated on the path, at a type it cannot construct,
+     * and at a member that an exclusion, an override, a {@code @Randomizer} or a kept initializer decides.
+     */
+    private final class RouteWalk {
+
+        private final List<Subject> subjects;
+        private final Set<String> installedKeys;
+        private final Set<Field> fakerExcluded;
+
+        private RouteWalk(List<Subject> subjects, Set<String> installedKeys, Set<Field> fakerExcluded) {
+            this.subjects = subjects;
+            this.installedKeys = installedKeys;
+            this.fakerExcluded = fakerExcluded;
+        }
+
+        private void visitRoot() {
+            if (!SealedTypes.isAbstract(rootType)) {
+                visit(rootType, ResolvedType.bindingsFor(rootType), "", 0, Set.of());
+                return;
+            }
+            Class<?> mapped = config.resolveSubtype(rootType);
+            if (mapped != rootType) {
+                visit(mapped, ResolvedType.bindingsFor(mapped), "", 0, Set.of());
+                return;
+            }
+            for (Class<?> chosen : sealedChoices(rootType, Set.of())) {
+                // A sealed root's choice counts as being generated, as a member's choice does.
+                visit(chosen, ResolvedType.bindingsFor(chosen), "", 0, Set.of(chosen));
+            }
+        }
+
+        /** Visits the members of an object of {@code type} that generation builds at {@code depth}. */
+        private void visit(
+                Class<?> type,
+                Map<TypeVariable<?>, Type> bindings,
+                String prefix,
+                int depth,
+                Set<Class<?>> inProgress) {
+            if (!type.isRecord()
+                    && (adapters.constructionAdapter(type, ObjectGenerator::constructionAdapterFor)
+                                    .isPresent()
+                            || ObjectGenerator.requiresKotlinConstructionAdapter(type))) {
+                // A construction adapter decides such a type's members, or generation cannot build it.
+                return;
+            }
+            if (depth > 0) {
+                recordRoutes(type, prefix);
+            }
+            for (Member member : members(type)) {
+                if (isGenerated(member) && !hasMemberGenerator(member)) {
+                    descend(member.genericType(), bindings, prefix + member.name(), depth, inProgress);
+                }
+            }
+        }
+
+        private void recordRoutes(Class<?> type, String prefix) {
+            for (Subject subject : subjects) {
+                RuleTarget target = subject.target;
+                Field field = memberField(target);
+                boolean present = type.isRecord()
+                        ? type == target.ownerType()
+                        : target.ownerType().isAssignableFrom(type);
+                if (present && !config.shouldExclude(field)) {
+                    subject.routes.add(prefix + target.fieldName());
+                }
+            }
+        }
+
+        private void descend(
+                Type declaredType,
+                Map<TypeVariable<?>, Type> bindings,
+                String path,
+                int depth,
+                Set<Class<?>> inProgress) {
+            ResolvedType resolved = ResolvedType.resolve(declaredType, bindings);
+            Class<?> rawType = resolved.rawClass();
+            if (rawType == null || typeOverridden(rawType)) {
+                return;
+            }
+            if (rawType == Optional.class) {
+                element(declaredType, bindings, Optional.class, 0, path + ".value", depth, inProgress);
+            } else if (rawType.isArray()) {
+                ResolvedType component = Objects.requireNonNull(resolved.componentType(), "an array's component");
+                descend(
+                        FieldGeneratorResolver.mostSpecific(component).declaredType(),
+                        bindings,
+                        path + "[]",
+                        depth,
+                        inProgress);
+            } else if (Set.class.isAssignableFrom(rawType)) {
+                element(declaredType, bindings, Set.class, 0, path + "[]", depth, inProgress);
+            } else if (List.class.isAssignableFrom(rawType)) {
+                element(declaredType, bindings, List.class, 0, path + "[]", depth, inProgress);
+            } else if (Queue.class.isAssignableFrom(rawType)) {
+                element(declaredType, bindings, Queue.class, 0, path + "[]", depth, inProgress);
+            } else if (Map.class.isAssignableFrom(rawType)) {
+                element(declaredType, bindings, Map.class, 0, path + ".key", depth, inProgress);
+                element(declaredType, bindings, Map.class, 1, path + ".value", depth, inProgress);
+            } else if (!rawType.isEnum()
+                    && resolved.isResolved()
+                    && !(resolved.kind() == ResolvedType.Kind.CLASS && rawType.getTypeParameters().length > 0)
+                    && depth < config.getMaxDepth()) {
+                nested(resolved, rawType, bindings, path, depth, inProgress);
+            }
+        }
+
+        private void element(
+                Type containerType,
+                Map<TypeVariable<?>, Type> bindings,
+                Class<?> contract,
+                int index,
+                String path,
+                int depth,
+                Set<Class<?>> inProgress) {
+            ResolvedType element = FieldGeneratorResolver.containerArgument(bindings, containerType, contract, index);
+            if (element.isResolved()) {
+                descend(FieldGeneratorResolver.mostSpecific(element).declaredType(), bindings, path, depth, inProgress);
+            }
+        }
+
+        private void nested(
+                ResolvedType resolved,
+                Class<?> rawType,
+                Map<TypeVariable<?>, Type> bindings,
+                String path,
+                int depth,
+                Set<Class<?>> inProgress) {
+            Class<?> nestedType = config.resolveSubtype(rawType);
+            List<Class<?>> classes = SealedTypes.isSealed(nestedType, adapters)
+                    ? sealedChoices(nestedType, inProgress)
+                    : FieldGeneratorResolver.isNestableType(nestedType) && !inProgress.contains(nestedType)
+                            ? List.of(nestedType)
+                            : List.of();
+            for (Class<?> generated : classes) {
+                if (!isConstructible(generated)) {
+                    continue;
+                }
+                Set<Class<?>> nestedInProgress = new HashSet<>(inProgress);
+                nestedInProgress.add(generated);
+                visit(
+                        generated,
+                        FieldGeneratorResolver.nestedTypeBindings(bindings, resolved, generated),
+                        path + ".",
+                        depth + 1,
+                        nestedInProgress);
+            }
+        }
+
+        /**
+         * The classes a sealed type may be generated as here: those without a type override, that are not
+         * enums, and that are not already being generated on this path, which generation leaves out.
+         */
+        private List<Class<?>> sealedChoices(Class<?> sealedType, Set<Class<?>> inProgress) {
+            List<Class<?>> subclasses;
+            try {
+                subclasses = SealedTypes.concreteSubclasses(sealedType, config, adapters);
+            } catch (RuntimeException unsupported) {
+                return List.of();
+            }
+            List<Class<?>> choices = new ArrayList<>();
+            for (Class<?> subclass : subclasses) {
+                if (!subclass.isEnum() && !typeOverridden(subclass) && !inProgress.contains(subclass)) {
+                    choices.add(subclass);
+                }
+            }
+            return choices;
+        }
+
+        private boolean isGenerated(Member member) {
+            if (member.parameter() && config.getGeneratorConfig().isObjectFieldNameExcluded(member.name())) {
+                return false;
+            }
+            Field field = member.field();
+            return field == null || (!config.shouldExclude(field) && !fakerExcluded.contains(field));
+        }
+
+        /** Whether an override, a {@code @Randomizer} or a root rule supplies the member, so generation stops. */
+        private boolean hasMemberGenerator(Member member) {
+            return suppliedByOverride(member.owner(), member.name(), member.parameter() ? null : member.field())
+                    || installedKeys.contains(key(member.owner(), member.name()));
+        }
+
+        private List<Member> members(Class<?> type) {
+            List<Member> members = new ArrayList<>();
+            if (type.isRecord()) {
+                for (RecordComponent component : type.getRecordComponents()) {
+                    Field field = backingField(type, component.getName());
+                    members.add(new Member(type, component.getName(), component.getGenericType(), field, false));
+                }
+                return members;
+            }
+            Constructor<?> constructor = filledConstructor(type);
+            if (constructor != null) {
+                Parameter[] parameters = constructor.getParameters();
+                for (int index = 0; index < parameters.length; index++) {
+                    Parameter parameter = parameters[index];
+                    if (parameter.isNamePresent()) {
+                        members.add(new Member(
+                                type,
+                                parameter.getName(),
+                                parameter.getParameterizedType(),
+                                nearestField(type, parameter.getName()),
+                                true));
+                    } else {
+                        members.add(new Member(
+                                type, "constructorArg" + index, parameter.getParameterizedType(), null, true));
+                    }
+                }
+            }
+            for (Class<?> current = type; current != Object.class; current = current.getSuperclass()) {
+                // In name order, as generation fills them, so that routes are listed the same on every JVM.
+                Field[] declared = current.getDeclaredFields();
+                Arrays.sort(declared, Comparator.comparing(Field::getName));
+                for (Field field : declared) {
+                    int modifiers = field.getModifiers();
+                    if (!Modifier.isStatic(modifiers) && !Modifier.isFinal(modifiers) && generationFills(type, field)) {
+                        members.add(new Member(
+                                field.getDeclaringClass(), field.getName(), field.getGenericType(), field, false));
+                    }
+                }
+            }
+            return members;
+        }
+
+        /** The declared constructor that generation fills, for a type without a no-argument constructor. */
+        private @Nullable Constructor<?> filledConstructor(Class<?> type) {
+            Constructor<?>[] constructors = type.getDeclaredConstructors();
+            return config.getConstructionPolicy() == ObjectConstructionPolicy.SAFE_CONSTRUCTORS
+                            && constructors.length == 1
+                            && constructors[0].getParameterCount() > 0
+                    ? constructors[0]
+                    : null;
+        }
+    }
+
+    /**
+     * A field, record component or constructor parameter that generation fills. A parameter's field is the
+     * nearest field of its name, whose exclusions it follows, or {@code null} without a name or a field.
+     */
+    private record Member(
+            Class<?> owner,
+            String name,
+            Type genericType,
+            @Nullable Field field,
+            boolean parameter) {}
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private static String key(Class<?> owner, String name) {
+        return owner.getName() + '#' + name;
+    }
+
+    /** Whether generation can build an object of this concrete class, which it would otherwise fail on. */
+    private boolean isConstructible(Class<?> type) {
+        if (type.isRecord()) {
+            return true;
+        }
+        if (type.isMemberClass() && !Modifier.isStatic(type.getModifiers())) {
+            return false;
+        }
+        return noArgumentConstructor(type) != null
+                || config.getConstructionPolicy() == ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS
+                || type.getDeclaredConstructors().length == 1;
+    }
+
+    /** Whether generation fills this field of an object of {@code owner}, rather than keep an initializer. */
+    private boolean generationFills(Class<?> owner, Field field) {
+        return config.isOverrideDefaultInitialization() || startsAtDefault(owner, field);
+    }
+
+    /**
+     * Whether this field of an object of {@code owner} holds its default before generation fills it: always
+     * for a record component and for an object built without a constructor, and otherwise as in an object
+     * that the no-argument constructor builds, as generation builds it. Without such an object it is unknown,
+     * and taken to hold an initializer.
+     */
+    private boolean startsAtDefault(Class<?> owner, Field field) {
+        if (owner.isRecord()) {
+            return true;
+        }
+        if (noArgumentConstructor(owner) == null) {
+            return config.getConstructionPolicy() == ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS;
+        }
+        Optional<Set<Field>> initialized = initializedFields.computeIfAbsent(owner, FixtureRuleAnalysis::initialized);
+        return initialized.isPresent() && !initialized.get().contains(field);
+    }
+
+    /**
+     * The instance fields that an object built with the no-argument constructor holds a value other than
+     * the default in, or nothing when the object cannot be built or read.
+     */
+    private static Optional<Set<Field>> initialized(Class<?> type) {
+        try {
+            Constructor<?> constructor = type.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            Object prototype = constructor.newInstance();
+            Set<Field> initialized = new HashSet<>();
+            for (RuleTarget target : ObjectFaker.allRuleTargets(type)) {
+                Field field = Objects.requireNonNull(target.field(), "a class member is a field");
+                field.setAccessible(true);
+                if (!Objects.equals(field.get(prototype), ObjectFaker.defaultValue(field.getType()))) {
+                    initialized.add(field);
+                }
+            }
+            return Optional.of(initialized);
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError failed) {
+            return Optional.empty();
+        }
+    }
+
+    private static @Nullable Constructor<?> noArgumentConstructor(Class<?> type) {
+        for (Constructor<?> constructor : type.getDeclaredConstructors()) {
+            if (constructor.getParameterCount() == 0) {
+                return constructor;
+            }
+        }
+        return null;
+    }
+
+    /** The field that a constructor parameter of this name initializes, as generation finds it. */
+    private static @Nullable Field nearestField(Class<?> type, String name) {
+        for (RuleTarget target : ObjectFaker.allRuleTargets(type)) {
+            if (target.fieldName().equals(name)) {
+                return target.field();
+            }
+        }
+        return null;
+    }
+
+    /** A root rule or root context rule, which ObjectFaker installs as a field override. */
+    private boolean isInstalledRootRule(FixtureRule rule) {
+        return rule.kind() != FixtureRuleKind.DEPENDENT_RULE
+                && path(rule.path()).isRoot();
+    }
+
+    private static boolean isRule(FixtureRuleKind kind) {
+        return kind == FixtureRuleKind.RULE
+                || kind == FixtureRuleKind.CONTEXT_RULE
+                || kind == FixtureRuleKind.DEPENDENT_RULE;
+    }
+
+    /** Whether {@code ancestor} names a strict ancestor of {@code path}, segment by segment. */
+    private static boolean isStrictAncestor(String ancestor, String path) {
+        return path.startsWith(ancestor + ".");
+    }
+
+    private static String prefix(List<RuleTarget> segments, int index) {
+        StringBuilder prefix = new StringBuilder();
+        for (int i = 0; i <= index; i++) {
+            prefix.append(i == 0 ? "" : ".").append(segments.get(i).fieldName());
+        }
+        return prefix.toString();
+    }
+
+    private static String memberName(RuleTarget target) {
+        return target.ownerType().getSimpleName() + "." + target.fieldName();
+    }
+
+    /** The field that a member's exclusions and predicate overrides read: a record component's backing field. */
+    private static Field memberField(RuleTarget target) {
+        Field field = target.field();
+        return field != null ? field : backingField(target.ownerType(), target.fieldName());
+    }
+
+    private static Field backingField(Class<?> recordType, String name) {
+        Field backing = null;
+        for (Field field : recordType.getDeclaredFields()) {
+            if (field.getName().equals(name)) {
+                backing = field;
+            }
+        }
+        return Objects.requireNonNull(backing, "a record component has a backing field");
+    }
+
+    private RulePath path(String path) {
+        return Objects.requireNonNull(rulePaths.get(path), "registered path");
+    }
+
+    private FixtureRule rule(String path) {
+        return Objects.requireNonNull(activeRules.get(path), "active rule");
+    }
+
+    private void report(Category category, FixtureRule rule, String reason) {
+        findings.add(new Finding(new FixtureRuleProblem(category, rule, reason), false));
+    }
+
+    /** A problem, and whether it holds only for {@code generate()}. */
+    private record Finding(FixtureRuleProblem problem, boolean generateOnly) {}
+}

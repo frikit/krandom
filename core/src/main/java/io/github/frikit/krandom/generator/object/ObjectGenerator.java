@@ -716,7 +716,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         return null;
     }
 
-    private static boolean requiresKotlinConstructionAdapter(Class<?> requestedType) {
+    static boolean requiresKotlinConstructionAdapter(Class<?> requestedType) {
         if (!isKotlinType(requestedType)) {
             return false;
         }

@@ -6,6 +6,59 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `ObjectFaker.strict()` now reports unused, ambiguous and shadowed fixture rules, together with the root
+  properties that have no rule, include or ignore, in one `FixtureRuleException`, before generating or
+  populating. `assertConfigurationIsValid()`, which `ObjectFaker.strict()` runs, reports the same on demand.
+  Each problem is a `FixtureRuleProblem` with its category, its `FixtureRule`, given by `FixtureRuleKind`,
+  path and registration number, and a reason that names paths and rules, never a value. The rules,
+  includes and ignores of an `ObjectFaker` are numbered in registration order, across profiles and composed
+  `ObjectModel` values; a `GeneratorConfig` entry has the number -1 and the path where it takes effect.
+  - Shadowed: a rule that a later rule for the same path replaces, whatever their kinds; a nested rule that
+    a rule on an ancestor path overwrites because it runs later, such as `address.city` under a dependent
+    rule on `address`; a root rule that a `GeneratorConfig` contextual field override or contextual
+    predicate override for the same member comes before, so that it never runs; a `GeneratorConfig` field
+    override for a member that a root rule replaces or comes before, or that a nested or dependent rule
+    overwrites; and a name requested with `objectUniqueField`, whose values a nested or dependent rule sets
+    without the uniqueness check that a root rule gets.
+  - Unused: a rule below a path that a nested ignore registered after it clears; a root rule on a member
+    that the `GeneratorConfig` excludes, by `objectExclude`, `objectExcludeField`, `objectExcludeType` or
+    `@Exclude`; a root rule or root ignore when a `GeneratorConfig` type override builds the root, which
+    `generate()` does and `populate(existing)` does not; and a nested ignore of a member that never holds a
+    value, because `objectMaxDepth`, an exclusion or include mode leaves an object on its path `null`. A
+    nested rule past `objectMaxDepth` is used, because it creates the objects on its path, and a path into
+    a member that an `objectSubtype` implementation or a sealed subclass lacks already fails at
+    registration, because paths are resolved against the declared types.
+  - Ambiguous: a root rule, root ignore or include-mode exclusion that also applies at another path. Each
+    applies by its member's declaring class and name, so it also reaches that member in a nested object of
+    the root's type, as in `manager.name` for `ruleFor("name", ...)` on an `Employee` with an `Employee
+    manager`, or of another subclass of the class that declares an inherited member, as in `customer.id`
+    for `ruleFor("id", ...)` on an `Order` whose `Customer` shares its `BaseEntity`. The check follows the
+    nested objects that generation reaches, through collections, maps, arrays, `Optional`, constructor
+    arguments, `objectSubtype` mappings and sealed types, within `objectMaxDepth`, and leaves out members
+    that an override, an exclusion, a `@Randomizer` or a kept initializer decides. A dependent rule applies
+    at its own path only. A string path that matches two fields still fails at registration.
+
+  `ObjectFaker.strict()` checks once for each configuration, and again after a new rule, include or ignore.
+  Without `ObjectFaker.strict()`, generation is unchanged. A replacement of a rule for the same path, the
+  documented way to refine a profile or a shared `ObjectModel` per test, is reported as shadowed, so
+  `ObjectFaker.strict()` rejects such a refinement.
+
+### Changed
+
+- `ObjectFaker.strict()` and `assertConfigurationIsValid()` throw `FixtureRuleException`, which extends
+  `IllegalStateException`, with every problem on a line of its own, where they threw an
+  `IllegalStateException` reading `ObjectFaker for <type> has no rules for: [...]`. The undecided root
+  properties are now `getUndecidedProperties()` and the line `UNDECIDED root properties [...]`. To see which
+  members keep an initializer, `assertConfigurationIsValid()`, and so `ObjectFaker.strict()`, now creates
+  one object of each class it follows with the class's no-argument constructor, as generation does.
+- The `ObjectFaker` documentation now gives the order in which its rules run and their scope, which
+  `ObjectFaker.strict()` checks: a root rule, a root ignore and include mode apply by the member's declaring
+  class and name, as they always have, and the other rules at their own paths; against the `GeneratorConfig` overrides for the same member, a root
+  context rule comes first, and a root rule after a contextual field override and a contextual predicate
+  override and before the others.
+
 ### Fixed
 
 - An `ObjectFaker` path through a member declared as an interface, such as `shape.side` where `shape` is a

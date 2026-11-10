@@ -1269,6 +1269,16 @@ final class FieldGeneratorResolver {
     // ── Primary entry point ───────────────────────────────────────────────────
 
     private ResolvedType containerArgument(Type type, Class<?> containerContract, int index) {
+        return containerArgument(typeBindings, type, containerContract, index);
+    }
+
+    /**
+     * The argument {@code index} of a container contract, such as a list's element type, under the
+     * bindings of the object that declares the container. {@link FixtureRuleAnalysis} follows containers
+     * with it as generation does.
+     */
+    static ResolvedType containerArgument(
+            Map<TypeVariable<?>, Type> typeBindings, Type type, Class<?> containerContract, int index) {
         // The type at the end of a chain of type variables, which holds the container's arguments.
         Type hierarchyType =
                 mostSpecific(ResolvedType.resolve(type, typeBindings)).declaredType();
@@ -1281,7 +1291,7 @@ final class FieldGeneratorResolver {
      * Follows the whole binding chain: {@code SortedSet<P>} resolves {@code Set}'s {@code E} to
      * {@code SortedSet}'s {@code E}, and only that resolves to {@code P}.
      */
-    private static ResolvedType mostSpecific(ResolvedType type) {
+    static ResolvedType mostSpecific(ResolvedType type) {
         ResolvedType current = type;
         while (current.effectiveType() != null) {
             current = current.effectiveType();
@@ -2227,6 +2237,16 @@ final class FieldGeneratorResolver {
     }
 
     private Map<TypeVariable<?>, Type> nestedTypeBindings(ResolvedType resolvedType, Class<?> nestedType) {
+        return nestedTypeBindings(typeBindings, resolvedType, nestedType);
+    }
+
+    /**
+     * The type bindings of a nested object of {@code nestedType}, declared as {@code resolvedType} in an
+     * object with {@code typeBindings}. {@link FixtureRuleAnalysis} follows nested objects with them as
+     * generation does.
+     */
+    static Map<TypeVariable<?>, Type> nestedTypeBindings(
+            Map<TypeVariable<?>, Type> typeBindings, ResolvedType resolvedType, Class<?> nestedType) {
         Map<TypeVariable<?>, Type> bindings = new LinkedHashMap<>(typeBindings);
         Map<TypeVariable<?>, Type> nestedBindings = ResolvedType.bindingsFor(nestedType);
         bindings.putAll(nestedBindings);
@@ -2668,7 +2688,7 @@ final class FieldGeneratorResolver {
      * <p>Arrays are excluded at step 5a in {@link #resolveAndGenerate} before this method
      * is ever called, so there is no {@code isArray} check here.
      */
-    private boolean isNestableType(Class<?> type) {
+    static boolean isNestableType(Class<?> type) {
         if (type.isInterface()) return false;
         if (java.lang.reflect.Modifier.isAbstract(type.getModifiers())) return false;
         // Bootstrap ClassLoader (null) loads all JDK platform classes — skip them
