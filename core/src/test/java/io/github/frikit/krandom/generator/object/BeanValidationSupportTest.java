@@ -383,6 +383,37 @@ class BeanValidationSupportTest {
         assertEquals(LocalTime.MIN, generated(LocalTimeBounds.class, "pastOrPresent", yearStart));
     }
 
+    @Test
+    @DisplayName("the present of a type that holds milliseconds is the clock's instant, which a finer clock leaves out")
+    void thePresentOfAMillisecondTypeNeedsAClockAtAWholeMillisecond() throws Exception {
+        Clock finer = Clock.fixed(Instant.parse("2026-06-04T12:00:00.123456789Z"), ZoneId.of("Asia/Tokyo"));
+        Clock whole = Clock.fixed(Instant.parse("2026-06-04T12:00:00.123Z"), ZoneId.of("Asia/Tokyo"));
+
+        // Hibernate Validator compares the millisecond these types hold with the clock's instant, so under a finer
+        // clock the millisecond before the present breaks @FutureOrPresent, and the one after @PastOrPresent.
+        Map<Class<?>, String> unrepresentable = Map.of(
+                CalendarBounds.class, "present",
+                DateBounds.class, "present",
+                SqlDateBounds.class, "present",
+                TimestampBounds.class, "present");
+        List<Class<?>> types = List.of(
+                InstantBounds.class,
+                LocalDateBounds.class,
+                LocalDateTimeBounds.class,
+                OffsetDateTimeBounds.class,
+                ZonedDateTimeBounds.class,
+                CalendarBounds.class,
+                DateBounds.class,
+                SqlDateBounds.class,
+                TimestampBounds.class,
+                MonthDayBounds.class,
+                LocalTimeBounds.class,
+                OffsetTimeBounds.class);
+        assertGeneratedValuesValid(finer, types, unrepresentable);
+        assertGeneratedValuesValid(whole, types, Map.of());
+        assertEquals(whole.instant(), ((java.util.Date) generated(DateBounds.class, "present", whole)).toInstant());
+    }
+
     /**
      * Generates every member of the bounds classes under the clock, and checks that Hibernate Validator, with the
      * same clock, accepts each value, except for the members named in {@code noValue}, whose generation must fail

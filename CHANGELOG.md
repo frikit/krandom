@@ -23,6 +23,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   first instant of a day; they now give that day or time, which Hibernate Validator accepts under the same
   clock. `@Future` and `@Past` still fail there. Other values are unchanged, so seeded output changes only
   where generation failed.
+- `@PastOrPresent` with `@FutureOrPresent` on a `Date`, `java.sql.Date`, `Timestamp` or `Calendar` now fails
+  generation as a constraint conflict under a clock finer than a millisecond, as the Bean Validation guide
+  says an impossible contract fails. These types hold the clock's instant only to the millisecond, which
+  Hibernate Validator compares with the whole instant, so under a clock fixed at `.123456789Z` the generated
+  value fell before it and broke `@FutureOrPresent` for all four types, and the millisecond after would
+  break `@PastOrPresent`. Under a clock at a whole millisecond the value is still the clock's instant, which
+  Hibernate Validator accepts. Seeded output changes only for these members under a finer clock, such as the
+  system clock, where generation now fails.
 
 ## [3.0.0] - 2026-11-10
 

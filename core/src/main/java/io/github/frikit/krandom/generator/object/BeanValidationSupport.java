@@ -670,17 +670,33 @@ final class BeanValidationSupport {
         if (rawType == LocalDateTime.class) return LocalDateTime.now(clock);
         if (rawType == ZonedDateTime.class) return ZonedDateTime.now(clock);
         if (rawType == OffsetDateTime.class) return OffsetDateTime.now(clock);
-        if (rawType == Date.class) return Date.from(instant);
-        if (rawType == java.sql.Date.class) return new java.sql.Date(instant.toEpochMilli());
-        if (rawType == Timestamp.class) return Timestamp.from(instant);
+        if (rawType == Date.class) return Date.from(presentMillisecond(instant, rawType));
+        if (rawType == java.sql.Date.class)
+            return new java.sql.Date(presentMillisecond(instant, rawType).toEpochMilli());
+        if (rawType == Timestamp.class) return Timestamp.from(presentMillisecond(instant, rawType));
         if (rawType == Calendar.class || rawType == GregorianCalendar.class) {
-            return FieldGeneratorResolver.calendarOf(ZonedDateTime.ofInstant(instant, clock.getZone()));
+            return FieldGeneratorResolver.calendarOf(
+                    ZonedDateTime.ofInstant(presentMillisecond(instant, rawType), clock.getZone()));
         }
         if (rawType == LocalTime.class) return LocalTime.now(clock);
         if (rawType == OffsetTime.class) return OffsetTime.now(clock);
         if (rawType == Year.class) return Year.now(clock);
         if (rawType == YearMonth.class) return YearMonth.now(clock);
         return MonthDay.now(clock);
+    }
+
+    /**
+     * The clock's instant as a {@code Date}, a {@code Timestamp} or a {@code Calendar} holds it, to the millisecond.
+     * Hibernate Validator compares that millisecond with the clock's whole instant, so where the clock is finer
+     * no value of the type is the present: the millisecond before it is past and the one after it future.
+     */
+    private static Instant presentMillisecond(Instant instant, Class<?> rawType) {
+        if (instant.getNano() % 1_000_000 != 0) {
+            throw conflict("@PastOrPresent and @FutureOrPresent have no representable " + rawType.getSimpleName()
+                    + " at the configured clock, which is finer than the millisecond it holds; configure a clock"
+                    + " at a whole millisecond");
+        }
+        return instant;
     }
 
     /**
