@@ -667,8 +667,9 @@ final class FixtureRuleAnalysis {
                 // A contextual predicate override comes before a plain rule wherever generation fills the field.
                 boolean outranked = subject.rule.kind() == FixtureRuleKind.RULE
                         && config.getContextualFieldPredicateOverride(field).isPresent();
-                boolean fieldRoute = present && !outranked && !config.shouldExclude(field);
-                if (fieldRoute || takesArgument(type, subject, field)) {
+                // The configuration's own exclusion of the field, by name too, comes first on either route.
+                boolean excluded = config.shouldExclude(field);
+                if (!excluded && ((present && !outranked) || takesArgument(type, subject, field))) {
                     (populating ? subject.populateRoutes : subject.generateRoutes).add(prefix + target.fieldName());
                 }
             }

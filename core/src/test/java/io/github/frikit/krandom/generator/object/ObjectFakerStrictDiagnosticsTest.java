@@ -698,6 +698,15 @@ class ObjectFakerStrictDiagnosticsTest {
         assertEquals("config", chief.clerk.name);
         FixtureRuleProblem ignored = onlyProblem(new ObjectFaker<>(Chief.class).ignore("name"));
         assertTrue(ignored.reason().endsWith("applies at 'deputy.name'"), ignored.reason());
+        assertEquals(
+                List.of(),
+                problemsOf(new ObjectFaker<>(
+                                Chief.class,
+                                GeneratorConfig.builder()
+                                        .objectExcludeField("name")
+                                        .build())
+                        .ignore("name")),
+                "the configuration already excludes the argument and the field");
     }
 
     @Test
