@@ -4,6 +4,10 @@ Uses `io.github.frikit:krandom-core:3.1.0-SNAPSHOT` by default for repo-local ve
 
 Use the embedded snapshot default only for repo-local Maven-local checks. For published versions, pass the target version explicitly.
 
+## What it shows
+
+`ScalaSbtUsageTest` fills a Scala 3 case class from the `Generators` factories in a ScalaTest suite.
+
 ## Run
 
 ```bash
