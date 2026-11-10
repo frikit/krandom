@@ -1916,11 +1916,7 @@ final class FieldGeneratorResolver {
 
         // ── 3c. Bean Validation constraint override ───────────────────────────
         if (bvGen != null) {
-            GenerationReporter.constraint(
-                    trace,
-                    rawType,
-                    Objects.requireNonNull(constraintSource, "a constraint generator reads its source"),
-                    generatorConfig);
+            GenerationReporter.constraint(trace, rawType, bvConstraints, generatorConfig);
             return generateConstraintValue(bvGen, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
@@ -2706,7 +2702,8 @@ final class FieldGeneratorResolver {
             try {
                 Array.set(arr, i, el);
             } catch (IllegalArgumentException e) {
-                GenerationReporter.failed(currentTrace, GenerationDecision.FAILURE_FALLBACK);
+                // The array is still generated: only this element is left at its default.
+                GenerationReporter.decision(currentTrace, GenerationDecision.FAILURE_FALLBACK, null);
                 String elementPath = ownerType.getSimpleName() + "." + fieldName + "[" + i + "]";
                 String declaredType = declaredArrayType.signature();
                 GenerationFailureContext context = new GenerationFailureContext(

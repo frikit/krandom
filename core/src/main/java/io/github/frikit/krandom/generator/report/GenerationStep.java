@@ -47,6 +47,12 @@ public enum GenerationStep {
     /** A type's default, {@code null} or zero, that a fallback decision left. */
     DEFAULT,
 
+    /**
+     * The value the member held before generation tried to set it, which a failed assignment leaves: its
+     * initializer, or the value of the object given to {@code populate(existing)}.
+     */
+    KEPT,
+
     /** An {@code ObjectFaker} rule that runs after generation, at its own path. */
     RULE,
 

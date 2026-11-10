@@ -35,7 +35,9 @@ import java.util.Optional;
  * @param constraints    the simple names of the Bean Validation constraints on the member, such as
  *                       {@code Size}
  * @param safetyPolicies the safety policies that bound the value, by setting name, such as
- *                       {@code network.safety-policy} to {@code TEST_SAFE_RESERVED}
+ *                       {@code network.safety-policy} to {@code TEST_SAFE_RESERVED}; a default that a failure
+ *                       left has none, and an {@code @Email} member whose regexp or {@code @Pattern} can
+ *                       supply the address has no email domain policy, as that domain is used as written
  * @param decisions      the fallback decisions taken for the value, in the order they were taken
  */
 public record GenerationReportEntry(

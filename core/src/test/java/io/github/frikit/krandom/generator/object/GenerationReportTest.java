@@ -329,17 +329,70 @@ class GenerationReportTest {
     }
 
     @Test
-    @DisplayName("a value that cannot be assigned is reported after the entry that made it")
+    @DisplayName("a value that cannot be assigned is reported after the entry that made it, as the value kept")
     void failedAssignmentIsReported() {
-        List<GenerationReportEntry> entries = generate(
-                Counted.class,
-                listening(67L).objectIgnoreErrors(true).objectOverride(Counted.class, "count", () -> null));
+        List<GenerationReportEntry> entries = new ArrayList<>();
+        GeneratorConfig config = listening(67L)
+                .objectIgnoreErrors(true)
+                .objectOverride(Counted.class, "count", () -> null)
+                .generationReportListener(entries::add)
+                .build();
 
+        Counted generated = new ObjectGenerator<>(Counted.class, config).generate();
+
+        assertEquals(7, generated.count);
         assertEquals(GenerationStep.OVERRIDE, entry(entries, "Counted.count").step());
         GenerationReportEntry outcome = last(entries, "Counted.count");
-        assertEquals(GenerationStep.DEFAULT, outcome.step());
+        assertEquals(GenerationStep.KEPT, outcome.step());
         assertEquals("int", outcome.generator());
         assertEquals(List.of(GenerationDecision.FAILURE_FALLBACK), outcome.decisions());
+
+        entries.clear();
+        Counted existing = new Counted();
+        existing.count = 5;
+        new ObjectFaker<>(Counted.class, config).populate(existing);
+
+        assertEquals(5, existing.count);
+        assertEquals(GenerationStep.KEPT, last(entries, "Counted.count").step());
+    }
+
+    @Test
+    @DisplayName("the email domain policy is named only where it chooses the domain of the address")
+    void emailDomainPolicyIsNamedOnlyWhereItChoosesTheDomain() {
+        List<GenerationReportEntry> entries =
+                generate(Mailboxes.class, listening(71L).objectIgnoreErrors(true));
+
+        assertEquals(List.of("Email"), entry(entries, "Mailboxes.fixed").constraints());
+        assertEquals(
+                GenerationStep.CONSTRAINT, entry(entries, "Mailboxes.fixed").step());
+        assertEquals(Map.of(), entry(entries, "Mailboxes.fixed").safetyPolicies());
+        assertEquals(Map.of(), entry(entries, "Mailboxes.patterned").safetyPolicies());
+        assertEquals(
+                Map.of("email.domain-policy", "TEST_SAFE_RESERVED_DOMAINS"),
+                entry(entries, "Mailboxes.filtered").safetyPolicies());
+        assertEquals(Map.of(), entry(entries, "Mailboxes.digits").safetyPolicies());
+        assertEquals(
+                GenerationStep.CONSTRAINT, entry(entries, "Mailboxes.boxes").step());
+        assertEquals(Map.of(), entry(entries, "Mailboxes.boxes").safetyPolicies());
+        GenerationReportEntry tiny = entry(entries, "Mailboxes.tiny");
+        assertEquals(GenerationStep.DEFAULT, tiny.step());
+        assertEquals(List.of(GenerationDecision.CONSTRAINT_CONFLICT), tiny.decisions());
+        assertEquals(Map.of(), tiny.safetyPolicies());
+    }
+
+    @Test
+    @DisplayName("an array element that cannot be stored leaves the array, which records the decision")
+    void rejectedArrayElementLeavesTheArray() {
+        List<GenerationReportEntry> entries = generate(
+                Readings.class,
+                listening(73L).collectionSize(1, 1).objectIgnoreErrors(true).objectOverride(int.class, () -> null));
+
+        GenerationReportEntry readings = entry(entries, "Readings.readings");
+        assertEquals(GenerationStep.COLLECTION, readings.step());
+        assertEquals("[I", readings.generator());
+        assertEquals(List.of(GenerationDecision.FAILURE_FALLBACK), readings.decisions());
+        assertEquals(
+                GenerationStep.OVERRIDE, entry(entries, "Readings.readings[]").step());
     }
 
     @Test
@@ -802,7 +855,27 @@ class GenerationReportTest {
     record Flagged(boolean flag) {}
 
     static final class Counted {
-        int count;
+        int count = 7;
+    }
+
+    static final class Mailboxes {
+        @Email(regexp = "[a-z]{4}@corp\\.com") String fixed;
+
+        @Email @jakarta.validation.constraints.Pattern(regexp = "[a-z]{4}@corp\\.com") String patterned;
+
+        // The regex generator does not support a lookahead, so the policy's addresses are only filtered.
+        @Email(regexp = "(?=.*@example\\.).*")
+        String filtered;
+
+        @jakarta.validation.constraints.Pattern(regexp = "[0-9]{4}") String digits;
+
+        @jakarta.validation.constraints.Min(1) int boxes;
+
+        @Email @Size(max = 3) String tiny;
+    }
+
+    static final class Readings {
+        int[] readings;
     }
 
     static final class Patterned {

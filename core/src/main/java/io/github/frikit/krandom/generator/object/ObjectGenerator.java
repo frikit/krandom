@@ -831,7 +831,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                         -1);
                 failurePolicy.handle(
                         new ObjectGenerationException("Could not set " + fieldContext, failureContext, e), null);
-                // The member's entry told how its value was made; this one tells that it was not kept.
+                // The member's entry told how its value was made; this one tells that the member kept the
+                // value it held instead.
                 GenerationReporter reporter = reporter();
                 if (reporter != null) {
                     reporter.failedAssignment(objectPath + "." + field.getName(), field.getType());

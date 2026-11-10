@@ -102,12 +102,15 @@ A `GenerationReportListener`, set with `GeneratorConfig.Builder.generationReport
   and, for a rule, its registration number;
 - the Bean Validation constraints on the member;
 - the safety policies that bound it, such as `network.safety-policy`, `email.domain-policy` or
-  `phone-number.safety-policy`;
+  `phone-number.safety-policy`. A default that a failure left has none, and an `@Email` member whose
+  `regexp` or `@Pattern` can supply the address has no `email.domain-policy`, since that domain is used as
+  written;
 - the fallback decisions taken: a cut at `objectMaxDepth` or at a cycle, an unsupported type, unmet
-  constraints or another failure, such as a rejected element or a unique value that ran out, that
-  `objectIgnoreErrors(true)` passes over, a `null` or an empty `Optional` that the
+  constraints or another failure that `objectIgnoreErrors(true)` passes over, such as a rejected element, a
+  unique value that ran out or a value that cannot be assigned, a `null` or an empty `Optional` that the
   configured probabilities drew, a semantic provider that a constraint or, in `RELAXED` mode, an annotation
-  deferred, and a member that the coherence pass changed or, in `RELAXED` mode, kept.
+  deferred, and a member that the coherence pass changed or, in `RELAXED` mode, kept. A value that cannot be
+  assigned leaves the member with the value it held, which its entry reports as `GenerationStep.KEPT`.
 
 ```java
 List<GenerationReportEntry> entries = new ArrayList<>();

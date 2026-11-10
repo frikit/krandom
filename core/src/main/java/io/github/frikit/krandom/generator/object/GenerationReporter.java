@@ -150,6 +150,8 @@ final class GenerationReporter {
         if (trace != null) {
             trace.decision(decision);
             trace.step = GenerationStep.DEFAULT;
+            // No safety policy binds the default, whichever bound the generator that failed.
+            trace.safetyPolicies.clear();
         }
     }
 
@@ -164,10 +166,19 @@ final class GenerationReporter {
         }
     }
 
-    static void constraint(@Nullable Trace trace, Class<?> rawType, AnnotatedElement element, GeneratorConfig config) {
+    /**
+     * A constraint generator, named with the email domain policy only when that policy chooses the domain of
+     * every address it can produce: an {@code @Email} regexp or a {@code @Pattern} that supplies the address
+     * keeps the domain as written.
+     */
+    static void constraint(
+            @Nullable Trace trace,
+            Class<?> rawType,
+            BeanValidationSupport.ConstraintModel constraints,
+            GeneratorConfig config) {
         if (trace != null) {
             trace.step(GenerationStep.CONSTRAINT, rawType.getName());
-            if (BeanValidationSupport.constraintNames(element).contains("Email")) {
+            if (BeanValidationSupport.followsEmailDomainPolicy(constraints)) {
                 trace.safetyPolicy("email.domain-policy", config.getEmailDomainPolicy());
             }
         }
@@ -212,10 +223,10 @@ final class GenerationReporter {
         emit(trace);
     }
 
-    /** Reports a value that could not be assigned, which leaves the member at its default. */
+    /** Reports a value that could not be assigned, which leaves the member with the value it held. */
     void failedAssignment(String path, Class<?> type) {
         Trace trace = new Trace(path);
-        trace.step(GenerationStep.DEFAULT, type.getName()).decision(GenerationDecision.FAILURE_FALLBACK);
+        trace.step(GenerationStep.KEPT, type.getName()).decision(GenerationDecision.FAILURE_FALLBACK);
         emit(trace);
     }
 
