@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.regex.Pattern;
 
 /**
  * Declarative schema-based record generator.
@@ -71,6 +72,16 @@ public final class Schema implements Generator<Map<String, Object>> {
 
     private static final long LAST_SECOND =
             LocalDate.of(9999, 12, 31).atTime(LocalTime.MAX).toEpochSecond(ZoneOffset.UTC);
+
+    /**
+     * Plain scalars of letters, digits, {@code _} and {@code -} that YAML 1.1 or 1.2 reads as another type
+     * than a string, in any letter case: a boolean or null word; an integer, including YAML 1.1's {@code _}
+     * separators, octal, hexadecimal and binary forms, and YAML 1.2's {@code 0o} octal; a float with an
+     * exponent; and a date.
+     */
+    private static final Pattern YAML_NON_STRING = Pattern.compile("(?i)y|n|yes|no|true|false|on|off|null"
+            + "|[-+]?(?:[0-9][0-9_]*|0x[0-9a-f_]+|0o[0-7]+|0b[01_]+|[0-9][0-9_]*e[-+]?[0-9]+)"
+            + "|[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}");
 
     private final GeneratorConfig config;
     private final Map<String, SchemaValueProvider> fields;
@@ -968,8 +979,12 @@ public final class Schema implements Generator<Map<String, Object>> {
         out.append(':');
     }
 
+    /**
+     * Whether a key can be written plain and read back as the same string. Only letters, digits, {@code _}
+     * and {@code -} are plain, and not a key that YAML 1.1 or 1.2 reads as another type.
+     */
     private static boolean isPlainYamlKey(String value) {
-        if (value.isEmpty()) {
+        if (value.isEmpty() || YAML_NON_STRING.matcher(value).matches()) {
             return false;
         }
         for (int i = 0; i < value.length(); i++) {

@@ -152,6 +152,80 @@ class SchemaOutputTest {
     }
 
     @Test
+    @DisplayName("YAML quotes a key that a YAML parser would read as a boolean, null, number, or date")
+    void yamlQuotesKeysThatReadAsOtherTypes() {
+        // YAML 1.1 and 1.2 read these plain keys as booleans, nulls, integers, floats, or dates.
+        List<String> quoted = List.of(
+                "true",
+                "False",
+                "TRUE",
+                "yes",
+                "No",
+                "ON",
+                "off",
+                "y",
+                "N",
+                "null",
+                "Null",
+                "NULL",
+                "123",
+                "-1",
+                "0",
+                "-0",
+                "1_000",
+                "017",
+                "0x1F",
+                "0X1f",
+                "0x_1",
+                "0o17",
+                "0b101",
+                "1e3",
+                "1E3",
+                "1e-3",
+                "-1e3",
+                "1_0e1",
+                "2024-01-05",
+                "2024-1-5");
+        // These stay strings when plain, so they stay as they were.
+        List<String> bare = List.of(
+                "name",
+                "trueish",
+                "nul",
+                "yess",
+                "1st",
+                "123abc",
+                "12-34",
+                "1-2-3",
+                "-",
+                "-a",
+                "---",
+                "_",
+                "_1",
+                "inf",
+                "nan",
+                "Infinity",
+                "élan",
+                "١٢٣");
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        StringBuilder expected = new StringBuilder();
+        for (String key : quoted) {
+            fields.put(key, ctx -> 1);
+            expected.append(expected.isEmpty() ? "- " : "  ")
+                    .append('"')
+                    .append(key)
+                    .append("\": 1\n");
+        }
+        for (String key : bare) {
+            fields.put(key, ctx -> 1);
+            expected.append("  ").append(key).append(": 1\n");
+        }
+        fields.put("nested", ctx -> Map.of("null", List.of(Map.of("10", true))));
+        expected.append("  nested:\n    \"null\":\n      - \"10\": true\n");
+
+        assertEquals(expected.toString(), new Schema(fields).toYaml(1));
+    }
+
+    @Test
     @DisplayName("record accessor failures expose structured component context")
     void recordAccessorFailuresExposeStructuredContext() {
         Schema schema = new Schema(Map.of("record", ctx -> new ThrowingRecord("payload")));

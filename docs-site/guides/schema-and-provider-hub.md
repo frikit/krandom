@@ -225,8 +225,10 @@ schema.writeToml(out, 1000);
 For stream-based output, `writeTo(OutputStream, OutputFormat, count)` writes UTF-8 and flushes its adapter writer without closing the caller-owned stream. The `Writer` overload also leaves ownership with the caller.
 
 `JSON` is an array document; `JSONL` stays one object per line. YAML renders an ordinary sequence
-and TOML renders an array of `records` tables. TOML has no `null` value, so its writer rejects a
-null field instead of silently changing data.
+and TOML renders an array of `records` tables. YAML quotes a field name that a parser would read as a
+boolean, null, number, or date, such as `true`, `null`, `123`, or `2024-01-05`, so every name reads back
+as the same string. TOML has no `null` value, so its writer rejects a null field instead of silently
+changing data.
 
 ### Projecting existing objects
 

@@ -12,6 +12,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   a word. It waited for as many different words as the list had entries, so `new TextOptions(20,
   List.of("one", "one"), true, false)` never returned; it now returns `one.`, and a text holds each distinct
   word of the list at most once. Seeded output is unchanged for every text that was generated before.
+- `Schema` and `SchemaProjection` YAML output quotes a key that a YAML parser reads as another type than a
+  string: a boolean or null word in any letter case, such as `true`, `No`, `ON`, or `null`; an integer, such
+  as `123`, `-1`, `1_000`, `017`, `0x1F`, `0o17`, or `0b101`; a float with an exponent, such as `1e3`; or a
+  date, such as `2024-01-05`. It wrote them bare, so `- true: 1` read back as a boolean key. Other keys,
+  such as `1st` or `-`, are written as before, and values were already quoted.
 
 ## [3.0.0] - 2026-11-10
 
