@@ -98,6 +98,79 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   class is built through that constructor, where the private and synthetic JVM constructors that Kotlin
   compiles it to failed as ambiguous, unless it has a no-argument constructor, which still builds it before
   its fields are filled.
+- `SchemaParser` generates `items` written as a list of schemas, one for each position, and
+  `additionalItems` beside it, which it used to accept and ignore, so such an array held strings. These
+  are the tuple forms of the drafts up to 2019-09, read whatever `$schema` says, and `prefixItems`, their
+  Draft 2020-12 replacement, is still rejected. Seeded output changes for every schema with a list of
+  `items` or with `items: false`.
+  - Each position follows its own schema, and the items after the tuple follow `additionalItems`, or
+    are strings without it. An array holds the whole tuple unless `minItems` or `maxItems` moves its
+    size, so `minItems` 0 allows shorter arrays.
+  - `additionalItems: false` ends an array with the tuple, a `false` entry ends it before that position,
+    and `items: false`, which used to give strings, allows only the empty array. A `minItems` past any of
+    them is rejected with the schema path, such as `$.properties.pair`, and a tuple entry is checked at
+    its own, such as `$.properties.pair.items[1]`.
+  - With `uniqueItems`, each item is drawn for the position it fills, so an array ends early at a
+    position that has no new value, and fails below `minItems`.
+  - A `const` or `enum` array must meet the tuple, `additionalItems`, and `items: false`.
+    `additionalItems` beside a single `items` schema is ignored, as those drafts say.
+  - An `items` that is not a schema, a boolean, or a list of them, such as `"string"`, and an
+    `additionalItems` beside a list that is not a schema or a boolean, are now rejected with the schema
+    path. They used to leave the items unconstrained.
+- `SchemaParser` supports `minProperties`, `maxProperties`, and property `dependencies`, which it used to
+  accept and ignore, and honours `required` and `additionalProperties`, which it read only as document
+  controls, so a generated object could break any of them. Seeded output changes only for a nested
+  object that these keywords now change, and for one with a property schema `true`.
+  - A nested object still holds every property it declares unless a keyword asks otherwise.
+    `maxProperties` leaves out optional properties, chosen at random, until the object fits, and
+    `minProperties` adds as few additional properties as it needs, named `property1`, `property2`, and
+    so on, past every name the schema uses, with values from the `additionalProperties` schema, or
+    strings without one. A `required` property that is not in `properties` is generated the same way,
+    and its name chooses a realistic value where it can. Where `additionalProperties` is `false`, none
+    can be added, so such a schema is rejected with its path.
+  - A property schema `true` now generates a string, as `{}` does, where the property used to be left
+    out, and `false` leaves the property out. A `required` property whose schema is `false`, or is no
+    schema, is rejected with the schema path.
+  - A property dependency, such as `"dependencies": {"card": ["billing"]}`, brings the properties it
+    names, through every link, beside the property that needs them. A property whose dependencies cannot
+    be generated, because they are not in `properties` and `additionalProperties` is `false`, is left
+    out, and rejected if it is required. `maxProperties` leaves out a property only after every property
+    that depends on it, and properties that depend on each other only together; where
+    `additionalProperties` is `false`, `minProperties` and `maxProperties` must then leave a range as wide
+    as each such group, or the schema is rejected.
+  - A schema dependency, which asks an object that holds one property to meet a second schema too,
+    needs schema composition, which the parser does not have, as for `allOf`. It is now rejected with its
+    schema path, such as `$.properties.order.dependencies.card`, where it used to be ignored.
+    `dependencies` is the form of the drafts up to 7, read whatever `$schema` says, and
+    `dependentRequired` and `dependentSchemas`, the Draft 2019-09 forms, are still rejected.
+  - The root generates every property as a column, so a root `required` name or property dependency that
+    names another property, or a `minProperties` or `maxProperties` that its properties do not meet, is
+    now rejected at `$`.
+  - A `const` or `enum` object must meet `required`, `additionalProperties`, `minProperties`,
+    `maxProperties`, and the property dependencies.
+  - A `minProperties` or `maxProperties` that is not a whole number of at least 0, a `required` that is
+    not a list of names, an `additionalProperties` that is not a schema or a boolean, and a
+    `dependencies` that does not map names to lists of names, are rejected with the schema path. An
+    `additionalProperties` schema is checked and resolved like any other, so a `$ref` inside it, or a
+    combination that leaves it no value, is now rejected.
+- `SchemaParser` generates every format Draft 2020-12 defines, and OpenAPI's `byte`, `int32`, `int64`,
+  `float`, and `double`. It used to fill the other string formats with semantic or random strings,
+  which a validator that checks formats rejects for some of them, such as `duration` and
+  `json-pointer`, and to ignore a format on a number. Seeded output changes for every schema that uses
+  one of them.
+  - `uri-reference`, `iri`, `iri-reference`, and `uri-template` come from the URL generator, as a URI
+    with no quote or brace is each of them, and `idn-hostname` from the hostname generator, as a
+    hostname is one.
+  - `duration` is RFC 3339 days, hours, minutes, and seconds, such as `P3DT4H5M6S`; `json-pointer` is
+    one to three segments of lowercase letters, such as `/abc/de`; `relative-json-pointer` puts a level
+    count before one; and `regex` is letters, which match themselves. They meet `minLength` and
+    `maxLength` as the other formats do.
+  - `byte` is base64. `int32` and `int64` name integers, so a `number` with either is now generated as
+    an `integer`, where it used to get fractions. `int32` keeps it within an `int`, so bounds that hold
+    no `int` are rejected with the schema path, and `float` and `double` keep a `number` within their
+    range, applied after the default range, so a `float` without bounds keeps it.
+  - `binary` and `password` allow any string, and no standard validator checks any other format, so
+    they keep the semantic-name or bounded-string fallback.
 
 ### Changed
 
@@ -237,6 +310,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   <name> requires a concrete type override`, and a sealed one with no subclass as `Sealed type <name> has
   no subclass to generate; register a type override for it`. Both failed as `Kotlin sealed and abstract
   types require a concrete type override`.
+- JSON Schema export writes a `LocalDateTime` record member as `format: date-time-local`, and a
+  `LocalTime` member and the `datetime.time` provider as `format: time-local`, where it wrote `date-time`
+  and `time`. RFC 3339's `date-time` and `time` need an offset, which these values do not have, so a
+  schema exported from such a type and parsed back, which now generates RFC 3339 values with an offset,
+  gave values the type cannot hold. Both formats come from the
+  [OpenAPI Format Registry](https://spec.openapis.org/registry/format/), which describes them as
+  RFC 3339 date-time and time without the timezone component. `SchemaParser` now generates both in ISO
+  local form, with the seconds, from the ranges of `date-time` and `time`. An `OffsetDateTime` or
+  `ZonedDateTime` member is still `date-time`.
 
 ### Removed
 
@@ -321,6 +403,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   constructor set, as it does by default, now keeps a constrained one too. Record components already read
   their constraints. Seeded output changes for such arguments, and for the members after them where members
   share one stream.
+- `SchemaParser` reads `minLength`, `maxLength`, `minItems`, `maxItems`, `minProperties`, and
+  `maxProperties` exactly. It read the first four through `intValue`, so a count beyond an `int`
+  wrapped: `maxItems` 3000000000 parsed and then failed every record with `Illegal Capacity:
+  -1294967296`, a `minLength` that large was ignored, and a `const` was measured against the wrapped
+  value. A generated string, array, or object now holds at most 1,000,000 characters, items, or
+  members, the limit `RegexGenerator` keeps for a string: a minimum above it is rejected while parsing,
+  naming the keyword, its value, and the schema path, and a larger maximum, even one beyond an `int`,
+  draws no more than it, nor does a larger configured `stringLength` or `collectionSize` where the
+  schema declares no maximum. An object that would hold more properties, declared or required, is
+  rejected with its path, the root included. A count that is negative, fractional, or no number, which
+  used to be truncated or ignored, is now rejected with the schema path, and a message writes a count
+  beyond a `long`, such as `1E+1000000000`, in scientific notation. Seeded output changes only where a
+  count or a configured size is above 1,000,000.
+- `SchemaParser` writes `format: date-time` and `format: time` as RFC 3339 requires, with the seconds and
+  an offset, such as `2041-07-03T05:12:44+05:30` and `05:12:44.123456789Z`. They came from
+  `LocalDateTime` and `LocalTime`, whose text has no offset and can leave out `:00` seconds, so every
+  value failed a validator that checks formats. Seeded output changes for every schema with either
+  format.
 - `SchemaParser` compares `const` and `enum` values as JSON values at every depth: a number by its
   value, whatever Java type holds it, an array item by item in order, and an object member by member
   under the name it is written with, which `properties` now also use, so the key `1` is the member

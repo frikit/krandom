@@ -17,10 +17,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.IDN;
+import java.net.URI;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1556,7 +1563,6 @@ class SchemaParserTest {
             assertEquals(Set.of("abc"), distinct(Map.of("const", "abc", "minLength", 3, "maxLength", 3)));
             assertEquals(Set.of("abc"), distinct(Map.of("const", "abc", "pattern", "b")));
             assertEquals(Set.of(List.of(1)), distinct(Map.of("const", List.of(1), "items", Map.of("type", "integer"))));
-            assertEquals(Set.of(List.of(1)), distinct(Map.of("const", List.of(1), "items", "not-a-schema")));
             assertEquals(
                     Set.of(Map.of("a", 1)),
                     distinct(Map.of("const", Map.of("a", 1), "properties", Map.of("a", Map.of("type", "integer")))));
@@ -2460,12 +2466,1219 @@ class SchemaParserTest {
         }
     }
 
+    @Nested
+    @DisplayName("a list of items and additionalItems")
+    class TupleItems {
+
+        private static final List<Object> ONE_TWO = List.of(Map.of("const", 1), Map.of("const", 2));
+
+        private static Map<String, Object> array(Object... keywordsAndValues) {
+            Map<String, Object> property = new LinkedHashMap<>();
+            property.put("type", "array");
+            for (int i = 0; i < keywordsAndValues.length; i += 2) {
+                property.put((String) keywordsAndValues[i], keywordsAndValues[i + 1]);
+            }
+            return property;
+        }
+
+        private static Set<Integer> sizes(Map<String, Object> property) {
+            Set<Integer> sizes = new HashSet<>();
+            for (Object value : CombinedConstraints.values(property)) {
+                sizes.add(assertInstanceOf(List.class, value).size());
+            }
+            return sizes;
+        }
+
+        @Test
+        @DisplayName("each position follows its own schema, and an array holds the whole tuple by default")
+        void positionsFollowTheirOwnSchemas() {
+            assertEquals(Set.of(List.of(1, 2)), CombinedConstraints.distinct(array("items", ONE_TWO)));
+            for (Object value : CombinedConstraints.values(array(
+                    "items",
+                    List.of(Map.of("type", "integer", "minimum", 1, "maximum", 9), Map.of("type", "boolean"))))) {
+                List<?> items = assertInstanceOf(List.class, value);
+                assertEquals(2, items.size(), items::toString);
+                int first = assertInstanceOf(Integer.class, items.get(0));
+                assertTrue(first >= 1 && first <= 9, items::toString);
+                assertInstanceOf(Boolean.class, items.get(1));
+            }
+        }
+
+        @Test
+        @DisplayName("minItems and maxItems move the size away from the tuple's length")
+        void boundsMoveTheSize() {
+            assertEquals(Set.of(List.of(1)), CombinedConstraints.distinct(array("items", ONE_TWO, "maxItems", 1)));
+            assertEquals(
+                    Set.of(List.of(), List.of(1), List.of(1, 2)),
+                    CombinedConstraints.distinct(array("items", ONE_TWO, "minItems", 0)));
+            // Without additionalItems, the items after the tuple are anything: strings, as for an array
+            // without items.
+            for (Object value :
+                    CombinedConstraints.values(array("items", List.of(Map.of("const", 1)), "minItems", 3))) {
+                List<?> items = assertInstanceOf(List.class, value);
+                assertEquals(3, items.size(), items::toString);
+                assertEquals(1, items.get(0));
+                assertInstanceOf(String.class, items.get(1));
+                assertInstanceOf(String.class, items.get(2));
+            }
+        }
+
+        @Test
+        @DisplayName("additionalItems false ends an array with the tuple")
+        void additionalItemsFalse() {
+            assertEquals(
+                    Set.of(List.of(), List.of(1), List.of(1, 2)),
+                    CombinedConstraints.distinct(
+                            array("items", ONE_TWO, "additionalItems", false, "minItems", 0, "maxItems", 9)));
+            CombinedConstraints.assertRejected(array("items", ONE_TWO, "additionalItems", false, "minItems", 3));
+        }
+
+        @Test
+        @DisplayName("an additionalItems schema gives the items after the tuple, up to maxItems")
+        void additionalItemsSchema() {
+            Map<String, Object> five = Map.of("const", 5);
+            assertEquals(
+                    Set.of(List.of(1, 2, 5)),
+                    CombinedConstraints.distinct(array("items", ONE_TWO, "additionalItems", five, "minItems", 3)));
+            assertEquals(Set.of(2, 3, 4), sizes(array("items", ONE_TWO, "additionalItems", five, "maxItems", 4)));
+            for (Object value :
+                    CombinedConstraints.values(array("items", ONE_TWO, "additionalItems", five, "maxItems", 4))) {
+                List<?> items = assertInstanceOf(List.class, value);
+                assertEquals(List.of(1, 2), items.subList(0, 2));
+                assertTrue(items.subList(2, items.size()).stream().allMatch(item -> item.equals(5)), items::toString);
+            }
+        }
+
+        @Test
+        @DisplayName("additionalItems is ignored beside a single items schema, as the drafts that define it say")
+        void additionalItemsIgnoredBesideOneSchema() {
+            Map<String, Object> one = Map.of("const", 1);
+            assertEquals(
+                    Set.of(List.of(1, 1)),
+                    CombinedConstraints.distinct(
+                            array("items", one, "additionalItems", false, "minItems", 2, "maxItems", 2)));
+            assertEquals(
+                    Set.of(List.of(1)),
+                    CombinedConstraints.distinct(array(
+                            "items", one, "additionalItems", Map.of("$ref", "#/x"), "minItems", 1, "maxItems", 1)));
+            assertEquals(
+                    Set.of(List.of(1)),
+                    CombinedConstraints.distinct(
+                            array("items", one, "additionalItems", "not a schema", "minItems", 1, "maxItems", 1)));
+        }
+
+        @Test
+        @DisplayName("items false allows only the empty array, and a false entry ends the array before it")
+        void falseSchemas() {
+            assertEquals(Set.of(List.of()), CombinedConstraints.distinct(array("items", false)));
+            assertEquals(Set.of(List.of()), CombinedConstraints.distinct(array("items", false, "minItems", 0)));
+            CombinedConstraints.assertRejected(array("items", false, "minItems", 1));
+            List<Object> stops = List.of(Map.of("const", 1), false, Map.of("const", 3));
+            assertEquals(Set.of(List.of(1)), CombinedConstraints.distinct(array("items", stops, "maxItems", 5)));
+            assertEquals(
+                    Set.of(List.of(), List.of(1)),
+                    CombinedConstraints.distinct(array("items", stops, "minItems", 0, "maxItems", 5)));
+            CombinedConstraints.assertRejected(array("items", stops, "minItems", 2));
+            // A false first entry allows only the empty array.
+            assertEquals(Set.of(List.of()), CombinedConstraints.distinct(array("items", List.of(false))));
+        }
+
+        @Test
+        @DisplayName("true allows any item, like an empty schema: a string")
+        void trueSchemas() {
+            for (Object value : CombinedConstraints.values(array("items", List.of(true, Map.of("const", 2))))) {
+                List<?> items = assertInstanceOf(List.class, value);
+                assertInstanceOf(String.class, items.get(0));
+                assertEquals(2, items.get(1));
+            }
+            for (Object value : CombinedConstraints.values(
+                    array("items", List.of(Map.of("const", 1)), "additionalItems", true, "minItems", 2))) {
+                assertInstanceOf(
+                        String.class, assertInstanceOf(List.class, value).get(1));
+            }
+            for (Object value : CombinedConstraints.values(array("items", true, "minItems", 2, "maxItems", 2))) {
+                List<?> items = assertInstanceOf(List.class, value);
+                assertEquals(2, items.size());
+                assertInstanceOf(String.class, items.get(0));
+            }
+            // An empty list of items makes every item an additional one.
+            assertEquals(Set.of(List.of()), CombinedConstraints.distinct(array("items", List.of())));
+            assertEquals(
+                    Set.of(List.of(7, 7)),
+                    CombinedConstraints.distinct(
+                            array("items", List.of(), "additionalItems", Map.of("const", 7), "minItems", 2)));
+        }
+
+        @Test
+        @DisplayName("uniqueItems keeps the items distinct across the tuple and after it")
+        void uniqueTuples() {
+            assertEquals(
+                    Set.of(List.of(1, 2)),
+                    CombinedConstraints.distinct(array(
+                            "uniqueItems", true, "items", List.of(Map.of("const", 1), Map.of("enum", List.of(1, 2))))));
+            // 1 and 1.0 are one JSON value, so a tuple of both cannot be unique.
+            CombinedConstraints.assertRejected(
+                    array("uniqueItems", true, "items", List.of(Map.of("const", 1), Map.of("const", 1.0))));
+            // Where minItems leaves room, the array ends at the position that runs out of distinct values.
+            assertEquals(
+                    Set.of(List.of(1)),
+                    CombinedConstraints.distinct(array(
+                            "uniqueItems",
+                            true,
+                            "minItems",
+                            1,
+                            "items",
+                            List.of(Map.of("const", 1), Map.of("const", 1), Map.of("const", 2)))));
+            for (Object value : CombinedConstraints.values(array(
+                    "uniqueItems",
+                    true,
+                    "items",
+                    List.of(Map.of("const", 1)),
+                    "additionalItems",
+                    Map.of("enum", List.of(1, 2, 3)),
+                    "minItems",
+                    3,
+                    "maxItems",
+                    3))) {
+                List<?> items = assertInstanceOf(List.class, value);
+                assertEquals(1, items.getFirst(), items::toString);
+                assertEquals(Set.of(2, 3), new HashSet<>(items.subList(1, 3)), items::toString);
+            }
+        }
+
+        @Test
+        @DisplayName("a const or enum array meets the tuple, additionalItems and false items")
+        void constAndEnumMeetTheTuple() {
+            List<Object> tuple = List.of(Map.of("type", "integer"), Map.of("type", "string"));
+            assertEquals(
+                    Set.of(List.of(1, "a")),
+                    CombinedConstraints.distinct(Map.of("const", List.of(1, "a"), "items", tuple)));
+            CombinedConstraints.assertRejected(Map.of("const", List.of("a", 1), "items", tuple));
+            assertEquals(
+                    Set.of(List.of(1, "a", true)),
+                    CombinedConstraints.distinct(Map.of("const", List.of(1, "a", true), "items", tuple)));
+            CombinedConstraints.assertRejected(
+                    Map.of("const", List.of(1, "a", true), "items", tuple, "additionalItems", false));
+            CombinedConstraints.assertRejected(Map.of(
+                    "const", List.of(1, "a", true), "items", tuple, "additionalItems", Map.of("type", "string")));
+            assertEquals(
+                    Set.of(List.of(1, "a", "b")),
+                    CombinedConstraints.distinct(Map.of(
+                            "const",
+                            List.of(1, "a", "b"),
+                            "items",
+                            tuple,
+                            "additionalItems",
+                            Map.of("type", "string"))));
+            assertEquals(
+                    Set.of(List.of(1, "a")),
+                    CombinedConstraints.distinct(
+                            Map.of("enum", List.of(List.of(1, "a"), List.of("a", 1)), "items", tuple)));
+            CombinedConstraints.assertRejected(Map.of("const", List.of(1), "items", false));
+            assertEquals(Set.of(List.of()), CombinedConstraints.distinct(Map.of("const", List.of(), "items", false)));
+            CombinedConstraints.assertRejected(Map.of("const", List.of(1, 2), "items", List.of(true, false)));
+            // additionalItems is ignored beside a single items schema here too.
+            assertEquals(
+                    Set.of(List.of(1, 2)),
+                    CombinedConstraints.distinct(Map.of(
+                            "const", List.of(1, 2), "items", Map.of("type", "integer"), "additionalItems", false)));
+        }
+
+        @Test
+        @DisplayName("tuple entries and additionalItems are checked and resolved at their own paths")
+        void pathsAndShapes() {
+            Map<String, Object> conflict = Map.of("type", "string", "pattern", "^A{8}$", "maxLength", 3);
+            CombinedConstraints.assertRejectedAt(
+                    "$.properties.value.items[1]", Map.of("value", array("items", List.of(Map.of(), conflict))));
+            CombinedConstraints.assertRejectedAt(
+                    "$.properties.value.additionalItems",
+                    Map.of("value", array("items", List.of(Map.of()), "additionalItems", conflict)));
+            CombinedConstraints.assertRejectedAt(
+                    "$.properties.value.items[0]", Map.of("value", array("items", List.of(Map.of("$ref", "#/x")))));
+            CombinedConstraints.assertRejectedAt(
+                    "$.properties.value.additionalItems",
+                    Map.of("value", array("items", List.of(), "additionalItems", Map.of("oneOf", List.of()))));
+            for (Object items : List.of("string", 5, List.of(1), List.of(Map.of(), "x"))) {
+                CombinedConstraints.assertRejected(array("items", items));
+            }
+            Map<String, Object> nullItems = array();
+            nullItems.put("items", null);
+            CombinedConstraints.assertRejected(nullItems);
+            CombinedConstraints.assertRejected(array("items", List.of(), "additionalItems", "no"));
+            // The shape is checked wherever the keyword appears, beside a const too.
+            CombinedConstraints.assertRejected(Map.of("type", "string", "items", 5));
+            CombinedConstraints.assertRejected(Map.of("const", List.of(1), "items", "not-a-schema"));
+        }
+
+        @Test
+        @DisplayName("seeded tuples replay")
+        void tuplesReplay() {
+            List<Map<String, Object>> properties = List.of(
+                    array("items", List.of(Map.of("type", "integer"), Map.of("type", "string")), "maxItems", 5),
+                    array(
+                            "uniqueItems",
+                            true,
+                            "items",
+                            List.of(Map.of("type", "integer", "minimum", 1, "maximum", 5)),
+                            "additionalItems",
+                            Map.of("type", "integer", "minimum", 1, "maximum", 5),
+                            "maxItems",
+                            5));
+            for (Map<String, Object> property : properties) {
+                assertEquals(CombinedConstraints.values(property), CombinedConstraints.values(property));
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("object members: required, additionalProperties, minProperties, maxProperties, dependencies")
+    class ObjectMembers {
+
+        private static Map<String, Object> object(Object... keywordsAndValues) {
+            Map<String, Object> property = new LinkedHashMap<>();
+            property.put("type", "object");
+            for (int i = 0; i < keywordsAndValues.length; i += 2) {
+                property.put((String) keywordsAndValues[i], keywordsAndValues[i + 1]);
+            }
+            return property;
+        }
+
+        /** Properties that each hold their own name, in order. */
+        private static Map<String, Object> named(String... names) {
+            Map<String, Object> properties = new LinkedHashMap<>();
+            for (String name : names) {
+                properties.put(name, Map.of("const", name));
+            }
+            return properties;
+        }
+
+        private static Set<List<String>> memberLists(Map<String, Object> property) {
+            Set<List<String>> lists = new HashSet<>();
+            for (Object value : CombinedConstraints.values(property)) {
+                List<String> names = new ArrayList<>();
+                for (Object name : assertInstanceOf(Map.class, value).keySet()) {
+                    names.add((String) name);
+                }
+                lists.add(names);
+            }
+            return lists;
+        }
+
+        private static Map<String, Object> root(Object... keywordsAndValues) {
+            Map<String, Object> root = object(keywordsAndValues);
+            root.putIfAbsent("properties", named("a", "b"));
+            return root;
+        }
+
+        private static void assertRootRejected(Map<String, Object> root) {
+            IllegalArgumentException exception =
+                    assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(root));
+            assertTrue(exception.getMessage().endsWith(" at $"), exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("maxProperties leaves out optional properties, and required ones stay")
+        void maxPropertiesLeavesOutOptionalProperties() {
+            assertEquals(
+                    Set.of(List.of("a"), List.of("b")),
+                    memberLists(object("properties", named("a", "b"), "maxProperties", 1)));
+            assertEquals(
+                    Set.of(List.of("a", "b"), List.of("a", "c")),
+                    memberLists(
+                            object("properties", named("a", "b", "c"), "required", List.of("a"), "maxProperties", 2)));
+            assertEquals(Set.of(List.of()), memberLists(object("properties", named("a", "b"), "maxProperties", 0)));
+            // The values are the properties' own.
+            for (Object value : CombinedConstraints.values(object("properties", named("a", "b"), "maxProperties", 1))) {
+                Map<?, ?> members = assertInstanceOf(Map.class, value);
+                members.forEach((name, member) -> assertEquals(name, member));
+            }
+            // Within the bounds, every property is generated, as without them.
+            assertEquals(
+                    Set.of(List.of("a", "b")),
+                    memberLists(object("properties", named("a", "b"), "minProperties", 2, "maxProperties", 2)));
+            assertEquals(Set.of(List.of("a", "b")), memberLists(object("properties", named("a", "b"))));
+        }
+
+        @Test
+        @DisplayName("minProperties adds additional properties where additionalProperties allows them")
+        void minPropertiesAddsAdditionalProperties() {
+            for (Object value : CombinedConstraints.values(object("properties", named("a"), "minProperties", 3))) {
+                Map<?, ?> members = assertInstanceOf(Map.class, value);
+                assertEquals(List.of("a", "property1", "property2"), List.copyOf(members.keySet()));
+                assertInstanceOf(String.class, members.get("property1"));
+                assertInstanceOf(String.class, members.get("property2"));
+            }
+            assertEquals(
+                    Set.of(Map.of("property1", 7, "property2", 7)),
+                    CombinedConstraints.distinct(
+                            object("additionalProperties", Map.of("const", 7), "minProperties", 2)));
+            // Their names stay clear of every name the schema gives.
+            assertEquals(
+                    Set.of(List.of("property1", "property3")),
+                    memberLists(object(
+                            "properties",
+                            named("property1"),
+                            "dependencies",
+                            Map.of("x", List.of("property2")),
+                            "minProperties",
+                            2)));
+            CombinedConstraints.assertRejected(
+                    object("properties", named("a"), "additionalProperties", false, "minProperties", 2));
+            assertEquals(
+                    Set.of(List.of("a", "b")),
+                    memberLists(
+                            object("properties", named("a", "b"), "additionalProperties", false, "minProperties", 2)));
+        }
+
+        @Test
+        @DisplayName("a required property outside properties is generated through additionalProperties")
+        void requiredPropertiesOutsideProperties() {
+            // Without additionalProperties, it is a string, which its name can make realistic.
+            for (Object value :
+                    CombinedConstraints.values(object("properties", named("a"), "required", List.of("a", "email")))) {
+                Map<?, ?> members = assertInstanceOf(Map.class, value);
+                assertEquals(List.of("a", "email"), List.copyOf(members.keySet()));
+                assertTrue(((String) members.get("email")).contains("@"), members::toString);
+            }
+            for (Object value : CombinedConstraints.values(object("required", List.of("code")))) {
+                Map<?, ?> members = assertInstanceOf(Map.class, value);
+                assertEquals(List.of("code"), List.copyOf(members.keySet()));
+                assertInstanceOf(String.class, members.get("code"));
+            }
+            assertEquals(
+                    Set.of(Map.of("a", "a", "id", 9)),
+                    CombinedConstraints.distinct(object(
+                            "properties",
+                            named("a"),
+                            "required",
+                            List.of("id"),
+                            "additionalProperties",
+                            Map.of("const", 9))));
+            CombinedConstraints.assertRejected(
+                    object("properties", named("a"), "required", List.of("ghost"), "additionalProperties", false));
+            CombinedConstraints.assertRejected(object("properties", Map.of("a", false), "required", List.of("a")));
+            CombinedConstraints.assertRejected(object("properties", Map.of("a", "x"), "required", List.of("a")));
+            CombinedConstraints.assertRejected(
+                    object("properties", named("a", "b"), "required", List.of("a", "b"), "maxProperties", 1));
+            CombinedConstraints.assertRejected(
+                    object("properties", named("a"), "minProperties", 2, "maxProperties", 1));
+        }
+
+        @Test
+        @DisplayName("a true property schema allows any value, a string, and false leaves the property out")
+        void booleanPropertySchemas() {
+            Map<String, Object> properties = new LinkedHashMap<>();
+            properties.put("a", true);
+            properties.put("b", false);
+            properties.put("c", Map.of("const", "c"));
+            for (Object value : CombinedConstraints.values(object("properties", properties))) {
+                Map<?, ?> members = assertInstanceOf(Map.class, value);
+                assertEquals(List.of("a", "c"), List.copyOf(members.keySet()));
+                assertInstanceOf(String.class, members.get("a"));
+            }
+        }
+
+        @Test
+        @DisplayName("a property dependency brings its properties, and a property that cannot have them is left out")
+        void propertyDependencies() {
+            Map<String, Object> aNeedsB = Map.of("a", List.of("b"));
+            assertEquals(
+                    Set.of(List.of("a", "b"), List.of("b", "c")),
+                    memberLists(
+                            object("properties", named("a", "b", "c"), "dependencies", aNeedsB, "maxProperties", 2)));
+            // Without bounds, dependencies between declared properties change nothing.
+            assertEquals(
+                    Set.of(List.of("a", "b")),
+                    memberLists(object("properties", named("a", "b"), "dependencies", aNeedsB)));
+            // A dependency outside properties is generated through additionalProperties.
+            for (Object value : CombinedConstraints.values(
+                    object("properties", named("a"), "dependencies", Map.of("a", List.of("zip"))))) {
+                Map<?, ?> members = assertInstanceOf(Map.class, value);
+                assertEquals(List.of("a", "zip"), List.copyOf(members.keySet()));
+                assertInstanceOf(String.class, members.get("zip"));
+            }
+            // Where additionalProperties is false, the property that needs it is left out, and is rejected
+            // if it is required.
+            Map<String, Object> aNeedsZip = Map.of("a", List.of("zip"));
+            assertEquals(
+                    Set.of(List.of("b")),
+                    memberLists(object(
+                            "properties", named("a", "b"), "dependencies", aNeedsZip, "additionalProperties", false)));
+            CombinedConstraints.assertRejected(object(
+                    "properties",
+                    named("a", "b"),
+                    "required",
+                    List.of("a"),
+                    "dependencies",
+                    aNeedsZip,
+                    "additionalProperties",
+                    false));
+            // The dependencies of a required property are required too, through every link.
+            assertEquals(
+                    Set.of(List.of("a", "b", "c")),
+                    memberLists(object(
+                            "properties",
+                            named("a", "b", "c", "d"),
+                            "required",
+                            List.of("a"),
+                            "dependencies",
+                            Map.of("a", List.of("b"), "b", List.of("c")),
+                            "maxProperties",
+                            3)));
+            CombinedConstraints.assertRejected(object(
+                    "properties",
+                    named("a", "b"),
+                    "required",
+                    List.of("a"),
+                    "dependencies",
+                    aNeedsB,
+                    "maxProperties",
+                    1));
+            // A property that is required and also a dependency of a required one counts once.
+            assertEquals(
+                    Set.of(List.of("a", "b")),
+                    memberLists(object(
+                            "properties",
+                            named("a", "b", "c"),
+                            "required",
+                            List.of("a", "b"),
+                            "dependencies",
+                            aNeedsB,
+                            "maxProperties",
+                            2)));
+        }
+
+        @Test
+        @DisplayName("a rejection says which property cannot be generated, and why")
+        void rejectionsSayWhy() {
+            String path = "$.properties.value";
+            assertEquals(
+                    "JSON Schema required property 'a' cannot be generated at " + path + ": its schema is false",
+                    rejection(object("properties", Map.of("a", false), "required", List.of("a"))));
+            assertEquals(
+                    "JSON Schema required property 'a' cannot be generated at " + path
+                            + ": its schema is no schema object",
+                    rejection(object("properties", Map.of("a", "x"), "required", List.of("a"))));
+            assertEquals(
+                    "JSON Schema property 'zip', which dependencies require beside required property 'a', cannot"
+                            + " be generated at " + path
+                            + ": it is not in properties, and additionalProperties is false",
+                    rejection(object(
+                            "properties",
+                            named("a"),
+                            "required",
+                            List.of("a"),
+                            "dependencies",
+                            Map.of("a", List.of("zip")),
+                            "additionalProperties",
+                            false)));
+        }
+
+        private static String rejection(Map<String, Object> property) {
+            return assertThrows(
+                            IllegalArgumentException.class,
+                            () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("value", property))))
+                    .getMessage();
+        }
+
+        @Test
+        @DisplayName("properties that depend on each other are left out together")
+        void dependencyCycles() {
+            Map<String, Object> bothOrNeither = Map.of("a", List.of("b"), "b", List.of("a"));
+            assertEquals(
+                    Set.of(List.of("a", "b"), List.of("c")),
+                    memberLists(object(
+                            "properties", named("a", "b", "c"), "dependencies", bothOrNeither, "maxProperties", 2)));
+            // Where that leaves too few, additional properties make up the difference.
+            assertEquals(
+                    Set.of(List.of("a", "b"), List.of("c", "property1")),
+                    memberLists(object(
+                            "properties",
+                            named("a", "b", "c"),
+                            "dependencies",
+                            bothOrNeither,
+                            "minProperties",
+                            2,
+                            "maxProperties",
+                            2)));
+            // Without them, the range must be as wide as the properties left out together.
+            CombinedConstraints.assertRejected(object(
+                    "properties",
+                    named("a", "b", "c"),
+                    "dependencies",
+                    bothOrNeither,
+                    "additionalProperties",
+                    false,
+                    "minProperties",
+                    2,
+                    "maxProperties",
+                    2));
+            assertEquals(
+                    Set.of(List.of("a", "b"), List.of("c")),
+                    memberLists(object(
+                            "properties",
+                            named("a", "b", "c"),
+                            "dependencies",
+                            bothOrNeither,
+                            "additionalProperties",
+                            false,
+                            "minProperties",
+                            1,
+                            "maxProperties",
+                            2)));
+            // Where nothing has to be left out, the range can be narrower than a group.
+            assertEquals(
+                    Set.of(List.of("a", "b")),
+                    memberLists(object(
+                            "properties",
+                            named("a", "b"),
+                            "dependencies",
+                            bothOrNeither,
+                            "additionalProperties",
+                            false,
+                            "minProperties",
+                            2,
+                            "maxProperties",
+                            2)));
+        }
+
+        @Test
+        @DisplayName("a schema dependency is rejected with its path, as it needs schema composition")
+        void schemaDependenciesAreRejected() {
+            CombinedConstraints.assertRejectedAt(
+                    "$.properties.value.dependencies.a",
+                    Map.of(
+                            "value",
+                            object(
+                                    "properties",
+                                    named("a"),
+                                    "dependencies",
+                                    Map.of("a", Map.of("required", List.of("b"))))));
+            CombinedConstraints.assertRejectedAt(
+                    "$.properties.value.dependencies.a", Map.of("value", object("dependencies", Map.of("a", true))));
+            for (Object dependencies : List.of(List.of("a"), Map.of("a", List.of(1)), Map.of("a", "b"))) {
+                CombinedConstraints.assertRejected(object("dependencies", dependencies));
+            }
+            Map<Object, Object> numberKey = new HashMap<>();
+            numberKey.put(1, List.of("a"));
+            CombinedConstraints.assertRejected(object("dependencies", numberKey));
+            // The keyword is checked wherever it appears.
+            CombinedConstraints.assertRejected(Map.of("type", "string", "dependencies", Map.of("a", Map.of())));
+        }
+
+        @Test
+        @DisplayName("malformed counts, required lists and additionalProperties are rejected with the path")
+        void shapes() {
+            for (Object count : List.of(-1, 1.5, "2", Double.NaN)) {
+                CombinedConstraints.assertRejected(object("minProperties", count));
+                CombinedConstraints.assertRejected(object("maxProperties", count));
+            }
+            // A whole number written as a decimal, or one beyond an int, is a count.
+            assertEquals(
+                    Set.of(List.of("a"), List.of("b")),
+                    memberLists(object("properties", named("a", "b"), "maxProperties", 1.0)));
+            assertEquals(
+                    Set.of(List.of("a", "b")),
+                    memberLists(object("properties", named("a", "b"), "maxProperties", new BigDecimal("1e30"))));
+            CombinedConstraints.assertRejected(object("required", "a"));
+            CombinedConstraints.assertRejected(object("required", List.of(1)));
+            CombinedConstraints.assertRejected(object("additionalProperties", "no"));
+            // additionalProperties is checked and resolved like any other subschema.
+            CombinedConstraints.assertRejectedAt(
+                    "$.properties.value.additionalProperties",
+                    Map.of("value", object("additionalProperties", Map.of("$ref", "#/x"))));
+            CombinedConstraints.assertRejectedAt(
+                    "$.properties.value.additionalProperties",
+                    Map.of(
+                            "value",
+                            object(
+                                    "additionalProperties",
+                                    Map.of("type", "string", "pattern", "^A{8}$", "maxLength", 3))));
+        }
+
+        @Test
+        @DisplayName("a const or enum object meets the member keywords")
+        void constAndEnumObjects() {
+            Map<String, Object> one = Map.of("a", 1);
+            assertEquals(Set.of(one), CombinedConstraints.distinct(Map.of("const", one, "required", List.of("a"))));
+            CombinedConstraints.assertRejected(Map.of("const", one, "required", List.of("b")));
+            CombinedConstraints.assertRejected(Map.of("const", Map.of("a", 1, "b", 2), "maxProperties", 1));
+            CombinedConstraints.assertRejected(Map.of("const", one, "minProperties", 2));
+            assertEquals(
+                    Set.of(one),
+                    CombinedConstraints.distinct(Map.of("const", one, "minProperties", 1, "maxProperties", 1)));
+            CombinedConstraints.assertRejected(Map.of(
+                    "const", Map.of("x", 1), "properties", Map.of("a", Map.of()), "additionalProperties", false));
+            CombinedConstraints.assertRejected(
+                    Map.of("const", Map.of("x", 1), "additionalProperties", Map.of("type", "string")));
+            assertEquals(
+                    Set.of(Map.of("x", "s")),
+                    CombinedConstraints.distinct(
+                            Map.of("const", Map.of("x", "s"), "additionalProperties", Map.of("type", "string"))));
+            CombinedConstraints.assertRejected(Map.of("const", one, "dependencies", Map.of("a", List.of("b"))));
+            assertEquals(
+                    Set.of(Map.of("a", 1, "b", 2)),
+                    CombinedConstraints.distinct(
+                            Map.of("const", Map.of("a", 1, "b", 2), "dependencies", Map.of("a", List.of("b")))));
+            assertEquals(
+                    Set.of(Map.of("b", 1)),
+                    CombinedConstraints.distinct(
+                            Map.of("const", Map.of("b", 1), "dependencies", Map.of("a", List.of("b")))));
+            CombinedConstraints.assertRejected(Map.of("const", one, "properties", Map.of("a", false)));
+            assertEquals(
+                    Set.of(one),
+                    CombinedConstraints.distinct(
+                            Map.of("enum", List.of(one, Map.of("b", 1)), "required", List.of("a"))));
+        }
+
+        @Test
+        @DisplayName("the root generates every property as a column, so its member keywords must allow that")
+        void rootObject() {
+            assertRootRejected(root("maxProperties", 1));
+            assertRootRejected(root("minProperties", 3));
+            assertRootRejected(root("required", List.of("a", "ghost")));
+            assertRootRejected(root("dependencies", Map.of("a", List.of("ghost"))));
+            // The root's additionalProperties generates nothing, but is resolved like every schema.
+            IllegalArgumentException additional = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(root(
+                            "additionalProperties", Map.of("type", "string", "pattern", "^A{8}$", "maxLength", 3))));
+            assertTrue(additional.getMessage().contains("$.additionalProperties"), additional.getMessage());
+            assertEquals(
+                    Map.of("a", "a", "b", "b"),
+                    SchemaParser.fromJsonSchema(root("additionalProperties", Map.of("type", "integer")))
+                            .generate());
+            // A dependency of a property the root does not have needs nothing.
+            Schema schema = SchemaParser.fromJsonSchema(root(
+                    "required",
+                    List.of("a", "b"),
+                    "minProperties",
+                    2,
+                    "maxProperties",
+                    2,
+                    "dependencies",
+                    Map.of("a", List.of("b"), "ghost", List.of("other")),
+                    "additionalProperties",
+                    false));
+            assertEquals(Map.of("a", "a", "b", "b"), schema.generate());
+        }
+
+        @Test
+        @DisplayName("seeded objects replay when members are left out or added")
+        void objectsReplay() {
+            List<Map<String, Object>> properties = List.of(
+                    object(
+                            "properties",
+                            Map.of("a", Map.of("type", "integer"), "b", Map.of("type", "string")),
+                            "maxProperties",
+                            1),
+                    object("additionalProperties", Map.of("type", "integer"), "minProperties", 3));
+            for (Map<String, Object> property : properties) {
+                assertEquals(CombinedConstraints.values(property), CombinedConstraints.values(property));
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("formats")
+    class Formats {
+
+        private static final String SECONDS_AND_OFFSET = ":\\d{2}(\\.\\d{1,9})?(Z|[+-]\\d{2}:\\d{2})";
+
+        /** RFC 3339 Appendix A, the duration grammar that Draft 2020-12 names. */
+        private static final Pattern DURATION =
+                Pattern.compile("P(?:(?:\\d+D|\\d+M(?:\\d+D)?|\\d+Y(?:\\d+M(?:\\d+D)?)?)"
+                        + "(?:T(?:\\d+H(?:\\d+M(?:\\d+S)?)?|\\d+M(?:\\d+S)?|\\d+S))?"
+                        + "|T(?:\\d+H(?:\\d+M(?:\\d+S)?)?|\\d+M(?:\\d+S)?|\\d+S)|\\d+W)");
+
+        /** RFC 6901: slash-led segments, which write ~ and / as ~0 and ~1. */
+        private static final String POINTER = "(?:/(?:[^/~]|~[01])*)*";
+
+        private static List<String> strings(String format) {
+            List<String> strings = new ArrayList<>();
+            for (Object value : CombinedConstraints.values(Map.of("type", "string", "format", format))) {
+                strings.add(assertInstanceOf(String.class, value));
+            }
+            return strings;
+        }
+
+        @Test
+        @DisplayName("date-time and time are RFC 3339, with seconds and an offset")
+        void dateTimeAndTimeAreRfc3339() {
+            for (String value : strings("date-time")) {
+                assertTrue(value.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}" + SECONDS_AND_OFFSET), value);
+                assertDoesNotThrow(() -> OffsetDateTime.parse(value), value);
+            }
+            for (String value : strings("time")) {
+                assertTrue(value.matches("\\d{2}:\\d{2}" + SECONDS_AND_OFFSET), value);
+                assertDoesNotThrow(() -> OffsetTime.parse(value), value);
+            }
+        }
+
+        @Test
+        @DisplayName("date-time-local and time-local are RFC 3339 without the offset, in the ranges of the others")
+        void localDateTimeAndTime() {
+            for (String value : strings("date-time-local")) {
+                assertTrue(value.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"), value);
+                int year = LocalDateTime.parse(value).getYear();
+                assertTrue(year >= 1970 && year <= 2100, value);
+            }
+            for (String value : strings("time-local")) {
+                assertTrue(value.matches("\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,9})?"), value);
+                assertDoesNotThrow(() -> LocalTime.parse(value), value);
+            }
+        }
+
+        /** Members whose types a schema exported from them must keep apart. */
+        record Moments(LocalDateTime localDateTime, LocalTime localTime, OffsetDateTime offsetDateTime) {}
+
+        @Test
+        @DisplayName("a schema exported from local and offset date-times parses back to values each type holds")
+        void exportedDateTimesRoundTrip() {
+            Map<String, Object> exported = JsonSchemaSupport.record(Moments.class);
+            for (Map<String, Object> record : SchemaParser.fromJsonSchema(
+                            exported, GeneratorConfig.builder().seed(7L).build())
+                    .generateBatch(300)) {
+                assertDoesNotThrow(() -> LocalDateTime.parse((String) record.get("localDateTime")), record::toString);
+                assertDoesNotThrow(() -> LocalTime.parse((String) record.get("localTime")), record::toString);
+                assertDoesNotThrow(() -> OffsetDateTime.parse((String) record.get("offsetDateTime")), record::toString);
+            }
+        }
+
+        @Test
+        @DisplayName(
+                "a URI is also a URI reference, an IRI, an IRI reference and, with no quote or brace, a URI template")
+        void uriFamily() {
+            for (String format : List.of("uri-reference", "iri", "iri-reference", "uri-template")) {
+                for (String value : strings(format)) {
+                    URI uri = assertDoesNotThrow(() -> new URI(value), value);
+                    assertNotNull(uri.getScheme(), value);
+                    assertTrue(value.chars().noneMatch(ch -> " \"'<>\\^`{|}".indexOf(ch) >= 0), value);
+                }
+            }
+        }
+
+        @Test
+        @DisplayName("a hostname is also an internationalized one")
+        void idnHostname() {
+            for (String value : strings("idn-hostname")) {
+                assertDoesNotThrow(() -> IDN.toASCII(value, IDN.USE_STD3_ASCII_RULES), value);
+                assertTrue(value.matches("[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+"), value);
+            }
+        }
+
+        @Test
+        @DisplayName("duration, json-pointer, relative-json-pointer and regex follow their grammars")
+        void grammars() {
+            Set<String> durations = new HashSet<>(strings("duration"));
+            for (String value : durations) {
+                assertTrue(DURATION.matcher(value).matches(), value);
+            }
+            assertTrue(durations.size() > 100, "durations should vary: " + durations);
+            // One to three segments of one to eight lowercase letters, which need no escaping.
+            String segments = "(?:/[a-z]{1,8}){1,3}";
+            for (String value : strings("json-pointer")) {
+                assertTrue(value.matches(POINTER) && value.matches(segments), value);
+            }
+            for (String value : strings("relative-json-pointer")) {
+                assertTrue(
+                        value.matches("(?:0|[1-9]\\d*)(?:#|" + POINTER + ")") && value.matches("\\d" + segments),
+                        value);
+            }
+            for (String value : strings("regex")) {
+                assertTrue(Pattern.compile(value).matcher(value).matches(), value);
+            }
+        }
+
+        @Test
+        @DisplayName("OpenAPI byte is base64, and binary, password and unknown formats are strings")
+        void openApiStringFormats() {
+            Set<String> bytes = new HashSet<>(strings("byte"));
+            for (String value : bytes) {
+                assertTrue(value.matches("[A-Za-z0-9+/]+={0,2}") && value.length() % 4 == 0, value);
+                assertTrue(Base64.getDecoder().decode(value).length > 0, value);
+            }
+            assertTrue(bytes.size() > 100, "bytes should vary: " + bytes);
+            for (String format : List.of("binary", "password", "custom-unknown")) {
+                assertTrue(strings(format).stream().noneMatch(String::isEmpty), format);
+            }
+        }
+
+        @Test
+        @DisplayName("a value of these formats is drawn again until it fits the length bounds")
+        void newFormatsMeetLengthBounds() {
+            for (String format : List.of("duration", "json-pointer", "relative-json-pointer", "regex", "byte")) {
+                for (Object value : CombinedConstraints.values(
+                        Map.of("type", "string", "format", format, "minLength", 11, "maxLength", 12))) {
+                    int length = ((String) value).length();
+                    assertTrue(length >= 11 && length <= 12, format + " gave " + value);
+                }
+            }
+        }
+
+        @Test
+        @DisplayName("OpenAPI int32 keeps an integer within an int, and int64 within a long")
+        void integerFormats() {
+            for (Object value : CombinedConstraints.values(Map.of(
+                    "type", "integer", "format", "int32", "minimum", 2_000_000_000L, "maximum", 10_000_000_000L))) {
+                long number = ((Number) value).longValue();
+                assertTrue(number >= 2_000_000_000L && number <= Integer.MAX_VALUE, String.valueOf(number));
+            }
+            for (Object value : CombinedConstraints.values(Map.of(
+                    "type",
+                    "integer",
+                    "format",
+                    "int32",
+                    "multipleOf",
+                    7,
+                    "minimum",
+                    -10_000_000_000L,
+                    "maximum",
+                    10_000_000_000L))) {
+                long number = ((Number) value).longValue();
+                assertTrue(
+                        number >= Integer.MIN_VALUE && number <= Integer.MAX_VALUE && number % 7 == 0,
+                        String.valueOf(number));
+            }
+            CombinedConstraints.assertRejected(Map.of("type", "integer", "format", "int32", "minimum", 3_000_000_000L));
+            CombinedConstraints.assertRejected(
+                    Map.of("type", "integer", "format", "int32", "maximum", -3_000_000_000L));
+            for (Object value : CombinedConstraints.values(
+                    Map.of("type", "integer", "format", "int64", "minimum", 3_000_000_000L))) {
+                assertTrue(((Number) value).longValue() >= 3_000_000_000L, value::toString);
+            }
+            // Both name integers, which a number with either must be too.
+            for (Object value : CombinedConstraints.values(Map.of("type", "number", "format", "int32"))) {
+                assertTrue(value instanceof Integer || value instanceof Long, value::toString);
+                long number = ((Number) value).longValue();
+                assertTrue(number >= Integer.MIN_VALUE && number <= Integer.MAX_VALUE, String.valueOf(number));
+            }
+            CombinedConstraints.assertRejected(
+                    Map.of("type", "number", "format", "int32", "minimum", 3_000_000_000L, "maximum", 3_000_000_000L));
+            assertEquals(
+                    Set.of(1, 2, 3),
+                    CombinedConstraints.distinct(
+                            Map.of("type", "number", "format", "int64", "minimum", 0.5, "maximum", 3.5)));
+        }
+
+        @Test
+        @DisplayName("OpenAPI float and double keep a number within their range")
+        void numberFormats() {
+            for (Object value : CombinedConstraints.values(
+                    Map.of("type", "number", "format", "float", "minimum", -1e300, "maximum", -1e38))) {
+                double number = ((Number) value).doubleValue();
+                assertTrue(number >= -Float.MAX_VALUE && number <= -1e38, String.valueOf(number));
+            }
+            for (Object value : CombinedConstraints.values(
+                    Map.of("type", "number", "format", "float", "minimum", 1e38, "maximum", 1e300))) {
+                double number = ((Number) value).doubleValue();
+                assertTrue(number >= 1e38 && number <= Float.MAX_VALUE, String.valueOf(number));
+            }
+            for (Object value : CombinedConstraints.values(Map.of(
+                    "type", "number", "format", "float", "multipleOf", 1e37, "minimum", -1e39, "maximum", 1e39))) {
+                BigDecimal number = assertInstanceOf(BigDecimal.class, value);
+                assertTrue(number.abs().compareTo(new BigDecimal(Float.MAX_VALUE)) <= 0, number::toString);
+            }
+            CombinedConstraints.assertRejected(Map.of("type", "number", "format", "float", "minimum", 1e39));
+            CombinedConstraints.assertRejected(Map.of("type", "number", "format", "float", "maximum", -1e39));
+            BigDecimal beyondDoubles = new BigDecimal("1e400");
+            for (Object value : CombinedConstraints.values(Map.of(
+                    "type",
+                    "number",
+                    "format",
+                    "double",
+                    "multipleOf",
+                    1e307,
+                    "minimum",
+                    beyondDoubles.negate(),
+                    "maximum",
+                    beyondDoubles))) {
+                BigDecimal number = assertInstanceOf(BigDecimal.class, value);
+                assertTrue(number.abs().compareTo(new BigDecimal(Double.MAX_VALUE)) <= 0, number::toString);
+            }
+            // Without bounds, a float keeps the default range.
+            for (Object value : CombinedConstraints.values(Map.of("type", "number", "format", "float"))) {
+                double number = ((Number) value).doubleValue();
+                assertTrue(Math.abs(number) <= 1_000_000, String.valueOf(number));
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("count keywords")
+    class Counts {
+
+        private static final long BEYOND_AN_INT = 3_000_000_000L;
+
+        private static Object generated(Map<String, Object> property) {
+            return SchemaParser.fromJsonSchema(
+                            objectSchema(Map.of("value", property)),
+                            GeneratorConfig.builder().seed(7L).build())
+                    .generate()
+                    .get("value");
+        }
+
+        private static String rejection(Map<String, Object> property) {
+            return assertThrows(
+                            IllegalArgumentException.class,
+                            () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("value", property))))
+                    .getMessage();
+        }
+
+        @Test
+        @DisplayName("a maximum beyond an int parses and generates, drawing no more than 1,000,000")
+        void maximumBeyondAnInt() {
+            int length = assertInstanceOf(String.class, generated(Map.of("type", "string", "maxLength", BEYOND_AN_INT)))
+                    .length();
+            assertTrue(length >= 1 && length <= 1_000_000, String.valueOf(length));
+            int size = assertInstanceOf(
+                            List.class,
+                            generated(Map.of("type", "array", "items", Map.of("const", 1), "maxItems", BEYOND_AN_INT)))
+                    .size();
+            assertTrue(size >= 1 && size <= 1_000_000, String.valueOf(size));
+            assertEquals(
+                    Map.of("a", 1),
+                    generated(Map.of(
+                            "type",
+                            "object",
+                            "properties",
+                            Map.of("a", Map.of("const", 1)),
+                            "maxProperties",
+                            BEYOND_AN_INT)));
+            // A const or enum is measured against it exactly.
+            assertEquals(
+                    Set.of("abc"), CombinedConstraints.distinct(Map.of("const", "abc", "maxLength", BEYOND_AN_INT)));
+            assertEquals(
+                    Set.of(List.of(1)),
+                    CombinedConstraints.distinct(Map.of("const", List.of(1), "maxItems", BEYOND_AN_INT)));
+            assertEquals(
+                    Set.of(Map.of("a", 1)),
+                    CombinedConstraints.distinct(Map.of("const", Map.of("a", 1), "maxProperties", BEYOND_AN_INT)));
+        }
+
+        @Test
+        @DisplayName("a minimum no generated value can hold is rejected with the keyword, the value and the path")
+        void minimumBeyondTheLimit() {
+            String path = " at $.properties.value is more than the 1000000 ";
+            assertEquals(
+                    "JSON Schema minLength 3000000000" + path + "characters a generated string can hold",
+                    rejection(Map.of("type", "string", "minLength", BEYOND_AN_INT)));
+            assertEquals(
+                    "JSON Schema minItems 3000000000" + path + "items a generated array can hold",
+                    rejection(Map.of("type", "array", "minItems", BEYOND_AN_INT)));
+            assertEquals(
+                    "JSON Schema minProperties 3000000000" + path + "members a generated object can hold",
+                    rejection(Map.of("type", "object", "minProperties", BEYOND_AN_INT)));
+            // The limit itself parses, and one more does not, whatever generates the string.
+            for (Map<String, Object> string : List.<Map<String, Object>>of(
+                    Map.of("type", "string"),
+                    Map.of("type", "string", "pattern", "^a+$"),
+                    Map.of("type", "string", "format", "email"))) {
+                Map<String, Object> over = new HashMap<>(string);
+                over.put("minLength", 1_000_001);
+                assertEquals(
+                        "JSON Schema minLength 1000001" + path + "characters a generated string can hold",
+                        rejection(over));
+            }
+            assertDoesNotThrow(() -> SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("value", Map.of("type", "string", "minLength", 1_000_000)))));
+            assertDoesNotThrow(() -> SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("value", Map.of("type", "array", "minItems", 1_000_000)))));
+            assertDoesNotThrow(() -> SchemaParser.fromJsonSchema(
+                    objectSchema(Map.of("value", Map.of("type", "object", "minProperties", 1_000_000)))));
+            assertTrue(rejection(Map.of("type", "array", "minItems", 1_000_001)).contains("minItems 1000001"));
+            assertTrue(rejection(Map.of("type", "object", "minProperties", 1_000_001))
+                    .contains("minProperties 1000001"));
+            // A const or enum cannot meet it either.
+            CombinedConstraints.assertRejected(Map.of("const", List.of(1), "minItems", BEYOND_AN_INT));
+            // The root names the count it cannot meet, as written.
+            Map<String, Object> root = new HashMap<>(objectSchema(Map.of("a", Map.of("const", 1))));
+            root.put("minProperties", BEYOND_AN_INT);
+            String reason = "JSON Schema root object generates exactly its properties, as columns, so its property"
+                    + " count, 1, is ";
+            assertEquals(
+                    reason + "below minProperties 3000000000 at $",
+                    assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(root))
+                            .getMessage());
+            root.remove("minProperties");
+            root.put("maxProperties", 0);
+            assertEquals(
+                    reason + "above maxProperties 0 at $",
+                    assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(root))
+                            .getMessage());
+        }
+
+        @Test
+        @DisplayName("configured string lengths and collection sizes are held to the same limit")
+        void configuredSizesKeepToTheLimit() {
+            GeneratorConfig longStrings = GeneratorConfig.builder()
+                    .seed(7L)
+                    .stringLength(1_000_001, 1_000_001)
+                    .build();
+            GeneratorConfig bigCollections = GeneratorConfig.builder()
+                    .seed(7L)
+                    .collectionSize(1_000_001, 1_000_001)
+                    .build();
+            assertEquals(1_000_000, ((String) generatedWith(Map.of("type", "string"), longStrings)).length());
+            assertEquals(
+                    1_000_000,
+                    ((List<?>) generatedWith(Map.of("type", "array", "items", Map.of("const", 1)), bigCollections))
+                            .size());
+            // Items without a schema, and the regex format, draw text of the configured length.
+            List<?> items = (List<?>) generatedWith(Map.of("type", "array", "minItems", 1, "maxItems", 1), longStrings);
+            assertEquals(1_000_000, ((String) items.getFirst()).length());
+            assertEquals(
+                    1_000_000,
+                    ((String) generatedWith(Map.of("type", "string", "format", "regex"), longStrings)).length());
+        }
+
+        @Test
+        @DisplayName("an object that would hold more than 1,000,000 members is rejected with its path")
+        void objectsKeepToTheLimit() {
+            List<String> names = new ArrayList<>(1_000_001);
+            for (int i = 0; i <= 1_000_000; i++) {
+                names.add("p" + i);
+            }
+            assertEquals(
+                    "JSON Schema object at $.properties.value would hold 1000001 properties, more than the 1000000"
+                            + " members a generated object can hold",
+                    assertTimeoutPreemptively(
+                            Duration.ofSeconds(30), () -> rejection(Map.of("type", "object", "required", names))));
+            Map<String, Object> columns = new HashMap<>();
+            Map<String, Object> column = Map.of("type", "integer");
+            for (String name : names) {
+                columns.put(name, column);
+            }
+            assertEquals(
+                    "JSON Schema root object generates exactly its properties, as columns, so its property count,"
+                            + " 1000001, is above the 1000000 members a generated object can hold at $",
+                    assertTimeoutPreemptively(
+                                    Duration.ofSeconds(30),
+                                    () -> assertThrows(
+                                            IllegalArgumentException.class,
+                                            () -> SchemaParser.fromJsonSchema(objectSchema(columns))))
+                            .getMessage());
+        }
+
+        @Test
+        @DisplayName("an object's counts are judged before its properties' schemas are resolved")
+        void countsComeBeforeResolution() {
+            // This child would fail on its own, so the count must be judged first to be the error.
+            Map<String, Object> failing = Map.of("type", "string", "pattern", "^A{8}$", "maxLength", 3);
+            assertEquals(
+                    "JSON Schema minProperties 1000001 at $.properties.value is more than the 1000000 members a"
+                            + " generated object can hold",
+                    rejection(Map.of(
+                            "type", "object", "minProperties", 1_000_001, "properties", Map.of("child", failing))));
+            Map<String, Object> many = new HashMap<>();
+            for (int i = 0; i <= 1_000_000; i++) {
+                many.put("p" + i, failing);
+            }
+            assertEquals(
+                    "JSON Schema object at $.properties.value declares 1000001 properties, more than the 1000000"
+                            + " members a generated object can hold",
+                    assertTimeoutPreemptively(
+                            Duration.ofSeconds(30), () -> rejection(Map.of("type", "object", "properties", many))));
+            Map<String, Object> root = new HashMap<>(objectSchema(Map.of("child", failing)));
+            root.put("minProperties", 1_000_001);
+            assertEquals(
+                    ROOT + "below minProperties 1000001 at $",
+                    assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(root))
+                            .getMessage());
+            // An array's sizes are judged before the schemas of its items, its tuple, or additionalItems.
+            for (Map<String, Object> array : List.<Map<String, Object>>of(
+                    Map.of("type", "array", "minItems", 1_000_001, "items", failing),
+                    Map.of("type", "array", "minItems", 1_000_001, "items", List.of(failing)),
+                    Map.of("type", "array", "minItems", 1_000_001, "items", List.of(), "additionalItems", failing))) {
+                assertEquals(
+                        "JSON Schema minItems 1000001 at $.properties.value is more than the 1000000 items a"
+                                + " generated array can hold",
+                        rejection(array));
+            }
+            assertTrue(rejection(Map.of("type", "array", "minItems", 3, "maxItems", 2, "items", failing))
+                    .startsWith("JSON Schema array size range has no values at $.properties.value: "));
+            assertTrue(rejection(
+                            Map.of("type", "array", "minItems", 2, "items", List.of(failing), "additionalItems", false))
+                    .startsWith("JSON Schema array size range has no values at $.properties.value: "));
+        }
+
+        private static final String ROOT =
+                "JSON Schema root object generates exactly its properties, as columns, so its property count, 1, is ";
+
+        @Test
+        @DisplayName("a count with a huge exponent is judged and named without writing out its digits")
+        void hugeExponents() {
+            BigDecimal huge = new BigDecimal("1E+1000000000");
+            assertEquals(
+                    "JSON Schema minLength 1E+1000000000 at $.properties.value is more than the 1000000 characters a"
+                            + " generated string can hold",
+                    assertTimeoutPreemptively(
+                            Duration.ofSeconds(10), () -> rejection(Map.of("type", "string", "minLength", huge))));
+            assertTimeoutPreemptively(Duration.ofSeconds(10), () -> {
+                int length = ((String) generated(Map.of("type", "string", "maxLength", huge))).length();
+                assertTrue(length >= 1 && length <= 1_000_000, String.valueOf(length));
+                assertEquals(Set.of("abc"), CombinedConstraints.distinct(Map.of("const", "abc", "maxLength", huge)));
+            });
+            Map<String, Object> root = new HashMap<>(objectSchema(Map.of("a", Map.of("const", 1))));
+            root.put("minProperties", huge);
+            assertEquals(
+                    "JSON Schema root object generates exactly its properties, as columns, so its property count, 1,"
+                            + " is below minProperties 1E+1000000000 at $",
+                    assertTimeoutPreemptively(
+                                    Duration.ofSeconds(10),
+                                    () -> assertThrows(
+                                            IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(root)))
+                            .getMessage());
+        }
+
+        private static Object generatedWith(Map<String, Object> property, GeneratorConfig config) {
+            return SchemaParser.fromJsonSchema(objectSchema(Map.of("value", property)), config)
+                    .generate()
+                    .get("value");
+        }
+
+        @Test
+        @DisplayName("a count that is negative, fractional or no number is rejected with the path")
+        void malformedCounts() {
+            for (String keyword : List.of("minLength", "maxLength", "minItems", "maxItems")) {
+                for (Object count : List.of(-1, 1.5, "2", Double.NaN)) {
+                    CombinedConstraints.assertRejected(Map.of(keyword, count));
+                }
+            }
+            // A whole number written as a decimal is a count.
+            for (Object value : CombinedConstraints.values(Map.of("type", "string", "maxLength", 3.0))) {
+                assertTrue(((String) value).length() <= 3, String.valueOf(value));
+            }
+        }
+    }
+
     @Test
     @DisplayName("seeded format providers reproduce their generated record")
     void seededFormatProvidersReproduce() {
         Map<String, Object> properties = new LinkedHashMap<>();
-        for (String format :
-                List.of("email", "idn-email", "uri", "uuid", "date", "date-time", "time", "ipv4", "ipv6", "hostname")) {
+        for (String format : List.of(
+                "email",
+                "idn-email",
+                "uri",
+                "uri-reference",
+                "iri",
+                "iri-reference",
+                "uri-template",
+                "uuid",
+                "date",
+                "date-time",
+                "time",
+                "date-time-local",
+                "time-local",
+                "duration",
+                "ipv4",
+                "ipv6",
+                "hostname",
+                "idn-hostname",
+                "json-pointer",
+                "relative-json-pointer",
+                "regex",
+                "byte")) {
             properties.put(format, Map.of("type", "string", "format", format));
         }
         GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();

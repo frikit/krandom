@@ -12,7 +12,8 @@ import io.github.frikit.krandom.generator.base.RegexGenerator;
 import io.github.frikit.krandom.generator.base.StringGenerator;
 import io.github.frikit.krandom.generator.datetime.DateGenerator;
 import io.github.frikit.krandom.generator.datetime.LocalDateTimeGenerator;
-import io.github.frikit.krandom.generator.datetime.TimeGenerator;
+import io.github.frikit.krandom.generator.datetime.OffsetDateTimeGenerator;
+import io.github.frikit.krandom.generator.datetime.OffsetTimeGenerator;
 import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
 import io.github.frikit.krandom.generator.network.HostnameGenerator;
 import io.github.frikit.krandom.generator.network.IPv4Generator;
@@ -21,11 +22,15 @@ import io.github.frikit.krandom.generator.network.URLGenerator;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -33,6 +38,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import org.jspecify.annotations.Nullable;
 
@@ -43,7 +49,12 @@ import org.jspecify.annotations.Nullable;
  * <p>Supports the following JSON Schema keywords:
  * <ul>
  *   <li>{@code type} — string, integer, number, boolean, array, object, null</li>
- *   <li>{@code format} — date, date-time, time, email, idn-email, uri, uuid, ipv4, ipv6, hostname</li>
+ *   <li>{@code format} — every format Draft 2020-12 defines: date, date-time and time as RFC 3339, duration,
+ *       email, idn-email, hostname, idn-hostname, ipv4, ipv6, uri, uri-reference, iri, iri-reference,
+ *       uri-template, uuid, json-pointer, relative-json-pointer, and regex; the OpenAPI Format Registry's
+ *       date-time-local and time-local, RFC 3339 without the timezone component; and OpenAPI's byte, with
+ *       int32 and int64 as integers and float and double as ranges for numbers. No standard validator checks
+ *       any other format, so it gets the same values as no format</li>
  *   <li>{@code enum} — random selection from enumerated values</li>
  *   <li>{@code const} — constant value</li>
  *   <li>{@code minimum}/{@code maximum}/{@code exclusiveMinimum}/{@code exclusiveMaximum} — bounded
@@ -52,21 +63,34 @@ import org.jspecify.annotations.Nullable;
  *       number is a {@link BigDecimal}</li>
  *   <li>{@code minLength}/{@code maxLength} — bounded string length</li>
  *   <li>{@code pattern} — regex-based string generation</li>
- *   <li>{@code items} — array element schema</li>
+ *   <li>{@code items} — array element schema, or a list of schemas, one for each position, which is the
+ *       tuple form of the drafts up to 2019-09; {@code true} allows any item and {@code false} none</li>
+ *   <li>{@code additionalItems} — beside a list of items, the schema of the items after them, or
+ *       {@code false} for none</li>
  *   <li>{@code minItems}/{@code maxItems} — bounded array size</li>
  *   <li>{@code uniqueItems} — array items that are distinct JSON values, drawn up to 100 times for each
  *       item</li>
- *   <li>{@code properties} — nested object fields</li>
+ *   <li>{@code properties} — nested object fields, where {@code true} allows any value and {@code false}
+ *       leaves the property out</li>
+ *   <li>{@code required}, {@code additionalProperties}, {@code minProperties}/{@code maxProperties} — the
+ *       members of a nested object, which holds every property it declares unless these ask otherwise;
+ *       additional members are named {@code property1}, {@code property2}, and so on</li>
+ *   <li>{@code dependencies} — property dependencies, the form of the drafts up to 7</li>
  *   <li>{@code nullable} (OpenAPI 3.0) — nullable field support</li>
  * </ul>
  *
  * <p>A type list may contain one concrete supported type plus {@code null}. Empty, malformed, and
- * unsupported type declarations, non-string formats, and empty or malformed enums are rejected
- * with their schema path. The parser accepts the control keywords emitted by
- * {@link Schema#toJsonSchema()}, including {@code $schema}, {@code required}, and
- * {@code additionalProperties}. References and schema composition ({@code $ref}, {@code allOf},
- * {@code anyOf}, {@code oneOf}, and related conditional keywords) are rejected with a schema path
- * because this parser has no resolver or composition semantics.
+ * unsupported type declarations, non-string formats, empty or malformed enums, an {@code items} that is no
+ * schema, boolean, or list of them, and malformed {@code required}, {@code additionalProperties}, and
+ * {@code dependencies} values and counts are rejected with their schema path. A count is read exactly, and
+ * a generated value holds at most 1,000,000 characters, items, or members, so a minimum above that fails
+ * with its keyword, value, and path, a larger maximum, declared or configured, draws no more, and an object
+ * that would hold more properties fails with its path. A list of items holds the whole tuple by default, and {@code additionalItems} is read only
+ * beside one, as in the drafts that define it; {@code prefixItems}, its Draft 2020-12 replacement, is
+ * rejected. The root generates every property as a column, so its {@code required} names, property
+ * dependencies, and member counts must allow exactly those. References and schema composition
+ * ({@code $ref}, {@code allOf}, {@code anyOf}, {@code oneOf}, schema dependencies, and related conditional
+ * keywords) are rejected with a schema path because this parser has no resolver or composition semantics.
  *
  * <p>Constraints apply together, and a keyword constrains only values of its own JSON type. A
  * {@code const} or {@code enum} value must meet the other constraints, and an {@code enum} keeps only
@@ -133,6 +157,17 @@ public final class SchemaParser {
     /** How many items an array with uniqueItems may draw for each item it holds. */
     private static final int UNIQUE_ITEM_ATTEMPTS = 100;
 
+    /**
+     * The most characters, items, or members a generated value holds, the limit RegexGenerator keeps for a
+     * string. A minimum count above it fails while parsing; a maximum above it, even one beyond an int,
+     * draws no more than it.
+     */
+    private static final int SIZE_LIMIT = 1_000_000;
+
+    /** How a rejection of the root's member keywords begins. */
+    private static final String ROOT_COLUMNS =
+            "JSON Schema root object generates exactly its properties, as columns, so ";
+
     private static final BigDecimal LONG_MIN = BigDecimal.valueOf(Long.MIN_VALUE);
     private static final BigDecimal LONG_MAX = BigDecimal.valueOf(Long.MAX_VALUE);
 
@@ -172,12 +207,16 @@ public final class SchemaParser {
         if (!(propertiesRaw instanceof Map<?, ?> propertiesMap)) {
             throw new IllegalArgumentException("JSON Schema object must have a \"properties\" map");
         }
+        // Checked before anything walks the properties, as the root holds every one of them.
+        if (propertiesMap.size() > SIZE_LIMIT) {
+            throw new IllegalArgumentException(ROOT_COLUMNS + "its property count, " + propertiesMap.size()
+                    + ", is above the " + SIZE_LIMIT + " members a generated object can hold at $");
+        }
 
         validateSupportedKeywords(jsonSchema, "$", Collections.newSetFromMap(new IdentityHashMap<>()));
 
-        Field field = new Field(config);
-        Map<String, SchemaValueProvider> providers = new LinkedHashMap<>();
-
+        // The columns and the root's member keywords are judged before any column's schema is resolved.
+        Map<String, Map<String, Object>> columns = new LinkedHashMap<>();
         for (Map.Entry<?, ?> entry : propertiesMap.entrySet()) {
             if (!(entry.getKey() instanceof String fieldName)) {
                 throw new IllegalArgumentException("Property keys must be strings");
@@ -185,9 +224,20 @@ public final class SchemaParser {
             if (!(entry.getValue() instanceof Map<?, ?> fieldSchemaRaw)) {
                 throw new IllegalArgumentException("Property '" + fieldName + "' must have a schema object");
             }
-
             @SuppressWarnings("unchecked")
             Map<String, Object> fieldSchema = (Map<String, Object>) fieldSchemaRaw;
+            columns.put(fieldName, fieldSchema);
+        }
+        if (columns.isEmpty()) {
+            throw new IllegalArgumentException("JSON Schema must have at least one property");
+        }
+        checkRootMembers(jsonSchema, columns.keySet());
+
+        Field field = new Field(config);
+        Map<String, SchemaValueProvider> providers = new LinkedHashMap<>();
+        for (Map.Entry<String, Map<String, Object>> column : columns.entrySet()) {
+            String fieldName = column.getKey();
+            Map<String, Object> fieldSchema = column.getValue();
             // Resolving first rejects a const or enum that is no JSON value with its path.
             SchemaValueProvider provider =
                     resolveProvider(fieldName, "$.properties." + fieldName, fieldSchema, field, config);
@@ -199,12 +249,49 @@ public final class SchemaParser {
             }
             providers.put(fieldName, provider);
         }
-
-        if (providers.isEmpty()) {
-            throw new IllegalArgumentException("JSON Schema must have at least one property");
+        // The root holds no member beyond its properties, but its additionalProperties is resolved, as
+        // every schema is, so a combination that leaves it no value fails here too.
+        if (jsonSchema.get("additionalProperties") instanceof Map<?, ?> additionalSchema) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> rootAdditional = (Map<String, Object>) additionalSchema;
+            resolveProvider("", "$.additionalProperties", rootAdditional, field, config);
         }
 
         return new Schema(config, providers);
+    }
+
+    /**
+     * The root generates every property it declares, as a column, and no other, so its required names,
+     * property dependencies, and minProperties and maxProperties must allow exactly those.
+     */
+    private static void checkRootMembers(Map<String, Object> root, Set<String> columns) {
+        String reason = ROOT_COLUMNS;
+        for (String name : names(root.get("required"))) {
+            if (!columns.contains(name)) {
+                throw new IllegalArgumentException(
+                        reason + "required property '" + name + "' must be one of them at $");
+            }
+        }
+        for (Map.Entry<String, List<String>> dependency :
+                propertyDependencies(root).entrySet()) {
+            for (String name : dependency.getValue()) {
+                if (columns.contains(dependency.getKey()) && !columns.contains(name)) {
+                    throw new IllegalArgumentException(reason + "property '" + name
+                            + "', which dependencies require beside '" + dependency.getKey()
+                            + "', must be one of them at $");
+                }
+            }
+        }
+        BigDecimal size = BigDecimal.valueOf(columns.size());
+        if (root.get("minProperties") instanceof Number fewest
+                && decimal(fewest).compareTo(size) > 0) {
+            throw new IllegalArgumentException(reason + "its property count, " + columns.size()
+                    + ", is below minProperties " + countText(decimal(fewest)) + " at $");
+        }
+        if (root.get("maxProperties") instanceof Number most && decimal(most).compareTo(size) < 0) {
+            throw new IllegalArgumentException(reason + "its property count, " + columns.size()
+                    + ", is above maxProperties " + countText(decimal(most)) + " at $");
+        }
     }
 
     private static void validateSupportedKeywords(Map<?, ?> schema, String path, Set<Map<?, ?>> visiting) {
@@ -229,6 +316,18 @@ public final class SchemaParser {
             Object items = schema.get("items");
             if (items instanceof Map<?, ?> itemSchema) {
                 validateSupportedKeywords(itemSchema, path + ".items", visiting);
+            } else if (items instanceof List<?> tuple) {
+                for (int position = 0; position < tuple.size(); position++) {
+                    if (tuple.get(position) instanceof Map<?, ?> itemSchema) {
+                        validateSupportedKeywords(itemSchema, path + ".items[" + position + "]", visiting);
+                    }
+                }
+                if (schema.get("additionalItems") instanceof Map<?, ?> additionalSchema) {
+                    validateSupportedKeywords(additionalSchema, path + ".additionalItems", visiting);
+                }
+            }
+            if (schema.get("additionalProperties") instanceof Map<?, ?> additionalSchema) {
+                validateSupportedKeywords(additionalSchema, path + ".additionalProperties", visiting);
             }
         } finally {
             visiting.remove(schema);
@@ -236,6 +335,39 @@ public final class SchemaParser {
     }
 
     private static void validateSupportedShape(Map<?, ?> schema, String path) {
+        if (schema.containsKey("items")) {
+            Object items = schema.get("items");
+            if (!(items instanceof List<?> tuple ? tuple.stream().allMatch(SchemaParser::isSchema) : isSchema(items))) {
+                throw new IllegalArgumentException(
+                        "JSON Schema items must be a schema, a boolean, or a list of them at " + path);
+            }
+            // additionalItems means something only beside a list of items, and is ignored elsewhere.
+            if (items instanceof List<?>
+                    && schema.containsKey("additionalItems")
+                    && !isSchema(schema.get("additionalItems"))) {
+                throw new IllegalArgumentException(
+                        "JSON Schema additionalItems must be a schema or a boolean at " + path);
+            }
+        }
+
+        for (String keyword :
+                List.of("minLength", "maxLength", "minItems", "maxItems", "minProperties", "maxProperties")) {
+            if (schema.containsKey(keyword) && !isCount(schema.get(keyword))) {
+                throw new IllegalArgumentException(
+                        "JSON Schema " + keyword + " must be a whole number of at least 0 at " + path);
+            }
+        }
+        if (schema.containsKey("required") && !isNameList(schema.get("required"))) {
+            throw new IllegalArgumentException("JSON Schema required must be a list of property names at " + path);
+        }
+        if (schema.containsKey("additionalProperties") && !isSchema(schema.get("additionalProperties"))) {
+            throw new IllegalArgumentException(
+                    "JSON Schema additionalProperties must be a schema or a boolean at " + path);
+        }
+        if (schema.containsKey("dependencies")) {
+            validateDependencies(schema.get("dependencies"), path);
+        }
+
         if (schema.containsKey("enum")) {
             Object enumValues = schema.get("enum");
             if (!(enumValues instanceof List<?> values) || values.isEmpty()) {
@@ -280,6 +412,125 @@ public final class SchemaParser {
         } else if (type != null) {
             throw new IllegalArgumentException("JSON Schema type must be a string or list at " + path);
         }
+    }
+
+    /** Whether a value is a schema: an object, or true or false, which allow any value or none. */
+    private static boolean isSchema(@Nullable Object value) {
+        return value instanceof Map<?, ?> || value instanceof Boolean;
+    }
+
+    private static boolean isNameList(@Nullable Object value) {
+        return value instanceof List<?> names && names.stream().allMatch(String.class::isInstance);
+    }
+
+    /** Whether a value is a whole number of at least 0, as a count of characters, items, or members must be. */
+    private static boolean isCount(@Nullable Object value) {
+        try {
+            return value instanceof Number number
+                    && decimal(number).signum() >= 0
+                    && decimal(number).stripTrailingZeros().scale() <= 0;
+        } catch (NumberFormatException notFinite) {
+            return false;
+        }
+    }
+
+    /**
+     * Accepts property dependencies, which name the properties an object must hold beside one it holds.
+     * A schema dependency asks such an object to meet a second schema too, which needs the schema
+     * composition this parser does not have, so it is rejected, as allOf is.
+     */
+    private static void validateDependencies(@Nullable Object dependencies, String path) {
+        if (dependencies instanceof Map<?, ?> entries) {
+            for (Map.Entry<?, ?> entry : entries.entrySet()) {
+                if (entry.getKey() instanceof String name && isSchema(entry.getValue())) {
+                    throw new IllegalArgumentException("Unsupported JSON Schema schema dependency at " + path
+                            + ".dependencies." + name + ": an object that holds '" + name
+                            + "' must also meet a second schema, which needs schema composition; only a list of"
+                            + " property names is supported");
+                }
+                if (!(entry.getKey() instanceof String) || !isNameList(entry.getValue())) {
+                    throw malformedDependencies(path);
+                }
+            }
+            return;
+        }
+        throw malformedDependencies(path);
+    }
+
+    private static IllegalArgumentException malformedDependencies(String path) {
+        return new IllegalArgumentException(
+                "JSON Schema dependencies must map property names to lists of property names at " + path);
+    }
+
+    /** Whether a count meets the declared minimum and maximum, compared exactly, however large they are. */
+    private static boolean withinCounts(int count, Map<?, ?> schema, String minimumKeyword, String maximumKeyword) {
+        BigDecimal exact = BigDecimal.valueOf(count);
+        return (!(schema.get(minimumKeyword) instanceof Number minimum)
+                        || decimal(minimum).compareTo(exact) <= 0)
+                && (!(schema.get(maximumKeyword) instanceof Number maximum)
+                        || decimal(maximum).compareTo(exact) >= 0);
+    }
+
+    /**
+     * A declared minimum count, which the shape check has made a whole number of at least 0, or a default
+     * where none is declared. One that no generated value can hold, above {@value #SIZE_LIMIT}, fails with
+     * the keyword, its value, and the path.
+     */
+    private static int minimumCount(Map<?, ?> schema, String keyword, int defaultValue, String path, String holder) {
+        if (!(schema.get(keyword) instanceof Number number)) {
+            return defaultValue;
+        }
+        BigDecimal minimum = decimal(number);
+        if (minimum.compareTo(BigDecimal.valueOf(SIZE_LIMIT)) > 0) {
+            throw new IllegalArgumentException("JSON Schema " + keyword + " " + countText(minimum) + " at " + path
+                    + " is more than the " + SIZE_LIMIT + " " + holder + " can hold");
+        }
+        return minimum.intValue();
+    }
+
+    /**
+     * A count for a message: its digits up to the largest long, and scientific notation beyond, so a count
+     * such as 1E+1000000000 is never written out.
+     */
+    private static String countText(BigDecimal count) {
+        BigDecimal stripped = count.stripTrailingZeros();
+        return stripped.compareTo(BigDecimal.valueOf(Long.MAX_VALUE)) <= 0
+                ? stripped.toBigInteger().toString()
+                : stripped.toString();
+    }
+
+    /** A declared maximum count, or a default where none is; one above {@value #SIZE_LIMIT} draws no more. */
+    private static int maximumCount(Map<?, ?> schema, String keyword, int defaultValue) {
+        return schema.get(keyword) instanceof Number number
+                ? decimal(number).min(BigDecimal.valueOf(SIZE_LIMIT)).intValue()
+                : defaultValue;
+    }
+
+    /** A list of names, which the shape check has made sure of, or none. */
+    @SuppressWarnings("unchecked")
+    private static List<String> names(@Nullable Object value) {
+        return value instanceof List<?> names ? (List<String>) names : List.of();
+    }
+
+    /** The property dependencies, the only ones the shape check lets through: names each name brings. */
+    @SuppressWarnings("unchecked")
+    private static Map<String, List<String>> propertyDependencies(Map<?, ?> schema) {
+        return schema.get("dependencies") instanceof Map<?, ?> dependencies
+                ? (Map<String, List<String>>) dependencies
+                : Map.of();
+    }
+
+    /** A property and every property that dependencies require beside it, through every link, in order. */
+    private static List<String> dependents(String name, Map<String, List<String>> dependencies) {
+        List<String> closure = new ArrayList<>(List.of(name));
+        for (int i = 0; i < closure.size(); i++) {
+            for (String dependent : dependencies.getOrDefault(closure.get(i), List.of())) {
+                if (!closure.contains(dependent)) {
+                    closure.add(dependent);
+                }
+            }
+        }
+        return closure;
     }
 
     /** Whether a number is finite and above 0, as a multipleOf must be. */
@@ -342,7 +593,11 @@ public final class SchemaParser {
 
         return switch (schemaType) {
             case "integer" -> resolveInteger(fieldSchema, path);
-            case "number" -> resolveNumber(fieldSchema, path);
+            // OpenAPI's int32 and int64 name integers, which a number with either must be.
+            case "number" ->
+                "int32".equals(format) || "int64".equals(format)
+                        ? resolveInteger(fieldSchema, path)
+                        : resolveNumber(fieldSchema, path);
             case "boolean" -> ctx -> ctx.random().nextBoolean();
             case "array" -> resolveArray(fieldName, path, fieldSchema, field, config);
             case "object" -> resolveNestedObject(path, fieldSchema, field, config);
@@ -385,19 +640,13 @@ public final class SchemaParser {
                             || decimal(number).remainder(decimal(step)).signum() == 0);
         }
         if (value instanceof List<?> list) {
-            return list.size() >= intOrDefault(schema.get("minItems"), 0)
-                    && list.size() <= intOrDefault(schema.get("maxItems"), Integer.MAX_VALUE)
+            return withinCounts(list.size(), schema, "minItems", "maxItems")
                     && (!Boolean.TRUE.equals(schema.get("uniqueItems"))
                             || jsonValues(list).size() == list.size())
-                    && (!(schema.get("items") instanceof Map<?, ?> items)
-                            || list.stream().allMatch(item -> satisfies(item, items)));
+                    && itemsMeet(list, schema);
         }
-        if (value instanceof Map<?, ?> object && schema.get("properties") instanceof Map<?, ?> properties) {
-            Map<String, @Nullable Object> members = byName(object);
-            return properties.entrySet().stream()
-                    .allMatch(property -> !members.containsKey(property.getKey())
-                            || !(property.getValue() instanceof Map<?, ?> propertySchema)
-                            || satisfies(members.get(property.getKey()), propertySchema));
+        if (value instanceof Map<?, ?> object) {
+            return membersMeet(byName(object), schema);
         }
         // A string, or anything else written as one, such as a date. A pattern searches that text; it
         // need not match all of it.
@@ -408,6 +657,51 @@ public final class SchemaParser {
                                 || Pattern.compile(pattern)
                                         .matcher(value.toString())
                                         .find()));
+    }
+
+    /**
+     * Whether every item meets its schema: the items schema, or with a list of items, the one at its
+     * position and additionalItems after them.
+     */
+    private static boolean itemsMeet(List<?> list, Map<?, ?> schema) {
+        Object items = schema.get("items");
+        for (int position = 0; position < list.size(); position++) {
+            Object itemSchema = items instanceof List<?> tuple
+                    ? (position < tuple.size() ? tuple.get(position) : schema.get("additionalItems"))
+                    : items;
+            if (!meets(list.get(position), itemSchema)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Whether an object's members meet the object keywords: each member its property's schema, or
+     * additionalProperties if it has none; the member count minProperties and maxProperties; and the
+     * names required and those that each member's dependencies require.
+     */
+    private static boolean membersMeet(Map<String, @Nullable Object> members, Map<?, ?> schema) {
+        Map<?, ?> properties = schema.get("properties") instanceof Map<?, ?> declared ? declared : Map.of();
+        for (Map.Entry<String, @Nullable Object> member : members.entrySet()) {
+            String name = member.getKey();
+            Object memberSchema =
+                    properties.containsKey(name) ? properties.get(name) : schema.get("additionalProperties");
+            if (!meets(member.getValue(), memberSchema)) {
+                return false;
+            }
+        }
+        Set<String> names = members.keySet();
+        return withinCounts(names.size(), schema, "minProperties", "maxProperties")
+                && names.containsAll(names(schema.get("required")))
+                && propertyDependencies(schema).entrySet().stream()
+                        .allMatch(dependency ->
+                                !names.contains(dependency.getKey()) || names.containsAll(dependency.getValue()));
+    }
+
+    /** Whether a value meets a subschema: true or a missing one allows any value, and false none. */
+    private static boolean meets(@Nullable Object value, @Nullable Object subschema) {
+        return subschema instanceof Map<?, ?> map ? satisfies(value, map) : !Boolean.FALSE.equals(subschema);
     }
 
     private static boolean hasDeclaredType(@Nullable Object value, Map<?, ?> schema) {
@@ -528,9 +822,7 @@ public final class SchemaParser {
 
     private static boolean withinLengthBounds(String text, Map<?, ?> schema) {
         // JSON Schema counts characters, not UTF-16 units.
-        int length = text.codePointCount(0, text.length());
-        return length >= intOrDefault(schema.get("minLength"), 0)
-                && length <= intOrDefault(schema.get("maxLength"), Integer.MAX_VALUE);
+        return withinCounts(text.codePointCount(0, text.length()), schema, "minLength", "maxLength");
     }
 
     private static boolean declaresLength(Map<?, ?> schema) {
@@ -544,7 +836,9 @@ public final class SchemaParser {
             @Nullable String format,
             Field field,
             GeneratorConfig config) {
-        if (intOrDefault(schema.get("minLength"), 0) > intOrDefault(schema.get("maxLength"), Integer.MAX_VALUE)) {
+        int fewest = minimumCount(schema, "minLength", 0, path, "characters a generated string");
+        int most = maximumCount(schema, "maxLength", Integer.MAX_VALUE);
+        if (fewest > most) {
             throw emptyRange("string length", path, schema);
         }
 
@@ -553,7 +847,7 @@ public final class SchemaParser {
         String pattern = stringOrNull(schema.get("pattern"));
         if (pattern != null) {
             // RegexGenerator's open-ended repetitions have to be able to reach the declared minimum.
-            int minLength = Math.clamp(intOrDefault(schema.get("minLength"), 1), 1, Integer.MAX_VALUE - 1);
+            int minLength = Math.max(fewest, 1);
             validatePattern(pattern, minLength, path);
             return fittingLength(
                     ctx -> matching(pattern, minLength, ctx.random().nextLong()), schema, path, config);
@@ -580,10 +874,10 @@ public final class SchemaParser {
         // Bounded string length
         // A missing bound defaults within the declared one: maxLength 2 alone must not keep a larger
         // configured minimum length.
-        int maxLength = intOrDefault(
-                schema.get("maxLength"),
-                Math.max(config.getMaxStringLength(), intOrDefault(schema.get("minLength"), 0)));
-        int minLength = intOrDefault(schema.get("minLength"), Math.min(config.getMinStringLength(), maxLength));
+        // The limit holds whether the bound comes from the schema or from the configured string length.
+        int maxLength =
+                Math.min(SIZE_LIMIT, maximumCount(schema, "maxLength", Math.max(config.getMaxStringLength(), fewest)));
+        int minLength = schema.containsKey("minLength") ? fewest : Math.min(config.getMinStringLength(), maxLength);
         // Generated text has at least one character, so only maxLength 0 needs the empty string.
         return maxLength == 0 ? ctx -> "" : text(Math.max(minLength, 1), maxLength);
     }
@@ -651,18 +945,41 @@ public final class SchemaParser {
                         .build());
     }
 
+    /**
+     * The values of a format that Draft 2020-12 or OpenAPI defines, or null for any other, which no
+     * standard validator checks. OpenAPI's binary and password allow any string, so they are left to the
+     * same fallback.
+     */
     private static @Nullable SchemaValueProvider resolveFormat(String format, GeneratorConfig config) {
+        SchemaValueProvider drawn = drawnFormat(format, config);
+        if (drawn != null) {
+            return drawn;
+        }
         Function<GeneratorConfig, Generator<?>> factory = switch (format) {
             // Every email is also a valid idn-email.
             case "email", "idn-email" -> Generators::ofEmail;
-            case "uri", "url" -> URLGenerator::new;
+            // Every URI is also a URI reference, an IRI, and an IRI reference, and one without quotes or
+            // braces, as these are, is a URI template that expands to itself.
+            case "uri", "url", "uri-reference", "iri", "iri-reference", "uri-template" -> URLGenerator::new;
             case "uuid" -> UUIDGenerator::new;
             case "date" -> DateGenerator::new;
-            case "date-time" -> LocalDateTimeGenerator::new;
-            case "time" -> TimeGenerator::new;
+            // RFC 3339 writes the seconds and an offset, which toString() can leave out.
+            case "date-time" ->
+                source -> formatted(new OffsetDateTimeGenerator(source), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+            case "time" -> source -> formatted(new OffsetTimeGenerator(source), DateTimeFormatter.ISO_OFFSET_TIME);
+            // The OpenAPI Format Registry's RFC 3339 date-time and time without the timezone component, as a
+            // LocalDateTime and a LocalTime export, drawn from the same ranges and written with the seconds.
+            case "date-time-local" ->
+                source -> formatted(new LocalDateTimeGenerator(source), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            case "time-local" ->
+                source -> {
+                    OffsetTimeGenerator times = new OffsetTimeGenerator(source);
+                    return formatted(() -> times.generate().toLocalTime(), DateTimeFormatter.ISO_LOCAL_TIME);
+                };
             case "ipv4" -> IPv4Generator::new;
             case "ipv6" -> IPv6Generator::new;
-            case "hostname" -> HostnameGenerator::new;
+            // Every hostname is also a valid internationalized one.
+            case "hostname", "idn-hostname" -> HostnameGenerator::new;
             default -> null;
         };
         if (factory == null) {
@@ -679,6 +996,46 @@ public final class SchemaParser {
                         config.toBuilder().seed(ctx.random().nextLong()).build())
                 .generate()
                 .toString();
+    }
+
+    private static Generator<String> formatted(
+            Generator<? extends TemporalAccessor> source, DateTimeFormatter formatter) {
+        return () -> formatter.format(source.generate());
+    }
+
+    /** A format whose values no generator makes, drawn from the field's own stream. */
+    private static @Nullable SchemaValueProvider drawnFormat(String format, GeneratorConfig config) {
+        return switch (format) {
+            // RFC 3339 Appendix A: days, then hours, minutes, and seconds.
+            case "duration" ->
+                ctx -> "P" + ctx.random().nextInt(31) + "DT" + ctx.random().nextInt(24) + "H"
+                        + ctx.random().nextInt(60) + "M" + ctx.random().nextInt(60) + "S";
+            case "json-pointer" -> ctx -> pointer(ctx.random());
+            // How many levels up, then a JSON pointer from there.
+            case "relative-json-pointer" -> ctx -> ctx.random().nextInt(10) + pointer(ctx.random());
+            // Letters alone are a regular expression, which matches them.
+            case "regex" -> randomText(config);
+            // OpenAPI's byte is base64.
+            case "byte" ->
+                ctx -> {
+                    byte[] bytes = new byte[1 + ctx.random().nextInt(16)];
+                    ctx.random().nextBytes(bytes);
+                    return Base64.getEncoder().encodeToString(bytes);
+                };
+            default -> null;
+        };
+    }
+
+    /** A JSON pointer of one to three segments of lowercase letters, which need no escaping. */
+    private static String pointer(Random random) {
+        StringBuilder pointer = new StringBuilder();
+        for (int segments = 1 + random.nextInt(3); segments > 0; segments--) {
+            pointer.append('/');
+            for (int letters = 1 + random.nextInt(8); letters > 0; letters--) {
+                pointer.append((char) ('a' + random.nextInt(26)));
+            }
+        }
+        return pointer.toString();
     }
 
     private static SchemaValueProvider resolveInteger(Map<String, Object> schema, String path) {
@@ -698,6 +1055,11 @@ public final class SchemaParser {
         if (exclusiveBound(schema, "exclusiveMaximum", "maximum") instanceof Number exclusive) {
             highest = highest.min(
                     decimal(exclusive).setScale(0, RoundingMode.CEILING).subtract(BigDecimal.ONE));
+        }
+        // OpenAPI's int32 keeps an integer within an int; every integer here is within int64 already.
+        if ("int32".equals(schema.get("format"))) {
+            lowest = lowest.max(BigDecimal.valueOf(Integer.MIN_VALUE));
+            highest = highest.min(BigDecimal.valueOf(Integer.MAX_VALUE));
         }
         if (lowest.compareTo(highest) > 0) {
             throw emptyRange("integer", path, schema);
@@ -772,6 +1134,11 @@ public final class SchemaParser {
         }
         if (lowest == Double.NEGATIVE_INFINITY) {
             lowest = highest > -NUMBER_DEFAULT_LIMIT ? -NUMBER_DEFAULT_LIMIT : highest - 2 * NUMBER_DEFAULT_LIMIT;
+        }
+        BigDecimal magnitude = formatMagnitude(schema);
+        if (magnitude != null) {
+            lowest = Math.max(lowest, -magnitude.doubleValue());
+            highest = Math.min(highest, magnitude.doubleValue());
         }
         // An infinity left here is a bound beyond every double, with no double on its allowed side.
         if (lowest > highest || lowest == Double.POSITIVE_INFINITY || highest == Double.NEGATIVE_INFINITY) {
@@ -863,7 +1230,24 @@ public final class SchemaParser {
                     : top.subtract(limit).subtract(limit);
             first = quotient(bottom, step, RoundingMode.CEILING).min(last);
         }
+        BigDecimal magnitude = formatMagnitude(schema);
+        if (magnitude != null) {
+            first = first.max(quotient(magnitude.negate(), step, RoundingMode.CEILING));
+            last = last.min(quotient(magnitude, step, RoundingMode.FLOOR));
+        }
         return multiples(step, first, last, false, path, schema);
+    }
+
+    /**
+     * The largest magnitude that OpenAPI's float or double format allows a number, applied after the
+     * default range, so that a float with no bounds keeps it; null for any other format.
+     */
+    private static @Nullable BigDecimal formatMagnitude(Map<String, Object> schema) {
+        Object format = schema.get("format");
+        if ("float".equals(format)) {
+            return new BigDecimal(Float.MAX_VALUE);
+        }
+        return "double".equals(format) ? new BigDecimal(Double.MAX_VALUE) : null;
     }
 
     /**
@@ -924,46 +1308,95 @@ public final class SchemaParser {
         return new IllegalArgumentException("JSON Schema " + kind + " range has no values at " + path + ": " + schema);
     }
 
-    @SuppressWarnings("unchecked")
     private static SchemaValueProvider resolveArray(
             String fieldName, String path, Map<String, Object> schema, Field field, GeneratorConfig config) {
-        // As with string lengths, a missing bound defaults within the declared one.
-        int maxItems = intOrDefault(
-                schema.get("maxItems"),
-                Math.max(config.getMaxCollectionSize(), intOrDefault(schema.get("minItems"), 0)));
-        int minItems = intOrDefault(schema.get("minItems"), Math.min(config.getMinCollectionSize(), maxItems));
+        // A list of items is the tuple form of the drafts up to 2019-09: each position has its own schema,
+        // and additionalItems is the schema of the items after them. A false schema allows no item, so it
+        // ends every array at its position. The sizes are judged from these before any item's schema is
+        // resolved, so that no schema is resolved for an array that fails them.
+        Object items = schema.get("items");
+        int reach = Integer.MAX_VALUE;
+        if (items instanceof List<?> tuple) {
+            for (int position = 0; position < tuple.size(); position++) {
+                if (Boolean.FALSE.equals(tuple.get(position))) {
+                    reach = Math.min(reach, position);
+                }
+            }
+            if (Boolean.FALSE.equals(schema.get("additionalItems"))) {
+                reach = Math.min(reach, tuple.size());
+            }
+        } else if (Boolean.FALSE.equals(items)) {
+            reach = 0;
+        }
+
+        // As with string lengths, a missing bound defaults within the declared one. Its default is the
+        // tuple, or for other arrays the configured collection size, within what the items allow.
+        int natural = items instanceof List<?> tuple ? Math.min(tuple.size(), reach) : config.getMaxCollectionSize();
+        int naturalMin = items instanceof List<?> ? natural : config.getMinCollectionSize();
+        int fewest = minimumCount(schema, "minItems", 0, path, "items a generated array");
+        // The limit holds whether the bound comes from the schema, the tuple, or the configured size.
+        int maxItems =
+                Math.min(Math.min(reach, SIZE_LIMIT), maximumCount(schema, "maxItems", Math.max(natural, fewest)));
+        int minItems = schema.containsKey("minItems") ? fewest : Math.min(naturalMin, maxItems);
         if (minItems > maxItems) {
             throw emptyRange("array size", path, schema);
         }
 
-        SchemaValueProvider itemProvider;
-        Object itemsRaw = schema.get("items");
-        if (itemsRaw instanceof Map<?, ?> itemSchema) {
-            itemProvider =
-                    resolveProvider(fieldName + "[]", path + ".items", (Map<String, Object>) itemSchema, field, config);
+        List<SchemaValueProvider> positions = new ArrayList<>();
+        SchemaValueProvider rest;
+        if (items instanceof List<?> tuple) {
+            for (int position = 0; position < tuple.size(); position++) {
+                positions.add(itemProvider(
+                        tuple.get(position),
+                        fieldName + "[" + position + "]",
+                        path + ".items[" + position + "]",
+                        field,
+                        config));
+            }
+            rest = itemProvider(
+                    schema.get("additionalItems"), fieldName + "[]", path + ".additionalItems", field, config);
         } else {
-            itemProvider = randomText(config);
+            rest = itemProvider(items, fieldName + "[]", path + ".items", field, config);
         }
 
-        SchemaValueProvider items = itemProvider;
         if (Boolean.TRUE.equals(schema.get("uniqueItems"))) {
             // While parsing, a search with a fixed seed looks for maxItems distinct items, and gives the
             // same verdict on every run. Fewer than minItems fail here; fewer than maxItems are the most an
             // array then holds, so items with few distinct values never spend the whole budget, which
             // would multiply at every level of nested arrays.
             int distinct = distinctItems(
-                            items, new SchemaContext(config.getLocale(), new Random(0L), 0), maxItems, minItems, path)
+                            positions,
+                            rest,
+                            new SchemaContext(config.getLocale(), new Random(0L), 0),
+                            maxItems,
+                            minItems,
+                            path)
                     .size();
-            return ctx -> distinctItems(items, ctx, size(ctx, minItems, distinct), minItems, path);
+            return ctx -> distinctItems(positions, rest, ctx, size(ctx, minItems, distinct), minItems, path);
         }
         return ctx -> {
             int size = size(ctx, minItems, maxItems);
             List<Object> list = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
-                list.add(items.generate(ctx));
+                list.add(itemAt(positions, rest, i).generate(ctx));
             }
             return list;
         };
+    }
+
+    /** The provider of the items a subschema allows, where true or a missing schema allows any: a string. */
+    @SuppressWarnings("unchecked")
+    private static SchemaValueProvider itemProvider(
+            @Nullable Object itemSchema, String name, String path, Field field, GeneratorConfig config) {
+        return itemSchema instanceof Map<?, ?> map
+                ? resolveProvider(name, path, (Map<String, Object>) map, field, config)
+                : randomText(config);
+    }
+
+    /** The provider of the item at a position: the tuple's own, or the one for the items after them. */
+    private static SchemaValueProvider itemAt(
+            List<SchemaValueProvider> positions, SchemaValueProvider rest, int position) {
+        return position < positions.size() ? positions.get(position) : rest;
     }
 
     private static int size(SchemaContext ctx, int minItems, int maxItems) {
@@ -973,15 +1406,21 @@ public final class SchemaParser {
     /**
      * Draws items until there are size distinct ones, as JSON values, with at most
      * {@value #UNIQUE_ITEM_ATTEMPTS} draws for each item. Items that run out of distinct values sooner keep
-     * the ones found, which fails only below minItems.
+     * the ones found, which fails only below minItems. An item is drawn for the position it would fill, so
+     * an array ends at a position whose schema has no new value.
      */
     private static List<Object> distinctItems(
-            SchemaValueProvider items, SchemaContext ctx, int size, int minItems, String path) {
+            List<SchemaValueProvider> positions,
+            SchemaValueProvider rest,
+            SchemaContext ctx,
+            int size,
+            int minItems,
+            String path) {
         List<Object> list = new ArrayList<>(size);
         Set<@Nullable Object> seen = new HashSet<>();
         long attempts = (long) UNIQUE_ITEM_ATTEMPTS * size;
         for (long attempt = 0; attempt < attempts && list.size() < size; attempt++) {
-            Object item = items.generate(ctx);
+            Object item = itemAt(positions, rest, list.size()).generate(ctx);
             if (seen.add(json(item))) {
                 list.add(item);
             }
@@ -993,35 +1432,205 @@ public final class SchemaParser {
         return list;
     }
 
+    /**
+     * An object holds every property it declares, as it always has, unless its other keywords ask
+     * otherwise. A property that is required, or that a dependency names, is generated through
+     * additionalProperties if it is not declared; maxProperties leaves out optional properties, chosen at
+     * random, until the object fits, and minProperties adds as few additional properties as it needs. A
+     * property whose dependencies cannot be generated is left out. Whatever cannot be met fails here.
+     */
     @SuppressWarnings("unchecked")
     private static SchemaValueProvider resolveNestedObject(
             String path, Map<String, Object> schema, Field field, GeneratorConfig config) {
-        Object propertiesRaw = schema.get("properties");
-        if (!(propertiesRaw instanceof Map<?, ?> propertiesMap) || propertiesMap.isEmpty()) {
-            return ctx -> Collections.emptyMap();
+        // The properties under the names they are written with; a name that is no string is left out.
+        Map<String, Object> declared = new LinkedHashMap<>();
+        if (schema.get("properties") instanceof Map<?, ?> properties) {
+            for (Map.Entry<?, ?> entry : properties.entrySet()) {
+                if (entry.getKey() instanceof String name) {
+                    declared.put(name, entry.getValue());
+                }
+            }
+        }
+        Object additional = schema.get("additionalProperties");
+        boolean extensible = !Boolean.FALSE.equals(additional);
+        Map<String, Object> additionalSchema =
+                additional instanceof Map<?, ?> map ? (Map<String, Object>) map : Map.of();
+        Map<String, List<String>> dependencies = propertyDependencies(schema);
+        List<String> required = names(schema.get("required"));
+
+        // A declared property is generated from its schema, where true is the empty schema; false, or a
+        // value that is no schema, leaves it out. Any other property comes from additionalProperties. The
+        // names and counts are judged first, so that no schema is resolved for an object that fails them.
+        Set<String> usable = new LinkedHashSet<>();
+        for (Map.Entry<String, Object> property : declared.entrySet()) {
+            if (property.getValue() instanceof Map<?, ?> || Boolean.TRUE.equals(property.getValue())) {
+                usable.add(property.getKey());
+            }
+        }
+        int fewest = minimumCount(schema, "minProperties", 0, path, "members a generated object");
+        int most = maximumCount(schema, "maxProperties", Integer.MAX_VALUE);
+        if (fewest > most) {
+            throw emptyRange("property count", path, schema);
+        }
+        if (usable.size() > SIZE_LIMIT) {
+            throw new IllegalArgumentException("JSON Schema object at " + path + " declares " + usable.size()
+                    + " properties, more than the " + SIZE_LIMIT + " members a generated object can hold");
+        }
+        Predicate<String> available = name -> usable.contains(name) || (extensible && !declared.containsKey(name));
+
+        Set<String> base = new LinkedHashSet<>();
+        for (String name : required) {
+            for (String member : dependents(name, dependencies)) {
+                if (!available.test(member)) {
+                    throw new IllegalArgumentException((member.equals(name)
+                                    ? "JSON Schema required property '" + name + "'"
+                                    : "JSON Schema property '" + member
+                                            + "', which dependencies require beside required property '" + name
+                                            + "',")
+                            + " cannot be generated at " + path + ": " + unavailable(member, declared));
+                }
+                base.add(member);
+            }
+        }
+        // Every declared property whose dependencies can be generated, in the order written, then the
+        // others that are required or that a dependency names.
+        Set<String> chosen = new HashSet<>(base);
+        Set<String> order = new LinkedHashSet<>(declared.keySet());
+        order.addAll(base);
+        for (String name : usable) {
+            List<String> needed = dependents(name, dependencies);
+            order.addAll(needed);
+            if (needed.stream().allMatch(available)) {
+                chosen.addAll(needed);
+            }
+        }
+        List<String> members = order.stream().filter(chosen::contains).toList();
+        if (members.size() > SIZE_LIMIT) {
+            throw new IllegalArgumentException("JSON Schema object at " + path + " would hold " + members.size()
+                    + " properties, more than the " + SIZE_LIMIT + " members a generated object can hold");
+        }
+        if (base.size() > most) {
+            throw new IllegalArgumentException("JSON Schema object at " + path + " must hold " + base.size()
+                    + " properties, the required ones and those their dependencies require, above maxProperties "
+                    + most);
+        }
+        if (!extensible && members.size() < fewest) {
+            throw new IllegalArgumentException("JSON Schema object at " + path + " can hold at most "
+                    + members.size() + " properties, as additionalProperties is false, below minProperties "
+                    + fewest);
         }
 
-        Map<String, SchemaValueProvider> nestedProviders = new LinkedHashMap<>();
-        for (Map.Entry<?, ?> entry : propertiesMap.entrySet()) {
-            if (entry.getKey() instanceof String name && entry.getValue() instanceof Map<?, ?> propSchema) {
-                nestedProviders.put(
+        // Properties that depend on each other are left out together, after every property that depends
+        // on them. Without additional properties to make up for it, the range must be as wide as each such
+        // group, so that leaving one out never takes an object below minProperties.
+        Map<String, Tie> ties = new LinkedHashMap<>();
+        if (members.size() > most) {
+            for (String name : members) {
+                if (!base.contains(name)) {
+                    Set<String> group = new LinkedHashSet<>();
+                    Set<String> needing = new HashSet<>();
+                    for (String other : members) {
+                        if (dependents(other, dependencies).contains(name)) {
+                            needing.add(other);
+                            if (dependents(name, dependencies).contains(other)) {
+                                group.add(other);
+                            }
+                        }
+                    }
+                    if (!extensible && most - fewest + 1 < group.size()) {
+                        throw new IllegalArgumentException("JSON Schema object at " + path + " can leave out "
+                                + group + " only together, as their dependencies tie them, but minProperties "
+                                + fewest + " and maxProperties " + most
+                                + " leave a narrower range, and additionalProperties is false");
+                    }
+                    ties.put(name, new Tie(group, needing));
+                }
+            }
+        }
+
+        // Like every schema, each declared property's is resolved, and additionalProperties even where no
+        // object needs it, once the object's names and counts hold.
+        Map<String, SchemaValueProvider> providers = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> property : declared.entrySet()) {
+            Object propertySchema = Boolean.TRUE.equals(property.getValue()) ? Map.of() : property.getValue();
+            if (propertySchema instanceof Map<?, ?> map) {
+                String name = property.getKey();
+                providers.put(
                         name,
-                        resolveProvider(
-                                name, path + ".properties." + name, (Map<String, Object>) propSchema, field, config));
+                        resolveProvider(name, path + ".properties." + name, (Map<String, Object>) map, field, config));
             }
         }
+        SchemaValueProvider additionalValue =
+                resolveProvider("", path + ".additionalProperties", additionalSchema, field, config);
+        Map<String, SchemaValueProvider> memberProviders = new LinkedHashMap<>();
+        for (String name : members) {
+            SchemaValueProvider provider = providers.get(name);
+            memberProviders.put(
+                    name,
+                    provider != null
+                            ? provider
+                            : resolveProvider(name, path + ".additionalProperties", additionalSchema, field, config));
+        }
 
+        // Additional properties are named property1, property2, and so on, past every name the schema uses.
+        Set<String> taken = new HashSet<>(declared.keySet());
+        taken.addAll(required);
+        dependencies.forEach((name, needed) -> {
+            taken.add(name);
+            taken.addAll(needed);
+        });
         return ctx -> {
-            Map<String, Object> nested = new LinkedHashMap<>(nestedProviders.size());
-            for (Map.Entry<String, SchemaValueProvider> entry : nestedProviders.entrySet()) {
-                nested.put(entry.getKey(), entry.getValue().generate(ctx));
+            Set<String> kept = new HashSet<>(members);
+            while (kept.size() > most) {
+                // Only a group that no other kept property depends on can be left out.
+                List<Set<String>> outermost = new ArrayList<>();
+                for (Map.Entry<String, Tie> tie : ties.entrySet()) {
+                    if (kept.contains(tie.getKey()) && tie.getValue().isOutermost(kept)) {
+                        outermost.add(tie.getValue().group());
+                    }
+                }
+                kept.removeAll(outermost.get(ctx.random().nextInt(outermost.size())));
             }
-            return nested;
+            Map<String, Object> object = new LinkedHashMap<>();
+            for (Map.Entry<String, SchemaValueProvider> member : memberProviders.entrySet()) {
+                if (kept.contains(member.getKey())) {
+                    object.put(member.getKey(), member.getValue().generate(ctx));
+                }
+            }
+            for (int next = 1; object.size() < fewest; next++) {
+                String name = "property" + next;
+                if (!taken.contains(name)) {
+                    object.put(name, additionalValue.generate(ctx));
+                }
+            }
+            return object;
         };
     }
 
+    /**
+     * An optional property's tie to others: the group of properties that depend on each other with it,
+     * which are left out together, and every property that depends on it, the group included.
+     */
+    private record Tie(Set<String> group, Set<String> needing) {
+
+        /** Whether no kept property outside the group depends on it, so the group can be left out. */
+        boolean isOutermost(Set<String> kept) {
+            return needing.stream().filter(kept::contains).allMatch(group::contains);
+        }
+    }
+
+    /** Why a property cannot be generated. */
+    private static String unavailable(String name, Map<String, Object> declared) {
+        if (!declared.containsKey(name)) {
+            return "it is not in properties, and additionalProperties is false";
+        }
+        return Boolean.FALSE.equals(declared.get(name)) ? "its schema is false" : "its schema is no schema object";
+    }
+
+    /** Text of the configured length, held to the limit a generated string keeps. */
     private static SchemaValueProvider randomText(GeneratorConfig config) {
-        return text(config.getMinStringLength(), config.getMaxStringLength());
+        return text(
+                Math.min(config.getMinStringLength(), SIZE_LIMIT), Math.min(config.getMaxStringLength(), SIZE_LIMIT));
     }
 
     /** Text drawn from the field's own stream, so seeded schemas replay and equal columns differ. */
@@ -1104,12 +1713,5 @@ public final class SchemaParser {
 
     private static @Nullable String stringOrNull(@Nullable Object value) {
         return value instanceof String s ? s : null;
-    }
-
-    private static int intOrDefault(@Nullable Object value, int defaultValue) {
-        if (value instanceof Number n) {
-            return n.intValue();
-        }
-        return defaultValue;
     }
 }

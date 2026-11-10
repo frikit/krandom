@@ -103,6 +103,8 @@ class FieldLookupTest {
         assertEquals("email", lookup.resolve("person.email").jsonSchema().get("format"));
         assertEquals(
                 "integer", lookup.resolve("datetime.timestamp").jsonSchema().get("type"));
+        // A time of day written without an offset is RFC 3339's time without the timezone component.
+        assertEquals("time-local", lookup.resolve("datetime.time").jsonSchema().get("format"));
 
         @SuppressWarnings("unchecked")
         Map<String, Object> orderProperties = (Map<String, Object>)

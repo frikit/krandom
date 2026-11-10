@@ -85,12 +85,12 @@ is a fixture-schema importer, not a general JSON Schema validator or reference r
 
 | Construct | Supported behavior |
 | --- | --- |
-| Root | An object with a non-empty `properties` map is required. |
+| Root | An object with a non-empty `properties` map of schema objects is required. Every record holds each of those properties, as a column, so a root `required` name or property dependency that names another property, or a `minProperties` or `maxProperties` that those properties do not meet, is rejected at `$`. |
 | Types | `string`, `integer`, `number`, `boolean`, `array`, `object`, and `null`; a type list may contain exactly one concrete type plus `null`. |
 | Scalars | `const`, a non-empty `enum`, numeric bounds, `multipleOf`, string length bounds, and a `pattern` in the [syntax `RegexGenerator` supports]({{ '/guides/data-validity-and-safety/' | relative_url }}#regular-expression-contract). |
-| Strings | `email`/`idn-email`, `uri`/`url`, `uuid`, `date`, `date-time`, `time`, `ipv4`, `ipv6`, and `hostname` receive dedicated generation. An unknown *string* format deliberately uses semantic-name or bounded-string fallback rather than pretending to implement it. A schema with no `type` generates a string under the same rules. |
-| Structures | `items`, `minItems`/`maxItems`, and `uniqueItems` for arrays; nested `properties` for objects. An array without `items` produces strings. |
-| OpenAPI controls | OpenAPI 3.0 `nullable`, plus `$schema`, `required`, and `additionalProperties` emitted by `toJsonSchema()`. The latter three are accepted as document controls rather than generation constraints. |
+| Strings | Every format Draft 2020-12 defines receives dedicated generation: `date`, and `date-time` and `time` as RFC 3339, with seconds and an offset; `duration` as RFC 3339 days, hours, minutes, and seconds; `email` and `idn-email`; `hostname` and `idn-hostname`; `ipv4` and `ipv6`; `uri`, `uri-reference`, `iri`, `iri-reference`, and `uri-template`, all from one URL generator, as a URI with no quote or brace is each of the others; `uuid`; `json-pointer` and `relative-json-pointer`; and `regex`, as letters, which match themselves. So do OpenAPI's `byte`, as base64; `date-time-local` and `time-local`, which the [OpenAPI Format Registry](https://spec.openapis.org/registry/format/) describes as RFC 3339 date-time and time without the timezone component, written with the seconds; and the `url` alias. OpenAPI's `binary` and `password` allow any string, and no standard validator checks any other format, so they deliberately use the semantic-name or bounded-string fallback. A schema with no `type` generates a string under the same rules. |
+| Structures | `items` as one schema or as a list of schemas, `additionalItems` beside a list, `minItems`/`maxItems`, and `uniqueItems` for arrays; nested `properties`, `required`, `additionalProperties`, `minProperties`/`maxProperties`, and property `dependencies` for objects. An array without `items` produces strings, and `true` and `false` work as schemas that allow any value or none. |
+| OpenAPI controls | OpenAPI 3.0 `nullable`, plus the `$schema` that `toJsonSchema()` emits, which is accepted as a document control rather than a generation constraint. |
 
 Constraints apply together, and a keyword constrains only values of its own JSON type:
 
@@ -107,7 +107,11 @@ Constraints apply together, and a keyword constrains only values of its own JSON
   path.
 - Numeric bounds intersect, so `minimum` 100 with `exclusiveMinimum` 0 starts at 100. OpenAPI 3.0's
   boolean `exclusiveMinimum` and `exclusiveMaximum` work as flags on the inclusive bound. An `integer`
-  rounds a fractional bound inward and stays within the range of a `long`.
+  rounds a fractional bound inward and stays within the range of a `long`. OpenAPI's `int32` and `int64`
+  formats name integers, so a `number` with either is generated as an `integer`, and `int32` keeps it
+  within an `int`, so bounds that hold no `int` are rejected with the schema path. Its `float` and
+  `double` formats keep a `number` within their range, applied after the default range, so a `float`
+  without bounds still stays within one million either side of 0.
 - `multipleOf` must be a number above 0, and generates exact multiples within the bounds, as decimals,
   with no binary rounding: `multipleOf` 0.01 gives values such as `12.34`. An `integer` stays an
   `Integer` or `Long` and takes the multiples that are whole, so `multipleOf` 2.5 gives multiples of 5. A
@@ -122,31 +126,76 @@ Constraints apply together, and a keyword constrains only values of its own JSON
   rejected with the schema path, and where the search finds fewer than `maxItems`, an array holds at
   most that many. Each array then draws up to 100 items for each item it holds, keeps the distinct ones
   found if they run out, and fails with the schema path below `minItems`.
+- A list of `items` is the tuple form of the drafts up to 2019-09: each position follows its own schema,
+  and `additionalItems` is the schema of the items after them. The parser reads both forms whatever
+  `$schema` says, and rejects `prefixItems`, the Draft 2020-12 replacement. An array holds the whole tuple
+  unless `minItems` or `maxItems` moves its size, so `minItems` 0 allows shorter arrays and `maxItems` 4
+  allows two items after a tuple of two. Without `additionalItems`, the items after the tuple are
+  strings, as for an array without `items`. `additionalItems: false` ends an array with the tuple, and a
+  `false` entry ends it before that position, so a `minItems` past either is rejected with the schema
+  path, and `items: false` allows only the empty array. `additionalItems` beside a single `items` schema
+  is ignored, as those drafts say. With `uniqueItems`, each item is drawn for the position it fills, so
+  an array ends early at a position that has no new value, and fails below `minItems`.
+- A nested object holds every property it declares unless its other keywords ask otherwise.
+  `maxProperties` leaves out optional properties, chosen at random, until the object fits, and
+  `minProperties` adds as few additional properties as it needs, named `property1`, `property2`, and so
+  on, past every name the schema uses, with values from the `additionalProperties` schema, or strings
+  without one. A `required` property that is not in `properties` is generated the same way, and its
+  name chooses a realistic value where it can, so `required: ["email"]` gives an email address. Where
+  `additionalProperties` is `false`, none of these can be added, so the schema is rejected with its
+  path. A property schema `true` generates a string, as `{}` does, and `false` leaves the property out,
+  so a `required` property whose schema is `false`, or is no schema at all, is rejected.
+- A property dependency, such as `"dependencies": {"card": ["billing"]}`, brings the properties it
+  names, through every link, beside the property that needs them, so `required` brings them too. A
+  property whose dependencies cannot be generated is left out, and rejected if it is required.
+  `maxProperties` leaves out a property only after every property that depends on it, and properties
+  that depend on each other only together; where `additionalProperties` is `false`, `minProperties` and
+  `maxProperties` must then leave a range as wide as each such group. A schema dependency, which asks an
+  object to meet a second schema, needs schema composition, so it is rejected with its path, such as
+  `$.properties.order.dependencies.card`. `dependencies` is the form of the drafts up to 7, read
+  whatever `$schema` says; `dependentRequired` and `dependentSchemas`, the Draft 2019-09 forms, are
+  rejected.
 - A `pattern` or `format` value is drawn again until it fits `minLength` and `maxLength`, up to 10,000
   times each. Length is counted in characters, not UTF-16 units.
+- `minLength`, `maxLength`, `minItems`, `maxItems`, `minProperties`, and `maxProperties` must be whole
+  numbers of at least 0, and are read exactly, however large. A generated string, array, or object holds
+  at most 1,000,000 characters, items, or members, the limit `RegexGenerator` keeps for a string, so a
+  minimum above it is rejected while parsing, naming the keyword, its value, and the schema path, and a
+  maximum above it, even one beyond an `int` such as `maxLength` 3000000000, draws no more than it. The
+  configured `stringLength` and `collectionSize` are held to it too, and an object that would hold more
+  properties, declared or required, is rejected with its path, the root included. A `const` or `enum`
+  is measured against the counts as written.
 - A value generated from a `pattern` matches the whole pattern, which also satisfies the search. A
   `pattern` that `RegexGenerator` cannot generate from, such as one with a lookahead, is rejected with
   its schema path. A `const` or `enum` beside it is only checked against it, so it can use any Java
   regex.
 
 A combination that leaves no value is rejected with its schema path, such as
-`$.properties.parent.properties.code`. That includes a nested `items` or property schema, even where
-an empty array or an object without that property would be valid, because the importer resolves every
-schema it is given. Pattern and format lengths are judged by sampling 1,000 values while parsing,
-rather than by analysing the pattern. A combination that rarely fits can be rejected too, and one
-that passes parsing can still fail on a later record. A pattern's `*`, `+`, and `{n,}` repeat up to
-twice `minLength` when that is more than their usual 10 times, up to 10,000, so `^[a-z]+$` with
-`minLength` 20 generates 20 to 40 characters.
+`$.properties.parent.properties.code` or `$.properties.pair.items[1]`. That includes a nested `items`,
+tuple entry, `additionalItems`, `additionalProperties`, or property schema, even where an empty array or
+an object without that property would be valid, because the importer resolves every schema it is
+given. Pattern and format lengths are judged by sampling 1,000 values while parsing, rather than by
+analysing the pattern. A combination that rarely fits can be rejected too, and one that passes parsing
+can still fail on a later record. A pattern's `*`, `+`, and `{n,}` repeat up to twice `minLength` when
+that is more than their usual 10 times, up to 10,000, so `^[a-z]+$` with `minLength` 20 generates 20 to
+40 characters.
 
-`$ref`, dynamic/recursive references, `allOf`, `anyOf`, `oneOf`, `not`, conditional schemas,
-and pattern/dependent-property composition are unsupported. They fail during parsing with the nested
-schema path. Malformed `type`, `format`, and `enum` values also fail during parsing with that path;
-they never silently become an unconstrained field. A Java map that recursively contains itself is
-rejected for the same reason: the importer has no document-ID or reference-resolution model.
+`$ref`, dynamic/recursive references, `allOf`, `anyOf`, `oneOf`, `not`, conditional schemas (`if`,
+`then`, `else`), `contains`, `prefixItems`, `patternProperties`, `propertyNames`, `dependentRequired`,
+`dependentSchemas`, schema dependencies, and the `unevaluated` keywords are unsupported. They fail
+during parsing with the nested schema path. Malformed `type`, `format`, `enum`, `items`, `required`,
+`additionalProperties`, and `dependencies` values, counts such as `maxLength`, and a malformed
+`additionalItems` beside a list of items, also fail during parsing with that path; they never silently
+become an unconstrained field. A Java map that recursively contains itself is rejected for the same
+reason: the importer has no document-ID or reference-resolution model.
 
 Schema export is metadata-driven and side-effect free. Built-in `Field` providers carry an exact
 fragment; a custom lambda with no metadata deliberately exports `{}` to mean **unknown**, not an
-invented type. Attach `SchemaValueProvider.withJsonSchema(...)` or `withSample(...)` when a custom
+invented type. A record member exports by its Java type: a `LocalDate` as `format: date`, an
+`OffsetDateTime` or `ZonedDateTime` as `date-time`, and a `LocalDateTime` or `LocalTime` as
+`date-time-local` or `time-local`, as the `datetime.time` provider does too, because RFC 3339's
+`date-time` and `time` need an offset that those values do not have. Parsing such a schema back gives
+values each type holds. Attach `SchemaValueProvider.withJsonSchema(...)` or `withSample(...)` when a custom
 provider can make a narrower claim. `Schema`, `SchemaProjection`, and parser-created generators are
 stateful: use one instance per thread (or `Generators.threadLocal(...)`) and share only immutable
 configuration and completed provider registrations.
