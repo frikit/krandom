@@ -17,6 +17,8 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.object.FixtureRuleProblem.Category;
 import io.github.frikit.krandom.generator.object.exception.FixtureRuleException;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Size;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -642,6 +644,67 @@ class ObjectFakerStrictDiagnosticsTest {
                 .endsWith("applies at 'twoWays.id', 'twoWays.purchase.id'"));
     }
 
+    @Test
+    @DisplayName("a root rule that fills a constructor argument of its name is not behind a context predicate override")
+    void rootRuleFillingConstructorArgumentIsNotBehindPredicate() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                .objectOverride(named("name"), (ContextualGenerator<String>) context -> "config")
+                .build();
+        ObjectFaker<NamedByConstructor> own =
+                new ObjectFaker<>(NamedByConstructor.class, config).ruleFor("name", () -> "rule");
+        ObjectFaker<InheritedNameByConstructor> inherited =
+                new ObjectFaker<>(InheritedNameByConstructor.class, config).ruleFor("name", () -> "rule");
+
+        assertEquals(List.of(), problemsOf(own));
+        assertEquals("rule", own.generate().name);
+        assertProblem(onlyProblem(inherited), Category.SHADOWED, FixtureRuleKind.RULE, "name", 1);
+        assertEquals("config", inherited.generate().name);
+        ObjectFaker<RenamedByConstructor> renamed =
+                new ObjectFaker<>(RenamedByConstructor.class, config).ruleFor("name", () -> "rule");
+        assertProblem(onlyProblem(renamed), Category.SHADOWED, FixtureRuleKind.RULE, "name", 1);
+        assertEquals("config", renamed.generate().name);
+    }
+
+    @Test
+    @DisplayName("an ignore that generate() never gives a value is no problem for populate(existing)")
+    void ignoreWithoutGeneratedValueStillAppliesToPopulate() {
+        ObjectFaker<Shop> faker = new ObjectFaker<>(
+                        Shop.class, GeneratorConfig.builder().objectMaxDepth(1).build())
+                .ruleFor("title", () -> "Main")
+                .ignore("client.location.city")
+                .strict();
+        Shop existing = new Shop();
+        existing.client = new Client();
+        existing.client.location = new Location();
+        existing.client.location.city = "Paris";
+
+        assertThrows(FixtureRuleException.class, faker::generate);
+        assertNull(faker.populate(existing).client.location.city);
+    }
+
+    @Test
+    @DisplayName("a collection that stays empty, a @Null member and conflicting constraints are not followed")
+    void emptyCollectionsAndNullMembersAreNotFollowed() {
+        GeneratorConfig empty = GeneratorConfig.builder()
+                .objectOverrideDefaultInitialization(true)
+                .collectionSize(0, 0)
+                .build();
+
+        assertEquals(List.of(), problemsOf(new ObjectFaker<>(Cart.class, empty).ruleFor("id", () -> "x")));
+        assertTrue(onlyProblem(new ObjectFaker<>(SizedCart.class, empty).ruleFor("id", () -> "x"))
+                .reason()
+                .endsWith("applies at 'purchases[].id'"));
+        assertEquals(List.of(), problemsOf(new ObjectFaker<>(NullPurchaseHolder.class).ruleFor("id", () -> "x")));
+    }
+
+    @Test
+    @DisplayName("generic specializations of one class are followed apart, as the cycle guard keys them")
+    void genericSpecializationsAreFollowedApart() {
+        assertTrue(onlyProblem(new ObjectFaker<>(WrapperHolder.class).ruleFor("id", () -> "x"))
+                .reason()
+                .endsWith("applies at 'wrapper.inner.value.id'"));
+    }
+
     // ── Strict mode ──────────────────────────────────────────────────────────
 
     @Test
@@ -978,6 +1041,53 @@ class ObjectFakerStrictDiagnosticsTest {
     static final class Unfollowable extends BaseEntity {
         Broken broken;
         TwoWays twoWays;
+    }
+
+    static final class NamedByConstructor {
+        String name;
+
+        NamedByConstructor(String name) {
+            this.name = name;
+        }
+    }
+
+    static class NameBase {
+        String name;
+    }
+
+    static final class RenamedByConstructor {
+        String name;
+
+        RenamedByConstructor(String label) {
+            this.name = label;
+        }
+    }
+
+    static final class InheritedNameByConstructor extends NameBase {
+        InheritedNameByConstructor(String name) {
+            this.name = name;
+        }
+    }
+
+    static final class SizedCart extends BaseEntity {
+        @Size(min = 1) List<Purchase> purchases;
+
+        @Size(min = 3, max = 1) List<Purchase> conflicting;
+
+        @Size(max = 5) List<Purchase> capped;
+    }
+
+    static final class NullPurchaseHolder extends BaseEntity {
+        @Null Purchase purchase;
+    }
+
+    static final class Wrapper<T> {
+        T value;
+        Wrapper<Purchase> inner;
+    }
+
+    static final class WrapperHolder extends BaseEntity {
+        Wrapper<String> wrapper;
     }
 
     static final class FrozenAccount extends BaseEntity {

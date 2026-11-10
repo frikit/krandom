@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.object.FixtureRuleProblem.Category;
 import io.github.frikit.krandom.generator.object.ObjectFaker.RulePath;
 import io.github.frikit.krandom.generator.object.ObjectFaker.RuleTarget;
 import io.github.frikit.krandom.generator.object.exception.FixtureRuleException;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -260,7 +261,7 @@ final class FixtureRuleAnalysis {
                         Category.SHADOWED,
                         rule,
                         "the GeneratorConfig context field override for " + member + " comes first");
-            } else if (config.getContextualFieldPredicateOverride(field).isPresent()) {
+            } else if (config.getContextualFieldPredicateOverride(field).isPresent() && !fillsByConstructor(leaf)) {
                 inertRules.add(rule);
                 report(
                         Category.SHADOWED,
@@ -286,6 +287,23 @@ final class FixtureRuleAnalysis {
                     FixtureRule.configured(FixtureRuleKind.FIELD_OVERRIDE, rule.path()),
                     rule.describe() + ", which ObjectFaker installs for " + member + ", comes first");
         }
+    }
+
+    /**
+     * Whether the root's constructor takes this member as an argument of its name, which the rule supplies
+     * and no predicate override reaches; the field then keeps that argument.
+     */
+    private boolean fillsByConstructor(RuleTarget leaf) {
+        Constructor<?> constructor = filledConstructor(rootType);
+        if (leaf.ownerType() != rootType || constructor == null) {
+            return false;
+        }
+        for (Parameter parameter : constructor.getParameters()) {
+            if (parameter.getName().equals(leaf.fieldName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** A rule that runs after generation replaces whatever the configuration produced at its path. */
@@ -340,7 +358,8 @@ final class FixtureRuleAnalysis {
             if (!path.isRoot()) {
                 String reason = whyAlwaysEmpty(path.segments());
                 if (reason != null) {
-                    report(Category.UNUSED, ignore, reason);
+                    // populate(existing) keeps the objects that the instance already holds.
+                    findings.add(new Finding(new FixtureRuleProblem(Category.UNUSED, ignore, reason), true));
                 }
             }
         }
@@ -558,19 +577,21 @@ final class FixtureRuleAnalysis {
                 visit(mapped, ResolvedType.bindingsFor(mapped), "", 0, Set.of());
                 return;
             }
-            for (Class<?> chosen : sealedChoices(rootType, Set.of())) {
+            for (Class<?> chosen : sealedChoices(rootType, Map.of(), null, Set.of())) {
                 // A sealed root's choice counts as being generated, as a member's choice does.
-                visit(chosen, ResolvedType.bindingsFor(chosen), "", 0, Set.of(chosen));
+                Map<TypeVariable<?>, Type> bindings = ResolvedType.bindingsFor(chosen);
+                visit(
+                        chosen,
+                        bindings,
+                        "",
+                        0,
+                        Set.of(cycleKey(chosen, ResolvedType.resolvedSignature(chosen, bindings))));
             }
         }
 
         /** Visits the members of an object of {@code type} that generation builds at {@code depth}. */
         private void visit(
-                Class<?> type,
-                Map<TypeVariable<?>, Type> bindings,
-                String prefix,
-                int depth,
-                Set<Class<?>> inProgress) {
+                Class<?> type, Map<TypeVariable<?>, Type> bindings, String prefix, int depth, Set<String> inProgress) {
             if (!type.isRecord()
                     && (adapters.constructionAdapter(type, ObjectGenerator::constructionAdapterFor)
                                     .isPresent()
@@ -583,7 +604,13 @@ final class FixtureRuleAnalysis {
             }
             for (Member member : members(type)) {
                 if (isGenerated(member) && !hasMemberGenerator(member)) {
-                    descend(member.genericType(), bindings, prefix + member.name(), depth, inProgress);
+                    descend(
+                            member.genericType(),
+                            member.element(),
+                            bindings,
+                            prefix + member.name(),
+                            depth,
+                            inProgress);
                 }
             }
         }
@@ -601,15 +628,30 @@ final class FixtureRuleAnalysis {
             }
         }
 
+        /**
+         * Follows a member or element of {@code declaredType}, whose constraints {@code element} declares, or
+         * which declares none when it is {@code null}.
+         */
         private void descend(
                 Type declaredType,
+                @Nullable AnnotatedElement element,
                 Map<TypeVariable<?>, Type> bindings,
                 String path,
                 int depth,
-                Set<Class<?>> inProgress) {
+                Set<String> inProgress) {
             ResolvedType resolved = ResolvedType.resolve(declaredType, bindings);
             Class<?> rawType = resolved.rawClass();
             if (rawType == null || typeOverridden(rawType)) {
+                return;
+            }
+            BeanValidationSupport.ConstraintModel constraints;
+            try {
+                constraints = BeanValidationSupport.constraintModelFor(element, rawType);
+            } catch (BeanValidationSupport.ConstraintConflictException conflict) {
+                // Generation leaves a member with conflicting constraints at its default, or fails.
+                return;
+            }
+            if (constraints.nullOnly() || (isContainer(rawType) && holdsNoElements(constraints))) {
                 return;
             }
             if (rawType == Optional.class) {
@@ -618,6 +660,7 @@ final class FixtureRuleAnalysis {
                 ResolvedType component = Objects.requireNonNull(resolved.componentType(), "an array's component");
                 descend(
                         FieldGeneratorResolver.mostSpecific(component).declaredType(),
+                        null,
                         bindings,
                         path + "[]",
                         depth,
@@ -646,10 +689,16 @@ final class FixtureRuleAnalysis {
                 int index,
                 String path,
                 int depth,
-                Set<Class<?>> inProgress) {
+                Set<String> inProgress) {
             ResolvedType element = FieldGeneratorResolver.containerArgument(bindings, containerType, contract, index);
             if (element.isResolved()) {
-                descend(FieldGeneratorResolver.mostSpecific(element).declaredType(), bindings, path, depth, inProgress);
+                descend(
+                        FieldGeneratorResolver.mostSpecific(element).declaredType(),
+                        null,
+                        bindings,
+                        path,
+                        depth,
+                        inProgress);
             }
         }
 
@@ -659,25 +708,29 @@ final class FixtureRuleAnalysis {
                 Map<TypeVariable<?>, Type> bindings,
                 String path,
                 int depth,
-                Set<Class<?>> inProgress) {
+                Set<String> inProgress) {
             Class<?> nestedType = config.resolveSubtype(rawType);
-            List<Class<?>> classes = SealedTypes.isSealed(nestedType, adapters)
-                    ? sealedChoices(nestedType, inProgress)
-                    : FieldGeneratorResolver.isNestableType(nestedType) && !inProgress.contains(nestedType)
+            boolean sealed = SealedTypes.isSealed(nestedType, adapters);
+            List<Class<?>> classes = sealed
+                    ? sealedChoices(nestedType, bindings, resolved, inProgress)
+                    : FieldGeneratorResolver.isNestableType(nestedType)
+                                    && !inProgress.contains(cycleKey(nestedType, resolved.resolvedSignature()))
                             ? List.of(nestedType)
                             : List.of();
             for (Class<?> generated : classes) {
                 if (!isConstructible(generated)) {
                     continue;
                 }
-                Set<Class<?>> nestedInProgress = new HashSet<>(inProgress);
-                nestedInProgress.add(generated);
-                visit(
-                        generated,
-                        FieldGeneratorResolver.nestedTypeBindings(bindings, resolved, generated),
-                        path + ".",
-                        depth + 1,
-                        nestedInProgress);
+                Map<TypeVariable<?>, Type> nestedBindings =
+                        FieldGeneratorResolver.nestedTypeBindings(bindings, resolved, generated);
+                // As generation keys its cycle guard: a sealed type's choice by its own type, any other class
+                // by the member's resolved type, so that generic specializations of one class differ.
+                String signature = sealed
+                        ? ResolvedType.resolvedSignature(generated, nestedBindings)
+                        : resolved.resolvedSignature();
+                Set<String> nestedInProgress = new HashSet<>(inProgress);
+                nestedInProgress.add(cycleKey(generated, signature));
+                visit(generated, nestedBindings, path + ".", depth + 1, nestedInProgress);
             }
         }
 
@@ -685,7 +738,11 @@ final class FixtureRuleAnalysis {
          * The classes a sealed type may be generated as here: those without a type override, that are not
          * enums, and that are not already being generated on this path, which generation leaves out.
          */
-        private List<Class<?>> sealedChoices(Class<?> sealedType, Set<Class<?>> inProgress) {
+        private List<Class<?>> sealedChoices(
+                Class<?> sealedType,
+                Map<TypeVariable<?>, Type> bindings,
+                @Nullable ResolvedType declared,
+                Set<String> inProgress) {
             List<Class<?>> subclasses;
             try {
                 subclasses = SealedTypes.concreteSubclasses(sealedType, config, adapters);
@@ -694,7 +751,11 @@ final class FixtureRuleAnalysis {
             }
             List<Class<?>> choices = new ArrayList<>();
             for (Class<?> subclass : subclasses) {
-                if (!subclass.isEnum() && !typeOverridden(subclass) && !inProgress.contains(subclass)) {
+                Map<TypeVariable<?>, Type> choiceBindings = declared == null
+                        ? ResolvedType.bindingsFor(subclass)
+                        : FieldGeneratorResolver.nestedTypeBindings(bindings, declared, subclass);
+                String key = cycleKey(subclass, ResolvedType.resolvedSignature(subclass, choiceBindings));
+                if (!subclass.isEnum() && !typeOverridden(subclass) && !inProgress.contains(key)) {
                     choices.add(subclass);
                 }
             }
@@ -720,7 +781,7 @@ final class FixtureRuleAnalysis {
             if (type.isRecord()) {
                 for (RecordComponent component : type.getRecordComponents()) {
                     Field field = backingField(type, component.getName());
-                    members.add(new Member(type, component.getName(), component.getGenericType(), field, false));
+                    members.add(new Member(type, component.getName(), component.getGenericType(), field, field, false));
                 }
                 return members;
             }
@@ -735,10 +796,16 @@ final class FixtureRuleAnalysis {
                                 parameter.getName(),
                                 parameter.getParameterizedType(),
                                 nearestField(type, parameter.getName()),
+                                parameter,
                                 true));
                     } else {
                         members.add(new Member(
-                                type, "constructorArg" + index, parameter.getParameterizedType(), null, true));
+                                type,
+                                "constructorArg" + index,
+                                parameter.getParameterizedType(),
+                                null,
+                                parameter,
+                                true));
                     }
                 }
             }
@@ -750,21 +817,16 @@ final class FixtureRuleAnalysis {
                     int modifiers = field.getModifiers();
                     if (!Modifier.isStatic(modifiers) && !Modifier.isFinal(modifiers) && generationFills(type, field)) {
                         members.add(new Member(
-                                field.getDeclaringClass(), field.getName(), field.getGenericType(), field, false));
+                                field.getDeclaringClass(),
+                                field.getName(),
+                                field.getGenericType(),
+                                field,
+                                field,
+                                false));
                     }
                 }
             }
             return members;
-        }
-
-        /** The declared constructor that generation fills, for a type without a no-argument constructor. */
-        private @Nullable Constructor<?> filledConstructor(Class<?> type) {
-            Constructor<?>[] constructors = type.getDeclaredConstructors();
-            return config.getConstructionPolicy() == ObjectConstructionPolicy.SAFE_CONSTRUCTORS
-                            && constructors.length == 1
-                            && constructors[0].getParameterCount() > 0
-                    ? constructors[0]
-                    : null;
         }
     }
 
@@ -777,12 +839,37 @@ final class FixtureRuleAnalysis {
             String name,
             Type genericType,
             @Nullable Field field,
+            AnnotatedElement element,
             boolean parameter) {}
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private static String key(Class<?> owner, String name) {
         return owner.getName() + '#' + name;
+    }
+
+    private static String cycleKey(Class<?> type, String signature) {
+        return type.getName() + '|' + signature;
+    }
+
+    private static boolean isContainer(Class<?> type) {
+        return type.isArray() || java.util.Collection.class.isAssignableFrom(type) || Map.class.isAssignableFrom(type);
+    }
+
+    /** Whether a container always comes out empty: the configured size is zero and no constraint asks for more. */
+    private boolean holdsNoElements(BeanValidationSupport.ConstraintModel constraints) {
+        BeanValidationSupport.SizeRange size = constraints.size();
+        return config.getGeneratorConfig().getMaxCollectionSize() == 0 && (size == null || size.min() == 0);
+    }
+
+    /** The declared constructor that generation fills, for a type without a no-argument constructor. */
+    private @Nullable Constructor<?> filledConstructor(Class<?> type) {
+        Constructor<?>[] constructors = type.getDeclaredConstructors();
+        return config.getConstructionPolicy() == ObjectConstructionPolicy.SAFE_CONSTRUCTORS
+                        && constructors.length == 1
+                        && constructors[0].getParameterCount() > 0
+                ? constructors[0]
+                : null;
     }
 
     /** Whether generation can build an object of this concrete class, which it would otherwise fail on. */

@@ -25,8 +25,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - Unused: a rule below a path that a nested ignore registered after it clears; a root rule on a member
     that the `GeneratorConfig` excludes, by `objectExclude`, `objectExcludeField`, `objectExcludeType` or
     `@Exclude`; a root rule or root ignore when a `GeneratorConfig` type override builds the root, which
-    `generate()` does and `populate(existing)` does not; and a nested ignore of a member that never holds a
-    value, because `objectMaxDepth`, an exclusion or include mode leaves an object on its path `null`. A
+    `generate()` does and `populate(existing)` does not; and a nested ignore of a member that `generate()`
+    never gives a value, because `objectMaxDepth`, an exclusion or include mode leaves an object on its path
+    `null`, which an instance given to `populate(existing)` may still hold. A
     nested rule past `objectMaxDepth` is used, because it creates the objects on its path, and a path into
     a member that an `objectSubtype` implementation or a sealed subclass lacks already fails at
     registration, because paths are resolved against the declared types.
@@ -36,8 +37,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     manager`, or of another subclass of the class that declares an inherited member, as in `customer.id`
     for `ruleFor("id", ...)` on an `Order` whose `Customer` shares its `BaseEntity`. The check follows the
     nested objects that generation reaches, through collections, maps, arrays, `Optional`, constructor
-    arguments, `objectSubtype` mappings and sealed types, within `objectMaxDepth`, and leaves out members
-    that an override, an exclusion, a `@Randomizer` or a kept initializer decides. A dependent rule applies
+    arguments, `objectSubtype` mappings and sealed types, within `objectMaxDepth` and with the cycle guard's
+    keys, and leaves out members that an override, an exclusion, a `@Randomizer`, a kept initializer or
+    `@Null` decides, and the elements of a collection that `collectionSize(0, 0)` keeps empty. A root rule
+    that fills a constructor argument of its name is not shadowed by a contextual predicate override, which
+    reaches fields only. A dependent rule applies
     at its own path only. A string path that matches two fields still fails at registration.
 
   `ObjectFaker.strict()` checks once for each configuration, and again after a new rule, include or ignore.

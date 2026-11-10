@@ -511,7 +511,7 @@ Rules, includes and ignores are numbered in the order they are registered, acros
 |:---|:---|
 | Undecided | A settable root field or record component has no rule, include or ignore. In include mode only the included ones need a rule. |
 | Shadowed | A later rule for the same path replaces a rule. A rule on an ancestor path that runs later overwrites a nested rule. A `GeneratorConfig` contextual field override or contextual predicate override comes before a root rule. A root rule replaces or comes before a `GeneratorConfig` field override for the same member, or a nested or dependent rule overwrites one. A nested or dependent rule sets a member whose name `objectUniqueField` requested, without the uniqueness check. |
-| Unused | A later nested ignore clears the path of a rule. The `GeneratorConfig` excludes the member of a root rule. A `GeneratorConfig` type override builds the root, so `generate()` applies no root rule or root ignore. A nested ignore clears a member that never holds a value, because `objectMaxDepth`, an exclusion or include mode leaves an object on its path `null`. |
+| Unused | A later nested ignore clears the path of a rule. The `GeneratorConfig` excludes the member of a root rule. A `GeneratorConfig` type override builds the root, so `generate()` applies no root rule or root ignore. For `generate()`, a nested ignore clears a member that never gets a value, because `objectMaxDepth`, an exclusion or include mode leaves an object on its path `null`. |
 | Ambiguous | A root rule, a root ignore or an include-mode exclusion also applies at another path. |
 
 Rules run in this order: root rules and root context rules during generation, as field overrides; then

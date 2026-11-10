@@ -445,10 +445,10 @@ public final class ObjectFaker<T> implements Generator<T> {
      *   <li><b>Unused</b>: a rule below a path that a later nested ignore clears; a root rule on a member
      *       that the {@code GeneratorConfig} excludes; a root rule or root ignore when a
      *       {@code GeneratorConfig} type override builds the root, which {@code populate(existing)}
-     *       never does; and a nested ignore of a member that never holds a value, because
-     *       {@code objectMaxDepth}, an exclusion or include mode leaves an object on its path
-     *       {@code null}. A nested rule past {@code objectMaxDepth} is not unused: it creates the
-     *       objects on its path.</li>
+     *       never does; and a nested ignore of a member that {@code generate()} never gives a value,
+     *       because {@code objectMaxDepth}, an exclusion or include mode leaves an object on its path
+     *       {@code null}, which an instance given to {@code populate(existing)} may still hold. A nested
+     *       rule past {@code objectMaxDepth} is not unused: it creates the objects on its path.</li>
      *   <li><b>Ambiguous</b>: a root rule, root ignore or include-mode exclusion that also applies at
      *       another path, because it applies by its member's declaring class and name, as the class
      *       documentation describes. A dependent rule applies at its own path only.</li>
