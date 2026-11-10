@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.11.0] - 2026-11-10
+
 ### Added
 
 - `RegexGenerator` now supports `(?i)` and `(?-i)`, which hold to the end of the enclosing group, and
@@ -380,8 +382,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   factory took the test's recipe on replay, so the arguments of the failing invocation changed. The
   callbacks of a `@ParameterizedClass` invocation had the same fault. Each test class now reports one
   class-scoped configuration, and the replay commands restore it.
-- In `STRICT` mode the coherence pass no longer moves a `createdAt`, `updatedAt`, `birthDate`, or `age` out of
-  its own Bean Validation constraints, which `RELAXED` mode leaves alone. Seeded with `42` under a clock fixed at
+- In `ObjectGenerationSemanticMode.STRICT`, the coherence pass no longer moves a `createdAt`, `updatedAt`,
+  `birthDate`, or `age` out of its own Bean Validation constraints, which `RELAXED` mode leaves alone. Seeded with `42` under a clock fixed at
   `2026-06-04T12:00Z`, it gave a `@Past` `updatedAt` a `createdAt` past the clock in 974 of 2,000 objects on a
   one-day `objectDateRange`, gave it the value of a `@Future` `createdAt` in all 2,000, and overwrote
   `@Min(30) @Max(40) age` with the age its `birthDate` gives in 1,709, and now does so in none. A field that a
@@ -390,9 +392,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `age`. Where the sibling's own constraints stop it too, both keep their values, as in `RELAXED` mode, so a
   `@Future` `createdAt` stays after a `@Past` `updatedAt`. A date or time is read against the configured clock
   as Hibernate Validator reads it. A move within the constraints still happens, so seeded output changes only for
-  objects that broke one. The pass still overwrites the constraints of the strings, amounts, and statuses it
-  derives in `STRICT` mode, such as `@Size(max = 12)` on an `email`. The `STRICT` documentation now says that
-  Bean Validation constraints take precedence when a value is generated, as they always have.
+  objects that broke one. The `STRICT` documentation now says that Bean Validation constraints take precedence
+  when a value is generated, as they always have.
 - An `age` that no `birthDate` of its type can hold, such as an overridden or constrained age of 2,147,483,647,
   or one of 500,000,000 beside a `Calendar`, `Date`, `java.sql.Date`, or `Timestamp`, which count milliseconds,
   now leaves `birthDate` as it is. Deriving the birth date failed generation with a `DateTimeException` or an
@@ -1626,7 +1627,8 @@ Condensed summary of all pre-1.0.0 development (≈Feb–Apr 2026), originally t
 ### Removed
 - Kotlin and Scala API modules (implementation surface kept focused); deprecated APIs and deprecated Java locale usage.
 
-[Unreleased]: https://github.com/frikit/krandom/compare/v2.10.0...HEAD
+[Unreleased]: https://github.com/frikit/krandom/compare/v2.11.0...HEAD
+[2.11.0]: https://github.com/frikit/krandom/compare/v2.10.0...v2.11.0
 [2.10.0]: https://github.com/frikit/krandom/compare/v2.9.0...v2.10.0
 [2.9.0]: https://github.com/frikit/krandom/compare/v2.8.0...v2.9.0
 [2.8.0]: https://github.com/frikit/krandom/compare/v2.7.0...v2.8.0
