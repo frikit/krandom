@@ -115,7 +115,11 @@ class SchemaTemporalValuesTest {
                 Arguments.of(calendar, "2024-01-05T10:05:00+01:00"),
                 // A calendar's offset comes from its own time zone at its instant, whatever the zone's ID names.
                 Arguments.of(calendar(new SimpleTimeZone(3_600_000, "custom")), "2024-01-05T10:05:00+01:00"),
-                Arguments.of(calendar(new SimpleTimeZone(7_200_000, "Europe/Paris")), "2024-01-05T11:05:00+02:00"));
+                Arguments.of(calendar(new SimpleTimeZone(7_200_000, "Europe/Paris")), "2024-01-05T11:05:00+02:00"),
+                // RFC 3339 writes any offset up to 23:59, beyond the 18:00 that java.time holds.
+                Arguments.of(calendar(new SimpleTimeZone(72_000_000, "far")), "2024-01-06T05:05:00+20:00"),
+                Arguments.of(calendar(new SimpleTimeZone(-86_340_000, "west")), "2024-01-04T09:06:00-23:59"),
+                Arguments.of(calendar(new SimpleTimeZone(0, "zero")), "2024-01-05T09:05:00Z"));
     }
 
     private static Calendar calendar(TimeZone zone) {
@@ -161,6 +165,7 @@ class SchemaTemporalValuesTest {
                 LocalDate.of(10_000, 1, 1),
                 LocalDate.of(-1, 12, 31),
                 calendar(new SimpleTimeZone(3_630_000, "odd")),
+                calendar(new SimpleTimeZone(86_400_000, "day")),
                 LocalDateTime.of(10_000, 1, 1, 0, 0),
                 OffsetDateTime.of(2024, 1, 5, 9, 5, 0, 0, secondsOffset),
                 OffsetTime.of(9, 5, 0, 0, secondsOffset),

@@ -201,8 +201,8 @@ such a value in its format's RFC 3339 form, with the seconds always and a fracti
 zero: `2024-01-05T09:05:00` for a `LocalDateTime` at 09:05, a `ZonedDateTime` with its offset and no
 `[Zone/Id]`, and an `Instant` with `Z`. A `java.util.Date` is written as the instant it holds, a
 `Calendar` at the offset its own time zone gives that instant, and a `java.sql.Date` or `Time` as its
-date or time of day. A year outside 0000 to 9999, or an
-offset with seconds, which RFC 3339 cannot write, is refused. Attach
+date or time of day. A year outside 0000 to 9999, or an offset with seconds or beyond 23:59, which RFC
+3339 cannot write, is refused. Attach
 `SchemaValueProvider.withJsonSchema(...)` or `withSample(...)` when a custom provider can make a
 narrower claim. `Schema`, `SchemaProjection`, and parser-created generators are
 stateful: use one instance per thread (or `Generators.threadLocal(...)`) and share only immutable

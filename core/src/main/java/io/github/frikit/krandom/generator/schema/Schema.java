@@ -51,9 +51,8 @@ import java.util.Random;
  * seconds always and a fraction only where it is not zero: a {@code ZonedDateTime} with its offset and no
  * zone ID, an {@code Instant} with {@code Z}, a {@code java.util.Date} as the instant it holds, a
  * {@code Calendar} at the offset its own time zone gives that instant, and a {@code java.sql.Date} or
- * {@code Time} as its date or time of day. A year outside 0000 to 9999,
- * or an offset with seconds, which RFC 3339 cannot write, is refused with an
- * {@link IllegalArgumentException}.
+ * {@code Time} as its date or time of day. A year outside 0000 to 9999, or an offset with seconds or beyond
+ * 23:59, which RFC 3339 cannot write, is refused with an {@link IllegalArgumentException}.
  */
 public final class Schema implements Generator<Map<String, Object>> {
 
@@ -1232,8 +1231,8 @@ public final class Schema implements Generator<Map<String, Object>> {
      * its own time zone gives that instant, and a {@code java.sql.Date} or {@code Time} as its date or time of
      * day. Null for any other value.
      *
-     * @throws IllegalArgumentException for a year outside 0000 to 9999, or an offset with seconds, which RFC
-     *     3339 cannot write
+     * @throws IllegalArgumentException for a year outside 0000 to 9999, or an offset with seconds or beyond
+     *     23:59, which RFC 3339 cannot write
      */
     static @org.jspecify.annotations.Nullable String rfc3339(Object value) {
         if (value instanceof LocalDate date) {
@@ -1271,15 +1270,39 @@ public final class Schema implements Generator<Map<String, Object>> {
             return rfc3339(date.toInstant());
         }
         if (value instanceof Calendar calendar) {
-            // The offset comes from the calendar's own time zone at its instant, as the zone's ID may name no
-            // region, or a region whose rules differ from the zone's.
-            int offset = calendar.getTimeZone().getOffset(calendar.getTimeInMillis());
-            if (offset % 60_000 != 0) {
-                throw unwritable(value, "its offset has seconds");
-            }
-            return rfc3339(OffsetDateTime.ofInstant(calendar.toInstant(), ZoneOffset.ofTotalSeconds(offset / 1000)));
+            return calendar(calendar);
         }
         return null;
+    }
+
+    /**
+     * A calendar at the offset its own time zone gives its instant, as the zone's ID may name no region, or
+     * a region whose rules differ from the zone's. RFC 3339 writes any offset of whole minutes up to 23:59,
+     * beyond the 18:00 a {@code ZoneOffset} holds, so the local date-time is worked out from the instant.
+     */
+    private static String calendar(Calendar calendar) {
+        int offset = calendar.getTimeZone().getOffset(calendar.getTimeInMillis());
+        if (offset % 60_000 != 0) {
+            throw unwritable(calendar, "its offset has seconds");
+        }
+        int minutes = offset / 60_000;
+        if (Math.abs(minutes) > 23 * 60 + 59) {
+            throw unwritable(calendar, "its offset is beyond 23:59");
+        }
+        Instant instant = calendar.toInstant();
+        LocalDateTime local = LocalDateTime.ofEpochSecond(
+                instant.getEpochSecond() + minutes * 60L, instant.getNano(), ZoneOffset.UTC);
+        return withYear(local.getYear(), calendar, DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(local))
+                + offsetText(minutes);
+    }
+
+    /** An offset as RFC 3339 writes it, {@code Z} for none, as {@code ISO_OFFSET_DATE_TIME} does. */
+    private static String offsetText(int minutes) {
+        if (minutes == 0) {
+            return "Z";
+        }
+        int magnitude = Math.abs(minutes);
+        return String.format(Locale.ROOT, "%s%02d:%02d", minutes < 0 ? "-" : "+", magnitude / 60, magnitude % 60);
     }
 
     /**
