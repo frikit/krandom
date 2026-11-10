@@ -401,12 +401,11 @@ final class BeanValidationSupport {
         List<Generator<String>> sources = new ArrayList<>();
         // A pattern that cannot be a source is still enforced on each candidate, so another source can meet it.
         StringBuilder unsupported = new StringBuilder();
-        int patternMinLength =
-                constraints.size() == null ? 1 : constraints.size().min();
         for (TextPattern pattern : constraints.patterns()) {
             if (pattern.source()) {
                 try {
-                    sources.add(regexGenerator(pattern.expression(), patternMinLength, random));
+                    sources.add(
+                            regexGenerator(pattern.expression(), constraints.patternMinLength(), random.nextLong()));
                 } catch (IllegalArgumentException unsupportedPattern) {
                     unsupported.append("; ").append(unsupportedPattern.getMessage());
                 }
@@ -438,17 +437,17 @@ final class BeanValidationSupport {
     }
 
     private static RegexGenerator regexGenerator(String expression, Random random) {
-        return regexGenerator(expression, 1, random);
+        return regexGenerator(expression, 1, random.nextLong());
     }
 
     // Each regex source replays from its own seed, drawn from the engine's replayable stream. The minimum
     // length lets its open-ended repetitions reach what @Size asks for.
-    private static RegexGenerator regexGenerator(String expression, int minLength, Random random) {
+    private static RegexGenerator regexGenerator(String expression, int minLength, long seed) {
         int length = Math.clamp(minLength, 1, Integer.MAX_VALUE - 1);
         return new RegexGenerator(
                 expression,
                 GeneratorConfig.builder()
-                        .seed(random.nextLong())
+                        .seed(seed)
                         .stringLength(length, length)
                         .build());
     }
@@ -461,6 +460,11 @@ final class BeanValidationSupport {
             @Nullable SizeRange size,
             boolean nonBlank,
             @Nullable NumericRange numeric) {
+
+        /** The length a pattern source starts from, so its open-ended repetitions reach {@code @Size}. */
+        int patternMinLength() {
+            return size == null ? 1 : size.min();
+        }
 
         boolean accepts(String candidate) {
             if (size != null && (candidate.length() < size.min() || candidate.length() > size.max())) {
@@ -1202,6 +1206,79 @@ final class BeanValidationSupport {
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * Whether the email domain policy chooses the domain of every value that a constraint generator for
+     * these constraints produces: the value is an {@code @Email} address, and no {@code @Email} regexp or
+     * {@code @Pattern} that the regex generator supports can supply it, with its domain as written instead.
+     * A pattern it does not support only filters the policy's addresses. The resolver settles a
+     * {@code @Null} member before it reports a constraint generator, so this is never asked of one.
+     */
+    static boolean followsEmailDomainPolicy(ConstraintModel constraints) {
+        TextConstraint text = constraints.text();
+        if (text == null || !text.email()) {
+            return false;
+        }
+        for (TextPattern pattern : text.patterns()) {
+            if (pattern.source() && suppliesValues(pattern, text.patternMinLength())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // The pattern sources of textGeneratorFor, built with a fixed seed so that the check draws nothing.
+    private static boolean suppliesValues(TextPattern pattern, int minLength) {
+        try {
+            regexGenerator(pattern.expression(), minLength, 0L);
+            return true;
+        } catch (IllegalArgumentException unsupportedPattern) {
+            return false;
+        }
+    }
+
+    /**
+     * The simple names of the supported constraints that apply to an element as generation reads them:
+     * declared on it, on a field's getter, or on the field that a constructor parameter initializes. A
+     * generation report names them; without Bean Validation there are none.
+     */
+    static List<String> constraintNames(@Nullable AnnotatedElement element) {
+        if (element == null || !AVAILABLE) {
+            return List.of();
+        }
+        List<String> names = new ArrayList<>();
+        for (Class<? extends java.lang.annotation.Annotation> type : List.of(
+                Null.class,
+                NotNull.class,
+                NotEmpty.class,
+                NotBlank.class,
+                Size.class,
+                Min.class,
+                Max.class,
+                DecimalMin.class,
+                DecimalMax.class,
+                Positive.class,
+                PositiveOrZero.class,
+                Negative.class,
+                NegativeOrZero.class,
+                Past.class,
+                PastOrPresent.class,
+                Future.class,
+                FutureOrPresent.class,
+                AssertTrue.class,
+                AssertFalse.class,
+                Email.class,
+                Pattern.class)) {
+            // Generation reads a repeated @Pattern, and every other constraint once, as it does here.
+            boolean present = type == Pattern.class
+                    ? !annotations(element, Pattern.class).isEmpty()
+                    : annotation(element, type) != null;
+            if (present) {
+                names.add(type.getSimpleName());
+            }
+        }
+        return names;
     }
 
     private static <A extends java.lang.annotation.Annotation> @Nullable A annotation(

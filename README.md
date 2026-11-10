@@ -81,9 +81,13 @@ val user = krandom<User> {
 - Use scalar generators like `Generators.ofInt(...)`, `Generators.ofEmail()`, or `Generators.ofCity()` when you need a few direct values.
 - Use the domain namespaces — `Generators.person()`, `Generators.finance()`, `Generators.location()`, `Generators.network()`, `Generators.text()`, `Generators.commerce()`, `Generators.identifier()`, `Generators.datetime()` — when you want a discoverable, IDE-friendly entry point per domain (each also accepts a `GeneratorConfig`).
 - Use `ObjectGenerator<T>` when you want an existing DTO / record populated with realistic defaults.
-- Use `ObjectFaker<T>` when you need explicit fixture rules, typed nested overrides, or strict
-  configuration validation. Use immutable `ObjectModel<T>` values for reusable, composable fixture
+- Use `ObjectFaker<T>` when you need explicit fixture rules or typed nested overrides, and
+  `ObjectFaker.strict()` to report root properties without a rule and unused, ambiguous or shadowed
+  rules before generating. Use immutable `ObjectModel<T>` values for reusable, composable fixture
   definitions.
+- Set `GeneratorConfig.Builder.generationReportListener(...)` to see how object generation produced each
+  value, its seed source, recipe settings, provider, matched rule, constraints, safety policy and fallback
+  decisions, without the value itself.
 - Use `Field` + `Schema` when you want row-style payloads or formatted export output such as JSONL,
   JSON, CSV, XML, SQL, YAML, or TOML.
 

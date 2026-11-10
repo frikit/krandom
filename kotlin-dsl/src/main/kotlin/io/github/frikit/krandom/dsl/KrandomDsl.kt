@@ -404,6 +404,20 @@ public class ConfigScope internal constructor(
         builder.objectFieldStreamPolicy(policy)
     }
 
+    /**
+     * Receives a value-free report entry for each value that object generation produces: its path, seed
+     * source, recipe settings, generator, matched rule, constraints, safety policies and fallback decisions,
+     * never the value. Reporting draws nothing, so seeded values are the same with or without a listener.
+     *
+     * ```kotlin
+     * val entries = mutableListOf<GenerationReportEntry>()
+     * krandom<Person> { config { generationReportListener { entry -> entries += entry } } }
+     * ```
+     */
+    public fun generationReportListener(listener: io.github.frikit.krandom.generator.report.GenerationReportListener) {
+        builder.generationReportListener(listener)
+    }
+
     /** Sets a textual seed using the same derivation contract as `GeneratorConfig`. */
     public fun seed(seedText: String) {
         builder.seed(seedText)

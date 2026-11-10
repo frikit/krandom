@@ -1111,6 +1111,29 @@ class ObjectFakerTest {
     }
 
     @Test
+    @DisplayName("a path through an interface-typed member names the unknown field")
+    void pathThroughInterfaceMemberNamesUnknownField() {
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> new ObjectFaker<>(ShapeHolder.class).ruleFor("shape.side", () -> 2));
+
+        assertEquals("Unknown field 'side' on " + Shape.class.getName(), ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("an interface root built by a type override validates without fields")
+    void interfaceRootBuiltByTypeOverrideValidates() {
+        ObjectFaker<Shape> faker = new ObjectFaker<>(
+                        Shape.class,
+                        GeneratorConfig.builder()
+                                .objectOverride(Shape.class, Square::new)
+                                .build())
+                .strict();
+
+        assertInstanceOf(Square.class, faker.generate());
+    }
+
+    @Test
     @DisplayName("duplicate profile definitions are rejected")
     void duplicateProfileDefinitionsAreRejected() {
         ObjectFaker<FixtureUser> faker = new ObjectFaker<>(FixtureUser.class)
@@ -1324,6 +1347,16 @@ class ObjectFakerTest {
 
     static final class FinalFieldFixture {
         final String locked = "keep";
+    }
+
+    interface Shape {}
+
+    static final class Square implements Shape {
+        int side;
+    }
+
+    static final class ShapeHolder {
+        Shape shape;
     }
 
     static class ParentShadowFixture {
