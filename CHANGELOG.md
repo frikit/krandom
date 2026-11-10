@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- The coherence pass now leaves a field initializer that generation keeps as the class set it, as the
+  object-generation guide says initializers are kept unless `objectOverrideDefaultInitialization(true)` is
+  set. It overwrote one, so `fullName = "KEEP"` beside `firstName = "Ada"` and `lastName = "Lovelace"` became
+  `Ada Lovelace`. Seeded with `42`, of 2,000 objects each, it replaced a kept `fullName` beside generated
+  names in 2,000, replaced a kept `email` in 2,000, and moved a kept `updatedAt` of 2001-01-01 in 2,000, and
+  now does so in none. A generated sibling follows the kept value instead, so `createdAt` moves back to that
+  `updatedAt`, and the pass still fills a blank initializer. Seeded output changes only for objects with an
+  initializer that the pass derives or aligns.
+
 ## [3.0.0] - 2026-11-10
 
 ### Changed

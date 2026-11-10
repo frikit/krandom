@@ -790,6 +790,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
             Map<String, @Nullable Object> trackedConstructorArguments) {
         ObjectGenerationFailurePolicy failurePolicy = new ObjectGenerationFailurePolicy(
                 config.isIgnoreErrors(), config.getGeneratorConfig().getGenerationFailureListener());
+        Set<Field> keptFields = new HashSet<>();
         for (Field field : settableFields) {
             if (config.shouldExclude(field)) continue; // exclusion check
             ensureAccessible(field, field.getDeclaringClass());
@@ -798,6 +799,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
             if (!config.isOverrideDefaultInitialization()
                     && hasNonDefaultValue(instance, field)
                     && (overriddenConstructorMembers.contains(field.getName()) || !hasExplicitFieldOverride(field))) {
+                keptFields.add(field);
                 continue;
             }
             // The field's new value replaces its constructor argument, which is no longer in use.
@@ -840,7 +842,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 }
             }
         }
-        coherenceAdjuster.adjustInstance(type, instance, settableFields, allowOverwriteExisting);
+        // The coherence pass leaves a kept value as the class set it, unless it is blank.
+        coherenceAdjuster.adjustInstance(type, instance, settableFields, allowOverwriteExisting, keptFields);
     }
 
     /**

@@ -1160,6 +1160,54 @@ class ObjectGeneratorSemanticCoherenceTest {
     }
 
     @Test
+    @DisplayName("coherence leaves a field initializer that generation keeps as the class set it")
+    void coherenceLeavesKeptInitializers() {
+        ObjectGenerator<KeptNames> kept = new ObjectGenerator<>(
+                KeptNames.class, GeneratorConfig.builder().seed(42L).build());
+        ObjectGenerator<KeptFullName> keptFullName = new ObjectGenerator<>(
+                KeptFullName.class, GeneratorConfig.builder().seed(42L).build());
+
+        for (KeptNames value : kept.generateList(200)) {
+            assertEquals("Ada", value.firstName);
+            assertEquals("Lovelace", value.lastName);
+            assertEquals("KEEP", value.fullName);
+            // A generated sibling still follows the kept names.
+            assertTrue(value.email.startsWith("ada.lovelace"), value.email);
+        }
+        for (KeptFullName value : keptFullName.generateList(2_000)) {
+            assertNotNull(value.firstName);
+            assertEquals("KEEP", value.fullName);
+        }
+    }
+
+    @Test
+    @DisplayName("a kept timestamp stays, and the generated one moves to keep the pair in order")
+    void keptTimestampStaysAndSiblingFollows() {
+        ObjectGenerator<KeptUpdatedAt> generator = new ObjectGenerator<>(
+                KeptUpdatedAt.class, GeneratorConfig.builder().seed(42L).build());
+
+        for (KeptUpdatedAt value : generator.generateList(200)) {
+            assertEquals(KeptUpdatedAt.UPDATED_AT, value.updatedAt);
+            assertFalse(value.createdAt.isAfter(value.updatedAt), value.createdAt.toString());
+        }
+    }
+
+    @Test
+    @DisplayName("coherence still fills a blank kept initializer and derives a replaced one")
+    void coherenceFillsBlankAndReplacedInitializers() {
+        BlankKeptFullName blank = new ObjectGenerator<>(BlankKeptFullName.class).generate();
+        KeptNames replaced = new ObjectGenerator<>(
+                        KeptNames.class,
+                        GeneratorConfig.builder()
+                                .objectOverrideDefaultInitialization(true)
+                                .build())
+                .generate();
+
+        assertEquals("Ada Lovelace", blank.fullName);
+        assertEquals(replaced.firstName + " " + replaced.lastName, replaced.fullName);
+    }
+
+    @Test
     @DisplayName("a seeded coherence failure carries the replay recipe")
     void seededCoherenceFailureCarriesReplayRecipe() {
         List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
@@ -1672,6 +1720,36 @@ class ObjectGeneratorSemanticCoherenceTest {
     static class PresetDomain {
 
         String domain = "acme.test";
+    }
+
+    static class KeptNames {
+
+        String firstName = "Ada";
+        String lastName = "Lovelace";
+        String fullName = "KEEP";
+        String email;
+    }
+
+    static class KeptFullName {
+
+        String firstName;
+        String lastName;
+        String fullName = "KEEP";
+    }
+
+    static class BlankKeptFullName {
+
+        String firstName = "Ada";
+        String lastName = "Lovelace";
+        String fullName = " ";
+    }
+
+    static class KeptUpdatedAt {
+
+        static final LocalDateTime UPDATED_AT = LocalDateTime.of(2001, 1, 1, 0, 0);
+
+        LocalDateTime createdAt;
+        LocalDateTime updatedAt = UPDATED_AT;
     }
 
     record Lifecycle(LocalDateTime createdAt, LocalDateTime updatedAt) {}
