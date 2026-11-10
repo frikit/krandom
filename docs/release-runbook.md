@@ -27,8 +27,10 @@ The GPG public key must be uploaded to a public keyserver (for example
 
 ## Cutting a release
 
-1. **Decide the version.** SemVer; for example `2.4.0`. Confirm the
-   `[Unreleased]` section in `CHANGELOG.md` is final.
+1. **Decide the version.** SemVer, as [VERSIONING.md](../VERSIONING.md) defines it: a major release
+   for removed or incompatibly changed public API, a minor release for compatible additions, and a
+   patch release for fixes only; for example `3.1.0`. Confirm the `[Unreleased]` section in
+   `CHANGELOG.md` is final.
 2. **Land any last commits on `main`.** Run `./scripts/pre_commit_check.sh`
    and `./scripts/verify_examples_local.sh` locally; both must pass. The pre-commit report must show
    zero missed instructions, lines, branches, complexity points, methods, and classes under the

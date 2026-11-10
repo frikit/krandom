@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-11-10
+
+### Changed
+
+- kRandom follows Semantic Versioning from 3.0.0. Only a major release removes public API, changes it
+  incompatibly, or raises the minimum Java version or the Spring Boot major version, and public API is
+  deprecated in a minor release first, with the deprecation naming its replacement. Minor and patch
+  releases keep seeded output the same, except where a fix restores a documented contract, which the
+  changelog lists under Fixed, and a 3.x release replays recipes that earlier 3.x releases wrote.
+  `VERSIONING.md` defines the public API. Releases before 3.0.0 made no compatibility promise. The
+  3.0.0 code, API, behavior, and seeded output are those of 2.12.0.
+
 ## [2.12.0] - 2026-11-10
 
 ### Added
@@ -1736,7 +1748,8 @@ Condensed summary of all pre-1.0.0 development (≈Feb–Apr 2026), originally t
 ### Removed
 - Kotlin and Scala API modules (implementation surface kept focused); deprecated APIs and deprecated Java locale usage.
 
-[Unreleased]: https://github.com/frikit/krandom/compare/v2.12.0...HEAD
+[Unreleased]: https://github.com/frikit/krandom/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/frikit/krandom/compare/v2.12.0...v3.0.0
 [2.12.0]: https://github.com/frikit/krandom/compare/v2.11.0...v2.12.0
 [2.11.0]: https://github.com/frikit/krandom/compare/v2.10.0...v2.11.0
 [2.10.0]: https://github.com/frikit/krandom/compare/v2.9.0...v2.10.0

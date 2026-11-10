@@ -1,19 +1,45 @@
 # Versioning policy
 
 kRandom publishes its `io.github.frikit:krandom-*` artifacts with `MAJOR.MINOR.PATCH` version
-numbers. Only the current release is maintained. A release makes no API, behavior, or
-generated-output compatibility promise relative to earlier releases: read the
-[changelog](CHANGELOG.md) before upgrading and adapt to changed or removed API when you adopt a new
-version.
+numbers and, from 3.0.0, follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html):
 
-The latest stable release is `2.12.0`.
+- A **major** release, such as 4.0.0, is the only kind that removes public API, changes it
+  incompatibly, or raises the minimum Java version or the Spring Boot major version a module needs.
+- A **minor** release, such as 3.1.0, adds features and keeps existing public API and behavior
+  compatible.
+- A **patch** release, such as 3.0.1, only fixes bugs.
+
+The public API is:
+
+- the public types and members in the packages that `krandom-core` exports from its
+  `module-info.java`;
+- the public types and members in `io.github.frikit.krandom.jackson`,
+  `io.github.frikit.krandom.junit`, and `io.github.frikit.krandom.spring`, the packages of
+  `krandom-jackson`, `krandom-junit`, and `krandom-spring-boot-starter`;
+- the public declarations of `krandom-kotlin-dsl` and `krandom-kotest-extensions`;
+- the `krandom.*` configuration properties of `krandom-spring-boot-starter`;
+- the `krandom-recipe/v1` recipe format, so a 3.x release replays a recipe that an earlier 3.x
+  release wrote, and the `fnv1a64-v1` string-seed derivation.
+
+Packages that `krandom-core` does not export are internal and can change in any release.
+
+Public API is deprecated in a minor release before a major release removes it: the deprecation names
+its replacement, and the [changelog](CHANGELOG.md) lists it. Only the latest release is maintained,
+and fixes are not backported to earlier ones. Releases before 3.0.0 made no compatibility promise, so
+read the changelog when upgrading from 2.x.
+
+The latest stable release is `3.0.0`.
 The repository development line is `3.0.0-SNAPSHOT`.
 
 ## Determinism
 
-Within a given release, the same seed and configuration always produce the same output (see the
-`fnv1a64-v1` string-seed derivation contract). Generated values can change between releases, so
-tests that assert exact generated values must pin both the library version and the seed.
+Within a release, the same seed and configuration always produce the same output (see the
+`fnv1a64-v1` string-seed derivation contract). Within a major release line, minor and patch releases
+keep that output the same, with one exception: a release may change output that breaks a documented
+contract, such as a value that fails its own Bean Validation constraints or a string that does not
+match the format its schema names. The changelog lists every such change under Fixed, with the values
+it affects. A new generator, option, or setting leaves existing output unchanged unless you opt in.
+Tests that assert exact generated values should still pin both the library version and the seed.
 
 ## Platform requirements
 

@@ -2,7 +2,7 @@
 
 **Reviewed:** 2026-09-24
 **Status:** Active
-**Stable release:** `2.12.0`
+**Stable release:** `3.0.0`
 **Development line:** `3.0.0-SNAPSHOT`
 
 kRandom should compete on trustworthy fixture generation, not on raw provider count. The durable
@@ -44,8 +44,9 @@ with current kRandom guidance.
 
 ## Ordered priorities
 
-Only the current release line is maintained; a priority may change defaults or remove API when
-the result is better for current users, and the changelog records every such change.
+From 3.0.0, kRandom follows Semantic Versioning ([VERSIONING.md](../../VERSIONING.md)). A priority
+that removes API, changes it incompatibly, or changes existing seeded output beyond a contract fix
+waits for a major release, and deprecates the API it replaces first.
 
 ### P1 — Fixture control and diagnosis
 

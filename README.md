@@ -25,7 +25,7 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 
 ## Current status
 
-- Latest stable release: `2.12.0`; current repository development line: `3.0.0-SNAPSHOT`.
+- Latest stable release: `3.0.0`; current repository development line: `3.0.0-SNAPSHOT`.
 - Java-first architecture.
 - `core` is the only behavior source of truth.
 - `bom` aligns the versions of all published modules.
@@ -176,7 +176,7 @@ Module coordinates (group `io.github.frikit`):
 | `io.github.frikit:krandom-kotest-extensions` | `io.github.frikit.krandom.kotest` |
 | `io.github.frikit:krandom-kotlin-dsl` | `io.github.frikit.krandom.kotlin.dsl` |
 
-The latest released version is `2.12.0`. Release availability is shown on
+The latest released version is `3.0.0`. Release availability is shown on
 [GitHub Releases](https://github.com/frikit/krandom/releases) and
 [Maven Central](https://central.sonatype.com/artifact/io.github.frikit/krandom-core).
 
@@ -184,7 +184,7 @@ The latest released version is `2.12.0`. Release availability is shown on
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:2.12.0")
+    implementation("io.github.frikit:krandom-core:3.0.0")
 }
 ```
 
@@ -192,7 +192,7 @@ dependencies {
 
 ```groovy
 dependencies {
-    implementation 'io.github.frikit:krandom-core:2.12.0'
+    implementation 'io.github.frikit:krandom-core:3.0.0'
 }
 ```
 
@@ -200,7 +200,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation(platform("io.github.frikit:krandom-bom:2.12.0"))
+    implementation(platform("io.github.frikit:krandom-bom:3.0.0"))
     implementation("io.github.frikit:krandom-core")
     testImplementation("io.github.frikit:krandom-junit")
 }
@@ -212,7 +212,7 @@ dependencies {
 <dependency>
   <groupId>io.github.frikit</groupId>
   <artifactId>krandom-core</artifactId>
-  <version>2.12.0</version>
+  <version>3.0.0</version>
 </dependency>
 ```
 
@@ -238,9 +238,10 @@ Consumer examples live in [`examples/`](examples/). They are test-based examples
 
 ## Versioning
 
-Only the latest release is maintained, and releases carry no compatibility promise for earlier
-versions. [VERSIONING.md](VERSIONING.md) documents the determinism contract and platform
-requirements; check the [changelog](CHANGELOG.md) before upgrading.
+From 3.0.0, kRandom follows Semantic Versioning: only a major release removes or breaks public API,
+and minor and patch releases keep seeded output the same unless a fix restores a documented contract.
+[VERSIONING.md](VERSIONING.md) defines the public API, the deprecation rule, the determinism contract,
+and the platform requirements; check the [changelog](CHANGELOG.md) before upgrading.
 
 ## Getting help
 
