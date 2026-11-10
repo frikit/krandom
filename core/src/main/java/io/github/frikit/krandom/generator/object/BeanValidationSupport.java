@@ -1204,6 +1204,45 @@ final class BeanValidationSupport {
         return Optional.empty();
     }
 
+    /**
+     * The simple names of the supported constraints that apply to an element as generation reads them:
+     * declared on it, on a field's getter, or on the field that a constructor parameter initializes. A
+     * generation report names them; without Bean Validation there are none.
+     */
+    static List<String> constraintNames(@Nullable AnnotatedElement element) {
+        if (element == null || !AVAILABLE) {
+            return List.of();
+        }
+        List<String> names = new ArrayList<>();
+        for (Class<? extends java.lang.annotation.Annotation> type : List.of(
+                Null.class,
+                NotNull.class,
+                NotEmpty.class,
+                NotBlank.class,
+                Size.class,
+                Min.class,
+                Max.class,
+                DecimalMin.class,
+                DecimalMax.class,
+                Positive.class,
+                PositiveOrZero.class,
+                Negative.class,
+                NegativeOrZero.class,
+                Past.class,
+                PastOrPresent.class,
+                Future.class,
+                FutureOrPresent.class,
+                AssertTrue.class,
+                AssertFalse.class,
+                Email.class,
+                Pattern.class)) {
+            if (annotation(element, type) != null) {
+                names.add(type.getSimpleName());
+            }
+        }
+        return names;
+    }
+
     private static <A extends java.lang.annotation.Annotation> @Nullable A annotation(
             AnnotatedElement element, Class<A> type) {
         if (element instanceof RecordComponent component) {

@@ -103,8 +103,9 @@ A `GenerationReportListener`, set with `GeneratorConfig.Builder.generationReport
 - the Bean Validation constraints on the member;
 - the safety policies that bound it, such as `network.safety-policy`, `email.domain-policy` or
   `phone-number.safety-policy`;
-- the fallback decisions taken: a cut at `objectMaxDepth` or at a cycle, an unsupported type or unmet
-  constraints that `objectIgnoreErrors(true)` leaves at the default, a `null` or an empty `Optional` that the
+- the fallback decisions taken: a cut at `objectMaxDepth` or at a cycle, an unsupported type, unmet
+  constraints or another failure, such as a rejected element or a unique value that ran out, that
+  `objectIgnoreErrors(true)` passes over, a `null` or an empty `Optional` that the
   configured probabilities drew, a semantic provider that a constraint or, in `RELAXED` mode, an annotation
   deferred, and a member that the coherence pass changed or, in `RELAXED` mode, kept.
 

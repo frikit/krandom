@@ -330,7 +330,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
     private T generateWithPool() {
         var contextualFactory = config.getContextualTypeOverride(type);
         if (contextualFactory.isPresent()) {
-            reportRoot(FixtureRuleKind.CONTEXT_TYPE_OVERRIDE);
+            reportRoot(type, FixtureRuleKind.CONTEXT_TYPE_OVERRIDE);
             return generateFromRootFactory(
                     "contextual type override",
                     () -> contextualFactory
@@ -340,7 +340,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         }
         var factory = config.getTypeOverride(type);
         if (factory.isPresent()) {
-            reportRoot(FixtureRuleKind.TYPE_OVERRIDE);
+            reportRoot(type, FixtureRuleKind.TYPE_OVERRIDE);
             return generateFromRootFactory("type override", factory.get()::generate);
         }
         if (SealedTypes.isAbstract(type)) {
@@ -354,7 +354,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         }
 
         if (depth == 0) {
-            reportRoot(null);
+            reportRoot(type, null);
         }
         FieldGeneratorResolver resolver = new FieldGeneratorResolver(
                 config,
@@ -453,6 +453,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         if (chosen.isEnum()
                 && config.getContextualTypeOverride(chosen).isEmpty()
                 && config.getTypeOverride(chosen).isEmpty()) {
+            reportRoot(chosen, null);
             Object[] constants = chosen.getEnumConstants();
             return type.cast(constants[choice.nextInt(constants.length)]);
         }
@@ -485,7 +486,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
      * Reports the object this generator builds as a root, or with a type override at any depth, when a
      * report listener is set; a nested object has the entry of the member that holds it.
      */
-    private void reportRoot(@Nullable FixtureRuleKind factory) {
+    private void reportRoot(Class<?> generated, @Nullable FixtureRuleKind factory) {
         GenerationReporter reporter = GenerationReporter.of(
                 config,
                 ObjectFieldStreamPlanner.usesNamedChildStreams(
@@ -493,7 +494,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                         generationSeed,
                         config.hasPortableRecipe()));
         if (reporter != null) {
-            reporter.root(objectPath, type, factory);
+            reporter.root(objectPath, generated, factory);
         }
     }
 

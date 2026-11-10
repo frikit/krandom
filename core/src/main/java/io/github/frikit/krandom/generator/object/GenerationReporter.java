@@ -12,7 +12,6 @@ import io.github.frikit.krandom.generator.report.GenerationReportEntry;
 import io.github.frikit.krandom.generator.report.GenerationReportListener;
 import io.github.frikit.krandom.generator.report.GenerationStep;
 import io.github.frikit.krandom.generator.report.SeedSource;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -20,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
@@ -127,10 +127,33 @@ final class GenerationReporter {
     }
 
     static void semantic(@Nullable Trace trace, String semanticKey, GeneratorConfig config) {
-        if (trace == null) {
-            return;
+        if (trace != null) {
+            trace.step(GenerationStep.SEMANTIC, semanticKey).setting("object.semantic-mode");
+            policies(trace, semanticKey, config);
         }
-        trace.step(GenerationStep.SEMANTIC, semanticKey).setting("object.semantic-mode");
+    }
+
+    /** A {@code @Fake} provider, bound by the safety policies of the semantic provider it names. */
+    static void fake(@Nullable Trace trace, String provider, SemanticFieldRegistry registry, GeneratorConfig config) {
+        if (trace != null) {
+            trace.step(GenerationStep.FAKE, provider);
+            // A provider that @Fake can use is one of the registry's names, so it always has a key.
+            policies(trace, Objects.requireNonNullElse(registry.semanticKeyForFieldName(provider), provider), config);
+        }
+    }
+
+    /**
+     * A failure that {@code objectIgnoreErrors(true)} passes over; when it throws instead, the trace is
+     * never delivered.
+     */
+    static void failed(@Nullable Trace trace, GenerationDecision decision) {
+        if (trace != null) {
+            trace.decision(decision);
+            trace.step = GenerationStep.DEFAULT;
+        }
+    }
+
+    private static void policies(Trace trace, String semanticKey, GeneratorConfig config) {
         if (semanticKey.equals("email") || semanticKey.equals("companyemail")) {
             trace.safetyPolicy("email.domain-policy", config.getEmailDomainPolicy())
                     .safetyPolicy("network.safety-policy", config.getNetworkSafetyPolicy());
@@ -144,7 +167,7 @@ final class GenerationReporter {
     static void constraint(@Nullable Trace trace, Class<?> rawType, AnnotatedElement element, GeneratorConfig config) {
         if (trace != null) {
             trace.step(GenerationStep.CONSTRAINT, rawType.getName());
-            if (hasEmailConstraint(element)) {
+            if (BeanValidationSupport.constraintNames(element).contains("Email")) {
                 trace.safetyPolicy("email.domain-policy", config.getEmailDomainPolicy());
             }
         }
@@ -169,15 +192,6 @@ final class GenerationReporter {
         }
     }
 
-    private static boolean hasEmailConstraint(AnnotatedElement element) {
-        for (Annotation annotation : element.getAnnotations()) {
-            if (annotation.annotationType().getName().equals("jakarta.validation.constraints.Email")) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private static boolean isTemporal(Class<?> type) {
         return java.time.temporal.Temporal.class.isAssignableFrom(type)
                 || java.util.Date.class.isAssignableFrom(type)
@@ -188,7 +202,7 @@ final class GenerationReporter {
     void root(String path, Class<?> type, @Nullable FixtureRuleKind factory) {
         Trace trace = new Trace(path);
         if (factory == null) {
-            trace.step(GenerationStep.OBJECT, type.getName());
+            trace.step(type.isEnum() ? GenerationStep.ENUM : GenerationStep.OBJECT, type.getName());
         } else {
             trace.step(GenerationStep.OVERRIDE, "override").rule(FixtureRule.configured(factory, path));
         }
@@ -236,7 +250,7 @@ final class GenerationReporter {
     final class Trace {
 
         private final String path;
-        private GenerationStep step = GenerationStep.DEFAULT;
+        GenerationStep step = GenerationStep.DEFAULT;
         private String generator = "default";
         private @Nullable FixtureRule rule;
         private List<String> constraints = List.of();
@@ -275,17 +289,7 @@ final class GenerationReporter {
         }
 
         Trace constraints(@Nullable AnnotatedElement element) {
-            if (element == null) {
-                return this;
-            }
-            List<String> names = new ArrayList<>();
-            for (Annotation annotation : element.getAnnotations()) {
-                Class<? extends Annotation> annotationType = annotation.annotationType();
-                if (annotationType.getPackageName().equals("jakarta.validation.constraints")) {
-                    names.add(annotationType.getSimpleName());
-                }
-            }
-            constraints = names;
+            constraints = BeanValidationSupport.constraintNames(element);
             return this;
         }
 

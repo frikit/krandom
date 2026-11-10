@@ -20,6 +20,14 @@ public enum GenerationDecision {
     /** Constraints that no value meets are left at the type's default, as {@code objectIgnoreErrors(true)} asks. */
     CONSTRAINT_CONFLICT,
 
+    /**
+     * A failure, such as a rejected element, a collection type that cannot be built, a nested object that
+     * cannot be built, or a unique value that ran out, that {@code objectIgnoreErrors(true)} passes over,
+     * leaving the value, or the element, at its default. The {@code GenerationFailureListener} receives the
+     * failure's diagnostic.
+     */
+    FAILURE_FALLBACK,
+
     /** A nullable member is {@code null}, as {@code objectNullProbability} drew. */
     NULL_PROBABILITY,
 

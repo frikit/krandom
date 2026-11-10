@@ -17,7 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   that matched it, whether an `ObjectFaker` rule with its registration number or a `GeneratorConfig`
   override, its Bean Validation constraints, the safety policies that bound it, such as
   `network.safety-policy`, and its `GenerationDecision`s: a cut at `objectMaxDepth` or at a cycle, a fallback
-  for an unsupported type or unmet constraints under `objectIgnoreErrors(true)`, a drawn `null` or empty
+  for an unsupported type, unmet constraints or another failure under `objectIgnoreErrors(true)`, a drawn `null` or empty
   `Optional`, a semantic provider deferred to a constraint or annotation, and a coherence move, or a member
   that `RELAXED` mode keeps. An entry never holds a generated value. Reporting draws nothing from any random
   stream, so seeded output is the same with or without a listener, and without one nothing is reported or

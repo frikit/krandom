@@ -239,6 +239,81 @@ class GenerationReportTest {
     }
 
     @Test
+    @DisplayName("constraints are named as generation reads them, from a getter or an initialized field too")
+    void effectiveConstraintsAreNamed() {
+        List<GenerationReportEntry> constructed = generate(Coded.class, listening(41L));
+        List<GenerationReportEntry> getter = generate(GetterCoded.class, listening(41L));
+
+        assertEquals(List.of("Size"), entry(constructed, "Coded.code").constraints());
+        assertEquals(GenerationStep.CONSTRAINT, entry(constructed, "Coded.code").step());
+        assertEquals(List.of("Email"), entry(constructed, "Coded.contact").constraints());
+        assertTrue(entry(constructed, "Coded.contact").safetyPolicies().containsKey("email.domain-policy"));
+        assertEquals(List.of("Size"), entry(getter, "GetterCoded.code").constraints());
+    }
+
+    @Test
+    @DisplayName("failures that objectIgnoreErrors(true) passes over during generation are reported")
+    void passedOverFailuresAreReported() {
+        List<GenerationReportEntry> entries =
+                generate(Failing.class, listening(43L).objectIgnoreErrors(true));
+        List<GenerationReportEntry> unique = new ArrayList<>();
+        new ObjectGenerator<>(
+                        Flagged.class,
+                        listening(43L)
+                                .objectUniqueField("flag")
+                                .objectIgnoreErrors(true)
+                                .generationReportListener(unique::add)
+                                .build())
+                .generateList(3);
+
+        assertEquals(
+                List.of(GenerationDecision.CONSTRAINT_CONFLICT),
+                entry(entries, "Failing.contact").decisions());
+        assertEquals(GenerationStep.DEFAULT, entry(entries, "Failing.contact").step());
+        assertEquals(
+                List.of(GenerationDecision.CONSTRAINT_CONFLICT),
+                entry(entries, "Failing.flags").decisions());
+        assertEquals(
+                List.of(GenerationDecision.FAILURE_FALLBACK),
+                entry(entries, "Failing.exploding").decisions());
+        assertEquals(
+                List.of(GenerationDecision.FAILURE_FALLBACK),
+                entry(entries, "Failing.fixed").decisions());
+        assertEquals(
+                List.of(GenerationDecision.FAILURE_FALLBACK),
+                entry(entries, "Failing.nested").decisions());
+        assertTrue(
+                unique.stream().anyMatch(entry -> entry.decisions().contains(GenerationDecision.FAILURE_FALLBACK)),
+                unique.toString());
+    }
+
+    @Test
+    @DisplayName("a @Fake provider names the safety policies of the semantic provider it uses")
+    void fakeProvidersNameTheirPolicies() {
+        List<GenerationReportEntry> entries = generate(Annotated.class, listening(47L));
+
+        assertEquals(
+                List.of("email.domain-policy", "network.safety-policy"),
+                List.copyOf(entry(entries, "Annotated.mail").safetyPolicies().keySet()));
+        assertEquals(
+                List.of("phone-number.safety-policy"),
+                List.copyOf(entry(entries, "Annotated.number").safetyPolicies().keySet()));
+        assertEquals(
+                List.of("network.safety-policy"),
+                List.copyOf(entry(entries, "Annotated.link").safetyPolicies().keySet()));
+        assertEquals(Map.of(), entry(entries, "Annotated.city").safetyPolicies());
+    }
+
+    @Test
+    @DisplayName("a sealed root that picks an enum is reported as an enum")
+    void sealedRootPickingAnEnumIsReported() {
+        List<GenerationReportEntry> entries = generate(Signal.class, listening(53L));
+
+        assertEquals(GenerationStep.ENUM, entry(entries, "Signal").step());
+        assertEquals(Light.class.getName(), entry(entries, "Signal").generator());
+    }
+
+    @Test
     @DisplayName("the coherence pass reports what it moves and, in RELAXED mode, what it keeps")
     void coherenceMovesAndKeepsAreReported() {
         List<GenerationReportEntry> entries = generate(Profile.class, listening(13L));
@@ -628,7 +703,72 @@ class GenerationReportTest {
     record Annotated(
             @Randomizer(Fixed.class) String fixed,
             @Fake("city") String city,
-            @FakeRange(min = 1, max = 5) int count) {}
+            @FakeRange(min = 1, max = 5) int count,
+            @Fake("email") String mail,
+            @Fake("phone") String number,
+            @Fake("url") String link) {}
+
+    static final class Coded {
+        @Size(min = 3, max = 3) private final String code;
+
+        @Email private final String contact;
+
+        Coded(String code, String contact) {
+            this.code = code;
+            this.contact = contact;
+        }
+    }
+
+    static final class GetterCoded {
+        String code;
+
+        @Size(min = 2, max = 2) public String getCode() {
+            return code;
+        }
+    }
+
+    static final class ExplodingList extends ArrayList<String> {
+        private static final long serialVersionUID = 1L;
+
+        ExplodingList() {
+            throw new IllegalStateException("no list");
+        }
+    }
+
+    static final class FixedList extends ArrayList<String> {
+        private static final long serialVersionUID = 1L;
+
+        FixedList(int capacity) {
+            super(capacity);
+        }
+    }
+
+    static final class ExplodingObject {
+        String value;
+
+        ExplodingObject() {
+            throw new IllegalStateException("no object");
+        }
+    }
+
+    static final class Failing {
+        @Email @jakarta.validation.constraints.Pattern(regexp = "x") String contact;
+
+        @Size(min = 3) java.util.Set<Boolean> flags;
+
+        ExplodingList exploding;
+        FixedList fixed;
+        ExplodingObject nested;
+    }
+
+    record Flagged(boolean flag) {}
+
+    sealed interface Signal permits Light {}
+
+    enum Light implements Signal {
+        RED,
+        GREEN
+    }
 
     record Dated(LocalDate day, Date legacy, Calendar calendar, int count) {}
 

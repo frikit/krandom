@@ -212,6 +212,7 @@ final class FieldGeneratorResolver {
     private final Map<TypeVariable<?>, Type> typeBindings;
     private final String objectPath;
     private final @Nullable GenerationReporter reporter;
+    private GenerationReporter.@Nullable Trace currentTrace;
 
     FieldGeneratorResolver(
             ObjectGeneratorConfig config,
@@ -1779,8 +1780,15 @@ final class FieldGeneratorResolver {
                     genericType, rawType, fieldName, ownerType, currentDepth, element, constraintSource, null);
         }
         GenerationReporter.Trace trace = active.trace(memberPath(fieldName));
-        Object value = resolveValue(
-                genericType, rawType, fieldName, ownerType, currentDepth, element, constraintSource, trace);
+        GenerationReporter.Trace enclosing = currentTrace;
+        currentTrace = trace;
+        Object value;
+        try {
+            value = resolveValue(
+                    genericType, rawType, fieldName, ownerType, currentDepth, element, constraintSource, trace);
+        } finally {
+            currentTrace = enclosing;
+        }
         // The entry is built from what the resolution decided, never from the value.
         active.emit(trace);
         return value;
@@ -1888,12 +1896,13 @@ final class FieldGeneratorResolver {
 
         // ── 3ba. Declarative @Fake override ──────────────────────────────────
         if (fakeAnnotationGenerator != null) {
-            GenerationReporter.step(
+            GenerationReporter.fake(
                     trace,
-                    GenerationStep.FAKE,
                     Objects.requireNonNull(element, "an annotated element")
                             .getAnnotation(Fake.class)
-                            .value());
+                            .value(),
+                    semanticRegistry,
+                    generatorConfig);
             return generateIfRequestedUnique(
                     fakeAnnotationGenerator, rawType, genericType, ownerType, fieldName, currentDepth);
         }
@@ -2048,6 +2057,7 @@ final class FieldGeneratorResolver {
                     try {
                         map.put(key, val);
                     } catch (RuntimeException e) {
+                        GenerationReporter.failed(currentTrace, GenerationDecision.FAILURE_FALLBACK);
                         String declaredType = genericType.getTypeName();
                         GenerationFailureContext context = new GenerationFailureContext(
                                 GenerationFailureCategory.COLLECTION_INSERTION,
@@ -2143,12 +2153,14 @@ final class FieldGeneratorResolver {
                 return instance;
             } catch (ObjectGenerationException e) {
                 pool.end(nestedType, poolTypeSignature, null);
+                GenerationReporter.failed(currentTrace, GenerationDecision.FAILURE_FALLBACK);
                 return failurePolicy.handle(
                         contextualizeNestedFailure(
                                 e, nestedType, ownerType, fieldName, memberPath(fieldName), genericType, currentDepth),
                         null);
             } catch (Exception e) {
                 pool.end(nestedType, poolTypeSignature, null);
+                GenerationReporter.failed(currentTrace, GenerationDecision.FAILURE_FALLBACK);
                 return failurePolicy.handle(
                         nestedFailure(
                                 GenerationFailureCategory.REFLECTION,
@@ -2451,6 +2463,7 @@ final class FieldGeneratorResolver {
             String fieldName,
             int depth,
             RuntimeException cause) {
+        GenerationReporter.failed(currentTrace, GenerationDecision.UNSUPPORTED_TYPE);
         String path = ownerType.getSimpleName() + "." + fieldName;
         String declaredTypeName = declaredType.getTypeName();
         GenerationFailureContext context = new GenerationFailureContext(
@@ -2477,6 +2490,7 @@ final class FieldGeneratorResolver {
             String fieldName,
             int depth,
             BeanValidationSupport.ConstraintConflictException cause) {
+        GenerationReporter.failed(currentTrace, GenerationDecision.CONSTRAINT_CONFLICT);
         String path = ownerType.getSimpleName() + "." + fieldName;
         String declaredTypeName = declaredType.getTypeName();
         GenerationFailureContext context = new GenerationFailureContext(
@@ -2540,6 +2554,7 @@ final class FieldGeneratorResolver {
             String fieldName,
             int depth,
             UniqueFieldTracker.ExhaustedException cause) {
+        GenerationReporter.failed(currentTrace, GenerationDecision.FAILURE_FALLBACK);
         String path = memberPath(fieldName);
         String declaredTypeName = declaredType.getTypeName();
         GenerationFailureContext context = new GenerationFailureContext(
@@ -2583,6 +2598,7 @@ final class FieldGeneratorResolver {
 
     private @Nullable Object handleCollectionInsertionFailure(
             Class<?> ownerType, String fieldName, Type declaredType, int depth, RuntimeException cause) {
+        GenerationReporter.failed(currentTrace, GenerationDecision.FAILURE_FALLBACK);
         String path = ownerType.getSimpleName() + "." + fieldName;
         String declaredTypeName = declaredType.getTypeName();
         GenerationFailureContext context = new GenerationFailureContext(
@@ -2620,6 +2636,7 @@ final class FieldGeneratorResolver {
 
     private @Nullable Object handleCollectionConstructionFailure(
             Class<?> ownerType, String fieldName, Type declaredType, int depth, Throwable cause) {
+        GenerationReporter.failed(currentTrace, GenerationDecision.FAILURE_FALLBACK);
         String path = ownerType.getSimpleName() + "." + fieldName;
         String declaredTypeName = declaredType.getTypeName();
         GenerationFailureContext context = new GenerationFailureContext(
@@ -2689,6 +2706,7 @@ final class FieldGeneratorResolver {
             try {
                 Array.set(arr, i, el);
             } catch (IllegalArgumentException e) {
+                GenerationReporter.failed(currentTrace, GenerationDecision.FAILURE_FALLBACK);
                 String elementPath = ownerType.getSimpleName() + "." + fieldName + "[" + i + "]";
                 String declaredType = declaredArrayType.signature();
                 GenerationFailureContext context = new GenerationFailureContext(
