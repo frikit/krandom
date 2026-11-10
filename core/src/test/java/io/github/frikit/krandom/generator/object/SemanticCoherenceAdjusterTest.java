@@ -1228,6 +1228,26 @@ class SemanticCoherenceAdjusterTest {
         assertEquals("second@example.com", second.email);
     }
 
+    @Test
+    @DisplayName(
+            "relaxed mode leaves a @Fake field alone, as it does @Randomizer and @FakeRange, and strict mode does not")
+    void relaxedModeLeavesAFakeFieldAlone() throws Exception {
+        FakeNamedHolder relaxed = new FakeNamedHolder();
+        relaxed.firstName = "Ada";
+        relaxed.lastName = "Lovelace";
+        relaxed.fullName = "Grace Hopper";
+        new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker())
+                .adjustInstance(FakeNamedHolder.class, relaxed, declaredFields(FakeNamedHolder.class), true);
+        assertEquals("Grace Hopper", relaxed.fullName);
+
+        FakeNamedHolder strict = new FakeNamedHolder();
+        strict.firstName = "Ada";
+        strict.lastName = "Lovelace";
+        strict.fullName = "Grace Hopper";
+        strictAdjuster().adjustInstance(FakeNamedHolder.class, strict, declaredFields(FakeNamedHolder.class), true);
+        assertEquals("Ada Lovelace", strict.fullName);
+    }
+
     private static SemanticCoherenceAdjuster strictAdjuster() {
         return new SemanticCoherenceAdjuster(
                 ObjectGeneratorConfig.builder()
@@ -2223,6 +2243,15 @@ class SemanticCoherenceAdjusterTest {
         String lastName;
 
         @Size(max = 23) String email;
+    }
+
+    static class FakeNamedHolder {
+
+        String firstName;
+        String lastName;
+
+        @Fake("fullName")
+        String fullName;
     }
 
     record ManualRecord(String firstName, String lastName, String fullName) {}

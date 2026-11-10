@@ -332,6 +332,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- In `ObjectGenerationSemanticMode.RELAXED`, the coherence pass now leaves a `@Fake` field alone, as it does a
+  `@Randomizer` or `@FakeRange` field, and as the object-generation guide and the `@Fake` documentation say:
+  `@Fake` takes precedence over field-name semantics, as it already did when the value was generated. Seeded
+  with `42`, a `@Fake("fullName")` `fullName` beside `firstName` and `lastName` was overwritten with those
+  names in 2,000 of 2,000 objects, and now keeps the name its provider gives. Seeded output changes for such
+  objects. In `ObjectGenerationSemanticMode.STRICT` the pass still overwrites a `@Fake` field, as semantics
+  win there.
 - In `ObjectGenerationSemanticMode.STRICT`, the coherence pass no longer writes a derived string, amount,
   status, or active flag that breaks the field's own Bean Validation constraints, as it already did not for
   dates and ages. Seeded with `42` under a clock fixed at `2026-06-04T12:00Z`, of 2,000 objects each, it broke

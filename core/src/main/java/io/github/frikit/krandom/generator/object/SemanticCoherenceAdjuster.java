@@ -815,11 +815,13 @@ final class SemanticCoherenceAdjuster {
             return true;
         }
 
-        // RELAXED lets declared annotations and bean validation constraints take precedence over
-        // semantics. STRICT lets semantics win over the annotations, and over a constraint where the
-        // derived value meets it.
+        // RELAXED lets the declared annotations, @Randomizer, @Fake and @FakeRange, and bean validation
+        // constraints take precedence over semantics, as they do when a value is generated. STRICT lets
+        // semantics win over the annotations, and over a constraint where the derived value meets it.
         if (config.getSemanticMode() == ObjectGenerationSemanticMode.RELAXED) {
-            if (field.isAnnotationPresent(Randomizer.class) || field.isAnnotationPresent(FakeRange.class)) {
+            if (field.isAnnotationPresent(Randomizer.class)
+                    || field.isAnnotationPresent(Fake.class)
+                    || field.isAnnotationPresent(FakeRange.class)) {
                 return true;
             }
             return BeanValidationSupport.constraintGeneratorFor(field, slot.rawType()) != null;

@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 import org.hibernate.validator.HibernateValidator;
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -324,6 +325,11 @@ class ObjectGeneratorCoherenceConstraintTest {
 
     record AssertedActive(@AssertTrue boolean active, String status) {}
 
+    record FakeFullName(
+            String firstName,
+            String lastName,
+            @Fake("fullName") String fullName) {}
+
     @ParameterizedTest(name = "{0}")
     @EnumSource(
             value = ObjectGenerationSemanticMode.class,
@@ -357,6 +363,17 @@ class ObjectGeneratorCoherenceConstraintTest {
             assertValid(amount);
             assertFalse(
                     amount.amount().setScale(2, RoundingMode.HALF_UP).compareTo(amount.price()) < 0, amount.toString());
+        }
+    }
+
+    @Test
+    @DisplayName("in relaxed mode a @Fake field keeps the value its provider gives")
+    void relaxedFakeFieldKeepsTheValueItsProviderGives() {
+        ObjectGenerator<FakeFullName> generator =
+                new ObjectGenerator<>(FakeFullName.class, config(ObjectGenerationSemanticMode.RELAXED));
+        for (int i = 0; i < SAMPLES; i++) {
+            FakeFullName value = generator.generate();
+            assertFalse(value.fullName().equals(value.firstName() + " " + value.lastName()), value.toString());
         }
     }
 
