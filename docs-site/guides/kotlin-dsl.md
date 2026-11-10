@@ -141,6 +141,11 @@ rules, nested generic containers, semantic values, deterministic seeds, and Jaka
 annotations all apply. Both `@param:` and `@field:` constraint targets are recognized. An explicit
 field or type rule wins over an optional parameter default.
 
+The constructor fills its own parameters. A mutable property that it does not take, declared in the
+class body or inherited, is then filled through its field, as a Java class's fields are after its
+constructor runs: a rule replaces its initializer, and in the DSL so does a generated value. With
+`data class User(val id: Long) { var name = "old" }`, `rule(User::name) { "new" }` gives `"new"`.
+
 Kotlin `object` singletons return their one instance, and sealed types and value classes are generated
 as [below](#sealed-types-and-value-classes). An abstract class or interface that is not sealed is
 rejected before returning a value; use a concrete type or a `ruleForType`. A core-only application

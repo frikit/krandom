@@ -640,7 +640,17 @@ public final class ObjectGenerator<T> implements Generator<T> {
         Optional<ObjectConstructionAdapter> adapter =
                 uniqueFieldTracker.constructionAdapter(type, ObjectGenerator::constructionAdapterFor);
         if (adapter.isPresent()) {
-            return constructWithAdapter(adapter.get(), resolver);
+            Set<String> constructorMembers = new HashSet<>();
+            T instance = constructWithAdapter(adapter.get(), resolver, constructorMembers);
+            if (!hasKotlinObjectInstance(type)) {
+                // The adapter stands in for the constructor. The other mutable fields, which no parameter the
+                // adapter asked about names, are filled as for a class built through its constructor.
+                List<Field> otherFields = collectSettableFields(type).stream()
+                        .filter(field -> !constructorMembers.contains(field.getName()))
+                        .toList();
+                populateClass(instance, resolver, coherenceAdjuster, otherFields, true, Set.of(), Map.of());
+            }
+            return instance;
         }
         if (requiresKotlinConstructionAdapter(type)) {
             throw new ReflectiveOperationException("Immutable Kotlin type " + type.getName()
@@ -663,23 +673,37 @@ public final class ObjectGenerator<T> implements Generator<T> {
         return instance;
     }
 
-    private T constructWithAdapter(ObjectConstructionAdapter adapter, FieldGeneratorResolver resolver) {
+    /**
+     * Constructs the type through the adapter, adding to {@code constructorMembers} the name of each parameter it
+     * resolves or asks about.
+     */
+    private T constructWithAdapter(
+            ObjectConstructionAdapter adapter, FieldGeneratorResolver resolver, Set<String> constructorMembers) {
         try {
             Object value = adapter.construct(new ObjectConstructionContext<>(
                     type,
                     typePath(),
                     type,
                     depth,
-                    (genericType, rawType, memberName, element) -> resolver.resolveAndGenerateMember(
-                            genericType,
-                            rawType,
-                            memberName,
-                            type,
-                            depth,
-                            element,
-                            memberStreamIdentity(type, "constructor", memberName)),
-                    this::hasExplicitConstructionOverride,
-                    this::isExcludedConstructionMember));
+                    (genericType, rawType, memberName, element) -> {
+                        constructorMembers.add(memberName);
+                        return resolver.resolveAndGenerateMember(
+                                genericType,
+                                rawType,
+                                memberName,
+                                type,
+                                depth,
+                                element,
+                                memberStreamIdentity(type, "constructor", memberName));
+                    },
+                    (memberName, rawType) -> {
+                        constructorMembers.add(memberName);
+                        return hasExplicitConstructionOverride(memberName, rawType);
+                    },
+                    memberName -> {
+                        constructorMembers.add(memberName);
+                        return isExcludedConstructionMember(memberName);
+                    }));
             if (value == null) {
                 throw new IllegalStateException(adapter.getClass().getName() + " returned null");
             }

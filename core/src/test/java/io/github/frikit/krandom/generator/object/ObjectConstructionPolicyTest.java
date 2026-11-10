@@ -260,6 +260,47 @@ class ObjectConstructionPolicyTest {
     }
 
     @Test
+    @DisplayName("an adapter stands in for the constructor, and the type's other mutable fields are filled as usual")
+    void adapterBuiltTypesFillTheirOtherFields() {
+        AdapterBodyFixture kept = new ObjectGenerator<>(AdapterBodyFixture.class).generate();
+        AdapterBodyFixture generated = new ObjectGenerator<>(
+                        AdapterBodyFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverrideDefaultInitialization(true)
+                                .build())
+                .generate();
+        AdapterBodyFixture overridden = new ObjectGenerator<>(
+                        AdapterBodyFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverride(AdapterBodyFixture.class, "label", () -> "rule")
+                                .build())
+                .generate();
+
+        // An initializer stays unless default initialization is overridden or a field override targets it.
+        assertEquals("initial", kept.label);
+        assertNotNull(generated.label);
+        assertFalse(generated.label.equals("initial"), generated.label);
+        assertEquals("rule", overridden.label);
+        // A member that the adapter resolved keeps the value it was constructed with.
+        assertEquals(kept.constructedValue, kept.value);
+        assertEquals(generated.constructedValue, generated.value);
+    }
+
+    @Test
+    @DisplayName("an adapter's Kotlin object is returned as it is")
+    void adapterSingletonKeepsItsState() {
+        AdapterSingletonFixture value = new ObjectGenerator<>(
+                        AdapterSingletonFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverrideDefaultInitialization(true)
+                                .build())
+                .generate();
+
+        assertSame(AdapterSingletonFixture.INSTANCE, value);
+        assertEquals("kept", value.state);
+    }
+
+    @Test
     @DisplayName("construction adapters validate output and preserve structured failures")
     void constructionAdapterFailuresAreContextual() {
         assertConstructionAdapterFailure(NullAdapterFixture.class, IllegalStateException.class);
@@ -517,6 +558,25 @@ class ObjectConstructionPolicyTest {
             this.value = value;
             this.explicitlyOverridden = explicitlyOverridden;
         }
+    }
+
+    static final class AdapterBodyFixture {
+
+        final String constructedValue;
+        String value;
+        String label = "initial";
+
+        AdapterBodyFixture(String value) {
+            this.constructedValue = value;
+            this.value = value;
+        }
+    }
+
+    static final class AdapterSingletonFixture {
+
+        static final AdapterSingletonFixture INSTANCE = new AdapterSingletonFixture();
+
+        String state = "kept";
     }
 
     static final class NullAdapterFixture {}

@@ -29,6 +29,8 @@ public final class TestObjectConstructionAdapter implements ObjectConstructionAd
     @Override
     public boolean supports(Class<?> type) {
         return type == ObjectConstructionPolicyTest.AdapterFixture.class
+                || type == ObjectConstructionPolicyTest.AdapterBodyFixture.class
+                || type == ObjectConstructionPolicyTest.AdapterSingletonFixture.class
                 || type == ObjectConstructionPolicyTest.ExclusionAdapterFixture.class
                 || type == ObjectConstructionPolicyTest.NullAdapterFixture.class
                 || type == ObjectConstructionPolicyTest.WrongTypeAdapterFixture.class
@@ -61,6 +63,13 @@ public final class TestObjectConstructionAdapter implements ObjectConstructionAd
         }
         if (context.getType() == ObjectConstructionPolicyTest.StructuredFailingAdapterFixture.class) {
             throw new ObjectGenerationException("structured adapter failure");
+        }
+        if (context.getType() == ObjectConstructionPolicyTest.AdapterBodyFixture.class) {
+            return new ObjectConstructionPolicyTest.AdapterBodyFixture(
+                    (String) context.generate(String.class, String.class, "value", null));
+        }
+        if (context.getType() == ObjectConstructionPolicyTest.AdapterSingletonFixture.class) {
+            return ObjectConstructionPolicyTest.AdapterSingletonFixture.INSTANCE;
         }
         if (context.getType() == ObjectConstructionPolicyTest.ExclusionAdapterFixture.class) {
             return new ObjectConstructionPolicyTest.ExclusionAdapterFixture(
