@@ -215,9 +215,8 @@ public final class SchemaParser {
 
         validateSupportedKeywords(jsonSchema, "$", Collections.newSetFromMap(new IdentityHashMap<>()));
 
-        Field field = new Field(config);
-        Map<String, SchemaValueProvider> providers = new LinkedHashMap<>();
-
+        // The columns and the root's member keywords are judged before any column's schema is resolved.
+        Map<String, Map<String, Object>> columns = new LinkedHashMap<>();
         for (Map.Entry<?, ?> entry : propertiesMap.entrySet()) {
             if (!(entry.getKey() instanceof String fieldName)) {
                 throw new IllegalArgumentException("Property keys must be strings");
@@ -225,9 +224,20 @@ public final class SchemaParser {
             if (!(entry.getValue() instanceof Map<?, ?> fieldSchemaRaw)) {
                 throw new IllegalArgumentException("Property '" + fieldName + "' must have a schema object");
             }
-
             @SuppressWarnings("unchecked")
             Map<String, Object> fieldSchema = (Map<String, Object>) fieldSchemaRaw;
+            columns.put(fieldName, fieldSchema);
+        }
+        if (columns.isEmpty()) {
+            throw new IllegalArgumentException("JSON Schema must have at least one property");
+        }
+        checkRootMembers(jsonSchema, columns.keySet());
+
+        Field field = new Field(config);
+        Map<String, SchemaValueProvider> providers = new LinkedHashMap<>();
+        for (Map.Entry<String, Map<String, Object>> column : columns.entrySet()) {
+            String fieldName = column.getKey();
+            Map<String, Object> fieldSchema = column.getValue();
             // Resolving first rejects a const or enum that is no JSON value with its path.
             SchemaValueProvider provider =
                     resolveProvider(fieldName, "$.properties." + fieldName, fieldSchema, field, config);
@@ -239,11 +249,6 @@ public final class SchemaParser {
             }
             providers.put(fieldName, provider);
         }
-
-        if (providers.isEmpty()) {
-            throw new IllegalArgumentException("JSON Schema must have at least one property");
-        }
-        checkRootMembers(jsonSchema, providers.keySet());
         // The root holds no member beyond its properties, but its additionalProperties is resolved, as
         // every schema is, so a combination that leaves it no value fails here too.
         if (jsonSchema.get("additionalProperties") instanceof Map<?, ?> additionalSchema) {
@@ -1450,22 +1455,24 @@ public final class SchemaParser {
         List<String> required = names(schema.get("required"));
 
         // A declared property is generated from its schema, where true is the empty schema; false, or a
-        // value that is no schema, leaves it out. Any other property comes from additionalProperties.
-        Map<String, SchemaValueProvider> providers = new LinkedHashMap<>();
+        // value that is no schema, leaves it out. Any other property comes from additionalProperties. The
+        // names and counts are judged first, so that no schema is resolved for an object that fails them.
+        Set<String> usable = new LinkedHashSet<>();
         for (Map.Entry<String, Object> property : declared.entrySet()) {
-            Object propertySchema = Boolean.TRUE.equals(property.getValue()) ? Map.of() : property.getValue();
-            if (propertySchema instanceof Map<?, ?> map) {
-                String name = property.getKey();
-                providers.put(
-                        name,
-                        resolveProvider(name, path + ".properties." + name, (Map<String, Object>) map, field, config));
+            if (property.getValue() instanceof Map<?, ?> || Boolean.TRUE.equals(property.getValue())) {
+                usable.add(property.getKey());
             }
         }
-        // Like every schema, additionalProperties is resolved even where no object needs it.
-        SchemaValueProvider additionalValue =
-                resolveProvider("", path + ".additionalProperties", additionalSchema, field, config);
-        Predicate<String> available =
-                name -> providers.containsKey(name) || (extensible && !declared.containsKey(name));
+        int fewest = minimumCount(schema, "minProperties", 0, path, "members a generated object");
+        int most = maximumCount(schema, "maxProperties", Integer.MAX_VALUE);
+        if (fewest > most) {
+            throw emptyRange("property count", path, schema);
+        }
+        if (usable.size() > SIZE_LIMIT) {
+            throw new IllegalArgumentException("JSON Schema object at " + path + " declares " + usable.size()
+                    + " properties, more than the " + SIZE_LIMIT + " members a generated object can hold");
+        }
+        Predicate<String> available = name -> usable.contains(name) || (extensible && !declared.containsKey(name));
 
         Set<String> base = new LinkedHashSet<>();
         for (String name : required) {
@@ -1486,7 +1493,7 @@ public final class SchemaParser {
         Set<String> chosen = new HashSet<>(base);
         Set<String> order = new LinkedHashSet<>(declared.keySet());
         order.addAll(base);
-        for (String name : providers.keySet()) {
+        for (String name : usable) {
             List<String> needed = dependents(name, dependencies);
             order.addAll(needed);
             if (needed.stream().allMatch(available)) {
@@ -1497,21 +1504,6 @@ public final class SchemaParser {
         if (members.size() > SIZE_LIMIT) {
             throw new IllegalArgumentException("JSON Schema object at " + path + " would hold " + members.size()
                     + " properties, more than the " + SIZE_LIMIT + " members a generated object can hold");
-        }
-        Map<String, SchemaValueProvider> memberProviders = new LinkedHashMap<>();
-        for (String name : members) {
-            SchemaValueProvider provider = providers.get(name);
-            memberProviders.put(
-                    name,
-                    provider != null
-                            ? provider
-                            : resolveProvider(name, path + ".additionalProperties", additionalSchema, field, config));
-        }
-
-        int fewest = minimumCount(schema, "minProperties", 0, path, "members a generated object");
-        int most = maximumCount(schema, "maxProperties", Integer.MAX_VALUE);
-        if (fewest > most) {
-            throw emptyRange("property count", path, schema);
         }
         if (base.size() > most) {
             throw new IllegalArgumentException("JSON Schema object at " + path + " must hold " + base.size()
@@ -1550,6 +1542,30 @@ public final class SchemaParser {
                     ties.put(name, new Tie(group, needing));
                 }
             }
+        }
+
+        // Like every schema, each declared property's is resolved, and additionalProperties even where no
+        // object needs it, once the object's names and counts hold.
+        Map<String, SchemaValueProvider> providers = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> property : declared.entrySet()) {
+            Object propertySchema = Boolean.TRUE.equals(property.getValue()) ? Map.of() : property.getValue();
+            if (propertySchema instanceof Map<?, ?> map) {
+                String name = property.getKey();
+                providers.put(
+                        name,
+                        resolveProvider(name, path + ".properties." + name, (Map<String, Object>) map, field, config));
+            }
+        }
+        SchemaValueProvider additionalValue =
+                resolveProvider("", path + ".additionalProperties", additionalSchema, field, config);
+        Map<String, SchemaValueProvider> memberProviders = new LinkedHashMap<>();
+        for (String name : members) {
+            SchemaValueProvider provider = providers.get(name);
+            memberProviders.put(
+                    name,
+                    provider != null
+                            ? provider
+                            : resolveProvider(name, path + ".additionalProperties", additionalSchema, field, config));
         }
 
         // Additional properties are named property1, property2, and so on, past every name the schema uses.

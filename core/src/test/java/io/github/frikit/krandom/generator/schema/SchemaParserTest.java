@@ -3561,6 +3561,36 @@ class SchemaParserTest {
         }
 
         @Test
+        @DisplayName("an object's counts are judged before its properties' schemas are resolved")
+        void countsComeBeforeResolution() {
+            // This child would fail on its own, so the count must be judged first to be the error.
+            Map<String, Object> failing = Map.of("type", "string", "pattern", "^A{8}$", "maxLength", 3);
+            assertEquals(
+                    "JSON Schema minProperties 1000001 at $.properties.value is more than the 1000000 members a"
+                            + " generated object can hold",
+                    rejection(Map.of(
+                            "type", "object", "minProperties", 1_000_001, "properties", Map.of("child", failing))));
+            Map<String, Object> many = new HashMap<>();
+            for (int i = 0; i <= 1_000_000; i++) {
+                many.put("p" + i, failing);
+            }
+            assertEquals(
+                    "JSON Schema object at $.properties.value declares 1000001 properties, more than the 1000000"
+                            + " members a generated object can hold",
+                    assertTimeoutPreemptively(
+                            Duration.ofSeconds(30), () -> rejection(Map.of("type", "object", "properties", many))));
+            Map<String, Object> root = new HashMap<>(objectSchema(Map.of("child", failing)));
+            root.put("minProperties", 1_000_001);
+            assertEquals(
+                    ROOT + "below minProperties 1000001 at $",
+                    assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(root))
+                            .getMessage());
+        }
+
+        private static final String ROOT =
+                "JSON Schema root object generates exactly its properties, as columns, so its property count, 1, is ";
+
+        @Test
         @DisplayName("a count with a huge exponent is judged and named without writing out its digits")
         void hugeExponents() {
             BigDecimal huge = new BigDecimal("1E+1000000000");
