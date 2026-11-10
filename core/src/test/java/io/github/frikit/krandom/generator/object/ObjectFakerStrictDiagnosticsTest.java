@@ -17,6 +17,7 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.object.FixtureRuleProblem.Category;
 import io.github.frikit.krandom.generator.object.exception.FixtureRuleException;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Size;
 import java.lang.reflect.Field;
@@ -666,6 +667,55 @@ class ObjectFakerStrictDiagnosticsTest {
     }
 
     @Test
+    @DisplayName("a record component, and populate(existing), are behind a context predicate override")
+    void recordsAndPopulateAreBehindPredicate() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                .objectOverride(named("name"), (ContextualGenerator<String>) context -> "config")
+                .build();
+        ObjectFaker<NamedRecord> record = new ObjectFaker<>(NamedRecord.class, config).ruleFor("name", () -> "rule");
+        ObjectFaker<NamedByConstructor> constructed = new ObjectFaker<>(NamedByConstructor.class, config)
+                .ruleFor("name", () -> "rule")
+                .strict();
+
+        assertProblem(onlyProblem(record), Category.SHADOWED, FixtureRuleKind.RULE, "name", 1);
+        assertEquals("config", record.generate().name());
+        assertEquals("rule", constructed.generate().name);
+        FixtureRuleException populating =
+                assertThrows(FixtureRuleException.class, () -> constructed.populate(new NamedByConstructor("kept")));
+        assertEquals(
+                "a GeneratorConfig context predicate override that matches NamedByConstructor.name comes first when"
+                        + " populate(existing) fills the field",
+                populating.getProblems().getFirst().reason());
+        assertEquals(
+                "config",
+                new ObjectFaker<>(NamedByConstructor.class, config)
+                        .ruleFor("name", () -> "rule")
+                        .populate(new NamedByConstructor("kept"))
+                        .name);
+    }
+
+    @Test
+    @DisplayName("a member that always comes out empty, absent or null is not followed")
+    void alwaysEmptyOrAbsentMembersAreNotFollowed() {
+        GeneratorConfig absent = GeneratorConfig.builder()
+                .objectNullProbability(1.0)
+                .objectOptionalEmptyProbability(1.0)
+                .build();
+
+        assertEquals(List.of(), problemsOf(new ObjectFaker<>(EmptyByConstraint.class).ruleFor("id", () -> "x")));
+        assertEquals(List.of(), problemsOf(new ObjectFaker<>(Account.class, absent).ruleFor("id", () -> "x")));
+        assertTrue(onlyProblem(new ObjectFaker<>(OptionalPurchaseHolder.class, absent).ruleFor("id", () -> "x"))
+                .reason()
+                .endsWith("applies at 'required.id'"));
+        assertTrue(onlyProblem(new ObjectFaker<>(OptionalPurchaseHolder.class).ruleFor("id", () -> "x"))
+                .reason()
+                .endsWith("applies at 'maybe.value.id', 'required.id'"));
+        assertTrue(onlyProblem(new ObjectFaker<>(AnnotatedElements.class).ruleFor("id", () -> "x"))
+                .reason()
+                .endsWith("applies at 'list[].id', 'present[].id'"));
+    }
+
+    @Test
     @DisplayName("an ignore that generate() never gives a value is no problem for populate(existing)")
     void ignoreWithoutGeneratedValueStillAppliesToPopulate() {
         ObjectFaker<Shop> faker = new ObjectFaker<>(
@@ -1053,6 +1103,30 @@ class ObjectFakerStrictDiagnosticsTest {
 
     static class NameBase {
         String name;
+    }
+
+    record NamedRecord(String name) {}
+
+    static final class EmptyByConstraint extends BaseEntity {
+        @Size(max = 0) List<Purchase> purchases;
+    }
+
+    static final class OptionalPurchaseHolder extends BaseEntity {
+        int count;
+        Optional<Purchase> maybe;
+
+        @NotNull Purchase required;
+    }
+
+    static final class AnnotatedElements extends BaseEntity {
+        List<@Null Purchase> absent;
+        List<@Null Purchase>[] absentInArray;
+        List<@NotNull Purchase> present;
+        PurchaseList list;
+    }
+
+    static final class PurchaseList extends ArrayList<Purchase> {
+        private static final long serialVersionUID = 1L;
     }
 
     static final class RenamedByConstructor {

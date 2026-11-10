@@ -2620,7 +2620,7 @@ final class FieldGeneratorResolver {
         return arr;
     }
 
-    private static @Nullable AnnotatedElement typeArgumentElement(@Nullable AnnotatedElement element, int index) {
+    static @Nullable AnnotatedElement typeArgumentElement(@Nullable AnnotatedElement element, int index) {
         AnnotatedType type = annotatedTypeFor(element);
         if (!(type instanceof AnnotatedParameterizedType parameterizedType)) {
             return null;
@@ -2629,7 +2629,7 @@ final class FieldGeneratorResolver {
         return index < arguments.length ? arguments[index] : null;
     }
 
-    private static @Nullable AnnotatedElement arrayComponentElement(@Nullable AnnotatedElement element) {
+    static @Nullable AnnotatedElement arrayComponentElement(@Nullable AnnotatedElement element) {
         AnnotatedType type = annotatedTypeFor(element);
         return type instanceof AnnotatedArrayType arrayType ? arrayType.getAnnotatedGenericComponentType() : null;
     }

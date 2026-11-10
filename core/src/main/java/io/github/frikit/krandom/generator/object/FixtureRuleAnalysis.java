@@ -130,8 +130,9 @@ final class FixtureRuleAnalysis {
     /** The problems, ordered by registration with {@code GeneratorConfig} entries last. */
     private List<FixtureRuleProblem> problems(boolean populating) {
         List<FixtureRuleProblem> problems = new ArrayList<>();
+        Scope operation = populating ? Scope.POPULATE : Scope.GENERATE;
         for (Finding finding : findings) {
-            if (!(populating && finding.generateOnly())) {
+            if (finding.scope() == Scope.ALWAYS || finding.scope() == operation) {
                 problems.add(finding.problem());
             }
         }
@@ -261,12 +262,18 @@ final class FixtureRuleAnalysis {
                         Category.SHADOWED,
                         rule,
                         "the GeneratorConfig context field override for " + member + " comes first");
-            } else if (config.getContextualFieldPredicateOverride(field).isPresent() && !fillsByConstructor(leaf)) {
-                inertRules.add(rule);
-                report(
-                        Category.SHADOWED,
-                        rule,
-                        "a GeneratorConfig context predicate override that matches " + member + " comes first");
+            } else if (config.getContextualFieldPredicateOverride(field).isPresent()) {
+                String reason = "a GeneratorConfig context predicate override that matches " + member + " comes first";
+                if (fillsByConstructor(leaf)) {
+                    // generate() fills the constructor argument, which no predicate reaches, and keeps it.
+                    findings.add(new Finding(
+                            new FixtureRuleProblem(
+                                    Category.SHADOWED, rule, reason + " when populate(existing) fills the field"),
+                            Scope.POPULATE));
+                } else {
+                    inertRules.add(rule);
+                    report(Category.SHADOWED, rule, reason);
+                }
             } else if (plainField) {
                 report(
                         Category.SHADOWED,
@@ -295,7 +302,7 @@ final class FixtureRuleAnalysis {
      */
     private boolean fillsByConstructor(RuleTarget leaf) {
         Constructor<?> constructor = filledConstructor(rootType);
-        if (leaf.ownerType() != rootType || constructor == null) {
+        if (rootType.isRecord() || leaf.ownerType() != rootType || constructor == null) {
             return false;
         }
         for (Parameter parameter : constructor.getParameters()) {
@@ -346,7 +353,7 @@ final class FixtureRuleAnalysis {
             }
         }
         for (FixtureRule decision : rootDecisions) {
-            findings.add(new Finding(new FixtureRuleProblem(Category.UNUSED, decision, reason), true));
+            findings.add(new Finding(new FixtureRuleProblem(Category.UNUSED, decision, reason), Scope.GENERATE));
         }
     }
 
@@ -359,7 +366,7 @@ final class FixtureRuleAnalysis {
                 String reason = whyAlwaysEmpty(path.segments());
                 if (reason != null) {
                     // populate(existing) keeps the objects that the instance already holds.
-                    findings.add(new Finding(new FixtureRuleProblem(Category.UNUSED, ignore, reason), true));
+                    findings.add(new Finding(new FixtureRuleProblem(Category.UNUSED, ignore, reason), Scope.GENERATE));
                 }
             }
         }
@@ -607,6 +614,7 @@ final class FixtureRuleAnalysis {
                     descend(
                             member.genericType(),
                             member.element(),
+                            member.element(),
                             bindings,
                             prefix + member.name(),
                             depth,
@@ -629,12 +637,14 @@ final class FixtureRuleAnalysis {
         }
 
         /**
-         * Follows a member or element of {@code declaredType}, whose constraints {@code element} declares, or
-         * which declares none when it is {@code null}.
+         * Follows a member or element of {@code declaredType}, as the resolver does: {@code element} is its
+         * declaration or annotated type, whose type arguments carry the elements' annotations, and
+         * {@code constraintSource} declares its constraints, which an array's component does not.
          */
         private void descend(
                 Type declaredType,
                 @Nullable AnnotatedElement element,
+                @Nullable AnnotatedElement constraintSource,
                 Map<TypeVariable<?>, Type> bindings,
                 String path,
                 int depth,
@@ -646,34 +656,37 @@ final class FixtureRuleAnalysis {
             }
             BeanValidationSupport.ConstraintModel constraints;
             try {
-                constraints = BeanValidationSupport.constraintModelFor(element, rawType);
+                constraints = BeanValidationSupport.constraintModelFor(constraintSource, rawType);
             } catch (BeanValidationSupport.ConstraintConflictException conflict) {
                 // Generation leaves a member with conflicting constraints at its default, or fails.
                 return;
             }
-            if (constraints.nullOnly() || (isContainer(rawType) && holdsNoElements(constraints))) {
+            if (constraints.nullOnly()
+                    || (isContainer(rawType) && holdsNoElements(constraints))
+                    || alwaysAbsent(element, rawType, constraints)) {
                 return;
             }
             if (rawType == Optional.class) {
-                element(declaredType, bindings, Optional.class, 0, path + ".value", depth, inProgress);
+                element(declaredType, element, bindings, Optional.class, 0, path + ".value", depth, inProgress);
             } else if (rawType.isArray()) {
                 ResolvedType component = Objects.requireNonNull(resolved.componentType(), "an array's component");
                 descend(
                         FieldGeneratorResolver.mostSpecific(component).declaredType(),
+                        FieldGeneratorResolver.arrayComponentElement(element),
                         null,
                         bindings,
                         path + "[]",
                         depth,
                         inProgress);
             } else if (Set.class.isAssignableFrom(rawType)) {
-                element(declaredType, bindings, Set.class, 0, path + "[]", depth, inProgress);
+                element(declaredType, element, bindings, Set.class, 0, path + "[]", depth, inProgress);
             } else if (List.class.isAssignableFrom(rawType)) {
-                element(declaredType, bindings, List.class, 0, path + "[]", depth, inProgress);
+                element(declaredType, element, bindings, List.class, 0, path + "[]", depth, inProgress);
             } else if (Queue.class.isAssignableFrom(rawType)) {
-                element(declaredType, bindings, Queue.class, 0, path + "[]", depth, inProgress);
+                element(declaredType, element, bindings, Queue.class, 0, path + "[]", depth, inProgress);
             } else if (Map.class.isAssignableFrom(rawType)) {
-                element(declaredType, bindings, Map.class, 0, path + ".key", depth, inProgress);
-                element(declaredType, bindings, Map.class, 1, path + ".value", depth, inProgress);
+                element(declaredType, element, bindings, Map.class, 0, path + ".key", depth, inProgress);
+                element(declaredType, element, bindings, Map.class, 1, path + ".value", depth, inProgress);
             } else if (!rawType.isEnum()
                     && resolved.isResolved()
                     && !(resolved.kind() == ResolvedType.Kind.CLASS && rawType.getTypeParameters().length > 0)
@@ -684,6 +697,7 @@ final class FixtureRuleAnalysis {
 
         private void element(
                 Type containerType,
+                @Nullable AnnotatedElement container,
                 Map<TypeVariable<?>, Type> bindings,
                 Class<?> contract,
                 int index,
@@ -692,9 +706,11 @@ final class FixtureRuleAnalysis {
                 Set<String> inProgress) {
             ResolvedType element = FieldGeneratorResolver.containerArgument(bindings, containerType, contract, index);
             if (element.isResolved()) {
+                AnnotatedElement argument = FieldGeneratorResolver.typeArgumentElement(container, index);
                 descend(
                         FieldGeneratorResolver.mostSpecific(element).declaredType(),
-                        null,
+                        argument,
+                        argument,
                         bindings,
                         path,
                         depth,
@@ -856,10 +872,31 @@ final class FixtureRuleAnalysis {
         return type.isArray() || java.util.Collection.class.isAssignableFrom(type) || Map.class.isAssignableFrom(type);
     }
 
-    /** Whether a container always comes out empty: the configured size is zero and no constraint asks for more. */
+    /** Whether a container always comes out empty, as the configured size within its declared size gives. */
     private boolean holdsNoElements(BeanValidationSupport.ConstraintModel constraints) {
-        BeanValidationSupport.SizeRange size = constraints.size();
-        return config.getGeneratorConfig().getMaxCollectionSize() == 0 && (size == null || size.min() == 0);
+        BeanValidationSupport.SizeRange declared = constraints.size();
+        int configuredMin = config.getGeneratorConfig().getMinCollectionSize();
+        int configuredMax = config.getGeneratorConfig().getMaxCollectionSize();
+        int max = declared == null
+                ? configuredMax
+                : declared.within(configuredMin, configuredMax).max();
+        return max == 0;
+    }
+
+    /**
+     * Whether a member always comes out absent: an {@code Optional} that {@code objectOptionalEmptyProbability}
+     * of one empties, or a nullable member without constraints that {@code objectNullProbability} of one
+     * leaves {@code null}. Elements, whose element is an annotated type, take neither probability.
+     */
+    private boolean alwaysAbsent(
+            @Nullable AnnotatedElement element, Class<?> rawType, BeanValidationSupport.ConstraintModel constraints) {
+        if (element == null || element instanceof java.lang.reflect.AnnotatedType) {
+            return false;
+        }
+        if (rawType == Optional.class) {
+            return config.getOptionalEmptyProbability() >= 1.0;
+        }
+        return config.getNullProbability() >= 1.0 && !rawType.isPrimitive() && !constraints.constrained();
     }
 
     /** The declared constructor that generation fills, for a type without a no-argument constructor. */
@@ -1003,9 +1040,16 @@ final class FixtureRuleAnalysis {
     }
 
     private void report(Category category, FixtureRule rule, String reason) {
-        findings.add(new Finding(new FixtureRuleProblem(category, rule, reason), false));
+        findings.add(new Finding(new FixtureRuleProblem(category, rule, reason), Scope.ALWAYS));
     }
 
-    /** A problem, and whether it holds only for {@code generate()}. */
-    private record Finding(FixtureRuleProblem problem, boolean generateOnly) {}
+    /** A problem, and the operations it holds for. */
+    private record Finding(FixtureRuleProblem problem, Scope scope) {}
+
+    /** The operations a problem holds for. */
+    private enum Scope {
+        ALWAYS,
+        GENERATE,
+        POPULATE
+    }
 }

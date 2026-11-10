@@ -39,10 +39,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     nested objects that generation reaches, through collections, maps, arrays, `Optional`, constructor
     arguments, `objectSubtype` mappings and sealed types, within `objectMaxDepth` and with the cycle guard's
     keys, and leaves out members that an override, an exclusion, a `@Randomizer`, a kept initializer or
-    `@Null` decides, and the elements of a collection that `collectionSize(0, 0)` keeps empty. A root rule
-    that fills a constructor argument of its name is not shadowed by a contextual predicate override, which
-    reaches fields only. A dependent rule applies
-    at its own path only. A string path that matches two fields still fails at registration.
+    `@Null` decides, including an element's `@Null` as in `List<@Null Purchase>`, the elements of a
+    collection whose configured size within its `@Size` allows none, and members that an
+    `objectNullProbability` or `objectOptionalEmptyProbability` of 1 always leaves absent. In `generate()`, a
+    root rule that fills a constructor argument of its name is not shadowed by a contextual predicate
+    override, which reaches fields only; in `populate(existing)`, which fills the field, it is. A dependent
+    rule applies at its own path only. A string path that matches two fields still fails at registration.
 
   `ObjectFaker.strict()` checks once for each configuration, and again after a new rule, include or ignore.
   Without `ObjectFaker.strict()`, generation is unchanged. A replacement of a rule for the same path, the
