@@ -8,7 +8,6 @@ package io.github.frikit.krandom.examples.e2e;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.github.frikit.krandom.examples.e2e.googlesignup.GoogleSignupForm;
 import io.github.frikit.krandom.examples.e2e.jobapplication.JobApplicationForm;
 import io.github.frikit.krandom.examples.e2e.spidregistration.SpidRegistrationForm;
@@ -19,12 +18,13 @@ import java.util.List;
 import java.util.Locale;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
 
 @DisplayName("End-to-end form examples")
 class E2eExamplesTest {
 
-    private static JsonNode parse(String json) throws Exception {
-        return KrandomJackson.newObjectMapper().readTree(json);
+    private static JsonNode parse(String json) {
+        return KrandomJackson.newJsonMapper().readTree(json);
     }
 
     private static int ageOf(String isoDate) {
@@ -74,7 +74,7 @@ class E2eExamplesTest {
     void jobApplicationBoundsAreRespected() throws Exception {
         for (long seed = 0; seed < 15; seed++) {
             JsonNode a = parse(JobApplicationForm.toJson(seed));
-            int age = ageOf(a.get("personal").get("dateOfBirth").asText());
+            int age = ageOf(a.get("personal").get("dateOfBirth").asString());
             assertTrue(age >= 18 && age <= 99, "seed " + seed + " age " + age);
             int salary = a.get("role").get("salaryExpectation").asInt();
             assertTrue(salary >= 30_000 && salary <= 200_000, "seed " + seed + " salary " + salary);
@@ -95,7 +95,7 @@ class E2eExamplesTest {
         assertTrue(p.get("identity").hasNonNull("name"), "name should resolve as a first name");
         assertTrue(p.get("identity").hasNonNull("familyName"));
         assertTrue(p.get("birth").hasNonNull("placeOfBirth"), "placeOfBirth should resolve as a city");
-        assertEquals("Italia", p.get("residence").get("country").asText());
+        assertEquals("Italia", p.get("residence").get("country").asString());
         assertEquals(Locale.ITALY, SpidRegistrationForm.DEFAULT_LOCALE);
     }
 
@@ -105,20 +105,20 @@ class E2eExamplesTest {
         for (long seed = 0; seed < 20; seed++) {
             JsonNode p = parse(SpidRegistrationForm.toJson(seed));
             // Codice Fiscale: TINIT- prefix + 16-char fiscal code, exactly as SPID assertions carry it.
-            String fiscalNumber = p.get("identity").get("fiscalNumber").asText();
+            String fiscalNumber = p.get("identity").get("fiscalNumber").asString();
             assertTrue(fiscalNumber.matches("TINIT-[A-Z0-9]{16}"), "seed " + seed + " fiscalNumber " + fiscalNumber);
             // Gender is recorded as M or F.
-            assertTrue(p.get("identity").get("gender").asText().matches("[MF]"));
+            assertTrue(p.get("identity").get("gender").asString().matches("[MF]"));
             // County of birth resolves to a real Italian region (no province-code data in krandom).
-            assertTrue(!p.get("birth").get("countyOfBirth").asText().isBlank(), "seed " + seed + " countyOfBirth");
+            assertTrue(!p.get("birth").get("countyOfBirth").asString().isBlank(), "seed " + seed + " countyOfBirth");
             // CIE card number: 2 letters + 5 digits + 2 letters.
-            assertTrue(p.get("idCard").get("number").asText().matches("[A-Z]{2}[0-9]{5}[A-Z]{2}"));
+            assertTrue(p.get("idCard").get("number").asString().matches("[A-Z]{2}[0-9]{5}[A-Z]{2}"));
             // Date of birth is a realistic 18..99-year-old.
-            int age = ageOf(p.get("birth").get("dateOfBirth").asText());
+            int age = ageOf(p.get("birth").get("dateOfBirth").asString());
             assertTrue(age >= 18 && age <= 99, "seed " + seed + " age " + age);
             // The electronic ID card expires in the future.
             LocalDate expiry =
-                    LocalDate.parse(p.get("idCard").get("expirationDate").asText());
+                    LocalDate.parse(p.get("idCard").get("expirationDate").asString());
             assertTrue(expiry.isAfter(LocalDate.now()), "seed " + seed + " expiry " + expiry);
             // Consents an applicant must affirm to activate the identity.
             assertTrue(p.get("consents").get("consentToDataProcessing").asBoolean());

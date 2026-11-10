@@ -54,7 +54,8 @@ object, bulk, schema, allocation, and raw-result details.
   raw object-throughput baseline.
 - `RELAXED` enables semantic defaults while allowing annotations and Bean Validation constraints
   to win.
-- `STRICT` makes a semantic match authoritative.
+- `STRICT` makes a semantic match win over `@Randomizer`, `@Fake`, and `@FakeRange` too, while Bean
+  Validation constraints still win when a value is generated.
 
 ```java
 GeneratorConfig config = GeneratorConfig.builder()

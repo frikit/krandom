@@ -5,16 +5,22 @@
  */
 package io.github.frikit.krandom.jackson;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import io.github.frikit.krandom.generator.schema.Schema;
-import java.io.IOException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.ser.std.StdSerializer;
 
 /**
- * Jackson 2.x ({@code com.fasterxml.jackson}) module for krandom integration; it cannot be
- * registered with a Jackson 3 ({@code tools.jackson}) mapper.
+ * Jackson 3 ({@code tools.jackson}) module for krandom types: it serializes a {@link Schema} as
+ * the JSON Schema document of {@link Schema#toJsonSchema()}.
+ *
+ * <p>Jackson 3 mappers are immutable, so the module is registered while a mapper is built, for
+ * example with {@code JsonMapper.builder().addModule(new KrandomJacksonModule()).build()} or
+ * {@link KrandomJackson#configure}. Spring Boot 4 registers every {@code JacksonModule} bean with
+ * the {@code JsonMapper} it auto-configures, so a {@code KrandomJacksonModule} bean is enough there.
+ * It is not a Jackson 2 ({@code com.fasterxml.jackson.databind}) module and cannot be registered
+ * with a Jackson 2 {@code ObjectMapper}.
  */
 public final class KrandomJacksonModule extends SimpleModule {
 
@@ -31,8 +37,8 @@ public final class KrandomJacksonModule extends SimpleModule {
         }
 
         @Override
-        public void serialize(Schema value, JsonGenerator gen, SerializerProvider provider) throws IOException {
-            gen.writeObject(value.toJsonSchema());
+        public void serialize(Schema value, JsonGenerator gen, SerializationContext ctxt) {
+            ctxt.writeValue(gen, value.toJsonSchema());
         }
     }
 }

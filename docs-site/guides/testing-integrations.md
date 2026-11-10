@@ -62,10 +62,10 @@ share one mutable generator instance across parallel tests.
 
 ## JSON fixtures
 
-For file-style fixtures, generate rows through `Schema` and serialize with Jackson:
+For file-style fixtures, generate rows through `Schema` and serialize with Jackson 3:
 
 ```java
-ObjectMapper mapper = KrandomJackson.newObjectMapper();
+JsonMapper mapper = KrandomJackson.newJsonMapper();
 
 Field field = Generators.ofField(Locale.US);
 Schema schema = Generators.ofSchema(Locale.US, Map.of(
@@ -76,5 +76,5 @@ Schema schema = Generators.ofSchema(Locale.US, Map.of(
 String json = mapper.writeValueAsString(schema.generate());
 ```
 
-`KrandomJackson.newObjectMapper()` also serializes `Schema` itself as JSON Schema, which is useful
+`KrandomJackson.newJsonMapper()` also serializes `Schema` itself as JSON Schema, which is useful
 when tests need both data rows and a contract document.

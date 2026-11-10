@@ -88,7 +88,9 @@ User user = Generators.ofObject(User.class, config).generate();
   classpath to pick implementations for abstract/interface fields. Map each
   implementation explicitly instead:
   `.objectSubtype(PaymentMethod.class, CardPayment.class)` — the mapped
-  implementation is then fully populated like any concrete type.
+  implementation is then fully populated like any concrete type. A sealed type needs no
+  mapping: it is generated as one of its permitted subclasses, as in
+  [Sealed types]({{ '/guides/object-generation/' | relative_url }}#sealed-types).
 - **ServiceLoader randomizer SPI**: kRandom uses explicitly installed, configuration-scoped
   `KRandomModule` contributions instead of classpath discovery.
 - **Setter-based population**: kRandom populates via field reflection, not

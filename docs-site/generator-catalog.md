@@ -50,16 +50,22 @@ Drawn UTC offsets run from `-12:00` to `+14:00` in 15-minute steps; see the
   `ofAvatarUrl`, `ofContactInfo`, `ofSimpleProfile`, `ofProfile`
 - `ofStreetAddress`, `ofAddressInfo`, `ofAddressType` (residential, commercial, …),
   `ofAddressPurpose` (home, billing, shipping, …), `ofCity`, `ofState`, `ofPostalCode`,
-  `ofCountry` (names and ISO 3166-1 alpha-2, alpha-3 and numeric codes), `ofPhoneNumber`,
+  `ofCountry` (names; ISO 3166-1 alpha-2, alpha-3 and numeric codes; and the calling code,
+  continent and time zone of each of the 249 ISO 3166-1 countries), `ofPhoneNumber`,
   `ofGeohash`
 - `ofCompanyEmail`, `ofCompanyInfo`, `ofJobInfo`, `ofPersonInfo`, `ofSocialHandle`,
   `ofSocialProfile`
-- `ofUniversity` for configuration-scoped verified local data packs
+- `ofUniversity` for configuration-scoped verified local data packs; kRandom ships no university
+  data, so it needs a [local data pack]({{ '/guides/local-data-packs/' | relative_url }})
 - `ofProfession`, `ofIndustry`, `ofJobField`, `ofJobType`, `ofSeniority`,
   `ofPosition`, `ofEducationalAttainment`, `ofMaritalStatus`, `ofBloodType`,
   `ofPronoun`, `ofNationality`
 - `ofZodiac`, `ofChineseZodiac`, `ofNatoPhonetic`, `ofHobby`,
   `ofProgrammingLanguage`, `ofMbti`
+
+`ofAddressInfo` and a street address generator's `generateFullAddress()` take the city, region, and
+postal code from one place where the locale's country has postal places; see
+[coherent addresses]({{ '/guides/locale-aware-data/' | relative_url }}#coherent-addresses).
 
 ## Company, commerce, vehicle, and domain data
 

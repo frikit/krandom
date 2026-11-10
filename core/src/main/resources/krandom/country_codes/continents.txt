@@ -1,0 +1,316 @@
+# Continents: ISO 3166-1 alpha-2 code and continent, one country per line, for all 249 countries, in
+# the alpha-2 order of iso_3166_1.txt. The seven continents are Africa, Antarctica, Asia, Europe,
+# North America, Oceania and South America.
+#
+# Source:    Unicode CLDR 49, common/supplemental/supplementalData.xml, the territory containment,
+#            which follows the UN M49 regions (Standard country or area codes for statistical use):
+#            https://github.com/unicode-org/cldr/blob/release-49/common/supplemental/supplementalData.xml
+# Licence:   Unicode License v3 (Unicode-3.0); its copyright and permission notice is at the end of
+#            this header.
+# Retrieved: 2026-11-04
+# SHA-256:   745150ec1408d50e1a272b65654a5dd645f3e60f5cc2898b576f725b28538d1a  supplementalData.xml
+# Checked:   for every country that M49 places in a region, the M49 table of the United Nations
+#            Statistics Division gives the same continent:
+#            https://unstats.un.org/unsd/methodology/m49/overview/ (SHA-256
+#            b9048114f6e7f2abda83bf03d4263c9d7cd1bd7230e3d0461025ee7839a7a1fb). The UN pages fall
+#            under the United Nations terms of use and were only read to check the CLDR data.
+#
+# A country's continent is its M49 region: Africa (002), Asia (142), Europe (150) or Oceania (009);
+# in the Americas (019) it is South America (005) or North America (003), which M49 defines as
+# Northern America, Central America and the Caribbean (https://unstats.un.org/unsd/methodology/m49/,
+# SHA-256 4d5cabcb10ad9ef184553b5e64c0a34ba8deeb20dab2e02cd0be3599b93bb01d). A transcontinental
+# country therefore has one continent: RU is Europe; TR, CY, GE, AM, AZ and KZ are Asia; EG is
+# Africa. AQ is Antarctica: M49 places it in no region, and CLDR only in its own Outlying Oceania
+# group (QO), which is not an M49 region. TW, which M49 does not list, is in CLDR's Eastern Asia
+# (030), so Asia.
+#
+# Copyright and permission notice of the CLDR data, from the header of supplementalData.xml and the
+# LICENSE file of CLDR release-49 (SHA-256
+# 65eb33419e22a297550a811b5b535f5e532f9a7e0114b516c0ea18afd53c3804):
+#
+# Copyright © 1991-2026 Unicode, Inc.
+#
+# NOTICE TO USER: Carefully read the following legal agreement. BY
+# DOWNLOADING, INSTALLING, COPYING OR OTHERWISE USING DATA FILES, AND/OR
+# SOFTWARE, YOU UNEQUIVOCALLY ACCEPT, AND AGREE TO BE BOUND BY, ALL OF THE
+# TERMS AND CONDITIONS OF THIS AGREEMENT. IF YOU DO NOT AGREE, DO NOT
+# DOWNLOAD, INSTALL, COPY, DISTRIBUTE OR USE THE DATA FILES OR SOFTWARE.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of data files and any associated documentation (the "Data Files") or
+# software and any associated documentation (the "Software") to deal in the
+# Data Files or Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, and/or sell
+# copies of the Data Files or Software, and to permit persons to whom the
+# Data Files or Software are furnished to do so, provided that either (a)
+# this copyright and permission notice appear with all copies of the Data
+# Files or Software, or (b) this copyright and permission notice appear in
+# associated Documentation.
+#
+# THE DATA FILES AND SOFTWARE ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+# KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF
+# THIRD PARTY RIGHTS.
+#
+# IN NO EVENT SHALL THE COPYRIGHT HOLDER OR HOLDERS INCLUDED IN THIS NOTICE
+# BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL INDIRECT OR CONSEQUENTIAL DAMAGES,
+# OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+# WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+# ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THE DATA
+# FILES OR SOFTWARE.
+#
+# Except as contained in this notice, the name of a copyright holder shall
+# not be used in advertising or otherwise to promote the sale, use or other
+# dealings in these Data Files or Software without prior written
+# authorization of the copyright holder.
+#
+# SPDX-License-Identifier: Unicode-3.0
+AD Europe
+AE Asia
+AF Asia
+AG North America
+AI North America
+AL Europe
+AM Asia
+AO Africa
+AQ Antarctica
+AR South America
+AS Oceania
+AT Europe
+AU Oceania
+AW North America
+AX Europe
+AZ Asia
+BA Europe
+BB North America
+BD Asia
+BE Europe
+BF Africa
+BG Europe
+BH Asia
+BI Africa
+BJ Africa
+BL North America
+BM North America
+BN Asia
+BO South America
+BQ North America
+BR South America
+BS North America
+BT Asia
+BV South America
+BW Africa
+BY Europe
+BZ North America
+CA North America
+CC Oceania
+CD Africa
+CF Africa
+CG Africa
+CH Europe
+CI Africa
+CK Oceania
+CL South America
+CM Africa
+CN Asia
+CO South America
+CR North America
+CU North America
+CV Africa
+CW North America
+CX Oceania
+CY Asia
+CZ Europe
+DE Europe
+DJ Africa
+DK Europe
+DM North America
+DO North America
+DZ Africa
+EC South America
+EE Europe
+EG Africa
+EH Africa
+ER Africa
+ES Europe
+ET Africa
+FI Europe
+FJ Oceania
+FK South America
+FM Oceania
+FO Europe
+FR Europe
+GA Africa
+GB Europe
+GD North America
+GE Asia
+GF South America
+GG Europe
+GH Africa
+GI Europe
+GL North America
+GM Africa
+GN Africa
+GP North America
+GQ Africa
+GR Europe
+GS South America
+GT North America
+GU Oceania
+GW Africa
+GY South America
+HK Asia
+HM Oceania
+HN North America
+HR Europe
+HT North America
+HU Europe
+ID Asia
+IE Europe
+IL Asia
+IM Europe
+IN Asia
+IO Africa
+IQ Asia
+IR Asia
+IS Europe
+IT Europe
+JE Europe
+JM North America
+JO Asia
+JP Asia
+KE Africa
+KG Asia
+KH Asia
+KI Oceania
+KM Africa
+KN North America
+KP Asia
+KR Asia
+KW Asia
+KY North America
+KZ Asia
+LA Asia
+LB Asia
+LC North America
+LI Europe
+LK Asia
+LR Africa
+LS Africa
+LT Europe
+LU Europe
+LV Europe
+LY Africa
+MA Africa
+MC Europe
+MD Europe
+ME Europe
+MF North America
+MG Africa
+MH Oceania
+MK Europe
+ML Africa
+MM Asia
+MN Asia
+MO Asia
+MP Oceania
+MQ North America
+MR Africa
+MS North America
+MT Europe
+MU Africa
+MV Asia
+MW Africa
+MX North America
+MY Asia
+MZ Africa
+NA Africa
+NC Oceania
+NE Africa
+NF Oceania
+NG Africa
+NI North America
+NL Europe
+NO Europe
+NP Asia
+NR Oceania
+NU Oceania
+NZ Oceania
+OM Asia
+PA North America
+PE South America
+PF Oceania
+PG Oceania
+PH Asia
+PK Asia
+PL Europe
+PM North America
+PN Oceania
+PR North America
+PS Asia
+PT Europe
+PW Oceania
+PY South America
+QA Asia
+RE Africa
+RO Europe
+RS Europe
+RU Europe
+RW Africa
+SA Asia
+SB Oceania
+SC Africa
+SD Africa
+SE Europe
+SG Asia
+SH Africa
+SI Europe
+SJ Europe
+SK Europe
+SL Africa
+SM Europe
+SN Africa
+SO Africa
+SR South America
+SS Africa
+ST Africa
+SV North America
+SX North America
+SY Asia
+SZ Africa
+TC North America
+TD Africa
+TF Africa
+TG Africa
+TH Asia
+TJ Asia
+TK Oceania
+TL Asia
+TM Asia
+TN Africa
+TO Oceania
+TR Asia
+TT North America
+TV Oceania
+TW Asia
+TZ Africa
+UA Europe
+UG Africa
+UM Oceania
+US North America
+UY South America
+UZ Asia
+VA Europe
+VC North America
+VE South America
+VG North America
+VI North America
+VN Asia
+VU Oceania
+WF Oceania
+WS Oceania
+YE Asia
+YT Africa
+ZA Africa
+ZM Africa
+ZW Africa

@@ -60,15 +60,38 @@ precedence over type-level overrides, contextual or not.
 | Mutable class with a no-argument constructor | No-argument constructor, then mutable fields | Contextual construction/access failure |
 | Class with exactly one declared constructor | Generated constructor arguments (by parameter name with `-parameters`, otherwise by position), then mutable fields | Contextual construction/access failure |
 | Class with multiple declared constructors | No implicit choice | Register a type factory |
-| Interface or abstract root | No reflective allocation | Register a type factory |
+| Sealed interface or abstract sealed class | One of its concrete subclasses: see [Sealed types](#sealed-types) | Register a type factory or `objectSubtype` mapping |
+| Other interface or abstract root | Its `objectSubtype` mapping, otherwise no reflective allocation | Register a type factory |
 | Local, anonymous, non-static inner, enum, annotation, array, or primitive root | Unsupported | Use a supported wrapper/factory design |
 
 Constructor parameters behave like the fields they initialize when the class is compiled with
 `-parameters`: by-name overrides, `objectExcludeField` on the parameter name (or `@Exclude` on the
-backing field), Bean Validation constraints declared on the parameter, and semantic providers such
-as `firstName` or `email` all apply. Without compiled parameter names the engine addresses
-arguments by position, so `objectOverride(Money.class, "constructorArg0", ...)` targets the first
-argument and exclusions by name have no effect.
+backing field), Bean Validation constraints, and semantic providers such as `firstName` or `email`
+all apply. Without compiled parameter names the engine addresses arguments by position, so
+`objectOverride(Money.class, "constructorArg0", ...)` targets the first argument and exclusions by
+name have no effect.
+
+An argument meets the Bean Validation constraints declared on its parameter and on the field it
+initializes: the nearest field with the parameter's name and declared type, on the class or a
+superclass. So a constraint on a final field reaches the argument that fills it:
+
+```java
+final class Account {
+    @Size(min = 3, max = 3) private final String code;
+    private final List<@Email String> contacts;
+
+    Account(String code, List<String> contacts) { // code has three characters, each contact is an email
+        this.code = code;
+        this.contacts = contacts;
+    }
+}
+```
+
+The field's getter counts as part of the field, as it does for field population. Where the parameter
+declares a constraint of the same type as the field, the parameter's applies, and where its type
+arguments declare any constraints, as in `List<@Size(max = 5) String>`, its container-element
+constraints apply instead of the field's. A field of another type, such as a `String` filled from an
+`int` parameter, adds nothing, and nor does a static field.
 
 A type override is also a root factory and runs before reflection. Contextual factories win over
 plain factories and receive `"$root"`, the requested type, and depth zero:
@@ -117,7 +140,10 @@ root factory avoids reflective construction and therefore does not require `open
 Semantic modes:
 
 - `RELAXED`: use semantic field names when available, but let annotations and bean validation win.
-- `STRICT`: semantic field names win whenever a semantic match exists.
+- `STRICT`: semantic field names win whenever a semantic match exists, over `@Randomizer`, `@Fake`, and
+  `@FakeRange` too, and the coherence pass can overwrite annotated fields. Bean Validation constraints still
+  take precedence when a value is generated, and the pass writes a derived value into a constrained field only
+  where the field's own constraints allow it: see [coherence and constraints](#coherence-and-constraints).
 - `STRUCTURAL_ONLY`: disable field-name semantics and use type-based generation only.
 
 ## Semantic field defaults
@@ -141,17 +167,34 @@ Examples:
 
 Configured object date ranges still apply to semantic temporal fields. If you set `objectDateRange(...)`, that range becomes the effective window for semantic fields such as `dob`, `createdAt`, and `updatedAt`. An `OffsetDateTime` field is generated with the range on its local date, and its offset follows the [UTC-offset contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#utc-offset-contract). An `Instant` field is drawn anywhere within a UTC day of the range, including the whole of its last day: see the [Instant contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#instant-contract).
 
-Object generation also runs a lightweight coherence pass after sibling values are generated. Common pairs such as `firstName` + `lastName` -> `fullName`, `firstName` + `lastName` + `domain` -> `email`, `domain` -> `url`, `createdAt` / `updatedAt`, `birthDate` / `age`, and `active` / `status` are aligned automatically. Address-like clusters now reuse one locale-backed address snapshot so `streetAddress`, `city`, `state`, `postalCode`, and `country` stay consistent with each other, and money-like clusters keep `price <= amount <= balance` while deriving missing sibling values when one amount is already present. In `RELAXED` mode, that pass still leaves annotated or Bean Validation-constrained target fields alone; explicit field and type overrides always win. Generated emails keep to the [email-domain contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#email-domain-contract), and generated domains and URLs to the [network contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#network-contract): a generated `domain` is reserved, so an email built from name fields beside it takes that domain, and a `companyName` derives a `.test` domain.
+A `Calendar` or `GregorianCalendar` field is a non-lenient `GregorianCalendar` with ISO week rules, as `Generators.ofCalendar()` gives, drawn as a `ZonedDateTime` field is: in a random zone, with the range on its local date, and with the same semantic windows for `createdAt`, `updatedAt`, and `birthDate`.
+
+Object generation also runs a lightweight coherence pass after sibling values are generated. Common pairs such as `firstName` + `lastName` -> `fullName`, `firstName` + `lastName` + `domain` -> `email`, `domain` -> `url`, `createdAt` / `updatedAt`, `birthDate` / `age`, and `active` / `status` are aligned automatically. Address-like clusters now reuse one locale-backed address snapshot so `streetAddress`, `city`, `state`, `postalCode`, and `country` stay consistent with each other, and money-like clusters keep `price <= amount <= balance` while deriving missing sibling values when one amount is already present. A value moved to keep that order is rounded toward it, down in a field that stays at or below its sibling and up in one that stays at or above, to whole units in an integer field and to cents in any other, with a `float` or a `double` read as it prints. A field whose type cannot hold the value, such as a `byte` beside a price of 300, keeps its own, and a money string keeps every digit of its amount when it takes the currency code. In `RELAXED` mode, that pass still leaves a field with `@Randomizer`, `@Fake`, `@FakeRange`, or a Bean Validation constraint alone. In `STRICT` mode it can overwrite them, but it writes a derived value into a constrained field only where the field's own constraints allow it: see [coherence and constraints](#coherence-and-constraints). Explicit field and type overrides always win. Generated emails keep to the [email-domain contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#email-domain-contract), and generated domains and URLs to the [network contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#network-contract): a generated `domain` is reserved, so an email built from name fields beside it takes that domain, and a `companyName` derives a `.test` domain.
+
+### Coherence and constraints
+
+In `RELAXED` mode the coherence pass leaves a field with `@Randomizer`, `@Fake`, `@FakeRange`, or a Bean
+Validation constraint alone, as generation lets each of them win over field-name semantics. In `STRICT` mode
+the pass overwrites an annotated field, and writes a derived value into a field with a Bean Validation constraint only
+where the value meets the field's own constraints, read as Hibernate Validator reads them. Where it would break
+one, the field keeps the value it was generated with, which meets them, as a field the pass cannot assign does.
+So a `@Size(max = 12)` `email` keeps its generated value rather than take `ada.lovelace@example.com`, and a
+`@Size(min = 3, max = 3)` `fullName` rather than take `Ada Lovelace`, which a `@Size(max = 20)` `fullName` takes.
+A unique field's numbered value must meet the constraints too. A sibling that depends on such a field follows
+it where it can: a `price` above what a `@Max(100)` `amount` allows moves down to the amount, and an `active`
+flag follows a `@Size(max = 6)` `status` that cannot take `INACTIVE`. Where neither can move, both keep their
+values, as two overrides do. Dates and ages follow the same rule: see
+[date ranges and coherence](#date-ranges-and-coherence).
 
 ### Date ranges and coherence
 
 Aligning `createdAt` and `updatedAt` keeps both in a configured `objectDateRange`, by the date each type
-reads: the local date of an `OffsetDateTime` or `ZonedDateTime`, and the UTC date of every other type, as
-the generators draw them. `updatedAt` moves to `createdAt`'s instant and reads it at UTC. Where that date
+reads: the local date of an `OffsetDateTime`, `ZonedDateTime` or `Calendar`, and the UTC date of every other
+type, as the generators draw them. `updatedAt` moves to `createdAt`'s instant and reads it at UTC. Where that date
 is outside the range:
 
-- An `OffsetDateTime` or `ZonedDateTime` `updatedAt` reads the instant at the offset nearest UTC, in 15-minute
-  steps, that gives a date in the range. So it can have an offset unlike `createdAt`'s, as in
+- An `OffsetDateTime`, `ZonedDateTime` or `Calendar` `updatedAt` reads the instant at the offset nearest UTC, in
+  15-minute steps, that gives a date in the range. So it can have an offset unlike `createdAt`'s, as in
   `2024-02-29T23:45-11:15` beside `2024-02-29T23:00-12:00`. An `OffsetDateTime` also stays within `-12:00` to
   `+14:00`, as in the
   [UTC-offset contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#utc-offset-contract).
@@ -159,24 +202,93 @@ is outside the range:
   `OffsetDateTime` `createdAt` beside a `LocalDate` `updatedAt` can become midnight UTC.
 
 `createdAt` stays not after `updatedAt`, compared by instant, or by UTC date beside an `updatedAt` that holds
-only a date. A `birthDate` stays in the range, and `age` follows it.
+only a date. A `birthDate` stays in the range, and `age` follows it: the whole years from the date `birthDate`
+reads, by the same rule, to the configured clock's date. So an `OffsetDateTime` `birthDate` of
+`2000-06-05T00:30+14:00` gives an `age` of 25 on `2026-06-04`, although that instant falls on `2000-06-04` at UTC.
 
 A field that cannot move, because of an override, a requested unique name, or an annotation or Bean
 Validation constraint in `RELAXED` mode, need not be in the range: a `@Past` value is drawn before the clock
 whatever the range. Where it leaves no date in the range that keeps the pair in order, its sibling follows it
 out of the range, because the order wins. A `birthDate` derived from such an `age` keeps that age, so it can
-be out of the range too.
+be out of the range too, unless no date of its type can hold it, as for an `age` of 2,147,483,647: then
+`birthDate` keeps its value.
+
+In `STRICT` mode a constrained `createdAt`, `updatedAt`, `birthDate`, or `age` can move, but never out of its
+own Bean Validation constraints, read against the configured clock as Hibernate Validator reads them. Where a
+move would break one, the field cannot move, as above. So a `@Past` or `@PastOrPresent` `updatedAt` does not
+take a `createdAt` that is past the clock, and `createdAt` moves back to it instead. A `@Future` or
+`@FutureOrPresent` `createdAt` does not follow an `updatedAt` into the past. An `age` does not take the age its
+`birthDate` gives where `@Min`, `@Max`, or `@Pattern` rejects it, and `birthDate` follows the `age` instead.
+Where the sibling's own constraints stop it following too, both keep their values, in either mode: a `@Future`
+`createdAt` stays after a `@Past` `updatedAt`, and a `@Past` `birthDate` beside an overridden `age` of 0 keeps
+its date, as today is not past.
 
 A gap in a zone's rules moves a date-time forward. Where that would take a field past the last date of the
-range, a `ZonedDateTime` holds the drawn date-time at UTC instead, and an `OffsetDateTime` holds it at its
-drawn offset. `Pacific/Apia` and `Pacific/Fakaofo`, for example, skipped `2011-12-30`. A `java.sql.Date` reads
-the JVM's default zone, so on a JVM in one of those zones that date reads `2011-12-31`.
+range, a `ZonedDateTime` or `Calendar` holds the drawn date-time at UTC instead, and an `OffsetDateTime` holds
+it at its drawn offset. `Pacific/Apia` and `Pacific/Fakaofo`, for example, skipped `2011-12-30`, and a daylight
+saving gap in `America/Nuuk` skipped 23:00 to midnight on `2024-03-30`. `new ZonedDateTimeGenerator(min, max)`
+and `Generators.ofCalendar(min, max)` hold such a value at UTC too. A `java.sql.Date` reads the JVM's default
+zone, so on a JVM in `Pacific/Apia` or `Pacific/Fakaofo` the date `2011-12-30` reads `2011-12-31`.
 
 ## Bean Validation
 
 Object population natively composes 21 Jakarta Validation constraints across fields, getters,
-records, and interface accessors. See the [Bean Validation support matrix]({{ '/guides/bean-validation/' | relative_url }})
+records, interface accessors, and constructor parameters. See the [Bean Validation support matrix]({{ '/guides/bean-validation/' | relative_url }})
 for exact target types, intersection rules, precedence, and exclusions.
+
+## Sealed types
+
+A sealed interface or abstract sealed class, as a root or as a member, is generated as one of the
+concrete classes of its hierarchy, so it needs no `objectSubtype` mapping or type factory:
+
+```java
+sealed interface Shape permits Square, Circle {}
+record Circle(double radius) implements Shape {}
+record Square(double side) implements Shape {}
+record Drawing(Shape shape) {}
+
+GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
+Drawing drawing = new ObjectGenerator<>(Drawing.class, config).generate();
+// drawing.shape() is a Circle or a Square, and the same one for the same seed
+```
+
+Each class is equally likely, and the choice is drawn from the seeded stream in binary-name order rather
+than the order the type permits them, so the same seed chooses the same classes. The classes are:
+
+- each permitted subclass that is concrete, a record, or an enum, as itself. An enum gives one of its
+  constants, and a concrete subclass that is sealed too is generated as itself, not as its own subclasses.
+- the classes of each permitted subclass that is a sealed interface or abstract class, at any depth. A
+  class reached through two sealed parents is one choice.
+
+A type override or `objectSubtype` mapping for the sealed type wins over the choice. A permitted subclass
+with a type override is a choice that its override generates, and one with an `objectSubtype` mapping is
+a choice of the mapped class. A permitted subclass that is an interface or abstract class but not sealed,
+such as a Java `non-sealed` interface, needs one of the two: without it, generation fails as an unsupported
+type that names the subclass, whatever the seed. A sealed type with no class to generate, such as a Kotlin
+sealed interface with no subclass, fails the same way. With `objectIgnoreErrors(true)` the member stays
+`null` and `generationFailureListener` is told.
+
+A class already being generated on the member's path is left out of the choice while another class
+remains, so a recursive hierarchy ends in a leaf. For `sealed interface Expr permits Num, Add` and
+`record Add(Expr left, Expr right)`, a generated `Add` holds two `Num` values. Where every class is on the
+path, the cycle is cut as [any other cycle](#depth-limit) is. The chosen class counts as being generated as
+its own type, with the type arguments the member gives it, so a member of that type inside it, such as the
+`next` of `record Link<T>(Link<T> next) implements Rope<T>` chosen for a `Rope<String>`, is cut as a cycle
+too.
+
+A sealed root is generated from its seed as a root of the chosen class would be, except that the chosen
+class counts as being generated, so the members of a recursive root leave it out of their choices while
+another class remains. A type override for the chosen class generates it, an enum included. A generic
+subclass takes the type arguments of the declared type: a `Result<String>` member generated as
+`record Ok<T>(T value) implements Result<T>` holds a `String`. The arguments are passed as declared and not
+checked against the subclass. A root is a raw class, so the subclasses of a generic sealed root take no
+arguments, and one that uses its type parameters fails as an unsupported type. The implementation of an
+`objectSubtype` mapping takes the arguments of a generic member in the same way.
+
+A concrete sealed class is generated as itself, and a sealed JDK type, such as
+`java.lang.constant.ConstantDesc`, is not generated. The `krandom-kotlin-dsl` module reads the
+subclasses of a Kotlin sealed type from its metadata and builds them, as the
+[Kotlin DSL guide]({{ '/guides/kotlin-dsl/' | relative_url }}#sealed-types-and-value-classes) describes.
 
 ## Depth limit
 
@@ -207,24 +319,32 @@ and `objectOverride(Leaf.class, ...)` run before the limit is checked. Excluding
 What counts as required:
 
 - `@NotNull` on the member, whether on a field, getter, interface accessor, record component or
-  constructor parameter. `@NotNull` on a final field alone is not seen, because a constructor argument
-  only reads the constraints on its parameter.
+  constructor parameter, or on the field that a constructor parameter initializes, such as a final
+  field filled through the constructor.
 - `@NotEmpty` on a collection class that is generated as a nested object, such as a custom
   `AbstractCollection`. Above the limit such a class is built through its constructor and not filled,
   so it can still be empty. `@NotEmpty` and `@NotBlank` are rejected on other nested object types.
 - `@Size` alone does not count, because Bean Validation accepts `null` for it.
 
-A required member that no depth could generate, such as an interface with no `objectSubtype` mapping,
-fails as an unsupported type, as it does above the limit.
+A required member that no depth could generate, such as an interface that is not sealed and has no
+`objectSubtype` mapping, fails as an unsupported type, as it does above the limit.
 
 Collections, arrays, maps and optionals are not cut off at the limit, but the nested objects inside them
 are: a `List<Leaf>` holds `null` elements, and a `Map<Leaf, String>` and an `Optional<Leaf>` are empty.
 A constraint on a type argument, such as `List<@NotNull Leaf>`, does not change this.
 
+A container that cannot hold `null` cannot hold a cut element either. A `Queue<Leaf>` or `Deque<Leaf>`,
+which is generated as an `ArrayDeque`, a concrete queue such as `ArrayDeque<Leaf>`, a `PriorityQueue`, and
+a `TreeSet`, `SortedSet` or `NavigableSet` of `Comparable` elements therefore fail as any collection that
+rejects an element does: with `COLLECTION_INSERTION` context at the container's path, such as
+`Top.mid.queue`. With `objectIgnoreErrors(true)`, the whole container is `null` and
+`generationFailureListener` is told. A `LinkedList` is a list, so it holds the `null` elements.
+
 Cycles are cut separately. Below the limit, a member that would repeat a nested type already being
 generated, such as `next.next` of a self-typed `@NotNull Node next`, is left `null` whatever its
 constraints. At the limit it fails like any other required member, and a larger `objectMaxDepth` then
-lets generation succeed without giving it a value.
+lets generation succeed without giving it a value. An element cut this way is `null` too, so a queue of
+the cycle's type fails as above, and so does a sorted set of it when the type is `Comparable`.
 
 `ObjectFaker` rules and ignores on nested paths run after generation, so they do not prevent the
 failure: raise `objectMaxDepth` as well, or use `objectOverride`.

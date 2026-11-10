@@ -30,11 +30,15 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.Year;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Comparator;
+import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -65,6 +69,13 @@ final class SemanticCoherenceAdjuster {
 
     private static final int OFFSET_MAX_SECONDS = 14 * 60 * 60;
     private static final int OFFSET_STEP_SECONDS = 15 * 60;
+
+    /** The first and last years that a {@code long} of milliseconds, as a {@code Date} holds, reaches in full. */
+    private static final long MIN_MILLIS_YEAR =
+            Instant.ofEpochMilli(Long.MIN_VALUE).atOffset(ZoneOffset.UTC).getYear() + 1L;
+
+    private static final long MAX_MILLIS_YEAR =
+            Instant.ofEpochMilli(Long.MAX_VALUE).atOffset(ZoneOffset.UTC).getYear() - 1L;
 
     private final ObjectGeneratorConfig config;
     private final UniqueFieldTracker uniqueFieldTracker;
@@ -208,7 +219,37 @@ final class SemanticCoherenceAdjuster {
         if (normalized == null) {
             return;
         }
-        slot.setValue(applyUniqueness(slot, semanticKey, normalized));
+        assignDerived(slot, semanticKey, normalized);
+    }
+
+    /**
+     * Writes a derived string to the slot, numbered where its field must be unique, where the slot's own
+     * constraints allow it. Where they do not, the slot keeps its value, which met them when it was generated,
+     * as a slot the pass cannot assign does. The string is checked before it is numbered, so that a rejected
+     * one takes no unique value, and again after, as a number can lengthen it.
+     *
+     * @return whether the slot took the string
+     */
+    private boolean assignDerived(Slot slot, String semanticKey, String candidate) {
+        if (!keepsConstraints(slot, candidate)) {
+            return false;
+        }
+        Object assigned = applyUniqueness(slot, semanticKey, candidate);
+        if (!keepsConstraints(slot, assigned)) {
+            // Only a numbered value fails here, as the candidate passed above, and its unique field reserved it.
+            // No object holds it, so the pass gives it back rather than let rejected numbers use up the attempts.
+            uniqueFieldTracker.release(
+                    UniqueFieldTracker.fieldKey(slot.annotatedElement().getDeclaringClass(), slot.fieldName()),
+                    assigned);
+            return false;
+        }
+        slot.setValue(assigned);
+        return true;
+    }
+
+    /** True when the pass can assign the slot and the slot's own constraints allow this value. */
+    private boolean canTake(Slot slot, boolean allowOverwriteExisting, Object value) {
+        return canAssign(slot, allowOverwriteExisting) && keepsConstraints(slot, value);
     }
 
     private @Nullable AddressInfo coherentAddressInfo() {
@@ -234,10 +275,9 @@ final class SemanticCoherenceAdjuster {
             String declaredDomain =
                     sharedDomain(normalizeDomain(stringValue(domainSlot.getValue())), slotsBySemanticKey);
             if (declaredDomain != null) {
-                if (canAssign(domainSlot, allowOverwriteExisting)) {
-                    Object assigned = applyUniqueness(domainSlot, "domain", declaredDomain);
-                    domainSlot.setValue(assigned);
-                    return normalizeDomain(stringValue(assigned));
+                if (canAssign(domainSlot, allowOverwriteExisting)
+                        && assignDerived(domainSlot, "domain", declaredDomain)) {
+                    return normalizeDomain(stringValue(domainSlot.getValue()));
                 }
                 return declaredDomain;
             }
@@ -256,12 +296,12 @@ final class SemanticCoherenceAdjuster {
             resolvedDomain = normalizeDomain(emailDomain(stringValue(slotsBySemanticKey.get("companyemail"))));
         }
 
-        if (networkSafeDomain(resolvedDomain, slotsBySemanticKey) != null
+        String safeDomain = networkSafeDomain(resolvedDomain, slotsBySemanticKey);
+        if (safeDomain != null
                 && domainSlot != null
-                && canAssign(domainSlot, allowOverwriteExisting)) {
-            Object assigned = applyUniqueness(domainSlot, "domain", resolvedDomain);
-            domainSlot.setValue(assigned);
-            resolvedDomain = normalizeDomain(stringValue(assigned));
+                && canAssign(domainSlot, allowOverwriteExisting)
+                && assignDerived(domainSlot, "domain", safeDomain)) {
+            resolvedDomain = normalizeDomain(stringValue(domainSlot.getValue()));
         }
         return resolvedDomain;
     }
@@ -280,7 +320,7 @@ final class SemanticCoherenceAdjuster {
             return;
         }
 
-        fullNameSlot.setValue(applyUniqueness(fullNameSlot, "fullname", firstName + " " + lastName));
+        assignDerived(fullNameSlot, "fullname", firstName + " " + lastName);
     }
 
     private void harmonizeEmail(
@@ -307,7 +347,7 @@ final class SemanticCoherenceAdjuster {
             domain = "example.com";
         }
 
-        emailSlot.setValue(applyUniqueness(emailSlot, "email", localPart + "@" + domain));
+        assignDerived(emailSlot, "email", localPart + "@" + domain);
     }
 
     private void harmonizeCompanyEmail(
@@ -333,7 +373,7 @@ final class SemanticCoherenceAdjuster {
             return;
         }
 
-        companyEmailSlot.setValue(applyUniqueness(companyEmailSlot, "companyemail", "hello@" + domain));
+        assignDerived(companyEmailSlot, "companyemail", "hello@" + domain);
     }
 
     /** Keeps a domain out of a fixture's shared domain when an email field would inherit it unsafely. */
@@ -403,7 +443,7 @@ final class SemanticCoherenceAdjuster {
             return;
         }
 
-        urlSlot.setValue(applyUniqueness(urlSlot, "url", "https://www." + domain));
+        assignDerived(urlSlot, "url", "https://www." + domain);
     }
 
     private void harmonizeCompanyUrl(
@@ -430,7 +470,7 @@ final class SemanticCoherenceAdjuster {
             return;
         }
 
-        companyUrlSlot.setValue(applyUniqueness(companyUrlSlot, "companyurl", "https://www." + domain));
+        assignDerived(companyUrlSlot, "companyurl", "https://www." + domain);
     }
 
     private void harmonizeTimestamps(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
@@ -448,16 +488,22 @@ final class SemanticCoherenceAdjuster {
 
         if (canAssign(updatedAtSlot, allowOverwriteExisting)) {
             Object aligned = alignedValue(createdAt, updatedAtSlot.rawType());
-            // updatedAt moves, unless that leaves the range and createdAt can move to it inside the range.
-            // A sibling that cannot move leaves no such choice, and the two stay in order.
-            if (!isOutsideDateRange(aligned)
-                    || !movesInsideDateRange(createdAtSlot, updatedAt, allowOverwriteExisting)) {
+            // updatedAt moves, unless that breaks its own constraints, or leaves the range where createdAt can
+            // move to it inside the range. A sibling that cannot move leaves updatedAt no such choice.
+            if (keepsConstraints(updatedAtSlot, aligned)
+                    && (!isOutsideDateRange(aligned)
+                            || !movesInsideDateRange(createdAtSlot, updatedAt, allowOverwriteExisting))) {
                 assignConverted(updatedAtSlot, aligned);
                 return;
             }
         }
+        // createdAt moves to an updatedAt that cannot move, unless that breaks its own constraints too. Then
+        // both keep their values, out of order, as two overrides do.
         if (canAssign(createdAtSlot, allowOverwriteExisting)) {
-            assignConverted(createdAtSlot, alignedValue(updatedAt, createdAtSlot.rawType()));
+            Object aligned = alignedValue(updatedAt, createdAtSlot.rawType());
+            if (keepsConstraints(createdAtSlot, aligned)) {
+                assignConverted(createdAtSlot, aligned);
+            }
         }
     }
 
@@ -466,7 +512,23 @@ final class SemanticCoherenceAdjuster {
             return false;
         }
         Object aligned = alignedValue(instant, slot.rawType());
-        return aligned != null && !isOutsideDateRange(aligned);
+        return aligned != null && !isOutsideDateRange(aligned) && keepsConstraints(slot, aligned);
+    }
+
+    /**
+     * True when the pass may write this value to the slot because the slot's own Bean Validation constraints
+     * allow it, read against the configured clock. In RELAXED mode a constrained slot is protected and never
+     * written. In STRICT mode semantics win, but a value that would break a constraint cannot move: this keeps
+     * every value the pass derives, a date, an age, a string, an amount or a status, within them. {@code null}
+     * is a type the pass cannot write, which it leaves as it is.
+     */
+    private boolean keepsConstraints(Slot slot, @Nullable Object value) {
+        return value == null
+                || BeanValidationSupport.accepts(
+                        slot.annotatedElement(),
+                        slot.rawType(),
+                        value,
+                        config.getGeneratorConfig().getClock());
     }
 
     /**
@@ -512,9 +574,14 @@ final class SemanticCoherenceAdjuster {
         if (min == null || instant == null) {
             return false;
         }
-        long epochDay = Math.floorDiv(instant.getEpochSecond() + offsetSecondsOf(value), SECONDS_PER_DAY);
+        long epochDay = epochDayOf(instant, value);
         return epochDay < min.toEpochDay()
                 || epochDay > Objects.requireNonNull(config.getDateMax()).toEpochDay();
+    }
+
+    /** The epoch day this instant of a value reads: in the value's own offset or zone, if it has one, else UTC. */
+    private static long epochDayOf(Instant instant, @Nullable Object value) {
+        return Math.floorDiv(instant.getEpochSecond() + offsetSecondsOf(value), SECONDS_PER_DAY);
     }
 
     private static int offsetSecondsOf(@Nullable Object value) {
@@ -523,6 +590,9 @@ final class SemanticCoherenceAdjuster {
         }
         if (value instanceof ZonedDateTime zonedDateTime) {
             return zonedDateTime.getOffset().getTotalSeconds();
+        }
+        if (value instanceof Calendar calendar) {
+            return calendar.getTimeZone().getOffset(calendar.getTimeInMillis()) / 1000;
         }
         return 0;
     }
@@ -538,9 +608,7 @@ final class SemanticCoherenceAdjuster {
         Integer age = toInteger(ageSlot.getValue());
         if (birthDate != null) {
             if (age != null && isProtected(ageSlot)) {
-                if (canAssign(birthDateSlot, allowOverwriteExisting)) {
-                    assignConverted(birthDateSlot, fromLocalDate(today().minusYears(age), birthDateSlot.rawType()));
-                }
+                followAge(birthDateSlot, age, allowOverwriteExisting);
                 return;
             }
             int derivedAge = ageFromBirthDate(birthDate);
@@ -548,15 +616,74 @@ final class SemanticCoherenceAdjuster {
                 return;
             }
             if (canAssign(ageSlot, allowOverwriteExisting)) {
-                assignConverted(ageSlot, fromAge(derivedAge, ageSlot.rawType()));
-                return;
+                Object derived = fromAge(derivedAge, ageSlot.rawType());
+                if (keepsConstraints(ageSlot, derived)) {
+                    assignConverted(ageSlot, derived);
+                } else if (age != null) {
+                    // An age its constraints keep from the derived one cannot move, so birthDate follows it.
+                    followAge(birthDateSlot, age, allowOverwriteExisting);
+                }
             }
             return;
         }
 
-        if (age != null && canAssign(birthDateSlot, allowOverwriteExisting)) {
-            assignConverted(birthDateSlot, fromLocalDate(today().minusYears(age), birthDateSlot.rawType()));
+        if (age != null) {
+            followAge(birthDateSlot, age, allowOverwriteExisting);
         }
+    }
+
+    /** Moves birthDate to the date that gives this age, where it can move and its constraints allow it. */
+    private void followAge(Slot birthDateSlot, int age, boolean allowOverwriteExisting) {
+        if (canAssign(birthDateSlot, allowOverwriteExisting)) {
+            Object derived = birthDateFor(age, birthDateSlot.rawType());
+            if (keepsConstraints(birthDateSlot, derived)) {
+                assignConverted(birthDateSlot, derived);
+            }
+        }
+    }
+
+    /**
+     * The birth date this age gives, in this type, or {@code null} where the type cannot hold it. The year is
+     * checked before the conversion, because {@code java.sql.Date.valueOf} and, on JDK 21, {@code Timestamp.from}
+     * wrap a value round rather than fail. A {@code java.sql.Date} is then checked to read back as the date it
+     * was given: {@code valueOf} moves a day that a zone, or the change from the Julian calendar in 1582,
+     * skipped.
+     */
+    private @Nullable Object birthDateFor(int age, Class<?> rawType) {
+        LocalDate today = today();
+        long year = (long) today.getYear() - age;
+        if (year < firstYearHeldBy(rawType) || year > lastYearHeldBy(rawType)) {
+            return null;
+        }
+        LocalDate date = today.minusYears(age);
+        // 29 February becomes the 28th in a year without one. A year back, that still gives the age, but a year
+        // ahead, it is a day short of a negative age's whole years, so the birth date is 1 March instead.
+        if (ChronoUnit.YEARS.between(date, today) != age) {
+            date = date.plusDays(1);
+        }
+        Object birthDate = fromLocalDate(date, rawType);
+        boolean moved = birthDate instanceof java.sql.Date sqlDate
+                && !sqlDate.toLocalDate().equals(date);
+        return moved ? null : birthDate;
+    }
+
+    /**
+     * The first year whose every date a type holds. A {@code java.time} type holds the years of a
+     * {@code LocalDate}. A {@code java.sql.Date} holds the years of the common era, from 1: {@code valueOf} drops
+     * the era of an earlier one, so that year 0 reads back as year 1. A {@code Calendar} or another {@code Date}
+     * counts milliseconds in a {@code long}, which reach about 292 million years back, and holds the years it
+     * reaches in full, whatever its zone.
+     */
+    private static long firstYearHeldBy(Class<?> rawType) {
+        if (Temporal.class.isAssignableFrom(rawType)) {
+            return Year.MIN_VALUE;
+        }
+        return rawType == java.sql.Date.class ? 1 : MIN_MILLIS_YEAR;
+    }
+
+    /** The last year whose every date a type holds, as {@link #firstYearHeldBy} reads the first. */
+    private static long lastYearHeldBy(Class<?> rawType) {
+        return Temporal.class.isAssignableFrom(rawType) ? Year.MAX_VALUE : MAX_MILLIS_YEAR;
     }
 
     private void harmonizeActiveStatus(Map<String, Slot> slotsBySemanticKey, boolean allowOverwriteExisting) {
@@ -573,17 +700,17 @@ final class SemanticCoherenceAdjuster {
                 return;
             }
             Object statusValue = statusValueFor(active, statusSlot.rawType());
-            if (statusValue != null && canAssign(statusSlot, allowOverwriteExisting)) {
+            if (statusValue != null && canTake(statusSlot, allowOverwriteExisting, statusValue)) {
                 statusSlot.setValue(statusValue);
                 return;
             }
-            if (statusActive != null && canAssign(activeSlot, allowOverwriteExisting)) {
+            if (statusActive != null && canTake(activeSlot, allowOverwriteExisting, statusActive)) {
                 activeSlot.setValue(statusActive);
             }
             return;
         }
 
-        if (statusActive != null && canAssign(activeSlot, allowOverwriteExisting)) {
+        if (statusActive != null && canTake(activeSlot, allowOverwriteExisting, statusActive)) {
             activeSlot.setValue(statusActive);
         }
     }
@@ -602,53 +729,84 @@ final class SemanticCoherenceAdjuster {
         BigDecimal amount = moneyValue(amountSlot);
         BigDecimal balance = moneyValue(balanceSlot);
 
-        boolean backfillPrice = price == null & amount != null & canAssign(priceSlot, allowOverwriteExisting);
+        // A value that follows a sibling down is rounded down, and one that follows a sibling up is rounded up, to
+        // what its field holds, so that rounding cannot turn the order round.
+        boolean backfillPrice = price == null
+                & canTakeMoney(priceSlot, allowOverwriteExisting, amount, currencyCode, RoundingMode.FLOOR);
         if (backfillPrice) {
-            price = assignMoney(priceSlot, amount, currencyCode);
+            price = assignMoney(priceSlot, amount, currencyCode, RoundingMode.FLOOR);
         }
-        boolean backfillAmount = amount == null & price != null & canAssign(amountSlot, allowOverwriteExisting);
+        boolean backfillAmount = amount == null
+                & canTakeMoney(amountSlot, allowOverwriteExisting, price, currencyCode, RoundingMode.CEILING);
         if (backfillAmount) {
-            amount = assignMoney(amountSlot, price, currencyCode);
+            amount = assignMoney(amountSlot, price, currencyCode, RoundingMode.CEILING);
         }
-        boolean backfillBalance = balance == null & amount != null & canAssign(balanceSlot, allowOverwriteExisting);
+        boolean backfillBalance = balance == null
+                & canTakeMoney(balanceSlot, allowOverwriteExisting, amount, currencyCode, RoundingMode.CEILING);
         if (backfillBalance) {
-            balance = assignMoney(balanceSlot, amount, currencyCode);
+            balance = assignMoney(balanceSlot, amount, currencyCode, RoundingMode.CEILING);
         }
 
+        // Where one side of an order cannot take the other's amount, the other follows it, as for dates.
         boolean amountBelowPrice = isLessThan(amount, price);
         if (amountBelowPrice) {
-            if (canAssign(amountSlot, allowOverwriteExisting)) {
-                amount = assignMoney(amountSlot, price, currencyCode);
-            } else if (canAssign(priceSlot, allowOverwriteExisting)) {
-                price = assignMoney(priceSlot, amount, currencyCode);
+            if (canTakeMoney(amountSlot, allowOverwriteExisting, price, currencyCode, RoundingMode.CEILING)) {
+                amount = assignMoney(amountSlot, price, currencyCode, RoundingMode.CEILING);
+            } else if (canTakeMoney(priceSlot, allowOverwriteExisting, amount, currencyCode, RoundingMode.FLOOR)) {
+                price = assignMoney(priceSlot, amount, currencyCode, RoundingMode.FLOOR);
             }
         }
 
         boolean balanceBelowAmount = isLessThan(balance, amount);
         if (balanceBelowAmount) {
-            if (canAssign(balanceSlot, allowOverwriteExisting)) {
-                balance = assignMoney(balanceSlot, amount, currencyCode);
-            } else if (canAssign(amountSlot, allowOverwriteExisting)) {
-                amount = assignMoney(amountSlot, balance, currencyCode);
+            if (canTakeMoney(balanceSlot, allowOverwriteExisting, amount, currencyCode, RoundingMode.CEILING)) {
+                balance = assignMoney(balanceSlot, amount, currencyCode, RoundingMode.CEILING);
+            } else if (canTakeMoney(amountSlot, allowOverwriteExisting, balance, currencyCode, RoundingMode.FLOOR)) {
+                amount = assignMoney(amountSlot, balance, currencyCode, RoundingMode.FLOOR);
+                // The amount came down to the balance, so a price above it follows it down too.
+                if (isLessThan(amount, price)
+                        && canTakeMoney(priceSlot, allowOverwriteExisting, amount, currencyCode, RoundingMode.FLOOR)) {
+                    price = assignMoney(priceSlot, amount, currencyCode, RoundingMode.FLOOR);
+                }
             }
         }
 
-        boolean formatPriceString = shouldFormatMoneyString(price, priceSlot, allowOverwriteExisting);
+        // A money string takes the currency code with its own amount, every digit of it kept.
+        boolean formatPriceString = shouldFormatMoneyString(price, priceSlot, allowOverwriteExisting, currencyCode);
         if (formatPriceString) {
-            assignMoney(priceSlot, price, currencyCode);
+            assignMoney(priceSlot, price, currencyCode, RoundingMode.UNNECESSARY);
         }
-        boolean formatAmountString = shouldFormatMoneyString(amount, amountSlot, allowOverwriteExisting);
+        boolean formatAmountString = shouldFormatMoneyString(amount, amountSlot, allowOverwriteExisting, currencyCode);
         if (formatAmountString) {
-            assignMoney(amountSlot, amount, currencyCode);
+            assignMoney(amountSlot, amount, currencyCode, RoundingMode.UNNECESSARY);
         }
-        boolean formatBalanceString = shouldFormatMoneyString(balance, balanceSlot, allowOverwriteExisting);
+        boolean formatBalanceString =
+                shouldFormatMoneyString(balance, balanceSlot, allowOverwriteExisting, currencyCode);
         if (formatBalanceString) {
-            assignMoney(balanceSlot, balance, currencyCode);
+            assignMoney(balanceSlot, balance, currencyCode, RoundingMode.UNNECESSARY);
         }
     }
 
-    private boolean canAssign(@Nullable Slot slot, boolean allowOverwriteExisting) {
-        if (slot == null || isProtected(slot)) {
+    /**
+     * True when the slot can take this amount, rounded as given: the pass can assign it, its type can hold it, and
+     * its own constraints allow it as the type holds it, a string with the currency code. No amount is nothing to
+     * take.
+     */
+    private boolean canTakeMoney(
+            @Nullable Slot slot,
+            boolean allowOverwriteExisting,
+            @Nullable BigDecimal value,
+            @Nullable String currencyCode,
+            RoundingMode rounding) {
+        if (value == null || slot == null || !canAssign(slot, allowOverwriteExisting)) {
+            return false;
+        }
+        Object held = moneyValueFor(value, slot.rawType(), currencyCode, rounding);
+        return held != null && keepsConstraints(slot, held);
+    }
+
+    private boolean canAssign(Slot slot, boolean allowOverwriteExisting) {
+        if (isProtected(slot)) {
             return false;
         }
         if (allowOverwriteExisting) {
@@ -675,10 +833,13 @@ final class SemanticCoherenceAdjuster {
             return true;
         }
 
-        // RELAXED lets declared annotations and bean validation constraints take precedence over
-        // semantics; STRICT deliberately lets semantics win.
+        // RELAXED lets the declared annotations, @Randomizer, @Fake and @FakeRange, and bean validation
+        // constraints take precedence over semantics, as they do when a value is generated. STRICT lets
+        // semantics win over the annotations, and over a constraint where the derived value meets it.
         if (config.getSemanticMode() == ObjectGenerationSemanticMode.RELAXED) {
-            if (field.isAnnotationPresent(Randomizer.class) || field.isAnnotationPresent(FakeRange.class)) {
+            if (field.isAnnotationPresent(Randomizer.class)
+                    || field.isAnnotationPresent(Fake.class)
+                    || field.isAnnotationPresent(FakeRange.class)) {
                 return true;
             }
             return BeanValidationSupport.constraintGeneratorFor(field, slot.rawType()) != null;
@@ -931,6 +1092,9 @@ final class SemanticCoherenceAdjuster {
         if (value instanceof ZonedDateTime zonedDateTime) {
             return zonedDateTime.toInstant();
         }
+        if (value instanceof Calendar calendar) {
+            return calendar.toInstant();
+        }
         // java.sql.Date and java.sql.Time throw UnsupportedOperationException from toInstant().
         if (value instanceof java.sql.Date sqlDate) {
             return sqlDate.toLocalDate().atStartOfDay().toInstant(ZoneOffset.UTC);
@@ -944,40 +1108,53 @@ final class SemanticCoherenceAdjuster {
         return null;
     }
 
+    /**
+     * The date a value reads: the local date of an {@code OffsetDateTime}, a {@code ZonedDateTime} or a
+     * {@code Calendar}, in its own offset or zone, and the UTC date of every other type, as the generators draw
+     * them and the configured range bounds them.
+     */
     static @Nullable LocalDate toLocalDate(@Nullable Object value) {
         if (value instanceof LocalDate localDate) {
             return localDate;
         }
         Instant instant = toInstant(value);
-        return instant != null ? instant.atOffset(ZoneOffset.UTC).toLocalDate() : null;
+        return instant != null ? LocalDate.ofEpochDay(epochDayOf(instant, value)) : null;
     }
 
     static @Nullable BigDecimal moneyValue(@Nullable Slot slot) {
         return slot == null ? null : moneyValue(slot.getValue());
     }
 
+    /**
+     * The amount a value holds, as a magnitude: exactly for a {@code BigDecimal}, an integer or a money string, and
+     * as it prints for a {@code float} or a {@code double}, so that {@code 0.1f} reads as 0.1 rather than as the
+     * binary fraction above it. A value that is not a finite number holds no amount.
+     */
     static @Nullable BigDecimal moneyValue(@Nullable Object value) {
         if (value == null) {
             return null;
         }
         if (value instanceof BigDecimal decimal) {
-            return normalizeMoney(decimal);
+            return decimal.abs();
         }
         if (value instanceof BigInteger integer) {
-            return normalizeMoney(new BigDecimal(integer));
+            return new BigDecimal(integer).abs();
         }
         if (value instanceof Byte | value instanceof Short | value instanceof Integer | value instanceof Long) {
-            return normalizeMoney(BigDecimal.valueOf(((Number) value).longValue()));
+            return BigDecimal.valueOf(((Number) value).longValue()).abs();
         }
-        if (value instanceof Float | value instanceof Double) {
-            return normalizeMoney(BigDecimal.valueOf(((Number) value).doubleValue()));
+        if (value instanceof Float number) {
+            return Float.isFinite(number) ? new BigDecimal(Float.toString(number)).abs() : null;
+        }
+        if (value instanceof Double number) {
+            return Double.isFinite(number) ? BigDecimal.valueOf(number).abs() : null;
         }
         if (value instanceof String stringValue) {
             Matcher matcher = MONEY_FRAGMENT.matcher(stringValue);
             if (!matcher.find()) {
                 return null;
             }
-            return normalizeMoney(new BigDecimal(matcher.group()));
+            return new BigDecimal(matcher.group()).abs();
         }
         return null;
     }
@@ -1021,10 +1198,6 @@ final class SemanticCoherenceAdjuster {
         return new CountryGenerator(config.getGeneratorConfig()).currentCountry();
     }
 
-    private static BigDecimal normalizeMoney(BigDecimal value) {
-        return value.abs().setScale(2, RoundingMode.HALF_UP);
-    }
-
     static @Nullable String currencyCode(@Nullable Slot slot) {
         return slot == null ? null : currencyCode(slot.getValue());
     }
@@ -1056,63 +1229,115 @@ final class SemanticCoherenceAdjuster {
         }
     }
 
-    static @Nullable Object moneyValueFor(BigDecimal value, Class<?> rawType, @Nullable String currencyCode) {
-        BigDecimal normalized = normalizeMoney(value);
+    /**
+     * The value a field of this type holds for an amount: its magnitude rounded as given, to whole units for an
+     * integer type and to cents for any other, a string with the currency code. {@code UNNECESSARY} keeps every digit
+     * past the cents, for a field that takes its own amount again. A type that cannot hold the amount, an integer it
+     * overflows or a {@code float} or a {@code double} it makes infinite, holds nothing, nor does one that is no
+     * money type.
+     */
+    static @Nullable Object moneyValueFor(
+            BigDecimal value, Class<?> rawType, @Nullable String currencyCode, RoundingMode rounding) {
+        BigDecimal magnitude = value.abs();
+        try {
+            if (rawType == BigInteger.class) {
+                return magnitude.setScale(0, rounding).toBigInteger();
+            }
+            if (rawType == byte.class | rawType == Byte.class) {
+                return magnitude.setScale(0, rounding).byteValueExact();
+            }
+            if (rawType == short.class | rawType == Short.class) {
+                return magnitude.setScale(0, rounding).shortValueExact();
+            }
+            if (rawType == int.class | rawType == Integer.class) {
+                return magnitude.setScale(0, rounding).intValueExact();
+            }
+            if (rawType == long.class | rawType == Long.class) {
+                return magnitude.setScale(0, rounding).longValueExact();
+            }
+        } catch (ArithmeticException beyondType) {
+            // Past the type's range, or cents that whole units hold only by rounding, which UNNECESSARY refuses.
+            return null;
+        }
+        int scale = rounding == RoundingMode.UNNECESSARY ? Math.max(2, magnitude.scale()) : 2;
+        BigDecimal cents = magnitude.setScale(scale, rounding);
         if (rawType == BigDecimal.class) {
-            return normalized;
-        }
-        if (rawType == BigInteger.class) {
-            return normalized.setScale(0, RoundingMode.HALF_UP).toBigInteger();
-        }
-        if (rawType == byte.class | rawType == Byte.class) {
-            return normalized.setScale(0, RoundingMode.HALF_UP).byteValue();
-        }
-        if (rawType == short.class | rawType == Short.class) {
-            return normalized.setScale(0, RoundingMode.HALF_UP).shortValue();
-        }
-        if (rawType == int.class | rawType == Integer.class) {
-            return normalized.setScale(0, RoundingMode.HALF_UP).intValue();
-        }
-        if (rawType == long.class | rawType == Long.class) {
-            return normalized.setScale(0, RoundingMode.HALF_UP).longValue();
+            return cents;
         }
         if (rawType == float.class | rawType == Float.class) {
-            return normalized.floatValue();
+            return floatMoney(cents, rounding);
         }
         if (rawType == double.class | rawType == Double.class) {
-            return normalized.doubleValue();
+            return doubleMoney(cents, rounding);
         }
         if (rawType == String.class) {
-            return currencyCode != null ? currencyCode + " " + normalized.toPlainString() : normalized.toPlainString();
+            return currencyCode != null ? currencyCode + " " + cents.toPlainString() : cents.toPlainString();
         }
         return null;
     }
 
+    /**
+     * The {@code float} nearest an amount, stepped to the next one down or up where the nearest prints on the wrong
+     * side of the amount, so that an amount rounded down still reads at or below it, and one rounded up at or above.
+     * An amount too large for a {@code float} has none.
+     */
+    private static @Nullable Float floatMoney(BigDecimal amount, RoundingMode rounding) {
+        float held = amount.floatValue();
+        if (Float.isFinite(held)) {
+            int side = new BigDecimal(Float.toString(held)).compareTo(amount);
+            if (rounding == RoundingMode.FLOOR && side > 0) {
+                held = Math.nextDown(held);
+            } else if (rounding == RoundingMode.CEILING && side < 0) {
+                held = Math.nextUp(held);
+            }
+        }
+        return Float.isFinite(held) ? held : null;
+    }
+
+    /** The {@code double} for an amount, as {@link #floatMoney} gives the {@code float}. */
+    private static @Nullable Double doubleMoney(BigDecimal amount, RoundingMode rounding) {
+        double held = amount.doubleValue();
+        if (Double.isFinite(held)) {
+            int side = BigDecimal.valueOf(held).compareTo(amount);
+            if (rounding == RoundingMode.FLOOR && side > 0) {
+                held = Math.nextDown(held);
+            } else if (rounding == RoundingMode.CEILING && side < 0) {
+                held = Math.nextUp(held);
+            }
+        }
+        return Double.isFinite(held) ? held : null;
+    }
+
+    /**
+     * Writes an amount, rounded as given, into the slot as its type holds it, and returns the amount the slot then
+     * holds. Without a slot, an amount or a type that holds it, nothing is written and the amount is returned.
+     */
     static @Nullable BigDecimal assignMoney(
-            @Nullable Slot slot, @Nullable BigDecimal value, @Nullable String currencyCode) {
+            @Nullable Slot slot, @Nullable BigDecimal value, @Nullable String currencyCode, RoundingMode rounding) {
         if (slot == null || value == null) {
             return value;
         }
-        Object converted = moneyValueFor(value, slot.rawType(), currencyCode);
-        if (converted == null) {
+        Object held = moneyValueFor(value, slot.rawType(), currencyCode, rounding);
+        if (held == null) {
             return value;
         }
-        slot.setValue(converted);
-        return normalizeMoney(value);
+        slot.setValue(held);
+        return moneyValue(held);
     }
 
     static @Nullable Boolean toBoolean(@Nullable Object value) {
         return value instanceof Boolean bool ? bool : null;
     }
 
-    boolean shouldFormatMoneyString(@Nullable BigDecimal value, @Nullable Slot slot, boolean allowOverwriteExisting) {
-        if (value == null || slot == null) {
+    boolean shouldFormatMoneyString(
+            @Nullable BigDecimal value,
+            @Nullable Slot slot,
+            boolean allowOverwriteExisting,
+            @Nullable String currencyCode) {
+        if (slot == null || slot.rawType() != String.class) {
             return false;
         }
-        if (slot.rawType() != String.class) {
-            return false;
-        }
-        return canAssign(slot, allowOverwriteExisting);
+        return canTakeMoney(slot, allowOverwriteExisting, value, currencyCode, RoundingMode.UNNECESSARY);
     }
 
     static boolean isLessThan(@Nullable BigDecimal left, @Nullable BigDecimal right) {
@@ -1219,6 +1444,9 @@ final class SemanticCoherenceAdjuster {
         }
         if (rawType == ZonedDateTime.class) {
             return instant.atZone(offset);
+        }
+        if (rawType == Calendar.class || rawType == GregorianCalendar.class) {
+            return FieldGeneratorResolver.calendarOf(instant.atZone(offset));
         }
         if (rawType == java.util.Date.class) {
             return java.util.Date.from(instant);

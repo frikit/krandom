@@ -28,7 +28,7 @@ val moduleDescriptions =
         "core" to
             "kRandom core: Java 21 random and fake-data generation toolkit with seedable generators, locale-aware data, ObjectGenerator/ObjectFaker, and Schema export.",
         "jackson" to
-            "Jackson serialization integration for kRandom generators (databind module wiring on top of krandom-core).",
+            "Jackson 3 (tools.jackson) serialization integration for kRandom generators (databind module wiring on top of krandom-core).",
         "junit" to
             "JUnit Jupiter extension for kRandom — per-test seed management with @KrandomSeed pinning, seeded GeneratorConfig parameter injection, and failure-seed reporting for reproducible test runs.",
         "spring-boot-starter" to

@@ -242,8 +242,8 @@ public final class GeneratorConfig {
     }
 
     /**
-     * Returns the child-stream policy used by composite generators. The default preserves legacy
-     * output.
+     * Returns the child-stream policy used by composite generators. The default is
+     * {@link ChildStreamPolicy#INDEPENDENT}.
      *
      * @return configured child-stream policy
      */
@@ -254,24 +254,35 @@ public final class GeneratorConfig {
     /**
      * Returns the configuration a composite generator passes to one named child generator.
      *
-     * <p>Under {@link ChildStreamPolicy#LEGACY} this configuration is returned unchanged, so
-     * children of a seeded composite start in the same state as each other. Under
-     * {@link ChildStreamPolicy#INDEPENDENT} the result is a copy whose numeric seed is
-     * {@link GenerationRecipe#deriveChildSeed(long, String)} of this seed and {@code streamName};
-     * the copy keeps the independent policy, so nested composites derive their own children from
-     * it. Stream names are stable structural identifiers, unique among one parent's children.
+     * <p>Under the default {@link ChildStreamPolicy#INDEPENDENT}, a configuration with a numeric or
+     * textual seed returns a copy whose numeric seed is
+     * {@link GenerationRecipe#deriveChildSeed(long, String)} of this seed and {@code streamName}, so
+     * sibling children draw from independent streams that the seed reproduces. The copy keeps the
+     * policy, so nested composites derive their own children from it. Without a seed there is
+     * nothing to derive from, and this configuration is returned unchanged: each child then takes
+     * its own source from {@link #createRandom()}, which is a fresh unseeded {@link Random}, or a
+     * fresh {@link SecureRandom} in secure mode, so siblings still draw from independent streams. A
+     * caller-owned {@link Random} is shared by every child, and a random factory is called once for
+     * each child; neither is reseeded. Under {@link ChildStreamPolicy#LEGACY} this configuration is
+     * always returned unchanged, so the children of a seeded composite start in the same state as
+     * each other.
      *
-     * <p>The same holds for separate generators built from one seeded configuration: each starts
-     * from this seed, so they draw the same random sequence unless each receives its own child
-     * stream under {@link ChildStreamPolicy#INDEPENDENT}.
+     * <p>Stream names are stable structural identifiers, unique among one parent's children.
+     * Separate generators built from one seeded configuration each start from this seed, whatever
+     * the policy, so they draw the same random sequence unless each receives its own child stream.
      *
-     * @param streamName non-blank, stable name of the child stream
+     * @param streamName non-blank, single-line, stable name of the child stream
      * @return configuration for the child generator
-     * @throws IllegalArgumentException if {@code streamName} is blank or spans lines
+     * @throws IllegalArgumentException under {@link ChildStreamPolicy#INDEPENDENT}, seeded or not,
+     *     if {@code streamName} is blank or spans lines
      */
     public GeneratorConfig forChildStream(String streamName) {
         Objects.requireNonNull(streamName, "streamName must not be null");
         if (childStreamPolicy == ChildStreamPolicy.LEGACY) {
+            return this;
+        }
+        Builder.requireRecipeToken("streamIdentity", streamName);
+        if (seed.isEmpty()) {
             return this;
         }
         return toBuilder()
@@ -789,6 +800,7 @@ public final class GeneratorConfig {
                 .setting("identity-document.safety-policy", identityDocumentSafetyPolicy.name())
                 .setting("email.domain-policy", emailDomainPolicy.name())
                 .setting("network.safety-policy", networkSafetyPolicy.name())
+                .setting("child-stream-policy", childStreamPolicy.name())
                 .setting("charset", charset.name())
                 .setting("string.min", Integer.toString(minStringLength))
                 .setting("string.max", Integer.toString(maxStringLength))
@@ -818,9 +830,6 @@ public final class GeneratorConfig {
         }
         if (objectFieldStreamPolicy != ObjectFieldStreamPolicy.LEGACY) {
             recipe.setting("object.field-stream-policy", objectFieldStreamPolicy.name());
-        }
-        if (childStreamPolicy != ChildStreamPolicy.LEGACY) {
-            recipe.setting("child-stream-policy", childStreamPolicy.name());
         }
         return Optional.of(recipe.build());
     }
@@ -964,7 +973,7 @@ public final class GeneratorConfig {
         private IdentityDocumentSafetyPolicy identityDocumentSafetyPolicy = IdentityDocumentSafetyPolicy.DISABLED;
         private EmailDomainPolicy emailDomainPolicy = EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS;
         private NetworkSafetyPolicy networkSafetyPolicy = NetworkSafetyPolicy.TEST_SAFE_RESERVED;
-        private ChildStreamPolicy childStreamPolicy = ChildStreamPolicy.LEGACY;
+        private ChildStreamPolicy childStreamPolicy = ChildStreamPolicy.INDEPENDENT;
         private String providerDatasetVersion = GenerationRecipe.BUILTIN_PROVIDER_DATASET_VERSION;
         private final List<KRandomModule> modules = new ArrayList<>();
 
@@ -1224,11 +1233,14 @@ public final class GeneratorConfig {
         }
 
         /**
-         * Maps an abstract or interface field type to the concrete implementation that
-         * object generation instantiates for it.
+         * Maps an abstract or interface type to the concrete implementation that object
+         * generation instantiates for it, for a member of that type and for a root of it.
          *
          * <p>kRandom does not scan the classpath for implementations; this explicit
-         * mapping is the supported way to populate abstract and interface fields.
+         * mapping is the supported way to populate abstract and interface fields. A sealed type
+         * needs none, because it is generated as one of its permitted subclasses, but a mapping for
+         * it wins, and a mapping for an abstract subclass that is not sealed makes that
+         * subclass's implementation one of the choices.
          *
          * @param declaredType abstract class or interface declared by fields
          * @param implementationType concrete subtype to instantiate for those fields
@@ -1281,11 +1293,13 @@ public final class GeneratorConfig {
         /**
          * Chooses how composite generators seed their child generators.
          *
-         * <p>{@link ChildStreamPolicy#INDEPENDENT} derives one named stream per child so seeded
-         * sibling values (for example the payment, invoice, and order identifiers of one payment)
-         * are not correlated. It requires a numeric or textual seed at build time and is recorded
-         * in portable recipes. {@link ChildStreamPolicy#LEGACY} preserves the existing default
-         * output.
+         * <p>The default {@link ChildStreamPolicy#INDEPENDENT} derives one named stream per child
+         * from a numeric or textual seed, so seeded sibling values (for example the payment,
+         * invoice, and order identifiers of one payment) are not correlated. Without a seed it
+         * derives nothing, and each child draws from its own unseeded source, as described in
+         * {@link GeneratorConfig#forChildStream(String)}. {@link ChildStreamPolicy#LEGACY} gives
+         * every child the parent's configuration and restores the seeded output of the releases
+         * before independent streams became the default. Portable recipes record either policy.
          *
          * @param policy non-null child-stream policy
          * @return this builder
@@ -1758,10 +1772,6 @@ public final class GeneratorConfig {
             if (objectFieldStreamPolicy == ObjectFieldStreamPolicy.INDEPENDENT
                     && effectiveSeed(numericSeed, stringSeed).isEmpty()) {
                 throw new IllegalStateException("Independent object field streams require a numeric or textual seed");
-            }
-            if (childStreamPolicy == ChildStreamPolicy.INDEPENDENT
-                    && effectiveSeed(numericSeed, stringSeed).isEmpty()) {
-                throw new IllegalStateException("Independent child streams require a numeric or textual seed");
             }
             return new GeneratorConfig(this);
         }

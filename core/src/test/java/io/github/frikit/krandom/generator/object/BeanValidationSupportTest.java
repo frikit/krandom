@@ -6,18 +6,23 @@
 package io.github.frikit.krandom.generator.object;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.Generator;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.lang.reflect.Field;
@@ -27,6 +32,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.MonthDay;
@@ -35,8 +41,16 @@ import java.time.OffsetTime;
 import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import org.hibernate.validator.HibernateValidator;
+import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -83,13 +97,27 @@ class BeanValidationSupportTest {
     void numericAndSizeVariants() throws Exception {
         assertNull(BeanValidationSupport.constraintGeneratorFor(null, String.class));
         assertEquals(4, BeanValidationSupport.sizeFor(null, new Random(1L), 4, 4));
-        assertEquals(0, BeanValidationSupport.sizeFor(field("emptyText"), new Random(1L), 1, 10));
+        assertEquals(
+                0,
+                BeanValidationSupport.sizeFor(
+                        BeanValidationSupport.sizeRangeFor(field("emptyText")), new Random(1L), 1, 10));
 
         String empty = (String) generatorFor("emptyText", String.class).generate();
         assertEquals("", empty);
 
-        int cappedSize = BeanValidationSupport.sizeFor(field("unboundedText"), new Random(1L), 1, 10);
-        assertTrue(cappedSize >= 1 && cappedSize <= 255);
+        BeanValidationSupport.SizeRange unbounded = BeanValidationSupport.sizeRangeFor(field("unboundedText"));
+        assertEquals(new BeanValidationSupport.SizeRange(1, Integer.MAX_VALUE), unbounded);
+        int unboundedSize = BeanValidationSupport.sizeFor(unbounded, new Random(1L), 1, 10);
+        assertTrue(unboundedSize >= 1 && unboundedSize <= 10);
+        assertEquals(
+                new BeanValidationSupport.SizeRange(1, 255),
+                BeanValidationSupport.constraintModelFor(field("unboundedText"), String.class)
+                        .text()
+                        .size());
+        assertEquals(
+                new BeanValidationSupport.SizeRange(300, 300),
+                new BeanValidationSupport.SizeRange(300, Integer.MAX_VALUE).forText());
+        assertEquals(new BeanValidationSupport.SizeRange(2, 4), new BeanValidationSupport.SizeRange(2, 4).forText());
 
         String numericText = (String) generatorFor("numericText", String.class).generate();
         assertTrue(Long.parseLong(numericText) >= 5L && Long.parseLong(numericText) <= 7L);
@@ -198,6 +226,227 @@ class BeanValidationSupportTest {
     }
 
     @Test
+    @DisplayName("accepts reads each date and time type against the clock as Hibernate Validator does")
+    void acceptsReadsEachDateAndTimeTypeAgainstTheClock() throws Exception {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("Asia/Tokyo"));
+        Instant now = clock.instant();
+        Instant before = now.minusSeconds(1);
+        Instant after = now.plusSeconds(1);
+        LocalDate today = LocalDate.now(clock);
+        LocalDateTime localNow = LocalDateTime.now(clock);
+        OffsetDateTime offsetNow = OffsetDateTime.now(clock);
+        ZonedDateTime zonedNow = ZonedDateTime.now(clock);
+        // A value of each type before, at and after the clock's present, after the type it is checked as.
+        List<List<Object>> rows = List.of(
+                List.of(Instant.class, before, now, after),
+                List.of(LocalDate.class, today.minusDays(1), today, today.plusDays(1)),
+                List.of(LocalDateTime.class, localNow.minusSeconds(1), localNow, localNow.plusSeconds(1)),
+                List.of(OffsetDateTime.class, offsetNow.minusSeconds(1), offsetNow, offsetNow.plusSeconds(1)),
+                List.of(ZonedDateTime.class, zonedNow.minusSeconds(1), zonedNow, zonedNow.plusSeconds(1)),
+                List.of(GregorianCalendar.class, calendarAt(before), calendarAt(now), calendarAt(after)),
+                List.of(
+                        java.util.Date.class,
+                        java.util.Date.from(before),
+                        java.util.Date.from(now),
+                        java.util.Date.from(after)),
+                List.of(
+                        java.sql.Date.class,
+                        new java.sql.Date(before.toEpochMilli()),
+                        new java.sql.Date(now.toEpochMilli()),
+                        new java.sql.Date(after.toEpochMilli())),
+                List.of(Timestamp.class, Timestamp.from(before), Timestamp.from(now), Timestamp.from(after)));
+        // Which of before, at and after each bound allows.
+        Map<String, List<Boolean>> allowed = Map.of(
+                "pastBound", List.of(true, false, false),
+                "pastOrPresentBound", List.of(true, true, false),
+                "futureBound", List.of(false, false, true),
+                "futureOrPresentBound", List.of(false, true, true),
+                "presentBound", List.of(false, true, false));
+
+        for (List<Object> row : rows) {
+            Class<?> type = (Class<?>) row.get(0);
+            for (Map.Entry<String, List<Boolean>> bound : allowed.entrySet()) {
+                for (int when = 0; when < 3; when++) {
+                    Object value = row.get(when + 1);
+                    assertEquals(
+                            bound.getValue().get(when),
+                            accepts(bound.getKey(), type, value, clock),
+                            bound.getKey() + " " + type.getSimpleName() + " " + value);
+                }
+            }
+        }
+
+        // A LocalDate is read against the date in the clock's zone, here a day ahead of UTC.
+        Clock tokyoEvening = Clock.fixed(Instant.parse("2026-06-04T20:00:00Z"), ZoneId.of("Asia/Tokyo"));
+        assertTrue(accepts("pastBound", LocalDate.class, LocalDate.of(2026, 6, 4), tokyoEvening));
+    }
+
+    @Test
+    @DisplayName(
+            "accepts gives Hibernate Validator's verdict for each date and time type, under a clock finer than a millisecond")
+    void acceptsGivesHibernateValidatorsVerdictUnderAClockFinerThanAMillisecond() throws Exception {
+        // Half a millisecond into a second, so that a value at the clock's millisecond is before its instant.
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00.000500Z"), ZoneId.of("Asia/Tokyo"));
+        Validator hibernate = Validation.byProvider(HibernateValidator.class)
+                .configure()
+                .clockProvider(() -> clock)
+                .messageInterpolator(new ParameterMessageInterpolator())
+                .buildValidatorFactory()
+                .getValidator();
+        Instant now = clock.instant();
+        Instant millisecond = now.truncatedTo(ChronoUnit.MILLIS);
+        LocalDate today = LocalDate.now(clock);
+        LocalDateTime localNow = LocalDateTime.now(clock);
+        OffsetDateTime offsetNow = OffsetDateTime.now(clock);
+        ZonedDateTime zonedNow = ZonedDateTime.now(clock);
+        // The clock's instant at another offset or zone too, which Hibernate Validator compares by local date-time.
+        Map<Class<?>, List<Object>> values = Map.of(
+                InstantBounds.class,
+                List.of(now.minusSeconds(1), millisecond, now, now.plusSeconds(1)),
+                LocalDateBounds.class,
+                List.of(today.minusDays(1), today, today.plusDays(1)),
+                LocalDateTimeBounds.class,
+                List.of(
+                        localNow.minusSeconds(1),
+                        localNow.truncatedTo(ChronoUnit.MILLIS),
+                        localNow,
+                        localNow.plusSeconds(1)),
+                OffsetDateTimeBounds.class,
+                List.of(
+                        offsetNow.minusSeconds(1),
+                        offsetNow.truncatedTo(ChronoUnit.MILLIS),
+                        offsetNow,
+                        offsetNow.withOffsetSameInstant(ZoneOffset.UTC),
+                        offsetNow.plusSeconds(1)),
+                ZonedDateTimeBounds.class,
+                List.of(
+                        zonedNow.minusSeconds(1),
+                        zonedNow.truncatedTo(ChronoUnit.MILLIS),
+                        zonedNow,
+                        zonedNow.withZoneSameInstant(ZoneOffset.UTC),
+                        zonedNow.plusSeconds(1)),
+                CalendarBounds.class,
+                List.of(calendarAt(now.minusSeconds(1)), calendarAt(millisecond), calendarAt(now.plusSeconds(1))),
+                DateBounds.class,
+                List.of(
+                        java.util.Date.from(now.minusSeconds(1)),
+                        java.util.Date.from(millisecond),
+                        java.util.Date.from(now.plusSeconds(1))),
+                SqlDateBounds.class,
+                List.of(
+                        new java.sql.Date(now.minusSeconds(1).toEpochMilli()),
+                        new java.sql.Date(millisecond.toEpochMilli()),
+                        new java.sql.Date(now.plusSeconds(1).toEpochMilli())),
+                TimestampBounds.class,
+                List.of(Timestamp.from(now.minusSeconds(1)), Timestamp.from(now), Timestamp.from(now.plusSeconds(1))));
+
+        for (Map.Entry<Class<?>, List<Object>> type : values.entrySet()) {
+            for (Field field : type.getKey().getDeclaredFields()) {
+                for (Object value : type.getValue()) {
+                    boolean valid = hibernate
+                            .validateValue(type.getKey(), field.getName(), value)
+                            .isEmpty();
+                    assertEquals(
+                            valid,
+                            BeanValidationSupport.accepts(field, field.getType(), value, clock),
+                            type.getKey().getSimpleName() + "." + field.getName() + " " + value);
+                }
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("accepts gives Hibernate Validator's verdict for a float or a double against each kind of bound")
+    void acceptsGivesHibernateValidatorsVerdictForAFloatOrADouble() throws Exception {
+        Validator hibernate = Validation.byProvider(HibernateValidator.class)
+                .configure()
+                .messageInterpolator(new ParameterMessageInterpolator())
+                .buildValidatorFactory()
+                .getValidator();
+        Clock clock = Clock.systemUTC();
+        // 0.1f is 0.10000000149011612 as a double, which @DecimalMax("0.1") rejects although it prints as 0.1.
+        // @Min and @Max convert their bound to the value's type, so 16777219 is 16777220f and 2^53 + 1 is 2^53.
+        // An infinity lies beyond every bound, and -0.0 is negative.
+        Map<Class<?>, List<Object>> values = Map.of(
+                FloatBounds.class,
+                List.of(
+                        0.1f,
+                        0.09f,
+                        0.11f,
+                        0.0f,
+                        -0.0f,
+                        -0.5f,
+                        1.0f,
+                        0.99999994f,
+                        1.0000001f,
+                        2.5f,
+                        Float.POSITIVE_INFINITY,
+                        Float.NEGATIVE_INFINITY),
+                DoubleBounds.class,
+                List.of(
+                        0.1,
+                        0.09,
+                        0.11,
+                        0.0,
+                        -0.0,
+                        -0.5,
+                        1.0,
+                        0.9999999999999999,
+                        1.0000000000000002,
+                        2.5,
+                        Double.POSITIVE_INFINITY,
+                        Double.NEGATIVE_INFINITY),
+                LargeFloatBounds.class,
+                List.of(16_777_216f, 16_777_218f, 16_777_220f, 16_777_222f),
+                LargeDoubleBounds.class,
+                List.of(9_007_199_254_740_992.0, 9_007_199_254_740_994.0));
+
+        for (Map.Entry<Class<?>, List<Object>> type : values.entrySet()) {
+            for (Field field : type.getKey().getDeclaredFields()) {
+                for (Object value : type.getValue()) {
+                    boolean valid = hibernate
+                            .validateValue(type.getKey(), field.getName(), value)
+                            .isEmpty();
+                    assertEquals(
+                            valid,
+                            BeanValidationSupport.accepts(field, field.getType(), value, clock),
+                            type.getKey().getSimpleName() + "." + field.getName() + " " + value);
+                }
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("accepts keeps a number within its bounds and a string to its text constraints, and @Null to none")
+    void acceptsKeepsANumberWithinItsBoundsAndAStringToItsTextConstraints() throws Exception {
+        Clock clock = Clock.systemUTC();
+        assertTrue(accepts("exactLong", long.class, 5L, clock));
+        assertFalse(accepts("exactLong", long.class, 4L, clock));
+        assertFalse(accepts("exactLong", long.class, 6L, clock));
+        assertTrue(accepts("boxedByte", Byte.class, (byte) 10, clock));
+        assertFalse(accepts("boxedByte", Byte.class, (byte) 11, clock));
+        assertTrue(accepts("boxedShort", Short.class, (short) 3, clock));
+        assertFalse(accepts("boxedShort", Short.class, (short) 2, clock));
+        assertTrue(accepts("exactDouble", Double.class, 2.0, clock));
+        assertFalse(accepts("exactDouble", Double.class, 2.5, clock));
+        assertTrue(accepts("positiveFloat", Float.class, 0.5f, clock));
+        assertFalse(accepts("positiveFloat", Float.class, 0.0f, clock));
+        assertFalse(accepts("exclusiveMin", BigDecimal.class, new BigDecimal("1.00"), clock));
+        assertTrue(accepts("exclusiveMin", BigDecimal.class, new BigDecimal("1.01"), clock));
+
+        // A string meets its text constraints, numeric ones among them.
+        assertTrue(accepts("numericText", String.class, "7", clock));
+        assertFalse(accepts("numericText", String.class, "8", clock));
+        assertFalse(accepts("numericText", String.class, "seven", clock));
+        assertTrue(accepts("sizedText", String.class, "abcd", clock));
+        assertFalse(accepts("sizedText", String.class, "abcde", clock));
+
+        // @Null takes no value, and a field with no constraint takes any.
+        assertFalse(accepts("nullOnly", String.class, "x", clock));
+        assertTrue(accepts("unconstrained", Object.class, "x", clock));
+    }
+
+    @Test
     @DisplayName("finds record component and interface accessor annotations")
     void recordAndInterfaceAccessorAnnotations() throws Exception {
         RecordComponent component = ComponentSample.class.getRecordComponents()[0];
@@ -224,6 +473,15 @@ class BeanValidationSupportTest {
         return BeanValidationSupport.constraintGeneratorFor(field(fieldName), rawType, new Random(1L));
     }
 
+    private static boolean accepts(String fieldName, Class<?> rawType, Object value, Clock clock)
+            throws NoSuchFieldException {
+        return BeanValidationSupport.accepts(field(fieldName), rawType, value, clock);
+    }
+
+    private static GregorianCalendar calendarAt(Instant instant) {
+        return GregorianCalendar.from(instant.atZone(ZoneId.of("Asia/Tokyo")));
+    }
+
     interface InterfaceSizedText {
 
         @Size(min = 4, max = 4) String getInterfaceSizedText();
@@ -232,6 +490,183 @@ class BeanValidationSupportTest {
     }
 
     record ComponentSample(@Size(min = 2, max = 2) String code) {}
+
+    static final class FloatBounds {
+
+        @jakarta.validation.constraints.DecimalMax("0.1") Float decimalMax;
+
+        @DecimalMin("0.1") Float decimalMin;
+
+        @jakarta.validation.constraints.DecimalMax(value = "0.1", inclusive = false) Float exclusiveMax;
+
+        @DecimalMin(value = "0.1", inclusive = false) Float exclusiveMin;
+
+        @Max(1) Float max;
+
+        @Min(1) Float min;
+
+        @Positive Float positive;
+
+        @jakarta.validation.constraints.PositiveOrZero Float positiveOrZero;
+
+        @jakarta.validation.constraints.Negative Float negative;
+
+        @jakarta.validation.constraints.NegativeOrZero Float negativeOrZero;
+    }
+
+    static final class DoubleBounds {
+
+        @jakarta.validation.constraints.DecimalMax("0.1") Double decimalMax;
+
+        @DecimalMin("0.1") Double decimalMin;
+
+        @jakarta.validation.constraints.DecimalMax(value = "0.1", inclusive = false) Double exclusiveMax;
+
+        @DecimalMin(value = "0.1", inclusive = false) Double exclusiveMin;
+
+        @Max(1) Double max;
+
+        @Min(1) Double min;
+
+        @Positive Double positive;
+
+        @jakarta.validation.constraints.PositiveOrZero Double positiveOrZero;
+
+        @jakarta.validation.constraints.Negative Double negative;
+
+        @jakarta.validation.constraints.NegativeOrZero Double negativeOrZero;
+    }
+
+    static final class LargeFloatBounds {
+
+        @Max(16_777_219) Float max;
+
+        @Min(16_777_219) Float min;
+    }
+
+    static final class LargeDoubleBounds {
+
+        @Max(9_007_199_254_740_993L) Double max;
+
+        @Min(9_007_199_254_740_993L) Double min;
+    }
+
+    static final class InstantBounds {
+
+        @Past Instant past;
+
+        @PastOrPresent Instant pastOrPresent;
+
+        @Future Instant future;
+
+        @FutureOrPresent Instant futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent Instant present;
+    }
+
+    static final class LocalDateBounds {
+
+        @Past LocalDate past;
+
+        @PastOrPresent LocalDate pastOrPresent;
+
+        @Future LocalDate future;
+
+        @FutureOrPresent LocalDate futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent LocalDate present;
+    }
+
+    static final class LocalDateTimeBounds {
+
+        @Past LocalDateTime past;
+
+        @PastOrPresent LocalDateTime pastOrPresent;
+
+        @Future LocalDateTime future;
+
+        @FutureOrPresent LocalDateTime futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent LocalDateTime present;
+    }
+
+    static final class OffsetDateTimeBounds {
+
+        @Past OffsetDateTime past;
+
+        @PastOrPresent OffsetDateTime pastOrPresent;
+
+        @Future OffsetDateTime future;
+
+        @FutureOrPresent OffsetDateTime futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent OffsetDateTime present;
+    }
+
+    static final class ZonedDateTimeBounds {
+
+        @Past ZonedDateTime past;
+
+        @PastOrPresent ZonedDateTime pastOrPresent;
+
+        @Future ZonedDateTime future;
+
+        @FutureOrPresent ZonedDateTime futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent ZonedDateTime present;
+    }
+
+    static final class CalendarBounds {
+
+        @Past Calendar past;
+
+        @PastOrPresent Calendar pastOrPresent;
+
+        @Future Calendar future;
+
+        @FutureOrPresent Calendar futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent Calendar present;
+    }
+
+    static final class DateBounds {
+
+        @Past java.util.Date past;
+
+        @PastOrPresent java.util.Date pastOrPresent;
+
+        @Future java.util.Date future;
+
+        @FutureOrPresent java.util.Date futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent java.util.Date present;
+    }
+
+    static final class SqlDateBounds {
+
+        @Past java.sql.Date past;
+
+        @PastOrPresent java.sql.Date pastOrPresent;
+
+        @Future java.sql.Date future;
+
+        @FutureOrPresent java.sql.Date futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent java.sql.Date present;
+    }
+
+    static final class TimestampBounds {
+
+        @Past Timestamp past;
+
+        @PastOrPresent Timestamp pastOrPresent;
+
+        @Future Timestamp future;
+
+        @FutureOrPresent Timestamp futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent Timestamp present;
+    }
 
     static final class Sample implements InterfaceSizedText {
 
@@ -322,6 +757,16 @@ class BeanValidationSupportTest {
         @Future MonthDay futureMonthDay;
 
         @Future Object futureUnsupported;
+
+        @Past Instant pastBound;
+
+        @PastOrPresent Instant pastOrPresentBound;
+
+        @Future Instant futureBound;
+
+        @FutureOrPresent Instant futureOrPresentBound;
+
+        @PastOrPresent @FutureOrPresent Instant presentBound;
 
         String interfaceSizedText;
 

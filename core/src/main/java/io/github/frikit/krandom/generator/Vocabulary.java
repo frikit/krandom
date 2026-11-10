@@ -9,6 +9,7 @@ import static io.github.frikit.krandom.generator.VocabularyValidators.array;
 import static io.github.frikit.krandom.generator.VocabularyValidators.bloodTypeDistribution;
 import static io.github.frikit.krandom.generator.VocabularyValidators.label;
 import static io.github.frikit.krandom.generator.VocabularyValidators.nullableEntries;
+import static io.github.frikit.krandom.generator.VocabularyValidators.postalPlaces;
 import static io.github.frikit.krandom.generator.VocabularyValidators.professionArrays;
 import static io.github.frikit.krandom.generator.VocabularyValidators.pronounSets;
 import static io.github.frikit.krandom.generator.VocabularyValidators.textValues;
@@ -39,6 +40,8 @@ import io.github.frikit.krandom.generator.location.CityDataProvider;
 import io.github.frikit.krandom.generator.location.CityDataRegistry;
 import io.github.frikit.krandom.generator.location.CountryDataProvider;
 import io.github.frikit.krandom.generator.location.CountryDataRegistry;
+import io.github.frikit.krandom.generator.location.PostalPlaceDataProvider;
+import io.github.frikit.krandom.generator.location.PostalPlaceDataRegistry;
 import io.github.frikit.krandom.generator.location.StateDataProvider;
 import io.github.frikit.krandom.generator.location.StateDataRegistry;
 import io.github.frikit.krandom.generator.location.StreetAddressDataProvider;
@@ -243,8 +246,23 @@ public final class Vocabulary<P extends LocaleDataProvider> {
             provider -> textValues("addressPurposes", provider.getAddressPurposes()));
 
     /**
-     * National identity-number formats. Unlike every other vocabulary, a registration also serves
-     * every locale of the same country, because identity numbers are national rather than linguistic.
+     * Postal places: cities, each with the region it lies in and postal codes that serve it, from
+     * which {@link io.github.frikit.krandom.generator.location.AddressInfoGenerator} draws addresses
+     * whose city, region and postal code agree. As for {@link #NATIONAL_ID}, a registration also serves
+     * every locale of the same country, because postal geography is national rather than linguistic.
+     */
+    public static final Vocabulary<PostalPlaceDataProvider> POSTAL_PLACE = new Vocabulary<>(
+            "postalPlace",
+            PostalPlaceDataProvider.class,
+            PostalPlaceDataRegistry::forLocale,
+            PostalPlaceDataRegistry::registeredKeys,
+            provider -> postalPlaces(provider.getPlaces()),
+            true,
+            true);
+
+    /**
+     * National identity-number formats. As for {@link #POSTAL_PLACE}, a registration also serves every
+     * locale of the same country, because identity numbers are national rather than linguistic.
      */
     public static final Vocabulary<NationalIdProvider> NATIONAL_ID = new Vocabulary<>(
             "nationalId",
@@ -519,6 +537,7 @@ public final class Vocabulary<P extends LocaleDataProvider> {
             STREET_ADDRESS,
             ADDRESS_TYPE,
             ADDRESS_PURPOSE,
+            POSTAL_PLACE,
             NATIONAL_ID,
             WEATHER,
             MEASUREMENT,

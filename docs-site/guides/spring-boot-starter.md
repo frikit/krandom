@@ -126,6 +126,12 @@ A named stream keeps every other setting and uses the child seed
 `GenerationRecipe.deriveChildSeed(seed, streamName)`, so the same name always reproduces the same
 sequence while different names are independent. An unseeded configuration ignores the name.
 
+Composite generators give each child generator its own stream by default (2.11+), as described in
+[composite child streams]({{ '/guides/primitives-and-determinism/' | relative_url }}#composite-child-streams).
+The starter has no property for that policy: to get the earlier child streams back, define your own
+`GeneratorConfig` bean with `childStreamPolicy(ChildStreamPolicy.LEGACY)`, or replay a `krandom.recipe`
+that records `setting.child-stream-policy=LEGACY`.
+
 ### Registering providers
 
 Register custom providers once, when the hub bean is created, with a `KrandomProviderCustomizer`
@@ -198,9 +204,23 @@ beans.
 
 ## Jackson version
 
-The starter itself does not depend on Jackson. The separate `krandom-jackson` module targets
-**Jackson 2.x** (`com.fasterxml.jackson`), while Spring Boot 4 defaults to Jackson 3
-(`tools.jackson`). `KrandomJacksonModule` is a Jackson 2 module, so Boot's auto-configured Jackson 3
-`JsonMapper` does not use it; serialize kRandom schemas with a Jackson 2 `ObjectMapper` such as
-`KrandomJackson.newObjectMapper()`. See
+The starter itself does not depend on Jackson. Spring Boot 4 defaults to **Jackson 3**
+(`tools.jackson`), and the separate `krandom-jackson` module is a Jackson 3 module too. When Spring
+Boot auto-configures Jackson (`spring-boot-jackson`), it builds a `JsonMapper` and registers every
+`JacksonModule` bean with it, so a `KrandomJacksonModule` bean makes Boot's mapper serialize kRandom
+schemas as JSON Schema:
+
+```java
+@Configuration(proxyBeanMethods = false)
+class KrandomJacksonConfiguration {
+
+    @Bean
+    KrandomJacksonModule krandomJacksonModule() {
+        return new KrandomJacksonModule();
+    }
+}
+```
+
+Outside Spring, `KrandomJackson.newJsonMapper()` builds such a mapper. kRandom 2.10.0 is the last
+release whose `krandom-jackson` targets Jackson 2. See
 [Jackson Integration]({{ '/guides/jackson-integration/' | relative_url }}).

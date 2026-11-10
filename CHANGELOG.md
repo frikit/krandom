@@ -6,6 +6,528 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `RegexGenerator` now supports `(?i)` and `(?-i)`, which hold to the end of the enclosing group, and
+  `(?i:X)` and `(?-i:X)`, which hold inside it. As in `java.util.regex` without `UNICODE_CASE`, only
+  ASCII letters match their other case, so a generated ASCII letter can take either case and every
+  other character keeps the one written: `(?i)ab` generates `ab`, `aB`, `Ab`, and `AB`, and `(?i)é` only
+  `é`. A negated class under `(?i)` leaves out both cases of each letter it names. Other inline flags
+  are still rejected, and the message now names them, as in `Unsupported inline flag s`.
+- `RegexGenerator` now supports `\p{Name}` and `\P{Name}`, inside and outside a class, for `Lower`,
+  `Upper`, `ASCII`, `Alpha`, `Digit`, `Alnum`, `Punct`, `Graph`, `Print`, `Blank`, `Space`, `XDigit`,
+  `L`, `Lu`, `Ll`, `N`, `Nd`, `IsAlphabetic`, `IsDigit`, and `IsLatin`, and the one-letter `\pL`, `\pN`,
+  `\PL`, and `\PN`. The ASCII ones draw from what they match, and the Unicode ones from a fixed sample of
+  ASCII, Latin-1, Greek, and Cyrillic letters and ASCII, Arabic-Indic, and Devanagari digits, listed in
+  the data-validity guide. `\P{Name}` draws from the printable ASCII characters outside the property.
+  Any other property, or another spelling of these such as `\p{IsLower}`, is rejected, and the message
+  now names it.
+- `RegexGenerator` now supports quoting with `\Q...\E`, read as `java.util.regex` reads it, so a
+  quantifier after `\E` repeats the last quoted character: `\Qab\E+` generates `ab`, `abb`, and so on.
+- The object engine now generates `java.util.Calendar` and `GregorianCalendar` members. They failed as
+  unsupported types, although `Generators.ofCalendar()` exists, and a `GregorianCalendar` with `@Past` or
+  another temporal constraint failed too. A member is a non-lenient `GregorianCalendar` with ISO week rules,
+  as from `ofCalendar()`, drawn as a `ZonedDateTime` member is: in a random zone, with `objectDateRange` on
+  its local date, and with the semantic windows of `createdAt`, `updatedAt`, and `birthDate`. The coherence
+  pass aligns it with its sibling and with `age`, as it does a `ZonedDateTime`. A calendar is drawn from the
+  `ZonedDateTime` generator and draws no seed of its own, so seeded output does not change for objects
+  without one.
+- `SchemaParser` supports `multipleOf` and `uniqueItems`, which it used to accept and ignore, so a
+  generated value could break them. Seeded output changes for every schema that uses either.
+  - `multipleOf` must be a number above 0. It generates exact multiples within the bounds, as decimals
+    with no binary rounding, so `multipleOf` 0.01 gives exact hundredths. An `integer` stays an
+    `Integer` or `Long` and takes the whole multiples, so `multipleOf` 2.5 gives multiples of 5. A
+    `number` with `multipleOf` now generates a `BigDecimal` rather than a `Double`. Bounds that hold no
+    multiple, such as `minimum` 1 and `maximum` 4 with `multipleOf` 5, are rejected with the schema
+    path, and a `const` or `enum` keeps only multiples. A missing bound defaults from the declared one,
+    as for any number, and where that default range holds no multiple, the open side reaches the
+    nearest one, so `minimum` 0.1 with `multipleOf` 1000000000 gives 1000000000. An `integer` multiple
+    must fit a `long`.
+  - `uniqueItems: true` gives arrays whose items are distinct JSON values, so `1` and `1.0` count as
+    one. While parsing, a search with a fixed seed looks for `maxItems` distinct items, drawing up to
+    100 for each. Items that cannot reach `minItems`, such as an `enum` of two values with `minItems` 3,
+    are rejected with the schema path, and where the search finds fewer than `maxItems`, an array holds
+    at most that many, so nested arrays of few values stay cheap. Each array then draws up to 100 items
+    for each item it holds, keeps the distinct ones found if they run out, and fails with the schema
+    path below `minItems`. A `const` or `enum` array with repeated items is rejected or dropped.
+  - A `multipleOf` that is not a number above 0, or a `uniqueItems` that is not a boolean, is rejected
+    with the schema path.
+- `Vocabulary.POSTAL_PLACE` holds a country's postal places: `PostalPlace` records of a city, the region
+  it lies in, the region's code, and postal codes that serve the city, from a `PostalPlaceDataProvider`.
+  `PostalPlaceDataRegistry` holds the bundled places, curated from openly licensed national data: for
+  `en_US`, 252 cities in all 50 states and DC with up to ten ZIP codes each, from U.S. Census Bureau
+  files (public domain); for `en_GB`, 111 cities in Great Britain with up to ten postcodes each, from OS
+  Open Names (Open Government Licence v3.0); for `de_DE`, 115 cities with the postal code of each city's
+  administrative seat, from the Destatis Gemeindeverzeichnis; and for `fr_FR`, 107 communes with up to
+  ten postal codes each, from La Poste and Insee (Licence Ouverte 2.0). The header of each table in
+  `krandom/postal_places/` records its sources, licence, retrieval date, and checksums, and how the rows
+  were chosen. As for `Vocabulary.NATIONAL_ID`, a registration serves every locale of its
+  country, and a locale whose country has no places resolves none rather than borrowing another
+  country's through its language. `LocaleDataBundle.Builder.postalPlaces(...)` registers places with a
+  bundle. `Vocabulary.all()` lists 42 vocabularies.
+- The object engine now generates a sealed interface or abstract sealed class, as a root or as a member, as
+  one of the concrete classes of its hierarchy, where it failed as an unsupported type. Each class is equally
+  likely, and the choice is drawn from the seeded stream in binary-name order rather than the order the type
+  permits them. The classes are each permitted subclass that is concrete, a record, or an enum, which gives
+  one of its constants, and the classes of each abstract sealed subclass, at any depth. A class already being
+  generated on the member's path is left out while another remains, so a recursive hierarchy such as an
+  expression tree ends in a leaf, and the chosen class counts as being generated as its own type, so a member
+  of that type inside it is cut as a cycle. A type override or `objectSubtype` mapping for the sealed type
+  wins, one for an abstract subclass makes that subclass a choice, and an abstract subclass with neither fails
+  generation as an unsupported type that names it, whatever the seed. A sealed root is generated from its seed
+  as a root of the chosen class would be, except that the chosen class counts as being generated, so its
+  members leave it out of their choices while another class remains. A concrete sealed class is still
+  generated as itself. A construction adapter can declare a type sealed and list its subclasses through the
+  new default method `ObjectConstructionAdapter.sealedSubclasses`. The choice draws only for sealed members,
+  so seeded output does not change for objects without one.
+- The Kotlin DSL generates Kotlin sealed classes and interfaces in the same way, reading their subclasses
+  from the Kotlin metadata whatever JVM target compiled them, and an `object` subclass gives its instance.
+- The Kotlin DSL generates `@JvmInline` value classes, where they failed with `Kotlin value classes are not
+  supported for object generation; register a type override`. A value class is generated as the value it
+  wraps and boxed through its primary constructor, so its `init` block runs. For a constructor parameter,
+  the wrapped value is generated under the parameter's name and with its constraints, or else with those
+  declared inside the value class, so `val email: EmailAddress` holds an email address. A value class over
+  a string, a number, a nullable value, another value class, or its type parameter, alone or inside a type
+  such as `List<T>`, with an argument that may be the owner's own type parameter, works as a constructor
+  parameter, nullable or not, as Kotlin's unsigned types do. A value class also works
+  as a collection element and, unless it is generic, as the generated type and as a `var` property set
+  after construction. A rule or
+  `ruleForType` for the value class supplies it, a rule may give the wrapped value instead, which is boxed,
+  and a `ruleForType<String>` reaches a `String` inside a value class. A value that the `init` block rejects
+  fails with the value class and the parameter named. A class whose primary constructor takes a value
+  class is built through that constructor, where the private and synthetic JVM constructors that Kotlin
+  compiles it to failed as ambiguous, unless it has a no-argument constructor, which still builds it before
+  its fields are filled.
+- `SchemaParser` generates `items` written as a list of schemas, one for each position, and
+  `additionalItems` beside it, which it used to accept and ignore, so such an array held strings. These
+  are the tuple forms of the drafts up to 2019-09, read whatever `$schema` says, and `prefixItems`, their
+  Draft 2020-12 replacement, is still rejected. Seeded output changes for every schema with a list of
+  `items` or with `items: false`.
+  - Each position follows its own schema, and the items after the tuple follow `additionalItems`, or
+    are strings without it. An array holds the whole tuple unless `minItems` or `maxItems` moves its
+    size, so `minItems` 0 allows shorter arrays.
+  - `additionalItems: false` ends an array with the tuple, a `false` entry ends it before that position,
+    and `items: false`, which used to give strings, allows only the empty array. A `minItems` past any of
+    them is rejected with the schema path, such as `$.properties.pair`, and a tuple entry is checked at
+    its own, such as `$.properties.pair.items[1]`.
+  - With `uniqueItems`, each item is drawn for the position it fills, so an array ends early at a
+    position that has no new value, and fails below `minItems`.
+  - A `const` or `enum` array must meet the tuple, `additionalItems`, and `items: false`.
+    `additionalItems` beside a single `items` schema is ignored, as those drafts say.
+  - An `items` that is not a schema, a boolean, or a list of them, such as `"string"`, and an
+    `additionalItems` beside a list that is not a schema or a boolean, are now rejected with the schema
+    path. They used to leave the items unconstrained.
+- `SchemaParser` supports `minProperties`, `maxProperties`, and property `dependencies`, which it used to
+  accept and ignore, and honours `required` and `additionalProperties`, which it read only as document
+  controls, so a generated object could break any of them. Seeded output changes only for a nested
+  object that these keywords now change, and for one with a property schema `true`.
+  - A nested object still holds every property it declares unless a keyword asks otherwise.
+    `maxProperties` leaves out optional properties, chosen at random, until the object fits, and
+    `minProperties` adds as few additional properties as it needs, named `property1`, `property2`, and
+    so on, past every name the schema uses, with values from the `additionalProperties` schema, or
+    strings without one. A `required` property that is not in `properties` is generated the same way,
+    and its name chooses a realistic value where it can. Where `additionalProperties` is `false`, none
+    can be added, so such a schema is rejected with its path.
+  - A property schema `true` now generates a string, as `{}` does, where the property used to be left
+    out, and `false` leaves the property out. A `required` property whose schema is `false`, or is no
+    schema, is rejected with the schema path.
+  - A property dependency, such as `"dependencies": {"card": ["billing"]}`, brings the properties it
+    names, through every link, beside the property that needs them. A property whose dependencies cannot
+    be generated, because they are not in `properties` and `additionalProperties` is `false`, is left
+    out, and rejected if it is required. `maxProperties` leaves out a property only after every property
+    that depends on it, and properties that depend on each other only together; where
+    `additionalProperties` is `false`, `minProperties` and `maxProperties` must then leave a range as wide
+    as each such group, or the schema is rejected.
+  - A schema dependency, which asks an object that holds one property to meet a second schema too,
+    needs schema composition, which the parser does not have, as for `allOf`. It is now rejected with its
+    schema path, such as `$.properties.order.dependencies.card`, where it used to be ignored.
+    `dependencies` is the form of the drafts up to 7, read whatever `$schema` says, and
+    `dependentRequired` and `dependentSchemas`, the Draft 2019-09 forms, are still rejected.
+  - The root generates every property as a column, so a root `required` name or property dependency that
+    names another property, or a `minProperties` or `maxProperties` that its properties do not meet, is
+    now rejected at `$`.
+  - A `const` or `enum` object must meet `required`, `additionalProperties`, `minProperties`,
+    `maxProperties`, and the property dependencies.
+  - A `minProperties` or `maxProperties` that is not a whole number of at least 0, a `required` that is
+    not a list of names, an `additionalProperties` that is not a schema or a boolean, and a
+    `dependencies` that does not map names to lists of names, are rejected with the schema path. An
+    `additionalProperties` schema is checked and resolved like any other, so a `$ref` inside it, or a
+    combination that leaves it no value, is now rejected.
+- `SchemaParser` generates every format Draft 2020-12 defines, and OpenAPI's `byte`, `int32`, `int64`,
+  `float`, and `double`. It used to fill the other string formats with semantic or random strings,
+  which a validator that checks formats rejects for some of them, such as `duration` and
+  `json-pointer`, and to ignore a format on a number. Seeded output changes for every schema that uses
+  one of them.
+  - `uri-reference`, `iri`, `iri-reference`, and `uri-template` come from the URL generator, as a URI
+    with no quote or brace is each of them, and `idn-hostname` from the hostname generator, as a
+    hostname is one.
+  - `duration` is RFC 3339 days, hours, minutes, and seconds, such as `P3DT4H5M6S`; `json-pointer` is
+    one to three segments of lowercase letters, such as `/abc/de`; `relative-json-pointer` puts a level
+    count before one; and `regex` is letters, which match themselves. They meet `minLength` and
+    `maxLength` as the other formats do.
+  - `byte` is base64. `int32` and `int64` name integers, so a `number` with either is now generated as
+    an `integer`, where it used to get fractions. `int32` keeps it within an `int`, so bounds that hold
+    no `int` are rejected with the schema path, and `float` and `double` keep a `number` within their
+    range, applied after the default range, so a `float` without bounds keeps it.
+  - `binary` and `password` allow any string, and no standard validator checks any other format, so
+    they keep the semantic-name or bounded-string fallback.
+
+### Changed
+
+- Composite generators now give each child generator its own stream by default, under
+  `ChildStreamPolicy.INDEPENDENT`, which was an opt-in since 2.6.0. With a numeric or textual seed, a
+  child's seed is derived from the parent seed and the child's name, so siblings no longer start in the
+  same state: the payment, invoice, and order numbers of a `PaymentInfo` seeded with `42` were
+  `PAY-359D41BAF78A`, `INV-359D41BAF78A`, and `ORD-359D41BAF78A`, and are now `PAY-7DC1F9C37F29`,
+  `INV-F852387C7D39`, and `ORD-B9D4F25FCB19`. Seeded output changes for every generator with children,
+  such as `FullNameGenerator`, `MiddleNameGenerator`, `EmailGenerator`, `UsernameGenerator`,
+  `WordGenerator`, `SentenceGenerator`, `URLGenerator`, `HostnameGenerator`, `OffsetDateTimeGenerator`,
+  `PersonInfoGenerator`, and `PaymentInfoGenerator`, and for the values built on them, such as
+  `Krandom.fullName()`, `middleName()`, and `email()`, object members such as `fullName`, `email`,
+  `username`, and `streetAddress`, and schema columns such as `person.full_name` and `person.email`. The
+  Spring starter, the JUnit and Kotest extensions, and the Kotlin DSL take the new default.
+  `ChildStreamPolicy.LEGACY` restores the earlier output draw for draw, so the network values of
+  releases before 2.10.0 now take it together with `NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED`.
+  `INDEPENDENT` no longer requires a seed: an unseeded configuration has nothing to derive from, so
+  `forChildStream` returns it unchanged and each child draws from its own fresh `Random` or
+  `SecureRandom`, as before. A caller-owned `Random` is still shared by every child, and a random
+  factory is still called once for each child. Under `INDEPENDENT`, `forChildStream` rejects a blank
+  or multi-line stream name with or without a seed, which the earlier default accepted.
+- A recipe now records the child-stream policy in the setting `child-stream-policy`, whichever policy it
+  is, and replay requires it, so a recipe without it, such as one written under the earlier `LEGACY`
+  default, is rejected rather than replayed with independent streams.
+- `krandom-jackson` now requires Jackson 3 (`tools.jackson`), the Jackson that Spring Boot 4
+  auto-configures by default, instead of Jackson 2 (`com.fasterxml.jackson`): it depends on
+  `tools.jackson.core:jackson-databind` 3.2.4, which brings the 2.x `jackson-annotations` that
+  Jackson 3 uses. `KrandomJacksonModule` is a Jackson 3 module and cannot be registered with a
+  Jackson 2 `ObjectMapper`, so Jackson 2 users stay on 2.10.0 or register a serializer of their own
+  that writes `Schema.toJsonSchema()`. Jackson 3 mappers are immutable, so
+  `KrandomJackson.configure(ObjectMapper)` is replaced by `configure(builder)`, which adds the module
+  to a mapper builder such as `JsonMapper.builder()` and returns that builder, and `newObjectMapper()`
+  by `newJsonMapper()`, which returns a `JsonMapper`. In Spring Boot 4, a `KrandomJacksonModule` bean
+  is registered with the auto-configured `JsonMapper`.
+- `KrandomJackson.newJsonMapper()` keeps Jackson 3's defaults, so serialized rows differ from those
+  of `newObjectMapper()`. `java.time` values, such as the `orderedOn` date of `commerce.order_info`,
+  are written as ISO-8601 text, where Jackson 2 rejected them and failed the whole row. A
+  `java.util.Date` is ISO-8601 text instead of epoch milliseconds, and a class's properties are in
+  alphabetical order, while a record keeps the order of its components.
+- `RegexGenerator` now rejects at construction a pattern whose values could be longer than 1,000,000
+  characters, or take more than 10,000,000 steps to generate, naming the pattern and the limit.
+  Nested repetition such as `((a{10000}){10000}){10000}` used to run out of memory while generating,
+  and `(((){10000}){10000}){10000}` to loop for hours. The limits apply to the repetition a
+  configuration gives `*`, `+`, and `{n,}`, so under a minimum string length of 4,000, `(a*)*` and
+  `(\w+ )+`, which generated values of millions of characters, are now rejected. The limits are fixed,
+  with no setting to raise them. A JSON Schema `pattern` over them is rejected with its schema path, and
+  a `@Pattern` over them is no longer a source. Each value is now built in a single buffer, and seeded
+  output does not change for any pattern that was supported and stays within the limits.
+- A `@Pattern` or `@Email(regexp = ...)` that uses `(?i)`, `\p{...}`, or `\Q...\E` is now a source of
+  values. It used to be only checked against the values of another source, such as a `@Size` string,
+  or to fail where there was none. Seeded output changes for such fields. A JSON Schema `pattern` with
+  these constructs used to be rejected and is now accepted.
+- `CountryGenerator` now has a calling code, a continent, and a time zone for each of the 249 ISO 3166-1
+  countries, not 45. They come from three tables bundled beside the ISO 3166-1 table,
+  `krandom/country_codes/calling_codes.txt`, `continents.txt`, and `time_zones.txt`, whose headers
+  record the source, licence, retrieval date, and checksum, and the rules for countries a source does
+  not cover: E.164 calling codes from libphonenumber 9.0.42, continents from the UN M49 regions as
+  Unicode CLDR 49 publishes them, with the Americas divided into North America and South America, and
+  time zones from `zone.tab` in the 2026f tz database, taking the zone of the seat of government for a
+  country with several.
+  `currentCallingCode()`, `currentContinent()`, and `currentTimezone()` now answer for any locale whose
+  country is an ISO 3166-1 country, such as `en_NG` (`+234`, `Africa`, `Africa/Lagos`) or `de_LI`
+  (`+423`, `Europe`, `Europe/Vaduz`), where they threw `UnsupportedOperationException`.
+- `CountryGenerator.generateCallingCode()`, `generateContinent()`, and `generateTimezone()` draw from
+  all 249 countries, picking the country that `generateCode()` picks for the same seed, so their seeded
+  output changes: with seed `42` the first calling codes were `+64`, `+49`, and `+966` and are now
+  `+378`, `+690`, and `+672`. A calling code that several countries share, such as `+1`, now comes up
+  more often, and `Antarctica` is a new continent. The values of the 45 earlier countries are
+  unchanged except Argentina's time zone, which is now `America/Argentina/Buenos_Aires`, the name
+  `zone.tab` lists, instead of `America/Buenos_Aires`, an older name that the tz database keeps only
+  as a link; `es_AR` and other `AR` locales get the new name. `PhoneNumberGenerator` takes its calling
+  codes from the same table, and its output is unchanged.
+- `KrandomExtension` now gives a `@MethodSource` factory the class-scoped configuration of its test
+  class, the one `@BeforeAll` receives: from the class-level `@KrandomSeed`, a replay override, a class
+  recipe, or a random seed. A method-level `@KrandomSeed` on a `@ParameterizedTest` pinned its factory
+  too and now pins only its invocations, so pin the class to fix the generated arguments. A `Krandom`
+  factory parameter is a session of the parameterized test's own, built from that configuration, so it
+  starts the class-level streams again. The `@BeforeParameterizedClassInvocation` and
+  `@AfterParameterizedClassInvocation` methods of a `@ParameterizedClass` invocation also take the
+  class-scoped configuration, with a session of the invocation's own, where an unpinned invocation had
+  a random seed of its own. Seeded output changes for factories under a method-level pin.
+- A collection, array, or map with `@Size` or `@NotEmpty` now takes its size from `collectionSize` within
+  the declared bounds, or from the declared bound nearest it where the two do not overlap. The declared
+  bounds alone used to set the size, so `@NotEmpty List<String>` had 1 to 255 elements whatever
+  `collectionSize` said, and `@Size(max = 100)` 0 to 100. Under the default `collectionSize(1, 10)` they
+  now have 1 to 10, `@Size(min = 20)` has 20, and `@Size(max = 2)` with `collectionSize(4, 6)` has 2. With
+  no declared maximum, the size is no longer cut at 255, so `@NotEmpty` with `collectionSize(300, 400)` has
+  300 to 400 elements. A string's length still follows its declared size alone. Seeded output changes for
+  these members.
+- A `Calendar` generated for `@Past`, `@Future`, or another temporal constraint is now a non-lenient
+  `GregorianCalendar` with ISO week rules in the configured clock's zone, as other `Calendar` members are. It
+  came from `Calendar.getInstance` in that zone, so it was lenient and its week rules, and its calendar system,
+  came from the JVM's default locale: a `BuddhistCalendar` under `th_TH`, for example. Its instant is the same.
+- `Generators.ofUniversity`, `UniversityGenerator`, and `Generators.person(config).university()` now name the
+  data-pack route when they refuse a configuration. kRandom still ships no university data, because no
+  university dataset it could bundle has an acceptable source and licence, so they refuse in every locale
+  until a pack is registered. The message said only that the locale had no local university data pack, and
+  now reads `Locale en_US has no university data, and kRandom ships none. Load a local data pack with
+  LocalDataPack.load(directory), register it with DataRegistryContext.builder().registerDataPack(pack), and
+  pass that context to GeneratorConfig.Builder.registryContext(context). Registered locales: []`.
+- `AddressInfoGenerator`, `StreetAddressGenerator.generateFullAddress()`, and the object engine's `city`,
+  `state`, and `postalCode` members take an address's city, state, and postal code from one postal place
+  where the locale's country has places, so the three agree. They were drawn independently: with seed
+  `42`, `AddressInfoGenerator` for `Locale.US` gave `8680 Lakeview Holw, Grand Rapids, AL 02649, United
+  States` and now gives `8680 Lakeview Holw, Fontana, CA 92335, United States`; for `Locale.GERMANY`,
+  `Oldenburg, Rheinland-Pfalz 52881` became `Mönchengladbach, Nordrhein-Westfalen 41061`. Seeded output
+  changes for the locales of the United States, the United Kingdom, Germany, and France, such as `en_US`,
+  `es_US`, `en_GB`, `de_DE`, `en_DE`, and `fr_FR`, and for `Locale.ENGLISH`, `Locale.GERMAN`, and
+  `Locale.FRENCH`, and for the payloads built on these addresses: `PersonInfo`, `CompanyInfo`,
+  `OrderInfo`, `ShipmentInfo`, `InvoiceInfo`, `PaymentInfo`, `SimpleProfile`, and `UserProfile`. In
+  every other locale `AddressInfo` keeps its independent draws and its seeded output, apart from the
+  `en_US` city that became `Gary` (see Fixed); the locale-aware data guide lists which locales have
+  places, and the limits of each table.
+  `ChildStreamPolicy.LEGACY` does not bring the earlier addresses back. Bundled places take precedence
+  over cities or states registered for the same locale without places, which still serve
+  `CityGenerator` and `StateGenerator`.
+- A locale without a country gives `AddressInfo` the country of the postal places its language resolves
+  instead of a random country name and an unrelated random code: `Locale.ENGLISH` gives `United States`
+  and `US`, where with seed `42` it gave `United Kingdom` and `GL`, and `Locale.GERMAN` gives
+  `Deutschland` and `DE` rather than `Uruguay` and `GL`.
+- `StreetAddressGenerator.generateFullAddress()` ends with the locale's country rather than a random
+  one, in every locale: with seed `42`, `en_US` gave `7389 River Park, Kansas City, NY 02649, United
+  Kingdom` and now gives `7389 River Park, Renton, WA 98056, United States`, and `en_CA` now ends with
+  `Canada` instead of `United Kingdom`. Its places come from a child stream named `postalPlace`. In a
+  locale without places the rest of a full address keeps its seeded output, but the country no longer
+  takes a draw, so with a caller-owned `Random`, which every child shares, the values drawn after a
+  full address change too. The addresses of `SimpleProfile` and `UserProfile` follow.
+- Update the build and test tooling, with no change for consumers: Error Prone to 2.52.0 and its Gradle
+  plugin to 5.2.0, Spotless to 8.11.0, PIT to 1.30.2, Hibernate Validator to 9.1.6.Final, the Instancio
+  benchmark competitor to 6.2.1, and in the CI and release workflows `actions/setup-java` to 6.2.0,
+  `coursier/setup-action` to 3.1.0, and `softprops/action-gh-release` to 3.0.4.
+- An `objectSubtype` mapping now applies to an interface or abstract root as well as to a member:
+  `new ObjectGenerator<>(PaymentMethod.class, config)` generates the mapped implementation, where it failed
+  as an unsupported root type. A concrete root is still generated as itself.
+- In the Kotlin DSL, an abstract class or interface that is not sealed now fails as `Kotlin abstract type
+  <name> requires a concrete type override`, and a sealed one with no subclass as `Sealed type <name> has
+  no subclass to generate; register a type override for it`. Both failed as `Kotlin sealed and abstract
+  types require a concrete type override`.
+- JSON Schema export writes a `LocalDateTime` record member as `format: date-time-local`, and a
+  `LocalTime` member and the `datetime.time` provider as `format: time-local`, where it wrote `date-time`
+  and `time`. RFC 3339's `date-time` and `time` need an offset, which these values do not have, so a
+  schema exported from such a type and parsed back, which now generates RFC 3339 values with an offset,
+  gave values the type cannot hold. Both formats come from the
+  [OpenAPI Format Registry](https://spec.openapis.org/registry/format/), which describes them as
+  RFC 3339 date-time and time without the timezone component. `SchemaParser` now generates both in ISO
+  local form, with the seconds, from the ranges of `date-time` and `time`. An `OffsetDateTime` or
+  `ZonedDateTime` member is still `date-time`.
+
+### Removed
+
+- Breaking: `krandom-kotlin-dsl` and `krandom-kotest-extensions` now compile in Kotlin's explicit API mode,
+  and the declarations that were public only by Kotlin's default, without being meant as API, are no longer
+  public. `KotlinPrimaryConstructorAdapter`, the construction adapter that `ServiceLoader` finds, is
+  `internal`. The constructors of `KrandomBuilder` and `ConfigScope` are internal, so a builder comes only
+  from `krandom`, `krandomList`, and `krandomGenerator`, and a `ConfigScope` only from `config { }` and
+  `krandomConfig`. `KrandomBuilder`'s empty companion object is private. Every other public declaration of
+  both modules keeps its signature, now with its visibility stated.
+
+### Fixed
+
+- In `ObjectGenerationSemanticMode.RELAXED` and `ObjectGenerationSemanticMode.STRICT`, a `price` above an `amount`
+  that the coherence pass lowered to a `balance` now follows the amount down, where its own constraints allow
+  that. With a `price` of 80, an `amount` of 90, and a `balance` of 60 that `@Max(60)` or an override holds, the
+  amount came down to 60 and the price stayed at 80, above it. A price that cannot follow, such as one with
+  `@Min(70)`, keeps its value. Seeded output changes only for objects in which the price ended above the amount.
+- In `ObjectGenerationSemanticMode.RELAXED` and `ObjectGenerationSemanticMode.STRICT`, the coherence pass no
+  longer breaks `price <= amount <= balance` when it rounds a value into a field. A value that moves down to a
+  sibling is now rounded down, and one that moves up is rounded up: to whole units in an integer field, where half
+  up had turned an `int` price that followed an amount of 59.60 into 60, and to cents in any other, where a price
+  that followed a `@Max(100)` amount of 59.6064 had become 59.61. Money is read exactly, and a `float` or a
+  `double` as it prints, stepped to the next value down or up where the nearest one prints on the wrong side. A
+  field whose type cannot hold the value keeps its own: a `byte` beside a price of 300 no longer wraps to 44, and
+  a `float` beside 1E40 no longer turns infinite. A money string keeps every digit of its own amount when it
+  takes the currency code. A `float` or a `double` money value that is infinite or NaN, as an override can give,
+  now counts as no amount rather than fail generation with a `NumberFormatException`. Seeded with `42`, of 2,000 objects each, an `int` price beside an amount and a
+  `@PositiveOrZero @Max(60)` balance broke the order in 1,466, an `int` price beside a `@PositiveOrZero @Max(100)`
+  amount in 985 in `RELAXED` and 982 in `STRICT`, and a `BigDecimal` price beside that amount in 1,015 and 1,010,
+  and now none does. Seeded output changes for objects with an integer money field or an amount of more than two
+  decimals.
+- In `ObjectGenerationSemanticMode.RELAXED`, the coherence pass now leaves a `@Fake` field alone, as it does a
+  `@Randomizer` or `@FakeRange` field, and as the object-generation guide and the `@Fake` documentation say:
+  `@Fake` takes precedence over field-name semantics, as it already did when the value was generated. Seeded
+  with `42`, a `@Fake("fullName")` `fullName` beside `firstName` and `lastName` was overwritten with those
+  names in 2,000 of 2,000 objects, and now keeps the name its provider gives. Seeded output changes for such
+  objects. In `ObjectGenerationSemanticMode.STRICT` the pass still overwrites a `@Fake` field, as semantics
+  win there.
+- In `ObjectGenerationSemanticMode.STRICT`, the coherence pass no longer writes a derived string, amount,
+  status, or active flag that breaks the field's own Bean Validation constraints, as it already did not for
+  dates and ages. Seeded with `42` under a clock fixed at `2026-06-04T12:00Z`, of 2,000 objects each, it broke
+  `@Size(max = 12)` on an `email` in 2,000, `@Size(min = 3, max = 3)` on a `fullName` in 2,000, `@Size(max = 10)`
+  on a `url` in 2,000, `@Size(max = 5)` on a `city` in 1,849, `@Size(max = 6)` on a `status` in 280,
+  `@PositiveOrZero @Max(100)` on an `amount` beside a `price` in 1,985, and `@AssertTrue` on an `active` flag
+  beside a `status` held at `SUSPENDED` in 2,000, and now breaks none. Where a derived value would break a
+  constraint, the field keeps its generated value, which meets it, and a sibling that depends on it follows it
+  where it can: a `price` moves down to a bounded `amount`, an `amount` down to a capped `balance`, and `active`
+  follows a `status` that cannot take `INACTIVE`. A unique field's numbered value must meet the constraints too,
+  and one they reject is given back, so that it uses up no attempt. A `float` or a `double` is compared with each
+  bound as Hibernate Validator compares it: with `@Min` and `@Max` in its own type, so that `16777220f` meets
+  `@Max(16777219)`, and with `@DecimalMin` and `@DecimalMax` as the double it is, so that `0.1f` breaks
+  `@DecimalMax("0.1")`. A derived value within the constraints is still written, so seeded output changes only
+  for objects that broke one.
+- `KRANDOM_JUNIT_CLASS_RECIPE` now replays what a `@MethodSource` factory generated. JUnit calls the
+  factory with the context of the parameterized test as a whole, which `KrandomExtension` reported as a
+  second class-scoped configuration under the test class's name. Beside a `@BeforeAll` entry, the
+  printed replay command then failed with a configuration error for the duplicate entry; otherwise the
+  factory took the test's recipe on replay, so the arguments of the failing invocation changed. The
+  callbacks of a `@ParameterizedClass` invocation had the same fault. Each test class now reports one
+  class-scoped configuration, and the replay commands restore it.
+- In `STRICT` mode the coherence pass no longer moves a `createdAt`, `updatedAt`, `birthDate`, or `age` out of
+  its own Bean Validation constraints, which `RELAXED` mode leaves alone. Seeded with `42` under a clock fixed at
+  `2026-06-04T12:00Z`, it gave a `@Past` `updatedAt` a `createdAt` past the clock in 974 of 2,000 objects on a
+  one-day `objectDateRange`, gave it the value of a `@Future` `createdAt` in all 2,000, and overwrote
+  `@Min(30) @Max(40) age` with the age its `birthDate` gives in 1,709, and now does so in none. A field that a
+  move would take out of its constraints cannot move, as an overridden one cannot: its sibling follows it, even
+  out of `objectDateRange`, so `createdAt` moves back to a `@Past` `updatedAt`, and `birthDate` to a bounded
+  `age`. Where the sibling's own constraints stop it too, both keep their values, as in `RELAXED` mode, so a
+  `@Future` `createdAt` stays after a `@Past` `updatedAt`. A date or time is read against the configured clock
+  as Hibernate Validator reads it. A move within the constraints still happens, so seeded output changes only for
+  objects that broke one. The pass still overwrites the constraints of the strings, amounts, and statuses it
+  derives in `STRICT` mode, such as `@Size(max = 12)` on an `email`. The `STRICT` documentation now says that
+  Bean Validation constraints take precedence when a value is generated, as they always have.
+- An `age` that no `birthDate` of its type can hold, such as an overridden or constrained age of 2,147,483,647,
+  or one of 500,000,000 beside a `Calendar`, `Date`, `java.sql.Date`, or `Timestamp`, which count milliseconds,
+  now leaves `birthDate` as it is. Deriving the birth date failed generation with a `DateTimeException` or an
+  `IllegalArgumentException`, or gave a `java.sql.Date` and, on JDK 21, a `Timestamp` a value that had wrapped
+  round to a year millions of years ahead, which a `@Future` one then took in `STRICT` mode. A `java.sql.Date`
+  also keeps its value where the age gives a year before 1, whose era `valueOf` drops, or a day that the JVM's
+  zone or the 1582 change of calendar skipped, which `valueOf` moves: it took a date that read back as another,
+  or, for `0000-02-29`, as none.
+- A `birthDate` derived from a negative `age` under a clock on 29 February now gives that age. A year ahead it
+  was 28 February, which gives one year less, and it is now 1 March. A positive age is unchanged.
+- `age` now counts the years since the local date of an `OffsetDateTime`, `ZonedDateTime` or `Calendar`
+  `birthDate`, in its own offset or zone, which is the date its generator draws and `objectDateRange` bounds.
+  It counted from the UTC date, which is a day off near midnight far from UTC, so around a birthday the age was
+  a year off: `2000-06-05T00:30+14:00` gave 26 on `2026-06-04`, the day before the 26th birthday, and now gives
+  25. Seeded with `42` under a clock fixed at `2026-11-05T12:00Z`, 142 `OffsetDateTime`, 115 `ZonedDateTime` and
+  95 `Calendar` birth dates in 200,000 of each had such an age, and none do now. Seeded output changes only for
+  those objects.
+- `new CalendarGenerator(min, max)` and `Generators.ofCalendar(min, max)`, with or without a configuration, no
+  longer pass the last date of the range when a gap in the drawn zone's rules moves a value forward, as
+  `new ZonedDateTimeGenerator(min, max)` and `Calendar` members already did not. `Pacific/Apia` and
+  `Pacific/Fakaofo` skipped `2011-12-30`, so a one-day range on that date gave `2011-12-31` about once in 300
+  draws, and a daylight saving gap in `America/Nuuk` moved 23:30 on `2024-03-30` to 00:30 on `2024-03-31`. Such
+  a value is now the drawn date-time at UTC. Seeded output changes only for values that drew such a date-time.
+- `@NotEmpty` and `@Size` on an array of a type they cannot constrain no longer fail generation at every
+  depth, as `@NotEmpty Leaf[]`, `@Size(max = 4) byte[]` and `@NotEmpty int[]` did. Java places an
+  annotation written before an array type on the array's component type as well as on the declaration,
+  and the engine applied it to each element too. Hibernate Validator reads such a constraint for the
+  array alone, and now so does the engine: an array's component type adds no constraints to its
+  elements. So `@Size(min = 6, max = 6) String[] codes` holds six strings of the configured length,
+  where each used to have six characters. A constraint on a type argument inside the component, as in
+  `List<@Email String>[]`, still applies. Seeded output changes for such arrays.
+- A `Queue<Leaf>` cut at `objectMaxDepth` no longer fails with a raw `NullPointerException`, reported at
+  its parent's path as `Could not generate nested value at 'Top.mid'` with `REFLECTION` context. A queue
+  cannot hold the `null` left for a cut nested object, so it now fails as any collection that rejects an
+  element does: strict mode reports `COLLECTION_INSERTION` context at the queue's own path, such as
+  `Top.mid.queue`, and `objectIgnoreErrors(true)` discards the whole queue and tells
+  `generationFailureListener`. The same holds for a `Deque`, a `PriorityQueue`, and a `TreeSet`,
+  `SortedSet` or `NavigableSet` of `Comparable` elements, and for an element cut by a cycle. A concrete
+  queue, such as `ArrayDeque<Leaf>`, used to drop the `null` elements and could come back empty, and now
+  fails the same way. A `LinkedList` is a list, and still holds them.
+- A Bean Validation constraint on a field now applies to the constructor argument that fills it. An
+  argument read only the constraints on its parameter, so `@Size(min = 3, max = 3) private final String
+  code` filled through an unannotated `Account(String code)` got any string, and `@NotNull` on such a final
+  field did not fail at `objectMaxDepth`. An argument now meets the constraints of the field it
+  initializes, the nearest field with the parameter's name and declared type, and of that field's getter,
+  wherever the parameter declares none of the same type, and the field's container-element constraints,
+  such as `List<@Email String>`, wherever the parameter's type arguments declare none. As for by-name
+  overrides, this needs parameter names, from `-parameters`. A mutable field that keeps the value its
+  constructor set, as it does by default, now keeps a constrained one too. Record components already read
+  their constraints. Seeded output changes for such arguments, and for the members after them where members
+  share one stream.
+- `SchemaParser` reads `minLength`, `maxLength`, `minItems`, `maxItems`, `minProperties`, and
+  `maxProperties` exactly. It read the first four through `intValue`, so a count beyond an `int`
+  wrapped: `maxItems` 3000000000 parsed and then failed every record with `Illegal Capacity:
+  -1294967296`, a `minLength` that large was ignored, and a `const` was measured against the wrapped
+  value. A generated string, array, or object now holds at most 1,000,000 characters, items, or
+  members, the limit `RegexGenerator` keeps for a string: a minimum above it is rejected while parsing,
+  naming the keyword, its value, and the schema path, and a larger maximum, even one beyond an `int`,
+  draws no more than it, nor does a larger configured `stringLength` or `collectionSize` where the
+  schema declares no maximum. An object that would hold more properties, declared or required, is
+  rejected with its path, the root included. A count that is negative, fractional, or no number, which
+  used to be truncated or ignored, is now rejected with the schema path, and a message writes a count
+  beyond a `long`, such as `1E+1000000000`, in scientific notation. Seeded output changes only where a
+  count or a configured size is above 1,000,000.
+- `SchemaParser` writes `format: date-time` and `format: time` as RFC 3339 requires, with the seconds and
+  an offset, such as `2041-07-03T05:12:44+05:30` and `05:12:44.123456789Z`. They came from
+  `LocalDateTime` and `LocalTime`, whose text has no offset and can leave out `:00` seconds, so every
+  value failed a validator that checks formats. Seeded output changes for every schema with either
+  format.
+- `SchemaParser` compares `const` and `enum` values as JSON values at every depth: a number by its
+  value, whatever Java type holds it, an array item by item in order, and an object member by member
+  under the name it is written with, which `properties` now also use, so the key `1` is the member
+  `"1"`. Numbers inside objects and arrays were compared by their Java type, so a `const` of `{"id": 1}`
+  beside the `enum` `[{"id": 1.0}]` was rejected as missing from it. It is accepted again, as in 2.9.0,
+  and generates `{"id": 1}`. A value written as a string, such as a `LocalDate`, now matches its text.
+  A `const` or `enum` that holds a `NaN` or infinity at any depth, or an object with two keys written
+  under one name, such as `1` and `"1"`, is now rejected while parsing with the schema path. An `enum`
+  member that the declared type left out was dropped unchecked, so `type: string` with the `enum`
+  `["a", NaN]` was accepted. Seeded output changes only for an `enum` that now keeps a member it used to
+  drop.
+- An `@Email` field now takes a value from its `regexp` or a `@Pattern` only in the shape Hibernate
+  Validator's `@Email` accepts for a dot-atom address: a local part of at most 64 characters with a dot
+  only between two others, and a domain whose labels have a dash only inside them, at most 63
+  characters a label and 255 in all once converted to ASCII. `a..b@example.com`, `a@example-.com` and
+  `a@example.com.` used to be generated and failed validation. Such a candidate is now drawn again, and
+  the field fails as any exhausted search does if none fits. As in Hibernate Validator, the domain no
+  longer needs a dot, so `user@localhost` from a `@Pattern` is accepted. A quoted local part or an
+  address literal such as `a@[192.0.2.1]`, which Hibernate Validator also accepts, is now refused.
+  Seeded output is unchanged for the built-in `@Email` sources and changes only for a `@Pattern` or
+  `@Email(regexp)` whose candidates the two shapes judge differently. Every address the generators
+  build on their own already passed Hibernate Validator's `@Email`, in every supported locale and under
+  each email-domain and network-safety policy, `.test` addresses included; a sweep of every route to
+  one now checks it, and generated email output is unchanged.
+- The `en_US` cities listed Gateshead, a town in England. Gary, Indiana, takes its place in the list, so
+  a city drawn from that list as `Gateshead` for a seed is now `Gary`, and no other city moves. The list
+  also serves `en_CA`, `en_IN`, and other English locales that fall back to it, such as `en_SG`, so
+  their cities, and the addresses and payloads built on them, change in the same way: with seed `158`,
+  an `en_CA` `AddressInfo` city was `Gateshead` and is now `Gary`.
+- The implementation of an `objectSubtype` mapping for a generic member now takes the member's type
+  arguments. With `objectSubtype(Box.class, ListBox.class)` and `record ListBox<T>(List<T> items) implements
+  Box<T>`, a `Box<Integer>` member holds integers, where the unbound `T` failed as an unsupported type. The
+  arguments reach the implementation through any generic supertypes in between, and are passed as declared,
+  not checked. A type variable that has a bound took the bound instead, so a member whose bound the engine
+  could generate changes too: with `record DateBox<D extends Date>(D value) implements Box<D>`, a
+  `Box<Timestamp>` member now holds a `Timestamp`, where it held a plain `Date`, and its seeded output
+  changes.
+- A generic nested object reached through two or more inherited type variables now takes its type arguments.
+  With `class Middle<V> extends Fixture<V>` and `class Root extends Middle<Box<String>>`, a `T value` field
+  of `Fixture` is a `Box<String>` whose `C content` holds a `String`, where the engine read the arguments
+  from `V` alone and the unbound `C` failed as an unsupported type. The same holds for a mapped or sealed
+  subclass reached that way, and for a collection or map: with `class ListRoot extends Middle<List<String>>`,
+  the same field is a `List<String>`, where it failed as an unsupported type. As for a mapping above, a bounded type variable took its bound, so such an
+  object whose bound the engine could generate changes too. Such a member now also shares the cycle key of a
+  member declared with its type, so a cycle through it is cut where one through that member is, and a
+  recursive object reached that way can change.
+- A recursive generic object, such as `class Node<T> { T value; Node<T> next; }` reached as `Node<String>`,
+  no longer fails as an unsupported type. The cycle guard read `next` as `Node<T>`, another type than
+  `Node<String>`, so the engine generated `next` and lost `T` inside it. The guard now reads what a type
+  resolves to, as `ObjectPool` documents, so `next` is cut where it repeats `Node<String>`, as the cycle of a
+  type without arguments is, and a recursive generic sealed type ends in a leaf as other sealed types do. With
+  `objectIgnoreErrors(true)`, such an object kept a generated `next` whose members were `null`, and its `next`
+  is now `null` itself.
+- A recursive generic member that names its object's type variables, such as `Swap<B, A> swapped` inside a
+  `Swap<A, B>` generated as `Swap<String, Integer>`, now keeps their arguments: its `first` is an `Integer`
+  and its `second` a `String`. The engine read the member's arguments in the nested object, where `A` and `B`
+  named each other, and failed as an unsupported type, or left them `null` with `objectIgnoreErrors(true)`. An
+  argument that names the object's own type variable is now read as the object binds it.
+- The Kotlin DSL now calls a private primary constructor, as the object engine calls a private Java
+  constructor, where `kotlin.reflect.full.IllegalCallableAccessException` escaped without the object's path.
+  A factory function that validates outside the constructor's `init` block is not called, so register a
+  rule for such a type.
+- A Bean Validation constraint on the getter of a Kotlin property of a value class type now applies when
+  the engine fills the property's field. Kotlin mangles the name of such a getter, as in `getId-OLSiqns`,
+  and the engine looked only for `getId`. Seeded output changes for such properties.
+
 ## [2.10.0] - 2026-11-10
 
 ### Added

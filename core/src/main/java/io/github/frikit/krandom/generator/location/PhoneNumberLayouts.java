@@ -10,6 +10,7 @@ import static io.github.frikit.krandom.generator.location.FormatTemplate.templat
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * National phone-number layouts for built-in countries that have no dedicated formatting method
@@ -672,6 +673,13 @@ final class PhoneNumberLayouts {
      */
     static @org.jspecify.annotations.Nullable Plan forCountry(String country) {
         return PLANS.get(country);
+    }
+
+    /**
+     * Returns the countries that have layouts here.
+     */
+    static Set<String> countries() {
+        return PLANS.keySet();
     }
 
     private static Map.Entry<String, Plan> plan(

@@ -41,9 +41,10 @@ Native resource coverage by folder:
 | `states/` | 1 | 35 | 35 | all first-level subdivisions + codes | ok |
 | `streets/` | 4 subfolders | 140 | 35 | complete, paired, unique (see below) | ok |
 | `countries/` | 1 | 35 | 35 | full world set (195), localized | all 35 at 195 |
-| `country_codes/` | n/a | 1 | non-locale | all 249 ISO 3166-1 codes | ok |
+| `country_codes/` | n/a | 4 | non-locale | all 249 ISO 3166-1 countries, sourced | ok |
 | `address_types/` | 1 | 36 | 35 | the 6 property-use types, same order everywhere | ok |
 | `address_purposes/` | 1 | 36 | 35 | the 7 address purposes, same order everywhere | ok |
+| `postal_places/` | 1 | 4 | 4 (`en_US`, `en_GB`, `de_DE`, `fr_FR`) | cities with their region and postal codes, sourced | ok |
 | `professions/` | 1 | 35 | 35 | ≥ 40 unique professions | all ≥ 40 |
 | `titles/` | 1 | 35 | 35 | ≥ 4 unique honorifics | ok |
 | `text/` | n/a | 1 set | non-locale | complete standard set | ok |
@@ -126,7 +127,7 @@ One file per locale, `<locale>_countries.txt`, one country name per line.
 
 ### `country_codes/`
 
-One non-locale file, `iso_3166_1.txt`: one country per line as
+Four non-locale files. `iso_3166_1.txt` has one country per line as
 `<alpha-2> <alpha-3> <numeric>` (e.g. `GB GBR 826`), in alpha-2 order.
 
 - **Content:** the ISO 3166-1 codes of all 249 officially assigned countries;
@@ -135,6 +136,26 @@ One non-locale file, `iso_3166_1.txt`: one country per line as
   the JDK's `Locale.getISO3Country()` for its alpha-2 code. Keep the alpha-2
   order: seeded country codes index into it.
 - **Loader:** `CountryResourceLoader` / `CountryGenerator`.
+
+`calling_codes.txt`, `continents.txt` and `time_zones.txt` each give one value
+for every row of `iso_3166_1.txt`, as `<alpha-2> <value>` (e.g. `GB +44`,
+`US North America`, `GB Europe/London`), in the same order.
+
+- **Content:** the E.164 country calling code (from libphonenumber), the
+  continent (the UN M49 region, from Unicode CLDR's territory containment, with
+  the Americas divided into North America and South America) and the IANA time
+  zone (from the tz database's `zone.tab`). The header of each file records its
+  source, licence, retrieval date and SHA-256 checksum, and the rules for the
+  countries a source does not cover: a calling code is the country code alone
+  (`+1` for every NANP country), a transcontinental country takes its M49
+  region, and a country with several zones takes the zone of its seat of
+  government. `continents.txt` also carries the Unicode License v3 notice that
+  the CLDR data requires.
+- **Rule:** **complete**: every ISO country, in the ISO table's order, which the
+  loader checks. Every calling code matches `^\+[1-9][0-9]{0,3}$`, every
+  continent is one of the seven, and every zone is a valid `java.time.ZoneId`.
+- **Loader:** `CountryResourceLoader` / `CountryGenerator`; `PhoneNumberGenerator`
+  takes its calling codes from `calling_codes.txt`.
 
 ### `address_types/`
 
@@ -163,6 +184,28 @@ One file per locale, `address_purposes/<locale>.txt`, plus the English
 - **Rule:** exactly these seven, **in the same order in every locale**, unique.
 - **Loader:** `LocaleTextResourceLoader` / `BuiltInAddressPurposeDataProvider`
   (via `AddressPurposeDataRegistry`).
+
+### `postal_places/`
+
+One file per locale whose country has postal places, `postal_places/<locale>.txt`,
+one place per line: a city, its region and its postal codes, separated by tabs,
+with the postal codes separated by commas, e.g.
+
+```text
+Grand Rapids	Michigan	49503,49504,49505,49506,49507
+```
+
+- **Content:** cities of the locale's country, each with the first-level region
+  it lies in and up to ten postal codes that serve it, all real. Addresses take
+  their city, region and postal code from one row, so they agree. Only native
+  locales have a file: a fallback variant's cities come from another country.
+- **Rule:** every region is named exactly as in the locale's `states/` file,
+  whose code the place takes; every row has at least one postal code, in the
+  country's format. The header records the source, licence, retrieval date and
+  SHA-256 checksum of every file the rows were built from, and how the rows were
+  chosen. Keep the table a bounded, curated subset, not a national list.
+- **Loader:** `PostalPlaceResourceLoader` / `BuiltInPostalPlaceDataProvider`
+  (via `PostalPlaceDataRegistry`).
 
 ### `professions/`
 

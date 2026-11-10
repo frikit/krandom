@@ -10,14 +10,13 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.commerce.OrderInfo;
 import io.github.frikit.krandom.generator.datetime.ZoneOffsetGenerator;
 import io.github.frikit.krandom.generator.schema.Field;
 import io.github.frikit.krandom.generator.schema.Schema;
 import io.github.frikit.krandom.generator.schema.SchemaValueProvider;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -27,21 +26,26 @@ import java.util.Locale;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.exc.InvalidFormatException;
+import tools.jackson.databind.json.JsonMapper;
 
 @DisplayName("krandom jackson integration")
 class KrandomJacksonTest {
 
     @Test
-    @DisplayName("configure registers module on provided mapper")
+    @DisplayName("configure adds the module to the provided builder and returns that builder")
     void configure() {
-        ObjectMapper mapper = new ObjectMapper();
-        assertSame(mapper, KrandomJackson.configure(mapper));
+        JsonMapper.Builder builder = JsonMapper.builder();
+
+        assertSame(builder, KrandomJackson.configure(builder));
+        assertTrue(builder.build().registeredModules().stream().anyMatch(KrandomJacksonModule.class::isInstance));
     }
 
     @Test
-    @DisplayName("configure rejects null mapper")
+    @DisplayName("configure rejects null builder")
     void configureNull() {
-        assertThrows(NullPointerException.class, () -> KrandomJackson.configure(null));
+        assertThrows(NullPointerException.class, () -> KrandomJackson.configure((JsonMapper.Builder) null));
     }
 
     @Test
@@ -53,17 +57,32 @@ class KrandomJacksonTest {
         fields.put("active", SchemaValueProvider.withSample(ctx -> true, true));
 
         Schema schema = new Schema(fields);
-        ObjectMapper mapper = KrandomJackson.newObjectMapper();
+        JsonMapper mapper = KrandomJackson.newJsonMapper();
         JsonNode node = mapper.valueToTree(schema);
 
         assertEquals(
                 "https://json-schema.org/draft/2020-12/schema",
-                node.get("$schema").asText());
-        assertEquals("object", node.get("type").asText());
-        assertEquals("string", node.path("properties").path("name").path("type").asText());
-        assertEquals("integer", node.path("properties").path("age").path("type").asText());
+                node.get("$schema").asString());
+        assertEquals("object", node.get("type").asString());
+        assertEquals("string", node.path("properties").path("name").path("type").asString());
+        assertEquals("integer", node.path("properties").path("age").path("type").asString());
         assertEquals(
-                "boolean", node.path("properties").path("active").path("type").asText());
+                "boolean", node.path("properties").path("active").path("type").asString());
+    }
+
+    @Test
+    @DisplayName("schema written as JSON text is the same document as its tree")
+    void schemaSerializationAsText() {
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("name", SchemaValueProvider.withSample(ctx -> "alice", "alice"));
+
+        Schema schema = new Schema(fields);
+        JsonMapper mapper = KrandomJackson.newJsonMapper();
+        JsonNode parsed = mapper.readTree(mapper.writeValueAsString(schema));
+
+        assertEquals(mapper.valueToTree(schema), parsed);
+        assertEquals(
+                "string", parsed.path("properties").path("name").path("type").asString());
     }
 
     @Test
@@ -77,12 +96,12 @@ class KrandomJacksonTest {
         fields.put("card", field.bind("finance.credit_card_info"));
 
         Schema schema = new Schema(config, fields);
-        ObjectMapper mapper = KrandomJackson.newObjectMapper();
+        JsonMapper mapper = KrandomJackson.newJsonMapper();
 
         JsonNode schemaNode = mapper.valueToTree(schema);
         assertEquals(
                 "object",
-                schemaNode.path("properties").path("company").path("type").asText());
+                schemaNode.path("properties").path("company").path("type").asString());
         assertEquals(
                 "object",
                 schemaNode
@@ -91,21 +110,38 @@ class KrandomJacksonTest {
                         .path("properties")
                         .path("address")
                         .path("type")
-                        .asText());
+                        .asString());
         assertEquals(
                 "object",
-                schemaNode.path("properties").path("card").path("type").asText());
+                schemaNode.path("properties").path("card").path("type").asString());
 
         JsonNode rowNode = mapper.valueToTree(schema.generate());
-        assertTrue(rowNode.path("company").path("name").isTextual());
-        assertTrue(rowNode.path("company").path("address").path("city").isTextual());
-        assertTrue(rowNode.path("card").path("number").isTextual());
+        assertTrue(rowNode.path("company").path("name").isString());
+        assertTrue(rowNode.path("company").path("address").path("city").isString());
+        assertTrue(rowNode.path("card").path("number").isString());
+    }
+
+    @Test
+    @DisplayName("generated rows with java.time values serialize them as ISO-8601 text")
+    void rowsWithJavaTimeValuesSerialize() {
+        GeneratorConfig config =
+                GeneratorConfig.builder().locale(Locale.US).seed(42L).build();
+        Field field = new Field(config);
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("order", field.bind("commerce.order_info"));
+        Map<String, Object> row = new Schema(config, fields).generate();
+        LocalDate orderedOn = ((OrderInfo) row.get("order")).orderedOn();
+
+        JsonNode rowNode = KrandomJackson.newJsonMapper().valueToTree(row);
+
+        assertEquals(
+                orderedOn.toString(), rowNode.path("order").path("orderedOn").asString());
     }
 
     @Test
     @DisplayName("a generated offset's ISO text has hh:mm, which Jackson's Date parser needs")
-    void generatedOffsetsParseAsJacksonDates() throws Exception {
-        ObjectMapper mapper = KrandomJackson.newObjectMapper();
+    void generatedOffsetsParseAsJacksonDates() {
+        JsonMapper mapper = KrandomJackson.newJsonMapper();
         ZoneOffsetGenerator offsets =
                 new ZoneOffsetGenerator(GeneratorConfig.builder().seed(42L).build());
         LocalDateTime local = LocalDateTime.of(2020, 1, 1, 10, 15, 30);
@@ -142,7 +178,7 @@ class KrandomJacksonTest {
         Schema exported = new Schema(config, fieldsA);
         Schema untouched = new Schema(config, fieldsB);
 
-        KrandomJackson.newObjectMapper().valueToTree(exported);
+        KrandomJackson.newJsonMapper().valueToTree(exported);
 
         assertEquals(untouched.generate(), exported.generate());
     }

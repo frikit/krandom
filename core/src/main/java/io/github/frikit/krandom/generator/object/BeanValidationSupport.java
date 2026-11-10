@@ -30,9 +30,16 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
+import java.lang.reflect.AnnotatedArrayType;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.AnnotatedParameterizedType;
+import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.RecordComponent;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -54,18 +61,22 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
-import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import org.jspecify.annotations.Nullable;
 
 /**
  * Derives a constrained {@link Generator} from Bean Validation annotations on a field.
+ *
+ * <p>A field also reads its accessors' constraints, and a constructor parameter reads those of the
+ * field it initializes, wherever it declares none of the same type: see {@link #initializedField}.
  *
  * <p>The Jakarta Validation API is a compile-only dependency of core. When it is absent from the
  * runtime class path, {@link #isAvailable()} is {@code false}, every lookup reports no constraints,
@@ -80,8 +91,7 @@ final class BeanValidationSupport {
     private static final int TEST_EMAIL_AFFIX_LENGTH = 6;
 
     private static final BigDecimal DECIMAL_DEFAULT_SPAN = new BigDecimal("1000000");
-    private static final java.util.regex.Pattern EMAIL_SHAPE =
-            java.util.regex.Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
+    private static final java.util.regex.Pattern MANGLED_NAME_SUFFIX = java.util.regex.Pattern.compile("-.*");
     private static final Comparator<NumericBound> LOWER_BOUND_ORDER =
             Comparator.comparing(NumericBound::value).thenComparing(bound -> !bound.inclusive());
     private static final Comparator<NumericBound> UPPER_BOUND_ORDER =
@@ -99,6 +109,14 @@ final class BeanValidationSupport {
             return buildAccessorMethods(type);
         }
     };
+    private static final ClassValue<ConcurrentMap<Parameter, Optional<Field>>> INITIALIZED_FIELDS = new ClassValue<>() {
+        @Override
+        protected ConcurrentMap<Parameter, Optional<Field>> computeValue(Class<?> type) {
+            return new ConcurrentHashMap<>();
+        }
+    };
+    /** Read by name, so that no constraint class is loaded when the API is absent. */
+    private static final String CONSTRAINT_PACKAGE = "jakarta.validation.constraints";
 
     private BeanValidationSupport() {}
 
@@ -133,7 +151,11 @@ final class BeanValidationSupport {
                 new ConstraintModel(false, false, false, null, null, null, null, null);
     }
 
-    private record ConstraintCacheKey(boolean recordComponent, String name, Class<?> rawType) {}
+    /**
+     * A field, a record component's accessor, or a parameter, with the type it is generated as. A record
+     * component is keyed by its accessor, because each lookup of the components returns new objects.
+     */
+    private record ConstraintCacheKey(Object member, Class<?> rawType) {}
 
     private record AccessorMethods(Map<String, List<Method>> declared, Map<String, List<Method>> interfaces) {}
 
@@ -150,7 +172,7 @@ final class BeanValidationSupport {
      * Returns a constrained {@link Generator} for the given element and raw type,
      * or {@code null} if no relevant Bean Validation annotation is present.
      *
-     * @param element the annotated field or record component
+     * @param element the annotated field, record component, parameter, or type node
      * @param rawType the field's erasure
      * @return a constraint-respecting generator, or {@code null}
      */
@@ -206,18 +228,24 @@ final class BeanValidationSupport {
         }
         Objects.requireNonNull(rawType, "rawType must not be null");
         if (element instanceof Field field) {
-            ConstraintCacheKey key = new ConstraintCacheKey(false, field.getName(), rawType);
-            return CONSTRAINT_MODELS
-                    .get(field.getDeclaringClass())
-                    .computeIfAbsent(key, ignored -> buildConstraintModel(element, rawType));
+            return cachedConstraintModel(field.getDeclaringClass(), field, element, rawType);
         }
         if (element instanceof RecordComponent component) {
-            ConstraintCacheKey key = new ConstraintCacheKey(true, component.getName(), rawType);
-            return CONSTRAINT_MODELS
-                    .get(component.getDeclaringRecord())
-                    .computeIfAbsent(key, ignored -> buildConstraintModel(element, rawType));
+            return cachedConstraintModel(component.getDeclaringRecord(), component.getAccessor(), element, rawType);
+        }
+        if (element instanceof Parameter parameter) {
+            Class<?> owner = parameter.getDeclaringExecutable().getDeclaringClass();
+            return cachedConstraintModel(owner, parameter, element, rawType);
         }
         return buildConstraintModel(element, rawType);
+    }
+
+    private static ConstraintModel cachedConstraintModel(
+            Class<?> owner, Object member, AnnotatedElement element, Class<?> rawType) {
+        return CONSTRAINT_MODELS
+                .get(owner)
+                .computeIfAbsent(
+                        new ConstraintCacheKey(member, rawType), ignored -> buildConstraintModel(element, rawType));
     }
 
     private static ConstraintModel buildConstraintModel(AnnotatedElement element, Class<?> rawType) {
@@ -241,7 +269,8 @@ final class BeanValidationSupport {
         NumericRange numeric = numericRangeFor(element, rawType);
         Boolean assertion = assertionFor(element, rawType);
         TemporalConstraint temporal = temporalConstraintFor(element, rawType);
-        TextConstraint text = textConstraintFor(element, rawType, size, notBlank, numeric);
+        TextConstraint text =
+                textConstraintFor(element, rawType, size == null ? null : size.forText(), notBlank, numeric);
         boolean constrained = nullOnly
                 || requiredByAnnotation
                 || size != null
@@ -260,7 +289,11 @@ final class BeanValidationSupport {
                 text);
     }
 
-    static @Nullable SizeRange sizeRangeFor(@Nullable AnnotatedElement element) {
+    /**
+     * The size that {@code @Size}, {@code @NotEmpty} and {@code @NotBlank} allow together, or {@code null}
+     * when none is declared. With no declared maximum, the range reaches {@link Integer#MAX_VALUE}.
+     */
+    static @Nullable SizeRange sizeRangeFor(AnnotatedElement element) {
         if (!AVAILABLE) {
             return null;
         }
@@ -272,8 +305,7 @@ final class BeanValidationSupport {
         }
         int declaredMin = size == null ? 0 : Math.max(0, size.min());
         int min = requiresContent ? Math.max(1, declaredMin) : declaredMin;
-        int declaredMax = size == null ? Integer.MAX_VALUE : size.max();
-        int max = declaredMax == Integer.MAX_VALUE ? Math.max(min, SIZE_UNBOUNDED_CAP) : declaredMax;
+        int max = size == null ? Integer.MAX_VALUE : size.max();
         if (max < min) {
             throw conflict("size constraints have an empty intersection: min " + min + " exceeds max " + max);
         }
@@ -437,7 +469,7 @@ final class BeanValidationSupport {
             if (nonBlank && candidate.isBlank()) {
                 return false;
             }
-            if (email && !EMAIL_SHAPE.matcher(candidate).matches()) {
+            if (email && !EmailShape.accepts(candidate)) {
                 return false;
             }
             for (TextPattern pattern : patterns) {
@@ -456,6 +488,10 @@ final class BeanValidationSupport {
         } catch (NumberFormatException notNumeric) {
             return false;
         }
+        return numericAccepts(range, value);
+    }
+
+    private static boolean numericAccepts(NumericRange range, BigDecimal value) {
         if (range.lower() != null) {
             int comparison = value.compareTo(range.lower().value());
             if (comparison < 0 || (comparison == 0 && !range.lower().inclusive())) {
@@ -471,15 +507,38 @@ final class BeanValidationSupport {
         return true;
     }
 
-    static int sizeFor(@Nullable AnnotatedElement element, Random random, int defaultMin, int defaultMax) {
-        SizeRange range = sizeRangeFor(element);
-        if (range == null) {
-            return defaultMin == defaultMax ? defaultMin : random.nextInt(defaultMin, defaultMax + 1);
-        }
+    /**
+     * The size of a collection, array or map: the configured range, kept within the declared size where
+     * there is one.
+     *
+     * @param declared the declared size, or {@code null} when none is declared
+     * @param random the stream to draw from
+     * @param configuredMin the configured minimum collection size
+     * @param configuredMax the configured maximum collection size
+     * @return the size to generate
+     */
+    static int sizeFor(@Nullable SizeRange declared, Random random, int configuredMin, int configuredMax) {
+        SizeRange range = declared == null
+                ? new SizeRange(configuredMin, configuredMax)
+                : declared.within(configuredMin, configuredMax);
         return range.next(random);
     }
 
     record SizeRange(int min, int max) {
+
+        /** Text with no declared maximum has at most 255 characters. */
+        SizeRange forText() {
+            return max == Integer.MAX_VALUE ? new SizeRange(min, Math.max(min, SIZE_UNBOUNDED_CAP)) : this;
+        }
+
+        /**
+         * A configured range kept within this one: each configured bound moves to the nearest size this
+         * range allows, so a configured range outside this one gives its nearest bound.
+         */
+        SizeRange within(int configuredMin, int configuredMax) {
+            return new SizeRange(Math.clamp(configuredMin, min, max), Math.clamp(configuredMax, min, max));
+        }
+
         int next(Random random) {
             return min == max ? min : random.nextInt(min, max + 1);
         }
@@ -583,10 +642,8 @@ final class BeanValidationSupport {
         if (rawType == Date.class) return Date.from(instant);
         if (rawType == java.sql.Date.class) return new java.sql.Date(instant.toEpochMilli());
         if (rawType == Timestamp.class) return Timestamp.from(instant);
-        if (rawType == Calendar.class) {
-            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(clock.getZone()));
-            calendar.setTime(Date.from(instant));
-            return calendar;
+        if (rawType == Calendar.class || rawType == GregorianCalendar.class) {
+            return FieldGeneratorResolver.calendarOf(ZonedDateTime.ofInstant(instant, clock.getZone()));
         }
         if (rawType == LocalTime.class) return localTimeFor(future, clock);
         if (rawType == OffsetTime.class)
@@ -612,10 +669,8 @@ final class BeanValidationSupport {
         if (rawType == Date.class) return Date.from(instant);
         if (rawType == java.sql.Date.class) return new java.sql.Date(instant.toEpochMilli());
         if (rawType == Timestamp.class) return Timestamp.from(instant);
-        if (rawType == Calendar.class) {
-            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone(clock.getZone()));
-            calendar.setTime(Date.from(instant));
-            return calendar;
+        if (rawType == Calendar.class || rawType == GregorianCalendar.class) {
+            return FieldGeneratorResolver.calendarOf(ZonedDateTime.ofInstant(instant, clock.getZone()));
         }
         if (rawType == LocalTime.class) return LocalTime.now(clock);
         if (rawType == OffsetTime.class) return OffsetTime.now(clock);
@@ -644,8 +699,7 @@ final class BeanValidationSupport {
         return boundary;
     }
 
-    private static @Nullable TemporalConstraint temporalConstraintFor(
-            @Nullable AnnotatedElement element, Class<?> rawType) {
+    private static @Nullable TemporalConstraint temporalConstraintFor(AnnotatedElement element, Class<?> rawType) {
         boolean futureOnly = annotation(element, Future.class) != null;
         boolean futureOrPresent = annotation(element, FutureOrPresent.class) != null;
         boolean pastOnly = annotation(element, Past.class) != null;
@@ -663,10 +717,7 @@ final class BeanValidationSupport {
         if (!allowsPast && !allowsPresent && !allowsFuture) {
             throw conflict("temporal constraints have an empty intersection");
         }
-        TemporalDirection direction = allowsFuture
-                ? TemporalDirection.FUTURE
-                : allowsPast ? TemporalDirection.PAST : TemporalDirection.PRESENT;
-        return new TemporalConstraint(direction);
+        return new TemporalConstraint(allowsPast, allowsPresent, allowsFuture);
     }
 
     private static boolean supportsTemporal(Class<?> rawType) {
@@ -679,6 +730,7 @@ final class BeanValidationSupport {
                 || rawType == java.sql.Date.class
                 || rawType == Timestamp.class
                 || rawType == Calendar.class
+                || rawType == GregorianCalendar.class
                 || rawType == LocalTime.class
                 || rawType == OffsetTime.class
                 || rawType == Year.class
@@ -692,9 +744,139 @@ final class BeanValidationSupport {
         FUTURE
     }
 
-    record TemporalConstraint(TemporalDirection direction) {}
+    /** The times a temporal constraint allows: before, at, and after the configured clock's present. */
+    record TemporalConstraint(boolean allowsPast, boolean allowsPresent, boolean allowsFuture) {
 
-    private static @Nullable Boolean assertionFor(@Nullable AnnotatedElement element, Class<?> rawType) {
+        /** A generated value lies in the future where that is allowed, else in the past, else at the present. */
+        TemporalDirection direction() {
+            return allowsFuture
+                    ? TemporalDirection.FUTURE
+                    : allowsPast ? TemporalDirection.PAST : TemporalDirection.PRESENT;
+        }
+
+        boolean accepts(Object value, Clock clock) {
+            int comparison = compareWithClock(value, clock);
+            return comparison < 0 ? allowsPast : comparison == 0 ? allowsPresent : allowsFuture;
+        }
+    }
+
+    /**
+     * Compares a value with the clock's present as Hibernate Validator does: a {@code java.time} value with the
+     * {@code now(clock)} of its type, and a {@code Calendar} or {@code Date} by the instant of its epoch
+     * millisecond with the clock's instant, which can be finer. These are the types the coherence pass writes,
+     * and {@code java.sql.Date} and {@code Timestamp} are {@code Date}s.
+     */
+    private static int compareWithClock(Object value, Clock clock) {
+        if (value instanceof Instant instant) {
+            return instant.compareTo(clock.instant());
+        }
+        if (value instanceof LocalDate date) {
+            return date.compareTo(LocalDate.now(clock));
+        }
+        if (value instanceof LocalDateTime dateTime) {
+            return dateTime.compareTo(LocalDateTime.now(clock));
+        }
+        if (value instanceof OffsetDateTime offsetDateTime) {
+            return offsetDateTime.compareTo(OffsetDateTime.now(clock));
+        }
+        if (value instanceof ZonedDateTime zonedDateTime) {
+            return zonedDateTime.compareTo(ZonedDateTime.now(clock));
+        }
+        if (value instanceof Calendar calendar) {
+            return calendar.toInstant().compareTo(clock.instant());
+        }
+        return Instant.ofEpochMilli(((Date) value).getTime()).compareTo(clock.instant());
+    }
+
+    /**
+     * Whether a value the coherence pass would write meets the constraints of the element: no value for
+     * {@code @Null}, the value {@code @AssertTrue} or {@code @AssertFalse} asks for, a date or time against the
+     * clock as Hibernate Validator compares it, a number within its bounds, and a string as its text
+     * constraints require. The pass writes no value that another constraint bounds.
+     *
+     * @param element the field the value is for
+     * @param rawType the field's erasure
+     * @param value a boolean, a date, a time, a number or a string of that type
+     * @param clock the configured clock
+     * @return whether the element's constraints allow the value
+     */
+    static boolean accepts(AnnotatedElement element, Class<?> rawType, Object value, Clock clock) {
+        ConstraintModel constraints = constraintModelFor(element, rawType);
+        if (constraints.nullOnly()) {
+            return false;
+        }
+        if (constraints.assertion() != null) {
+            return constraints.assertion().equals(value);
+        }
+        if (constraints.temporal() != null) {
+            return constraints.temporal().accepts(value, clock);
+        }
+        if (constraints.text() != null) {
+            return constraints.text().accepts(value.toString());
+        }
+        if (constraints.numeric() == null) {
+            return true;
+        }
+        if (value instanceof Float number) {
+            return floatingAccepts(element, number.doubleValue(), true);
+        }
+        if (value instanceof Double number) {
+            return floatingAccepts(element, number, false);
+        }
+        return numericAccepts(constraints.numeric(), new BigDecimal(value.toString()));
+    }
+
+    /**
+     * Whether a float or a double meets each numeric constraint of the element as Hibernate Validator reads it:
+     * {@code @Min} and {@code @Max} in the value's own type, with the bound converted to it, so that
+     * {@code 16777220f} meets {@code @Max(16777219)}; {@code @DecimalMin} and {@code @DecimalMax} against the double
+     * the value is, so that {@code 0.1f}, which is {@code 0.10000000149011612}, breaks {@code @DecimalMax("0.1")};
+     * and a sign by comparison with zero, so that {@code -0.0} is negative. An infinity lies beyond every bound.
+     */
+    private static boolean floatingAccepts(AnnotatedElement element, double value, boolean singlePrecision) {
+        Min min = annotation(element, Min.class);
+        if (min != null && floatingCompare(value, min.value(), singlePrecision) < 0) {
+            return false;
+        }
+        Max max = annotation(element, Max.class);
+        if (max != null && floatingCompare(value, max.value(), singlePrecision) > 0) {
+            return false;
+        }
+        DecimalMin decimalMin = annotation(element, DecimalMin.class);
+        if (decimalMin != null && !meetsLower(decimalCompare(value, decimalMin.value()), decimalMin.inclusive())) {
+            return false;
+        }
+        DecimalMax decimalMax = annotation(element, DecimalMax.class);
+        if (decimalMax != null && !meetsUpper(decimalCompare(value, decimalMax.value()), decimalMax.inclusive())) {
+            return false;
+        }
+        int sign = Double.compare(value, 0.0);
+        boolean signAllowed = (annotation(element, Positive.class) == null || sign > 0)
+                && (annotation(element, PositiveOrZero.class) == null || sign >= 0)
+                && (annotation(element, Negative.class) == null || sign < 0);
+        return signAllowed && (annotation(element, NegativeOrZero.class) == null || sign <= 0);
+    }
+
+    private static int floatingCompare(double value, long bound, boolean singlePrecision) {
+        return singlePrecision ? Float.compare((float) value, (float) bound) : Double.compare(value, (double) bound);
+    }
+
+    private static int decimalCompare(double value, String bound) {
+        if (Double.isInfinite(value)) {
+            return value > 0 ? 1 : -1;
+        }
+        return BigDecimal.valueOf(value).compareTo(new BigDecimal(bound));
+    }
+
+    private static boolean meetsLower(int comparison, boolean inclusive) {
+        return comparison > 0 || (comparison == 0 && inclusive);
+    }
+
+    private static boolean meetsUpper(int comparison, boolean inclusive) {
+        return comparison < 0 || (comparison == 0 && inclusive);
+    }
+
+    private static @Nullable Boolean assertionFor(AnnotatedElement element, Class<?> rawType) {
         boolean assertedTrue = annotation(element, AssertTrue.class) != null;
         boolean assertedFalse = annotation(element, AssertFalse.class) != null;
         if (!assertedTrue && !assertedFalse) {
@@ -984,11 +1166,46 @@ final class BeanValidationSupport {
         return Math.min(value, max);
     }
 
-    private static <A extends java.lang.annotation.Annotation> @Nullable A annotation(
-            @Nullable AnnotatedElement element, Class<A> type) {
-        if (element == null) {
-            return null;
+    /**
+     * The field a constructor argument initializes: the nearest field with the parameter's name, on the
+     * constructor's class or a superclass, when it is an instance field of the parameter's declared type.
+     * Parameter names are only known when the class was compiled with {@code -parameters}.
+     *
+     * <p>Where the parameter declares no constraint of a type, the argument takes the field's, and its
+     * accessors', so a constraint on a final field reaches the value that fills it.
+     *
+     * @param parameter a constructor or method parameter
+     * @return the initialized field, or {@code null} when there is none
+     */
+    static @Nullable Field initializedField(Parameter parameter) {
+        Executable executable = parameter.getDeclaringExecutable();
+        return INITIALIZED_FIELDS
+                .get(executable.getDeclaringClass())
+                .computeIfAbsent(parameter, BeanValidationSupport::findInitializedField)
+                .orElse(null);
+    }
+
+    private static Optional<Field> findInitializedField(Parameter parameter) {
+        Executable executable = parameter.getDeclaringExecutable();
+        if (!parameter.isNamePresent() || !(executable instanceof Constructor<?>)) {
+            return Optional.empty();
         }
+        for (Class<?> owner = executable.getDeclaringClass(); owner != Object.class; owner = owner.getSuperclass()) {
+            try {
+                Field field = owner.getDeclaredField(parameter.getName());
+                return !Modifier.isStatic(field.getModifiers())
+                                && field.getGenericType().equals(parameter.getParameterizedType())
+                        ? Optional.of(field)
+                        : Optional.empty();
+            } catch (NoSuchFieldException notDeclaredHere) {
+                // Keep looking in the superclass.
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static <A extends java.lang.annotation.Annotation> @Nullable A annotation(
+            AnnotatedElement element, Class<A> type) {
         if (element instanceof RecordComponent component) {
             return component.getAccessor().getAnnotation(type);
         }
@@ -998,6 +1215,10 @@ final class BeanValidationSupport {
         }
         if (element instanceof Field field) {
             return accessorAnnotation(field, type);
+        }
+        if (element instanceof Parameter parameter) {
+            Field field = initializedField(parameter);
+            return field != null ? annotation(field, type) : null;
         }
         return null;
     }
@@ -1014,7 +1235,38 @@ final class BeanValidationSupport {
         if (element instanceof Field field) {
             return accessorAnnotations(field, type);
         }
+        if (element instanceof Parameter parameter) {
+            Field field = initializedField(parameter);
+            return field != null ? annotations(field, type) : List.of();
+        }
         return List.of();
+    }
+
+    /**
+     * Whether a Bean Validation constraint annotates a type argument within this type, at any depth and
+     * inside array components, as in {@code List<@Email String>} or {@code List<@Email String>[]}. These
+     * are the type nodes whose constraints apply. An array's component type itself does not count,
+     * because its constraints do not apply, and nor do other type annotations, such as JSpecify's
+     * {@code @Nullable}.
+     */
+    static boolean constrainsTypeArguments(AnnotatedType type) {
+        if (type instanceof AnnotatedArrayType array) {
+            return constrainsTypeArguments(array.getAnnotatedGenericComponentType());
+        }
+        if (!(type instanceof AnnotatedParameterizedType parameterized)) {
+            return false;
+        }
+        for (AnnotatedType argument : parameterized.getAnnotatedActualTypeArguments()) {
+            for (java.lang.annotation.Annotation annotation : argument.getAnnotations()) {
+                if (annotation.annotationType().getPackageName().equals(CONSTRAINT_PACKAGE)) {
+                    return true;
+                }
+            }
+            if (constrainsTypeArguments(argument)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static <A extends java.lang.annotation.Annotation> List<A> accessorAnnotations(Field field, Class<A> type) {
@@ -1106,7 +1358,7 @@ final class BeanValidationSupport {
         while (current != Object.class) {
             for (Method method : current.getDeclaredMethods()) {
                 if (method.getParameterCount() == 0) {
-                    declared.computeIfAbsent(method.getName(), ignored -> new ArrayList<>())
+                    declared.computeIfAbsent(accessorName(method), ignored -> new ArrayList<>())
                             .add(method);
                 }
             }
@@ -1118,12 +1370,21 @@ final class BeanValidationSupport {
             for (Method method : interfaceType.getMethods()) {
                 if (method.getParameterCount() == 0) {
                     interfaces
-                            .computeIfAbsent(method.getName(), ignored -> new ArrayList<>())
+                            .computeIfAbsent(accessorName(method), ignored -> new ArrayList<>())
                             .add(method);
                 }
             }
         }
         return new AccessorMethods(immutableMethodMap(declared), immutableMethodMap(interfaces));
+    }
+
+    /**
+     * The name an accessor is looked up by. Kotlin mangles the name of a getter whose property has a
+     * value class type, as in {@code getId-OLSiqns}, so the part from the hyphen, which no Java name
+     * holds, is dropped.
+     */
+    private static String accessorName(Method method) {
+        return MANGLED_NAME_SUFFIX.matcher(method.getName()).replaceFirst("");
     }
 
     private static Map<String, List<Method>> immutableMethodMap(Map<String, List<Method>> methods) {

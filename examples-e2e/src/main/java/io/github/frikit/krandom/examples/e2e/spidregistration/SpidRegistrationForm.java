@@ -5,7 +5,6 @@
  */
 package io.github.frikit.krandom.examples.e2e.spidregistration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.datetime.DateGenerator;
 import io.github.frikit.krandom.generator.datetime.YearGenerator;
@@ -135,13 +134,7 @@ public final class SpidRegistrationForm {
 
     /** Serializes a freshly generated profile to its final JSON. */
     public static String toJson(Locale locale, long seed) {
-        try {
-            return KrandomJackson.newObjectMapper()
-                    .writerWithDefaultPrettyPrinter()
-                    .writeValueAsString(fake(locale, seed));
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException("Failed to serialize SPID registration", e);
-        }
+        return KrandomJackson.newJsonMapper().writerWithDefaultPrettyPrinter().writeValueAsString(fake(locale, seed));
     }
 
     /** Convenience: serialize using this example's default (Italian) locale. */

@@ -11,13 +11,16 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -67,6 +70,32 @@ record ResolvedType(
         Map<TypeVariable<?>, Type> bindings = new LinkedHashMap<>();
         collectBindings(concreteType, bindings);
         return Map.copyOf(bindings);
+    }
+
+    /**
+     * Binds the type variables of a subclass that fill the parameters of the declared supertype it is
+     * generated for: {@code Ok<T> implements Result<T>}, generated for {@code Result<String>}, has
+     * {@code T} bound to {@code String}, through any generic supertypes in between. The arguments are
+     * not checked against the subclass, as Java's own unchecked conversions are not.
+     *
+     * @param subclassBindings the bindings of the subclass's supertypes, as {@link #bindingsFor(Class)}
+     *     returns them
+     * @param declaredBindings the bindings of the declared supertype
+     * @return the subclass's own variables, bound to the declared arguments they stand for
+     */
+    static Map<TypeVariable<?>, Type> subtypeArguments(
+            Map<TypeVariable<?>, Type> subclassBindings, Map<TypeVariable<?>, Type> declaredBindings) {
+        Map<TypeVariable<?>, Type> bound = new LinkedHashMap<>(declaredBindings);
+        Deque<TypeVariable<?>> pending = new ArrayDeque<>(declaredBindings.keySet());
+        while (!pending.isEmpty()) {
+            TypeVariable<?> variable = pending.pop();
+            if (subclassBindings.get(variable) instanceof TypeVariable<?> filler && !bound.containsKey(filler)) {
+                bound.put(filler, Objects.requireNonNull(bound.get(variable)));
+                pending.push(filler);
+            }
+        }
+        bound.keySet().removeAll(declaredBindings.keySet());
+        return Map.copyOf(bound);
     }
 
     private static void collectBindings(Class<?> type, Map<TypeVariable<?>, Type> bindings) {
@@ -198,6 +227,43 @@ record ResolvedType(
 
     String signature() {
         return declaredType.getTypeName();
+    }
+
+    /**
+     * The signature of what this type resolves to: each argument, component and variable reads as its
+     * resolution, so {@code Node<T>} with {@code T} bound to {@code String} reads as {@code Node<String>}
+     * does. A type that resolves to nothing reads as declared.
+     */
+    String resolvedSignature() {
+        if (effectiveType != null) {
+            return effectiveType.resolvedSignature();
+        }
+        if (kind == Kind.GENERIC_ARRAY) {
+            return Objects.requireNonNull(componentType, "componentType").resolvedSignature() + "[]";
+        }
+        if (kind != Kind.PARAMETERIZED || rawClass == null) {
+            return signature();
+        }
+        StringJoiner resolved = new StringJoiner(", ", rawClass.getTypeName() + "<", ">");
+        arguments.forEach(argument -> resolved.add(argument.resolvedSignature()));
+        return resolved.toString();
+    }
+
+    /**
+     * The resolved signature of {@code type} with its own type parameters read through {@code bindings},
+     * as a member declared with that type reads: {@code Fork<String>} for {@code Fork} with {@code T}
+     * bound to {@code String}.
+     */
+    static String resolvedSignature(Class<?> type, Map<? extends TypeVariable<?>, ? extends Type> bindings) {
+        TypeVariable<?>[] parameters = type.getTypeParameters();
+        if (parameters.length == 0) {
+            return type.getTypeName();
+        }
+        StringJoiner resolved = new StringJoiner(", ", type.getTypeName() + "<", ">");
+        for (TypeVariable<?> parameter : parameters) {
+            resolved.add(resolve(parameter, bindings).resolvedSignature());
+        }
+        return resolved.toString();
     }
 
     ResolvedType argument(int index) {

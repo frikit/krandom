@@ -1471,6 +1471,16 @@ class ObjectGeneratorTest {
 
         record AssignedTop(AssignedOwner mid) {}
 
+        static class FinalFieldOwner {
+            @NotNull private final Leaf leaf;
+
+            FinalFieldOwner(Leaf leaf) {
+                this.leaf = leaf;
+            }
+        }
+
+        record FinalFieldTop(FinalFieldOwner mid) {}
+
         static class InitializedOwner {
             @NotNull Leaf leaf = new Leaf("preset");
         }
@@ -1645,9 +1655,15 @@ class ObjectGeneratorTest {
         }
 
         @Test
-        @DisplayName("a @NotNull field fails after an unconstrained constructor parameter left it null")
+        @DisplayName("a @NotNull mutable field fails through the unconstrained constructor parameter that fills it")
         void requiredFieldAssignedFromPlainParameterFails() {
             assertDepthFailure(AssignedTop.class, limitedTo(1), "AssignedTop.mid.leaf", AssignedOwner.class, 1);
+        }
+
+        @Test
+        @DisplayName("a @NotNull final field fails through the constructor parameter that fills it")
+        void requiredFinalFieldFails() {
+            assertDepthFailure(FinalFieldTop.class, limitedTo(1), "FinalFieldTop.mid.leaf", FinalFieldOwner.class, 1);
         }
 
         @Test

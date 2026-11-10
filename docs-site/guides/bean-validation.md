@@ -7,9 +7,12 @@ permalink: /guides/bean-validation/
 # Bean Validation Support
 
 `ObjectGenerator` natively reads 21 Jakarta Validation constraints from fields, JavaBean getters,
-record components, and interface accessor declarations. Supported constraints form one contract:
-compatible annotations are intersected, and an impossible contract fails before a fixture is
-returned.
+record components, interface accessor declarations, and constructor parameters. A constructor
+argument also meets the constraints of the field it initializes, so a constraint on a final field
+reaches the value that fills it: see the
+[construction policy]({{ '/guides/object-generation/' | relative_url }}#construction-policy).
+Supported constraints form one contract: compatible annotations are intersected, and an impossible
+contract fails before a fixture is returned.
 
 ## Dependency
 
@@ -32,7 +35,7 @@ time.
 | `@AssertTrue` | `boolean`, `Boolean` | Intersects with `@AssertFalse`; contradictory assertions fail. |
 | `@DecimalMax` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Inclusive/exclusive decimal endpoints intersect with every numeric and sign bound; empty real or target domains fail. |
 | `@DecimalMin` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Inclusive/exclusive decimal endpoints intersect with every numeric and sign bound; malformed bounds and empty domains fail. |
-| `@Email` | `String` | The email shape, custom email regex, repeatable patterns, numeric bounds, size, and blankness are composed through bounded search. Generated addresses follow the [email-domain contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#email-domain-contract). |
+| `@Email` | `String` | The email shape, custom email regex, repeatable patterns, numeric bounds, size, and blankness are composed through bounded search. The shape is Hibernate Validator's `@Email` for a dot-atom address, so a quoted local part or an address literal is never generated. Generated addresses follow the [email-domain contract]({{ '/guides/data-validity-and-safety/' | relative_url }}#email-domain-contract). |
 | `@Future` | Supported Java temporal types listed below | Intersects with present/past constraints using `GeneratorConfig.getClock()`; an empty direction fails. |
 | `@FutureOrPresent` | Supported Java temporal types listed below | Can intersect with `@PastOrPresent` at the configured present. |
 | `@Max` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Intersects with decimal, minimum, and sign bounds; integral and floating target domains are checked. |
@@ -40,7 +43,7 @@ time.
 | `@Negative` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Adds an exclusive upper bound at zero and intersects with all other numeric bounds. |
 | `@NegativeOrZero` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Adds an inclusive upper bound at zero and intersects with all other numeric bounds. |
 | `@NotBlank` | `String` | Implies non-null and minimum size one; composes with email, repeatable patterns, numeric text, and size. |
-| `@NotEmpty` | `String`, arrays, `Collection` implementations, `Map` implementations | Implies non-null and minimum size one; an empty size intersection fails. |
+| `@NotEmpty` | `String`, arrays, `Collection` implementations, `Map` implementations | Implies non-null and minimum size one; an empty size intersection fails. A collection, array, or map takes its [size](#arrays-and-collection-sizes) from `collectionSize`. |
 | `@NotNull` | Reference fields, including the `Optional` object | Suppresses null probability. It does not require an `Optional` to contain a value. A nested object member at the [depth limit]({{ '/guides/object-generation/' | relative_url }}#depth-limit) fails rather than being left `null`. |
 | `@Null` | Reference fields | Forces `null`; primitive and required intersections fail. |
 | `@Past` | Supported Java temporal types listed below | Intersects with present/future constraints using the configured clock; an empty direction fails. |
@@ -48,11 +51,28 @@ time.
 | `@Pattern` | `String` | Repeatable patterns and Java regex flags are all enforced with email, numeric, size, and blankness rules. |
 | `@Positive` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Adds an exclusive lower bound at zero and intersects with all other numeric bounds. |
 | `@PositiveOrZero` | Numeric primitives/wrappers, `Number`, `BigInteger`, `BigDecimal`, numeric `String` | Adds an inclusive lower bound at zero and intersects with all other numeric bounds. |
-| `@Size` | `String`, arrays, `Collection` implementations, `Map` implementations | Intersects with `@NotEmpty`/`@NotBlank`; inverted and empty ranges fail. |
+| `@Size` | `String`, arrays, `Collection` implementations, `Map` implementations | Intersects with `@NotEmpty`/`@NotBlank`; inverted and empty ranges fail. A collection, array, or map takes its [size](#arrays-and-collection-sizes) from `collectionSize` within these bounds. |
 
 Supported temporal targets are `Instant`, `LocalDate`, `LocalDateTime`, `ZonedDateTime`,
-`OffsetDateTime`, `Date`, `java.sql.Date`, `Timestamp`, `Calendar`, `LocalTime`, `OffsetTime`,
-`Year`, `YearMonth`, and `MonthDay`.
+`OffsetDateTime`, `Date`, `java.sql.Date`, `Timestamp`, `Calendar`, `GregorianCalendar`, `LocalTime`,
+`OffsetTime`, `Year`, `YearMonth`, and `MonthDay`. A `Calendar` or `GregorianCalendar` value is a
+non-lenient `GregorianCalendar` with ISO week rules in the configured clock's zone, whatever the JVM's
+default locale.
+
+## Arrays and collection sizes
+
+`@Size` and `@NotEmpty` bound the size of a collection, array, or map, and `collectionSize` chooses
+the size within those bounds. With the default `collectionSize(1, 10)`, `@NotEmpty List<String>` has
+1 to 10 elements, and `@Size(max = 3)` 1 to 3. Where the configured range lies outside the bounds,
+the size is the bound nearest it: `@Size(min = 20)` gives 20 elements under the default, and
+`@Size(max = 2)` with `collectionSize(4, 6)` gives 2.
+
+A constraint written before an array type, as in `@NotEmpty Leaf[]` or `@Size(max = 3) String[]`,
+constrains the array and not its elements. Java places such an annotation on the array's component
+type as well as on the declaration, but Hibernate Validator reads it for the array alone, and so does
+kRandom: `@Size(max = 3) String[]` holds up to three strings of the configured length. A constraint
+on a type argument inside the component still applies, so each list in `List<@Email String>[]` holds
+email addresses.
 
 ## Precedence
 

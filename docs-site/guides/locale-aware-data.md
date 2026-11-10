@@ -79,16 +79,82 @@ WeatherDataProvider weather = context.provider(Vocabulary.WEATHER, Locale.UK);
 Set<String> keys = context.registeredKeys(Vocabulary.WEATHER); // "en_GB", "en" and the bundled keys
 ```
 
-`Vocabulary.all()` lists the 41 built-in vocabularies. Lookups resolve the exact
+`Vocabulary.all()` lists the 42 built-in vocabularies. Lookups resolve the exact
 `language_COUNTRY` key first, then the bundled data for that key, then the language entry (a
 regional registration also serves its language) and finally the bundled language data;
-`isolated()` contexts skip the bundled data. `Vocabulary.NATIONAL_ID` is the one exception: for a
-locale with a country, the third step is the registration for that country whatever its language,
-because identity-number formats are national; language-only locales use the language entry.
+`isolated()` contexts skip the bundled data. `Vocabulary.NATIONAL_ID` and `Vocabulary.POSTAL_PLACE`
+are the exceptions: for a locale with a country, the third step is the registration for that country
+whatever its language, and the bundled data is looked up by country too, because identity-number
+formats and postal geography are national; language-only locales use the language entry.
 
 Generators you write yourself can define their own vocabulary with
 `Vocabulary.custom("colour", ColourProvider.class)`, where `ColourProvider` extends
 `LocaleDataProvider`; keep the key in a constant, because keys compare by identity.
+
+## Coherent addresses
+
+`AddressInfoGenerator`, `StreetAddressGenerator.generateFullAddress()`, and, for a locale with a
+country, the object engine's address members (`city`, `state`, `postalCode`) take an address's city,
+region, and postal code from one place of `Vocabulary.POSTAL_PLACE`, so the three agree: an `en_US`
+address in Grand Rapids is in Michigan, with a Grand Rapids ZIP code. The bundled places:
+
+| Locale | Places | Region | Postal codes | Source and licence |
+| --- | --- | --- | --- | --- |
+| `en_US` | 252 cities, in all 50 states and DC | the state and its USPS code | up to ten ZIP codes of the city | U.S. Census Bureau, public domain |
+| `en_GB` | 111 cities in Great Britain | England, Scotland, or Wales | up to ten postcodes in the city, one per postcode district | Ordnance Survey OS Open Names, Open Government Licence v3.0 |
+| `de_DE` | 115 cities, in all 16 Länder | the Land | the postal code of the city's administrative seat | Destatis Gemeindeverzeichnis, reuse with attribution |
+| `fr_FR` | 107 communes, in 14 régions | the région | up to ten postal codes of the commune | La Poste and Insee, Licence Ouverte 2.0 |
+
+The header of each table in `krandom/postal_places/` records its sources, licence, retrieval date, and
+checksums, and how its rows were chosen. The tables have these limits:
+
+- `en_GB` has no places in Northern Ireland, because OS Open Names covers Great Britain only, so its
+  Northern Ireland cities, such as Belfast, appear only in `CityGenerator`. A postcode is one that OS
+  Open Names places in the city; OS Open Names does not record Royal Mail's post towns, so a postcode's
+  post town can be a neighbouring town.
+- `de_DE` gives every address in one city the same postal code, that of the city's administrative seat,
+  because the Gemeindeverzeichnis has one for each municipality. For some cities it is the city
+  administration's own large-recipient code rather than a delivery district's, such as `80313` for
+  München.
+
+Postal geography is national, so the other languages of a country with places use them: `es_US`
+addresses are in the United States, with the US state names, and `en_DE` addresses are in Germany. A
+locale without a country uses the places of its language and names their country: `Locale.ENGLISH`
+gives United States addresses, `Locale.GERMAN` German ones, and `Locale.FRENCH` French ones.
+
+Every other locale composes an address from independent draws: a city from its city data, a region from
+its state data, and a postal code in its country's format, which need not agree. This covers the other 31
+native locales, for which no table of cities and postal codes from an openly licensed source is bundled
+yet, and the 15 fallback variants. A fallback variant's cities and regions come from another
+country's data, while its postal codes and country are its own: an `en_CA` address has a US city and state
+and a Canadian postal code. `StreetAddressGenerator.generateFullAddress()` names the locale's country in
+every locale. `Krandom.city()` and `Krandom.postalCode()` draw separately, and so do separate
+`address.city`, `address.state`, and `address.postal_code` schema columns; use `Generators.ofAddressInfo`
+or the `address.address_info` provider for an address whose parts belong together.
+
+Places you register take precedence over the bundled ones for the same locale key, and serve every
+language of their country:
+
+```java
+DataRegistryContext context = DataRegistryContext.builder()
+        .register(Vocabulary.POSTAL_PLACE, new PostalPlaceDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return Locale.of("es", "MX");
+            }
+
+            @Override
+            public List<PostalPlace> getPlaces() {
+                return List.of(new PostalPlace("Guadalajara", "Jalisco", "JAL", List.of("44100", "44160")));
+            }
+        })
+        .build();
+```
+
+`LocaleDataBundle.Builder.postalPlaces(...)` registers places with a bundle. Cities or states that you
+register without places do not replace the bundled places of a country that has them: a context with its
+own `en_US` cities still gives `AddressInfoGenerator` the bundled US places, while `CityGenerator` gives
+your cities. Register places for the locale as well to use your own.
 
 ## Locale quality tiers
 
