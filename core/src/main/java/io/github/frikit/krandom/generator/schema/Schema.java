@@ -19,7 +19,17 @@ import java.lang.reflect.Array;
 import java.lang.reflect.RecordComponent;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -36,6 +46,13 @@ import java.util.Random;
  * stream derived from its record index and field name. Adding an unrelated schema column therefore
  * does not perturb existing column values. Caller-owned, secure, and unseeded random sources retain
  * their documented sequential behavior.
+ *
+ * <p>Every writer writes a date or time as the RFC 3339 text of the format its type exports, with the
+ * seconds always and a fraction only where it is not zero: a {@code ZonedDateTime} with its offset and no
+ * zone ID, an {@code Instant} with {@code Z}, a {@code java.util.Date} or {@code Calendar} as the instant it
+ * holds, and a {@code java.sql.Date} or {@code Time} as its date or time of day. A year outside 0000 to 9999,
+ * or an offset with seconds, which RFC 3339 cannot write, is refused with an
+ * {@link IllegalArgumentException}.
  */
 public final class Schema implements Generator<Map<String, Object>> {
 
@@ -44,6 +61,13 @@ public final class Schema implements Generator<Map<String, Object>> {
     static final String DEFAULT_XML_ROOT_ELEMENT = "records";
     static final String DEFAULT_XML_RECORD_ELEMENT = "record";
     static final char NEWLINE = '\n';
+
+    /** The first and last second RFC 3339 can write, whose years have four digits. */
+    private static final long FIRST_SECOND =
+            LocalDate.of(0, 1, 1).atStartOfDay().toEpochSecond(ZoneOffset.UTC);
+
+    private static final long LAST_SECOND =
+            LocalDate.of(9999, 12, 31).atTime(LocalTime.MAX).toEpochSecond(ZoneOffset.UTC);
 
     private final GeneratorConfig config;
     private final Map<String, SchemaValueProvider> fields;
@@ -1163,6 +1187,10 @@ public final class Schema implements Generator<Map<String, Object>> {
                 || value instanceof Boolean) {
             return value;
         }
+        String temporal = rfc3339(value);
+        if (temporal != null) {
+            return temporal;
+        }
         if (value instanceof Map<?, ?> map) {
             Map<Object, Object> normalized = new LinkedHashMap<>(map.size());
             for (Map.Entry<?, ?> entry : map.entrySet()) {
@@ -1192,6 +1220,84 @@ public final class Schema implements Generator<Map<String, Object>> {
             return recordToMap(value, componentPath);
         }
         return value;
+    }
+
+    /**
+     * The RFC 3339 text of a date or time, in the form of the format its type exports: full-date for a
+     * {@code LocalDate}, partial-time for a {@code LocalTime}, a date-time without an offset for a
+     * {@code LocalDateTime}, and with one for the rest, where a {@code ZonedDateTime} gives its offset without
+     * its zone ID and an {@code Instant} {@code Z}. Seconds are always written, and a fraction only where it is
+     * not zero. A {@code java.util.Date} or {@code Calendar} is written as the instant it holds, and a
+     * {@code java.sql.Date} or {@code Time} as its date or time of day. Null for any other value.
+     *
+     * @throws IllegalArgumentException for a year outside 0000 to 9999, or an offset with seconds, which RFC
+     *     3339 cannot write
+     */
+    static @org.jspecify.annotations.Nullable String rfc3339(Object value) {
+        if (value instanceof LocalDate date) {
+            return withYear(date.getYear(), value, DateTimeFormatter.ISO_LOCAL_DATE.format(date));
+        }
+        if (value instanceof LocalTime time) {
+            return DateTimeFormatter.ISO_LOCAL_TIME.format(time);
+        }
+        if (value instanceof LocalDateTime dateTime) {
+            return withYear(dateTime.getYear(), value, DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(dateTime));
+        }
+        if (value instanceof OffsetTime time) {
+            return withOffset(time.getOffset(), value, DateTimeFormatter.ISO_OFFSET_TIME.format(time));
+        }
+        if (value instanceof OffsetDateTime dateTime) {
+            return offsetDateTime(dateTime, value);
+        }
+        if (value instanceof ZonedDateTime dateTime) {
+            return offsetDateTime(dateTime.toOffsetDateTime(), value);
+        }
+        if (value instanceof Instant instant) {
+            if (instant.getEpochSecond() < FIRST_SECOND || instant.getEpochSecond() > LAST_SECOND) {
+                throw unwritable(value, "its year is outside 0000 to 9999");
+            }
+            return DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(instant.atOffset(ZoneOffset.UTC));
+        }
+        // A java.sql.Date or Time holds no instant, and its toInstant() throws, so it comes before java.util.Date.
+        if (value instanceof java.sql.Date date) {
+            return rfc3339(date.toLocalDate());
+        }
+        if (value instanceof java.sql.Time time) {
+            return rfc3339(time.toLocalTime());
+        }
+        if (value instanceof java.util.Date date) {
+            return rfc3339(date.toInstant());
+        }
+        if (value instanceof Calendar calendar) {
+            return rfc3339(ZonedDateTime.ofInstant(
+                    calendar.toInstant(), calendar.getTimeZone().toZoneId()));
+        }
+        return null;
+    }
+
+    private static String offsetDateTime(OffsetDateTime dateTime, Object value) {
+        return withOffset(
+                dateTime.getOffset(),
+                value,
+                withYear(dateTime.getYear(), value, DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(dateTime)));
+    }
+
+    private static String withYear(int year, Object value, String text) {
+        if (year < 0 || year > 9999) {
+            throw unwritable(value, "its year is outside 0000 to 9999");
+        }
+        return text;
+    }
+
+    private static String withOffset(ZoneOffset offset, Object value, String text) {
+        if (offset.getTotalSeconds() % 60 != 0) {
+            throw unwritable(value, "its offset has seconds");
+        }
+        return text;
+    }
+
+    private static IllegalArgumentException unwritable(Object value, String reason) {
+        return new IllegalArgumentException("RFC 3339 has no form for " + value + ": " + reason);
     }
 
     private static Map<String, Object> recordToMap(Object record, String componentPath) {

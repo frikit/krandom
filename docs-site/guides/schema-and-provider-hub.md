@@ -192,11 +192,17 @@ reason: the importer has no document-ID or reference-resolution model.
 Schema export is metadata-driven and side-effect free. Built-in `Field` providers carry an exact
 fragment; a custom lambda with no metadata deliberately exports `{}` to mean **unknown**, not an
 invented type. A record member exports by its Java type: a `LocalDate` as `format: date`, an
-`OffsetDateTime` or `ZonedDateTime` as `date-time`, and a `LocalDateTime` or `LocalTime` as
-`date-time-local` or `time-local`, as the `datetime.time` provider does too, because RFC 3339's
-`date-time` and `time` need an offset that those values do not have. Parsing such a schema back gives
-values each type holds. Attach `SchemaValueProvider.withJsonSchema(...)` or `withSample(...)` when a custom
-provider can make a narrower claim. `Schema`, `SchemaProjection`, and parser-created generators are
+`OffsetTime` as `time`, an `OffsetDateTime`, `ZonedDateTime`, or `Instant` as `date-time`, and a
+`LocalDateTime` or `LocalTime` as `date-time-local` or `time-local`, as the `datetime.time` provider
+does too, because RFC 3339's `date-time` and `time` need an offset that those values do not have.
+Parsing such a schema back gives values each type holds, and every writer, from JSON to SQL, writes
+such a value in its format's RFC 3339 form, with the seconds always and a fraction only where it is not
+zero: `2024-01-05T09:05:00` for a `LocalDateTime` at 09:05, a `ZonedDateTime` with its offset and no
+`[Zone/Id]`, and an `Instant` with `Z`. A `java.util.Date` or `Calendar` is written as the instant it
+holds, and a `java.sql.Date` or `Time` as its date or time of day. A year outside 0000 to 9999, or an
+offset with seconds, which RFC 3339 cannot write, is refused. Attach
+`SchemaValueProvider.withJsonSchema(...)` or `withSample(...)` when a custom provider can make a
+narrower claim. `Schema`, `SchemaProjection`, and parser-created generators are
 stateful: use one instance per thread (or `Generators.threadLocal(...)`) and share only immutable
 configuration and completed provider registrations.
 

@@ -445,6 +445,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   constructor set, as it does by default, now keeps a constrained one too. Record components already read
   their constraints. Seeded output changes for such arguments, and for the members after them where members
   share one stream.
+- `Schema` writes a date or time in the RFC 3339 form of the format its type exports, in every output:
+  JSON, JSON Lines, YAML, TOML, CSV, XML, and SQL. It wrote `toString()`, which leaves out `:00`
+  seconds, so a `LocalDateTime` at 09:05 was written `2024-01-05T09:05`; adds a `ZonedDateTime`'s zone
+  ID, as in `2024-01-05T09:05+01:00[Europe/Paris]`; writes a `java.util.Date` in the default time zone,
+  as `Fri Jan 05 09:05:00 GMT 2024`; puts a space for the `T` in a `Timestamp`; and lists a `Calendar`'s
+  fields. A `LocalDate` is now a full-date, a `LocalTime` a partial-time, a `LocalDateTime` a date-time
+  without an offset, an `OffsetTime` a time with its offset, and an `OffsetDateTime`, a `ZonedDateTime`,
+  with its offset and no zone ID, and an `Instant`, with `Z`, a date-time. Seconds are always written,
+  and a fraction only where it is not zero, without trailing zeros, so an `Instant` at half a second
+  ends `.5Z` where it ended `.500Z`. A `java.util.Date` or `Timestamp` is written as its instant, a `Calendar` at its own offset,
+  and a `java.sql.Date` or `Time` as its date or time of day. A year outside 0000 to 9999, or an offset
+  with seconds, which RFC 3339 cannot write, is refused with an `IllegalArgumentException` in every
+  output, as JSON refuses a number it cannot write. JSON Schema export now names `time` for an
+  `OffsetTime` member and `date-time` for an `Instant` member, where it named no format. Written output
+  changes for every value of these types; generated values do not.
 - `SchemaParser` reads `minLength`, `maxLength`, `minItems`, `maxItems`, `minProperties`, and
   `maxProperties` exactly. It read the first four through `intValue`, so a count beyond an `int`
   wrapped: `maxItems` 3000000000 parsed and then failed every record with `Illegal Capacity:

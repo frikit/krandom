@@ -13,10 +13,12 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -345,7 +347,11 @@ final class JsonSchemaSupport {
         if (type == LocalDateTime.class) {
             return stringFormat("date-time-local");
         }
-        if (type == OffsetDateTime.class || type == ZonedDateTime.class) {
+        // The writer gives an OffsetTime its offset, and an Instant Z.
+        if (type == OffsetTime.class) {
+            return stringFormat("time");
+        }
+        if (type == OffsetDateTime.class || type == ZonedDateTime.class || type == Instant.class) {
             return stringFormat("date-time");
         }
         if (type.isEnum()) {
