@@ -85,6 +85,9 @@ val user = krandom<User> {
   `ObjectFaker.strict()` to report root properties without a rule and unused, ambiguous or shadowed
   rules before generating. Use immutable `ObjectModel<T>` values for reusable, composable fixture
   definitions.
+- Set `GeneratorConfig.Builder.generationReportListener(...)` to see how object generation produced each
+  value, its seed source, recipe settings, provider, matched rule, constraints, safety policy and fallback
+  decisions, without the value itself.
 - Use `Field` + `Schema` when you want row-style payloads or formatted export output such as JSONL,
   JSON, CSV, XML, SQL, YAML, or TOML.
 

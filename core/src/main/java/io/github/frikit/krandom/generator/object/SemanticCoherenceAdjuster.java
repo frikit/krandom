@@ -18,6 +18,7 @@ import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
 import io.github.frikit.krandom.generator.network.NetworkSafetyPolicy;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import io.github.frikit.krandom.generator.report.GenerationDecision;
 import java.lang.reflect.Field;
 import java.lang.reflect.RecordComponent;
 import java.math.BigDecimal;
@@ -83,6 +84,7 @@ final class SemanticCoherenceAdjuster {
     private final @Nullable Long generationSeed;
     private final int depth;
     private final String objectPath;
+    private final @Nullable GenerationReporter reporter;
     private @Nullable AddressInfo addressInfo;
     private boolean addressInfoResolved;
 
@@ -107,6 +109,7 @@ final class SemanticCoherenceAdjuster {
         this.generationSeed = generationSeed;
         this.depth = depth;
         this.objectPath = Objects.requireNonNull(objectPath, "objectPath must not be null");
+        this.reporter = GenerationReporter.of(config, false);
     }
 
     void adjustInstance(Class<?> ownerType, Object instance, List<Field> fields, boolean allowOverwriteExisting) {
@@ -122,13 +125,13 @@ final class SemanticCoherenceAdjuster {
                 continue;
             }
             field.setAccessible(true);
-            slots.add(new ReflectionSlot(
+            slots.add(reported(new ReflectionSlot(
                     ownerType,
                     field,
                     instance,
                     config.isIgnoreErrors(),
                     depth,
-                    config.getGeneratorConfig().getGenerationFailureListener()));
+                    config.getGeneratorConfig().getGenerationFailureListener())));
         }
         apply(slots, allowOverwriteExisting);
     }
@@ -149,7 +152,7 @@ final class SemanticCoherenceAdjuster {
             if (config.shouldExclude(backingField)) {
                 continue;
             }
-            slots.add(new RecordSlot(ownerType, components[i], backingField, args, i));
+            slots.add(reported(new RecordSlot(ownerType, components[i], backingField, args, i)));
         }
         apply(slots, true);
     }
@@ -837,12 +840,14 @@ final class SemanticCoherenceAdjuster {
         // constraints take precedence over semantics, as they do when a value is generated. STRICT lets
         // semantics win over the annotations, and over a constraint where the derived value meets it.
         if (config.getSemanticMode() == ObjectGenerationSemanticMode.RELAXED) {
-            if (field.isAnnotationPresent(Randomizer.class)
+            boolean kept = field.isAnnotationPresent(Randomizer.class)
                     || field.isAnnotationPresent(Fake.class)
-                    || field.isAnnotationPresent(FakeRange.class)) {
-                return true;
+                    || field.isAnnotationPresent(FakeRange.class)
+                    || BeanValidationSupport.constraintGeneratorFor(field, slot.rawType()) != null;
+            if (kept && slot instanceof ReportingSlot reporting) {
+                reporting.kept();
             }
-            return BeanValidationSupport.constraintGeneratorFor(field, slot.rawType()) != null;
+            return kept;
         }
         return false;
     }
@@ -1576,6 +1581,70 @@ final class SemanticCoherenceAdjuster {
                     field.getGenericType().getTypeName(),
                     depth,
                     -1);
+        }
+    }
+
+    /** The slot itself, or, with a report listener, the slot reporting what the pass does to it. */
+    private Slot reported(Slot slot) {
+        GenerationReporter active = reporter;
+        return active == null ? slot : new ReportingSlot(slot, active, objectPath + "." + slot.fieldName());
+    }
+
+    /**
+     * Reports a member that the pass changes, or that {@code RELAXED} mode keeps, once. It compares the old
+     * and new values to see a change and never passes either to the report.
+     */
+    static final class ReportingSlot implements Slot {
+
+        private final Slot slot;
+        private final GenerationReporter reporter;
+        private final String path;
+        private boolean keptReported;
+
+        ReportingSlot(Slot slot, GenerationReporter reporter, String path) {
+            this.slot = slot;
+            this.reporter = reporter;
+            this.path = path;
+        }
+
+        @Override
+        public Class<?> ownerType() {
+            return slot.ownerType();
+        }
+
+        @Override
+        public String fieldName() {
+            return slot.fieldName();
+        }
+
+        @Override
+        public Class<?> rawType() {
+            return slot.rawType();
+        }
+
+        @Override
+        public Field annotatedElement() {
+            return slot.annotatedElement();
+        }
+
+        @Override
+        public @Nullable Object getValue() {
+            return slot.getValue();
+        }
+
+        @Override
+        public void setValue(@Nullable Object value) {
+            if (!Objects.equals(slot.getValue(), value)) {
+                reporter.coherence(path, GenerationDecision.COHERENCE_MOVE);
+            }
+            slot.setValue(value);
+        }
+
+        void kept() {
+            if (!keptReported) {
+                keptReported = true;
+                reporter.coherence(path, GenerationDecision.CONSTRAINT_KEPT);
+            }
         }
     }
 

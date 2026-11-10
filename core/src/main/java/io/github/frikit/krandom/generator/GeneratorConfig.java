@@ -18,6 +18,7 @@ import io.github.frikit.krandom.generator.object.ObjectConstructionPolicy;
 import io.github.frikit.krandom.generator.object.ObjectFieldStreamPolicy;
 import io.github.frikit.krandom.generator.object.ObjectGenerationSemanticMode;
 import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
+import io.github.frikit.krandom.generator.report.GenerationReportListener;
 import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
 import java.lang.reflect.Field;
@@ -93,6 +94,8 @@ public final class GeneratorConfig {
     private final ObjectConstructionPolicy objectConstructionPolicy;
     private final boolean objectIgnoreErrors;
     private final GenerationFailureListener generationFailureListener;
+    private final @Nullable GenerationReportListener generationReportListener;
+    private final boolean restoredFromRecipe;
     private final @Nullable LocalDate objectDateMin;
     private final @Nullable LocalDate objectDateMax;
     private final ObjectGenerationSemanticMode objectSemanticMode;
@@ -150,6 +153,8 @@ public final class GeneratorConfig {
         this.objectConstructionPolicy = b.objectConstructionPolicy;
         this.objectIgnoreErrors = b.objectIgnoreErrors;
         this.generationFailureListener = b.generationFailureListener;
+        this.generationReportListener = b.generationReportListener;
+        this.restoredFromRecipe = b.restoredFromRecipe;
         this.objectDateMin = b.objectDateMin;
         this.objectDateMax = b.objectDateMax;
         this.objectSemanticMode = b.objectSemanticMode;
@@ -525,6 +530,27 @@ public final class GeneratorConfig {
      */
     public GenerationFailureListener getGenerationFailureListener() {
         return generationFailureListener;
+    }
+
+    /**
+     * The listener for value-free generation report entries, if one is set. Without one, object
+     * generation builds no report.
+     *
+     * @return the listener, or empty when none is set
+     */
+    public Optional<GenerationReportListener> getGenerationReportListener() {
+        return Optional.ofNullable(generationReportListener);
+    }
+
+    /**
+     * Whether this configuration was restored from a replay recipe with
+     * {@link GenerationRecipe#toGeneratorConfig()} and keeps the recipe's seed. A new seed set through
+     * {@link #toBuilder()} makes it an ordinary seeded configuration.
+     *
+     * @return {@code true} for a configuration that replays a recipe
+     */
+    public boolean isRestoredFromRecipe() {
+        return restoredFromRecipe;
     }
 
     /**
@@ -929,6 +955,8 @@ public final class GeneratorConfig {
         private ObjectConstructionPolicy objectConstructionPolicy = ObjectConstructionPolicy.SAFE_CONSTRUCTORS;
         private boolean objectIgnoreErrors;
         private GenerationFailureListener generationFailureListener = NO_FAILURE_LISTENER;
+        private @Nullable GenerationReportListener generationReportListener;
+        private boolean restoredFromRecipe;
         private @Nullable LocalDate objectDateMin;
         private @Nullable LocalDate objectDateMax;
         private ObjectGenerationSemanticMode objectSemanticMode = ObjectGenerationSemanticMode.RELAXED;
@@ -993,6 +1021,8 @@ public final class GeneratorConfig {
             this.objectConstructionPolicy = source.objectConstructionPolicy;
             this.objectIgnoreErrors = source.objectIgnoreErrors;
             this.generationFailureListener = source.generationFailureListener;
+            this.generationReportListener = source.generationReportListener;
+            this.restoredFromRecipe = source.restoredFromRecipe;
             this.objectDateMin = source.objectDateMin;
             this.objectDateMax = source.objectDateMax;
             this.objectSemanticMode = source.objectSemanticMode;
@@ -1070,6 +1100,7 @@ public final class GeneratorConfig {
         public Builder seed(long seed) {
             this.numericSeed = OptionalLong.of(seed);
             this.stringSeed = Optional.empty();
+            this.restoredFromRecipe = false;
             return this;
         }
 
@@ -1085,6 +1116,7 @@ public final class GeneratorConfig {
             }
             this.stringSeed = Optional.of(seedText);
             this.numericSeed = OptionalLong.empty();
+            this.restoredFromRecipe = false;
             return this;
         }
 
@@ -1217,6 +1249,28 @@ public final class GeneratorConfig {
          */
         public Builder objectIgnoreErrors(boolean objectIgnoreErrors) {
             this.objectIgnoreErrors = objectIgnoreErrors;
+            return this;
+        }
+
+        /**
+         * Sets the synchronous listener for value-free generation report entries: one for each value that
+         * object generation produces, naming its path, seed source, recipe settings, generator, matched
+         * rule, constraints, safety policies and fallback decisions, never the value. Reporting draws
+         * nothing from any random stream, so seeded output is the same with or without a listener, and
+         * without one nothing is reported or built. A listener that throws is logged and ignored.
+         *
+         * @param generationReportListener the listener
+         * @return this builder
+         */
+        public Builder generationReportListener(GenerationReportListener generationReportListener) {
+            this.generationReportListener =
+                    Objects.requireNonNull(generationReportListener, "generationReportListener must not be null");
+            return this;
+        }
+
+        /** Marks the configuration as restored from a recipe, once the recipe's seed is set. */
+        Builder restoredFromRecipe() {
+            this.restoredFromRecipe = true;
             return this;
         }
 

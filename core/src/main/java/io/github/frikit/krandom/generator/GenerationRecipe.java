@@ -320,7 +320,7 @@ public final class GenerationRecipe {
             builder.seed(seedText);
         }
         applySettings(builder);
-        return builder.build();
+        return builder.restoredFromRecipe().build();
     }
 
     /**

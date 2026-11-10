@@ -567,17 +567,19 @@ public final class ObjectFaker<T> implements Generator<T> {
             builder.exclude(field -> field.getDeclaringClass() == ignoredField.ownerType()
                     && field.getName().equals(ignoredField.fieldName()));
         }
+        // With a report listener, a root rule is tagged so that the report names it; the tag draws as it does.
+        boolean reporting =
+                baseConfig.getGeneratorConfig().getGenerationReportListener().isPresent();
         for (RulePath target : directRootFieldRulePaths()) {
-            builder.override(
-                    target.leaf().ownerType(),
-                    target.leaf().fieldName(),
-                    Objects.requireNonNull(fieldRules.get(target.path())));
+            Generator<?> generator = Objects.requireNonNull(fieldRules.get(target.path()));
+            Generator<?> installed = reporting ? tagged(generator, activeRule(target.path(), false)) : generator;
+            builder.override(target.leaf().ownerType(), target.leaf().fieldName(), installed);
         }
         for (RulePath target : contextualRootFieldRulePaths()) {
-            builder.override(
-                    target.leaf().ownerType(),
-                    target.leaf().fieldName(),
-                    Objects.requireNonNull(contextualFieldRules.get(target.path())));
+            ContextualGenerator<?> generator = Objects.requireNonNull(contextualFieldRules.get(target.path()));
+            ContextualGenerator<?> installed =
+                    reporting ? tagged(generator, activeRule(target.path(), false)) : generator;
+            builder.override(target.leaf().ownerType(), target.leaf().fieldName(), installed);
         }
         return builder.build();
     }
@@ -629,12 +631,45 @@ public final class ObjectFaker<T> implements Generator<T> {
         return targets;
     }
 
+    private static <V> Generator<V> tagged(Generator<V> generator, FixtureRule rule) {
+        return new FixtureRuleGenerator<>(generator, rule);
+    }
+
+    private static <V> ContextualGenerator<V> tagged(ContextualGenerator<V> generator, FixtureRule rule) {
+        return new FixtureRuleContextualGenerator<>(generator, rule);
+    }
+
+    /**
+     * The registration of the rule now active for a path, the last one, or of the ignore of that path, the
+     * first, as repeats of an ignore change nothing. A path has rules or ignores, never both.
+     */
+    private FixtureRule activeRule(String path, boolean ignore) {
+        FixtureRule active = null;
+        for (FixtureRule registration : registrations) {
+            if (registration.path().equals(path)
+                    && registration.kind() != FixtureRuleKind.INCLUDE
+                    && (active == null || !ignore)) {
+                active = registration;
+            }
+        }
+        return Objects.requireNonNull(active, "a registered rule");
+    }
+
+    /** Reports a rule or ignore that ran after generation, when a report listener is set. */
+    private void reportApplied(@Nullable GenerationReporter reporter, String path, boolean ignore) {
+        if (reporter != null) {
+            reporter.applied(type.getSimpleName() + "." + path, activeRule(path, ignore));
+        }
+    }
+
     private T applyPostGenerationRules(T value) {
+        GenerationReporter reporter = GenerationReporter.of(baseConfig, false);
         T current = value;
         for (Map.Entry<String, Generator<?>> entry : fieldRules.entrySet()) {
             RulePath path = Objects.requireNonNull(rulePaths.get(entry.getKey()));
             if (!path.isRoot()) {
                 current = assignFieldValue(current, path, entry.getValue().generate());
+                reportApplied(reporter, entry.getKey(), false);
             }
         }
         for (Map.Entry<String, ContextualGenerator<?>> entry : contextualFieldRules.entrySet()) {
@@ -651,15 +686,17 @@ public final class ObjectFaker<T> implements Generator<T> {
                                 target.field() != null ? target.field() : target.accessor(),
                                 baseConfig.getGeneratorConfig()));
                 current = assignFieldValue(current, path, fieldValue);
+                reportApplied(reporter, entry.getKey(), false);
             }
         }
         for (Map.Entry<String, Function<? super T, ?>> entry : dependentFieldRules.entrySet()) {
             RulePath path = Objects.requireNonNull(rulePaths.get(entry.getKey()));
             Object fieldValue = entry.getValue().apply(current);
             current = assignFieldValue(current, path, fieldValue);
+            reportApplied(reporter, entry.getKey(), false);
         }
         current = applyNestedIncludeRules(current);
-        current = applyNestedIgnoreRules(current);
+        current = applyNestedIgnoreRules(current, reporter);
         for (UnaryOperator<T> postProcessor : postProcessors) {
             current = Objects.requireNonNull(postProcessor.apply(current), "postProcessor must not return null");
         }
@@ -674,12 +711,13 @@ public final class ObjectFaker<T> implements Generator<T> {
         return type.cast(pruneToIncludedPaths(value, includeTree, type.getSimpleName(), -1));
     }
 
-    private T applyNestedIgnoreRules(T value) {
+    private T applyNestedIgnoreRules(T value, @Nullable GenerationReporter reporter) {
         T current = value;
         for (String fieldName : ignoredFields) {
             RulePath path = Objects.requireNonNull(rulePaths.get(fieldName));
             if (!path.isRoot()) {
                 current = clearFieldValue(current, path);
+                reportApplied(reporter, fieldName, true);
             }
         }
         return current;

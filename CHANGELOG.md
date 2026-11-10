@@ -8,6 +8,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- A value-free generation report. `GeneratorConfig.Builder.generationReportListener(...)` sets a
+  `GenerationReportListener`, which receives a `GenerationReportEntry` for each value that object generation
+  produces, with an `ObjectGenerator`, an `ObjectFaker`, an `ObjectModel` or the Kotlin DSL: its path, its
+  `SeedSource` (the configuration's seed, a stream derived from it by name, a replay recipe, or none), the
+  recipe format `krandom-recipe/v1` when the configuration has a portable recipe and the names of the recipe
+  settings that shaped the value, the `GenerationStep` and generator that produced it, the `FixtureRule`
+  that matched it, whether an `ObjectFaker` rule with its registration number or a `GeneratorConfig`
+  override, its Bean Validation constraints, the safety policies that bound it, such as
+  `network.safety-policy`, and its `GenerationDecision`s: a cut at `objectMaxDepth` or at a cycle, a fallback
+  for an unsupported type or unmet constraints under `objectIgnoreErrors(true)`, a drawn `null` or empty
+  `Optional`, a semantic provider deferred to a constraint or annotation, and a coherence move, or a member
+  that `RELAXED` mode keeps. An entry never holds a generated value. Reporting draws nothing from any random
+  stream, so seeded output is the same with or without a listener, and without one nothing is reported or
+  built. A listener that throws is logged and ignored. `GeneratorConfig.isRestoredFromRecipe()` says whether
+  a configuration replays a recipe, and the Kotlin DSL sets the listener with
+  `config { generationReportListener { entry -> ... } }`.
 - `ObjectFaker.strict()`, which has nothing to do with `ObjectGenerationSemanticMode.STRICT`, now reports
   unused, ambiguous and shadowed fixture rules, together with the root properties that have no rule,
   include or ignore, in one `FixtureRuleException`, before generating or populating. `assertConfigurationIsValid()`, which `ObjectFaker.strict()` runs, reports the same on demand.

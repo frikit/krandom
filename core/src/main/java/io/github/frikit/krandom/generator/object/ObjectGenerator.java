@@ -330,6 +330,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
     private T generateWithPool() {
         var contextualFactory = config.getContextualTypeOverride(type);
         if (contextualFactory.isPresent()) {
+            reportRoot(FixtureRuleKind.CONTEXT_TYPE_OVERRIDE);
             return generateFromRootFactory(
                     "contextual type override",
                     () -> contextualFactory
@@ -339,6 +340,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         }
         var factory = config.getTypeOverride(type);
         if (factory.isPresent()) {
+            reportRoot(FixtureRuleKind.TYPE_OVERRIDE);
             return generateFromRootFactory("type override", factory.get()::generate);
         }
         if (SealedTypes.isAbstract(type)) {
@@ -351,6 +353,9 @@ public final class ObjectGenerator<T> implements Generator<T> {
             }
         }
 
+        if (depth == 0) {
+            reportRoot(null);
+        }
         FieldGeneratorResolver resolver = new FieldGeneratorResolver(
                 config,
                 Objects.requireNonNull(pool, "pool must not be null"),
@@ -474,6 +479,22 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 "Unsupported type at '" + path + "' (declared type " + type.getTypeName() + ", depth " + depth + ")",
                 context,
                 cause);
+    }
+
+    /**
+     * Reports the object this generator builds as a root, or with a type override at any depth, when a
+     * report listener is set; a nested object has the entry of the member that holds it.
+     */
+    private void reportRoot(@Nullable FixtureRuleKind factory) {
+        GenerationReporter reporter = GenerationReporter.of(
+                config,
+                ObjectFieldStreamPlanner.usesNamedChildStreams(
+                        config.getGeneratorConfig().getObjectFieldStreamPolicy(),
+                        generationSeed,
+                        config.hasPortableRecipe()));
+        if (reporter != null) {
+            reporter.root(objectPath, type, factory);
+        }
     }
 
     private ObjectGenerationException constructionFailure(Throwable cause) {

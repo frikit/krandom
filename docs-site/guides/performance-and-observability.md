@@ -85,3 +85,39 @@ Generation failures expose structured, value-sanitized context and an optional r
 diagnostic path records types, operations, field paths, recipe identity, and cause class names; it
 does not expose generated values or third-party exception messages. Configure a
 `GenerationFailureListener` only when an application needs to collect those events.
+
+### Generation report
+
+A `GenerationReportListener`, set with `GeneratorConfig.Builder.generationReportListener(...)`, receives a
+`GenerationReportEntry` for each value that object generation produces. An entry gives:
+
+- the path, such as `Order.customer.email`, with `[]` for an element and `.key` or `.value` inside a map or an
+  `Optional`;
+- the `SeedSource`: the configuration's own seed, a stream derived from it by name, a replay recipe, or none;
+- the recipe format, `krandom-recipe/v1`, when the configuration has a portable recipe, and the names of the
+  recipe settings that shaped the value, such as `string.max` or `object.max-depth`;
+- the `GenerationStep` and generator that produced it, such as a semantic provider, a built-in type or an
+  enum;
+- the `ObjectFaker` rule or `GeneratorConfig` override that matched it, as a `FixtureRule` with its kind, path
+  and, for a rule, its registration number;
+- the Bean Validation constraints on the member;
+- the safety policies that bound it, such as `network.safety-policy`, `email.domain-policy` or
+  `phone-number.safety-policy`;
+- the fallback decisions taken: a cut at `objectMaxDepth` or at a cycle, an unsupported type or unmet
+  constraints that `objectIgnoreErrors(true)` leaves at the default, a `null` or an empty `Optional` that the
+  configured probabilities drew, a semantic provider that a constraint or, in `RELAXED` mode, an annotation
+  deferred, and a member that the coherence pass changed or, in `RELAXED` mode, kept.
+
+```java
+List<GenerationReportEntry> entries = new ArrayList<>();
+GeneratorConfig config = GeneratorConfig.builder()
+        .seed(42L)
+        .generationReportListener(entries::add)
+        .build();
+Order order = new ObjectGenerator<>(Order.class, config).generate();
+```
+
+An entry never holds a generated value, so it can be logged beside a failing test. Reporting draws nothing
+from any random stream, so a seeded configuration generates the same values with or without a listener, and
+without a listener nothing is reported or built. The listener runs synchronously; one that throws is logged
+and ignored. In the Kotlin DSL, set it with `config { generationReportListener { entry -> ... } }`.
