@@ -10,7 +10,7 @@ Run it through `../../scripts/verify_examples_local.sh`, or after publishing the
 version to Maven local:
 
 ```bash
-../../gradlew -PkrandomVersion=3.0.0-SNAPSHOT verifyJpms
+../../gradlew -PkrandomVersion=3.1.0-SNAPSHOT verifyJpms
 ```
 
 ## Integration consumers
