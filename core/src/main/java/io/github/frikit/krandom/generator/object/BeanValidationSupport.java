@@ -814,17 +814,66 @@ final class BeanValidationSupport {
         if (constraints.text() != null) {
             return constraints.text().accepts(value.toString());
         }
-        return constraints.numeric() == null || numericAccepts(constraints.numeric(), decimalOf(value));
+        if (constraints.numeric() == null) {
+            return true;
+        }
+        if (value instanceof Float number) {
+            return floatingAccepts(element, number.doubleValue(), true);
+        }
+        if (value instanceof Double number) {
+            return floatingAccepts(element, number, false);
+        }
+        return numericAccepts(constraints.numeric(), new BigDecimal(value.toString()));
     }
 
     /**
-     * A number as Hibernate Validator compares it with a bound: a float as the double it widens to, so that
-     * {@code 0.1f} is {@code 0.10000000149011612}, and any other number as it prints.
+     * Whether a float or a double meets each numeric constraint of the element as Hibernate Validator reads it:
+     * {@code @Min} and {@code @Max} in the value's own type, with the bound converted to it, so that
+     * {@code 16777220f} meets {@code @Max(16777219)}; {@code @DecimalMin} and {@code @DecimalMax} against the double
+     * the value is, so that {@code 0.1f}, which is {@code 0.10000000149011612}, breaks {@code @DecimalMax("0.1")};
+     * and a sign by comparison with zero, so that {@code -0.0} is negative. An infinity lies beyond every bound.
      */
-    private static BigDecimal decimalOf(Object value) {
-        return value instanceof Float number
-                ? BigDecimal.valueOf(number.doubleValue())
-                : new BigDecimal(value.toString());
+    private static boolean floatingAccepts(AnnotatedElement element, double value, boolean singlePrecision) {
+        Min min = annotation(element, Min.class);
+        if (min != null && floatingCompare(value, min.value(), singlePrecision) < 0) {
+            return false;
+        }
+        Max max = annotation(element, Max.class);
+        if (max != null && floatingCompare(value, max.value(), singlePrecision) > 0) {
+            return false;
+        }
+        DecimalMin decimalMin = annotation(element, DecimalMin.class);
+        if (decimalMin != null && !meetsLower(decimalCompare(value, decimalMin.value()), decimalMin.inclusive())) {
+            return false;
+        }
+        DecimalMax decimalMax = annotation(element, DecimalMax.class);
+        if (decimalMax != null && !meetsUpper(decimalCompare(value, decimalMax.value()), decimalMax.inclusive())) {
+            return false;
+        }
+        int sign = Double.compare(value, 0.0);
+        boolean signAllowed = (annotation(element, Positive.class) == null || sign > 0)
+                && (annotation(element, PositiveOrZero.class) == null || sign >= 0)
+                && (annotation(element, Negative.class) == null || sign < 0);
+        return signAllowed && (annotation(element, NegativeOrZero.class) == null || sign <= 0);
+    }
+
+    private static int floatingCompare(double value, long bound, boolean singlePrecision) {
+        return singlePrecision ? Float.compare((float) value, (float) bound) : Double.compare(value, (double) bound);
+    }
+
+    private static int decimalCompare(double value, String bound) {
+        if (Double.isInfinite(value)) {
+            return value > 0 ? 1 : -1;
+        }
+        return BigDecimal.valueOf(value).compareTo(new BigDecimal(bound));
+    }
+
+    private static boolean meetsLower(int comparison, boolean inclusive) {
+        return comparison > 0 || (comparison == 0 && inclusive);
+    }
+
+    private static boolean meetsUpper(int comparison, boolean inclusive) {
+        return comparison < 0 || (comparison == 0 && inclusive);
     }
 
     private static @Nullable Boolean assertionFor(AnnotatedElement element, Class<?> rawType) {

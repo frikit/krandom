@@ -1187,6 +1187,22 @@ class SemanticCoherenceAdjusterTest {
         assertEquals(0.05f, floatAmount.amount);
         assertEquals(new BigDecimal("0.05"), floatAmount.price);
 
+        // 1E40 is infinite as a float, which @Max(100) rejects, rather than fail to read it.
+        FloatAmount infinite = new FloatAmount();
+        infinite.price = new BigDecimal("1E40");
+        infinite.amount = 0.05f;
+        strictAdjuster().adjustInstance(FloatAmount.class, infinite, declaredFields(FloatAmount.class), true);
+        assertEquals(0.05f, infinite.amount);
+        assertEquals(new BigDecimal("0.05"), infinite.price);
+
+        // @Max(16777219) is 16777220f to Hibernate Validator, so a float balance can take 16777220.
+        LargeFloatBalance large = new LargeFloatBalance();
+        large.amount = new BigDecimal("16777220.00");
+        large.balance = 0f;
+        strictAdjuster().adjustInstance(LargeFloatBalance.class, large, declaredFields(LargeFloatBalance.class), true);
+        assertEquals(16_777_220f, large.balance);
+        assertEquals(new BigDecimal("16777220.00"), large.amount);
+
         // A price that the amount would break is not backfilled from it.
         CappedPrice backfill = new CappedPrice();
         backfill.amount = new BigDecimal("50.00");
@@ -2267,6 +2283,13 @@ class SemanticCoherenceAdjusterTest {
         BigDecimal price;
 
         @DecimalMax("0.1") float amount;
+    }
+
+    static class LargeFloatBalance {
+
+        BigDecimal amount;
+
+        @Max(16_777_219) float balance;
     }
 
     static class PatternedPrice {
