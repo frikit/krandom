@@ -337,6 +337,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   that. With a `price` of 80, an `amount` of 90, and a `balance` of 60 that `@Max(60)` or an override holds, the
   amount came down to 60 and the price stayed at 80, above it. A price that cannot follow, such as one with
   `@Min(70)`, keeps its value. Seeded output changes only for objects in which the price ended above the amount.
+- In `ObjectGenerationSemanticMode.RELAXED` and `ObjectGenerationSemanticMode.STRICT`, the coherence pass no
+  longer breaks `price <= amount <= balance` when it rounds a value into a field. A value that moves down to a
+  sibling is now rounded down, and one that moves up is rounded up: to whole units in an integer field, where half
+  up had turned an `int` price that followed an amount of 59.60 into 60, and to cents in any other, where a price
+  that followed a `@Max(100)` amount of 59.6064 had become 59.61. Money is read exactly, and a `float` or a
+  `double` as it prints, stepped to the next value down or up where the nearest one prints on the wrong side. A
+  field whose type cannot hold the value keeps its own: a `byte` beside a price of 300 no longer wraps to 44, and
+  a `float` beside 1E40 no longer turns infinite. A money string keeps every digit of its own amount when it
+  takes the currency code. Seeded with `42`, of 2,000 objects each, an `int` price beside an amount and a
+  `@PositiveOrZero @Max(60)` balance broke the order in 1,466, an `int` price beside a `@PositiveOrZero @Max(100)`
+  amount in 985 in `RELAXED` and 982 in `STRICT`, and a `BigDecimal` price beside that amount in 1,015 and 1,010,
+  and now none does. Seeded output changes for objects with an integer money field or an amount of more than two
+  decimals.
 - In `ObjectGenerationSemanticMode.RELAXED`, the coherence pass now leaves a `@Fake` field alone, as it does a
   `@Randomizer` or `@FakeRange` field, and as the object-generation guide and the `@Fake` documentation say:
   `@Fake` takes precedence over field-name semantics, as it already did when the value was generated. Seeded
@@ -357,9 +370,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and one they reject is given back, so that it uses up no attempt. A `float` or a `double` is compared with each
   bound as Hibernate Validator compares it: with `@Min` and `@Max` in its own type, so that `16777220f` meets
   `@Max(16777219)`, and with `@DecimalMin` and `@DecimalMax` as the double it is, so that `0.1f` breaks
-  `@DecimalMax("0.1")`. An infinite one, which an amount too large for a `float` gives, lies beyond every bound.
-  A derived value within the constraints is still written, so seeded output changes only for objects that broke
-  one.
+  `@DecimalMax("0.1")`. A derived value within the constraints is still written, so seeded output changes only
+  for objects that broke one.
 - `KRANDOM_JUNIT_CLASS_RECIPE` now replays what a `@MethodSource` factory generated. JUnit calls the
   factory with the context of the parameterized test as a whole, which `KrandomExtension` reported as a
   second class-scoped configuration under the test class's name. Beside a `@BeforeAll` entry, the

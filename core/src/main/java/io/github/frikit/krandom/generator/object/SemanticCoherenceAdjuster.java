@@ -729,72 +729,80 @@ final class SemanticCoherenceAdjuster {
         BigDecimal amount = moneyValue(amountSlot);
         BigDecimal balance = moneyValue(balanceSlot);
 
-        boolean backfillPrice = price == null & canTakeMoney(priceSlot, allowOverwriteExisting, amount, currencyCode);
+        // A value that follows a sibling down is rounded down, and one that follows a sibling up is rounded up, to
+        // what its field holds, so that rounding cannot turn the order round.
+        boolean backfillPrice = price == null
+                & canTakeMoney(priceSlot, allowOverwriteExisting, amount, currencyCode, RoundingMode.FLOOR);
         if (backfillPrice) {
-            price = assignMoney(priceSlot, amount, currencyCode);
+            price = assignMoney(priceSlot, amount, currencyCode, RoundingMode.FLOOR);
         }
-        boolean backfillAmount = amount == null & canTakeMoney(amountSlot, allowOverwriteExisting, price, currencyCode);
+        boolean backfillAmount = amount == null
+                & canTakeMoney(amountSlot, allowOverwriteExisting, price, currencyCode, RoundingMode.CEILING);
         if (backfillAmount) {
-            amount = assignMoney(amountSlot, price, currencyCode);
+            amount = assignMoney(amountSlot, price, currencyCode, RoundingMode.CEILING);
         }
-        boolean backfillBalance =
-                balance == null & canTakeMoney(balanceSlot, allowOverwriteExisting, amount, currencyCode);
+        boolean backfillBalance = balance == null
+                & canTakeMoney(balanceSlot, allowOverwriteExisting, amount, currencyCode, RoundingMode.CEILING);
         if (backfillBalance) {
-            balance = assignMoney(balanceSlot, amount, currencyCode);
+            balance = assignMoney(balanceSlot, amount, currencyCode, RoundingMode.CEILING);
         }
 
         // Where one side of an order cannot take the other's amount, the other follows it, as for dates.
         boolean amountBelowPrice = isLessThan(amount, price);
         if (amountBelowPrice) {
-            if (canTakeMoney(amountSlot, allowOverwriteExisting, price, currencyCode)) {
-                amount = assignMoney(amountSlot, price, currencyCode);
-            } else if (canTakeMoney(priceSlot, allowOverwriteExisting, amount, currencyCode)) {
-                price = assignMoney(priceSlot, amount, currencyCode);
+            if (canTakeMoney(amountSlot, allowOverwriteExisting, price, currencyCode, RoundingMode.CEILING)) {
+                amount = assignMoney(amountSlot, price, currencyCode, RoundingMode.CEILING);
+            } else if (canTakeMoney(priceSlot, allowOverwriteExisting, amount, currencyCode, RoundingMode.FLOOR)) {
+                price = assignMoney(priceSlot, amount, currencyCode, RoundingMode.FLOOR);
             }
         }
 
         boolean balanceBelowAmount = isLessThan(balance, amount);
         if (balanceBelowAmount) {
-            if (canTakeMoney(balanceSlot, allowOverwriteExisting, amount, currencyCode)) {
-                balance = assignMoney(balanceSlot, amount, currencyCode);
-            } else if (canTakeMoney(amountSlot, allowOverwriteExisting, balance, currencyCode)) {
-                amount = assignMoney(amountSlot, balance, currencyCode);
+            if (canTakeMoney(balanceSlot, allowOverwriteExisting, amount, currencyCode, RoundingMode.CEILING)) {
+                balance = assignMoney(balanceSlot, amount, currencyCode, RoundingMode.CEILING);
+            } else if (canTakeMoney(amountSlot, allowOverwriteExisting, balance, currencyCode, RoundingMode.FLOOR)) {
+                amount = assignMoney(amountSlot, balance, currencyCode, RoundingMode.FLOOR);
                 // The amount came down to the balance, so a price above it follows it down too.
                 if (isLessThan(amount, price)
-                        && canTakeMoney(priceSlot, allowOverwriteExisting, amount, currencyCode)) {
-                    price = assignMoney(priceSlot, amount, currencyCode);
+                        && canTakeMoney(priceSlot, allowOverwriteExisting, amount, currencyCode, RoundingMode.FLOOR)) {
+                    price = assignMoney(priceSlot, amount, currencyCode, RoundingMode.FLOOR);
                 }
             }
         }
 
+        // A money string takes the currency code with its own amount, every digit of it kept.
         boolean formatPriceString = shouldFormatMoneyString(price, priceSlot, allowOverwriteExisting, currencyCode);
         if (formatPriceString) {
-            assignMoney(priceSlot, price, currencyCode);
+            assignMoney(priceSlot, price, currencyCode, RoundingMode.UNNECESSARY);
         }
         boolean formatAmountString = shouldFormatMoneyString(amount, amountSlot, allowOverwriteExisting, currencyCode);
         if (formatAmountString) {
-            assignMoney(amountSlot, amount, currencyCode);
+            assignMoney(amountSlot, amount, currencyCode, RoundingMode.UNNECESSARY);
         }
         boolean formatBalanceString =
                 shouldFormatMoneyString(balance, balanceSlot, allowOverwriteExisting, currencyCode);
         if (formatBalanceString) {
-            assignMoney(balanceSlot, balance, currencyCode);
+            assignMoney(balanceSlot, balance, currencyCode, RoundingMode.UNNECESSARY);
         }
     }
 
     /**
-     * True when the slot can take this amount: the pass can assign it, and its own constraints allow the amount
-     * as its type holds it, a string with the currency code. No amount is nothing to take.
+     * True when the slot can take this amount, rounded as given: the pass can assign it, its type can hold it, and
+     * its own constraints allow it as the type holds it, a string with the currency code. No amount is nothing to
+     * take.
      */
     private boolean canTakeMoney(
             @Nullable Slot slot,
             boolean allowOverwriteExisting,
             @Nullable BigDecimal value,
-            @Nullable String currencyCode) {
+            @Nullable String currencyCode,
+            RoundingMode rounding) {
         if (value == null || slot == null || !canAssign(slot, allowOverwriteExisting)) {
             return false;
         }
-        return keepsConstraints(slot, moneyValueFor(value, slot.rawType(), currencyCode));
+        Object held = moneyValueFor(value, slot.rawType(), currencyCode, rounding);
+        return held != null && keepsConstraints(slot, held);
     }
 
     private boolean canAssign(Slot slot, boolean allowOverwriteExisting) {
@@ -1117,28 +1125,36 @@ final class SemanticCoherenceAdjuster {
         return slot == null ? null : moneyValue(slot.getValue());
     }
 
+    /**
+     * The amount a value holds, as a magnitude: exactly for a {@code BigDecimal}, an integer or a money string, and
+     * as it prints for a {@code float} or a {@code double}, so that {@code 0.1f} reads as 0.1 rather than as the
+     * binary fraction above it. A value that is not a finite number holds no amount.
+     */
     static @Nullable BigDecimal moneyValue(@Nullable Object value) {
         if (value == null) {
             return null;
         }
         if (value instanceof BigDecimal decimal) {
-            return normalizeMoney(decimal);
+            return decimal.abs();
         }
         if (value instanceof BigInteger integer) {
-            return normalizeMoney(new BigDecimal(integer));
+            return new BigDecimal(integer).abs();
         }
         if (value instanceof Byte | value instanceof Short | value instanceof Integer | value instanceof Long) {
-            return normalizeMoney(BigDecimal.valueOf(((Number) value).longValue()));
+            return BigDecimal.valueOf(((Number) value).longValue()).abs();
         }
-        if (value instanceof Float | value instanceof Double) {
-            return normalizeMoney(BigDecimal.valueOf(((Number) value).doubleValue()));
+        if (value instanceof Float number) {
+            return Float.isFinite(number) ? new BigDecimal(Float.toString(number)).abs() : null;
+        }
+        if (value instanceof Double number) {
+            return Double.isFinite(number) ? BigDecimal.valueOf(number).abs() : null;
         }
         if (value instanceof String stringValue) {
             Matcher matcher = MONEY_FRAGMENT.matcher(stringValue);
             if (!matcher.find()) {
                 return null;
             }
-            return normalizeMoney(new BigDecimal(matcher.group()));
+            return new BigDecimal(matcher.group()).abs();
         }
         return null;
     }
@@ -1182,10 +1198,6 @@ final class SemanticCoherenceAdjuster {
         return new CountryGenerator(config.getGeneratorConfig()).currentCountry();
     }
 
-    private static BigDecimal normalizeMoney(BigDecimal value) {
-        return value.abs().setScale(2, RoundingMode.HALF_UP);
-    }
-
     static @Nullable String currencyCode(@Nullable Slot slot) {
         return slot == null ? null : currencyCode(slot.getValue());
     }
@@ -1217,49 +1229,100 @@ final class SemanticCoherenceAdjuster {
         }
     }
 
-    static @Nullable Object moneyValueFor(BigDecimal value, Class<?> rawType, @Nullable String currencyCode) {
-        BigDecimal normalized = normalizeMoney(value);
+    /**
+     * The value a field of this type holds for an amount: its magnitude rounded as given, to whole units for an
+     * integer type and to cents for any other, a string with the currency code. {@code UNNECESSARY} keeps every digit
+     * past the cents, for a field that takes its own amount again. A type that cannot hold the amount, an integer it
+     * overflows or a {@code float} or a {@code double} it makes infinite, holds nothing, nor does one that is no
+     * money type.
+     */
+    static @Nullable Object moneyValueFor(
+            BigDecimal value, Class<?> rawType, @Nullable String currencyCode, RoundingMode rounding) {
+        BigDecimal magnitude = value.abs();
+        try {
+            if (rawType == BigInteger.class) {
+                return magnitude.setScale(0, rounding).toBigInteger();
+            }
+            if (rawType == byte.class | rawType == Byte.class) {
+                return magnitude.setScale(0, rounding).byteValueExact();
+            }
+            if (rawType == short.class | rawType == Short.class) {
+                return magnitude.setScale(0, rounding).shortValueExact();
+            }
+            if (rawType == int.class | rawType == Integer.class) {
+                return magnitude.setScale(0, rounding).intValueExact();
+            }
+            if (rawType == long.class | rawType == Long.class) {
+                return magnitude.setScale(0, rounding).longValueExact();
+            }
+        } catch (ArithmeticException beyondType) {
+            // Past the type's range, or cents that whole units hold only by rounding, which UNNECESSARY refuses.
+            return null;
+        }
+        int scale = rounding == RoundingMode.UNNECESSARY ? Math.max(2, magnitude.scale()) : 2;
+        BigDecimal cents = magnitude.setScale(scale, rounding);
         if (rawType == BigDecimal.class) {
-            return normalized;
-        }
-        if (rawType == BigInteger.class) {
-            return normalized.setScale(0, RoundingMode.HALF_UP).toBigInteger();
-        }
-        if (rawType == byte.class | rawType == Byte.class) {
-            return normalized.setScale(0, RoundingMode.HALF_UP).byteValue();
-        }
-        if (rawType == short.class | rawType == Short.class) {
-            return normalized.setScale(0, RoundingMode.HALF_UP).shortValue();
-        }
-        if (rawType == int.class | rawType == Integer.class) {
-            return normalized.setScale(0, RoundingMode.HALF_UP).intValue();
-        }
-        if (rawType == long.class | rawType == Long.class) {
-            return normalized.setScale(0, RoundingMode.HALF_UP).longValue();
+            return cents;
         }
         if (rawType == float.class | rawType == Float.class) {
-            return normalized.floatValue();
+            return floatMoney(cents, rounding);
         }
         if (rawType == double.class | rawType == Double.class) {
-            return normalized.doubleValue();
+            return doubleMoney(cents, rounding);
         }
         if (rawType == String.class) {
-            return currencyCode != null ? currencyCode + " " + normalized.toPlainString() : normalized.toPlainString();
+            return currencyCode != null ? currencyCode + " " + cents.toPlainString() : cents.toPlainString();
         }
         return null;
     }
 
+    /**
+     * The {@code float} nearest an amount, stepped to the next one down or up where the nearest prints on the wrong
+     * side of the amount, so that an amount rounded down still reads at or below it, and one rounded up at or above.
+     * An amount too large for a {@code float} has none.
+     */
+    private static @Nullable Float floatMoney(BigDecimal amount, RoundingMode rounding) {
+        float held = amount.floatValue();
+        if (Float.isFinite(held)) {
+            int side = new BigDecimal(Float.toString(held)).compareTo(amount);
+            if (rounding == RoundingMode.FLOOR && side > 0) {
+                held = Math.nextDown(held);
+            } else if (rounding == RoundingMode.CEILING && side < 0) {
+                held = Math.nextUp(held);
+            }
+        }
+        return Float.isFinite(held) ? held : null;
+    }
+
+    /** The {@code double} for an amount, as {@link #floatMoney} gives the {@code float}. */
+    private static @Nullable Double doubleMoney(BigDecimal amount, RoundingMode rounding) {
+        double held = amount.doubleValue();
+        if (Double.isFinite(held)) {
+            int side = BigDecimal.valueOf(held).compareTo(amount);
+            if (rounding == RoundingMode.FLOOR && side > 0) {
+                held = Math.nextDown(held);
+            } else if (rounding == RoundingMode.CEILING && side < 0) {
+                held = Math.nextUp(held);
+            }
+        }
+        return Double.isFinite(held) ? held : null;
+    }
+
+    /**
+     * Writes an amount, rounded as given, into the slot as its type holds it, and returns the amount the slot then
+     * holds. Without a slot, an amount or a type that holds it, nothing is written and the amount is returned.
+     */
     static @Nullable BigDecimal assignMoney(
-            @Nullable Slot slot, @Nullable BigDecimal value, @Nullable String currencyCode) {
+            @Nullable Slot slot, @Nullable BigDecimal value, @Nullable String currencyCode, RoundingMode rounding) {
         if (slot == null || value == null) {
             return value;
         }
-        Object converted = moneyValueFor(value, slot.rawType(), currencyCode);
-        if (converted == null) {
+        Object held = moneyValueFor(value, slot.rawType(), currencyCode, rounding);
+        if (held == null) {
             return value;
         }
-        slot.setValue(converted);
-        return normalizeMoney(value);
+        slot.setValue(held);
+        return moneyValue(held);
     }
 
     static @Nullable Boolean toBoolean(@Nullable Object value) {
@@ -1274,7 +1337,7 @@ final class SemanticCoherenceAdjuster {
         if (slot == null || slot.rawType() != String.class) {
             return false;
         }
-        return canTakeMoney(slot, allowOverwriteExisting, value, currencyCode);
+        return canTakeMoney(slot, allowOverwriteExisting, value, currencyCode, RoundingMode.UNNECESSARY);
     }
 
     static boolean isLessThan(@Nullable BigDecimal left, @Nullable BigDecimal right) {

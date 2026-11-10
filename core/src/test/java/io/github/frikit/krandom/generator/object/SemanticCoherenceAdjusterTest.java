@@ -5,6 +5,9 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static java.math.RoundingMode.CEILING;
+import static java.math.RoundingMode.FLOOR;
+import static java.math.RoundingMode.UNNECESSARY;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -258,10 +261,18 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("money and currency utility methods cover parsing and formatting branches")
     void moneyAndCurrencyUtilityMethodsCoverParsingAndFormattingBranches() throws Exception {
-        assertEquals(new BigDecimal("12.35"), SemanticCoherenceAdjuster.moneyValue("USD 12.345"));
-        assertEquals(new BigDecimal("42.00"), SemanticCoherenceAdjuster.moneyValue(42));
-        assertEquals(new BigDecimal("42.00"), SemanticCoherenceAdjuster.moneyValue(BigInteger.valueOf(42)));
-        assertEquals(new BigDecimal("7.50"), SemanticCoherenceAdjuster.moneyValue(7.5d));
+        // An amount reads exactly, as a magnitude, and a float or a double as it prints.
+        assertEquals(new BigDecimal("12.345"), SemanticCoherenceAdjuster.moneyValue("USD 12.345"));
+        assertEquals(new BigDecimal("12.5"), SemanticCoherenceAdjuster.moneyValue("-12.5"));
+        assertEquals(new BigDecimal("12.3456"), SemanticCoherenceAdjuster.moneyValue(new BigDecimal("-12.3456")));
+        assertEquals(new BigDecimal("42"), SemanticCoherenceAdjuster.moneyValue(42));
+        assertEquals(new BigDecimal("42"), SemanticCoherenceAdjuster.moneyValue(-42L));
+        assertEquals(new BigDecimal("42"), SemanticCoherenceAdjuster.moneyValue(BigInteger.valueOf(-42)));
+        assertEquals(new BigDecimal("7.5"), SemanticCoherenceAdjuster.moneyValue(-7.5d));
+        assertEquals(new BigDecimal("0.1"), SemanticCoherenceAdjuster.moneyValue(-0.1f));
+        assertNull(SemanticCoherenceAdjuster.moneyValue(Float.POSITIVE_INFINITY));
+        assertNull(SemanticCoherenceAdjuster.moneyValue(Float.NaN));
+        assertNull(SemanticCoherenceAdjuster.moneyValue(Double.NEGATIVE_INFINITY));
         assertNull(SemanticCoherenceAdjuster.moneyValue("not-money"));
         assertNull(SemanticCoherenceAdjuster.moneyValue(LocalDate.now()));
 
@@ -274,40 +285,109 @@ class SemanticCoherenceAdjusterTest {
         assertNull(SemanticCoherenceAdjuster.currencyCode("   "));
         assertNull(SemanticCoherenceAdjuster.currencyCode("not-a-currency"));
 
+        // A string or a BigDecimal holds an amount rounded down or up to cents, or every digit of it with UNNECESSARY.
+        BigDecimal amount = new BigDecimal("12.345");
+        assertEquals("USD 12.34", SemanticCoherenceAdjuster.moneyValueFor(amount, String.class, "USD", FLOOR));
+        assertEquals("12.35", SemanticCoherenceAdjuster.moneyValueFor(amount, String.class, null, CEILING));
+        assertEquals("USD 12.345", SemanticCoherenceAdjuster.moneyValueFor(amount, String.class, "USD", UNNECESSARY));
         assertEquals(
-                "USD 12.35", SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), String.class, "USD"));
-        assertEquals("12.35", SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), String.class, null));
+                "USD 7.50",
+                SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("7.5"), String.class, "USD", UNNECESSARY));
+        assertEquals(
+                new BigDecimal("12.34"),
+                SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("-12.345"), BigDecimal.class, "USD", FLOOR));
         assertEquals(
                 new BigDecimal("12.35"),
-                SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), BigDecimal.class, "USD"));
+                SemanticCoherenceAdjuster.moneyValueFor(amount, BigDecimal.class, "USD", CEILING));
+
+        // An integer type holds it rounded down or up to whole units, and nothing where it would overflow.
         assertEquals(
                 BigInteger.valueOf(12),
-                SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), BigInteger.class, "USD"));
-        assertEquals((byte) 12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), byte.class, "USD"));
-        assertEquals((byte) 12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Byte.class, "USD"));
-        assertEquals((short) 12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Short.class, "USD"));
-        assertEquals((short) 12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), short.class, "USD"));
-        assertEquals(12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Integer.class, "USD"));
-        assertEquals(12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), int.class, "USD"));
-        assertEquals(12L, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Long.class, "USD"));
-        assertEquals(12L, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), long.class, "USD"));
-        assertEquals(12.35f, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Float.class, "USD"));
-        assertEquals(12.35f, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), float.class, "USD"));
-        assertEquals(12.35d, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Double.class, "USD"));
-        assertEquals(12.35d, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), double.class, "USD"));
-        assertNull(SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), LocalDate.class, "USD"));
+                SemanticCoherenceAdjuster.moneyValueFor(amount, BigInteger.class, "USD", FLOOR));
         assertEquals(
-                new BigDecimal("1.00"), SemanticCoherenceAdjuster.assignMoney(null, new BigDecimal("1.00"), "USD"));
+                BigInteger.valueOf(13),
+                SemanticCoherenceAdjuster.moneyValueFor(amount, BigInteger.class, "USD", CEILING));
+        assertEquals((byte) 12, SemanticCoherenceAdjuster.moneyValueFor(amount, byte.class, "USD", FLOOR));
+        assertEquals((byte) 13, SemanticCoherenceAdjuster.moneyValueFor(amount, Byte.class, "USD", CEILING));
+        assertEquals((short) 12, SemanticCoherenceAdjuster.moneyValueFor(amount, Short.class, "USD", FLOOR));
+        assertEquals((short) 13, SemanticCoherenceAdjuster.moneyValueFor(amount, short.class, "USD", CEILING));
+        assertEquals(12, SemanticCoherenceAdjuster.moneyValueFor(amount, Integer.class, "USD", FLOOR));
+        assertEquals(13, SemanticCoherenceAdjuster.moneyValueFor(amount, int.class, "USD", CEILING));
+        assertEquals(12L, SemanticCoherenceAdjuster.moneyValueFor(amount, Long.class, "USD", FLOOR));
+        assertEquals(13L, SemanticCoherenceAdjuster.moneyValueFor(amount, long.class, "USD", CEILING));
+        assertEquals(
+                (byte) 127, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("127.40"), byte.class, null, FLOOR));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("127.40"), byte.class, null, CEILING));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("32768"), Short.class, null, FLOOR));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("2147483648"), Integer.class, null, FLOOR));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(
+                new BigDecimal("9223372036854775808"), long.class, null, FLOOR));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(amount, int.class, null, UNNECESSARY));
+
+        // A float or a double holds it rounded to cents, stepped one value down or up where it prints past them.
+        assertEquals(12.34f, SemanticCoherenceAdjuster.moneyValueFor(amount, Float.class, "USD", FLOOR));
+        assertEquals(12.35f, SemanticCoherenceAdjuster.moneyValueFor(amount, float.class, "USD", CEILING));
+        assertEquals(12.34d, SemanticCoherenceAdjuster.moneyValueFor(amount, Double.class, "USD", FLOOR));
+        assertEquals(12.35d, SemanticCoherenceAdjuster.moneyValueFor(amount, double.class, "USD", CEILING));
+        // 1234567.875f is the float nearest both 1234567.89 and 1234567.91, and prints as 1234567.9.
+        BigDecimal belowPrint = new BigDecimal("1234567.89");
+        BigDecimal abovePrint = new BigDecimal("1234567.91");
+        assertEquals(
+                Math.nextDown(1234567.875f),
+                SemanticCoherenceAdjuster.moneyValueFor(belowPrint, float.class, null, FLOOR));
+        assertEquals(1234567.875f, SemanticCoherenceAdjuster.moneyValueFor(belowPrint, float.class, null, CEILING));
+        assertEquals(
+                Math.nextUp(1234567.875f),
+                SemanticCoherenceAdjuster.moneyValueFor(abovePrint, Float.class, null, CEILING));
+        assertEquals(1234567.875f, SemanticCoherenceAdjuster.moneyValueFor(abovePrint, Float.class, null, FLOOR));
+        // 1234567890123456.75 is the double nearest both values below, and prints as 1234567890123456.8.
+        BigDecimal belowDoublePrint = new BigDecimal("1234567890123456.78");
+        BigDecimal aboveDoublePrint = new BigDecimal("1234567890123456.85");
+        assertEquals(
+                Math.nextDown(1234567890123456.75),
+                SemanticCoherenceAdjuster.moneyValueFor(belowDoublePrint, double.class, null, FLOOR));
+        assertEquals(
+                1234567890123456.75,
+                SemanticCoherenceAdjuster.moneyValueFor(belowDoublePrint, double.class, null, CEILING));
+        assertEquals(
+                Math.nextUp(1234567890123456.75),
+                SemanticCoherenceAdjuster.moneyValueFor(aboveDoublePrint, Double.class, null, CEILING));
+        assertEquals(
+                1234567890123456.75,
+                SemanticCoherenceAdjuster.moneyValueFor(aboveDoublePrint, Double.class, null, FLOOR));
+        // An amount too large for the type, or one that rounding up would take past its largest value, has none.
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("1E40"), float.class, null, FLOOR));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("1E400"), double.class, null, FLOOR));
+        BigDecimal pastLargestFloat = new BigDecimal("3.40282351E38");
+        assertEquals(
+                Float.MAX_VALUE, SemanticCoherenceAdjuster.moneyValueFor(pastLargestFloat, float.class, null, FLOOR));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(pastLargestFloat, float.class, null, CEILING));
+        BigDecimal pastLargestDouble = new BigDecimal("1.79769313486231575E308");
+        assertEquals(
+                Double.MAX_VALUE,
+                SemanticCoherenceAdjuster.moneyValueFor(pastLargestDouble, double.class, null, FLOOR));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(pastLargestDouble, double.class, null, CEILING));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(amount, LocalDate.class, "USD", FLOOR));
+
+        // Assigning returns the amount the slot then holds, and nothing is written without a slot, an amount or a type.
+        ManualMoneyHolder heldMoney = new ManualMoneyHolder();
+        assertEquals(
+                new BigDecimal("12.34"),
+                SemanticCoherenceAdjuster.assignMoney(rawSlot(heldMoney, "price"), amount, "USD", FLOOR));
+        assertEquals(new BigDecimal("12.34"), heldMoney.price);
+        assertEquals(
+                new BigDecimal("1.00"),
+                SemanticCoherenceAdjuster.assignMoney(null, new BigDecimal("1.00"), "USD", FLOOR));
 
         ManualMoneyHolder nullMoneyHolder = new ManualMoneyHolder();
         SemanticCoherenceAdjuster.Slot priceSlot = rawSlot(nullMoneyHolder, "price");
-        assertNull(SemanticCoherenceAdjuster.assignMoney(priceSlot, null, "USD"));
+        assertNull(SemanticCoherenceAdjuster.assignMoney(priceSlot, null, "USD", FLOOR));
 
         UnsupportedMoneyTarget unsupportedMoneyTarget = new UnsupportedMoneyTarget();
         SemanticCoherenceAdjuster.Slot unsupportedSlot = rawSlot(unsupportedMoneyTarget, "value");
         assertEquals(
                 new BigDecimal("2.00"),
-                SemanticCoherenceAdjuster.assignMoney(unsupportedSlot, new BigDecimal("2.00"), "USD"));
+                SemanticCoherenceAdjuster.assignMoney(unsupportedSlot, new BigDecimal("2.00"), "USD", FLOOR));
         assertNull(unsupportedMoneyTarget.value);
 
         SemanticCoherenceAdjuster adjuster =
@@ -1187,7 +1267,7 @@ class SemanticCoherenceAdjusterTest {
         assertEquals(0.05f, floatAmount.amount);
         assertEquals(new BigDecimal("0.05"), floatAmount.price);
 
-        // 1E40 is infinite as a float, which @Max(100) rejects, rather than fail to read it.
+        // 1E40 is too large for a float, so the amount does not take it, and the price follows the amount down.
         FloatAmount infinite = new FloatAmount();
         infinite.price = new BigDecimal("1E40");
         infinite.amount = 0.05f;
@@ -1215,6 +1295,124 @@ class SemanticCoherenceAdjusterTest {
         patterned.currency = "EUR";
         strictAdjuster().adjustInstance(PatternedPrice.class, patterned, declaredFields(PatternedPrice.class), true);
         assertEquals("12.34", patterned.price);
+    }
+
+    @Test
+    @DisplayName("an amount rounded into a field keeps price at or below amount at or below balance")
+    void amountRoundedIntoAFieldKeepsPriceAtOrBelowAmountAtOrBelowBalance() throws Exception {
+        // The amount comes down to a capped balance of 59.60, and an int price follows it down to 59, not up to 60.
+        SemanticCoherenceAdjuster relaxed =
+                new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
+        for (SemanticCoherenceAdjuster adjuster : List.of(relaxed, strictAdjuster())) {
+            IntPriceCappedBalance down = new IntPriceCappedBalance();
+            down.price = 80;
+            down.amount = new BigDecimal("90.00");
+            down.balance = new BigDecimal("59.60");
+            adjuster.adjustInstance(
+                    IntPriceCappedBalance.class, down, declaredFields(IntPriceCappedBalance.class), true);
+            assertEquals(59, down.price);
+            assertEquals(new BigDecimal("59.60"), down.amount);
+            assertEquals(new BigDecimal("59.60"), down.balance);
+
+            // Cents round the same way: a price under an amount capped at 59.6064 is 59.60, not 59.61.
+            ConstrainedMoney cents = new ConstrainedMoney();
+            cents.price = new BigDecimal("500.00");
+            cents.amount = new BigDecimal("59.6064");
+            cents.balance = new BigDecimal("70.00");
+            adjuster.adjustInstance(ConstrainedMoney.class, cents, declaredFields(ConstrainedMoney.class), true);
+            assertEquals(new BigDecimal("59.60"), cents.price);
+            assertEquals(new BigDecimal("59.6064"), cents.amount);
+        }
+        SemanticCoherenceAdjuster strict = strictAdjuster();
+
+        // An int amount that comes down to that balance is 59, and an int price above a capped amount of 59.60 is 59.
+        IntAmountCappedBalance cappedBalance = new IntAmountCappedBalance();
+        cappedBalance.price = new BigDecimal("20.00");
+        cappedBalance.amount = 90;
+        cappedBalance.balance = new BigDecimal("59.60");
+        strict.adjustInstance(
+                IntAmountCappedBalance.class, cappedBalance, declaredFields(IntAmountCappedBalance.class), true);
+        assertEquals(59, cappedBalance.amount);
+        assertEquals(new BigDecimal("20.00"), cappedBalance.price);
+        IntPriceCappedAmount cappedAmount = new IntPriceCappedAmount();
+        cappedAmount.price = 80;
+        cappedAmount.amount = new BigDecimal("59.60");
+        strict.adjustInstance(
+                IntPriceCappedAmount.class, cappedAmount, declaredFields(IntPriceCappedAmount.class), true);
+        assertEquals(59, cappedAmount.price);
+
+        // An int amount that rises to a price of 59.40 is 60, not 59, and so is an int balance above that amount.
+        IntAmount risen = new IntAmount();
+        risen.price = new BigDecimal("59.40");
+        strict.adjustInstance(IntAmount.class, risen, declaredFields(IntAmount.class), true);
+        assertEquals(60, risen.amount);
+        IntBalance balance = new IntBalance();
+        balance.amount = new BigDecimal("59.40");
+        strict.adjustInstance(IntBalance.class, balance, declaredFields(IntBalance.class), true);
+        assertEquals(60, balance.balance);
+
+        // A missing integer sibling is derived on its own side: a price of 59 under 59.60, an amount or a balance of
+        // 60 over 59.40.
+        BoxedPrice boxedPrice = new BoxedPrice();
+        boxedPrice.amount = new BigDecimal("59.60");
+        strict.adjustInstance(BoxedPrice.class, boxedPrice, declaredFields(BoxedPrice.class), true);
+        assertEquals(59, boxedPrice.price);
+        BoxedAmount boxedAmount = new BoxedAmount();
+        boxedAmount.price = new BigDecimal("59.40");
+        strict.adjustInstance(BoxedAmount.class, boxedAmount, declaredFields(BoxedAmount.class), true);
+        assertEquals(60L, boxedAmount.amount);
+        BoxedBalance boxedBalance = new BoxedBalance();
+        boxedBalance.amount = new BigDecimal("59.40");
+        strict.adjustInstance(BoxedBalance.class, boxedBalance, declaredFields(BoxedBalance.class), true);
+        assertEquals(60, boxedBalance.balance);
+
+        // An amount that rises to a price of 59.6036 is 59.61, not 59.60, and the balance derived below it follows.
+        ManualMoneyHolder over = new ManualMoneyHolder();
+        over.price = new BigDecimal("59.6036");
+        over.amount = new BigDecimal("10.00");
+        strict.adjustInstance(ManualMoneyHolder.class, over, declaredFields(ManualMoneyHolder.class), true);
+        assertEquals(new BigDecimal("59.6036"), over.price);
+        assertEquals(new BigDecimal("59.61"), over.amount);
+        assertEquals(new BigDecimal("59.61"), over.balance);
+
+        // A byte cannot hold a price of 300, so the price comes down to the byte rather than the byte wrap to 44.
+        ByteAmount bytes = new ByteAmount();
+        bytes.price = new BigDecimal("300.00");
+        bytes.amount = 20;
+        strict.adjustInstance(ByteAmount.class, bytes, declaredFields(ByteAmount.class), true);
+        assertEquals((byte) 20, bytes.amount);
+        assertEquals(new BigDecimal("20.00"), bytes.price);
+
+        // A float cannot hold 1E40, so it keeps its value rather than turn infinite.
+        UnboundedFloatAmount infinite = new UnboundedFloatAmount();
+        infinite.price = new BigDecimal("1E40");
+        infinite.amount = 0.05f;
+        strict.adjustInstance(UnboundedFloatAmount.class, infinite, declaredFields(UnboundedFloatAmount.class), true);
+        assertEquals(0.05f, infinite.amount);
+        assertEquals(new BigDecimal("0.05"), infinite.price);
+
+        // A float reads as it prints. The float nearest 1234567.91 prints as 1234567.9, so an amount that rises to that
+        // price is the next float up, and the float nearest 1234567.89 also prints as 1234567.9, so a price that comes
+        // down to that amount is the next float down.
+        UnboundedFloatAmount floatAmount = new UnboundedFloatAmount();
+        floatAmount.price = new BigDecimal("1234567.91");
+        strict.adjustInstance(
+                UnboundedFloatAmount.class, floatAmount, declaredFields(UnboundedFloatAmount.class), true);
+        assertEquals("1234568.0", Float.toString(floatAmount.amount));
+        FloatPriceCappedAmount floatPrice = new FloatPriceCappedAmount();
+        floatPrice.price = 2_000_000f;
+        floatPrice.amount = new BigDecimal("1234567.89");
+        strict.adjustInstance(
+                FloatPriceCappedAmount.class, floatPrice, declaredFields(FloatPriceCappedAmount.class), true);
+        assertEquals("1234567.8", Float.toString(floatPrice.price));
+
+        // A price string keeps its own digits when it takes the currency code, and so stays below the amount.
+        StringPriceHolder string = new StringPriceHolder();
+        string.currency = "usd";
+        string.price = "12.345";
+        string.amount = new BigDecimal("12.346");
+        strict.adjustInstance(StringPriceHolder.class, string, declaredFields(StringPriceHolder.class), true);
+        assertEquals("USD 12.345", string.price);
     }
 
     @Test
@@ -2297,6 +2495,85 @@ class SemanticCoherenceAdjusterTest {
         @Pattern(regexp = "\\d+\\.\\d{2}") String price;
 
         String currency;
+    }
+
+    static class IntPriceCappedBalance {
+
+        int price;
+        BigDecimal amount;
+
+        @Max(60) BigDecimal balance;
+    }
+
+    static class IntAmountCappedBalance {
+
+        BigDecimal price;
+        int amount;
+
+        @Max(60) BigDecimal balance;
+    }
+
+    static class IntPriceCappedAmount {
+
+        int price;
+
+        @Max(60) BigDecimal amount;
+    }
+
+    static class IntAmount {
+
+        BigDecimal price;
+        int amount;
+    }
+
+    static class IntBalance {
+
+        BigDecimal amount;
+        int balance;
+    }
+
+    static class BoxedPrice {
+
+        Integer price;
+        BigDecimal amount;
+    }
+
+    static class BoxedAmount {
+
+        BigDecimal price;
+        Long amount;
+    }
+
+    static class BoxedBalance {
+
+        BigDecimal amount;
+        Integer balance;
+    }
+
+    static class ByteAmount {
+
+        BigDecimal price;
+        byte amount;
+    }
+
+    static class UnboundedFloatAmount {
+
+        BigDecimal price;
+        float amount;
+    }
+
+    static class FloatPriceCappedAmount {
+
+        float price;
+
+        @Max(1_300_000) BigDecimal amount;
+    }
+
+    static class StringPriceHolder {
+
+        String currency;
+        String price;
+        BigDecimal amount;
     }
 
     static class ConstrainedStatus {

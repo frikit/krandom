@@ -28,7 +28,6 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -323,6 +322,11 @@ class ObjectGeneratorCoherenceConstraintTest {
     record CappedAmount(
             BigDecimal price, @PositiveOrZero @Max(100) BigDecimal amount) {}
 
+    record IntPriceCappedBalance(
+            int price,
+            BigDecimal amount,
+            @PositiveOrZero @Max(60) BigDecimal balance) {}
+
     record AssertedActive(@AssertTrue boolean active, String status) {}
 
     record FakeFullName(
@@ -343,6 +347,7 @@ class ObjectGeneratorCoherenceConstraintTest {
         ObjectGenerator<ShortCity> cities = new ObjectGenerator<>(ShortCity.class, config);
         ObjectGenerator<ShortUrl> urls = new ObjectGenerator<>(ShortUrl.class, config);
         ObjectGenerator<CappedAmount> amounts = new ObjectGenerator<>(CappedAmount.class, config);
+        ObjectGenerator<IntPriceCappedBalance> balances = new ObjectGenerator<>(IntPriceCappedBalance.class, config);
         // A status held at SUSPENDED would take an @AssertTrue flag to false.
         ObjectGenerator<AssertedActive> actives = new ObjectGenerator<>(
                 AssertedActive.class,
@@ -358,11 +363,15 @@ class ObjectGeneratorCoherenceConstraintTest {
             assertValid(cities.generate());
             assertValid(urls.generate());
             assertValid(actives.generate());
-            // A price above what the amount allows follows the amount down instead, at the cents the pass keeps.
+            // A price above what the amount allows follows the amount down instead, and stays at or below it.
             CappedAmount amount = amounts.generate();
             assertValid(amount);
-            assertFalse(
-                    amount.amount().setScale(2, RoundingMode.HALF_UP).compareTo(amount.price()) < 0, amount.toString());
+            assertFalse(amount.amount().compareTo(amount.price()) < 0, amount.toString());
+            // An int price that follows an amount down to a capped balance is rounded down, not up past it.
+            IntPriceCappedBalance balance = balances.generate();
+            assertValid(balance);
+            assertFalse(balance.amount().compareTo(BigDecimal.valueOf(balance.price())) < 0, balance.toString());
+            assertFalse(balance.balance().compareTo(balance.amount()) < 0, balance.toString());
         }
     }
 
