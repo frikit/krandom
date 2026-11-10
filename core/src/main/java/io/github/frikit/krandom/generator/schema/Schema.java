@@ -888,6 +888,18 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     static void appendJsonString(Appendable out, String value) throws IOException {
+        appendQuoted(out, value, false);
+    }
+
+    /**
+     * Writes a TOML basic string. TOML reads the same escapes as JSON, but also forbids U+007F raw, which
+     * JSON allows, so that one is escaped too.
+     */
+    private static void appendTomlString(Appendable out, String value) throws IOException {
+        appendQuoted(out, value, true);
+    }
+
+    private static void appendQuoted(Appendable out, String value, boolean escapeDelete) throws IOException {
         out.append('"');
         for (int i = 0; i < value.length(); i++) {
             char ch = value.charAt(i);
@@ -900,7 +912,7 @@ public final class Schema implements Generator<Map<String, Object>> {
                 case '\r' -> out.append("\\r");
                 case '\t' -> out.append("\\t");
                 default -> {
-                    if (ch < 0x20) {
+                    if (ch < 0x20 || (escapeDelete && ch == 0x7F)) {
                         appendJsonUnicodeEscape(out, ch);
                     } else {
                         out.append(ch);
@@ -1039,11 +1051,11 @@ public final class Schema implements Generator<Map<String, Object>> {
             throw new IllegalArgumentException("TOML does not support null values");
         }
         if (normalized instanceof CharSequence text) {
-            appendJsonString(out, text.toString());
+            appendTomlString(out, text.toString());
             return;
         }
         if (normalized instanceof Character character) {
-            appendJsonString(out, String.valueOf(character));
+            appendTomlString(out, String.valueOf(character));
             return;
         }
         if (normalized instanceof Number || normalized instanceof Boolean) {
@@ -1084,14 +1096,14 @@ public final class Schema implements Generator<Map<String, Object>> {
             out.append(']');
             return;
         }
-        appendJsonString(out, String.valueOf(normalized));
+        appendTomlString(out, String.valueOf(normalized));
     }
 
     private static void appendTomlKey(Appendable out, String key) throws IOException {
         if (isPlainTomlKey(key)) {
             out.append(key);
         } else {
-            appendJsonString(out, key);
+            appendTomlString(out, key);
         }
     }
 

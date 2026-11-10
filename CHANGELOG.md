@@ -17,6 +17,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   as `123`, `-1`, `1_000`, `017`, `0x1F`, `0o17`, or `0b101`; a float with an exponent, such as `1e3`; or a
   date, such as `2024-01-05`. It wrote them bare, so `- true: 1` read back as a boolean key. Other keys,
   such as `1st` or `-`, are written as before, and values were already quoted.
+- `Schema` and `SchemaProjection` TOML output escapes U+007F (DEL) as `\u007f` in strings and quoted keys.
+  It wrote the character raw, as JSON allows, but TOML forbids it, so a parser such as Python's `tomllib`
+  rejected the document. Every other character is written as before, and JSON output keeps DEL raw.
 
 ## [3.0.0] - 2026-11-10
 

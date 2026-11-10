@@ -226,6 +226,24 @@ class SchemaOutputTest {
     }
 
     @Test
+    @DisplayName("TOML escapes DEL, which TOML forbids raw, in keys and values, and JSON keeps it raw")
+    void tomlEscapesDelete() {
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("text", ctx -> "a\u001F \u007E\u007F\u0080b\t");
+        fields.put("key\u007F", ctx -> Map.of("in\u007Fner", '\u007F'));
+        Schema schema = new Schema(fields);
+
+        assertEquals(
+                "[[records]]\n"
+                        + "text = \"a\\u001f ~\\u007f\u0080b\\t\"\n"
+                        + "\"key\\u007f\" = { \"in\\u007fner\" = \"\\u007f\" }\n",
+                schema.toToml(1));
+        assertEquals(
+                "{\"text\":\"a\\u001f ~\u007F\u0080b\\t\",\"key\u007F\":{\"in\u007Fner\":\"\u007F\"}}\n",
+                schema.toJsonLines(1));
+    }
+
+    @Test
     @DisplayName("record accessor failures expose structured component context")
     void recordAccessorFailuresExposeStructuredContext() {
         Schema schema = new Schema(Map.of("record", ctx -> new ThrowingRecord("payload")));
