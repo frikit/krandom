@@ -2517,6 +2517,7 @@ final class FieldGeneratorResolver {
         if (!isNestableType(nestedType) && !SealedTypes.isSealed(nestedType, uniqueFieldTracker)) {
             return handleUnsupportedType(rawType, declaredType, ownerType, fieldName, depth);
         }
+        GenerationReporter.failed(currentTrace, GenerationDecision.CONSTRAINT_CONFLICT);
         // The whole member path: an inherited field's owner is not the nested type on that path.
         String path = memberPath(fieldName);
         String declaredTypeName = declaredType.getTypeName();

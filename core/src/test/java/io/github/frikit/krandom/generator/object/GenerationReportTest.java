@@ -401,6 +401,35 @@ class GenerationReportTest {
     }
 
     @Test
+    @DisplayName("a required member that objectMaxDepth leaves null is reported as an unmet constraint")
+    void requiredMemberCutAtMaxDepthIsAnUnmetConstraint() {
+        List<GenerationReportEntry> entries =
+                generate(Anchored.class, listening(79L).objectMaxDepth(1).objectIgnoreErrors(true));
+
+        GenerationReportEntry leaf = entry(entries, "Anchored.held.leaf");
+        assertEquals(GenerationStep.DEFAULT, leaf.step());
+        assertEquals(List.of(GenerationDecision.DEPTH_CUT, GenerationDecision.CONSTRAINT_CONFLICT), leaf.decisions());
+        assertEquals(List.of("object.max-depth"), leaf.settings());
+    }
+
+    @Test
+    @DisplayName("decisions are listed in the order they were taken, each once")
+    void decisionsKeepTheOrderTheyWereTaken() {
+        List<GenerationReportEntry> entries = new ArrayList<>();
+        GenerationReporter reporter = reporter(entries);
+        GenerationReporter.Trace trace = reporter.trace("Order.email");
+
+        GenerationReporter.decision(trace, GenerationDecision.SEMANTIC_DEFERRED, "object.semantic-mode");
+        GenerationReporter.failed(trace, GenerationDecision.CONSTRAINT_CONFLICT);
+        GenerationReporter.decision(trace, GenerationDecision.SEMANTIC_DEFERRED, null);
+        reporter.emit(trace);
+
+        assertEquals(
+                List.of(GenerationDecision.SEMANTIC_DEFERRED, GenerationDecision.CONSTRAINT_CONFLICT),
+                entries.get(0).decisions());
+    }
+
+    @Test
     @DisplayName("a sealed root that picks an enum is reported as an enum")
     void sealedRootPickingAnEnumIsReported() {
         List<GenerationReportEntry> entries = generate(Signal.class, listening(53L));
@@ -881,6 +910,14 @@ class GenerationReportTest {
 
     static final class Readings {
         int[] readings;
+    }
+
+    static final class Held {
+        @jakarta.validation.constraints.NotNull Leaf leaf;
+    }
+
+    static final class Anchored {
+        Held held;
     }
 
     static final class Patterned {

@@ -14,7 +14,6 @@ import io.github.frikit.krandom.generator.report.GenerationStep;
 import io.github.frikit.krandom.generator.report.SeedSource;
 import java.lang.reflect.AnnotatedElement;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -280,7 +279,8 @@ final class GenerationReporter {
         private List<String> constraints = List.of();
         private final Set<String> settings = new LinkedHashSet<>();
         private final Map<String, String> safetyPolicies = new LinkedHashMap<>();
-        private final Set<GenerationDecision> decisions = EnumSet.noneOf(GenerationDecision.class);
+        // In the order the decisions were taken, as the entry promises, each once.
+        private final Set<GenerationDecision> decisions = new LinkedHashSet<>();
 
         private Trace(String path) {
             this.path = path;
