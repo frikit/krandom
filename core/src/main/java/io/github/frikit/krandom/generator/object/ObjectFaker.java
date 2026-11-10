@@ -12,6 +12,7 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
+import io.github.frikit.krandom.generator.object.exception.FixtureRuleException;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -61,6 +62,17 @@ import org.jspecify.annotations.Nullable;
  * for an ignored path or a path below one fails, as does {@code ignore} below an ignored path or on
  * a field that has a rule.
  *
+ * <p>Rules run in this order. Root rules and root context rules run during generation, as field
+ * overrides for the member's declaring class and name, so they also apply wherever generation fills
+ * that member in a nested object: in a nested object of the root's type, or of another subclass of
+ * the class that declares an inherited member. Root ignores, and in include mode the root properties
+ * left out, are exclusions with the same scope. Then nested rules, nested context rules and dependent
+ * rules run, each kind in registration order, and each at its own path only; nested includes prune
+ * and nested ignores clear last, so an ignore clears the value of any rule below it. Against the
+ * {@code GeneratorConfig}'s overrides for the same member, a root context rule comes first; a root
+ * rule comes after a contextual field override and a contextual predicate override, and before the
+ * others. {@link #assertConfigurationIsValid()} reports where rules overlap in these ways.
+ *
  * @param <T> the root type being generated
  */
 public final class ObjectFaker<T> implements Generator<T> {
@@ -68,6 +80,7 @@ public final class ObjectFaker<T> implements Generator<T> {
     private final Class<T> type;
     private final ObjectGeneratorConfig baseConfig;
     private final Map<String, RulePath> rulePaths = new LinkedHashMap<>();
+    private final List<FixtureRule> registrations = new ArrayList<>();
     private final Map<String, Generator<?>> fieldRules = new LinkedHashMap<>();
     private final Map<String, ContextualGenerator<?>> contextualFieldRules = new LinkedHashMap<>();
     private final Map<String, Function<? super T, ?>> dependentFieldRules = new LinkedHashMap<>();
@@ -80,6 +93,7 @@ public final class ObjectFaker<T> implements Generator<T> {
 
     private UniqueFieldTracker uniqueFieldTracker = new UniqueFieldTracker();
     private @Nullable ObjectGenerator<T> objectGenerator;
+    private @Nullable FixtureRuleAnalysis analysis;
     private boolean strictValidation;
 
     /**
@@ -126,6 +140,7 @@ public final class ObjectFaker<T> implements Generator<T> {
         contextualFieldRules.remove(target.path());
         dependentFieldRules.remove(target.path());
         fieldRules.put(target.path(), generator);
+        register(FixtureRuleKind.RULE, target.path());
         invalidateGeneratorState();
         return this;
     }
@@ -156,6 +171,7 @@ public final class ObjectFaker<T> implements Generator<T> {
         fieldRules.remove(target.path());
         dependentFieldRules.remove(target.path());
         contextualFieldRules.put(target.path(), generator);
+        register(FixtureRuleKind.CONTEXT_RULE, target.path());
         invalidateGeneratorState();
         return this;
     }
@@ -187,6 +203,7 @@ public final class ObjectFaker<T> implements Generator<T> {
         boolean replacedBaseRule = fieldRules.remove(target.path()) != null;
         replacedBaseRule |= contextualFieldRules.remove(target.path()) != null;
         dependentFieldRules.put(target.path(), generator);
+        register(FixtureRuleKind.DEPENDENT_RULE, target.path());
         if (replacedBaseRule || !includedFields.isEmpty()) {
             // A replaced base or context rule is baked into the cached generator, and in include mode
             // dependent rules decide which root fields are generated, so rebuild it then. Otherwise a
@@ -220,6 +237,7 @@ public final class ObjectFaker<T> implements Generator<T> {
             throw new IllegalStateException("Field '" + fieldName + "' is already included");
         }
         if (ignoredFields.contains(target.path())) {
+            register(FixtureRuleKind.IGNORE, target.path());
             return this;
         }
         if (target.isRoot()) {
@@ -228,6 +246,7 @@ public final class ObjectFaker<T> implements Generator<T> {
         }
         ensureFieldAvailable(fieldName);
         ignoredFields.add(target.path());
+        register(FixtureRuleKind.IGNORE, target.path());
         invalidateGeneratorState();
         return this;
     }
@@ -256,6 +275,7 @@ public final class ObjectFaker<T> implements Generator<T> {
         RulePath target = requireRulePath(fieldName, "include");
         ensureNotIgnored(fieldName);
         includedFields.add(target.path());
+        register(FixtureRuleKind.INCLUDE, target.path());
         invalidateGeneratorState();
         return this;
     }
@@ -340,6 +360,9 @@ public final class ObjectFaker<T> implements Generator<T> {
     private void copyConfigurationFrom(ObjectFaker<T> source) {
         rulePaths.clear();
         rulePaths.putAll(source.rulePaths);
+        registrations.clear();
+        registrations.addAll(source.registrations);
+        analysis = null;
         fieldRules.clear();
         fieldRules.putAll(source.fieldRules);
         contextualFieldRules.clear();
@@ -405,48 +428,54 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     /**
-     * Asserts that every settable root field or record component has an explicit rule, ignore,
-     * or include directive — Bogus's {@code AssertConfigurationIsValid()} equivalent.
+     * Checks the fixture configuration as {@link #generate()} uses it, and throws one
+     * {@link FixtureRuleException} that lists every problem it finds. It extends Bogus's
+     * {@code AssertConfigurationIsValid()}, and {@link #strict()} runs it before every generation.
      *
-     * <p>When {@link #include(String)} has been used, only the included root fields are required
-     * to have rules; unincluded fields are treated as implicitly excluded. Otherwise, every
-     * non-static, non-final field (and every record component) must either have a rule registered
-     * or appear in {@link #ignore(String)}.
+     * <ul>
+     *   <li><b>Undecided</b>: a settable root field or record component with no rule, include or ignore.
+     *       In include mode only the included root properties need a rule.</li>
+     *   <li><b>Shadowed</b>: a rule that a later rule for the same path replaces, including one from a
+     *       profile or a composed {@link ObjectModel}; a nested rule that a rule on an ancestor path
+     *       overwrites because it runs later; a root rule that a {@code GeneratorConfig} contextual field
+     *       override, or contextual predicate override, for the same member comes before; a
+     *       {@code GeneratorConfig} field override for a member that a root rule replaces or comes before,
+     *       or that a nested or dependent rule overwrites; and a name requested with
+     *       {@code objectUniqueField} whose values a nested or dependent rule sets without the check.</li>
+     *   <li><b>Unused</b>: a rule below a path that a later nested ignore clears; a root rule on a member
+     *       that the {@code GeneratorConfig} excludes; a root rule or root ignore when a
+     *       {@code GeneratorConfig} type override builds the root, which {@code populate(existing)}
+     *       never does; and a nested ignore of a member that {@code generate()} never gives a value,
+     *       because {@code objectMaxDepth}, an exclusion or include mode leaves an object on its path
+     *       {@code null}, which an instance given to {@code populate(existing)} may still hold. A nested
+     *       rule past {@code objectMaxDepth} is not unused: it creates the objects on its path.</li>
+     *   <li><b>Ambiguous</b>: a root rule, root ignore or include-mode exclusion that also applies at
+     *       another path, because it applies by its member's declaring class and name, as the class
+     *       documentation describes. A dependent rule applies at its own path only.</li>
+     * </ul>
+     *
+     * <p>A string path that matches no member, or more than one, already fails when it is registered.
+     * Each problem names its path, its rule kind and its registration number, never a value. To see
+     * which members keep an initializer, the check creates one object of each class it follows with
+     * the class's no-argument constructor, as generation does, and it generates no value.
+     *
+     * @return this faker
+     * @throws FixtureRuleException listing every problem found
      */
     public ObjectFaker<T> assertConfigurationIsValid() {
-        Set<String> rootFieldNames = new LinkedHashSet<>();
-        for (RuleTarget target : allRuleTargets()) {
-            if (target.field() != null && Modifier.isFinal(target.field().getModifiers())) {
-                continue;
-            }
-            rootFieldNames.add(target.fieldName());
-        }
-
-        Set<String> ruleRoots = new LinkedHashSet<>();
-        ruleRoots.addAll(rootFieldNames(fieldRules.keySet()));
-        ruleRoots.addAll(rootFieldNames(contextualFieldRules.keySet()));
-        ruleRoots.addAll(rootFieldNames(dependentFieldRules.keySet()));
-
-        Set<String> required = new LinkedHashSet<>(rootFieldNames);
-        if (!includedFields.isEmpty()) {
-            required.retainAll(rootFieldNames(includedFields));
-        } else {
-            required.removeAll(rootFieldNames(ignoredFields));
-        }
-        required.removeAll(ruleRoots);
-
-        if (!required.isEmpty()) {
-            throw new IllegalStateException("ObjectFaker for " + type.getName() + " has no rules for: " + required);
-        }
+        validate(false);
         return this;
     }
 
     /**
-     * Enables configuration validation before every generation or population operation.
+     * Makes {@link #generate()} and {@link #populate(Object)} check the configuration first, as
+     * {@link #assertConfigurationIsValid()} describes, and fail with one {@link FixtureRuleException}
+     * that lists every problem. {@code ObjectFaker.strict()} has nothing to do with
+     * {@link ObjectGenerationSemanticMode#STRICT}.
      *
-     * <p>String paths are already resolved when registered, so misspelled and unused paths fail
-     * immediately. Strict mode additionally requires every generated root property to have an
-     * explicit rule, include, or ignore decision according to {@link #assertConfigurationIsValid()}.
+     * <p>The check runs once for each configuration: a later rule, include or ignore runs it again.
+     *
+     * @return this faker
      */
     public ObjectFaker<T> strict() {
         strictValidation = true;
@@ -457,7 +486,7 @@ public final class ObjectFaker<T> implements Generator<T> {
      * Populates an existing mutable instance using the configured fixture rules.
      */
     public T populate(T instance) {
-        validateIfStrict();
+        validateIfStrict(true);
         Objects.requireNonNull(instance, "instance must not be null");
         if (type.isRecord()) {
             throw new UnsupportedOperationException(
@@ -472,14 +501,48 @@ public final class ObjectFaker<T> implements Generator<T> {
 
     @Override
     public T generate() {
-        validateIfStrict();
+        validateIfStrict(false);
         return applyPostGenerationRules(generator().generate());
     }
 
-    private void validateIfStrict() {
+    private void validateIfStrict(boolean populating) {
         if (strictValidation) {
-            assertConfigurationIsValid();
+            validate(populating);
         }
+    }
+
+    private void validate(boolean populating) {
+        FixtureRuleAnalysis current = analysis;
+        if (current == null) {
+            current = new FixtureRuleAnalysis(
+                    type,
+                    baseConfig,
+                    Map.copyOf(rulePaths),
+                    List.copyOf(registrations),
+                    List.copyOf(fieldRules.keySet()),
+                    List.copyOf(contextualFieldRules.keySet()),
+                    List.copyOf(dependentFieldRules.keySet()),
+                    includedRoots());
+            analysis = current;
+        }
+        current.check(populating);
+    }
+
+    private void register(FixtureRuleKind kind, String path) {
+        registrations.add(FixtureRule.registered(kind, path, registrations.size() + 1));
+        analysis = null;
+    }
+
+    /** The root properties that include mode generates, or none outside include mode. */
+    private Set<String> includedRoots() {
+        if (includedFields.isEmpty()) {
+            return Set.of();
+        }
+        Set<String> roots = new LinkedHashSet<>(rootFieldNames(includedFields));
+        roots.addAll(rootFieldNames(fieldRules.keySet()));
+        roots.addAll(rootFieldNames(contextualFieldRules.keySet()));
+        roots.addAll(rootFieldNames(dependentFieldRules.keySet()));
+        return roots;
     }
 
     private void invalidateGeneratorState() {
@@ -504,30 +567,28 @@ public final class ObjectFaker<T> implements Generator<T> {
             builder.exclude(field -> field.getDeclaringClass() == ignoredField.ownerType()
                     && field.getName().equals(ignoredField.fieldName()));
         }
+        // With a report listener, a root rule is tagged so that the report names it; the tag draws as it does.
+        boolean reporting =
+                baseConfig.getGeneratorConfig().getGenerationReportListener().isPresent();
         for (RulePath target : directRootFieldRulePaths()) {
-            builder.override(
-                    target.leaf().ownerType(),
-                    target.leaf().fieldName(),
-                    Objects.requireNonNull(fieldRules.get(target.path())));
+            Generator<?> generator = Objects.requireNonNull(fieldRules.get(target.path()));
+            Generator<?> installed = reporting ? tagged(generator, activeRule(target.path(), false)) : generator;
+            builder.override(target.leaf().ownerType(), target.leaf().fieldName(), installed);
         }
         for (RulePath target : contextualRootFieldRulePaths()) {
-            builder.override(
-                    target.leaf().ownerType(),
-                    target.leaf().fieldName(),
-                    Objects.requireNonNull(contextualFieldRules.get(target.path())));
+            ContextualGenerator<?> generator = Objects.requireNonNull(contextualFieldRules.get(target.path()));
+            ContextualGenerator<?> installed =
+                    reporting ? tagged(generator, activeRule(target.path(), false)) : generator;
+            builder.override(target.leaf().ownerType(), target.leaf().fieldName(), installed);
         }
         return builder.build();
     }
 
     private List<RuleTarget> excludedByIncludeRuleTargets() {
-        if (includedFields.isEmpty()) {
+        Set<String> effectiveIncluded = includedRoots();
+        if (effectiveIncluded.isEmpty()) {
             return List.of();
         }
-        Set<String> effectiveIncluded = new LinkedHashSet<>(rootFieldNames(includedFields));
-        effectiveIncluded.addAll(rootFieldNames(fieldRules.keySet()));
-        effectiveIncluded.addAll(rootFieldNames(contextualFieldRules.keySet()));
-        effectiveIncluded.addAll(rootFieldNames(dependentFieldRules.keySet()));
-
         List<RuleTarget> targets = new ArrayList<>();
         for (RuleTarget target : allRuleTargets()) {
             if (!effectiveIncluded.contains(target.fieldName()) && !ignoredFields.contains(target.fieldName())) {
@@ -570,12 +631,45 @@ public final class ObjectFaker<T> implements Generator<T> {
         return targets;
     }
 
+    private static <V> Generator<V> tagged(Generator<V> generator, FixtureRule rule) {
+        return new FixtureRuleGenerator<>(generator, rule);
+    }
+
+    private static <V> ContextualGenerator<V> tagged(ContextualGenerator<V> generator, FixtureRule rule) {
+        return new FixtureRuleContextualGenerator<>(generator, rule);
+    }
+
+    /**
+     * The registration of the rule now active for a path, the last one, or of the ignore of that path, the
+     * first, as repeats of an ignore change nothing. A path has rules or ignores, never both.
+     */
+    private FixtureRule activeRule(String path, boolean ignore) {
+        FixtureRule active = null;
+        for (FixtureRule registration : registrations) {
+            if (registration.path().equals(path)
+                    && registration.kind() != FixtureRuleKind.INCLUDE
+                    && (active == null || !ignore)) {
+                active = registration;
+            }
+        }
+        return Objects.requireNonNull(active, "a registered rule");
+    }
+
+    /** Reports a rule or ignore that ran after generation, when a report listener is set. */
+    private void reportApplied(@Nullable GenerationReporter reporter, String path, boolean ignore) {
+        if (reporter != null) {
+            reporter.applied(type.getSimpleName() + "." + path, activeRule(path, ignore));
+        }
+    }
+
     private T applyPostGenerationRules(T value) {
+        GenerationReporter reporter = GenerationReporter.of(baseConfig, false);
         T current = value;
         for (Map.Entry<String, Generator<?>> entry : fieldRules.entrySet()) {
             RulePath path = Objects.requireNonNull(rulePaths.get(entry.getKey()));
             if (!path.isRoot()) {
                 current = assignFieldValue(current, path, entry.getValue().generate());
+                reportApplied(reporter, entry.getKey(), false);
             }
         }
         for (Map.Entry<String, ContextualGenerator<?>> entry : contextualFieldRules.entrySet()) {
@@ -592,15 +686,17 @@ public final class ObjectFaker<T> implements Generator<T> {
                                 target.field() != null ? target.field() : target.accessor(),
                                 baseConfig.getGeneratorConfig()));
                 current = assignFieldValue(current, path, fieldValue);
+                reportApplied(reporter, entry.getKey(), false);
             }
         }
         for (Map.Entry<String, Function<? super T, ?>> entry : dependentFieldRules.entrySet()) {
             RulePath path = Objects.requireNonNull(rulePaths.get(entry.getKey()));
             Object fieldValue = entry.getValue().apply(current);
             current = assignFieldValue(current, path, fieldValue);
+            reportApplied(reporter, entry.getKey(), false);
         }
         current = applyNestedIncludeRules(current);
-        current = applyNestedIgnoreRules(current);
+        current = applyNestedIgnoreRules(current, reporter);
         for (UnaryOperator<T> postProcessor : postProcessors) {
             current = Objects.requireNonNull(postProcessor.apply(current), "postProcessor must not return null");
         }
@@ -615,12 +711,13 @@ public final class ObjectFaker<T> implements Generator<T> {
         return type.cast(pruneToIncludedPaths(value, includeTree, type.getSimpleName(), -1));
     }
 
-    private T applyNestedIgnoreRules(T value) {
+    private T applyNestedIgnoreRules(T value, @Nullable GenerationReporter reporter) {
         T current = value;
         for (String fieldName : ignoredFields) {
             RulePath path = Objects.requireNonNull(rulePaths.get(fieldName));
             if (!path.isRoot()) {
                 current = clearFieldValue(current, path);
+                reportApplied(reporter, fieldName, true);
             }
         }
         return current;
@@ -653,7 +750,7 @@ public final class ObjectFaker<T> implements Generator<T> {
             if (!materializeMissingParents) {
                 return current;
             }
-            nestedValue = materializeValue(segment.valueType());
+            nestedValue = materializeValue(segment.valueType(), path, index);
             materialized = true;
         }
 
@@ -692,9 +789,19 @@ public final class ObjectFaker<T> implements Generator<T> {
                 originalCause);
     }
 
+    /** Builds the missing parent at {@code index} on {@code path}, which a nested rule writes into. */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private Object materializeValue(Class<?> rawType) {
-        return new ObjectGenerator(rawType, buildRuntimeConfig(), 0, null, null, uniqueFieldTracker).generate();
+    private Object materializeValue(Class<?> rawType, RulePath path, int index) {
+        ObjectGeneratorConfig runtime = buildRuntimeConfig();
+        if (runtime.getGeneratorConfig().getGenerationReportListener().isPresent()) {
+            // Built as a root of its own, the parent is still reported at its path in the fixture.
+            StringBuilder reported = new StringBuilder(type.getSimpleName());
+            for (RuleTarget segment : path.segments().subList(0, index + 1)) {
+                reported.append('.').append(segment.fieldName());
+            }
+            runtime = runtime.reportedAt(ObjectGenerator.typePath(rawType), reported.toString());
+        }
+        return new ObjectGenerator(rawType, runtime, 0, null, null, uniqueFieldTracker).generate();
     }
 
     private Object readTargetValue(Object instance, RuleTarget target) throws ReflectiveOperationException {
@@ -792,7 +899,8 @@ public final class ObjectFaker<T> implements Generator<T> {
         return allRuleTargets(type);
     }
 
-    private List<RuleTarget> allRuleTargets(Class<?> targetType) {
+    /** The record components, or the instance fields of the class and its superclasses, final ones too. */
+    static List<RuleTarget> allRuleTargets(Class<?> targetType) {
         List<RuleTarget> targets = new ArrayList<>();
         if (targetType.isRecord()) {
             for (RecordComponent component : targetType.getRecordComponents()) {
@@ -801,7 +909,10 @@ public final class ObjectFaker<T> implements Generator<T> {
             }
             return targets;
         }
-        for (Class<?> current = targetType; current != Object.class; current = current.getSuperclass()) {
+        // An interface has no superclass, and no instance fields either.
+        for (Class<?> current = targetType;
+                current != null && current != Object.class;
+                current = current.getSuperclass()) {
             for (Field field : current.getDeclaredFields()) {
                 if (!Modifier.isStatic(field.getModifiers())) {
                     targets.add(
@@ -841,7 +952,9 @@ public final class ObjectFaker<T> implements Generator<T> {
         }
 
         List<Field> matches = new ArrayList<>();
-        for (Class<?> current = ownerType; current != Object.class; current = current.getSuperclass()) {
+        for (Class<?> current = ownerType;
+                current != null && current != Object.class;
+                current = current.getSuperclass()) {
             for (Field field : current.getDeclaredFields()) {
                 if (!Modifier.isStatic(field.getModifiers()) && field.getName().equals(fieldName)) {
                     matches.add(field);
@@ -950,7 +1063,7 @@ public final class ObjectFaker<T> implements Generator<T> {
         return !valueType.getPackageName().startsWith("java.");
     }
 
-    private static @Nullable Object defaultValue(Class<?> valueType) {
+    static @Nullable Object defaultValue(Class<?> valueType) {
         if (!valueType.isPrimitive()) {
             return null;
         }
@@ -967,26 +1080,28 @@ public final class ObjectFaker<T> implements Generator<T> {
         };
     }
 
-    private record RulePath(String path, List<RuleTarget> segments) {
+    /** A registered path, resolved to the members it passes through. */
+    record RulePath(String path, List<RuleTarget> segments) {
 
-        private RuleTarget leaf() {
+        RuleTarget leaf() {
             return segments.getLast();
         }
 
-        private String fieldName() {
+        String fieldName() {
             return leaf().fieldName();
         }
 
-        private boolean isRoot() {
+        boolean isRoot() {
             return segments.size() == 1;
         }
 
-        private int depth() {
+        int depth() {
             return segments.size() - 1;
         }
     }
 
-    private record RuleTarget(
+    /** A field, or a record component through its accessor, and the class that declares it. */
+    record RuleTarget(
             Class<?> ownerType,
             String fieldName,
             Class<?> valueType,

@@ -13,6 +13,8 @@ import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import io.github.frikit.krandom.generator.report.GenerationDecision;
+import io.github.frikit.krandom.generator.report.GenerationStep;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -331,6 +333,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         var contextualFactory = config.getContextualTypeOverride(type);
         if (contextualFactory.isPresent()) {
             return generateFromRootFactory(
+                    FixtureRuleKind.CONTEXT_TYPE_OVERRIDE,
                     "contextual type override",
                     () -> contextualFactory
                             .get()
@@ -339,7 +342,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         }
         var factory = config.getTypeOverride(type);
         if (factory.isPresent()) {
-            return generateFromRootFactory("type override", factory.get()::generate);
+            return generateFromRootFactory(FixtureRuleKind.TYPE_OVERRIDE, "type override", factory.get()::generate);
         }
         if (SealedTypes.isAbstract(type)) {
             Class<?> mapped = config.resolveSubtype(type);
@@ -351,6 +354,9 @@ public final class ObjectGenerator<T> implements Generator<T> {
             }
         }
 
+        if (depth == 0) {
+            reportRoot(type, null, null);
+        }
         FieldGeneratorResolver resolver = new FieldGeneratorResolver(
                 config,
                 Objects.requireNonNull(pool, "pool must not be null"),
@@ -376,7 +382,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
     // Lenient mode deliberately returns the null fallback of a failed root factory from a
     // non-null generator contract; that documented behavior is kept rather than widened.
     @SuppressWarnings("NullAway")
-    private T generateFromRootFactory(String factoryKind, Supplier<?> factory) {
+    private T generateFromRootFactory(FixtureRuleKind kind, String factoryKind, Supplier<?> factory) {
         try {
             Object value = factory.get();
             if (value == null) {
@@ -386,6 +392,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 throw new IllegalArgumentException(
                         factoryKind + " returned " + value.getClass().getName() + " for " + type.getName());
             }
+            reportRoot(type, kind, null);
             return type.cast(value);
         } catch (RuntimeException factoryFailure) {
             String path = typePath();
@@ -406,6 +413,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                             context,
                             factoryFailure),
                     null);
+            reportRoot(type, kind, GenerationDecision.FAILURE_FALLBACK);
             return type.cast(fallback);
         }
     }
@@ -448,6 +456,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         if (chosen.isEnum()
                 && config.getContextualTypeOverride(chosen).isEmpty()
                 && config.getTypeOverride(chosen).isEmpty()) {
+            reportRoot(chosen, null, null);
             Object[] constants = chosen.getEnumConstants();
             return type.cast(constants[choice.nextInt(constants.length)]);
         }
@@ -474,6 +483,31 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 "Unsupported type at '" + path + "' (declared type " + type.getTypeName() + ", depth " + depth + ")",
                 context,
                 cause);
+    }
+
+    /**
+     * Reports the object this generator builds as a root, or with a type override at any depth, when a
+     * report listener is set; a nested object has the entry of the member that holds it.
+     */
+    private void reportRoot(
+            Class<?> generated, @Nullable FixtureRuleKind factory, @Nullable GenerationDecision decision) {
+        GenerationReporter reporter = reporter();
+        if (reporter != null) {
+            reporter.root(objectPath, generated, factory, decision);
+        }
+    }
+
+    /** The reporter, or {@code null} without a listener, in which case it reads no metadata at all. */
+    private @Nullable GenerationReporter reporter() {
+        if (config.getGeneratorConfig().getGenerationReportListener().isEmpty()) {
+            return null;
+        }
+        return GenerationReporter.of(
+                config,
+                ObjectFieldStreamPlanner.usesNamedChildStreams(
+                        config.getGeneratorConfig().getObjectFieldStreamPolicy(),
+                        generationSeed,
+                        config.hasPortableRecipe()));
     }
 
     private ObjectGenerationException constructionFailure(Throwable cause) {
@@ -519,7 +553,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         return objectPath;
     }
 
-    private static String typePath(Class<?> valueType) {
+    static String typePath(Class<?> valueType) {
         String simpleName = valueType.getSimpleName();
         return simpleName.isBlank() ? valueType.getName() : simpleName;
     }
@@ -716,7 +750,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         return null;
     }
 
-    private static boolean requiresKotlinConstructionAdapter(Class<?> requestedType) {
+    static boolean requiresKotlinConstructionAdapter(Class<?> requestedType) {
         if (!isKotlinType(requestedType)) {
             return false;
         }
@@ -798,6 +832,12 @@ public final class ObjectGenerator<T> implements Generator<T> {
                         -1);
                 failurePolicy.handle(
                         new ObjectGenerationException("Could not set " + fieldContext, failureContext, e), null);
+                // The member's entry told how its value was made; this one tells that the member kept the
+                // value it held instead.
+                GenerationReporter reporter = reporter();
+                if (reporter != null) {
+                    reporter.failedStore(objectPath + "." + field.getName(), field.getType(), GenerationStep.KEPT);
+                }
             }
         }
         coherenceAdjuster.adjustInstance(type, instance, settableFields, allowOverwriteExisting);

@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -84,6 +85,7 @@ class BeanValidationAvailabilityTest {
         Object model = invoke(support, "constraintModelFor", annotated, String.class);
         assertFalse((Boolean) invokeOn(model, "constrained"));
         assertNull(invoke(support, "sizeRangeFor", annotated));
+        assertEquals(List.of(), invoke(support, "constraintNames", annotated));
     }
 
     @Test
@@ -129,7 +131,7 @@ class BeanValidationAvailabilityTest {
     private static Object invoke(Class<?> type, String name, Object... arguments) throws Exception {
         Class<?>[] parameterTypes = switch (name) {
             case "constraintModelFor" -> new Class<?>[] {AnnotatedElement.class, Class.class};
-            case "sizeRangeFor" -> new Class<?>[] {AnnotatedElement.class};
+            case "sizeRangeFor", "constraintNames" -> new Class<?>[] {AnnotatedElement.class};
             default -> new Class<?>[0];
         };
         // getDeclaredMethod resolves every declared signature, so this also fails if any method of

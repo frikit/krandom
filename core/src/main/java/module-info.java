@@ -39,6 +39,7 @@ module io.github.frikit.krandom {
     exports io.github.frikit.krandom.generator.object;
     exports io.github.frikit.krandom.generator.object.exception;
     exports io.github.frikit.krandom.generator.provider;
+    exports io.github.frikit.krandom.generator.report;
     exports io.github.frikit.krandom.generator.schema;
     exports io.github.frikit.krandom.generator.selection;
     exports io.github.frikit.krandom.generator.system;

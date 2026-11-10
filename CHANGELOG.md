@@ -6,8 +6,91 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- A value-free generation report. `GeneratorConfig.Builder.generationReportListener(...)` sets a
+  `GenerationReportListener`, which receives a `GenerationReportEntry` for each value that object generation
+  produces, with an `ObjectGenerator`, an `ObjectFaker`, an `ObjectModel` or the Kotlin DSL: its path, its
+  `SeedSource` (the configuration's seed, a stream derived from it by name, a replay recipe, or none), the
+  recipe format `krandom-recipe/v1` when the configuration has a portable recipe and the names of the recipe
+  settings that shaped the value, the `GenerationStep` and generator that produced it, the `FixtureRule`
+  that matched it, whether an `ObjectFaker` rule with its registration number or a `GeneratorConfig`
+  override, its Bean Validation constraints, the safety policies that bound it, such as
+  `network.safety-policy`, and its `GenerationDecision`s: a cut at `objectMaxDepth` or at a cycle, a fallback
+  for an unsupported type, unmet constraints or another failure under `objectIgnoreErrors(true)`, a drawn `null` or empty
+  `Optional`, a semantic provider deferred to a constraint or annotation, and a coherence move, or a member
+  that `RELAXED` mode keeps. An entry never holds a generated value. Reporting draws nothing from any random
+  stream, so seeded output is the same with or without a listener, and without one nothing is reported or
+  built. A listener that throws is logged and ignored. `GeneratorConfig.isRestoredFromRecipe()` says whether
+  a configuration replays a recipe, and the Kotlin DSL sets the listener with
+  `config { generationReportListener { entry -> ... } }`.
+- `ObjectFaker.strict()`, which has nothing to do with `ObjectGenerationSemanticMode.STRICT`, now reports
+  unused, ambiguous and shadowed fixture rules, together with the root properties that have no rule,
+  include or ignore, in one `FixtureRuleException`, before generating or populating. `assertConfigurationIsValid()`, which `ObjectFaker.strict()` runs, reports the same on demand.
+  Each problem is a `FixtureRuleProblem` with its category, its `FixtureRule`, given by `FixtureRuleKind`,
+  path and registration number, and a reason that names paths and rules, never a value. The rules,
+  includes and ignores of an `ObjectFaker` are numbered in registration order, across profiles and composed
+  `ObjectModel` values; a `GeneratorConfig` entry has the number -1 and the path where it takes effect.
+  - Shadowed: a rule that a later rule for the same path replaces, whatever their kinds; a nested rule that
+    a rule on an ancestor path overwrites because it runs later, such as `address.city` under a dependent
+    rule on `address`; a root rule that a `GeneratorConfig` contextual field override or contextual
+    predicate override for the same member comes before, so that it never runs; a `GeneratorConfig` field
+    override for a member that a root rule replaces or comes before, or that a nested or dependent rule
+    overwrites; and a name requested with `objectUniqueField`, whose values a nested or dependent rule sets
+    without the uniqueness check that a root rule gets.
+  - Unused: a rule below a path that a nested ignore registered after it clears; a root rule on a member
+    that the `GeneratorConfig` excludes, by `objectExclude`, `objectExcludeField`, `objectExcludeType` or
+    `@Exclude`; a root rule or root ignore when a `GeneratorConfig` type override builds the root, which
+    `generate()` does and `populate(existing)` does not; and a nested ignore of a member that `generate()`
+    never gives a value, because `objectMaxDepth`, an exclusion or include mode leaves an object on its path
+    `null`, which an instance given to `populate(existing)` may still hold. A
+    nested rule past `objectMaxDepth` is used, because it creates the objects on its path, and a path into
+    a member that an `objectSubtype` implementation or a sealed subclass lacks already fails at
+    registration, because paths are resolved against the declared types.
+  - Ambiguous: a root rule, root ignore or include-mode exclusion that also applies at another path. Each
+    applies by its member's declaring class and name, so it also reaches that member in a nested object of
+    the root's type, as in `manager.name` for `ruleFor("name", ...)` on an `Employee` with an `Employee
+    manager`, or of another subclass of the class that declares an inherited member, as in `customer.id`
+    for `ruleFor("id", ...)` on an `Order` whose `Customer` shares its `BaseEntity`. The check follows the
+    nested objects that generation reaches, through collections, maps, arrays, `Optional`, constructor
+    arguments, `objectSubtype` mappings and sealed types, within `objectMaxDepth` and with the cycle guard's
+    keys, and leaves out members that an override, an exclusion, a `@Randomizer`, a kept initializer or
+    `@Null` decides, including an element's `@Null` as in `List<@Null Purchase>`, the elements of a
+    collection whose configured size within its `@Size` allows none, of a sorted collection or map whose
+    elements or keys have no order, and of one whose type arguments do not resolve, and members that an
+    `objectNullProbability` or `objectOptionalEmptyProbability` of 1 always leaves absent. A type override
+    for the root or for an `objectSubtype` implementation ends the walk, and a path through the root's
+    constructor holds for `generate()` only, because `populate(existing)` builds no root. In `generate()`, a
+    root rule that fills a constructor argument of its name is not shadowed by a contextual predicate
+    override, which reaches fields only; in `populate(existing)`, which fills the field, it is. A dependent
+    rule applies at its own path only. A string path that matches two fields still fails at registration.
+
+  `ObjectFaker.strict()` checks once for each configuration, and again after a new rule, include or ignore.
+  Without `ObjectFaker.strict()`, generation is unchanged. A replacement of a rule for the same path, the
+  documented way to refine a profile or a shared `ObjectModel` per test, is reported as shadowed, so
+  `ObjectFaker.strict()` rejects such a refinement.
+
+### Changed
+
+- `ObjectFaker.strict()` and `assertConfigurationIsValid()` throw `FixtureRuleException`, which extends
+  `IllegalStateException`, with every problem on a line of its own, where they threw an
+  `IllegalStateException` reading `ObjectFaker for <type> has no rules for: [...]`. The undecided root
+  properties are now `getUndecidedProperties()` and the line `UNDECIDED root properties [...]`. To see which
+  members keep an initializer, `assertConfigurationIsValid()`, and so `ObjectFaker.strict()`, now creates
+  one object of each class it follows with the class's no-argument constructor, as generation does.
+- The `ObjectFaker` documentation now gives the order in which its rules run and their scope, which
+  `ObjectFaker.strict()` checks: a root rule, a root ignore and include mode apply by the member's declaring
+  class and name, as they always have, and the other rules at their own paths; against the `GeneratorConfig` overrides for the same member, a root
+  context rule comes first, and a root rule after a contextual field override and a contextual predicate
+  override and before the others.
+
 ### Fixed
 
+- An `ObjectFaker` path through a member declared as an interface, such as `shape.side` where `shape` is a
+  `Shape` interface, now fails at registration with `Unknown field 'side' on` and the interface's name, as a
+  path into any type without that field does. It failed with a raw `NullPointerException`. An `ObjectFaker`
+  for an interface, which a type override builds, no longer fails the same way in
+  `assertConfigurationIsValid()` and so in `ObjectFaker.strict()`.
 - `Schema` writes a date or time in the RFC 3339 form of the format its type exports, in every output:
   JSON, JSON Lines, YAML, TOML, CSV, XML, and SQL. It wrote `toString()`, which leaves out `:00`
   seconds, so a `LocalDateTime` at 09:05 was written `2024-01-05T09:05`; adds a `ZonedDateTime`'s zone

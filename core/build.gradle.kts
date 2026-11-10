@@ -98,6 +98,8 @@ pitest {
             "io.github.frikit.krandom.generator.object.EmailShape",
             "io.github.frikit.krandom.generator.object.FieldGeneratorResolver",
             "io.github.frikit.krandom.generator.object.FieldGeneratorResolver$*",
+            "io.github.frikit.krandom.generator.object.FixtureRuleAnalysis",
+            "io.github.frikit.krandom.generator.object.FixtureRuleAnalysis$*",
             "io.github.frikit.krandom.generator.object.ObjectFaker",
             "io.github.frikit.krandom.generator.object.ObjectFieldStreamPlanner",
             "io.github.frikit.krandom.generator.object.ObjectGenerator",

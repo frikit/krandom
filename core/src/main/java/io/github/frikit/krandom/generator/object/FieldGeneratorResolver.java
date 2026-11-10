@@ -36,6 +36,8 @@ import io.github.frikit.krandom.generator.location.CoordinatesGenerator;
 import io.github.frikit.krandom.generator.network.URLGenerator;
 import io.github.frikit.krandom.generator.network.UriGenerator;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import io.github.frikit.krandom.generator.report.GenerationDecision;
+import io.github.frikit.krandom.generator.report.GenerationStep;
 import java.lang.reflect.AnnotatedArrayType;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedParameterizedType;
@@ -209,6 +211,8 @@ final class FieldGeneratorResolver {
     private final ObjectGenerationFailurePolicy failurePolicy;
     private final Map<TypeVariable<?>, Type> typeBindings;
     private final String objectPath;
+    private final @Nullable GenerationReporter reporter;
+    private GenerationReporter.@Nullable Trace currentTrace;
 
     FieldGeneratorResolver(
             ObjectGeneratorConfig config,
@@ -251,6 +255,7 @@ final class FieldGeneratorResolver {
                 () -> recipeSource.getGenerationRecipe().map(GenerationRecipe::serializeForDiagnostics));
         this.typeBindings = Map.copyOf(Objects.requireNonNull(typeBindings, "typeBindings must not be null"));
         this.objectPath = Objects.requireNonNull(objectPath, "objectPath must not be null");
+        this.reporter = GenerationReporter.of(config, namedChildStreams);
     }
 
     private static Map<Class<?>, Generator<?>> buildBuiltins(
@@ -1269,6 +1274,16 @@ final class FieldGeneratorResolver {
     // ── Primary entry point ───────────────────────────────────────────────────
 
     private ResolvedType containerArgument(Type type, Class<?> containerContract, int index) {
+        return containerArgument(typeBindings, type, containerContract, index);
+    }
+
+    /**
+     * The argument {@code index} of a container contract, such as a list's element type, under the
+     * bindings of the object that declares the container. {@link FixtureRuleAnalysis} follows containers
+     * with it as generation does.
+     */
+    static ResolvedType containerArgument(
+            Map<TypeVariable<?>, Type> typeBindings, Type type, Class<?> containerContract, int index) {
         // The type at the end of a chain of type variables, which holds the container's arguments.
         Type hierarchyType =
                 mostSpecific(ResolvedType.resolve(type, typeBindings)).declaredType();
@@ -1281,7 +1296,7 @@ final class FieldGeneratorResolver {
      * Follows the whole binding chain: {@code SortedSet<P>} resolves {@code Set}'s {@code E} to
      * {@code SortedSet}'s {@code E}, and only that resolves to {@code P}.
      */
-    private static ResolvedType mostSpecific(ResolvedType type) {
+    static ResolvedType mostSpecific(ResolvedType type) {
         ResolvedType current = type;
         while (current.effectiveType() != null) {
             current = current.effectiveType();
@@ -1294,7 +1309,7 @@ final class FieldGeneratorResolver {
         return Objects.requireNonNull(mostSpecific(type).rawClass(), "type must be resolved");
     }
 
-    private static boolean isSortedContainer(Class<?> rawType) {
+    static boolean isSortedContainer(Class<?> rawType) {
         return rawType == TreeSet.class
                 || rawType == SortedSet.class
                 || rawType == NavigableSet.class
@@ -1309,7 +1324,7 @@ final class FieldGeneratorResolver {
      * other types their value-based {@code toString()}. Types that only inherit
      * {@link Object#toString()} would be ordered by identity hash codes, which differ between runs.
      */
-    private static boolean hasDeterministicOrder(ResolvedType elementType) {
+    static boolean hasDeterministicOrder(ResolvedType elementType) {
         Class<?> type = resolvedRawClass(elementType);
         return Comparable.class.isAssignableFrom(type) || overridesToString(type);
     }
@@ -1751,7 +1766,6 @@ final class FieldGeneratorResolver {
      * the element itself except for an array's component type, where it is {@code null}: see
      * {@link #generateArray}.
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
     private @Nullable Object resolveAndGenerate(
             Type genericType,
             Class<?> rawType,
@@ -1760,11 +1774,43 @@ final class FieldGeneratorResolver {
             int currentDepth,
             @Nullable AnnotatedElement element,
             @Nullable AnnotatedElement constraintSource) {
+        GenerationReporter active = reporter;
+        if (active == null) {
+            return resolveValue(
+                    genericType, rawType, fieldName, ownerType, currentDepth, element, constraintSource, null);
+        }
+        GenerationReporter.Trace trace = active.trace(memberPath(fieldName));
+        GenerationReporter.Trace enclosing = currentTrace;
+        currentTrace = trace;
+        Object value;
+        try {
+            value = resolveValue(
+                    genericType, rawType, fieldName, ownerType, currentDepth, element, constraintSource, trace);
+        } finally {
+            currentTrace = enclosing;
+        }
+        // The entry is built from what the resolution decided, never from the value.
+        active.emit(trace);
+        return value;
+    }
+
+    /** Resolves one value, telling {@code trace}, when there is one, how it does so. */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private @Nullable Object resolveValue(
+            Type genericType,
+            Class<?> rawType,
+            String fieldName,
+            Class<?> ownerType,
+            int currentDepth,
+            @Nullable AnnotatedElement element,
+            @Nullable AnnotatedElement constraintSource,
+            GenerationReporter.@Nullable Trace trace) {
 
         ResolvedType resolvedType = ResolvedType.resolve(genericType, typeBindings);
         rawType = Objects.requireNonNullElse(resolvedType.rawClass(), rawType);
 
-        Generator<?> override = overrideFor(rawType, genericType, fieldName, ownerType, currentDepth, element);
+        GenerationReporter.constraints(trace, constraintSource);
+        Generator<?> override = overrideFor(rawType, genericType, fieldName, ownerType, currentDepth, element, trace);
         if (override != null) {
             return generateIfRequestedUnique(override, rawType, genericType, ownerType, fieldName, currentDepth);
         }
@@ -1787,6 +1833,7 @@ final class FieldGeneratorResolver {
                             generatorConfig.getEmailDomainPolicy())
                     : null;
         } catch (BeanValidationSupport.ConstraintConflictException conflict) {
+            GenerationReporter.fallback(trace, rawType, GenerationDecision.CONSTRAINT_CONFLICT);
             Object fallback =
                     handleConstraintConflict(rawType, genericType, ownerType, fieldName, currentDepth, conflict);
             return fallback;
@@ -1801,19 +1848,27 @@ final class FieldGeneratorResolver {
                         || (annotationGenerator == null
                                 && fakeAnnotationGenerator == null
                                 && fakeRangeGenerator == null))) {
+            GenerationReporter.semantic(trace, Objects.requireNonNull(semanticKey, "semantic key"), generatorConfig);
             return generateWithUniqueness(
                     semanticGenerator, semanticKey, rawType, genericType, ownerType, fieldName, currentDepth);
+        }
+        if (semanticGenerator != null) {
+            GenerationReporter.decision(trace, GenerationDecision.SEMANTIC_DEFERRED, "object.semantic-mode");
         }
 
         // ── 3aa. Configured null/optional behavior ────────────────────────────
         if (bvConstraints.nullOnly()) {
+            GenerationReporter.step(trace, GenerationStep.NULL, "jakarta.validation.constraints.Null");
             return generateConstraintValue(bvGen, rawType, genericType, ownerType, fieldName, currentDepth);
         }
         if (Optional.class == rawType) {
             if (!hasResolvedArguments(genericType, Optional.class)) {
-                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+                return unsupported(trace, rawType, genericType, ownerType, fieldName, currentDepth);
             }
+            GenerationReporter.step(trace, GenerationStep.OPTIONAL, rawType);
             if (shouldReturnEmptyOptional(element)) {
+                GenerationReporter.decision(
+                        trace, GenerationDecision.OPTIONAL_EMPTY, "object.optional-empty-probability");
                 return Optional.empty();
             }
             ResolvedType valueType = containerArgument(genericType, Optional.class, 0);
@@ -1822,60 +1877,81 @@ final class FieldGeneratorResolver {
             return Optional.ofNullable(value);
         }
         if (shouldReturnNull(element, rawType, annotationGenerator, bvGen, bvConstraints.required())) {
+            GenerationReporter.step(trace, GenerationStep.NULL, "null");
+            GenerationReporter.decision(trace, GenerationDecision.NULL_PROBABILITY, "object.null-probability");
             return null;
         }
 
         // ── 3b. Declarative @Randomizer override ─────────────────────────────
         if (annotationGenerator != null) {
+            GenerationReporter.step(
+                    trace,
+                    GenerationStep.RANDOMIZER,
+                    Objects.requireNonNull(element, "an annotated element")
+                            .getAnnotation(Randomizer.class)
+                            .value());
             return generateIfRequestedUnique(
                     annotationGenerator, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 3ba. Declarative @Fake override ──────────────────────────────────
         if (fakeAnnotationGenerator != null) {
+            GenerationReporter.fake(
+                    trace,
+                    Objects.requireNonNull(element, "an annotated element")
+                            .getAnnotation(Fake.class)
+                            .value(),
+                    semanticRegistry,
+                    generatorConfig);
             return generateIfRequestedUnique(
                     fakeAnnotationGenerator, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 3bb. Declarative @FakeRange override ─────────────────────────────
         if (fakeRangeGenerator != null) {
+            GenerationReporter.step(trace, GenerationStep.FAKE_RANGE, rawType);
             return generateIfRequestedUnique(
                     fakeRangeGenerator, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 3c. Bean Validation constraint override ───────────────────────────
         if (bvGen != null) {
+            GenerationReporter.constraint(trace, rawType, bvConstraints, generatorConfig);
             return generateConstraintValue(bvGen, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 4. Built-in (primitives, wrappers, String, JSR-310, UUID, BigDecimal, BigInteger) ──
         var builtin = builtins.get(rawType);
         if (builtin != null) {
+            GenerationReporter.builtIn(trace, rawType, config);
             return generateWithUniqueness(builtin, null, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 5. Enum ───────────────────────────────────────────────────────────
         if (rawType.isEnum()) {
+            GenerationReporter.step(trace, GenerationStep.ENUM, rawType);
             return generateEnum(rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 6a. Array ─────────────────────────────────────────────────────────
         if (rawType.isArray()) {
             if (!resolvedType.isResolved()) {
-                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+                return unsupported(trace, rawType, genericType, ownerType, fieldName, currentDepth);
             }
+            GenerationReporter.collection(trace, rawType);
             return generateArray(resolvedType, rawType, ownerType, fieldName, currentDepth, element, bvConstraints);
         }
 
         // ── 6b. Set ───────────────────────────────────────────────────────────
         if (Set.class.isAssignableFrom(rawType)) {
             if (!hasResolvedArguments(genericType, Set.class)) {
-                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+                return unsupported(trace, rawType, genericType, ownerType, fieldName, currentDepth);
             }
             ResolvedType elem = containerArgument(genericType, Set.class, 0);
             if (isSortedContainer(rawType) && !hasDeterministicOrder(elem)) {
-                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+                return unsupported(trace, rawType, genericType, ownerType, fieldName, currentDepth);
             }
+            GenerationReporter.collection(trace, rawType);
             int elementCount = nextCollectionSize(bvConstraints);
             // A sorted set keeps one element per ordering key, so count distinct elements by that order.
             Set<Object> values =
@@ -1914,12 +1990,13 @@ final class FieldGeneratorResolver {
         if (List.class.isAssignableFrom(rawType) || Queue.class.isAssignableFrom(rawType)) {
             Class<?> containerContract = List.class.isAssignableFrom(rawType) ? List.class : Queue.class;
             if (!hasResolvedArguments(genericType, containerContract)) {
-                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+                return unsupported(trace, rawType, genericType, ownerType, fieldName, currentDepth);
             }
             ResolvedType elem = containerArgument(genericType, containerContract, 0);
             if (isSortedContainer(rawType) && !hasDeterministicOrder(elem)) {
-                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+                return unsupported(trace, rawType, genericType, ownerType, fieldName, currentDepth);
             }
+            GenerationReporter.collection(trace, rawType);
             int elementCount = nextCollectionSize(bvConstraints);
             List<Object> els = new ArrayList<>(elementCount);
             for (int i = 0; i < elementCount; i++) {
@@ -1945,13 +2022,14 @@ final class FieldGeneratorResolver {
         // ── 6d. Map ───────────────────────────────────────────────────────────
         if (Map.class.isAssignableFrom(rawType)) {
             if (!hasResolvedArguments(genericType, Map.class)) {
-                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+                return unsupported(trace, rawType, genericType, ownerType, fieldName, currentDepth);
             }
             ResolvedType k = containerArgument(genericType, Map.class, 0);
             ResolvedType v = containerArgument(genericType, Map.class, 1);
             if (isSortedContainer(rawType) && !hasDeterministicOrder(k)) {
-                return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+                return unsupported(trace, rawType, genericType, ownerType, fieldName, currentDepth);
             }
+            GenerationReporter.collection(trace, rawType);
             Map<Object, Object> map;
             try {
                 map = toMapType(rawType, k);
@@ -1975,6 +2053,7 @@ final class FieldGeneratorResolver {
                     try {
                         map.put(key, val);
                     } catch (RuntimeException e) {
+                        GenerationReporter.failed(currentTrace, GenerationDecision.FAILURE_FALLBACK);
                         String declaredType = genericType.getTypeName();
                         GenerationFailureContext context = new GenerationFailureContext(
                                 GenerationFailureCategory.COLLECTION_INSERTION,
@@ -2006,11 +2085,13 @@ final class FieldGeneratorResolver {
 
         if (!resolvedType.isResolved()
                 || (resolvedType.kind() == ResolvedType.Kind.CLASS && rawType.getTypeParameters().length > 0)) {
-            return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
+            return unsupported(trace, rawType, genericType, ownerType, fieldName, currentDepth);
         }
 
         // ── 7. Depth guard ────────────────────────────────────────────────────
         if (currentDepth >= config.getMaxDepth()) {
+            GenerationReporter.fallback(trace, rawType, GenerationDecision.DEPTH_CUT);
+            GenerationReporter.setting(trace, "object.max-depth");
             return bvConstraints.required() && !(element instanceof AnnotatedType)
                     ? handleRequiredMemberAtMaxDepth(rawType, genericType, ownerType, fieldName, currentDepth)
                     : PRIMITIVE_DEFAULTS.getOrDefault(rawType, null);
@@ -2031,12 +2112,13 @@ final class FieldGeneratorResolver {
             }
             Class<?> chosen = chooseSubclass(subclasses, resolvedType);
             Generator<?> chosenOverride =
-                    typeOverrideFor(chosen, genericType, fieldName, ownerType, currentDepth, element);
+                    typeOverrideFor(chosen, genericType, fieldName, ownerType, currentDepth, element, trace);
             if (chosenOverride != null) {
                 return generateIfRequestedUnique(
                         chosenOverride, chosen, genericType, ownerType, fieldName, currentDepth);
             }
             if (chosen.isEnum()) {
+                GenerationReporter.step(trace, GenerationStep.ENUM, chosen);
                 return generateEnum(chosen, genericType, ownerType, fieldName, currentDepth);
             }
             nestedType = chosen;
@@ -2044,7 +2126,9 @@ final class FieldGeneratorResolver {
             poolTypeSignature = subclassSignature(resolvedType, chosen);
         }
         if (isNestableType(nestedType)) {
+            GenerationReporter.step(trace, GenerationStep.OBJECT, nestedType);
             if (pool.isInProgress(nestedType, poolTypeSignature)) {
+                GenerationReporter.decision(trace, GenerationDecision.CYCLE_CUT, null);
                 return pool.getCached(nestedType, poolTypeSignature); // break circular reference
             }
             pool.begin(nestedType, poolTypeSignature);
@@ -2065,12 +2149,14 @@ final class FieldGeneratorResolver {
                 return instance;
             } catch (ObjectGenerationException e) {
                 pool.end(nestedType, poolTypeSignature, null);
+                GenerationReporter.failed(currentTrace, GenerationDecision.FAILURE_FALLBACK);
                 return failurePolicy.handle(
                         contextualizeNestedFailure(
                                 e, nestedType, ownerType, fieldName, memberPath(fieldName), genericType, currentDepth),
                         null);
             } catch (Exception e) {
                 pool.end(nestedType, poolTypeSignature, null);
+                GenerationReporter.failed(currentTrace, GenerationDecision.FAILURE_FALLBACK);
                 return failurePolicy.handle(
                         nestedFailure(
                                 GenerationFailureCategory.REFLECTION,
@@ -2085,6 +2171,18 @@ final class FieldGeneratorResolver {
         }
 
         // ── 9. Unsupported type ───────────────────────────────────────────────
+        return unsupported(trace, rawType, genericType, ownerType, fieldName, currentDepth);
+    }
+
+    /** An unsupported type, reported as a fallback before the failure policy decides. */
+    private @Nullable Object unsupported(
+            GenerationReporter.@Nullable Trace trace,
+            Class<?> rawType,
+            Type genericType,
+            Class<?> ownerType,
+            String fieldName,
+            int currentDepth) {
+        GenerationReporter.fallback(trace, rawType, GenerationDecision.UNSUPPORTED_TYPE);
         return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
     }
 
@@ -2095,10 +2193,12 @@ final class FieldGeneratorResolver {
             String fieldName,
             Class<?> ownerType,
             int currentDepth,
-            @Nullable AnnotatedElement element) {
+            @Nullable AnnotatedElement element,
+            GenerationReporter.@Nullable Trace trace) {
         // ── 0a. Contextual field-level override ───────────────────────────────
         var ctxField = config.getContextualFieldOverride(ownerType, fieldName);
         if (ctxField.isPresent()) {
+            GenerationReporter.override(trace, FixtureRuleKind.CONTEXT_FIELD_OVERRIDE, ctxField.get());
             return withContext(
                     ctxField.get(), generationContext(fieldName, ownerType, currentDepth, genericType, element));
         }
@@ -2107,6 +2207,7 @@ final class FieldGeneratorResolver {
         if (element instanceof java.lang.reflect.Field field) {
             var ctxPredicateField = config.getContextualFieldPredicateOverride(field);
             if (ctxPredicateField.isPresent()) {
+                GenerationReporter.override(trace, FixtureRuleKind.CONTEXT_PREDICATE_OVERRIDE, ctxPredicateField.get());
                 return withContext(
                         ctxPredicateField.get(),
                         generationContext(fieldName, ownerType, currentDepth, genericType, element));
@@ -2116,6 +2217,7 @@ final class FieldGeneratorResolver {
         // ── 1. Field-level override ───────────────────────────────────────────
         var fieldOverride = config.getFieldOverride(ownerType, fieldName);
         if (fieldOverride.isPresent()) {
+            GenerationReporter.override(trace, FixtureRuleKind.FIELD_OVERRIDE, fieldOverride.get());
             return fieldOverride.get();
         }
 
@@ -2123,12 +2225,13 @@ final class FieldGeneratorResolver {
         if (element instanceof java.lang.reflect.Field field) {
             var predicateFieldOverride = config.getFieldPredicateOverride(field);
             if (predicateFieldOverride.isPresent()) {
+                GenerationReporter.override(trace, FixtureRuleKind.PREDICATE_OVERRIDE, predicateFieldOverride.get());
                 return predicateFieldOverride.get();
             }
         }
 
         // ── 2. Type-level override, after every field-level override ──────────
-        return typeOverrideFor(rawType, genericType, fieldName, ownerType, currentDepth, element);
+        return typeOverrideFor(rawType, genericType, fieldName, ownerType, currentDepth, element, trace);
     }
 
     /** The contextual or plain type override that generates {@code rawType} for this member, if any. */
@@ -2138,16 +2241,22 @@ final class FieldGeneratorResolver {
             String fieldName,
             Class<?> ownerType,
             int currentDepth,
-            @Nullable AnnotatedElement element) {
+            @Nullable AnnotatedElement element,
+            GenerationReporter.@Nullable Trace trace) {
         // ── 2. Contextual type-level override ─────────────────────────────────
         var ctxType = config.getContextualTypeOverride(rawType);
         if (ctxType.isPresent()) {
+            GenerationReporter.override(trace, FixtureRuleKind.CONTEXT_TYPE_OVERRIDE, ctxType.get());
             return withContext(
                     ctxType.get(), generationContext(fieldName, ownerType, currentDepth, genericType, element));
         }
 
         // ── 2a. Type-level override ───────────────────────────────────────────
-        return config.getTypeOverride(rawType).orElse(null);
+        Generator<?> typeOverride = config.getTypeOverride(rawType).orElse(null);
+        if (typeOverride != null) {
+            GenerationReporter.override(trace, FixtureRuleKind.TYPE_OVERRIDE, typeOverride);
+        }
+        return typeOverride;
     }
 
     /** One of the enum's constants, or {@code null} for an enum with none. */
@@ -2227,6 +2336,16 @@ final class FieldGeneratorResolver {
     }
 
     private Map<TypeVariable<?>, Type> nestedTypeBindings(ResolvedType resolvedType, Class<?> nestedType) {
+        return nestedTypeBindings(typeBindings, resolvedType, nestedType);
+    }
+
+    /**
+     * The type bindings of a nested object of {@code nestedType}, declared as {@code resolvedType} in an
+     * object with {@code typeBindings}. {@link FixtureRuleAnalysis} follows nested objects with them as
+     * generation does.
+     */
+    static Map<TypeVariable<?>, Type> nestedTypeBindings(
+            Map<TypeVariable<?>, Type> typeBindings, ResolvedType resolvedType, Class<?> nestedType) {
         Map<TypeVariable<?>, Type> bindings = new LinkedHashMap<>(typeBindings);
         Map<TypeVariable<?>, Type> nestedBindings = ResolvedType.bindingsFor(nestedType);
         bindings.putAll(nestedBindings);
@@ -2340,6 +2459,7 @@ final class FieldGeneratorResolver {
             String fieldName,
             int depth,
             RuntimeException cause) {
+        GenerationReporter.failed(currentTrace, GenerationDecision.UNSUPPORTED_TYPE);
         String path = ownerType.getSimpleName() + "." + fieldName;
         String declaredTypeName = declaredType.getTypeName();
         GenerationFailureContext context = new GenerationFailureContext(
@@ -2366,6 +2486,7 @@ final class FieldGeneratorResolver {
             String fieldName,
             int depth,
             BeanValidationSupport.ConstraintConflictException cause) {
+        GenerationReporter.failed(currentTrace, GenerationDecision.CONSTRAINT_CONFLICT);
         String path = ownerType.getSimpleName() + "." + fieldName;
         String declaredTypeName = declaredType.getTypeName();
         GenerationFailureContext context = new GenerationFailureContext(
@@ -2396,6 +2517,7 @@ final class FieldGeneratorResolver {
         if (!isNestableType(nestedType) && !SealedTypes.isSealed(nestedType, uniqueFieldTracker)) {
             return handleUnsupportedType(rawType, declaredType, ownerType, fieldName, depth);
         }
+        GenerationReporter.failed(currentTrace, GenerationDecision.CONSTRAINT_CONFLICT);
         // The whole member path: an inherited field's owner is not the nested type on that path.
         String path = memberPath(fieldName);
         String declaredTypeName = declaredType.getTypeName();
@@ -2429,6 +2551,7 @@ final class FieldGeneratorResolver {
             String fieldName,
             int depth,
             UniqueFieldTracker.ExhaustedException cause) {
+        GenerationReporter.failed(currentTrace, GenerationDecision.FAILURE_FALLBACK);
         String path = memberPath(fieldName);
         String declaredTypeName = declaredType.getTypeName();
         GenerationFailureContext context = new GenerationFailureContext(
@@ -2472,6 +2595,7 @@ final class FieldGeneratorResolver {
 
     private @Nullable Object handleCollectionInsertionFailure(
             Class<?> ownerType, String fieldName, Type declaredType, int depth, RuntimeException cause) {
+        GenerationReporter.failed(currentTrace, GenerationDecision.FAILURE_FALLBACK);
         String path = ownerType.getSimpleName() + "." + fieldName;
         String declaredTypeName = declaredType.getTypeName();
         GenerationFailureContext context = new GenerationFailureContext(
@@ -2509,6 +2633,7 @@ final class FieldGeneratorResolver {
 
     private @Nullable Object handleCollectionConstructionFailure(
             Class<?> ownerType, String fieldName, Type declaredType, int depth, Throwable cause) {
+        GenerationReporter.failed(currentTrace, GenerationDecision.FAILURE_FALLBACK);
         String path = ownerType.getSimpleName() + "." + fieldName;
         String declaredTypeName = declaredType.getTypeName();
         GenerationFailureContext context = new GenerationFailureContext(
@@ -2595,12 +2720,18 @@ final class FieldGeneratorResolver {
                                 context,
                                 e),
                         null);
+                // Passed over: the array is still generated, with this element at its default, told after the
+                // element's entry. Under a policy that throws, nothing is told.
+                GenerationReporter active = reporter;
+                if (active != null) {
+                    active.failedStore(memberPath(fieldName + "[]"), comp, GenerationStep.DEFAULT);
+                }
             }
         }
         return arr;
     }
 
-    private static @Nullable AnnotatedElement typeArgumentElement(@Nullable AnnotatedElement element, int index) {
+    static @Nullable AnnotatedElement typeArgumentElement(@Nullable AnnotatedElement element, int index) {
         AnnotatedType type = annotatedTypeFor(element);
         if (!(type instanceof AnnotatedParameterizedType parameterizedType)) {
             return null;
@@ -2609,7 +2740,7 @@ final class FieldGeneratorResolver {
         return index < arguments.length ? arguments[index] : null;
     }
 
-    private static @Nullable AnnotatedElement arrayComponentElement(@Nullable AnnotatedElement element) {
+    static @Nullable AnnotatedElement arrayComponentElement(@Nullable AnnotatedElement element) {
         AnnotatedType type = annotatedTypeFor(element);
         return type instanceof AnnotatedArrayType arrayType ? arrayType.getAnnotatedGenericComponentType() : null;
     }
@@ -2668,7 +2799,7 @@ final class FieldGeneratorResolver {
      * <p>Arrays are excluded at step 5a in {@link #resolveAndGenerate} before this method
      * is ever called, so there is no {@code isArray} check here.
      */
-    private boolean isNestableType(Class<?> type) {
+    static boolean isNestableType(Class<?> type) {
         if (type.isInterface()) return false;
         if (java.lang.reflect.Modifier.isAbstract(type.getModifiers())) return false;
         // Bootstrap ClassLoader (null) loads all JDK platform classes — skip them
