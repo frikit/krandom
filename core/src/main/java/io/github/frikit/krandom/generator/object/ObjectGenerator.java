@@ -693,6 +693,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                                 && parameter.getDeclaringExecutable().getDeclaringClass() == type) {
                             BeanValidationSupport.nameConstructorParameter(parameter, memberName);
                         }
+                        // A field predicate override reaches the argument through the field behind it.
                         return resolver.resolveAndGenerateMember(
                                 genericType,
                                 rawType,
@@ -700,6 +701,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                                 type,
                                 depth,
                                 element,
+                                constructionField(memberName),
                                 memberStreamIdentity(type, "constructor", memberName));
                     },
                     (memberName, rawType) -> {
@@ -734,14 +736,20 @@ public final class ObjectGenerator<T> implements Generator<T> {
         if (config.getGeneratorConfig().isObjectFieldNameExcluded(memberName)) {
             return true;
         }
+        Field property = constructionField(memberName);
+        return property != null && config.shouldExclude(property);
+    }
+
+    /** The field behind a constructor parameter: the nearest one with its name, on the type or a superclass. */
+    private @Nullable Field constructionField(String memberName) {
         for (Class<?> current = type; current != Object.class; current = current.getSuperclass()) {
             try {
-                return config.shouldExclude(current.getDeclaredField(memberName));
+                return current.getDeclaredField(memberName);
             } catch (NoSuchFieldException notDeclaredHere) {
                 // Keep looking in the superclass.
             }
         }
-        return false;
+        return null;
     }
 
     /**
@@ -764,9 +772,17 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 || config.getFieldOverride(type, memberName).isPresent();
     }
 
+    /**
+     * Whether an override targets a constructor parameter that an adapter resolves: by the member's name, by a
+     * field predicate that matches the field behind it, or by the parameter's type.
+     */
     private boolean hasExplicitConstructionOverride(String memberName, Class<?> rawType) {
+        Field property = constructionField(memberName);
         return config.getContextualFieldOverride(type, memberName).isPresent()
                 || config.getFieldOverride(type, memberName).isPresent()
+                || (property != null
+                        && (config.getContextualFieldPredicateOverride(property).isPresent()
+                                || config.getFieldPredicateOverride(property).isPresent()))
                 || config.getContextualTypeOverride(rawType).isPresent()
                 || config.getTypeOverride(rawType).isPresent();
     }

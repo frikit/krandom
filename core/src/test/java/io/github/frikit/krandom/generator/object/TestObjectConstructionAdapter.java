@@ -31,6 +31,7 @@ public final class TestObjectConstructionAdapter implements ObjectConstructionAd
     public boolean supports(Class<?> type) {
         return type == ObjectConstructionPolicyTest.AdapterFixture.class
                 || type == ObjectConstructionPolicyTest.AdapterBodyFixture.class
+                || type == ObjectConstructionPolicyTest.AdapterDefaultFixture.class
                 || type == ObjectConstructionPolicyTest.AdapterSingletonFixture.class
                 || type == ObjectConstructionPolicyTest.ExclusionAdapterFixture.class
                 || type == ObjectConstructionPolicyTest.NullAdapterFixture.class
@@ -69,6 +70,9 @@ public final class TestObjectConstructionAdapter implements ObjectConstructionAd
         if (context.getType().getName().equals("NamelessCode")) {
             return constructNameless(context);
         }
+        if (context.getType() == ObjectConstructionPolicyTest.AdapterDefaultFixture.class) {
+            return constructWithDefault(context);
+        }
         if (context.getType() == ObjectConstructionPolicyTest.AdapterBodyFixture.class) {
             return new ObjectConstructionPolicyTest.AdapterBodyFixture(
                     (String) context.generate(String.class, String.class, "value", null));
@@ -83,6 +87,21 @@ public final class TestObjectConstructionAdapter implements ObjectConstructionAd
         boolean explicitlyOverridden = context.hasExplicitOverride("value", String.class);
         String value = (String) context.generate(String.class, String.class, "value", null);
         return new ObjectConstructionPolicyTest.AdapterFixture(value, explicitlyOverridden);
+    }
+
+    /**
+     * Keeps a default argument unless an override targets its parameter, as the Kotlin adapter does. A parameter
+     * that no field backs, such as {@code unbacked}, has no field for a predicate override to match.
+     */
+    private static Object constructWithDefault(ObjectConstructionContext<?> context) {
+        Constructor<?> constructor =
+                ObjectConstructionPolicyTest.AdapterDefaultFixture.class.getDeclaredConstructors()[0];
+        boolean unbackedOverridden = context.hasExplicitOverride("unbacked", String.class);
+        String name = context.hasExplicitOverride("name", String.class)
+                ? (String) context.generate(
+                        String.class, String.class, "name", constructor.getParameters()[0])
+                : "default";
+        return new ObjectConstructionPolicyTest.AdapterDefaultFixture(name, unbackedOverridden);
     }
 
     /**

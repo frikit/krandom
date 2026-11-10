@@ -31,6 +31,7 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -321,6 +322,39 @@ class ObjectConstructionPolicyTest {
             assertFalse(value.isBlank(), value);
         }
         assertEquals(codeField, BeanValidationSupport.initializedField(code));
+    }
+
+    @Test
+    @DisplayName("a field predicate override targets an adapter's parameter through the field behind it")
+    void fieldPredicateOverridesReachAnAdaptersParameter() {
+        Predicate<Field> names = field -> field.getName().equals("name");
+        AdapterDefaultFixture kept = new ObjectGenerator<>(AdapterDefaultFixture.class).generate();
+        AdapterDefaultFixture plain = new ObjectGenerator<>(
+                        AdapterDefaultFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverride(names, () -> "predicate")
+                                .build())
+                .generate();
+        AdapterDefaultFixture contextual = new ObjectGenerator<>(
+                        AdapterDefaultFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverride(names, (ContextualGenerator<String>) context -> "contextual")
+                                .build())
+                .generate();
+
+        // The adapter keeps its default unless an override targets the parameter, as the Kotlin adapter does.
+        assertEquals("default", kept.name);
+        assertEquals("predicate", plain.name);
+        assertEquals("contextual", contextual.name);
+        // A parameter with no field behind it has nothing for a field predicate to match.
+        assertFalse(plain.unbackedOverridden);
+        assertFalse(new ObjectGenerator<>(
+                        AdapterDefaultFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverride(field -> true, () -> "any")
+                                .build())
+                .generate()
+                .unbackedOverridden);
     }
 
     @Test
@@ -630,6 +664,17 @@ class ObjectConstructionPolicyTest {
         try (URLClassLoader loader = new URLClassLoader(
                 new URL[] {directory.toUri().toURL()}, ObjectConstructionPolicyTest.class.getClassLoader())) {
             return loader.loadClass("NamelessCode");
+        }
+    }
+
+    static final class AdapterDefaultFixture {
+
+        final String name;
+        final boolean unbackedOverridden;
+
+        AdapterDefaultFixture(String name, boolean unbackedOverridden) {
+            this.name = name;
+            this.unbackedOverridden = unbackedOverridden;
         }
     }
 

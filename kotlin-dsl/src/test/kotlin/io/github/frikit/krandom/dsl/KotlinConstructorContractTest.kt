@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.dsl
 
+import io.github.frikit.krandom.generator.ContextualGenerator
 import io.github.frikit.krandom.generator.Generator
 import io.github.frikit.krandom.generator.GeneratorConfig
 import io.github.frikit.krandom.generator.`object`.ObjectGenerator
@@ -14,6 +15,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
+import java.lang.reflect.Field
+import java.util.function.Predicate
 
 /**
  * The contract of a Kotlin class built through its primary constructor: its other properties are filled
@@ -79,6 +82,21 @@ class KotlinConstructorContractTest {
     }
 
     @Test
+    fun aFieldPredicateOverrideReplacesADefaultArgumentAndFillsARequiredOne() {
+        val names = Predicate<Field> { field -> field.name == "name" }
+        val plain = GeneratorConfig.builder().objectOverride(names, Generator { "predicate" }).build()
+        val contextual =
+            GeneratorConfig.builder().objectOverride(names, ContextualGenerator { _ -> "contextual" }).build()
+
+        assertEquals("predicate", ObjectGenerator(DefaultedName::class.java, plain).generate().name)
+        assertEquals("contextual", ObjectGenerator(DefaultedName::class.java, contextual).generate().name)
+        assertEquals("predicate", ObjectGenerator(RequiredName::class.java, plain).generate().name)
+        assertEquals("contextual", ObjectGenerator(RequiredName::class.java, contextual).generate().name)
+        // Without an override, the default stays.
+        assertEquals("default", ObjectGenerator(DefaultedName::class.java).generate().name)
+    }
+
+    @Test
     fun anObjectSingletonKeepsItsState() {
         assertSame(MutableSingleton, krandom<MutableSingleton>())
         assertEquals("kept", MutableSingleton.label)
@@ -112,6 +130,14 @@ data class ParameterOverFieldConstraint(
     @param:Size(min = 3, max = 3)
     @field:Size(min = 2, max = 2)
     val code: String,
+)
+
+data class DefaultedName(
+    val name: String = "default",
+)
+
+data class RequiredName(
+    val name: String,
 )
 
 object MutableSingleton {

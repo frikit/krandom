@@ -118,7 +118,10 @@ public final class ObjectConstructionContext<T> {
     }
 
     /**
-     * Returns whether a field or type override explicitly targets this constructor parameter.
+     * Returns whether a field or type override explicitly targets this constructor parameter: an override
+     * for {@code memberName} on the constructed type, a field predicate override that matches the field
+     * behind the parameter, the nearest field named {@code memberName} on the type or a superclass, or an
+     * override for {@code rawType}. {@link #generate} applies the same overrides.
      *
      * <p>Adapters can preserve a language-level default when this returns {@code false} and a
      * parameter is optional. Explicit field and type overrides must remain stronger than defaults.

@@ -1758,13 +1758,14 @@ final class FieldGeneratorResolver {
             Class<?> ownerType,
             int currentDepth,
             @Nullable AnnotatedElement element) {
-        return resolveAndGenerate(genericType, rawType, fieldName, ownerType, currentDepth, element, element);
+        return resolveAndGenerate(genericType, rawType, fieldName, ownerType, currentDepth, element, element, null);
     }
 
     /**
      * Resolves a value whose Bean Validation constraints are read from {@code constraintSource}, which is
      * the element itself except for an array's component type, where it is {@code null}: see
-     * {@link #generateArray}.
+     * {@link #generateArray}. A field predicate override matches {@code overrideField}, the field behind a
+     * constructor parameter that an adapter resolves, or else the element where it is a field.
      */
     private @Nullable Object resolveAndGenerate(
             Type genericType,
@@ -1773,11 +1774,20 @@ final class FieldGeneratorResolver {
             Class<?> ownerType,
             int currentDepth,
             @Nullable AnnotatedElement element,
-            @Nullable AnnotatedElement constraintSource) {
+            @Nullable AnnotatedElement constraintSource,
+            java.lang.reflect.@Nullable Field overrideField) {
         GenerationReporter active = reporter;
         if (active == null) {
             return resolveValue(
-                    genericType, rawType, fieldName, ownerType, currentDepth, element, constraintSource, null);
+                    genericType,
+                    rawType,
+                    fieldName,
+                    ownerType,
+                    currentDepth,
+                    element,
+                    constraintSource,
+                    overrideField,
+                    null);
         }
         GenerationReporter.Trace trace = active.trace(memberPath(fieldName));
         GenerationReporter.Trace enclosing = currentTrace;
@@ -1785,7 +1795,15 @@ final class FieldGeneratorResolver {
         Object value;
         try {
             value = resolveValue(
-                    genericType, rawType, fieldName, ownerType, currentDepth, element, constraintSource, trace);
+                    genericType,
+                    rawType,
+                    fieldName,
+                    ownerType,
+                    currentDepth,
+                    element,
+                    constraintSource,
+                    overrideField,
+                    trace);
         } finally {
             currentTrace = enclosing;
         }
@@ -1804,13 +1822,22 @@ final class FieldGeneratorResolver {
             int currentDepth,
             @Nullable AnnotatedElement element,
             @Nullable AnnotatedElement constraintSource,
+            java.lang.reflect.@Nullable Field overrideField,
             GenerationReporter.@Nullable Trace trace) {
 
         ResolvedType resolvedType = ResolvedType.resolve(genericType, typeBindings);
         rawType = Objects.requireNonNullElse(resolvedType.rawClass(), rawType);
 
         GenerationReporter.constraints(trace, constraintSource);
-        Generator<?> override = overrideFor(rawType, genericType, fieldName, ownerType, currentDepth, element, trace);
+        Generator<?> override = overrideFor(
+                rawType,
+                genericType,
+                fieldName,
+                ownerType,
+                currentDepth,
+                element,
+                overrideField != null ? overrideField : element instanceof java.lang.reflect.Field field ? field : null,
+                trace);
         if (override != null) {
             return generateIfRequestedUnique(override, rawType, genericType, ownerType, fieldName, currentDepth);
         }
@@ -2186,7 +2213,10 @@ final class FieldGeneratorResolver {
         return handleUnsupportedType(rawType, genericType, ownerType, fieldName, currentDepth);
     }
 
-    /** The override that supplies this member, in order of precedence, or {@code null} when none does. */
+    /**
+     * The override that supplies this member, in order of precedence, or {@code null} when none does. A field
+     * predicate override is matched against {@code predicateField}, the member's field, when there is one.
+     */
     private @Nullable Generator<?> overrideFor(
             Class<?> rawType,
             Type genericType,
@@ -2194,6 +2224,7 @@ final class FieldGeneratorResolver {
             Class<?> ownerType,
             int currentDepth,
             @Nullable AnnotatedElement element,
+            java.lang.reflect.@Nullable Field predicateField,
             GenerationReporter.@Nullable Trace trace) {
         // ── 0a. Contextual field-level override ───────────────────────────────
         var ctxField = config.getContextualFieldOverride(ownerType, fieldName);
@@ -2204,8 +2235,8 @@ final class FieldGeneratorResolver {
         }
 
         // ── 0aa. Contextual predicate field override ─────────────────────────
-        if (element instanceof java.lang.reflect.Field field) {
-            var ctxPredicateField = config.getContextualFieldPredicateOverride(field);
+        if (predicateField != null) {
+            var ctxPredicateField = config.getContextualFieldPredicateOverride(predicateField);
             if (ctxPredicateField.isPresent()) {
                 GenerationReporter.override(trace, FixtureRuleKind.CONTEXT_PREDICATE_OVERRIDE, ctxPredicateField.get());
                 return withContext(
@@ -2222,8 +2253,8 @@ final class FieldGeneratorResolver {
         }
 
         // ── 1a. Predicate field-level override ───────────────────────────────
-        if (element instanceof java.lang.reflect.Field field) {
-            var predicateFieldOverride = config.getFieldPredicateOverride(field);
+        if (predicateField != null) {
+            var predicateFieldOverride = config.getFieldPredicateOverride(predicateField);
             if (predicateFieldOverride.isPresent()) {
                 GenerationReporter.override(trace, FixtureRuleKind.PREDICATE_OVERRIDE, predicateFieldOverride.get());
                 return predicateFieldOverride.get();
@@ -2308,17 +2339,35 @@ final class FieldGeneratorResolver {
             int currentDepth,
             @Nullable AnnotatedElement element,
             String streamIdentity) {
-        if (!namedChildStreams) {
-            return resolveAndGenerate(genericType, rawType, fieldName, ownerType, currentDepth, element);
-        }
-        FieldGeneratorResolver childResolver = new FieldGeneratorResolver(
-                config,
-                pool,
-                uniqueFieldTracker,
-                GenerationRecipe.deriveChildSeed(Objects.requireNonNull(generationSeed), streamIdentity),
-                typeBindings,
-                objectPath);
-        return childResolver.resolveAndGenerate(genericType, rawType, fieldName, ownerType, currentDepth, element);
+        return resolveAndGenerateMember(
+                genericType, rawType, fieldName, ownerType, currentDepth, element, null, streamIdentity);
+    }
+
+    /**
+     * Resolves a member from its own stream where members have one. A field predicate override matches
+     * {@code overrideField}, the field behind a constructor parameter that an adapter resolves, where it is
+     * given, and otherwise the element where it is a field.
+     */
+    @Nullable Object resolveAndGenerateMember(
+            Type genericType,
+            Class<?> rawType,
+            String fieldName,
+            Class<?> ownerType,
+            int currentDepth,
+            @Nullable AnnotatedElement element,
+            java.lang.reflect.@Nullable Field overrideField,
+            String streamIdentity) {
+        FieldGeneratorResolver memberResolver = namedChildStreams
+                ? new FieldGeneratorResolver(
+                        config,
+                        pool,
+                        uniqueFieldTracker,
+                        GenerationRecipe.deriveChildSeed(Objects.requireNonNull(generationSeed), streamIdentity),
+                        typeBindings,
+                        objectPath)
+                : this;
+        return memberResolver.resolveAndGenerate(
+                genericType, rawType, fieldName, ownerType, currentDepth, element, element, overrideField);
     }
 
     private GenerationContext generationContext(
@@ -2672,7 +2721,14 @@ final class FieldGeneratorResolver {
         ResolvedType generationType = mostSpecific(type);
         Class<?> rawType = Objects.requireNonNullElse(generationType.rawClass(), Object.class);
         return resolveAndGenerate(
-                generationType.declaredType(), rawType, fieldName, ownerType, currentDepth, element, constraintSource);
+                generationType.declaredType(),
+                rawType,
+                fieldName,
+                ownerType,
+                currentDepth,
+                element,
+                constraintSource,
+                null);
     }
 
     /**

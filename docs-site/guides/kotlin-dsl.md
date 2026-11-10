@@ -142,7 +142,9 @@ annotations all apply. The `@param:`, `@field:` and `@get:` constraint targets a
 together, whether or not the class was compiled with `-java-parameters`: an argument meets the
 constraints of its parameter and of its property's field and getter, and where two declare a
 constraint of one type, the parameter's applies, as for a Java constructor. An explicit field or type
-rule wins over an optional parameter default.
+rule wins over an optional parameter default, and so does a `GeneratorConfig` field predicate override,
+`objectOverride(Predicate<Field>, ...)`, that matches the property's field, which also fills a
+required parameter.
 
 The constructor fills its own parameters. A mutable property that it does not take, declared in the
 class body or inherited, is then filled through its field, as a Java class's fields are after its

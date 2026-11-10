@@ -16,6 +16,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   @field:Size(min = 2, max = 2) val code` broke its size in 1,994 and `@get:Size(min = 2, max = 2) val code`
   in 2,000, and now neither does. A construction adapter's parameter is now read with the field its member
   name gives, as a parameter compiled with its name is. Seeded output changes only for such arguments.
+- A `GeneratorConfig` field predicate override, `objectOverride(Predicate<Field>, ...)` in either form, now
+  replaces a Kotlin default argument and fills a required primary-constructor parameter when it matches the
+  property's field, as `ObjectConstructionContext` says explicit field overrides stay stronger than defaults.
+  `hasExplicitOverride` left both forms out, so the adapter kept `"default"` for
+  `data class User(val name: String = "default")`, and the resolver matched a predicate only against a field
+  it was given, not a parameter. Seeded with `42`, of 2,000 values each, a predicate on `name` reached neither
+  the defaulted nor a required `name`, and now reaches both. Seeded output changes only where such an override
+  matches a constructor property.
 
 - A Kotlin class built through its primary constructor now has its other mutable properties, declared in its
   body or inherited, filled through their fields after construction, as a Java class's fields are after its
