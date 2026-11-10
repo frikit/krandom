@@ -236,6 +236,11 @@ final class SemanticCoherenceAdjuster {
         }
         Object assigned = applyUniqueness(slot, semanticKey, candidate);
         if (!keepsConstraints(slot, assigned)) {
+            // Only a numbered value fails here, as the candidate passed above, and its unique field reserved it.
+            // No object holds it, so the pass gives it back rather than let rejected numbers use up the attempts.
+            uniqueFieldTracker.release(
+                    UniqueFieldTracker.fieldKey(slot.annotatedElement().getDeclaringClass(), slot.fieldName()),
+                    assigned);
             return false;
         }
         slot.setValue(assigned);

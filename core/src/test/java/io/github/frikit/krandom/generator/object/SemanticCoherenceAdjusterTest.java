@@ -32,6 +32,7 @@ import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.object.ObjectGeneratorSemanticCoherenceTest.TemporalPairs;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Max;
@@ -1159,6 +1160,15 @@ class SemanticCoherenceAdjusterTest {
         strictAdjuster().adjustInstance(CappedBalance.class, capped, declaredFields(CappedBalance.class), true);
         assertEquals(new BigDecimal("60.00"), capped.amount);
         assertEquals(new BigDecimal("60.00"), capped.balance);
+        assertEquals(new BigDecimal("20.00"), capped.price);
+
+        // A float of 0.10 is 0.1f, which Hibernate Validator reads as 0.10000000149, above @DecimalMax("0.1").
+        FloatAmount floatAmount = new FloatAmount();
+        floatAmount.price = new BigDecimal("0.10");
+        floatAmount.amount = 0.05f;
+        strictAdjuster().adjustInstance(FloatAmount.class, floatAmount, declaredFields(FloatAmount.class), true);
+        assertEquals(0.05f, floatAmount.amount);
+        assertEquals(new BigDecimal("0.05"), floatAmount.price);
 
         // A price that the amount would break is not backfilled from it.
         CappedPrice backfill = new CappedPrice();
@@ -1204,14 +1214,16 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("in strict mode a unique derived string that numbering takes past its constraints is not written")
     void strictUniqueDerivedStringNumberedPastItsConstraintsIsNotWritten() throws Exception {
+        UniqueFieldTracker tracker = new UniqueFieldTracker();
         SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(
                 ObjectGeneratorConfig.builder()
                         .generatorConfig(GeneratorConfig.builder()
                                 .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
                                 .objectUniqueField("email")
+                                .objectUniquenessMaxAttempts(3)
                                 .build())
                         .build(),
-                new UniqueFieldTracker());
+                tracker);
         // "alice.smith@example.com" has the 23 characters that @Size(max = 23) allows, and its numbered form has 24.
         ExactLengthEmail first = new ExactLengthEmail();
         first.firstName = "Alice";
@@ -1220,12 +1232,20 @@ class SemanticCoherenceAdjusterTest {
         adjuster.adjustInstance(ExactLengthEmail.class, first, declaredFields(ExactLengthEmail.class), true);
         assertEquals("alice.smith@example.com", first.email);
 
-        ExactLengthEmail second = new ExactLengthEmail();
-        second.firstName = "Alice";
-        second.lastName = "Smith";
-        second.email = "second@example.com";
-        adjuster.adjustInstance(ExactLengthEmail.class, second, declaredFields(ExactLengthEmail.class), true);
-        assertEquals("second@example.com", second.email);
+        // Each numbered form it rejects is given back, so that three attempts serve any number of objects.
+        String fieldKey = UniqueFieldTracker.fieldKey(ExactLengthEmail.class, "email");
+        for (int i = 0; i < 6; i++) {
+            ExactLengthEmail next = new ExactLengthEmail();
+            next.firstName = "Alice";
+            next.lastName = "Smith";
+            next.email = "object" + i + "@example.com";
+            adjuster.adjustInstance(ExactLengthEmail.class, next, declaredFields(ExactLengthEmail.class), true);
+            assertEquals("object" + i + "@example.com", next.email);
+        }
+        assertEquals(
+                "alice.smith1@example.com",
+                tracker.nextUnique(fieldKey, () -> "alice.smith1@example.com", 1),
+                "a rejected numbered form is still reserved");
     }
 
     @Test
@@ -2214,6 +2234,13 @@ class SemanticCoherenceAdjusterTest {
         @Max(10) BigDecimal price;
 
         BigDecimal amount;
+    }
+
+    static class FloatAmount {
+
+        BigDecimal price;
+
+        @DecimalMax("0.1") float amount;
     }
 
     static class PatternedPrice {

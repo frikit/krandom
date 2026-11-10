@@ -348,7 +348,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   beside a `status` held at `SUSPENDED` in 2,000, and now breaks none. Where a derived value would break a
   constraint, the field keeps its generated value, which meets it, and a sibling that depends on it follows it
   where it can: a `price` moves down to a bounded `amount`, an `amount` down to a capped `balance`, and `active`
-  follows a `status` that cannot take `INACTIVE`. A unique field's numbered value must meet the constraints too.
+  follows a `status` that cannot take `INACTIVE`. A unique field's numbered value must meet the constraints too,
+  and one they reject is given back, so that it uses up no attempt. A `float` or `Float` is compared with its
+  bounds as Hibernate Validator compares it, as the double it widens to, so `0.1f` breaks `@DecimalMax("0.1")`.
   A derived value within the constraints is still written, so seeded output changes only for objects that broke
   one.
 - `KRANDOM_JUNIT_CLASS_RECIPE` now replays what a `@MethodSource` factory generated. JUnit calls the

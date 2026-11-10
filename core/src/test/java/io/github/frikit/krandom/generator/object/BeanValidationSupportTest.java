@@ -356,6 +356,37 @@ class BeanValidationSupportTest {
     }
 
     @Test
+    @DisplayName("accepts gives Hibernate Validator's verdict for a float or a double against each kind of bound")
+    void acceptsGivesHibernateValidatorsVerdictForAFloatOrADouble() throws Exception {
+        Validator hibernate = Validation.byProvider(HibernateValidator.class)
+                .configure()
+                .messageInterpolator(new ParameterMessageInterpolator())
+                .buildValidatorFactory()
+                .getValidator();
+        Clock clock = Clock.systemUTC();
+        // 0.1f is 0.10000000149011612 as a double, which @DecimalMax("0.1") rejects although it prints as 0.1.
+        Map<Class<?>, List<Object>> values = Map.of(
+                FloatBounds.class,
+                List.of(0.1f, 0.09f, 0.11f, 0.0f, 1.0f, 0.99999994f, 1.0000001f, 2.5f),
+                DoubleBounds.class,
+                List.of(0.1, 0.09, 0.11, 0.0, 1.0, 0.9999999999999999, 1.0000000000000002, 2.5));
+
+        for (Map.Entry<Class<?>, List<Object>> type : values.entrySet()) {
+            for (Field field : type.getKey().getDeclaredFields()) {
+                for (Object value : type.getValue()) {
+                    boolean valid = hibernate
+                            .validateValue(type.getKey(), field.getName(), value)
+                            .isEmpty();
+                    assertEquals(
+                            valid,
+                            BeanValidationSupport.accepts(field, field.getType(), value, clock),
+                            type.getKey().getSimpleName() + "." + field.getName() + " " + value);
+                }
+            }
+        }
+    }
+
+    @Test
     @DisplayName("accepts keeps a number within its bounds and a string to its text constraints, and @Null to none")
     void acceptsKeepsANumberWithinItsBoundsAndAStringToItsTextConstraints() throws Exception {
         Clock clock = Clock.systemUTC();
@@ -429,6 +460,36 @@ class BeanValidationSupportTest {
     }
 
     record ComponentSample(@Size(min = 2, max = 2) String code) {}
+
+    static final class FloatBounds {
+
+        @jakarta.validation.constraints.DecimalMax("0.1") Float decimalMax;
+
+        @DecimalMin("0.1") Float decimalMin;
+
+        @jakarta.validation.constraints.DecimalMax(value = "0.1", inclusive = false) Float exclusiveMax;
+
+        @Max(1) Float max;
+
+        @Min(1) Float min;
+
+        @Positive Float positive;
+    }
+
+    static final class DoubleBounds {
+
+        @jakarta.validation.constraints.DecimalMax("0.1") Double decimalMax;
+
+        @DecimalMin("0.1") Double decimalMin;
+
+        @jakarta.validation.constraints.DecimalMax(value = "0.1", inclusive = false) Double exclusiveMax;
+
+        @Max(1) Double max;
+
+        @Min(1) Double min;
+
+        @Positive Double positive;
+    }
 
     static final class InstantBounds {
 

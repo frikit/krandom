@@ -814,7 +814,17 @@ final class BeanValidationSupport {
         if (constraints.text() != null) {
             return constraints.text().accepts(value.toString());
         }
-        return constraints.numeric() == null || numericAccepts(constraints.numeric(), new BigDecimal(value.toString()));
+        return constraints.numeric() == null || numericAccepts(constraints.numeric(), decimalOf(value));
+    }
+
+    /**
+     * A number as Hibernate Validator compares it with a bound: a float as the double it widens to, so that
+     * {@code 0.1f} is {@code 0.10000000149011612}, and any other number as it prints.
+     */
+    private static BigDecimal decimalOf(Object value) {
+        return value instanceof Float number
+                ? BigDecimal.valueOf(number.doubleValue())
+                : new BigDecimal(value.toString());
     }
 
     private static @Nullable Boolean assertionFor(AnnotatedElement element, Class<?> rawType) {
