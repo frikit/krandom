@@ -12,6 +12,7 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import io.github.frikit.krandom.generator.Krandom;
 import io.github.frikit.krandom.junit.KrandomExtension;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -21,35 +22,40 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.platform.engine.reporting.ReportEntry;
 import org.junit.platform.testkit.engine.EngineExecutionResults;
 import org.junit.platform.testkit.engine.EngineTestKit;
 
 /**
- * Runs an unpinned failing test, copies the replay value that krandom-junit prints for Gradle,
- * and replays the run with it: the replay generates exactly the data of the failing run.
+ * Runs unpinned failing tests, copies the replay values that krandom-junit prints for Gradle, and
+ * replays the runs with them: each replay generates exactly the data of the failing run.
  */
 class JunitReplayExampleTest {
 
     private static final Pattern GRADLE_REPLAY =
             Pattern.compile("KRANDOM_JUNIT_RECIPE=(base64:[A-Za-z0-9_-]+) \\./gradlew test --tests '([^']+)' --rerun");
+    private static final Pattern GRADLE_CLASS_REPLAY = Pattern.compile("KRANDOM_JUNIT_CLASS_RECIPE='([^']+)' "
+            + "KRANDOM_JUNIT_RECIPE=(base64:[A-Za-z0-9_-]+) \\./gradlew test --tests '([^']+)' --rerun");
 
     @Test
     void printedGradleReplayCommandReproducesTheFailingData() {
         CheckoutFixture.EMAILS.clear();
         ByteArrayOutputStream stderr = new ByteArrayOutputStream();
 
-        EngineExecutionResults failing = runCapturingStderr(stderr);
+        EngineExecutionResults failing = runCapturingStderr(CheckoutFixture.class, stderr);
         failing.testEvents().assertStatistics(stats -> stats.failed(1));
         Matcher replay = GRADLE_REPLAY.matcher(stderr.toString(StandardCharsets.UTF_8));
         assertTrue(replay.find(), "krandom-junit prints a Gradle replay command: " + stderr);
         assertEquals(CheckoutFixture.class.getName(), replay.group(2));
 
         // KRANDOM_JUNIT_RECIPE and -Dkrandom.junit.recipe both arrive as this setting in the test JVM.
-        EngineExecutionResults replayed = run(Map.of("krandom.junit.recipe", replay.group(1)));
+        EngineExecutionResults replayed = run(CheckoutFixture.class, Map.of("krandom.junit.recipe", replay.group(1)));
 
         replayed.testEvents().assertStatistics(stats -> stats.failed(1));
         assertEquals(reportedSeed(failing), reportedSeed(replayed));
@@ -57,19 +63,41 @@ class JunitReplayExampleTest {
         assertEquals(CheckoutFixture.EMAILS.get(0), CheckoutFixture.EMAILS.get(1));
     }
 
-    private static EngineExecutionResults runCapturingStderr(ByteArrayOutputStream buffer) {
+    @Test
+    void printedGradleReplayCommandReproducesMethodSourceArguments() {
+        DiscountFixture.CUSTOMERS.clear();
+        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+
+        EngineExecutionResults failing = runCapturingStderr(DiscountFixture.class, stderr);
+        failing.testEvents().assertStatistics(stats -> stats.failed(1));
+        Matcher replay = GRADLE_CLASS_REPLAY.matcher(stderr.toString(StandardCharsets.UTF_8));
+        assertTrue(replay.find(), "krandom-junit prints the factory's class-scoped recipe: " + stderr);
+        assertEquals(DiscountFixture.class.getName(), replay.group(3));
+
+        // The factory takes the class-scoped configuration, which KRANDOM_JUNIT_CLASS_RECIPE restores, and
+        // the invocation takes the test's own, which KRANDOM_JUNIT_RECIPE restores.
+        EngineExecutionResults replayed = run(
+                DiscountFixture.class,
+                Map.of("krandom.junit.class-recipe", replay.group(1), "krandom.junit.recipe", replay.group(2)));
+
+        replayed.testEvents().assertStatistics(stats -> stats.failed(1));
+        assertEquals(2, DiscountFixture.CUSTOMERS.size());
+        assertEquals(DiscountFixture.CUSTOMERS.get(0), DiscountFixture.CUSTOMERS.get(1));
+    }
+
+    private static EngineExecutionResults runCapturingStderr(Class<?> fixture, ByteArrayOutputStream buffer) {
         PrintStream original = System.err;
         System.setErr(new PrintStream(buffer, true, StandardCharsets.UTF_8));
         try {
-            return run(Map.of());
+            return run(fixture, Map.of());
         } finally {
             System.setErr(original);
         }
     }
 
-    private static EngineExecutionResults run(Map<String, String> configurationParameters) {
+    private static EngineExecutionResults run(Class<?> fixture, Map<String, String> configurationParameters) {
         return EngineTestKit.engine("junit-jupiter")
-                .selectors(selectClass(CheckoutFixture.class))
+                .selectors(selectClass(fixture))
                 .configurationParameter("junit.jupiter.conditions.deactivate", "org.junit.*DisabledCondition")
                 .configurationParameters(configurationParameters)
                 .execute();
@@ -96,6 +124,26 @@ class JunitReplayExampleTest {
             String email = Generators.ofEmail(config).generate();
             EMAILS.add(email);
             fail("simulated checkout failure for " + email);
+        }
+    }
+
+    /** An unpinned parameterized test whose factory generates its arguments; executed only through EngineTestKit. */
+    @Disabled("fixture executed through EngineTestKit by JunitReplayExampleTest")
+    @ExtendWith(KrandomExtension.class)
+    static class DiscountFixture {
+
+        static final List<String> CUSTOMERS = new CopyOnWriteArrayList<>();
+
+        static Stream<String> customers(Krandom fake) {
+            String customer = fake.email();
+            CUSTOMERS.add(customer);
+            return Stream.of(customer);
+        }
+
+        @ParameterizedTest
+        @MethodSource("customers")
+        void appliesTheWelcomeDiscount(String customer) {
+            fail("simulated discount failure for " + customer);
         }
     }
 }

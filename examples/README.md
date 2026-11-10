@@ -3,7 +3,7 @@
 This folder contains test-based examples for each supported language/build-tool combination.
 
 Core examples verify direct `io.github.frikit:krandom-core` consumption, including strong
-encapsulation from Java 21 named modules. Integration examples verify the published Jackson,
+encapsulation from Java 21 named modules. Integration examples verify the published Jackson, JUnit,
 Spring Boot, Kotest, and Kotlin DSL artifacts from clean consumer builds.
 
 Default example version: `3.1.0-SNAPSHOT`
@@ -35,16 +35,28 @@ To point the examples at a different artifact version, set `KRANDOM_VERSION` or 
 
 ## Matrix
 
-- Java + Gradle: `examples/java-gradle`
-- Java + Gradle integration modules: `examples/java-gradle-integrations`
-- Java + Maven: `examples/java-maven`
-- Java + Maven integration modules: `examples/java-maven-integrations`
-- Java 21 + Gradle named modules: `examples/java-jpms`
-- Kotlin + Gradle: `examples/kotlin-gradle`
-- Kotlin + Maven: `examples/kotlin-maven`
-- Kotlin + Maven integration modules: `examples/kotlin-maven-integrations`
-- Scala + sbt: `examples/scala-sbt`
-- Scala + Mill: `examples/scala-mill`
+Each example's README lists what its tests show.
+
+- Java + Gradle: `examples/java-gradle` — the `Generators` factories, `ObjectModel`, scoped locale data,
+  `ObjectFaker.strict()` fixture diagnostics, the generation report, and sealed interfaces
+- Java + Gradle integration modules: `examples/java-gradle-integrations` — `krandom-jackson` on
+  Jackson 3, the Spring Boot starter and its `krandom.*` properties, and `krandom-junit` replay of a
+  failing test and of a `@MethodSource` factory's arguments
+- Java + Maven: `examples/java-maven` — the `Generators` factories, `ObjectModel`,
+  `ObjectFaker.strict()` fixture diagnostics, the generation report, and sealed interfaces
+- Java + Maven integration modules: `examples/java-maven-integrations` — the Gradle integration
+  example's checks, with the Maven replay commands
+- Java 21 + Gradle named modules: `examples/java-jpms` — qualified `opens` for object generation, the
+  failure without it, and named-module Jackson and JUnit consumers
+- Kotlin + Gradle: `examples/kotlin-gradle` — the `Generators` factories, a Kotest arbitrary, and the
+  Kotlin DSL with sealed classes, value classes, and the generation report
+- Kotlin + Maven: `examples/kotlin-maven` — `krandom-core` alone from Kotlin, with
+  `ObjectFaker.strict()` fixture diagnostics on a mutable class
+- Kotlin + Maven integration modules: `examples/kotlin-maven-integrations` — a Kotest arbitrary, the
+  Kotlin DSL with sealed classes and value classes, the Spring Boot starter and its `krandom.*`
+  properties, and `krandom-jackson` on Jackson 3
+- Scala + sbt: `examples/scala-sbt` — the `Generators` factories from Scala 3
+- Scala + Mill: `examples/scala-mill` — the `Generators` factories from Scala 3
 
 ## Run commands
 
