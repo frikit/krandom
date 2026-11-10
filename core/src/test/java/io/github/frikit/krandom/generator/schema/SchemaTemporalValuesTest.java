@@ -111,6 +111,8 @@ class SchemaTemporalValuesTest {
                         java.sql.Timestamp.from(Instant.parse("2024-01-05T09:05:07.123456789Z")),
                         "2024-01-05T09:05:07.123456789Z"),
                 Arguments.of(java.sql.Date.valueOf(LocalDate.of(2024, 1, 5)), "2024-01-05"),
+                // 1 BCE is ISO's year 0000, whose 29 February is a day in both calendars.
+                Arguments.of(java.sql.Date.valueOf(LocalDate.of(0, 2, 29)), "0000-02-29"),
                 Arguments.of(java.sql.Time.valueOf(LocalTime.of(9, 5)), "09:05:00"),
                 Arguments.of(calendar, "2024-01-05T10:05:00+01:00"),
                 // A calendar's offset comes from its own time zone at its instant, whatever the zone's ID names.
@@ -165,6 +167,9 @@ class SchemaTemporalValuesTest {
                 LocalDate.of(10_000, 1, 1),
                 LocalDate.of(-1, 12, 31),
                 calendar(new SimpleTimeZone(3_630_000, "odd")),
+                // The Julian calendar of a java.sql.Date has a 29 February in 1500 that ISO does not.
+                java.sql.Date.valueOf("1500-02-29"),
+                java.sql.Date.valueOf(LocalDate.of(-1, 1, 1)),
                 calendar(new SimpleTimeZone(86_400_000, "day")),
                 LocalDateTime.of(10_000, 1, 1, 0, 0),
                 OffsetDateTime.of(2024, 1, 5, 9, 5, 0, 0, secondsOffset),
@@ -201,9 +206,14 @@ class SchemaTemporalValuesTest {
                 () -> parse(Map.of("const", List.of(morning, "09:05:00"), "uniqueItems", true)));
         assertDoesNotThrow(() -> parse(Map.of("const", "09:05:00", "enum", List.of(morning))));
         // A date or time that RFC 3339 cannot write cannot be a const either.
-        IllegalArgumentException unwritable =
-                assertThrows(IllegalArgumentException.class, () -> parse(Map.of("const", LocalDate.of(10_000, 1, 1))));
-        assertTrue(unwritable.getMessage().contains("RFC 3339 has no form for"), unwritable.getMessage());
+        for (Object unwritable : List.of(LocalDate.of(10_000, 1, 1), java.sql.Date.valueOf("1500-02-29"))) {
+            IllegalArgumentException rejected =
+                    assertThrows(IllegalArgumentException.class, () -> parse(Map.of("const", unwritable)));
+            assertTrue(
+                    rejected.getMessage().contains("RFC 3339 has no form for")
+                            && rejected.getMessage().contains("$.properties.value"),
+                    rejected.getMessage());
+        }
     }
 
     @Test

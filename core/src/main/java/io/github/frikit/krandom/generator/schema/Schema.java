@@ -19,6 +19,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.RecordComponent;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,6 +32,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -51,8 +53,9 @@ import java.util.Random;
  * seconds always and a fraction only where it is not zero: a {@code ZonedDateTime} with its offset and no
  * zone ID, an {@code Instant} with {@code Z}, a {@code java.util.Date} as the instant it holds, a
  * {@code Calendar} at the offset its own time zone gives that instant, and a {@code java.sql.Date} or
- * {@code Time} as its date or time of day. A year outside 0000 to 9999, or an offset with seconds or beyond
- * 23:59, which RFC 3339 cannot write, is refused with an {@link IllegalArgumentException}.
+ * {@code Time} as its date or time of day. A year outside 0000 to 9999, an offset with seconds or beyond
+ * 23:59, and a Julian day of a {@code java.sql.Date} that ISO does not have, which RFC 3339 cannot write,
+ * are refused with an {@link IllegalArgumentException}.
  */
 public final class Schema implements Generator<Map<String, Object>> {
 
@@ -1231,8 +1234,8 @@ public final class Schema implements Generator<Map<String, Object>> {
      * its own time zone gives that instant, and a {@code java.sql.Date} or {@code Time} as its date or time of
      * day. Null for any other value.
      *
-     * @throws IllegalArgumentException for a year outside 0000 to 9999, or an offset with seconds or beyond
-     *     23:59, which RFC 3339 cannot write
+     * @throws IllegalArgumentException for a year outside 0000 to 9999, an offset with seconds or beyond
+     *     23:59, or a Julian day that ISO does not have, which RFC 3339 cannot write
      */
     static @org.jspecify.annotations.Nullable String rfc3339(Object value) {
         if (value instanceof LocalDate date) {
@@ -1261,7 +1264,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         }
         // A java.sql.Date or Time holds no instant, and its toInstant() throws, so it comes before java.util.Date.
         if (value instanceof java.sql.Date date) {
-            return rfc3339(date.toLocalDate());
+            return rfc3339(isoDate(date));
         }
         if (value instanceof java.sql.Time time) {
             return rfc3339(time.toLocalTime());
@@ -1273,6 +1276,24 @@ public final class Schema implements Generator<Map<String, Object>> {
             return calendar(calendar);
         }
         return null;
+    }
+
+    /**
+     * The ISO date that a {@code java.sql.Date}'s fields name, read in the default time zone as
+     * {@code toLocalDate()} reads them, but with their era, which {@code toLocalDate()} drops, so 1 BCE is
+     * the year 0000. Its calendar is Julian before 1582, so a day that ISO does not have, such as 29 February
+     * 1500, is refused.
+     */
+    private static LocalDate isoDate(java.sql.Date date) {
+        Calendar fields = new GregorianCalendar();
+        fields.setTime(date);
+        int yearOfEra = fields.get(Calendar.YEAR);
+        int year = fields.get(Calendar.ERA) == GregorianCalendar.BC ? 1 - yearOfEra : yearOfEra;
+        try {
+            return LocalDate.of(year, fields.get(Calendar.MONTH) + 1, fields.get(Calendar.DAY_OF_MONTH));
+        } catch (DateTimeException noIsoDay) {
+            throw unwritable(date, "its day is no ISO date");
+        }
     }
 
     /**
