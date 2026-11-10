@@ -3585,6 +3585,21 @@ class SchemaParserTest {
                     ROOT + "below minProperties 1000001 at $",
                     assertThrows(IllegalArgumentException.class, () -> SchemaParser.fromJsonSchema(root))
                             .getMessage());
+            // An array's sizes are judged before the schemas of its items, its tuple, or additionalItems.
+            for (Map<String, Object> array : List.<Map<String, Object>>of(
+                    Map.of("type", "array", "minItems", 1_000_001, "items", failing),
+                    Map.of("type", "array", "minItems", 1_000_001, "items", List.of(failing)),
+                    Map.of("type", "array", "minItems", 1_000_001, "items", List.of(), "additionalItems", failing))) {
+                assertEquals(
+                        "JSON Schema minItems 1000001 at $.properties.value is more than the 1000000 items a"
+                                + " generated array can hold",
+                        rejection(array));
+            }
+            assertTrue(rejection(Map.of("type", "array", "minItems", 3, "maxItems", 2, "items", failing))
+                    .startsWith("JSON Schema array size range has no values at $.properties.value: "));
+            assertTrue(rejection(
+                            Map.of("type", "array", "minItems", 2, "items", List.of(failing), "additionalItems", false))
+                    .startsWith("JSON Schema array size range has no values at $.properties.value: "));
         }
 
         private static final String ROOT =

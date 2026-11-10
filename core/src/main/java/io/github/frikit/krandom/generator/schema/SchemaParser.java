@@ -1312,39 +1312,26 @@ public final class SchemaParser {
             String fieldName, String path, Map<String, Object> schema, Field field, GeneratorConfig config) {
         // A list of items is the tuple form of the drafts up to 2019-09: each position has its own schema,
         // and additionalItems is the schema of the items after them. A false schema allows no item, so it
-        // ends every array at its position.
+        // ends every array at its position. The sizes are judged from these before any item's schema is
+        // resolved, so that no schema is resolved for an array that fails them.
         Object items = schema.get("items");
-        List<SchemaValueProvider> positions = new ArrayList<>();
         int reach = Integer.MAX_VALUE;
-        SchemaValueProvider rest;
         if (items instanceof List<?> tuple) {
             for (int position = 0; position < tuple.size(); position++) {
-                Object itemSchema = tuple.get(position);
-                if (Boolean.FALSE.equals(itemSchema)) {
+                if (Boolean.FALSE.equals(tuple.get(position))) {
                     reach = Math.min(reach, position);
                 }
-                positions.add(itemProvider(
-                        itemSchema,
-                        fieldName + "[" + position + "]",
-                        path + ".items[" + position + "]",
-                        field,
-                        config));
             }
-            Object additional = schema.get("additionalItems");
-            if (Boolean.FALSE.equals(additional)) {
+            if (Boolean.FALSE.equals(schema.get("additionalItems"))) {
                 reach = Math.min(reach, tuple.size());
             }
-            rest = itemProvider(additional, fieldName + "[]", path + ".additionalItems", field, config);
-        } else {
-            if (Boolean.FALSE.equals(items)) {
-                reach = 0;
-            }
-            rest = itemProvider(items, fieldName + "[]", path + ".items", field, config);
+        } else if (Boolean.FALSE.equals(items)) {
+            reach = 0;
         }
 
         // As with string lengths, a missing bound defaults within the declared one. Its default is the
         // tuple, or for other arrays the configured collection size, within what the items allow.
-        int natural = items instanceof List<?> ? Math.min(positions.size(), reach) : config.getMaxCollectionSize();
+        int natural = items instanceof List<?> tuple ? Math.min(tuple.size(), reach) : config.getMaxCollectionSize();
         int naturalMin = items instanceof List<?> ? natural : config.getMinCollectionSize();
         int fewest = minimumCount(schema, "minItems", 0, path, "items a generated array");
         // The limit holds whether the bound comes from the schema, the tuple, or the configured size.
@@ -1353,6 +1340,23 @@ public final class SchemaParser {
         int minItems = schema.containsKey("minItems") ? fewest : Math.min(naturalMin, maxItems);
         if (minItems > maxItems) {
             throw emptyRange("array size", path, schema);
+        }
+
+        List<SchemaValueProvider> positions = new ArrayList<>();
+        SchemaValueProvider rest;
+        if (items instanceof List<?> tuple) {
+            for (int position = 0; position < tuple.size(); position++) {
+                positions.add(itemProvider(
+                        tuple.get(position),
+                        fieldName + "[" + position + "]",
+                        path + ".items[" + position + "]",
+                        field,
+                        config));
+            }
+            rest = itemProvider(
+                    schema.get("additionalItems"), fieldName + "[]", path + ".additionalItems", field, config);
+        } else {
+            rest = itemProvider(items, fieldName + "[]", path + ".items", field, config);
         }
 
         if (Boolean.TRUE.equals(schema.get("uniqueItems"))) {
