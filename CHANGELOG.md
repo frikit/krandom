@@ -345,7 +345,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `double` as it prints, stepped to the next value down or up where the nearest one prints on the wrong side. A
   field whose type cannot hold the value keeps its own: a `byte` beside a price of 300 no longer wraps to 44, and
   a `float` beside 1E40 no longer turns infinite. A money string keeps every digit of its own amount when it
-  takes the currency code. Seeded with `42`, of 2,000 objects each, an `int` price beside an amount and a
+  takes the currency code. A `float` or a `double` money value that is infinite or NaN, as an override can give,
+  now counts as no amount rather than fail generation with a `NumberFormatException`. Seeded with `42`, of 2,000 objects each, an `int` price beside an amount and a
   `@PositiveOrZero @Max(60)` balance broke the order in 1,466, an `int` price beside a `@PositiveOrZero @Max(100)`
   amount in 985 in `RELAXED` and 982 in `STRICT`, and a `BigDecimal` price beside that amount in 1,015 and 1,010,
   and now none does. Seeded output changes for objects with an integer money field or an amount of more than two
