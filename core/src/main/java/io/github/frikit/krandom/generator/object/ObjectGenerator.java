@@ -553,7 +553,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         return objectPath;
     }
 
-    private static String typePath(Class<?> valueType) {
+    static String typePath(Class<?> valueType) {
         String simpleName = valueType.getSimpleName();
         return simpleName.isBlank() ? valueType.getName() : simpleName;
     }

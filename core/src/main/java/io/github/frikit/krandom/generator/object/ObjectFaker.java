@@ -750,7 +750,7 @@ public final class ObjectFaker<T> implements Generator<T> {
             if (!materializeMissingParents) {
                 return current;
             }
-            nestedValue = materializeValue(segment.valueType());
+            nestedValue = materializeValue(segment.valueType(), path, index);
             materialized = true;
         }
 
@@ -789,9 +789,19 @@ public final class ObjectFaker<T> implements Generator<T> {
                 originalCause);
     }
 
+    /** Builds the missing parent at {@code index} on {@code path}, which a nested rule writes into. */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private Object materializeValue(Class<?> rawType) {
-        return new ObjectGenerator(rawType, buildRuntimeConfig(), 0, null, null, uniqueFieldTracker).generate();
+    private Object materializeValue(Class<?> rawType, RulePath path, int index) {
+        ObjectGeneratorConfig runtime = buildRuntimeConfig();
+        if (runtime.getGeneratorConfig().getGenerationReportListener().isPresent()) {
+            // Built as a root of its own, the parent is still reported at its path in the fixture.
+            StringBuilder reported = new StringBuilder(type.getSimpleName());
+            for (RuleTarget segment : path.segments().subList(0, index + 1)) {
+                reported.append('.').append(segment.fieldName());
+            }
+            runtime = runtime.reportedAt(ObjectGenerator.typePath(rawType), reported.toString());
+        }
+        return new ObjectGenerator(rawType, runtime, 0, null, null, uniqueFieldTracker).generate();
     }
 
     private Object readTargetValue(Object instance, RuleTarget target) throws ReflectiveOperationException {

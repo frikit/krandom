@@ -40,12 +40,14 @@ final class GenerationReporter {
     private final GeneratorConfig config;
     private final SeedSource seedSource;
     private final Optional<String> recipeFormat;
+    private final ObjectGeneratorConfig.@Nullable ReportedPath reportedPath;
 
     private GenerationReporter(GenerationReportListener listener, ObjectGeneratorConfig config, boolean namedStreams) {
         this.listener = listener;
         this.config = config.getGeneratorConfig();
         this.seedSource = seedSource(this.config, namedStreams);
         this.recipeFormat = config.hasPortableRecipe() ? Optional.of(RECIPE_FORMAT) : Optional.empty();
+        this.reportedPath = config.reportedPath();
     }
 
     /**
@@ -214,7 +216,8 @@ final class GenerationReporter {
         if (factory == null) {
             trace.step(type.isEnum() ? GenerationStep.ENUM : GenerationStep.OBJECT, type.getName());
         } else {
-            trace.step(GenerationStep.OVERRIDE, "override").rule(FixtureRule.configured(factory, path));
+            // Relative, as a member's override is, so a root reported at a fixture path names the member.
+            trace.step(GenerationStep.OVERRIDE, "override").rule(FixtureRule.configured(factory, trace.relativePath()));
         }
         if (decision != null) {
             failed(trace, decision);
@@ -283,7 +286,8 @@ final class GenerationReporter {
         private final Set<GenerationDecision> decisions = new LinkedHashSet<>();
 
         private Trace(String path) {
-            this.path = path;
+            ObjectGeneratorConfig.ReportedPath reported = reportedPath;
+            this.path = reported == null ? path : reported.rebase(path);
         }
 
         /** The path without the root type's name, as an {@code ObjectFaker} path reads. */

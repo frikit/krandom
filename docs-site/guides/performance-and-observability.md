@@ -92,7 +92,8 @@ A `GenerationReportListener`, set with `GeneratorConfig.Builder.generationReport
 `GenerationReportEntry` for each value that object generation produces. An entry gives:
 
 - the path, such as `Order.customer.email`, with `[]` for an element and `.key` or `.value` inside a map or an
-  `Optional`;
+  `Optional`. A parent that an `ObjectFaker` rule builds for a member that generation left `null` is reported
+  at that member's path, after the entry that left it `null`;
 - the `SeedSource`: the configuration's own seed, a stream derived from it by name, a replay recipe, or none;
 - the recipe format, `krandom-recipe/v1`, when the configuration has a portable recipe, and the names of the
   recipe settings that shaped the value, such as `string.max` or `object.max-depth`;

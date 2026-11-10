@@ -33,10 +33,43 @@ final class ObjectGeneratorConfig {
 
     private final GeneratorConfig generatorConfig;
 
+    // Where the generation is reported, when not where it runs. Only the generation report reads it.
+    private final @org.jspecify.annotations.Nullable ReportedPath reportedPath;
+
     private volatile @org.jspecify.annotations.Nullable Boolean portableRecipe;
 
     private ObjectGeneratorConfig(GeneratorConfig generatorConfig) {
+        this(generatorConfig, null);
+    }
+
+    private ObjectGeneratorConfig(
+            GeneratorConfig generatorConfig, @org.jspecify.annotations.Nullable ReportedPath reportedPath) {
         this.generatorConfig = Objects.requireNonNull(generatorConfig, "generatorConfig must not be null");
+        this.reportedPath = reportedPath;
+    }
+
+    /**
+     * This configuration, with the generation that starts at {@code generatedRoot} reported at
+     * {@code reportedRoot}: an object that an {@code ObjectFaker} rule builds, as a root of its own, for a
+     * parent that generation left {@code null} is reported at that parent's path in the fixture. Only the
+     * report reads it, so what is generated, and from which streams, stays the same.
+     */
+    ObjectGeneratorConfig reportedAt(String generatedRoot, String reportedRoot) {
+        return new ObjectGeneratorConfig(generatorConfig, new ReportedPath(generatedRoot, reportedRoot));
+    }
+
+    /** Where the generation is reported, or {@code null} when it is reported where it runs. */
+    @org.jspecify.annotations.Nullable ReportedPath reportedPath() {
+        return reportedPath;
+    }
+
+    /** The path a generation starts at, and the path its report gives for it. */
+    record ReportedPath(String generatedRoot, String reportedRoot) {
+
+        /** The reported path for a path of the generation, every one of which starts at its root's path. */
+        String rebase(String path) {
+            return reportedRoot + path.substring(generatedRoot.length());
+        }
     }
 
     /**

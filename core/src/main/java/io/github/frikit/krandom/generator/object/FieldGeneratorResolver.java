@@ -2703,11 +2703,6 @@ final class FieldGeneratorResolver {
             try {
                 Array.set(arr, i, el);
             } catch (IllegalArgumentException e) {
-                // The array is still generated, with this element at its default, told after the element's entry.
-                GenerationReporter active = reporter;
-                if (active != null) {
-                    active.failedStore(memberPath(fieldName + "[]"), comp, GenerationStep.DEFAULT);
-                }
                 String elementPath = ownerType.getSimpleName() + "." + fieldName + "[" + i + "]";
                 String declaredType = declaredArrayType.signature();
                 GenerationFailureContext context = new GenerationFailureContext(
@@ -2725,6 +2720,12 @@ final class FieldGeneratorResolver {
                                 context,
                                 e),
                         null);
+                // Passed over: the array is still generated, with this element at its default, told after the
+                // element's entry. Under a policy that throws, nothing is told.
+                GenerationReporter active = reporter;
+                if (active != null) {
+                    active.failedStore(memberPath(fieldName + "[]"), comp, GenerationStep.DEFAULT);
+                }
             }
         }
         return arr;

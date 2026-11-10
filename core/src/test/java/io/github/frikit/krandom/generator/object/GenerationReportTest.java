@@ -398,6 +398,37 @@ class GenerationReportTest {
         assertEquals("int", element.generator());
         assertEquals(List.of(GenerationDecision.FAILURE_FALLBACK), element.decisions());
         assertTrue(entries.indexOf(element) < entries.indexOf(readings), entries.toString());
+
+        List<GenerationReportEntry> strict = new ArrayList<>();
+        GeneratorConfig throwing = listening(73L)
+                .collectionSize(1, 1)
+                .objectOverride(int.class, () -> null)
+                .generationReportListener(strict::add)
+                .build();
+        assertThrows(
+                io.github.frikit.krandom.generator.object.exception.ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(Readings.class, throwing).generate());
+        assertTrue(strict.stream().noneMatch(entry -> entry.step() == GenerationStep.DEFAULT), strict.toString());
+    }
+
+    @Test
+    @DisplayName("a parent that an ObjectFaker rule builds is reported at its path in the fixture")
+    void materializedParentIsReportedAtItsFixturePath() {
+        List<GenerationReportEntry> entries = new ArrayList<>();
+        Household household = fakeHousehold(listening(83L).generationReportListener(entries::add));
+
+        assertEquals("Rex", household.pet.name);
+        assertTrue(entries.stream().allMatch(entry -> entry.path().startsWith("Household")), entries.toString());
+        assertEquals(GenerationStep.NULL, entry(entries, "Household.pet").step());
+        assertEquals(GenerationStep.OBJECT, last(entries, "Household.pet").step());
+        assertRule(entry(entries, "Household.pet.age"), FixtureRuleKind.FIELD_OVERRIDE, "pet.age", -1);
+        assertEquals(
+                GenerationStep.BUILT_IN, entry(entries, "Household.pet.legs").step());
+        assertEquals(GenerationStep.RULE, last(entries, "Household.pet.name").step());
+        assertEquals(
+                fakeHousehold(listening(83L)).describe(),
+                fakeHousehold(listening(83L).generationReportListener(entry -> {}))
+                        .describe());
     }
 
     @Test
@@ -668,6 +699,17 @@ class GenerationReportTest {
         return GeneratorConfig.builder().seed(seed);
     }
 
+    // Every nullable member of the household is null, so the rule on its pet builds the pet.
+    private static Household fakeHousehold(GeneratorConfig.Builder config) {
+        return new ObjectFaker<>(
+                        Household.class,
+                        config.objectNullProbability(1.0)
+                                .objectOverride(Pet.class, "age", () -> 3)
+                                .build())
+                .ruleFor("pet.name", () -> "Rex")
+                .generate();
+    }
+
     private static List<GenerationReportEntry> generate(Class<?> type, GeneratorConfig.Builder config) {
         List<GenerationReportEntry> entries = new ArrayList<>();
         new ObjectGenerator<>(
@@ -914,6 +956,20 @@ class GenerationReportTest {
 
     static final class Held {
         @jakarta.validation.constraints.NotNull Leaf leaf;
+    }
+
+    static final class Household {
+        Pet pet;
+
+        String describe() {
+            return pet.name + "|" + pet.age + "|" + pet.legs;
+        }
+    }
+
+    static final class Pet {
+        String name;
+        int age;
+        int legs;
     }
 
     static final class Anchored {
