@@ -1162,6 +1162,23 @@ class SemanticCoherenceAdjusterTest {
         assertEquals(new BigDecimal("60.00"), capped.balance);
         assertEquals(new BigDecimal("20.00"), capped.price);
 
+        // A price above the amount it came down to follows it down too, where its own constraints allow that.
+        CappedBalance above = new CappedBalance();
+        above.price = new BigDecimal("80.00");
+        above.amount = new BigDecimal("90.00");
+        above.balance = new BigDecimal("60.00");
+        strictAdjuster().adjustInstance(CappedBalance.class, above, declaredFields(CappedBalance.class), true);
+        assertEquals(new BigDecimal("60.00"), above.price);
+        assertEquals(new BigDecimal("60.00"), above.amount);
+        assertEquals(new BigDecimal("60.00"), above.balance);
+        FlooredPrice floored = new FlooredPrice();
+        floored.price = new BigDecimal("80.00");
+        floored.amount = new BigDecimal("90.00");
+        floored.balance = new BigDecimal("60.00");
+        strictAdjuster().adjustInstance(FlooredPrice.class, floored, declaredFields(FlooredPrice.class), true);
+        assertEquals(new BigDecimal("80.00"), floored.price);
+        assertEquals(new BigDecimal("60.00"), floored.amount);
+
         // A float of 0.10 is 0.1f, which Hibernate Validator reads as 0.10000000149, above @DecimalMax("0.1").
         FloatAmount floatAmount = new FloatAmount();
         floatAmount.price = new BigDecimal("0.10");
@@ -2234,6 +2251,15 @@ class SemanticCoherenceAdjusterTest {
         @Max(10) BigDecimal price;
 
         BigDecimal amount;
+    }
+
+    static class FlooredPrice {
+
+        @Min(70) BigDecimal price;
+
+        BigDecimal amount;
+
+        @Max(60) BigDecimal balance;
     }
 
     static class FloatAmount {

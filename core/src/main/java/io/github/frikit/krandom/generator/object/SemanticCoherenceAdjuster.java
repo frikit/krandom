@@ -759,6 +759,11 @@ final class SemanticCoherenceAdjuster {
                 balance = assignMoney(balanceSlot, amount, currencyCode);
             } else if (canTakeMoney(amountSlot, allowOverwriteExisting, balance, currencyCode)) {
                 amount = assignMoney(amountSlot, balance, currencyCode);
+                // The amount came down to the balance, so a price above it follows it down too.
+                if (isLessThan(amount, price)
+                        && canTakeMoney(priceSlot, allowOverwriteExisting, amount, currencyCode)) {
+                    price = assignMoney(priceSlot, amount, currencyCode);
+                }
             }
         }
 

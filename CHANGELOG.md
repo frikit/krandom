@@ -332,6 +332,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- In `ObjectGenerationSemanticMode.RELAXED` and `ObjectGenerationSemanticMode.STRICT`, a `price` above an `amount`
+  that the coherence pass lowered to a `balance` now follows the amount down, where its own constraints allow
+  that. With a `price` of 80, an `amount` of 90, and a `balance` of 60 that `@Max(60)` or an override holds, the
+  amount came down to 60 and the price stayed at 80, above it. A price that cannot follow, such as one with
+  `@Min(70)`, keeps its value. Seeded output changes only for objects in which the price ended above the amount.
 - In `ObjectGenerationSemanticMode.RELAXED`, the coherence pass now leaves a `@Fake` field alone, as it does a
   `@Randomizer` or `@FakeRange` field, and as the object-generation guide and the `@Fake` documentation say:
   `@Fake` takes precedence over field-name semantics, as it already did when the value was generated. Seeded
