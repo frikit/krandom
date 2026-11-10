@@ -21,9 +21,10 @@ public enum GenerationDecision {
     CONSTRAINT_CONFLICT,
 
     /**
-     * A failure that {@code objectIgnoreErrors(true)} passes over. A rejected element, a collection type or a
-     * nested object that cannot be built, or a unique value that ran out leaves the value, or the element, at
-     * its default; a value that cannot be assigned leaves the member with the value it held. The
+     * A failure that {@code objectIgnoreErrors(true)} passes over. A collection that rejects an element, a
+     * collection type or a nested object that cannot be built, or a unique value that ran out leaves the
+     * value at its default. A value that cannot be stored is reported again after the entry that made it: a
+     * member keeps the value it held, and an array element its default. The
      * {@code GenerationFailureListener} receives the failure's diagnostic.
      */
     FAILURE_FALLBACK,

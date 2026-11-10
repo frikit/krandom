@@ -110,7 +110,8 @@ A `GenerationReportListener`, set with `GeneratorConfig.Builder.generationReport
   unique value that ran out or a value that cannot be assigned, a `null` or an empty `Optional` that the
   configured probabilities drew, a semantic provider that a constraint or, in `RELAXED` mode, an annotation
   deferred, and a member that the coherence pass changed or, in `RELAXED` mode, kept. A value that cannot be
-  assigned leaves the member with the value it held, which its entry reports as `GenerationStep.KEPT`.
+  assigned gets a second entry after the one that made it: a member keeps the value it held, reported as
+  `GenerationStep.KEPT`, and an array element keeps its default.
 
 ```java
 List<GenerationReportEntry> entries = new ArrayList<>();

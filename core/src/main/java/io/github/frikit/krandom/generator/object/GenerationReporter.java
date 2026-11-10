@@ -223,10 +223,13 @@ final class GenerationReporter {
         emit(trace);
     }
 
-    /** Reports a value that could not be assigned, which leaves the member with the value it held. */
-    void failedAssignment(String path, Class<?> type) {
+    /**
+     * Reports, after the entry that made it, a value that could not be stored, and what it left: the value
+     * a member held, {@link GenerationStep#KEPT}, or an array element's default, {@link GenerationStep#DEFAULT}.
+     */
+    void failedStore(String path, Class<?> type, GenerationStep left) {
         Trace trace = new Trace(path);
-        trace.step(GenerationStep.KEPT, type.getName()).decision(GenerationDecision.FAILURE_FALLBACK);
+        trace.step(left, type.getName()).decision(GenerationDecision.FAILURE_FALLBACK);
         emit(trace);
     }
 

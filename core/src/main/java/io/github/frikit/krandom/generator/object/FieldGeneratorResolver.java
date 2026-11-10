@@ -2702,8 +2702,11 @@ final class FieldGeneratorResolver {
             try {
                 Array.set(arr, i, el);
             } catch (IllegalArgumentException e) {
-                // The array is still generated: only this element is left at its default.
-                GenerationReporter.decision(currentTrace, GenerationDecision.FAILURE_FALLBACK, null);
+                // The array is still generated, with this element at its default, told after the element's entry.
+                GenerationReporter active = reporter;
+                if (active != null) {
+                    active.failedStore(memberPath(fieldName + "[]"), comp, GenerationStep.DEFAULT);
+                }
                 String elementPath = ownerType.getSimpleName() + "." + fieldName + "[" + i + "]";
                 String declaredType = declaredArrayType.signature();
                 GenerationFailureContext context = new GenerationFailureContext(

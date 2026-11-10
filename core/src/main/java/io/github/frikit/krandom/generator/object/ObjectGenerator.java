@@ -14,6 +14,7 @@ import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import io.github.frikit.krandom.generator.report.GenerationDecision;
+import io.github.frikit.krandom.generator.report.GenerationStep;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -835,7 +836,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 // value it held instead.
                 GenerationReporter reporter = reporter();
                 if (reporter != null) {
-                    reporter.failedAssignment(objectPath + "." + field.getName(), field.getType());
+                    reporter.failedStore(objectPath + "." + field.getName(), field.getType(), GenerationStep.KEPT);
                 }
             }
         }

@@ -30,7 +30,8 @@ import java.util.Optional;
  *                       a portable replay recipe, or empty when it has none
  * @param settings       the names of the recipe settings that shaped the value, in the order they applied
  * @param step           what produced the value
- * @param generator      which generator or provider produced it: a semantic key, a type, or a class name
+ * @param generator      which generator or provider produced it: a semantic key, a type, or a class name;
+ *                       for a value that a failure left, the generator that failed or the type
  * @param matchedRule    the fixture rule or configuration override that supplied the value, if any
  * @param constraints    the simple names of the Bean Validation constraints on the member, such as
  *                       {@code Size}

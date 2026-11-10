@@ -381,8 +381,8 @@ class GenerationReportTest {
     }
 
     @Test
-    @DisplayName("an array element that cannot be stored leaves the array, which records the decision")
-    void rejectedArrayElementLeavesTheArray() {
+    @DisplayName("an array element that cannot be stored is reported after its entry, at its default")
+    void rejectedArrayElementIsReportedAtItsDefault() {
         List<GenerationReportEntry> entries = generate(
                 Readings.class,
                 listening(73L).collectionSize(1, 1).objectIgnoreErrors(true).objectOverride(int.class, () -> null));
@@ -390,9 +390,14 @@ class GenerationReportTest {
         GenerationReportEntry readings = entry(entries, "Readings.readings");
         assertEquals(GenerationStep.COLLECTION, readings.step());
         assertEquals("[I", readings.generator());
-        assertEquals(List.of(GenerationDecision.FAILURE_FALLBACK), readings.decisions());
+        assertEquals(List.of(), readings.decisions());
         assertEquals(
                 GenerationStep.OVERRIDE, entry(entries, "Readings.readings[]").step());
+        GenerationReportEntry element = last(entries, "Readings.readings[]");
+        assertEquals(GenerationStep.DEFAULT, element.step());
+        assertEquals("int", element.generator());
+        assertEquals(List.of(GenerationDecision.FAILURE_FALLBACK), element.decisions());
+        assertTrue(entries.indexOf(element) < entries.indexOf(readings), entries.toString());
     }
 
     @Test
