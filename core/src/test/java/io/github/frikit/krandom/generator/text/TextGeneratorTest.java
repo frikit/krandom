@@ -9,11 +9,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -146,6 +149,47 @@ class TextGeneratorTest {
         String enoughUniqueWords = generator.generate(new TextGenerator.TextOptions(
                 120, List.of("w1", "w2", "w3", "w4", "w5", "w6", "w7", "w8", "w9", "w10"), true, false));
         assertTrue(enoughUniqueWords.endsWith("."));
+    }
+
+    @Test
+    @DisplayName("unique words from a vocabulary that repeats words end after its distinct words")
+    void uniqueWordsFromRepeatedVocabulary() {
+        TextGenerator generator = new TextGenerator(
+                GeneratorConfig.builder().seed(1L).locale(Locale.US).build());
+
+        // Two entries but one distinct word: the text used to wait forever for a second one.
+        String single = assertTimeoutPreemptively(
+                Duration.ofSeconds(10),
+                () -> generator.generate(new TextGenerator.TextOptions(20, List.of("one", "one"), true, false)));
+        assertEquals("one.", single);
+
+        // Three distinct words among five entries, for texts of 8 and of 4 to 13 words: each word once.
+        for (boolean variableWordCount : List.of(false, true)) {
+            TextGenerator.TextOptions options =
+                    new TextGenerator.TextOptions(120, List.of("a", "b", "a", "b", "c"), true, variableWordCount);
+            String text = assertTimeoutPreemptively(Duration.ofSeconds(10), () -> generator.generate(options));
+            List<String> words = List.of(text.substring(0, text.length() - 1).split(" "));
+            assertEquals(Set.of("a", "b", "c"), Set.copyOf(words), text);
+            assertEquals(3, words.size(), text);
+        }
+    }
+
+    @Test
+    @DisplayName("unique words keep their seeded output where the vocabulary has enough distinct words")
+    void uniqueWordsKeepSeededOutput() {
+        TextGenerator generator =
+                new TextGenerator(GeneratorConfig.builder().seed(9L).build());
+        List<String> words = List.of("w1", "w2", "w3", "w4", "w5", "w6", "w7", "w8", "w9", "w10");
+
+        assertEquals(
+                "w10 w7 w9 w6 w8 w4 w2 w5.",
+                generator.generate(new TextGenerator.TextOptions(120, words, true, false)));
+        assertEquals("w7 w3 w2 w5 w9.", generator.generate(new TextGenerator.TextOptions(120, words, true, true)));
+        // Repeated words with at least as many distinct ones as the text needs worked before, and still do.
+        assertEquals(
+                "d h g a c f b e.",
+                generator.generate(new TextGenerator.TextOptions(
+                        120, List.of("a", "b", "c", "d", "e", "f", "g", "h", "a", "b"), true, false)));
     }
 
     @Test

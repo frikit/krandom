@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `TextGenerator.generate(TextOptions)` with `uniqueWords` no longer runs forever on a word list that repeats
+  a word. It waited for as many different words as the list had entries, so `new TextOptions(20,
+  List.of("one", "one"), true, false)` never returned; it now returns `one.`, and a text holds each distinct
+  word of the list at most once. Seeded output is unchanged for every text that was generated before.
+
 ## [3.0.0] - 2026-11-10
 
 ### Changed
