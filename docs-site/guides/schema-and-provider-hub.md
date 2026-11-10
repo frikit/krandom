@@ -101,7 +101,8 @@ Constraints apply together, and a keyword constrains only values of its own JSON
 - Values compare as JSON values, so a `const` of `{"id": 1}` matches the `enum` member `{"id": 1.0}`.
   A number compares by its value at any depth, whatever Java type holds it, an array item by item in
   order, an object member by member under the name it is written with, so the key `1` is the member
-  `"1"`, and a value written as a string, such as a `LocalDate`, by its text. `NaN` and the infinities
+  `"1"`, and a value written as a string, such as a `LocalDate`, by the text the writer gives it, so a
+  `LocalTime` of 09:05 is the string `"09:05:00"` and is measured as such. `NaN` and the infinities
   are not JSON numbers, and an object with two keys written under one name, such as `1` and `"1"`, is
   not a JSON object, so a `const` or `enum` that holds either, at any depth, is rejected with the schema
   path.
@@ -198,8 +199,9 @@ does too, because RFC 3339's `date-time` and `time` need an offset that those va
 Parsing such a schema back gives values each type holds, and every writer, from JSON to SQL, writes
 such a value in its format's RFC 3339 form, with the seconds always and a fraction only where it is not
 zero: `2024-01-05T09:05:00` for a `LocalDateTime` at 09:05, a `ZonedDateTime` with its offset and no
-`[Zone/Id]`, and an `Instant` with `Z`. A `java.util.Date` or `Calendar` is written as the instant it
-holds, and a `java.sql.Date` or `Time` as its date or time of day. A year outside 0000 to 9999, or an
+`[Zone/Id]`, and an `Instant` with `Z`. A `java.util.Date` is written as the instant it holds, a
+`Calendar` at the offset its own time zone gives that instant, and a `java.sql.Date` or `Time` as its
+date or time of day. A year outside 0000 to 9999, or an
 offset with seconds, which RFC 3339 cannot write, is refused. Attach
 `SchemaValueProvider.withJsonSchema(...)` or `withSample(...)` when a custom provider can make a
 narrower claim. `Schema`, `SchemaProjection`, and parser-created generators are

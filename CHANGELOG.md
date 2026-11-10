@@ -454,12 +454,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   without an offset, an `OffsetTime` a time with its offset, and an `OffsetDateTime`, a `ZonedDateTime`,
   with its offset and no zone ID, and an `Instant`, with `Z`, a date-time. Seconds are always written,
   and a fraction only where it is not zero, without trailing zeros, so an `Instant` at half a second
-  ends `.5Z` where it ended `.500Z`. A `java.util.Date` or `Timestamp` is written as its instant, a `Calendar` at its own offset,
-  and a `java.sql.Date` or `Time` as its date or time of day. A year outside 0000 to 9999, or an offset
-  with seconds, which RFC 3339 cannot write, is refused with an `IllegalArgumentException` in every
-  output, as JSON refuses a number it cannot write. JSON Schema export now names `time` for an
-  `OffsetTime` member and `date-time` for an `Instant` member, where it named no format. Written output
-  changes for every value of these types; generated values do not.
+  ends `.5Z` where it ended `.500Z`. A `java.util.Date` or `Timestamp` is written as its instant, a
+  `Calendar` at the offset its own time zone gives that instant, whatever the zone's ID names, and a
+  `java.sql.Date` or `Time` as its date or time of day. A year outside 0000 to 9999, or an offset with
+  seconds, which RFC 3339 cannot write, is refused with an `IllegalArgumentException` in every output,
+  as JSON refuses a number it cannot write. `SchemaParser` measures and compares a date or time `const`
+  or `enum` by the same text, so a `const` of `LocalTime` 09:05 with `maxLength` 5 is now rejected, as
+  `09:05:00` is too long, and that `LocalTime` and the string `"09:05:00"` are one JSON value. JSON
+  Schema export now names `time` for an `OffsetTime` member and `date-time` for an `Instant` member,
+  where it named no format. Written output changes for every value of these types; generated values do
+  not.
 - `SchemaParser` reads `minLength`, `maxLength`, `minItems`, `maxItems`, `minProperties`, and
   `maxProperties` exactly. It read the first four through `intValue`, so a count beyond an `int`
   wrapped: `maxItems` 3000000000 parsed and then failed every record with `Illegal Capacity:

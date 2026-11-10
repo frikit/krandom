@@ -28,6 +28,7 @@ import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -111,7 +112,16 @@ class SchemaTemporalValuesTest {
                         "2024-01-05T09:05:07.123456789Z"),
                 Arguments.of(java.sql.Date.valueOf(LocalDate.of(2024, 1, 5)), "2024-01-05"),
                 Arguments.of(java.sql.Time.valueOf(LocalTime.of(9, 5)), "09:05:00"),
-                Arguments.of(calendar, "2024-01-05T10:05:00+01:00"));
+                Arguments.of(calendar, "2024-01-05T10:05:00+01:00"),
+                // A calendar's offset comes from its own time zone at its instant, whatever the zone's ID names.
+                Arguments.of(calendar(new SimpleTimeZone(3_600_000, "custom")), "2024-01-05T10:05:00+01:00"),
+                Arguments.of(calendar(new SimpleTimeZone(7_200_000, "Europe/Paris")), "2024-01-05T11:05:00+02:00"));
+    }
+
+    private static Calendar calendar(TimeZone zone) {
+        Calendar calendar = new GregorianCalendar(zone);
+        calendar.setTimeInMillis(MORNING.toEpochMilli());
+        return calendar;
     }
 
     @ParameterizedTest(name = "{0} is written as {1}")
@@ -150,6 +160,7 @@ class SchemaTemporalValuesTest {
         for (Object value : List.of(
                 LocalDate.of(10_000, 1, 1),
                 LocalDate.of(-1, 12, 31),
+                calendar(new SimpleTimeZone(3_630_000, "odd")),
                 LocalDateTime.of(10_000, 1, 1, 0, 0),
                 OffsetDateTime.of(2024, 1, 5, 9, 5, 0, 0, secondsOffset),
                 OffsetTime.of(9, 5, 0, 0, secondsOffset),
@@ -164,6 +175,30 @@ class SchemaTemporalValuesTest {
         assertEquals("\"9999-12-31T23:59:59.999999999\"", json(LocalDateTime.MAX.withYear(9999)));
         assertEquals("\"0000-01-01T00:00:00Z\"", json(Instant.parse("0000-01-01T00:00:00Z")));
         assertEquals("\"9999-12-31T23:59:59.999999999Z\"", json(Instant.parse("9999-12-31T23:59:59.999999999Z")));
+    }
+
+    private static void parse(Map<String, Object> property) {
+        SchemaParser.fromJsonSchema(Map.of("type", "object", "properties", Map.of("value", property)));
+    }
+
+    @Test
+    @DisplayName("the parser measures a date or time const or enum by the text the writer gives it")
+    void theParserMeasuresTheWrittenText() {
+        LocalTime morning = LocalTime.of(9, 5);
+        // 09:05 is written 09:05:00, which maxLength 5 does not allow, and which is that string as JSON.
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> parse(Map.of("type", "string", "const", morning, "maxLength", 5)));
+        assertDoesNotThrow(() -> parse(Map.of("type", "string", "const", morning, "maxLength", 8)));
+        assertDoesNotThrow(() -> parse(Map.of("const", morning, "pattern", "^09:05:00$")));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> parse(Map.of("const", List.of(morning, "09:05:00"), "uniqueItems", true)));
+        assertDoesNotThrow(() -> parse(Map.of("const", "09:05:00", "enum", List.of(morning))));
+        // A date or time that RFC 3339 cannot write cannot be a const either.
+        IllegalArgumentException unwritable =
+                assertThrows(IllegalArgumentException.class, () -> parse(Map.of("const", LocalDate.of(10_000, 1, 1))));
+        assertTrue(unwritable.getMessage().contains("RFC 3339 has no form for"), unwritable.getMessage());
     }
 
     @Test

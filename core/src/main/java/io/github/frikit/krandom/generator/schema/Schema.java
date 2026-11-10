@@ -49,8 +49,9 @@ import java.util.Random;
  *
  * <p>Every writer writes a date or time as the RFC 3339 text of the format its type exports, with the
  * seconds always and a fraction only where it is not zero: a {@code ZonedDateTime} with its offset and no
- * zone ID, an {@code Instant} with {@code Z}, a {@code java.util.Date} or {@code Calendar} as the instant it
- * holds, and a {@code java.sql.Date} or {@code Time} as its date or time of day. A year outside 0000 to 9999,
+ * zone ID, an {@code Instant} with {@code Z}, a {@code java.util.Date} as the instant it holds, a
+ * {@code Calendar} at the offset its own time zone gives that instant, and a {@code java.sql.Date} or
+ * {@code Time} as its date or time of day. A year outside 0000 to 9999,
  * or an offset with seconds, which RFC 3339 cannot write, is refused with an
  * {@link IllegalArgumentException}.
  */
@@ -1227,8 +1228,9 @@ public final class Schema implements Generator<Map<String, Object>> {
      * {@code LocalDate}, partial-time for a {@code LocalTime}, a date-time without an offset for a
      * {@code LocalDateTime}, and with one for the rest, where a {@code ZonedDateTime} gives its offset without
      * its zone ID and an {@code Instant} {@code Z}. Seconds are always written, and a fraction only where it is
-     * not zero. A {@code java.util.Date} or {@code Calendar} is written as the instant it holds, and a
-     * {@code java.sql.Date} or {@code Time} as its date or time of day. Null for any other value.
+     * not zero. A {@code java.util.Date} is written as the instant it holds, a {@code Calendar} at the offset
+     * its own time zone gives that instant, and a {@code java.sql.Date} or {@code Time} as its date or time of
+     * day. Null for any other value.
      *
      * @throws IllegalArgumentException for a year outside 0000 to 9999, or an offset with seconds, which RFC
      *     3339 cannot write
@@ -1269,10 +1271,24 @@ public final class Schema implements Generator<Map<String, Object>> {
             return rfc3339(date.toInstant());
         }
         if (value instanceof Calendar calendar) {
-            return rfc3339(ZonedDateTime.ofInstant(
-                    calendar.toInstant(), calendar.getTimeZone().toZoneId()));
+            // The offset comes from the calendar's own time zone at its instant, as the zone's ID may name no
+            // region, or a region whose rules differ from the zone's.
+            int offset = calendar.getTimeZone().getOffset(calendar.getTimeInMillis());
+            if (offset % 60_000 != 0) {
+                throw unwritable(value, "its offset has seconds");
+            }
+            return rfc3339(OffsetDateTime.ofInstant(calendar.toInstant(), ZoneOffset.ofTotalSeconds(offset / 1000)));
         }
         return null;
+    }
+
+    /**
+     * The text a value that is no number, boolean, structure, or null is written as: a date or time's RFC 3339
+     * text, and anything else's {@code toString()}.
+     */
+    static String writtenText(Object value) {
+        String temporal = rfc3339(value);
+        return temporal != null ? temporal : value.toString();
     }
 
     private static String offsetDateTime(OffsetDateTime dateTime, Object value) {
