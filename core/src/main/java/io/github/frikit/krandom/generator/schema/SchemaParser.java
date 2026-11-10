@@ -97,7 +97,8 @@ import org.jspecify.annotations.Nullable;
  * the values that do; {@code format} is not one of them, because it is an annotation in Draft 2020-12.
  * Values compare as JSON values: a number by its value at any depth, so {@code {"id": 1}} equals
  * {@code {"id": 1.0}}, an array item by item in order, an object member by member under the name it is
- * written with, and a value written as a string, such as a date, by its text. Overlapping numeric
+ * written with, and a value written as a string, such as a date, by the text the writer gives it, which
+ * for a date or time is its RFC 3339 text. Overlapping numeric
  * bounds intersect. A {@code pattern} or {@code format} value is drawn again until
  * it fits {@code minLength} and {@code maxLength}, up to a fixed number of attempts. A combination that
  * leaves no value is rejected with its schema path, while parsing where that can be told. A combination
@@ -648,15 +649,18 @@ public final class SchemaParser {
         if (value instanceof Map<?, ?> object) {
             return membersMeet(byName(object), schema);
         }
-        // A string, or anything else written as one, such as a date. A pattern searches that text; it
-        // need not match all of it.
+        // A string, or anything else written as one, such as a date, as the writer writes it. A pattern
+        // searches that text; it need not match all of it.
         return value == null
                 || !"string".equals(JsonSchemaSupport.infer(value).get("type"))
-                || (withinLengthBounds(value.toString(), schema)
-                        && (!(schema.get("pattern") instanceof String pattern)
-                                || Pattern.compile(pattern)
-                                        .matcher(value.toString())
-                                        .find()));
+                || written(Schema.writtenText(value), schema);
+    }
+
+    /** Whether the text a value is written as meets the length bounds and the pattern. */
+    private static boolean written(String text, Map<?, ?> schema) {
+        return withinLengthBounds(text, schema)
+                && (!(schema.get("pattern") instanceof String pattern)
+                        || Pattern.compile(pattern).matcher(text).find());
     }
 
     /**
@@ -756,8 +760,8 @@ public final class SchemaParser {
      * A value as JSON sees it, so that two values are the same JSON value when these are equal: a number
      * is its exact value, whatever holds it, so 1 equals 1.0; an array is the list of its items, in order;
      * an object is its members under the names they are written with; and anything written as a string
-     * is its text. NaN and the infinities are rejected, as no JSON number, and so is an object with two
-     * keys written under one name.
+     * is the text the writer gives it, a date or time's RFC 3339 text. NaN and the infinities are rejected,
+     * as no JSON number, and so is an object with two keys written under one name.
      */
     private static @Nullable Object jsonValue(@Nullable Object value) {
         if (value == null || value instanceof Boolean) {
@@ -780,7 +784,7 @@ public final class SchemaParser {
             }
             return members;
         }
-        return value.toString();
+        return Schema.writtenText(value);
     }
 
     /**

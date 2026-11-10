@@ -19,8 +19,20 @@ import java.lang.reflect.Array;
 import java.lang.reflect.RecordComponent;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.time.DateTimeException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -36,6 +48,14 @@ import java.util.Random;
  * stream derived from its record index and field name. Adding an unrelated schema column therefore
  * does not perturb existing column values. Caller-owned, secure, and unseeded random sources retain
  * their documented sequential behavior.
+ *
+ * <p>Every writer writes a date or time as the RFC 3339 text of the format its type exports, with the
+ * seconds always and a fraction only where it is not zero: a {@code ZonedDateTime} with its offset and no
+ * zone ID, an {@code Instant} with {@code Z}, a {@code java.util.Date} as the instant it holds, a
+ * {@code Calendar} at the offset its own time zone gives that instant, and a {@code java.sql.Date} or
+ * {@code Time} as its date or time of day. A year outside 0000 to 9999, an offset with seconds or beyond
+ * 23:59, and a Julian day of a {@code java.sql.Date} that ISO does not have, which RFC 3339 cannot write,
+ * are refused with an {@link IllegalArgumentException}.
  */
 public final class Schema implements Generator<Map<String, Object>> {
 
@@ -44,6 +64,13 @@ public final class Schema implements Generator<Map<String, Object>> {
     static final String DEFAULT_XML_ROOT_ELEMENT = "records";
     static final String DEFAULT_XML_RECORD_ELEMENT = "record";
     static final char NEWLINE = '\n';
+
+    /** The first and last second RFC 3339 can write, whose years have four digits. */
+    private static final long FIRST_SECOND =
+            LocalDate.of(0, 1, 1).atStartOfDay().toEpochSecond(ZoneOffset.UTC);
+
+    private static final long LAST_SECOND =
+            LocalDate.of(9999, 12, 31).atTime(LocalTime.MAX).toEpochSecond(ZoneOffset.UTC);
 
     private final GeneratorConfig config;
     private final Map<String, SchemaValueProvider> fields;
@@ -1163,6 +1190,10 @@ public final class Schema implements Generator<Map<String, Object>> {
                 || value instanceof Boolean) {
             return value;
         }
+        String temporal = rfc3339(value);
+        if (temporal != null) {
+            return temporal;
+        }
         if (value instanceof Map<?, ?> map) {
             Map<Object, Object> normalized = new LinkedHashMap<>(map.size());
             for (Map.Entry<?, ?> entry : map.entrySet()) {
@@ -1192,6 +1223,141 @@ public final class Schema implements Generator<Map<String, Object>> {
             return recordToMap(value, componentPath);
         }
         return value;
+    }
+
+    /**
+     * The RFC 3339 text of a date or time, in the form of the format its type exports: full-date for a
+     * {@code LocalDate}, partial-time for a {@code LocalTime}, a date-time without an offset for a
+     * {@code LocalDateTime}, and with one for the rest, where a {@code ZonedDateTime} gives its offset without
+     * its zone ID and an {@code Instant} {@code Z}. Seconds are always written, and a fraction only where it is
+     * not zero. A {@code java.util.Date} is written as the instant it holds, a {@code Calendar} at the offset
+     * its own time zone gives that instant, and a {@code java.sql.Date} or {@code Time} as its date or time of
+     * day. Null for any other value.
+     *
+     * @throws IllegalArgumentException for a year outside 0000 to 9999, an offset with seconds or beyond
+     *     23:59, or a Julian day that ISO does not have, which RFC 3339 cannot write
+     */
+    static @org.jspecify.annotations.Nullable String rfc3339(Object value) {
+        if (value instanceof LocalDate date) {
+            return withYear(date.getYear(), value, DateTimeFormatter.ISO_LOCAL_DATE.format(date));
+        }
+        if (value instanceof LocalTime time) {
+            return DateTimeFormatter.ISO_LOCAL_TIME.format(time);
+        }
+        if (value instanceof LocalDateTime dateTime) {
+            return withYear(dateTime.getYear(), value, DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(dateTime));
+        }
+        if (value instanceof OffsetTime time) {
+            return withOffset(time.getOffset(), value, DateTimeFormatter.ISO_OFFSET_TIME.format(time));
+        }
+        if (value instanceof OffsetDateTime dateTime) {
+            return offsetDateTime(dateTime, value);
+        }
+        if (value instanceof ZonedDateTime dateTime) {
+            return offsetDateTime(dateTime.toOffsetDateTime(), value);
+        }
+        if (value instanceof Instant instant) {
+            if (instant.getEpochSecond() < FIRST_SECOND || instant.getEpochSecond() > LAST_SECOND) {
+                throw unwritable(value, "its year is outside 0000 to 9999");
+            }
+            return DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(instant.atOffset(ZoneOffset.UTC));
+        }
+        // A java.sql.Date or Time holds no instant, and its toInstant() throws, so it comes before java.util.Date.
+        if (value instanceof java.sql.Date date) {
+            return rfc3339(isoDate(date));
+        }
+        if (value instanceof java.sql.Time time) {
+            return rfc3339(time.toLocalTime());
+        }
+        if (value instanceof java.util.Date date) {
+            return rfc3339(date.toInstant());
+        }
+        if (value instanceof Calendar calendar) {
+            return calendar(calendar);
+        }
+        return null;
+    }
+
+    /**
+     * The ISO date that a {@code java.sql.Date}'s fields name, read in the default time zone as
+     * {@code toLocalDate()} reads them, but with their era, which {@code toLocalDate()} drops, so 1 BCE is
+     * the year 0000. Its calendar is Julian before 1582, so a day that ISO does not have, such as 29 February
+     * 1500, is refused.
+     */
+    private static LocalDate isoDate(java.sql.Date date) {
+        Calendar fields = new GregorianCalendar();
+        fields.setTime(date);
+        int yearOfEra = fields.get(Calendar.YEAR);
+        int year = fields.get(Calendar.ERA) == GregorianCalendar.BC ? 1 - yearOfEra : yearOfEra;
+        try {
+            return LocalDate.of(year, fields.get(Calendar.MONTH) + 1, fields.get(Calendar.DAY_OF_MONTH));
+        } catch (DateTimeException noIsoDay) {
+            throw unwritable(date, "its day is no ISO date");
+        }
+    }
+
+    /**
+     * A calendar at the offset its own time zone gives its instant, as the zone's ID may name no region, or
+     * a region whose rules differ from the zone's. RFC 3339 writes any offset of whole minutes up to 23:59,
+     * beyond the 18:00 a {@code ZoneOffset} holds, so the local date-time is worked out from the instant.
+     */
+    private static String calendar(Calendar calendar) {
+        int offset = calendar.getTimeZone().getOffset(calendar.getTimeInMillis());
+        if (offset % 60_000 != 0) {
+            throw unwritable(calendar, "its offset has seconds");
+        }
+        int minutes = offset / 60_000;
+        if (Math.abs(minutes) > 23 * 60 + 59) {
+            throw unwritable(calendar, "its offset is beyond 23:59");
+        }
+        Instant instant = calendar.toInstant();
+        LocalDateTime local = LocalDateTime.ofEpochSecond(
+                instant.getEpochSecond() + minutes * 60L, instant.getNano(), ZoneOffset.UTC);
+        return withYear(local.getYear(), calendar, DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(local))
+                + offsetText(minutes);
+    }
+
+    /** An offset as RFC 3339 writes it, {@code Z} for none, as {@code ISO_OFFSET_DATE_TIME} does. */
+    private static String offsetText(int minutes) {
+        if (minutes == 0) {
+            return "Z";
+        }
+        int magnitude = Math.abs(minutes);
+        return String.format(Locale.ROOT, "%s%02d:%02d", minutes < 0 ? "-" : "+", magnitude / 60, magnitude % 60);
+    }
+
+    /**
+     * The text a value that is no number, boolean, structure, or null is written as: a date or time's RFC 3339
+     * text, and anything else's {@code toString()}.
+     */
+    static String writtenText(Object value) {
+        String temporal = rfc3339(value);
+        return temporal != null ? temporal : value.toString();
+    }
+
+    private static String offsetDateTime(OffsetDateTime dateTime, Object value) {
+        return withOffset(
+                dateTime.getOffset(),
+                value,
+                withYear(dateTime.getYear(), value, DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(dateTime)));
+    }
+
+    private static String withYear(int year, Object value, String text) {
+        if (year < 0 || year > 9999) {
+            throw unwritable(value, "its year is outside 0000 to 9999");
+        }
+        return text;
+    }
+
+    private static String withOffset(ZoneOffset offset, Object value, String text) {
+        if (offset.getTotalSeconds() % 60 != 0) {
+            throw unwritable(value, "its offset has seconds");
+        }
+        return text;
+    }
+
+    private static IllegalArgumentException unwritable(Object value, String reason) {
+        return new IllegalArgumentException("RFC 3339 has no form for " + value + ": " + reason);
     }
 
     private static Map<String, Object> recordToMap(Object record, String componentPath) {
