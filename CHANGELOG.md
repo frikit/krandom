@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [2.12.0] - 2026-11-10
+
 ### Added
 
 - A value-free generation report. `GeneratorConfig.Builder.generationReportListener(...)` sets a
@@ -1734,7 +1736,8 @@ Condensed summary of all pre-1.0.0 development (≈Feb–Apr 2026), originally t
 ### Removed
 - Kotlin and Scala API modules (implementation surface kept focused); deprecated APIs and deprecated Java locale usage.
 
-[Unreleased]: https://github.com/frikit/krandom/compare/v2.11.0...HEAD
+[Unreleased]: https://github.com/frikit/krandom/compare/v2.12.0...HEAD
+[2.12.0]: https://github.com/frikit/krandom/compare/v2.11.0...v2.12.0
 [2.11.0]: https://github.com/frikit/krandom/compare/v2.10.0...v2.11.0
 [2.10.0]: https://github.com/frikit/krandom/compare/v2.9.0...v2.10.0
 [2.9.0]: https://github.com/frikit/krandom/compare/v2.8.0...v2.9.0

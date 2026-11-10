@@ -36,8 +36,8 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.frikit:krandom-core:2.11.0")
-    implementation("io.github.frikit:krandom-jackson:2.11.0")
+    implementation("io.github.frikit:krandom-core:2.12.0")
+    implementation("io.github.frikit:krandom-jackson:2.12.0")
 }
 ```
 
