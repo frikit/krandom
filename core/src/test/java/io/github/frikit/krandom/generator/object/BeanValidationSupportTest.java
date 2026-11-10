@@ -356,6 +356,67 @@ class BeanValidationSupportTest {
     }
 
     @Test
+    @DisplayName("accepts gives Hibernate Validator's verdict for a float or a double against each kind of bound")
+    void acceptsGivesHibernateValidatorsVerdictForAFloatOrADouble() throws Exception {
+        Validator hibernate = Validation.byProvider(HibernateValidator.class)
+                .configure()
+                .messageInterpolator(new ParameterMessageInterpolator())
+                .buildValidatorFactory()
+                .getValidator();
+        Clock clock = Clock.systemUTC();
+        // 0.1f is 0.10000000149011612 as a double, which @DecimalMax("0.1") rejects although it prints as 0.1.
+        // @Min and @Max convert their bound to the value's type, so 16777219 is 16777220f and 2^53 + 1 is 2^53.
+        // An infinity lies beyond every bound, and -0.0 is negative.
+        Map<Class<?>, List<Object>> values = Map.of(
+                FloatBounds.class,
+                List.of(
+                        0.1f,
+                        0.09f,
+                        0.11f,
+                        0.0f,
+                        -0.0f,
+                        -0.5f,
+                        1.0f,
+                        0.99999994f,
+                        1.0000001f,
+                        2.5f,
+                        Float.POSITIVE_INFINITY,
+                        Float.NEGATIVE_INFINITY),
+                DoubleBounds.class,
+                List.of(
+                        0.1,
+                        0.09,
+                        0.11,
+                        0.0,
+                        -0.0,
+                        -0.5,
+                        1.0,
+                        0.9999999999999999,
+                        1.0000000000000002,
+                        2.5,
+                        Double.POSITIVE_INFINITY,
+                        Double.NEGATIVE_INFINITY),
+                LargeFloatBounds.class,
+                List.of(16_777_216f, 16_777_218f, 16_777_220f, 16_777_222f),
+                LargeDoubleBounds.class,
+                List.of(9_007_199_254_740_992.0, 9_007_199_254_740_994.0));
+
+        for (Map.Entry<Class<?>, List<Object>> type : values.entrySet()) {
+            for (Field field : type.getKey().getDeclaredFields()) {
+                for (Object value : type.getValue()) {
+                    boolean valid = hibernate
+                            .validateValue(type.getKey(), field.getName(), value)
+                            .isEmpty();
+                    assertEquals(
+                            valid,
+                            BeanValidationSupport.accepts(field, field.getType(), value, clock),
+                            type.getKey().getSimpleName() + "." + field.getName() + " " + value);
+                }
+            }
+        }
+    }
+
+    @Test
     @DisplayName("accepts keeps a number within its bounds and a string to its text constraints, and @Null to none")
     void acceptsKeepsANumberWithinItsBoundsAndAStringToItsTextConstraints() throws Exception {
         Clock clock = Clock.systemUTC();
@@ -429,6 +490,66 @@ class BeanValidationSupportTest {
     }
 
     record ComponentSample(@Size(min = 2, max = 2) String code) {}
+
+    static final class FloatBounds {
+
+        @jakarta.validation.constraints.DecimalMax("0.1") Float decimalMax;
+
+        @DecimalMin("0.1") Float decimalMin;
+
+        @jakarta.validation.constraints.DecimalMax(value = "0.1", inclusive = false) Float exclusiveMax;
+
+        @DecimalMin(value = "0.1", inclusive = false) Float exclusiveMin;
+
+        @Max(1) Float max;
+
+        @Min(1) Float min;
+
+        @Positive Float positive;
+
+        @jakarta.validation.constraints.PositiveOrZero Float positiveOrZero;
+
+        @jakarta.validation.constraints.Negative Float negative;
+
+        @jakarta.validation.constraints.NegativeOrZero Float negativeOrZero;
+    }
+
+    static final class DoubleBounds {
+
+        @jakarta.validation.constraints.DecimalMax("0.1") Double decimalMax;
+
+        @DecimalMin("0.1") Double decimalMin;
+
+        @jakarta.validation.constraints.DecimalMax(value = "0.1", inclusive = false) Double exclusiveMax;
+
+        @DecimalMin(value = "0.1", inclusive = false) Double exclusiveMin;
+
+        @Max(1) Double max;
+
+        @Min(1) Double min;
+
+        @Positive Double positive;
+
+        @jakarta.validation.constraints.PositiveOrZero Double positiveOrZero;
+
+        @jakarta.validation.constraints.Negative Double negative;
+
+        @jakarta.validation.constraints.NegativeOrZero Double negativeOrZero;
+    }
+
+    static final class LargeFloatBounds {
+
+        @Max(16_777_219) Float max;
+
+        @Min(16_777_219) Float min;
+    }
+
+    static final class LargeDoubleBounds {
+
+        @Max(9_007_199_254_740_993L) Double max;
+
+        @Min(9_007_199_254_740_993L) Double min;
+    }
 
     static final class InstantBounds {
 

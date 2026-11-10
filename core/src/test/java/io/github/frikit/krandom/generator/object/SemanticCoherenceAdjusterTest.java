@@ -5,6 +5,9 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static java.math.RoundingMode.CEILING;
+import static java.math.RoundingMode.FLOOR;
+import static java.math.RoundingMode.UNNECESSARY;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,6 +34,8 @@ import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.object.ObjectGeneratorSemanticCoherenceTest.TemporalPairs;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Max;
@@ -38,6 +43,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Null;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -255,10 +261,18 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("money and currency utility methods cover parsing and formatting branches")
     void moneyAndCurrencyUtilityMethodsCoverParsingAndFormattingBranches() throws Exception {
-        assertEquals(new BigDecimal("12.35"), SemanticCoherenceAdjuster.moneyValue("USD 12.345"));
-        assertEquals(new BigDecimal("42.00"), SemanticCoherenceAdjuster.moneyValue(42));
-        assertEquals(new BigDecimal("42.00"), SemanticCoherenceAdjuster.moneyValue(BigInteger.valueOf(42)));
-        assertEquals(new BigDecimal("7.50"), SemanticCoherenceAdjuster.moneyValue(7.5d));
+        // An amount reads exactly, as a magnitude, and a float or a double as it prints.
+        assertEquals(new BigDecimal("12.345"), SemanticCoherenceAdjuster.moneyValue("USD 12.345"));
+        assertEquals(new BigDecimal("12.5"), SemanticCoherenceAdjuster.moneyValue("-12.5"));
+        assertEquals(new BigDecimal("12.3456"), SemanticCoherenceAdjuster.moneyValue(new BigDecimal("-12.3456")));
+        assertEquals(new BigDecimal("42"), SemanticCoherenceAdjuster.moneyValue(42));
+        assertEquals(new BigDecimal("42"), SemanticCoherenceAdjuster.moneyValue(-42L));
+        assertEquals(new BigDecimal("42"), SemanticCoherenceAdjuster.moneyValue(BigInteger.valueOf(-42)));
+        assertEquals(new BigDecimal("7.5"), SemanticCoherenceAdjuster.moneyValue(-7.5d));
+        assertEquals(new BigDecimal("0.1"), SemanticCoherenceAdjuster.moneyValue(-0.1f));
+        assertNull(SemanticCoherenceAdjuster.moneyValue(Float.POSITIVE_INFINITY));
+        assertNull(SemanticCoherenceAdjuster.moneyValue(Float.NaN));
+        assertNull(SemanticCoherenceAdjuster.moneyValue(Double.NEGATIVE_INFINITY));
         assertNull(SemanticCoherenceAdjuster.moneyValue("not-money"));
         assertNull(SemanticCoherenceAdjuster.moneyValue(LocalDate.now()));
 
@@ -271,50 +285,119 @@ class SemanticCoherenceAdjusterTest {
         assertNull(SemanticCoherenceAdjuster.currencyCode("   "));
         assertNull(SemanticCoherenceAdjuster.currencyCode("not-a-currency"));
 
+        // A string or a BigDecimal holds an amount rounded down or up to cents, or every digit of it with UNNECESSARY.
+        BigDecimal amount = new BigDecimal("12.345");
+        assertEquals("USD 12.34", SemanticCoherenceAdjuster.moneyValueFor(amount, String.class, "USD", FLOOR));
+        assertEquals("12.35", SemanticCoherenceAdjuster.moneyValueFor(amount, String.class, null, CEILING));
+        assertEquals("USD 12.345", SemanticCoherenceAdjuster.moneyValueFor(amount, String.class, "USD", UNNECESSARY));
         assertEquals(
-                "USD 12.35", SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), String.class, "USD"));
-        assertEquals("12.35", SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), String.class, null));
+                "USD 7.50",
+                SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("7.5"), String.class, "USD", UNNECESSARY));
+        assertEquals(
+                new BigDecimal("12.34"),
+                SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("-12.345"), BigDecimal.class, "USD", FLOOR));
         assertEquals(
                 new BigDecimal("12.35"),
-                SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), BigDecimal.class, "USD"));
+                SemanticCoherenceAdjuster.moneyValueFor(amount, BigDecimal.class, "USD", CEILING));
+
+        // An integer type holds it rounded down or up to whole units, and nothing where it would overflow.
         assertEquals(
                 BigInteger.valueOf(12),
-                SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), BigInteger.class, "USD"));
-        assertEquals((byte) 12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), byte.class, "USD"));
-        assertEquals((byte) 12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Byte.class, "USD"));
-        assertEquals((short) 12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Short.class, "USD"));
-        assertEquals((short) 12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), short.class, "USD"));
-        assertEquals(12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Integer.class, "USD"));
-        assertEquals(12, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), int.class, "USD"));
-        assertEquals(12L, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Long.class, "USD"));
-        assertEquals(12L, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), long.class, "USD"));
-        assertEquals(12.35f, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Float.class, "USD"));
-        assertEquals(12.35f, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), float.class, "USD"));
-        assertEquals(12.35d, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), Double.class, "USD"));
-        assertEquals(12.35d, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), double.class, "USD"));
-        assertNull(SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("12.345"), LocalDate.class, "USD"));
+                SemanticCoherenceAdjuster.moneyValueFor(amount, BigInteger.class, "USD", FLOOR));
         assertEquals(
-                new BigDecimal("1.00"), SemanticCoherenceAdjuster.assignMoney(null, new BigDecimal("1.00"), "USD"));
+                BigInteger.valueOf(13),
+                SemanticCoherenceAdjuster.moneyValueFor(amount, BigInteger.class, "USD", CEILING));
+        assertEquals((byte) 12, SemanticCoherenceAdjuster.moneyValueFor(amount, byte.class, "USD", FLOOR));
+        assertEquals((byte) 13, SemanticCoherenceAdjuster.moneyValueFor(amount, Byte.class, "USD", CEILING));
+        assertEquals((short) 12, SemanticCoherenceAdjuster.moneyValueFor(amount, Short.class, "USD", FLOOR));
+        assertEquals((short) 13, SemanticCoherenceAdjuster.moneyValueFor(amount, short.class, "USD", CEILING));
+        assertEquals(12, SemanticCoherenceAdjuster.moneyValueFor(amount, Integer.class, "USD", FLOOR));
+        assertEquals(13, SemanticCoherenceAdjuster.moneyValueFor(amount, int.class, "USD", CEILING));
+        assertEquals(12L, SemanticCoherenceAdjuster.moneyValueFor(amount, Long.class, "USD", FLOOR));
+        assertEquals(13L, SemanticCoherenceAdjuster.moneyValueFor(amount, long.class, "USD", CEILING));
+        assertEquals(
+                (byte) 127, SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("127.40"), byte.class, null, FLOOR));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("127.40"), byte.class, null, CEILING));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("32768"), Short.class, null, FLOOR));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("2147483648"), Integer.class, null, FLOOR));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(
+                new BigDecimal("9223372036854775808"), long.class, null, FLOOR));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(amount, int.class, null, UNNECESSARY));
+
+        // A float or a double holds it rounded to cents, stepped one value down or up where it prints past them.
+        assertEquals(12.34f, SemanticCoherenceAdjuster.moneyValueFor(amount, Float.class, "USD", FLOOR));
+        assertEquals(12.35f, SemanticCoherenceAdjuster.moneyValueFor(amount, float.class, "USD", CEILING));
+        assertEquals(12.34d, SemanticCoherenceAdjuster.moneyValueFor(amount, Double.class, "USD", FLOOR));
+        assertEquals(12.35d, SemanticCoherenceAdjuster.moneyValueFor(amount, double.class, "USD", CEILING));
+        // 1234567.875f is the float nearest both 1234567.89 and 1234567.91, and prints as 1234567.9.
+        BigDecimal belowPrint = new BigDecimal("1234567.89");
+        BigDecimal abovePrint = new BigDecimal("1234567.91");
+        assertEquals(
+                Math.nextDown(1234567.875f),
+                SemanticCoherenceAdjuster.moneyValueFor(belowPrint, float.class, null, FLOOR));
+        assertEquals(1234567.875f, SemanticCoherenceAdjuster.moneyValueFor(belowPrint, float.class, null, CEILING));
+        assertEquals(
+                Math.nextUp(1234567.875f),
+                SemanticCoherenceAdjuster.moneyValueFor(abovePrint, Float.class, null, CEILING));
+        assertEquals(1234567.875f, SemanticCoherenceAdjuster.moneyValueFor(abovePrint, Float.class, null, FLOOR));
+        // 1234567890123456.75 is the double nearest both values below, and prints as 1234567890123456.8.
+        BigDecimal belowDoublePrint = new BigDecimal("1234567890123456.78");
+        BigDecimal aboveDoublePrint = new BigDecimal("1234567890123456.85");
+        assertEquals(
+                Math.nextDown(1234567890123456.75),
+                SemanticCoherenceAdjuster.moneyValueFor(belowDoublePrint, double.class, null, FLOOR));
+        assertEquals(
+                1234567890123456.75,
+                SemanticCoherenceAdjuster.moneyValueFor(belowDoublePrint, double.class, null, CEILING));
+        assertEquals(
+                Math.nextUp(1234567890123456.75),
+                SemanticCoherenceAdjuster.moneyValueFor(aboveDoublePrint, Double.class, null, CEILING));
+        assertEquals(
+                1234567890123456.75,
+                SemanticCoherenceAdjuster.moneyValueFor(aboveDoublePrint, Double.class, null, FLOOR));
+        // An amount too large for the type, or one that rounding up would take past its largest value, has none.
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("1E40"), float.class, null, FLOOR));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(new BigDecimal("1E400"), double.class, null, FLOOR));
+        BigDecimal pastLargestFloat = new BigDecimal("3.40282351E38");
+        assertEquals(
+                Float.MAX_VALUE, SemanticCoherenceAdjuster.moneyValueFor(pastLargestFloat, float.class, null, FLOOR));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(pastLargestFloat, float.class, null, CEILING));
+        BigDecimal pastLargestDouble = new BigDecimal("1.79769313486231575E308");
+        assertEquals(
+                Double.MAX_VALUE,
+                SemanticCoherenceAdjuster.moneyValueFor(pastLargestDouble, double.class, null, FLOOR));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(pastLargestDouble, double.class, null, CEILING));
+        assertNull(SemanticCoherenceAdjuster.moneyValueFor(amount, LocalDate.class, "USD", FLOOR));
+
+        // Assigning returns the amount the slot then holds, and nothing is written without a slot, an amount or a type.
+        ManualMoneyHolder heldMoney = new ManualMoneyHolder();
+        assertEquals(
+                new BigDecimal("12.34"),
+                SemanticCoherenceAdjuster.assignMoney(rawSlot(heldMoney, "price"), amount, "USD", FLOOR));
+        assertEquals(new BigDecimal("12.34"), heldMoney.price);
+        assertEquals(
+                new BigDecimal("1.00"),
+                SemanticCoherenceAdjuster.assignMoney(null, new BigDecimal("1.00"), "USD", FLOOR));
 
         ManualMoneyHolder nullMoneyHolder = new ManualMoneyHolder();
         SemanticCoherenceAdjuster.Slot priceSlot = rawSlot(nullMoneyHolder, "price");
-        assertNull(SemanticCoherenceAdjuster.assignMoney(priceSlot, null, "USD"));
+        assertNull(SemanticCoherenceAdjuster.assignMoney(priceSlot, null, "USD", FLOOR));
 
         UnsupportedMoneyTarget unsupportedMoneyTarget = new UnsupportedMoneyTarget();
         SemanticCoherenceAdjuster.Slot unsupportedSlot = rawSlot(unsupportedMoneyTarget, "value");
         assertEquals(
                 new BigDecimal("2.00"),
-                SemanticCoherenceAdjuster.assignMoney(unsupportedSlot, new BigDecimal("2.00"), "USD"));
+                SemanticCoherenceAdjuster.assignMoney(unsupportedSlot, new BigDecimal("2.00"), "USD", FLOOR));
         assertNull(unsupportedMoneyTarget.value);
 
         SemanticCoherenceAdjuster adjuster =
                 new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
         ManualStringMoneyHolder stringHolder = new ManualStringMoneyHolder();
         SemanticCoherenceAdjuster.Slot stringPriceSlot = rawSlot(stringHolder, "price");
-        assertFalse((Boolean) adjuster.shouldFormatMoneyString(new BigDecimal("1.00"), null, true));
-        assertFalse((Boolean) adjuster.shouldFormatMoneyString(null, stringPriceSlot, true));
+        assertFalse((Boolean) adjuster.shouldFormatMoneyString(new BigDecimal("1.00"), null, true, "USD"));
+        assertFalse((Boolean) adjuster.shouldFormatMoneyString(null, stringPriceSlot, true, "USD"));
         assertFalse((Boolean) adjuster.shouldFormatMoneyString(
-                new BigDecimal("1.00"), rawSlot(new ManualMoneyHolder(), "price"), true));
+                new BigDecimal("1.00"), rawSlot(new ManualMoneyHolder(), "price"), true, "USD"));
 
         assertFalse((Boolean) SemanticCoherenceAdjuster.isLessThan(new BigDecimal("1.00"), null));
     }
@@ -1053,8 +1136,10 @@ class SemanticCoherenceAdjusterTest {
     }
 
     @Test
-    @DisplayName("relaxed mode protects annotated and validated fields while strict mode does not")
-    void relaxedModeProtectsAnnotatedAndValidatedFieldsWhileStrictModeDoesNot() throws Exception {
+    @DisplayName(
+            "relaxed mode protects annotated and validated fields, and strict mode overwrites them within their constraints")
+    void relaxedModeProtectsAnnotatedAndValidatedFieldsAndStrictModeOverwritesThemWithinTheirConstraints()
+            throws Exception {
         ProtectedSemanticHolder relaxed = new ProtectedSemanticHolder();
         relaxed.firstName = "Ada";
         relaxed.lastName = "Lovelace";
@@ -1081,8 +1166,345 @@ class SemanticCoherenceAdjusterTest {
                 new UniqueFieldTracker());
         strictAdjuster.adjustInstance(
                 ProtectedSemanticHolder.class, strict, declaredFields(ProtectedSemanticHolder.class), true);
-        assertEquals("Ada Lovelace", strict.fullName);
+        // "Ada Lovelace" breaks @Size(min = 3, max = 3), so the full name keeps the value that met it.
+        assertEquals("RAW", strict.fullName);
         assertEquals("ada.lovelace@example.com", strict.email);
+    }
+
+    @Test
+    @DisplayName("in strict mode a derived string is written only where the field's own constraints allow it")
+    void strictDerivedStringIsWrittenOnlyWhereItsConstraintsAllowIt() throws Exception {
+        ConstrainedContact contact = new ConstrainedContact();
+        contact.firstName = "Ada";
+        contact.lastName = "Lovelace";
+        contact.fullName = "RAW";
+        contact.email = "a@b.test";
+        contact.domain = "x.test";
+        contact.url = "https://x";
+        contact.companyName = "Acme";
+        contact.companyEmail = "c@x.test";
+        contact.companyUrl = "https://y";
+
+        strictAdjuster()
+                .adjustInstance(ConstrainedContact.class, contact, declaredFields(ConstrainedContact.class), true);
+
+        // "Ada Lovelace" fits @Size(max = 20), and the domain keeps its own value, which fits too.
+        assertEquals("Ada Lovelace", contact.fullName);
+        assertEquals("x.test", contact.domain);
+        // "ada.lovelace@x.test", "hello@x.test" and "https://www.x.test" are each too long for their fields.
+        assertEquals("a@b.test", contact.email);
+        assertEquals("c@x.test", contact.companyEmail);
+        assertEquals("https://x", contact.url);
+        assertEquals("https://y", contact.companyUrl);
+    }
+
+    @Test
+    @DisplayName(
+            "in strict mode a domain that its constraints keep from the derived one stays, and its siblings use that one")
+    void strictDomainThatItsConstraintsKeepFromTheDerivedOneStays() throws Exception {
+        // The domain's own value, read as acme.test, would no longer match its pattern.
+        PatternedDomain patterned = new PatternedDomain();
+        patterned.domain = "WWW.ACME.TEST";
+        patterned.url = "https://x";
+        strictAdjuster().adjustInstance(PatternedDomain.class, patterned, declaredFields(PatternedDomain.class), true);
+        assertEquals("WWW.ACME.TEST", patterned.domain);
+        assertEquals("https://www.acme.test", patterned.url);
+
+        // The domain the email gives is too long for the field, which keeps its own value.
+        ShortDomain shortDomain = new ShortDomain();
+        shortDomain.email = "a@example.com";
+        shortDomain.domain = "abc";
+        strictAdjuster().adjustInstance(ShortDomain.class, shortDomain, declaredFields(ShortDomain.class), true);
+        assertEquals("abc", shortDomain.domain);
+        assertEquals("a@example.com", shortDomain.email);
+    }
+
+    @Test
+    @DisplayName("in strict mode a bounded amount keeps its value, and price follows it down")
+    void strictBoundedAmountKeepsItsValueAndPriceFollowsIt() throws Exception {
+        ConstrainedMoney money = new ConstrainedMoney();
+        money.price = new BigDecimal("500.00");
+        money.amount = new BigDecimal("50.00");
+        money.balance = new BigDecimal("70.00");
+        strictAdjuster().adjustInstance(ConstrainedMoney.class, money, declaredFields(ConstrainedMoney.class), true);
+        // 500.00 breaks the amount's @Max(100), so the price moves down to the amount instead.
+        assertEquals(new BigDecimal("50.00"), money.price);
+        assertEquals(new BigDecimal("50.00"), money.amount);
+        assertEquals(new BigDecimal("70.00"), money.balance);
+
+        // A balance capped below the amount keeps its value, and the amount follows it down.
+        CappedBalance capped = new CappedBalance();
+        capped.price = new BigDecimal("20.00");
+        capped.amount = new BigDecimal("90.00");
+        capped.balance = new BigDecimal("60.00");
+        strictAdjuster().adjustInstance(CappedBalance.class, capped, declaredFields(CappedBalance.class), true);
+        assertEquals(new BigDecimal("60.00"), capped.amount);
+        assertEquals(new BigDecimal("60.00"), capped.balance);
+        assertEquals(new BigDecimal("20.00"), capped.price);
+
+        // A price above the amount it came down to follows it down too, where its own constraints allow that.
+        CappedBalance above = new CappedBalance();
+        above.price = new BigDecimal("80.00");
+        above.amount = new BigDecimal("90.00");
+        above.balance = new BigDecimal("60.00");
+        strictAdjuster().adjustInstance(CappedBalance.class, above, declaredFields(CappedBalance.class), true);
+        assertEquals(new BigDecimal("60.00"), above.price);
+        assertEquals(new BigDecimal("60.00"), above.amount);
+        assertEquals(new BigDecimal("60.00"), above.balance);
+        FlooredPrice floored = new FlooredPrice();
+        floored.price = new BigDecimal("80.00");
+        floored.amount = new BigDecimal("90.00");
+        floored.balance = new BigDecimal("60.00");
+        strictAdjuster().adjustInstance(FlooredPrice.class, floored, declaredFields(FlooredPrice.class), true);
+        assertEquals(new BigDecimal("80.00"), floored.price);
+        assertEquals(new BigDecimal("60.00"), floored.amount);
+
+        // A float of 0.10 is 0.1f, which Hibernate Validator reads as 0.10000000149, above @DecimalMax("0.1").
+        FloatAmount floatAmount = new FloatAmount();
+        floatAmount.price = new BigDecimal("0.10");
+        floatAmount.amount = 0.05f;
+        strictAdjuster().adjustInstance(FloatAmount.class, floatAmount, declaredFields(FloatAmount.class), true);
+        assertEquals(0.05f, floatAmount.amount);
+        assertEquals(new BigDecimal("0.05"), floatAmount.price);
+
+        // 1E40 is too large for a float, so the amount does not take it, and the price follows the amount down.
+        FloatAmount infinite = new FloatAmount();
+        infinite.price = new BigDecimal("1E40");
+        infinite.amount = 0.05f;
+        strictAdjuster().adjustInstance(FloatAmount.class, infinite, declaredFields(FloatAmount.class), true);
+        assertEquals(0.05f, infinite.amount);
+        assertEquals(new BigDecimal("0.05"), infinite.price);
+
+        // @Max(16777219) is 16777220f to Hibernate Validator, so a float balance can take 16777220.
+        LargeFloatBalance large = new LargeFloatBalance();
+        large.amount = new BigDecimal("16777220.00");
+        large.balance = 0f;
+        strictAdjuster().adjustInstance(LargeFloatBalance.class, large, declaredFields(LargeFloatBalance.class), true);
+        assertEquals(16_777_220f, large.balance);
+        assertEquals(new BigDecimal("16777220.00"), large.amount);
+
+        // A price that the amount would break is not backfilled from it.
+        CappedPrice backfill = new CappedPrice();
+        backfill.amount = new BigDecimal("50.00");
+        strictAdjuster().adjustInstance(CappedPrice.class, backfill, declaredFields(CappedPrice.class), true);
+        assertNull(backfill.price);
+
+        // A price string that its pattern keeps from the currency code stays as it is.
+        PatternedPrice patterned = new PatternedPrice();
+        patterned.price = "12.34";
+        patterned.currency = "EUR";
+        strictAdjuster().adjustInstance(PatternedPrice.class, patterned, declaredFields(PatternedPrice.class), true);
+        assertEquals("12.34", patterned.price);
+    }
+
+    @Test
+    @DisplayName("an amount rounded into a field keeps price at or below amount at or below balance")
+    void amountRoundedIntoAFieldKeepsPriceAtOrBelowAmountAtOrBelowBalance() throws Exception {
+        // The amount comes down to a capped balance of 59.60, and an int price follows it down to 59, not up to 60.
+        SemanticCoherenceAdjuster relaxed =
+                new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker());
+        for (SemanticCoherenceAdjuster adjuster : List.of(relaxed, strictAdjuster())) {
+            IntPriceCappedBalance down = new IntPriceCappedBalance();
+            down.price = 80;
+            down.amount = new BigDecimal("90.00");
+            down.balance = new BigDecimal("59.60");
+            adjuster.adjustInstance(
+                    IntPriceCappedBalance.class, down, declaredFields(IntPriceCappedBalance.class), true);
+            assertEquals(59, down.price);
+            assertEquals(new BigDecimal("59.60"), down.amount);
+            assertEquals(new BigDecimal("59.60"), down.balance);
+
+            // Cents round the same way: a price under an amount capped at 59.6064 is 59.60, not 59.61.
+            ConstrainedMoney cents = new ConstrainedMoney();
+            cents.price = new BigDecimal("500.00");
+            cents.amount = new BigDecimal("59.6064");
+            cents.balance = new BigDecimal("70.00");
+            adjuster.adjustInstance(ConstrainedMoney.class, cents, declaredFields(ConstrainedMoney.class), true);
+            assertEquals(new BigDecimal("59.60"), cents.price);
+            assertEquals(new BigDecimal("59.6064"), cents.amount);
+        }
+        SemanticCoherenceAdjuster strict = strictAdjuster();
+
+        // An int amount that comes down to that balance is 59, and an int price above a capped amount of 59.60 is 59.
+        IntAmountCappedBalance cappedBalance = new IntAmountCappedBalance();
+        cappedBalance.price = new BigDecimal("20.00");
+        cappedBalance.amount = 90;
+        cappedBalance.balance = new BigDecimal("59.60");
+        strict.adjustInstance(
+                IntAmountCappedBalance.class, cappedBalance, declaredFields(IntAmountCappedBalance.class), true);
+        assertEquals(59, cappedBalance.amount);
+        assertEquals(new BigDecimal("20.00"), cappedBalance.price);
+        IntPriceCappedAmount cappedAmount = new IntPriceCappedAmount();
+        cappedAmount.price = 80;
+        cappedAmount.amount = new BigDecimal("59.60");
+        strict.adjustInstance(
+                IntPriceCappedAmount.class, cappedAmount, declaredFields(IntPriceCappedAmount.class), true);
+        assertEquals(59, cappedAmount.price);
+
+        // An int amount that rises to a price of 59.40 is 60, not 59, and so is an int balance above that amount.
+        IntAmount risen = new IntAmount();
+        risen.price = new BigDecimal("59.40");
+        strict.adjustInstance(IntAmount.class, risen, declaredFields(IntAmount.class), true);
+        assertEquals(60, risen.amount);
+        IntBalance balance = new IntBalance();
+        balance.amount = new BigDecimal("59.40");
+        strict.adjustInstance(IntBalance.class, balance, declaredFields(IntBalance.class), true);
+        assertEquals(60, balance.balance);
+
+        // A missing integer sibling is derived on its own side: a price of 59 under 59.60, an amount or a balance of
+        // 60 over 59.40.
+        BoxedPrice boxedPrice = new BoxedPrice();
+        boxedPrice.amount = new BigDecimal("59.60");
+        strict.adjustInstance(BoxedPrice.class, boxedPrice, declaredFields(BoxedPrice.class), true);
+        assertEquals(59, boxedPrice.price);
+        BoxedAmount boxedAmount = new BoxedAmount();
+        boxedAmount.price = new BigDecimal("59.40");
+        strict.adjustInstance(BoxedAmount.class, boxedAmount, declaredFields(BoxedAmount.class), true);
+        assertEquals(60L, boxedAmount.amount);
+        BoxedBalance boxedBalance = new BoxedBalance();
+        boxedBalance.amount = new BigDecimal("59.40");
+        strict.adjustInstance(BoxedBalance.class, boxedBalance, declaredFields(BoxedBalance.class), true);
+        assertEquals(60, boxedBalance.balance);
+
+        // An amount that rises to a price of 59.6036 is 59.61, not 59.60, and the balance derived below it follows.
+        ManualMoneyHolder over = new ManualMoneyHolder();
+        over.price = new BigDecimal("59.6036");
+        over.amount = new BigDecimal("10.00");
+        strict.adjustInstance(ManualMoneyHolder.class, over, declaredFields(ManualMoneyHolder.class), true);
+        assertEquals(new BigDecimal("59.6036"), over.price);
+        assertEquals(new BigDecimal("59.61"), over.amount);
+        assertEquals(new BigDecimal("59.61"), over.balance);
+
+        // A byte cannot hold a price of 300, so the price comes down to the byte rather than the byte wrap to 44.
+        ByteAmount bytes = new ByteAmount();
+        bytes.price = new BigDecimal("300.00");
+        bytes.amount = 20;
+        strict.adjustInstance(ByteAmount.class, bytes, declaredFields(ByteAmount.class), true);
+        assertEquals((byte) 20, bytes.amount);
+        assertEquals(new BigDecimal("20.00"), bytes.price);
+
+        // A float cannot hold 1E40, so it keeps its value rather than turn infinite.
+        UnboundedFloatAmount infinite = new UnboundedFloatAmount();
+        infinite.price = new BigDecimal("1E40");
+        infinite.amount = 0.05f;
+        strict.adjustInstance(UnboundedFloatAmount.class, infinite, declaredFields(UnboundedFloatAmount.class), true);
+        assertEquals(0.05f, infinite.amount);
+        assertEquals(new BigDecimal("0.05"), infinite.price);
+
+        // A float reads as it prints. The float nearest 1234567.91 prints as 1234567.9, so an amount that rises to that
+        // price is the next float up, and the float nearest 1234567.89 also prints as 1234567.9, so a price that comes
+        // down to that amount is the next float down.
+        UnboundedFloatAmount floatAmount = new UnboundedFloatAmount();
+        floatAmount.price = new BigDecimal("1234567.91");
+        strict.adjustInstance(
+                UnboundedFloatAmount.class, floatAmount, declaredFields(UnboundedFloatAmount.class), true);
+        assertEquals("1234568.0", Float.toString(floatAmount.amount));
+        FloatPriceCappedAmount floatPrice = new FloatPriceCappedAmount();
+        floatPrice.price = 2_000_000f;
+        floatPrice.amount = new BigDecimal("1234567.89");
+        strict.adjustInstance(
+                FloatPriceCappedAmount.class, floatPrice, declaredFields(FloatPriceCappedAmount.class), true);
+        assertEquals("1234567.8", Float.toString(floatPrice.price));
+
+        // A price string keeps its own digits when it takes the currency code, and so stays below the amount.
+        StringPriceHolder string = new StringPriceHolder();
+        string.currency = "usd";
+        string.price = "12.345";
+        string.amount = new BigDecimal("12.346");
+        strict.adjustInstance(StringPriceHolder.class, string, declaredFields(StringPriceHolder.class), true);
+        assertEquals("USD 12.345", string.price);
+    }
+
+    @Test
+    @DisplayName(
+            "in strict mode a status or an active flag keeps a value its constraints require, and the other follows")
+    void strictStatusOrActiveFlagKeepsAValueItsConstraintsRequire() throws Exception {
+        // "INACTIVE" is too long for @Size(max = 6), so the status stays, and the flag follows it.
+        ConstrainedStatus status = new ConstrainedStatus();
+        status.active = false;
+        status.status = "ACTIVE";
+        strictAdjuster().adjustInstance(ConstrainedStatus.class, status, declaredFields(ConstrainedStatus.class), true);
+        assertEquals("ACTIVE", status.status);
+        assertTrue(status.active);
+
+        // An @AssertTrue flag cannot follow a status pinned at SUSPENDED, so both keep their values.
+        AssertedActive asserted = new AssertedActive();
+        asserted.active = true;
+        asserted.status = "SUSPENDED";
+        new SemanticCoherenceAdjuster(
+                        ObjectGeneratorConfig.builder()
+                                .semanticMode(ObjectGenerationSemanticMode.STRICT)
+                                .override(AssertedActive.class, "status", () -> "SUSPENDED")
+                                .build(),
+                        new UniqueFieldTracker())
+                .adjustInstance(AssertedActive.class, asserted, declaredFields(AssertedActive.class), true);
+        assertTrue(asserted.active);
+        assertEquals("SUSPENDED", asserted.status);
+    }
+
+    @Test
+    @DisplayName("in strict mode a unique derived string that numbering takes past its constraints is not written")
+    void strictUniqueDerivedStringNumberedPastItsConstraintsIsNotWritten() throws Exception {
+        UniqueFieldTracker tracker = new UniqueFieldTracker();
+        SemanticCoherenceAdjuster adjuster = new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .generatorConfig(GeneratorConfig.builder()
+                                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                                .objectUniqueField("email")
+                                .objectUniquenessMaxAttempts(3)
+                                .build())
+                        .build(),
+                tracker);
+        // "alice.smith@example.com" has the 23 characters that @Size(max = 23) allows, and its numbered form has 24.
+        ExactLengthEmail first = new ExactLengthEmail();
+        first.firstName = "Alice";
+        first.lastName = "Smith";
+        first.email = "first@example.com";
+        adjuster.adjustInstance(ExactLengthEmail.class, first, declaredFields(ExactLengthEmail.class), true);
+        assertEquals("alice.smith@example.com", first.email);
+
+        // Each numbered form it rejects is given back, so that three attempts serve any number of objects.
+        String fieldKey = UniqueFieldTracker.fieldKey(ExactLengthEmail.class, "email");
+        for (int i = 0; i < 6; i++) {
+            ExactLengthEmail next = new ExactLengthEmail();
+            next.firstName = "Alice";
+            next.lastName = "Smith";
+            next.email = "object" + i + "@example.com";
+            adjuster.adjustInstance(ExactLengthEmail.class, next, declaredFields(ExactLengthEmail.class), true);
+            assertEquals("object" + i + "@example.com", next.email);
+        }
+        assertEquals(
+                "alice.smith1@example.com",
+                tracker.nextUnique(fieldKey, () -> "alice.smith1@example.com", 1),
+                "a rejected numbered form is still reserved");
+    }
+
+    @Test
+    @DisplayName(
+            "relaxed mode leaves a @Fake field alone, as it does @Randomizer and @FakeRange, and strict mode does not")
+    void relaxedModeLeavesAFakeFieldAlone() throws Exception {
+        FakeNamedHolder relaxed = new FakeNamedHolder();
+        relaxed.firstName = "Ada";
+        relaxed.lastName = "Lovelace";
+        relaxed.fullName = "Grace Hopper";
+        new SemanticCoherenceAdjuster(defaultObjectConfig(), new UniqueFieldTracker())
+                .adjustInstance(FakeNamedHolder.class, relaxed, declaredFields(FakeNamedHolder.class), true);
+        assertEquals("Grace Hopper", relaxed.fullName);
+
+        FakeNamedHolder strict = new FakeNamedHolder();
+        strict.firstName = "Ada";
+        strict.lastName = "Lovelace";
+        strict.fullName = "Grace Hopper";
+        strictAdjuster().adjustInstance(FakeNamedHolder.class, strict, declaredFields(FakeNamedHolder.class), true);
+        assertEquals("Ada Lovelace", strict.fullName);
+    }
+
+    private static SemanticCoherenceAdjuster strictAdjuster() {
+        return new SemanticCoherenceAdjuster(
+                ObjectGeneratorConfig.builder()
+                        .semanticMode(ObjectGenerationSemanticMode.STRICT)
+                        .build(),
+                new UniqueFieldTracker());
     }
 
     @Test
@@ -1985,6 +2407,204 @@ class SemanticCoherenceAdjusterTest {
 
         @Randomizer(AnnotatedValueGenerator.class)
         String email;
+    }
+
+    static class ConstrainedContact {
+
+        String firstName;
+        String lastName;
+
+        @Size(max = 20) String fullName;
+
+        @Size(max = 12) String email;
+
+        @Size(max = 10) String domain;
+
+        @Size(max = 10) String url;
+
+        String companyName;
+
+        @Size(max = 10) String companyEmail;
+
+        @Size(max = 10) String companyUrl;
+    }
+
+    static class PatternedDomain {
+
+        @Pattern(regexp = "WWW\\.[A-Z]+\\.TEST") String domain;
+
+        String url;
+    }
+
+    static class ShortDomain {
+
+        String email;
+
+        @Size(max = 5) String domain;
+    }
+
+    static class ConstrainedMoney {
+
+        BigDecimal price;
+
+        @Max(100) BigDecimal amount;
+
+        BigDecimal balance;
+    }
+
+    static class CappedBalance {
+
+        BigDecimal price;
+        BigDecimal amount;
+
+        @Max(60) BigDecimal balance;
+    }
+
+    static class CappedPrice {
+
+        @Max(10) BigDecimal price;
+
+        BigDecimal amount;
+    }
+
+    static class FlooredPrice {
+
+        @Min(70) BigDecimal price;
+
+        BigDecimal amount;
+
+        @Max(60) BigDecimal balance;
+    }
+
+    static class FloatAmount {
+
+        BigDecimal price;
+
+        @DecimalMax("0.1") float amount;
+    }
+
+    static class LargeFloatBalance {
+
+        BigDecimal amount;
+
+        @Max(16_777_219) float balance;
+    }
+
+    static class PatternedPrice {
+
+        @Pattern(regexp = "\\d+\\.\\d{2}") String price;
+
+        String currency;
+    }
+
+    static class IntPriceCappedBalance {
+
+        int price;
+        BigDecimal amount;
+
+        @Max(60) BigDecimal balance;
+    }
+
+    static class IntAmountCappedBalance {
+
+        BigDecimal price;
+        int amount;
+
+        @Max(60) BigDecimal balance;
+    }
+
+    static class IntPriceCappedAmount {
+
+        int price;
+
+        @Max(60) BigDecimal amount;
+    }
+
+    static class IntAmount {
+
+        BigDecimal price;
+        int amount;
+    }
+
+    static class IntBalance {
+
+        BigDecimal amount;
+        int balance;
+    }
+
+    static class BoxedPrice {
+
+        Integer price;
+        BigDecimal amount;
+    }
+
+    static class BoxedAmount {
+
+        BigDecimal price;
+        Long amount;
+    }
+
+    static class BoxedBalance {
+
+        BigDecimal amount;
+        Integer balance;
+    }
+
+    static class ByteAmount {
+
+        BigDecimal price;
+        byte amount;
+    }
+
+    static class UnboundedFloatAmount {
+
+        BigDecimal price;
+        float amount;
+    }
+
+    static class FloatPriceCappedAmount {
+
+        float price;
+
+        @Max(1_300_000) BigDecimal amount;
+    }
+
+    static class StringPriceHolder {
+
+        String currency;
+        String price;
+        BigDecimal amount;
+    }
+
+    static class ConstrainedStatus {
+
+        boolean active;
+
+        @Size(max = 6) String status;
+    }
+
+    static class AssertedActive {
+
+        @AssertTrue boolean active;
+
+        String status;
+    }
+
+    static class ExactLengthEmail {
+
+        String firstName;
+        String lastName;
+
+        @Size(max = 23) String email;
+    }
+
+    static class FakeNamedHolder {
+
+        String firstName;
+        String lastName;
+
+        @Fake("fullName")
+        String fullName;
     }
 
     record ManualRecord(String firstName, String lastName, String fullName) {}

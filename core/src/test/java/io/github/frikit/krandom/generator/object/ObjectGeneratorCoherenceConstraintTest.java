@@ -15,6 +15,7 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Max;
@@ -24,6 +25,9 @@ import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -41,6 +45,7 @@ import java.util.stream.Collectors;
 import org.hibernate.validator.HibernateValidator;
 import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -295,6 +300,89 @@ class ObjectGeneratorCoherenceConstraintTest {
             UnreachableSqlDateBirthDate sqlDate = assertDoesNotThrow(sqlDates::generate);
             assertValid(sqlDate);
             assertTrue(sqlDate.birthDate().getTime() < tenYearsAhead.toEpochMilli(), sqlDate.toString());
+        }
+    }
+
+    record ShortEmail(
+            String firstName,
+            String lastName,
+            @Size(max = 12) String email) {}
+
+    record FixedFullName(
+            String firstName,
+            String lastName,
+            @Size(min = 3, max = 3) String fullName) {}
+
+    record ShortStatus(boolean active, @Size(max = 6) String status) {}
+
+    record ShortCity(String streetAddress, @Size(max = 5) String city, String postalCode) {}
+
+    record ShortUrl(String domain, @Size(max = 10) String url) {}
+
+    record CappedAmount(
+            BigDecimal price, @PositiveOrZero @Max(100) BigDecimal amount) {}
+
+    record IntPriceCappedBalance(
+            int price,
+            BigDecimal amount,
+            @PositiveOrZero @Max(60) BigDecimal balance) {}
+
+    record AssertedActive(@AssertTrue boolean active, String status) {}
+
+    record FakeFullName(
+            String firstName,
+            String lastName,
+            @Fake("fullName") String fullName) {}
+
+    @ParameterizedTest(name = "{0}")
+    @EnumSource(
+            value = ObjectGenerationSemanticMode.class,
+            names = {"RELAXED", "STRICT"})
+    @DisplayName("a derived string, amount or status keeps to the field's own constraints")
+    void derivedStringAmountOrStatusKeepsToTheFieldsOwnConstraints(ObjectGenerationSemanticMode mode) {
+        GeneratorConfig config = config(mode);
+        ObjectGenerator<ShortEmail> emails = new ObjectGenerator<>(ShortEmail.class, config);
+        ObjectGenerator<FixedFullName> fullNames = new ObjectGenerator<>(FixedFullName.class, config);
+        ObjectGenerator<ShortStatus> statuses = new ObjectGenerator<>(ShortStatus.class, config);
+        ObjectGenerator<ShortCity> cities = new ObjectGenerator<>(ShortCity.class, config);
+        ObjectGenerator<ShortUrl> urls = new ObjectGenerator<>(ShortUrl.class, config);
+        ObjectGenerator<CappedAmount> amounts = new ObjectGenerator<>(CappedAmount.class, config);
+        ObjectGenerator<IntPriceCappedBalance> balances = new ObjectGenerator<>(IntPriceCappedBalance.class, config);
+        // A status held at SUSPENDED would take an @AssertTrue flag to false.
+        ObjectGenerator<AssertedActive> actives = new ObjectGenerator<>(
+                AssertedActive.class,
+                ObjectGeneratorConfig.builder()
+                        .generatorConfig(config)
+                        .override(AssertedActive.class, "status", () -> "SUSPENDED")
+                        .build());
+
+        for (int i = 0; i < SAMPLES; i++) {
+            assertValid(emails.generate());
+            assertValid(fullNames.generate());
+            assertValid(statuses.generate());
+            assertValid(cities.generate());
+            assertValid(urls.generate());
+            assertValid(actives.generate());
+            // A price above what the amount allows follows the amount down instead, and stays at or below it.
+            CappedAmount amount = amounts.generate();
+            assertValid(amount);
+            assertFalse(amount.amount().compareTo(amount.price()) < 0, amount.toString());
+            // An int price that follows an amount down to a capped balance is rounded down, not up past it.
+            IntPriceCappedBalance balance = balances.generate();
+            assertValid(balance);
+            assertFalse(balance.amount().compareTo(BigDecimal.valueOf(balance.price())) < 0, balance.toString());
+            assertFalse(balance.balance().compareTo(balance.amount()) < 0, balance.toString());
+        }
+    }
+
+    @Test
+    @DisplayName("in relaxed mode a @Fake field keeps the value its provider gives")
+    void relaxedFakeFieldKeepsTheValueItsProviderGives() {
+        ObjectGenerator<FakeFullName> generator =
+                new ObjectGenerator<>(FakeFullName.class, config(ObjectGenerationSemanticMode.RELAXED));
+        for (int i = 0; i < SAMPLES; i++) {
+            FakeFullName value = generator.generate();
+            assertFalse(value.fullName().equals(value.firstName() + " " + value.lastName()), value.toString());
         }
     }
 
