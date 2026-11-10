@@ -41,7 +41,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     keys, and leaves out members that an override, an exclusion, a `@Randomizer`, a kept initializer or
     `@Null` decides, including an element's `@Null` as in `List<@Null Purchase>`, the elements of a
     collection whose configured size within its `@Size` allows none, and members that an
-    `objectNullProbability` or `objectOptionalEmptyProbability` of 1 always leaves absent. In `generate()`, a
+    `objectNullProbability` or `objectOptionalEmptyProbability` of 1 always leaves absent. A type override
+    for the root or for an `objectSubtype` implementation ends the walk, and a path through the root's
+    constructor holds for `generate()` only, because `populate(existing)` builds no root. In `generate()`, a
     root rule that fills a constructor argument of its name is not shadowed by a contextual predicate
     override, which reaches fields only; in `populate(existing)`, which fills the field, it is. A dependent
     rule applies at its own path only. A string path that matches two fields still fails at registration.

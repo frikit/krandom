@@ -716,6 +716,53 @@ class ObjectFakerStrictDiagnosticsTest {
     }
 
     @Test
+    @DisplayName("a route through the root's constructor holds for generate() only")
+    void constructorRoutesHoldForGenerateOnly() {
+        ObjectFaker<ConstructedRoot> faker = new ObjectFaker<>(ConstructedRoot.class)
+                .ruleFor("id", () -> "x")
+                .strict();
+
+        FixtureRuleException generating = assertThrows(FixtureRuleException.class, faker::generate);
+        assertProblem(generating.getProblems().getFirst(), Category.AMBIGUOUS, FixtureRuleKind.RULE, "id", 1);
+        assertTrue(generating.getProblems().getFirst().reason().endsWith("applies at 'purchase.id'"));
+        assertEquals("x", faker.populate(new ConstructedRoot(null)).id);
+    }
+
+    @Test
+    @DisplayName("a type override for the root or for a mapped implementation ends the walk")
+    void typeOverridesEndTheWalk() {
+        GeneratorConfig mappedFactory = GeneratorConfig.builder()
+                .objectSubtype(Payment.class, CardPayment.class)
+                .objectOverride(CardPayment.class, CardPayment::new)
+                .build();
+        GeneratorConfig mappedRootFactory = GeneratorConfig.builder()
+                .objectSubtype(Vehicle.class, Car.class)
+                .objectOverride(Car.class, Car::new)
+                .build();
+        GeneratorConfig rootFactory = GeneratorConfig.builder()
+                .objectMaxDepth(1)
+                .objectOverride(Shop.class, Shop::new)
+                .build();
+
+        assertEquals(List.of(), problemsOf(new ObjectFaker<>(PaidOrder.class, mappedFactory).ruleFor("id", () -> "x")));
+        assertEquals(
+                List.of(), problemsOf(new ObjectFaker<>(Vehicle.class, mappedRootFactory).ruleFor("plate", () -> "x")));
+        assertEquals(List.of(), problemsOf(new ObjectFaker<>(Shop.class, rootFactory).ignore("client.location.city")));
+    }
+
+    @Test
+    @DisplayName("a collection with only a @Size is null under objectNullProbability(1.0), as generation leaves it")
+    void sizedCollectionIsNullUnderFullNullProbability() {
+        GeneratorConfig absent =
+                GeneratorConfig.builder().objectNullProbability(1.0).build();
+
+        assertEquals(List.of(), problemsOf(new ObjectFaker<>(SizedList.class, absent).ruleFor("id", () -> "x")));
+        assertTrue(onlyProblem(new ObjectFaker<>(SizedList.class).ruleFor("id", () -> "x"))
+                .reason()
+                .endsWith("applies at 'purchases[].id'"));
+    }
+
+    @Test
     @DisplayName("an ignore that generate() never gives a value is no problem for populate(existing)")
     void ignoreWithoutGeneratedValueStillAppliesToPopulate() {
         ObjectFaker<Shop> faker = new ObjectFaker<>(
@@ -1107,11 +1154,25 @@ class ObjectFakerStrictDiagnosticsTest {
 
     record NamedRecord(String name) {}
 
+    static final class ConstructedRoot extends BaseEntity {
+        final Purchase purchase;
+
+        ConstructedRoot(Purchase purchase) {
+            this.purchase = purchase;
+        }
+    }
+
+    static final class SizedList extends BaseEntity {
+        @Size(max = 2) List<Purchase> purchases;
+    }
+
     static final class EmptyByConstraint extends BaseEntity {
         @Size(max = 0) List<Purchase> purchases;
     }
 
     static final class OptionalPurchaseHolder extends BaseEntity {
+        @Size(max = 5) String code;
+
         int count;
         Optional<Purchase> maybe;
 

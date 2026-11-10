@@ -378,6 +378,10 @@ final class FixtureRuleAnalysis {
      * initializer may produce it, or generation reaches it within {@code objectMaxDepth}.
      */
     private @Nullable String whyAlwaysEmpty(List<RuleTarget> segments) {
+        if (typeOverridden(rootType)) {
+            // The type override that builds the root may supply any object below it.
+            return null;
+        }
         int leaf = segments.size() - 1;
         @Nullable Class<?> owner = SealedTypes.isAbstract(rootType) ? null : rootType;
         for (int index = 0; index <= leaf; index++) {
@@ -512,18 +516,30 @@ final class FixtureRuleAnalysis {
         if (subjects.isEmpty()) {
             return;
         }
-        new RouteWalk(subjects, installedKeys, fakerExcluded).visitRoot();
+        new RouteWalk(subjects, installedKeys, fakerExcluded, false).visitRoot();
+        new RouteWalk(subjects, installedKeys, fakerExcluded, true).visitRoot();
         for (Subject subject : subjects) {
-            if (!subject.routes.isEmpty()) {
-                String scope = subject.rule.kind() == FixtureRuleKind.INCLUDE
-                        ? "include mode leaves out " + memberName(subject.target)
-                        : "ObjectFaker installs it for " + memberName(subject.target);
-                report(
-                        Category.AMBIGUOUS,
-                        subject.rule,
-                        scope + " wherever generation reaches that member, so it also applies at "
-                                + listed(subject.routes));
+            String installed = subject.rule.kind() == FixtureRuleKind.INCLUDE
+                    ? "include mode leaves out " + memberName(subject.target)
+                    : "ObjectFaker installs it for " + memberName(subject.target);
+            if (subject.generateRoutes.equals(subject.populateRoutes)) {
+                routeLeak(subject, installed, subject.generateRoutes, Scope.ALWAYS);
+            } else {
+                routeLeak(subject, installed, subject.generateRoutes, Scope.GENERATE);
+                routeLeak(subject, installed, subject.populateRoutes, Scope.POPULATE);
             }
+        }
+    }
+
+    private void routeLeak(Subject subject, String installed, Set<String> routes, Scope scope) {
+        if (!routes.isEmpty()) {
+            findings.add(new Finding(
+                    new FixtureRuleProblem(
+                            Category.AMBIGUOUS,
+                            subject.rule,
+                            installed + " wherever generation reaches that member, so it also applies at "
+                                    + listed(routes)),
+                    scope));
         }
     }
 
@@ -548,7 +564,8 @@ final class FixtureRuleAnalysis {
 
         private final FixtureRule rule;
         private final RuleTarget target;
-        private final Set<String> routes = new LinkedHashSet<>();
+        private final Set<String> generateRoutes = new LinkedHashSet<>();
+        private final Set<String> populateRoutes = new LinkedHashSet<>();
 
         private Subject(FixtureRule rule, RuleTarget target) {
             this.rule = rule;
@@ -567,21 +584,37 @@ final class FixtureRuleAnalysis {
         private final List<Subject> subjects;
         private final Set<String> installedKeys;
         private final Set<Field> fakerExcluded;
+        private final boolean populating;
 
-        private RouteWalk(List<Subject> subjects, Set<String> installedKeys, Set<Field> fakerExcluded) {
+        private RouteWalk(
+                List<Subject> subjects, Set<String> installedKeys, Set<Field> fakerExcluded, boolean populating) {
             this.subjects = subjects;
             this.installedKeys = installedKeys;
             this.fakerExcluded = fakerExcluded;
+            this.populating = populating;
         }
 
+        /**
+         * Visits the root: {@code populate(existing)} fills the given object's fields, and {@code generate()}
+         * builds the root as a member of its type is built, or with its type override, which fills nothing.
+         */
         private void visitRoot() {
+            if (populating) {
+                visit(rootType, ResolvedType.bindingsFor(rootType), "", 0, Set.of());
+                return;
+            }
+            if (typeOverridden(rootType)) {
+                return;
+            }
             if (!SealedTypes.isAbstract(rootType)) {
                 visit(rootType, ResolvedType.bindingsFor(rootType), "", 0, Set.of());
                 return;
             }
             Class<?> mapped = config.resolveSubtype(rootType);
             if (mapped != rootType) {
-                visit(mapped, ResolvedType.bindingsFor(mapped), "", 0, Set.of());
+                if (!typeOverridden(mapped)) {
+                    visit(mapped, ResolvedType.bindingsFor(mapped), "", 0, Set.of());
+                }
                 return;
             }
             for (Class<?> chosen : sealedChoices(rootType, Map.of(), null, Set.of())) {
@@ -609,7 +642,7 @@ final class FixtureRuleAnalysis {
             if (depth > 0) {
                 recordRoutes(type, prefix);
             }
-            for (Member member : members(type)) {
+            for (Member member : members(type, !(populating && depth == 0))) {
                 if (isGenerated(member) && !hasMemberGenerator(member)) {
                     descend(
                             member.genericType(),
@@ -631,7 +664,7 @@ final class FixtureRuleAnalysis {
                         ? type == target.ownerType()
                         : target.ownerType().isAssignableFrom(type);
                 if (present && !config.shouldExclude(field)) {
-                    subject.routes.add(prefix + target.fieldName());
+                    (populating ? subject.populateRoutes : subject.generateRoutes).add(prefix + target.fieldName());
                 }
             }
         }
@@ -734,7 +767,7 @@ final class FixtureRuleAnalysis {
                             ? List.of(nestedType)
                             : List.of();
             for (Class<?> generated : classes) {
-                if (!isConstructible(generated)) {
+                if (!isConstructible(generated) || typeOverridden(generated)) {
                     continue;
                 }
                 Map<TypeVariable<?>, Type> nestedBindings =
@@ -792,7 +825,8 @@ final class FixtureRuleAnalysis {
                     || installedKeys.contains(key(member.owner(), member.name()));
         }
 
-        private List<Member> members(Class<?> type) {
+        /** The members generation fills; {@code populate(existing)} constructs no root, so it fills no argument. */
+        private List<Member> members(Class<?> type, boolean constructed) {
             List<Member> members = new ArrayList<>();
             if (type.isRecord()) {
                 for (RecordComponent component : type.getRecordComponents()) {
@@ -801,7 +835,7 @@ final class FixtureRuleAnalysis {
                 }
                 return members;
             }
-            Constructor<?> constructor = filledConstructor(type);
+            Constructor<?> constructor = constructed ? filledConstructor(type) : null;
             if (constructor != null) {
                 Parameter[] parameters = constructor.getParameters();
                 for (int index = 0; index < parameters.length; index++) {
@@ -885,8 +919,8 @@ final class FixtureRuleAnalysis {
 
     /**
      * Whether a member always comes out absent: an {@code Optional} that {@code objectOptionalEmptyProbability}
-     * of one empties, or a nullable member without constraints that {@code objectNullProbability} of one
-     * leaves {@code null}. Elements, whose element is an annotated type, take neither probability.
+     * of one empties, or a nullable member that {@code objectNullProbability} of one leaves {@code null}.
+     * Elements, whose element is an annotated type, take neither probability.
      */
     private boolean alwaysAbsent(
             @Nullable AnnotatedElement element, Class<?> rawType, BeanValidationSupport.ConstraintModel constraints) {
@@ -896,7 +930,12 @@ final class FixtureRuleAnalysis {
         if (rawType == Optional.class) {
             return config.getOptionalEmptyProbability() >= 1.0;
         }
-        return config.getNullProbability() >= 1.0 && !rawType.isPrimitive() && !constraints.constrained();
+        // As FieldGeneratorResolver.shouldReturnNull: a required member, and one that a constraint generator
+        // fills, are never null; a collection's @Size gives no generator, so it can be.
+        return config.getNullProbability() >= 1.0
+                && !rawType.isPrimitive()
+                && !constraints.required()
+                && BeanValidationSupport.constraintGeneratorFor(element, rawType) == null;
     }
 
     /** The declared constructor that generation fills, for a type without a no-argument constructor. */
