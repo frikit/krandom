@@ -97,6 +97,11 @@ public final class ObjectConstructionContext<T> {
     /**
      * Resolves one constructor parameter through the active object-generation pipeline.
      *
+     * <p>A {@link java.lang.reflect.Parameter} of the constructed type's own constructor as {@code element} is
+     * read with the field that {@code memberName} names, as a parameter compiled with its name is read with the
+     * field of that name and declared type: the argument meets the constraints of both, and of the field's
+     * getter, and the parameter's own win where both declare one of a type.
+     *
      * @param genericType parameter generic type
      * @param rawType parameter runtime type
      * @param memberName parameter name used for semantic and explicit field overrides

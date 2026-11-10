@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- A Kotlin primary-constructor argument now meets the constraints of its parameter and of its property's field
+  and getter together, as the Kotlin DSL guide says `@param:` and `@field:` targets are both recognized. Kotlin
+  compiles no parameter names unless `-java-parameters` is set, so the field a parameter fills could not be
+  found: the adapter passed the parameter where it had a constraint, which dropped the field's, and a getter's
+  constraints were always dropped. Seeded with `42`, of 2,000 values each, `@param:NotBlank
+  @field:Size(min = 2, max = 2) val code` broke its size in 1,994 and `@get:Size(min = 2, max = 2) val code`
+  in 2,000, and now neither does. A construction adapter's parameter is now read with the field its member
+  name gives, as a parameter compiled with its name is. Seeded output changes only for such arguments.
+
 - A Kotlin class built through its primary constructor now has its other mutable properties, declared in its
   body or inherited, filled through their fields after construction, as a Java class's fields are after its
   constructor, and as the Kotlin DSL guide says rules and generated values replace initializers. They kept

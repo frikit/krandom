@@ -1213,14 +1213,35 @@ final class BeanValidationSupport {
                 .orElse(null);
     }
 
+    /**
+     * Names a constructor parameter as a construction adapter does, after the property it fills, as Kotlin
+     * metadata names it where the class was compiled without parameter names. The argument then meets the
+     * constraints of the field with that name and the parameter's declared type too, as it does under a compiled
+     * name. Constraints read for the parameter before are dropped, so that they are read again with the field.
+     *
+     * @param parameter a constructor parameter
+     * @param name the name of the property it fills
+     */
+    static void nameConstructorParameter(Parameter parameter, String name) {
+        Class<?> owner = parameter.getDeclaringExecutable().getDeclaringClass();
+        Optional<Field> field = findInitializedField(parameter, name);
+        if (!field.equals(INITIALIZED_FIELDS.get(owner).put(parameter, field))) {
+            CONSTRAINT_MODELS.get(owner).keySet().removeIf(key -> key.member().equals(parameter));
+        }
+    }
+
     private static Optional<Field> findInitializedField(Parameter parameter) {
+        return parameter.isNamePresent() ? findInitializedField(parameter, parameter.getName()) : Optional.empty();
+    }
+
+    private static Optional<Field> findInitializedField(Parameter parameter, String name) {
         Executable executable = parameter.getDeclaringExecutable();
-        if (!parameter.isNamePresent() || !(executable instanceof Constructor<?>)) {
+        if (!(executable instanceof Constructor<?>)) {
             return Optional.empty();
         }
         for (Class<?> owner = executable.getDeclaringClass(); owner != Object.class; owner = owner.getSuperclass()) {
             try {
-                Field field = owner.getDeclaredField(parameter.getName());
+                Field field = owner.getDeclaredField(name);
                 return !Modifier.isStatic(field.getModifiers())
                                 && field.getGenericType().equals(parameter.getParameterizedType())
                         ? Optional.of(field)

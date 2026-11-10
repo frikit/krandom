@@ -687,6 +687,12 @@ public final class ObjectGenerator<T> implements Generator<T> {
                     depth,
                     (genericType, rawType, memberName, element) -> {
                         constructorMembers.add(memberName);
+                        // The adapter names the type's parameters, as Kotlin metadata does where no name was
+                        // compiled, so an argument meets the constraints of the field it fills too.
+                        if (element instanceof Parameter parameter
+                                && parameter.getDeclaringExecutable().getDeclaringClass() == type) {
+                            BeanValidationSupport.nameConstructorParameter(parameter, memberName);
+                        }
                         return resolver.resolveAndGenerateMember(
                                 genericType,
                                 rawType,

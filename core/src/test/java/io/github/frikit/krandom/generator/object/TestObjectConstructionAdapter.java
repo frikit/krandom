@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.object;
 
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import java.lang.reflect.Constructor;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,7 +38,8 @@ public final class TestObjectConstructionAdapter implements ObjectConstructionAd
                 || type == ObjectConstructionPolicyTest.FailingAdapterFixture.class
                 || type == ObjectConstructionPolicyTest.StructuredFailingAdapterFixture.class
                 || SEALED_SUBCLASSES.containsKey(type)
-                || type == ObjectGeneratorSealedTypeTest.AdapterJvmSealed.class;
+                || type == ObjectGeneratorSealedTypeTest.AdapterJvmSealed.class
+                || type.getName().equals("NamelessCode");
     }
 
     @Override
@@ -64,6 +66,9 @@ public final class TestObjectConstructionAdapter implements ObjectConstructionAd
         if (context.getType() == ObjectConstructionPolicyTest.StructuredFailingAdapterFixture.class) {
             throw new ObjectGenerationException("structured adapter failure");
         }
+        if (context.getType().getName().equals("NamelessCode")) {
+            return constructNameless(context);
+        }
         if (context.getType() == ObjectConstructionPolicyTest.AdapterBodyFixture.class) {
             return new ObjectConstructionPolicyTest.AdapterBodyFixture(
                     (String) context.generate(String.class, String.class, "value", null));
@@ -78,5 +83,25 @@ public final class TestObjectConstructionAdapter implements ObjectConstructionAd
         boolean explicitlyOverridden = context.hasExplicitOverride("value", String.class);
         String value = (String) context.generate(String.class, String.class, "value", null);
         return new ObjectConstructionPolicyTest.AdapterFixture(value, explicitlyOverridden);
+    }
+
+    /**
+     * Names the parameters of a class compiled without them, as the Kotlin adapter does from metadata. The second
+     * argument is read from a parameter of another class, which keeps the field its own name gives it.
+     */
+    private static Object constructNameless(ObjectConstructionContext<?> context) {
+        try {
+            Constructor<?> constructor = context.getType().getDeclaredConstructors()[0];
+            Object code = context.generate(
+                    String.class, String.class, "code", constructor.getParameters()[0]);
+            Object note = context.generate(
+                    String.class,
+                    String.class,
+                    "note",
+                    StringBuilder.class.getConstructor(String.class).getParameters()[0]);
+            return constructor.newInstance(code, note);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

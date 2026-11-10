@@ -8,6 +8,8 @@ package io.github.frikit.krandom.dsl
 import io.github.frikit.krandom.generator.Generator
 import io.github.frikit.krandom.generator.GeneratorConfig
 import io.github.frikit.krandom.generator.`object`.ObjectGenerator
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertSame
@@ -57,6 +59,26 @@ class KotlinConstructorContractTest {
     }
 
     @Test
+    fun aParameterMeetsTheConstraintsOfItsPropertyFieldAndGetterToo() {
+        val combined = krandomList<ParameterAndFieldConstraints>(100) { config { seed(42L) } }
+        val getterOnly = krandomList<GetterConstraint>(100) { config { seed(42L) } }
+        val parameterFirst = krandomList<ParameterOverFieldConstraint>(100) { config { seed(42L) } }
+
+        // Kotlin compiles no parameter names here, so only the property names the field and its getter.
+        assertFalse(
+            ParameterAndFieldConstraints::class.java.declaredConstructors
+                .single()
+                .parameters[0]
+                .isNamePresent,
+        )
+        assertEquals(setOf(2), combined.map { value -> value.code.length }.toSet(), combined.toString())
+        assertFalse(combined.any { value -> value.code.isBlank() }, combined.toString())
+        assertEquals(setOf(2), getterOnly.map { value -> value.code.length }.toSet(), getterOnly.toString())
+        // Where both declare a constraint of a type, the parameter's applies, as for a Java constructor.
+        assertEquals(setOf(3), parameterFirst.map { value -> value.code.length }.toSet(), parameterFirst.toString())
+    }
+
+    @Test
     fun anObjectSingletonKeepsItsState() {
         assertSame(MutableSingleton, krandom<MutableSingleton>())
         assertEquals("kept", MutableSingleton.label)
@@ -74,6 +96,23 @@ data class LateinitUser(
 ) {
     lateinit var name: String
 }
+
+data class ParameterAndFieldConstraints(
+    @param:NotBlank
+    @field:Size(min = 2, max = 2)
+    val code: String,
+)
+
+data class GetterConstraint(
+    @get:Size(min = 2, max = 2)
+    val code: String,
+)
+
+data class ParameterOverFieldConstraint(
+    @param:Size(min = 3, max = 3)
+    @field:Size(min = 2, max = 2)
+    val code: String,
+)
 
 object MutableSingleton {
     var label: String = "kept"

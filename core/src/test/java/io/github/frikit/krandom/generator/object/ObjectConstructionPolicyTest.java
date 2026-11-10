@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.object;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -23,10 +24,19 @@ import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.lang.reflect.Field;
+import java.lang.reflect.Parameter;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 @DisplayName("Object construction policy")
 class ObjectConstructionPolicyTest {
@@ -284,6 +294,33 @@ class ObjectConstructionPolicyTest {
         // A member that the adapter resolved keeps the value it was constructed with.
         assertEquals(kept.constructedValue, kept.value);
         assertEquals(generated.constructedValue, generated.value);
+    }
+
+    @Test
+    @DisplayName("an adapter names a parameter compiled without its name, which then meets its field's constraints")
+    void adapterNamesAParameterCompiledWithoutItsName(@TempDir Path directory) throws Exception {
+        Class<?> nameless = compileWithoutParameterNames(directory, NAMELESS_CODE_SOURCE);
+        Parameter code = nameless.getDeclaredConstructors()[0].getParameters()[0];
+        Field codeField = nameless.getDeclaredField("code");
+        codeField.setAccessible(true);
+        assertFalse(code.isNamePresent());
+        // Read before the adapter names it, the parameter has its own @NotBlank alone.
+        assertNull(BeanValidationSupport.initializedField(code));
+        assertNotEquals(
+                new BeanValidationSupport.SizeRange(2, 2),
+                BeanValidationSupport.constraintModelFor(code, String.class)
+                        .text()
+                        .size());
+        BeanValidationSupport.constraintModelFor(codeField, String.class);
+
+        ObjectGenerator<?> generator = new ObjectGenerator<>(
+                nameless, GeneratorConfig.builder().seed(42L).build());
+        for (int i = 0; i < 50; i++) {
+            String value = (String) codeField.get(generator.generate());
+            assertEquals(2, value.length(), value);
+            assertFalse(value.isBlank(), value);
+        }
+        assertEquals(codeField, BeanValidationSupport.initializedField(code));
     }
 
     @Test
@@ -557,6 +594,42 @@ class ObjectConstructionPolicyTest {
         AdapterFixture(String value, boolean explicitlyOverridden) {
             this.value = value;
             this.explicitlyOverridden = explicitlyOverridden;
+        }
+    }
+
+    /** A class compiled without parameter names, as Kotlin compiles one, whose field and parameter are constrained. */
+    private static final String NAMELESS_CODE_SOURCE = """
+            public final class NamelessCode {
+
+                @jakarta.validation.constraints.Size(min = 2, max = 2) private final String code;
+
+                private final String note;
+
+                public NamelessCode(@jakarta.validation.constraints.NotBlank String code, String note) {
+                    this.code = code;
+                    this.note = note;
+                }
+            }
+            """;
+
+    private static Class<?> compileWithoutParameterNames(Path directory, String source) throws Exception {
+        Path file = directory.resolve("NamelessCode.java");
+        Files.writeString(file, source);
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        assertNotNull(compiler, "tests must run on a JDK with javac");
+        int status = compiler.run(
+                null,
+                null,
+                null,
+                "-cp",
+                System.getProperty("java.class.path"),
+                "-d",
+                directory.toString(),
+                file.toString());
+        assertEquals(0, status, "fixture compilation failed");
+        try (URLClassLoader loader = new URLClassLoader(
+                new URL[] {directory.toUri().toURL()}, ObjectConstructionPolicyTest.class.getClassLoader())) {
+            return loader.loadClass("NamelessCode");
         }
     }
 
