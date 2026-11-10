@@ -683,6 +683,24 @@ class ObjectFakerStrictDiagnosticsTest {
     }
 
     @Test
+    @DisplayName("a root rule or ignore also reaches a nested constructor argument of its member's name")
+    void rootDecisionsReachNestedConstructorArguments() {
+        GeneratorConfig predicate = GeneratorConfig.builder()
+                .objectOverride(named("name"), (ContextualGenerator<String>) context -> "config")
+                .build();
+        ObjectFaker<Chief> rule = new ObjectFaker<>(Chief.class, predicate).ruleFor("name", () -> "rule");
+
+        FixtureRuleProblem ruled = onlyProblem(rule);
+        assertProblem(ruled, Category.AMBIGUOUS, FixtureRuleKind.RULE, "name", 1);
+        assertTrue(ruled.reason().endsWith("applies at 'deputy.name'"), ruled.reason());
+        Chief chief = rule.generate();
+        assertEquals("rule", chief.deputy.name);
+        assertEquals("config", chief.clerk.name);
+        FixtureRuleProblem ignored = onlyProblem(new ObjectFaker<>(Chief.class).ignore("name"));
+        assertTrue(ignored.reason().endsWith("applies at 'deputy.name'"), ignored.reason());
+    }
+
+    @Test
     @DisplayName("a record component, and populate(existing), are behind a context predicate override")
     void recordsAndPopulateAreBehindPredicate() {
         GeneratorConfig config = GeneratorConfig.builder()
@@ -1205,6 +1223,26 @@ class ObjectFakerStrictDiagnosticsTest {
         Staff(String name, Boss boss) {
             this.name = name;
             this.boss = boss;
+        }
+    }
+
+    static final class Chief {
+        String name;
+        final Chief deputy;
+        final Clerk clerk;
+
+        Chief(String name, Chief deputy, Clerk clerk) {
+            this.name = name;
+            this.deputy = deputy;
+            this.clerk = clerk;
+        }
+    }
+
+    static final class Clerk {
+        String name;
+
+        Clerk(String name) {
+            this.name = name;
         }
     }
 

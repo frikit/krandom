@@ -667,10 +667,32 @@ final class FixtureRuleAnalysis {
                 // A contextual predicate override comes before a plain rule wherever generation fills the field.
                 boolean outranked = subject.rule.kind() == FixtureRuleKind.RULE
                         && config.getContextualFieldPredicateOverride(field).isPresent();
-                if (present && !outranked && !config.shouldExclude(field)) {
+                boolean fieldRoute = present && !outranked && !config.shouldExclude(field);
+                if (fieldRoute || takesArgument(type, subject, field)) {
                     (populating ? subject.populateRoutes : subject.generateRoutes).add(prefix + target.fieldName());
                 }
             }
+        }
+
+        /**
+         * Whether the subject reaches a constructor argument of its member's name when generation builds an
+         * object of {@code type}: a rule, as a by-name override of that type's member, and an exclusion of the
+         * field that the argument initializes. No predicate override reaches an argument.
+         */
+        private boolean takesArgument(Class<?> type, Subject subject, Field field) {
+            Constructor<?> constructor = type.isRecord() ? null : filledConstructor(type);
+            if (constructor == null) {
+                return false;
+            }
+            String name = subject.target.fieldName();
+            for (Parameter parameter : constructor.getParameters()) {
+                if (parameter.getName().equals(name)) {
+                    return isRule(subject.rule.kind())
+                            ? type == subject.target.ownerType()
+                            : field.equals(nearestField(type, name));
+                }
+            }
+            return false;
         }
 
         /**
