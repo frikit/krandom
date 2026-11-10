@@ -101,4 +101,5 @@ lets a pattern's `*`, `+`, and `{n,}` reach that length, so `[0-9]+` with `@Size
 - `@NotNull` does not stop a member being left `null` when a cycle is cut, or an element of
   `List<@NotNull Leaf>` at the [depth limit]({{ '/guides/object-generation/' | relative_url }}#depth-limit).
 - Strict `LocalTime` and `MonthDay` constraints can have no representable value at a configured clock
-  boundary; those cases fail rather than wrapping into the wrong temporal direction.
+  boundary; those cases fail rather than wrapping into the wrong temporal direction. An inclusive one
+  takes the present there, so `@FutureOrPresent MonthDay` gives `--12-31` on 31 December.

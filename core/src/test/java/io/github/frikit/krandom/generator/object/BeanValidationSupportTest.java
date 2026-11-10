@@ -356,6 +356,69 @@ class BeanValidationSupportTest {
     }
 
     @Test
+    @DisplayName("an inclusive bound takes the present at the clock's edge, where a strict one has no value")
+    void inclusiveBoundsTakeThePresentAtTheClocksEdge() throws Exception {
+        // The last nanosecond of a year and its first, where a MonthDay and a time of day reach their ends.
+        Clock yearEnd = Clock.fixed(Instant.parse("2026-12-31T23:59:59.999999999Z"), ZoneOffset.UTC);
+        Clock yearStart = Clock.fixed(Instant.parse("2026-01-01T00:00:00Z"), ZoneOffset.UTC);
+        List<Class<?>> edgeTypes = List.of(MonthDayBounds.class, LocalTimeBounds.class, OffsetTimeBounds.class);
+
+        assertGeneratedValuesValid(
+                yearEnd,
+                edgeTypes,
+                Map.of(
+                        MonthDayBounds.class,
+                        "future",
+                        LocalTimeBounds.class,
+                        "future",
+                        OffsetTimeBounds.class,
+                        "future"));
+        assertGeneratedValuesValid(
+                yearStart,
+                edgeTypes,
+                Map.of(MonthDayBounds.class, "past", LocalTimeBounds.class, "past", OffsetTimeBounds.class, "past"));
+        assertEquals(MonthDay.of(12, 31), generated(MonthDayBounds.class, "futureOrPresent", yearEnd));
+        assertEquals(MonthDay.of(1, 1), generated(MonthDayBounds.class, "pastOrPresent", yearStart));
+        assertEquals(LocalTime.MAX, generated(LocalTimeBounds.class, "futureOrPresent", yearEnd));
+        assertEquals(LocalTime.MIN, generated(LocalTimeBounds.class, "pastOrPresent", yearStart));
+    }
+
+    /**
+     * Generates every member of the bounds classes under the clock, and checks that Hibernate Validator, with the
+     * same clock, accepts each value, except for the members named in {@code noValue}, whose generation must fail
+     * as a constraint conflict, because no value of the type meets their bounds at that clock.
+     */
+    private static void assertGeneratedValuesValid(Clock clock, List<Class<?>> types, Map<Class<?>, String> noValue)
+            throws Exception {
+        Validator hibernate = Validation.byProvider(HibernateValidator.class)
+                .configure()
+                .clockProvider(() -> clock)
+                .messageInterpolator(new ParameterMessageInterpolator())
+                .buildValidatorFactory()
+                .getValidator();
+        for (Class<?> type : types) {
+            for (Field field : type.getDeclaredFields()) {
+                String member = type.getSimpleName() + "." + field.getName() + " at " + clock.instant();
+                if (field.getName().equals(noValue.get(type))) {
+                    assertThrows(
+                            BeanValidationSupport.ConstraintConflictException.class,
+                            () -> generated(type, field.getName(), clock),
+                            member);
+                    continue;
+                }
+                Object value = generated(type, field.getName(), clock);
+                assertTrue(hibernate.validateValue(type, field.getName(), value).isEmpty(), member + " gave " + value);
+            }
+        }
+    }
+
+    private static Object generated(Class<?> type, String fieldName, Clock clock) throws NoSuchFieldException {
+        Field field = type.getDeclaredField(fieldName);
+        return BeanValidationSupport.constraintGeneratorFor(field, field.getType(), new Random(1L), clock)
+                .generate();
+    }
+
+    @Test
     @DisplayName("accepts gives Hibernate Validator's verdict for a float or a double against each kind of bound")
     void acceptsGivesHibernateValidatorsVerdictForAFloatOrADouble() throws Exception {
         Validator hibernate = Validation.byProvider(HibernateValidator.class)
@@ -666,6 +729,45 @@ class BeanValidationSupportTest {
         @FutureOrPresent Timestamp futureOrPresent;
 
         @PastOrPresent @FutureOrPresent Timestamp present;
+    }
+
+    static final class MonthDayBounds {
+
+        @Past MonthDay past;
+
+        @PastOrPresent MonthDay pastOrPresent;
+
+        @Future MonthDay future;
+
+        @FutureOrPresent MonthDay futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent MonthDay present;
+    }
+
+    static final class LocalTimeBounds {
+
+        @Past LocalTime past;
+
+        @PastOrPresent LocalTime pastOrPresent;
+
+        @Future LocalTime future;
+
+        @FutureOrPresent LocalTime futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent LocalTime present;
+    }
+
+    static final class OffsetTimeBounds {
+
+        @Past OffsetTime past;
+
+        @PastOrPresent OffsetTime pastOrPresent;
+
+        @Future OffsetTime future;
+
+        @FutureOrPresent OffsetTime futureOrPresent;
+
+        @PastOrPresent @FutureOrPresent OffsetTime present;
     }
 
     static final class Sample implements InterfaceSizedText {

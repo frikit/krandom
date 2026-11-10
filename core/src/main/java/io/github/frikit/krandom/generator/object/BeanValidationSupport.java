@@ -649,9 +649,9 @@ final class BeanValidationSupport {
         if (rawType == Calendar.class || rawType == GregorianCalendar.class) {
             return FieldGeneratorResolver.calendarOf(ZonedDateTime.ofInstant(instant, clock.getZone()));
         }
-        if (rawType == LocalTime.class) return localTimeFor(future, clock);
+        if (rawType == LocalTime.class) return localTimeFor(future, constraint.allowsPresent(), clock);
         if (rawType == OffsetTime.class)
-            return localTimeFor(future, clock)
+            return localTimeFor(future, constraint.allowsPresent(), clock)
                     .atOffset(OffsetDateTime.now(clock).getOffset());
         if (rawType == Year.class)
             return future ? Year.now(clock).plusYears(1) : Year.now(clock).minusYears(1);
@@ -659,7 +659,7 @@ final class BeanValidationSupport {
             return future
                     ? YearMonth.now(clock).plusMonths(1)
                     : YearMonth.now(clock).minusMonths(1);
-        return monthDayFor(future, clock);
+        return monthDayFor(future, constraint.allowsPresent(), clock);
     }
 
     private static Object presentTemporalValueFor(Class<?> rawType, Clock clock) {
@@ -683,21 +683,29 @@ final class BeanValidationSupport {
         return MonthDay.now(clock);
     }
 
-    private static LocalTime localTimeFor(boolean future, Clock clock) {
+    /**
+     * The last time of day for the future, or the first for the past. At that end of the day the clock's own
+     * time is the only value left, which an inclusive bound allows and a strict one does not.
+     */
+    private static LocalTime localTimeFor(boolean future, boolean allowsPresent, Clock clock) {
         LocalTime now = LocalTime.now(clock);
-        if (future && now.equals(LocalTime.MAX)) {
+        if (future && now.equals(LocalTime.MAX) && !allowsPresent) {
             throw conflict("@Future has no representable LocalTime after the configured clock");
         }
-        if (!future && now.equals(LocalTime.MIN)) {
+        if (!future && now.equals(LocalTime.MIN) && !allowsPresent) {
             throw conflict("@Past has no representable LocalTime before the configured clock");
         }
         return future ? LocalTime.MAX : LocalTime.MIN;
     }
 
-    private static MonthDay monthDayFor(boolean future, Clock clock) {
+    /**
+     * The last day of the year for the future, or the first for the past. On that day it is the clock's own
+     * day, which an inclusive bound allows and a strict one does not.
+     */
+    private static MonthDay monthDayFor(boolean future, boolean allowsPresent, Clock clock) {
         MonthDay today = MonthDay.now(clock);
         MonthDay boundary = future ? MonthDay.of(12, 31) : MonthDay.of(1, 1);
-        if (today.equals(boundary)) {
+        if (today.equals(boundary) && !allowsPresent) {
             throw conflict("temporal constraint has no representable MonthDay at the configured clock");
         }
         return boundary;

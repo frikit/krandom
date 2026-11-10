@@ -16,6 +16,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   now does so in none. A generated sibling follows the kept value instead, so `createdAt` moves back to that
   `updatedAt`, and the pass still fills a blank initializer. Seeded output changes only for objects with an
   initializer that the pass derives or aligns.
+- An inclusive temporal constraint on a `MonthDay`, `LocalTime` or `OffsetTime` now gives the present where
+  the clock is at the end of its range, as the Bean Validation guide says only a strict one has no value
+  there. `@FutureOrPresent MonthDay` failed generation all day on 31 December, `@PastOrPresent MonthDay` all
+  day on 1 January, and `@FutureOrPresent` or `@PastOrPresent` on a `LocalTime` or `OffsetTime` at the last or
+  first instant of a day; they now give that day or time, which Hibernate Validator accepts under the same
+  clock. `@Future` and `@Past` still fail there. Other values are unchanged, so seeded output changes only
+  where generation failed.
 
 ## [3.0.0] - 2026-11-10
 
