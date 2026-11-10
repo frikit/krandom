@@ -329,6 +329,20 @@ class GenerationReportTest {
     }
 
     @Test
+    @DisplayName("a value that cannot be assigned is reported after the entry that made it")
+    void failedAssignmentIsReported() {
+        List<GenerationReportEntry> entries = generate(
+                Counted.class,
+                listening(67L).objectIgnoreErrors(true).objectOverride(Counted.class, "count", () -> null));
+
+        assertEquals(GenerationStep.OVERRIDE, entry(entries, "Counted.count").step());
+        GenerationReportEntry outcome = last(entries, "Counted.count");
+        assertEquals(GenerationStep.DEFAULT, outcome.step());
+        assertEquals("int", outcome.generator());
+        assertEquals(List.of(GenerationDecision.FAILURE_FALLBACK), outcome.decisions());
+    }
+
+    @Test
     @DisplayName("a sealed root that picks an enum is reported as an enum")
     void sealedRootPickingAnEnumIsReported() {
         List<GenerationReportEntry> entries = generate(Signal.class, listening(53L));
@@ -786,6 +800,10 @@ class GenerationReportTest {
     }
 
     record Flagged(boolean flag) {}
+
+    static final class Counted {
+        int count;
+    }
 
     static final class Patterned {
         @jakarta.validation.constraints.Pattern(regexp = "[a-c]{3}") @jakarta.validation.constraints.Pattern(regexp = "a.*") String code;

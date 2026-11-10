@@ -212,6 +212,13 @@ final class GenerationReporter {
         emit(trace);
     }
 
+    /** Reports a value that could not be assigned, which leaves the member at its default. */
+    void failedAssignment(String path, Class<?> type) {
+        Trace trace = new Trace(path);
+        trace.step(GenerationStep.DEFAULT, type.getName()).decision(GenerationDecision.FAILURE_FALLBACK);
+        emit(trace);
+    }
+
     /** Reports an {@code ObjectFaker} rule or ignore that runs after generation, at its own path. */
     void applied(String path, FixtureRule rule) {
         Trace trace = new Trace(path);

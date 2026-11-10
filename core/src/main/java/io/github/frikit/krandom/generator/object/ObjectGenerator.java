@@ -490,16 +490,23 @@ public final class ObjectGenerator<T> implements Generator<T> {
      */
     private void reportRoot(
             Class<?> generated, @Nullable FixtureRuleKind factory, @Nullable GenerationDecision decision) {
-        if (config.getGeneratorConfig().getGenerationReportListener().isEmpty()) {
-            return;
+        GenerationReporter reporter = reporter();
+        if (reporter != null) {
+            reporter.root(objectPath, generated, factory, decision);
         }
-        GenerationReporter reporter = Objects.requireNonNull(GenerationReporter.of(
+    }
+
+    /** The reporter, or {@code null} without a listener, in which case it reads no metadata at all. */
+    private @Nullable GenerationReporter reporter() {
+        if (config.getGeneratorConfig().getGenerationReportListener().isEmpty()) {
+            return null;
+        }
+        return GenerationReporter.of(
                 config,
                 ObjectFieldStreamPlanner.usesNamedChildStreams(
                         config.getGeneratorConfig().getObjectFieldStreamPolicy(),
                         generationSeed,
-                        config.hasPortableRecipe())));
-        reporter.root(objectPath, generated, factory, decision);
+                        config.hasPortableRecipe()));
     }
 
     private ObjectGenerationException constructionFailure(Throwable cause) {
@@ -824,6 +831,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
                         -1);
                 failurePolicy.handle(
                         new ObjectGenerationException("Could not set " + fieldContext, failureContext, e), null);
+                // The member's entry told how its value was made; this one tells that it was not kept.
+                GenerationReporter reporter = reporter();
+                if (reporter != null) {
+                    reporter.failedAssignment(objectPath + "." + field.getName(), field.getType());
+                }
             }
         }
         coherenceAdjuster.adjustInstance(type, instance, settableFields, allowOverwriteExisting);

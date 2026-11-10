@@ -1634,10 +1634,12 @@ final class SemanticCoherenceAdjuster {
 
         @Override
         public void setValue(@Nullable Object value) {
-            if (!Objects.equals(slot.getValue(), value)) {
+            Object before = slot.getValue();
+            slot.setValue(value);
+            // Only a value that changed is a move; a set that failed and was passed over leaves it.
+            if (!Objects.equals(before, slot.getValue())) {
                 reporter.coherence(path, GenerationDecision.COHERENCE_MOVE);
             }
-            slot.setValue(value);
         }
 
         void kept() {
