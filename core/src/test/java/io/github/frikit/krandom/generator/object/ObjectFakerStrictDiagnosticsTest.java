@@ -669,6 +669,20 @@ class ObjectFakerStrictDiagnosticsTest {
     }
 
     @Test
+    @DisplayName("a root rule behind a context predicate override in nested objects applies at no other route")
+    void ruleBehindPredicateInNestedObjectsHasNoOtherRoute() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                .objectOverride(named("name"), (ContextualGenerator<String>) context -> "config")
+                .build();
+        ObjectFaker<Staff> faker = new ObjectFaker<>(Staff.class, config).ruleFor("name", () -> "rule");
+
+        assertEquals(List.of(), problemsOf(faker));
+        Staff staff = faker.generate();
+        assertEquals("rule", staff.name);
+        assertEquals("config", staff.boss.name);
+    }
+
+    @Test
     @DisplayName("a record component, and populate(existing), are behind a context predicate override")
     void recordsAndPopulateAreBehindPredicate() {
         GeneratorConfig config = GeneratorConfig.builder()
@@ -1183,6 +1197,22 @@ class ObjectFakerStrictDiagnosticsTest {
     }
 
     record NamedRecord(String name) {}
+
+    static class Staff {
+        String name;
+        final Boss boss;
+
+        Staff(String name, Boss boss) {
+            this.name = name;
+            this.boss = boss;
+        }
+    }
+
+    static final class Boss extends Staff {
+        Boss() {
+            super(null, null);
+        }
+    }
 
     static final class RankedPurchase extends BaseEntity implements Comparable<RankedPurchase> {
         @Override

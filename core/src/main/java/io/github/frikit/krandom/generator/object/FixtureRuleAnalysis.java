@@ -664,7 +664,10 @@ final class FixtureRuleAnalysis {
                 boolean present = type.isRecord()
                         ? type == target.ownerType()
                         : target.ownerType().isAssignableFrom(type);
-                if (present && !config.shouldExclude(field)) {
+                // A contextual predicate override comes before a plain rule wherever generation fills the field.
+                boolean outranked = subject.rule.kind() == FixtureRuleKind.RULE
+                        && config.getContextualFieldPredicateOverride(field).isPresent();
+                if (present && !outranked && !config.shouldExclude(field)) {
                     (populating ? subject.populateRoutes : subject.generateRoutes).add(prefix + target.fieldName());
                 }
             }
