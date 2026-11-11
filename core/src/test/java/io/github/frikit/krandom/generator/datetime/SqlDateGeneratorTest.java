@@ -8,6 +8,7 @@ package io.github.frikit.krandom.generator.datetime;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 import java.util.Random;
@@ -39,25 +40,20 @@ class SqlDateGeneratorTest {
     }
 
     @Test
-    @DisplayName("a bound that a java.sql.Date cannot hold in the default time zone fails at construction")
-    void unheldBoundFailsAtConstruction() {
+    @DisplayName("a range that holds no day a java.sql.Date holds in the default time zone fails at construction")
+    void rangeWithoutAHeldDayFailsAtConstruction() {
         LocalDate yearZero = LocalDate.of(0, 6, 1);
 
         assertEquals(
-                "min 0000-06-01 is not a day that a java.sql.Date holds in the default time zone UTC, "
-                        + "which reads it back as 0001-06-01",
+                "no day from 0000-06-01 to 0000-06-01 is one that a java.sql.Date holds in the default time zone UTC",
                 assertThrows(IllegalArgumentException.class, () -> new SqlDateGenerator(yearZero, yearZero))
-                        .getMessage());
-        assertEquals(
-                "max 1582-10-10 is not a day that a java.sql.Date holds in the default time zone UTC, "
-                        + "which reads it back as 1582-10-20",
-                assertThrows(
-                                IllegalArgumentException.class,
-                                () -> new SqlDateGenerator(LocalDate.of(1582, 10, 1), LocalDate.of(1582, 10, 10)))
                         .getMessage());
         assertThrows(
                 IllegalArgumentException.class,
-                () -> new SqlDateGenerator(LocalDate.of(2000, 1, 1), LocalDate.of(292_278_995, 1, 1)));
+                () -> new SqlDateGenerator(LocalDate.of(1582, 10, 5), LocalDate.of(1582, 10, 14)));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new SqlDateGenerator(LocalDate.of(292_278_995, 1, 1), LocalDate.of(292_278_995, 12, 31)));
 
         TimeZone.setDefault(TimeZone.getTimeZone("Pacific/Apia"));
         LocalDate skipped = LocalDate.of(2011, 12, 30);
@@ -65,12 +61,20 @@ class SqlDateGeneratorTest {
     }
 
     @Test
-    @DisplayName("every value reads back as a day in the range, where a drawn day the zone cannot hold reads later")
+    @DisplayName("every value reads back as a day in the range, and one that would not gives its last held day")
     void everyValueReadsBackInTheRange() {
-        assertReadsBackWithin(LocalDate.of(1582, 10, 1), LocalDate.of(1582, 10, 15));
+        assertReadsBackWithin(LocalDate.of(1582, 10, 1), LocalDate.of(1582, 10, 15), LocalDate.of(1582, 10, 15));
+        // Its bound is in the gap, so a drawn day of the gap, which reads back ten days later, gives 4 October.
+        assertReadsBackWithin(LocalDate.of(1582, 10, 1), LocalDate.of(1582, 10, 10), LocalDate.of(1582, 10, 4));
+        // Past the year 292278994 a java.sql.Date overflows and reads back as an earlier day, before the range.
+        assertReadsBackWithin(
+                LocalDate.of(292_278_990, 1, 1),
+                LocalDate.of(292_278_999, 12, 31),
+                new java.sql.Date(Long.MAX_VALUE).toLocalDate());
 
         TimeZone.setDefault(TimeZone.getTimeZone("Pacific/Apia"));
-        assertReadsBackWithin(LocalDate.of(2011, 12, 29), LocalDate.of(2011, 12, 31));
+        assertReadsBackWithin(LocalDate.of(2011, 12, 29), LocalDate.of(2011, 12, 31), LocalDate.of(2011, 12, 31));
+        assertReadsBackWithin(LocalDate.of(2011, 12, 29), LocalDate.of(2011, 12, 30), LocalDate.of(2011, 12, 29));
     }
 
     @Test
@@ -93,12 +97,16 @@ class SqlDateGeneratorTest {
         assertFalse(pastMax == 0, "some drawn days of the gap read back past max");
     }
 
-    private static void assertReadsBackWithin(LocalDate min, LocalDate max) {
+    /** Every value reads back in the range, and some, from drawn days that would not, as {@code lastHeld}. */
+    private static void assertReadsBackWithin(LocalDate min, LocalDate max, LocalDate lastHeld) {
         SqlDateGenerator generator = new SqlDateGenerator(min, max);
         generator.reseed(42L);
+        boolean gaveLastHeld = false;
         for (int i = 0; i < 2_000; i++) {
             LocalDate value = generator.generate().toLocalDate();
             assertFalse(value.isBefore(min) || value.isAfter(max), value + " is outside " + min + ".." + max);
+            gaveLastHeld |= value.equals(lastHeld);
         }
+        assertTrue(gaveLastHeld, lastHeld + " was never given in " + min + ".." + max);
     }
 }

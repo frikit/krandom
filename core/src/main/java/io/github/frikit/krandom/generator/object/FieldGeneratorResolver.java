@@ -610,25 +610,55 @@ final class FieldGeneratorResolver {
         Long seed = nextDeterministicSeed(config, seedSource);
         if (seed != null) {
             return lazyGenerator(() -> {
+                // Fails as SqlDateGenerator would, as an unsatisfiable constraint of the member.
+                lastSqlDate(min, max);
                 SqlDateGenerator generator = new SqlDateGenerator(min, max);
                 generator.reseed(seed);
                 return generator;
             });
         }
         return lazyGenerator(() -> {
-            // SqlDateGenerator checks the range as it does for the seeded values: a java.sql.Date holds each bound.
-            new SqlDateGenerator(min, max);
-            return () -> sqlDateWithin(randomDate(seedSource, min, max), max);
+            LocalDate lastHeld = lastSqlDate(min, max);
+            return () -> sqlDateWithin(randomDate(seedSource, min, max), max, lastHeld);
         });
     }
 
     /**
-     * The day as a {@code java.sql.Date}, as {@link SqlDateGenerator} gives it: a day that the default time
-     * zone cannot hold reads back as a later one, and gives {@code max} where that is past {@code max}.
+     * The last day from {@code min} to {@code max} that a {@code java.sql.Date} holds in the default time zone,
+     * as {@link SqlDateGenerator} finds it. A range with no such day, such as one in the year 0, is a
+     * constraint that no {@code java.sql.Date} meets.
      */
-    private static java.sql.Date sqlDateWithin(LocalDate day, LocalDate max) {
+    private static LocalDate lastSqlDate(LocalDate min, LocalDate max) {
+        // The day of the latest instant a java.sql.Date holds bounds the search, as the year 1 does below.
+        LocalDate latest = new java.sql.Date(Long.MAX_VALUE).toLocalDate();
+        for (LocalDate day = max.isAfter(latest) ? latest : max;
+                !day.isBefore(min) && day.getYear() > 0;
+                day = day.minusDays(1)) {
+            if (java.sql.Date.valueOf(day).toLocalDate().equals(day)) {
+                return day;
+            }
+        }
+        throw new BeanValidationSupport.ConstraintConflictException("no day from " + min + " to " + max
+                + " is one that a java.sql.Date holds in the default time zone "
+                + java.util.TimeZone.getDefault().getID());
+    }
+
+    /**
+     * The day as a {@code java.sql.Date}, as {@link SqlDateGenerator} gives it: a day that the default time
+     * zone cannot hold reads back as a later one, and gives {@code lastHeld} where that is past {@code max}.
+     * A range that the {@code java.util.Date} members allow ends before the instants a {@code java.sql.Date}
+     * holds run out, so no day reads back before {@code min}.
+     */
+    private static java.sql.Date sqlDateWithin(LocalDate day, LocalDate max, LocalDate lastHeld) {
         java.sql.Date date = java.sql.Date.valueOf(day);
-        return date.toLocalDate().isAfter(max) ? java.sql.Date.valueOf(max) : date;
+        try {
+            if (!date.toLocalDate().isAfter(max)) {
+                return date;
+            }
+        } catch (java.time.DateTimeException unreadable) {
+            // Long before the year 1, a day can read back as no date at all.
+        }
+        return java.sql.Date.valueOf(lastHeld);
     }
 
     private static Generator<java.sql.Timestamp> buildSqlTimestampGenerator(
@@ -1212,9 +1242,15 @@ final class FieldGeneratorResolver {
             Class<?> ownerType,
             String fieldName,
             int depth) {
-        return isUniqueField(normalizeSemanticFieldName(fieldName), semanticKey)
-                ? generateUnique(generator, rawType, declaredType, ownerType, fieldName, depth)
-                : generator.generate();
+        try {
+            return isUniqueField(normalizeSemanticFieldName(fieldName), semanticKey)
+                    ? generateUnique(generator, rawType, declaredType, ownerType, fieldName, depth)
+                    : generator.generate();
+        } catch (BeanValidationSupport.ConstraintConflictException conflict) {
+            // A configured range that no value of the member's type meets, such as an objectDateRange in the year 0
+            // for a java.sql.Date.
+            return handleConstraintConflict(rawType, declaredType, ownerType, fieldName, depth, conflict);
+        }
     }
 
     private @Nullable Object generateUnique(

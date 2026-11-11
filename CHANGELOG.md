@@ -105,11 +105,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   in the Julian calendar before 15 October 1582, so a day before the year 1, after the year 292278994, in
   5 to 14 October 1582, or that the default zone skipped, such as 30 December 2011 in `Pacific/Apia`, read
   back as another: a range of the single day 0000-06-01 gave 0001-06-01, and one from 1582-10-01 to
-  1582-10-15 gave days up to 1582-10-24. A bound that a `java.sql.Date` cannot hold now fails with
-  `IllegalArgumentException` when the generator is built, or when a `java.sql.Date` member is first
-  generated, and a drawn day that reads back past `max` gives `max`. With seed 42, of 100,000 values from
-  1582-10-01 to 1582-10-15, the 60,120 past `max` now give 1582-10-15; every value that read back in its
-  range, which is every value of a range that holds no such day, is unchanged.
+  1582-10-15 gave days up to 1582-10-24. A drawn day that reads back outside the range now gives the range's
+  last day that a `java.sql.Date` holds, and a range that holds no such day, such as one in the year 0, fails:
+  `new SqlDateGenerator(min, max)` with `IllegalArgumentException`, and a `java.sql.Date` member as a
+  constraint conflict at its path, or under `objectIgnoreErrors(true)` as `null` that the failure listener is
+  told of. With seed 42, of 100,000 values from 1582-10-01 to 1582-10-15, the 60,120 past `max` now give
+  1582-10-15; every value that read back in its range is unchanged, as is every value of a range whose days a
+  `java.sql.Date` all holds.
 - `LocalDateTimeGenerator.future(days)` now stays in `[now + 1 second, now + days]` and `past(days)` in
   `[now - days, now - 1 second]`, as they say. Each drew from a span one second longer, which `future` began
   at `now + 1 second` and `past` ended at `now - 1 second`, so `future` could give `now + days + 1 second` and
@@ -121,8 +123,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   type instead, so under `objectIgnoreErrors(true)` failures at `Top.left.task` and `Top.right.task` both
   reached the listener as `Mid.task`, and a strict failure was told first as `Mid.task` and then, as the
   exception names it, as `Top.left.task`. An unsupported type, a constraint conflict, a collection, map or
-  array insertion, a collection that cannot be constructed, a `@Randomizer` and a field assignment now name
-  the member's path, as uniqueness and depth-limit failures already did, so a field that the root inherits
+  array insertion, a collection that cannot be constructed, a `@Randomizer` and generation's assignment of a
+  field now name the member's path, as uniqueness and depth-limit failures already did, so a field that the root inherits
   is named by the root's type rather than by the superclass that declares it. Generated values are unchanged.
 - `ObjectFaker.assertConfigurationIsValid()` and `ObjectFaker.strict()` now report a root rule, root ignore or
   include-mode exclusion as ambiguous where it reaches an object that a nested rule creates, as the
