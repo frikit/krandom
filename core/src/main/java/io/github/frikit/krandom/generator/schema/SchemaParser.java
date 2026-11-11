@@ -39,6 +39,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import org.jspecify.annotations.Nullable;
 
@@ -290,34 +291,74 @@ public final class SchemaParser {
 
         // A root const or enum names whole records, which columns drawn one by one need not give.
         List<Map<String, Object>> records = rootRecords(jsonSchema, columns.keySet());
-        if (records == null) {
-            return new Schema(config, providers);
-        }
-        // Every record is one of those named, so each column holds one of their values, as its metadata says.
-        for (Map.Entry<String, SchemaValueProvider> column : providers.entrySet()) {
-            List<@Nullable Object> values = new ArrayList<>();
-            Set<@Nullable Object> seen = new HashSet<>();
+        return new Schema(config, providers, records == null ? null : new RootRecords(records, columns.keySet()));
+    }
+
+    /**
+     * The records that a root const or enum names, as a rule over whole records. A generated record that is
+     * one of them, as JSON values compare, is kept, and any other is replaced by one of them, drawn from the
+     * record's own stream where there are several. Each column then holds one of their values, so its exported
+     * schema is the enum of those values, written as the writers write them; its provider keeps its own.
+     */
+    private static final class RootRecords implements Schema.RecordRule {
+
+        private final List<Map<String, Object>> records;
+        private final Set<@Nullable Object> allowed = new HashSet<>();
+        private final Map<String, Map<String, Object>> columnSchemas = new LinkedHashMap<>();
+
+        RootRecords(List<Map<String, Object>> records, Set<String> columns) {
+            this.records = records;
             for (Map<String, Object> record : records) {
-                Object value = record.get(column.getKey());
-                if (seen.add(json(value))) {
-                    values.add(value);
-                }
+                allowed.add(json(record));
             }
-            column.setValue(SchemaValueProvider.withJsonSchema(column.getValue(), Map.of("enum", values)));
+            for (String column : columns) {
+                List<@Nullable Object> values = new ArrayList<>();
+                Set<@Nullable Object> seen = new HashSet<>();
+                for (Map<String, Object> record : records) {
+                    Object value = record.get(column);
+                    if (seen.add(json(value))) {
+                        values.add(writtenValue(value));
+                    }
+                }
+                columnSchemas.put(column, Map.of("enum", values));
+            }
         }
-        // A generated record that is one of them, as JSON values compare, is kept, and any other is replaced
-        // by one of them, drawn from the record's own stream where there are several.
-        Set<@Nullable Object> allowed = new HashSet<>();
-        for (Map<String, Object> record : records) {
-            allowed.add(json(record));
+
+        @Override
+        public Map<String, Object> apply(Map<String, Object> record, Supplier<Random> random) {
+            return allowed.contains(json(record))
+                    ? record
+                    : new LinkedHashMap<>(
+                            records.get(records.size() == 1 ? 0 : random.get().nextInt(records.size())));
         }
-        return new Schema(
-                config,
-                providers,
-                (record, random) -> allowed.contains(json(record))
-                        ? record
-                        : new LinkedHashMap<>(records.get(
-                                records.size() == 1 ? 0 : random.get().nextInt(records.size()))));
+
+        @Override
+        public Map<String, ?> columnSchema(String column) {
+            return columnSchemas.getOrDefault(column, Map.of());
+        }
+    }
+
+    /**
+     * A value as the writers write it, for metadata: a date or time as its RFC 3339 text, a structure with every
+     * key at any depth as its text, and any other value that is no number or boolean as its text.
+     */
+    private static @Nullable Object writtenValue(@Nullable Object explicit) {
+        Object value = Schema.normalizeStructuredValue(explicit);
+        if (value instanceof Map<?, ?> object) {
+            Map<String, @Nullable Object> members = new LinkedHashMap<>();
+            for (Map.Entry<?, ?> member : object.entrySet()) {
+                members.put(String.valueOf(member.getKey()), writtenValue(member.getValue()));
+            }
+            return members;
+        }
+        if (value instanceof List<?> items) {
+            List<@Nullable Object> written = new ArrayList<>(items.size());
+            for (Object item : items) {
+                written.add(writtenValue(item));
+            }
+            return written;
+        }
+        return value == null || value instanceof Number || value instanceof Boolean ? value : Schema.writtenText(value);
     }
 
     /**

@@ -100,14 +100,20 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     /**
-     * A rule over whole records, which a parsed root const or enum sets. Given a generated record, it gives
-     * the record to keep: that one where it meets the rule, and otherwise one that does, drawing from the
-     * random source given where it needs a draw.
+     * A rule over whole records, which a parsed root const or enum sets. As every record that the schema gives
+     * then meets the rule, the rule also gives the JSON Schema of each column's values, which the column's
+     * provider alone need not give.
      */
-    @FunctionalInterface
     interface RecordRule {
 
+        /**
+         * The record to keep: the generated one where it meets the rule, and otherwise one that does, drawing
+         * from the random source given where it needs a draw.
+         */
         Map<String, Object> apply(Map<String, Object> record, Supplier<Random> random);
+
+        /** The JSON Schema of a column's values in the records that the rule keeps. */
+        Map<String, ?> columnSchema(String column);
     }
 
     /**
@@ -583,8 +589,11 @@ public final class Schema implements Generator<Map<String, Object>> {
             String field = entry.getKey();
             required.add(field);
             try {
+                // A rule over whole records can give a column values that its provider does not.
                 properties.put(
-                        field, JsonSchemaSupport.copyJsonSchema(entry.getValue().jsonSchema()));
+                        field,
+                        JsonSchemaSupport.copyJsonSchema(
+                                recordRule == null ? entry.getValue().jsonSchema() : recordRule.columnSchema(field)));
             } catch (RuntimeException ex) {
                 throw new SchemaGenerationException(
                         field, -1, GenerationFailureCategory.SCHEMA_METADATA, GenerationOperation.EXPORT_SCHEMA, ex);

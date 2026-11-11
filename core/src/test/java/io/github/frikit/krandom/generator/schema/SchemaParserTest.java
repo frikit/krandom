@@ -3325,6 +3325,38 @@ class SchemaParserTest {
         }
 
         @Test
+        @DisplayName("a root const's export holds its values as written, and the columns' providers keep their own")
+        void rootConstExportsWrittenValuesBesideTheProviders() {
+            Map<String, Object> properties = new LinkedHashMap<>();
+            properties.put("x", Map.of("type", "object"));
+            properties.put("y", Map.of("type", "array"));
+            properties.put("z", Map.of());
+            Map<String, Object> constant = new LinkedHashMap<>();
+            constant.put("x", Map.of(1, "v"));
+            constant.put("y", Arrays.asList(1, true, null));
+            constant.put("z", LocalDate.of(2024, 1, 5));
+            Schema schema = SchemaParser.fromJsonSchema(root("properties", properties, "const", constant));
+            assertEquals(constant, schema.generate());
+            // Every writer writes the key 1 as "1" and a date as its RFC 3339 text, and so does the export.
+            Map<?, ?> exported = (Map<?, ?>) schema.toJsonSchema().get("properties");
+            assertEquals(Map.of("enum", List.of(Map.of("1", "v"))), exported.get("x"));
+            assertEquals(Map.of("enum", List.of(Arrays.asList(1, true, null))), exported.get("y"));
+            assertEquals(Map.of("enum", List.of("2024-01-05")), exported.get("z"));
+
+            // A column's provider can still give values that the root replaces, so it keeps its own metadata, and a
+            // schema built from the providers alone exports that.
+            Schema parsed = SchemaParser.fromJsonSchema(root(
+                    "properties", Map.of("x", Map.of("enum", List.of("a", "b"))), "const", Map.of("x", "a")));
+            assertEquals(
+                    Map.of("enum", List.of("a")),
+                    ((Map<?, ?>) parsed.toJsonSchema().get("properties")).get("x"));
+            assertEquals(Map.of(), parsed.getFields().get("x").jsonSchema());
+            assertEquals(
+                    Map.of(),
+                    ((Map<?, ?>) new Schema(parsed.getFields()).toJsonSchema().get("properties")).get("x"));
+        }
+
+        @Test
         @DisplayName("a record that the columns generate and the root names is kept as it was")
         void rootEnumKeepsRecordsThatMeetIt() {
             Map<String, Object> columns = Map.of("x", Map.of("enum", List.of("a", "b")));
