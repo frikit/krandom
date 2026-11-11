@@ -35,7 +35,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `{"x": "expected"}`, where with seed 42 the first three held `XFnHbdhjiPu`, `yPJYFTHauN`, and `ZTqiGLl`. A
   record that the columns generate and that the root names is kept, so seeded output changes only for
   records that broke the root `const` or `enum`; any other record is replaced by one the root names, drawn
-  from the record's own stream where there are several.
+  from the record's own stream where there are several. Each column then exports, as an `enum`, the values
+  that the named records give it, as the metadata of the column's own schema need not allow them.
 - In `SchemaParser.fromJsonSchema(...)`, a property without a `type` whose name chooses a semantic value of
   another type, such as the integer Unix timestamp of `datetimeTimestamp` or the company object of
   `companyInfo`, now meets the schema's keywords for that type, which it ignored. With seed 42 and a UTC

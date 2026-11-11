@@ -3297,6 +3297,34 @@ class SchemaParserTest {
         }
 
         @Test
+        @DisplayName("under a root const or enum, each column exports the values that the named records give it")
+        void rootConstAndEnumExportTheirValues() {
+            // The column alone would export the timestamp's integer, which "fixed" is not.
+            Schema constant = SchemaParser.fromJsonSchema(root(
+                    "properties",
+                    Map.of("datetimeTimestamp", Map.of()),
+                    "const",
+                    Map.of("datetimeTimestamp", "fixed")));
+            assertEquals(Map.of("datetimeTimestamp", "fixed"), constant.generate());
+            assertEquals(
+                    Map.of("enum", List.of("fixed")),
+                    ((Map<?, ?>) constant.toJsonSchema().get("properties")).get("datetimeTimestamp"));
+            // Values that JSON compares as equal are listed once, and null as any other value.
+            Map<String, Object> withNull = new HashMap<>();
+            withNull.put("x", 1.0);
+            withNull.put("y", null);
+            Map<String, Object> properties = new LinkedHashMap<>();
+            properties.put("x", Map.of("type", "number"));
+            properties.put("y", Map.of("type", List.of("integer", "null")));
+            Map<?, ?> exported = (Map<?, ?>) SchemaParser.fromJsonSchema(
+                            root("properties", properties, "enum", List.of(Map.of("x", 1, "y", 2), withNull)))
+                    .toJsonSchema()
+                    .get("properties");
+            assertEquals(Map.of("enum", List.of(1)), exported.get("x"));
+            assertEquals(Map.of("enum", Arrays.asList(2, null)), exported.get("y"));
+        }
+
+        @Test
         @DisplayName("a record that the columns generate and the root names is kept as it was")
         void rootEnumKeepsRecordsThatMeetIt() {
             Map<String, Object> columns = Map.of("x", Map.of("enum", List.of("a", "b")));

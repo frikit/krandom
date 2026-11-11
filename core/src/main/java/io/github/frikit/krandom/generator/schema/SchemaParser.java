@@ -289,17 +289,43 @@ public final class SchemaParser {
         }
 
         // A root const or enum names whole records, which columns drawn one by one need not give.
-        return new Schema(config, providers, rootRule(jsonSchema, columns.keySet()));
+        List<Map<String, Object>> records = rootRecords(jsonSchema, columns.keySet());
+        if (records == null) {
+            return new Schema(config, providers);
+        }
+        // Every record is one of those named, so each column holds one of their values, as its metadata says.
+        for (Map.Entry<String, SchemaValueProvider> column : providers.entrySet()) {
+            List<@Nullable Object> values = new ArrayList<>();
+            Set<@Nullable Object> seen = new HashSet<>();
+            for (Map<String, Object> record : records) {
+                Object value = record.get(column.getKey());
+                if (seen.add(json(value))) {
+                    values.add(value);
+                }
+            }
+            column.setValue(SchemaValueProvider.withJsonSchema(column.getValue(), Map.of("enum", values)));
+        }
+        // A generated record that is one of them, as JSON values compare, is kept, and any other is replaced
+        // by one of them, drawn from the record's own stream where there are several.
+        Set<@Nullable Object> allowed = new HashSet<>();
+        for (Map<String, Object> record : records) {
+            allowed.add(json(record));
+        }
+        return new Schema(
+                config,
+                providers,
+                (record, random) -> allowed.contains(json(record))
+                        ? record
+                        : new LinkedHashMap<>(records.get(
+                                records.size() == 1 ? 0 : random.get().nextInt(records.size()))));
     }
 
     /**
-     * The rule that a root const or enum sets for whole records, or null where the root names neither. The
-     * root generates exactly its properties, as columns, so it gives only the named records that hold exactly
-     * them and meet the other constraints, and must name one. A generated record that is one of them, as JSON
-     * values compare, is kept, and any other is replaced by one of them, drawn from the record's own stream
-     * where there are several.
+     * The records that a root const or enum names, each with the columns' values in their order, or null
+     * where the root names neither. The root generates exactly its properties, as columns, so it gives only
+     * the named records that hold exactly them and meet the other constraints, and must name one.
      */
-    private static Schema.@Nullable RecordRule rootRule(Map<String, Object> root, Set<String> columns) {
+    private static @Nullable List<Map<String, Object>> rootRecords(Map<String, Object> root, Set<String> columns) {
         List<?> named;
         if (root.containsKey("const")) {
             named = Collections.singletonList(root.get("const"));
@@ -309,7 +335,6 @@ public final class SchemaParser {
             return null;
         }
         List<Map<String, Object>> records = new ArrayList<>();
-        Set<@Nullable Object> allowed = new HashSet<>();
         try {
             for (Object value : named) {
                 if (JsonSchemaSupport.normalizeStructuredValue(value) instanceof Map<?, ?> object
@@ -321,7 +346,6 @@ public final class SchemaParser {
                         record.put(column, members.get(column));
                     }
                     records.add(record);
-                    allowed.add(json(value));
                 }
             }
         } catch (IllegalArgumentException exception) {
@@ -334,10 +358,7 @@ public final class SchemaParser {
                     + "its const or enum must name a record that holds exactly them and meets the other"
                     + " constraints at $");
         }
-        return (record, random) -> allowed.contains(json(record))
-                ? record
-                : new LinkedHashMap<>(
-                        records.get(records.size() == 1 ? 0 : random.get().nextInt(records.size())));
+        return records;
     }
 
     /**
