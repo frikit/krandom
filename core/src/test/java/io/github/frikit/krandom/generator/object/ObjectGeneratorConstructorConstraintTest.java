@@ -185,6 +185,9 @@ class ObjectGeneratorConstructorConstraintTest {
         java.util.List<String> otherArgument;
         java.util.List<String> rawParameter;
         long number;
+        Outer<String>.Inner<Number> sameOwner;
+        Outer<Long>.Inner<Number> otherOwner;
+        java.util.Map.Entry<String, Number> classOwner;
 
         VarianceFixture(
                 java.util.List<? extends Number> covariant,
@@ -194,7 +197,17 @@ class ObjectGeneratorConstructorConstraintTest {
                 java.util.Collection<String> otherRawType,
                 java.util.List<Integer> otherArgument,
                 java.util.List rawParameter,
-                int number) {}
+                int number,
+                Outer<String>.Inner<? extends Number> sameOwner,
+                Outer<String>.Inner<? extends Number> otherOwner,
+                java.util.Map.Entry<String, ? extends Number> classOwner) {}
+    }
+
+    /** A generic class whose inner class is parameterized with it, as in {@code Outer<String>.Inner<Number>}. */
+    @SuppressWarnings({"unused", "InnerClassMayBeStatic"})
+    static final class Outer<T> {
+
+        final class Inner<U> {}
     }
 
     static final class Mutable {
@@ -372,6 +385,10 @@ class ObjectGeneratorConstructorConstraintTest {
         finds.put("otherArgument", false);
         finds.put("rawParameter", false);
         finds.put("number", false);
+        finds.put("sameOwner", true);
+        // Outer<Long>.Inner<Number> is not the property of an Outer<String>.Inner<Number>.
+        finds.put("otherOwner", false);
+        finds.put("classOwner", true);
 
         for (Parameter parameter : VarianceFixture.class.getDeclaredConstructors()[0].getParameters()) {
             java.lang.reflect.Field found = BeanValidationSupport.withNamedParameter(

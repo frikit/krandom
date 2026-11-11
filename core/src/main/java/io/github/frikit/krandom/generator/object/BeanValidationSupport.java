@@ -1310,7 +1310,8 @@ final class BeanValidationSupport {
     /**
      * Whether two declared types are the same but for wildcards in their type arguments, which Kotlin writes
      * into a parameter by declaration-site variance and not into the property's field: {@code List<T>} and
-     * {@code List<? extends T>}, or {@code Comparator<T>} and {@code Comparator<? super T>}.
+     * {@code List<? extends T>}, or {@code Comparator<T>} and {@code Comparator<? super T>}. The type that owns
+     * an inner class counts too, so {@code Outer<Long>.Inner<T>} is not {@code Outer<String>.Inner<T>}.
      */
     private static boolean sameButForVariance(Type fieldType, Type parameterType) {
         Type field = withoutVariance(fieldType);
@@ -1318,6 +1319,11 @@ final class BeanValidationSupport {
         if (field instanceof ParameterizedType fieldParameterized
                 && parameter instanceof ParameterizedType parameterParameterized) {
             if (!fieldParameterized.getRawType().equals(parameterParameterized.getRawType())) {
+                return false;
+            }
+            // One raw type has one owner, or none: Outer for Outer<String>.Inner<T>, or Map for Map.Entry<K, V>.
+            Type fieldOwner = fieldParameterized.getOwnerType();
+            if (fieldOwner != null && !sameButForVariance(fieldOwner, parameterParameterized.getOwnerType())) {
                 return false;
             }
             // One raw type has one number of type arguments.
