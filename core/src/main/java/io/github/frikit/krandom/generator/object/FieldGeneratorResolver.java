@@ -615,7 +615,20 @@ final class FieldGeneratorResolver {
                 return generator;
             });
         }
-        return () -> java.sql.Date.valueOf(randomDate(seedSource, min, max));
+        return lazyGenerator(() -> {
+            // SqlDateGenerator checks the range as it does for the seeded values: a java.sql.Date holds each bound.
+            new SqlDateGenerator(min, max);
+            return () -> sqlDateWithin(randomDate(seedSource, min, max), max);
+        });
+    }
+
+    /**
+     * The day as a {@code java.sql.Date}, as {@link SqlDateGenerator} gives it: a day that the default time
+     * zone cannot hold reads back as a later one, and gives {@code max} where that is past {@code max}.
+     */
+    private static java.sql.Date sqlDateWithin(LocalDate day, LocalDate max) {
+        java.sql.Date date = java.sql.Date.valueOf(day);
+        return date.toLocalDate().isAfter(max) ? java.sql.Date.valueOf(max) : date;
     }
 
     private static Generator<java.sql.Timestamp> buildSqlTimestampGenerator(

@@ -100,6 +100,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   counts distinct values. With seed 42, of 100,000 picks of two from `a, a, b, b, c`, the 20,135 that held a
   repeat changed, such as `[a, a]` to `[a, b]`, and no other did. A list without repeats gives the same
   values as before.
+- `new SqlDateGenerator(min, max)`, and a `java.sql.Date` member under `objectDateRange`, now give only dates
+  that read back as days of the range. A `java.sql.Date` holds a day as its start in the default time zone,
+  in the Julian calendar before 15 October 1582, so a day before the year 1, after the year 292278994, in
+  5 to 14 October 1582, or that the default zone skipped, such as 30 December 2011 in `Pacific/Apia`, read
+  back as another: a range of the single day 0000-06-01 gave 0001-06-01, and one from 1582-10-01 to
+  1582-10-15 gave days up to 1582-10-24. A bound that a `java.sql.Date` cannot hold now fails with
+  `IllegalArgumentException` when the generator is built, or when a `java.sql.Date` member is first
+  generated, and a drawn day that reads back past `max` gives `max`. With seed 42, of 100,000 values from
+  1582-10-01 to 1582-10-15, the 60,120 past `max` now give 1582-10-15; every value that read back in its
+  range, which is every value of a range that holds no such day, is unchanged.
 
 ## [3.0.0] - 2026-11-10
 

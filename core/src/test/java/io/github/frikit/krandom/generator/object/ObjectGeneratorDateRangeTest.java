@@ -147,6 +147,51 @@ class ObjectGeneratorDateRangeTest {
     }
 
     @Test
+    @DisplayName("a java.sql.Date member reads back as a day in the range, seeded or not")
+    void sqlDateMemberReadsBackInTheRange() {
+        // 5 to 14 October 1582 read back ten days later, as the Julian days they are.
+        LocalDate min = LocalDate.of(1582, 10, 1);
+        LocalDate max = LocalDate.of(1582, 10, 15);
+        GeneratorConfig unseeded =
+                GeneratorConfig.builder().objectDateRange(min, max).build();
+
+        for (GeneratorConfig config :
+                List.of(unseeded, unseeded.toBuilder().seed(42L).build())) {
+            ObjectGenerator<SqlDateFields> gen = new ObjectGenerator<>(SqlDateFields.class, config);
+            Set<LocalDate> days = new HashSet<>();
+            for (int i = 0; i < 2_000; i++) {
+                LocalDate day = gen.generate().day.toLocalDate();
+                assertFalse(day.isBefore(min) || day.isAfter(max), day.toString());
+                days.add(day);
+            }
+            assertTrue(days.contains(max), days.toString());
+        }
+    }
+
+    @Test
+    @DisplayName("a range that a java.sql.Date cannot hold fails for a java.sql.Date member only, seeded or not")
+    void rangeThatASqlDateCannotHoldFailsForASqlDateMember() {
+        LocalDate min = LocalDate.of(0, 1, 1);
+        LocalDate max = LocalDate.of(0, 12, 31);
+        GeneratorConfig unseeded =
+                GeneratorConfig.builder().objectDateRange(min, max).build();
+
+        for (GeneratorConfig config :
+                List.of(unseeded, unseeded.toBuilder().seed(42L).build())) {
+            IllegalArgumentException failure = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> new ObjectGenerator<>(SqlDateFields.class, config).generate());
+            assertTrue(failure.getMessage().startsWith("min 0000-01-01 is not a day that a java.sql.Date holds"));
+            assertEquals(
+                    0,
+                    new ObjectGenerator<>(LocalDateFields.class, config)
+                            .generate()
+                            .day
+                            .getYear());
+        }
+    }
+
+    @Test
     @DisplayName("dateRange(min > max) throws IllegalArgumentException")
     void invalidRangeThrows() {
         assertThrows(
@@ -158,6 +203,16 @@ class ObjectGeneratorDateRangeTest {
 
         Instant stamp;
         Instant createdAt;
+    }
+
+    static class SqlDateFields {
+
+        java.sql.Date day;
+    }
+
+    static class LocalDateFields {
+
+        LocalDate day;
     }
 
     static class SkippedDayFields {
