@@ -129,8 +129,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `ObjectFaker.assertConfigurationIsValid()` and `ObjectFaker.strict()` now report a root rule, root ignore or
   include-mode exclusion as ambiguous where it reaches an object that a nested rule creates, as the
   object-generation guide says they report every other path it applies at. A nested rule creates an object
-  on its path that generation leaves `null`, past `objectMaxDepth`, at a cycle, or where the configuration
-  excludes it, as a root of its own that those decisions reach, but the check followed only what generation
+  on its path that generation leaves `null`, past `objectMaxDepth`, at a cycle, where the configuration
+  excludes its field, or under `@Null` or a null probability of one, as a root of its own that those decisions
+  reach, but the check followed only what generation
   builds. So with `objectMaxDepth(1)`, `ruleFor("id", ...)` beside `ruleFor("middle.purchase.note", ...)` also
   set `middle.purchase.id` without a report, and a rule on a self-referencing type listed one of the three
   paths it reached. Generated values are unchanged.

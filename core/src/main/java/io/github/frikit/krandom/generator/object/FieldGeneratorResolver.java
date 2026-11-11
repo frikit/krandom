@@ -1981,8 +1981,13 @@ final class FieldGeneratorResolver {
                             .value(),
                     semanticRegistry,
                     generatorConfig);
-            return generateIfRequestedUnique(
-                    fakeAnnotationGenerator, rawType, genericType, ownerType, fieldName, currentDepth);
+            try {
+                return generateIfRequestedUnique(
+                        fakeAnnotationGenerator, rawType, genericType, ownerType, fieldName, currentDepth);
+            } catch (BeanValidationSupport.ConstraintConflictException conflict) {
+                // A semantic value whose configured range no value of the member's type meets, as above.
+                return handleConstraintConflict(rawType, genericType, ownerType, fieldName, currentDepth, conflict);
+            }
         }
 
         // ── 3bb. Declarative @FakeRange override ─────────────────────────────

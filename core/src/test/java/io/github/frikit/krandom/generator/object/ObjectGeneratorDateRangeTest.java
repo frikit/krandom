@@ -222,6 +222,34 @@ class ObjectGeneratorDateRangeTest {
     }
 
     @Test
+    @DisplayName("a @Fake java.sql.Date member of a range that holds no such day fails as its constraint conflict")
+    void fakeSqlDateMemberOfARangeWithoutAHeldDayFails() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                .seed(42L)
+                .objectDateRange(LocalDate.of(0, 1, 1), LocalDate.of(0, 12, 31))
+                .build();
+        List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+
+        ObjectGenerationException failure = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(FakeSqlDateFields.class, config).generate());
+        FakeSqlDateFields lenient = new ObjectGenerator<>(
+                        FakeSqlDateFields.class,
+                        config.toBuilder()
+                                .objectIgnoreErrors(true)
+                                .generationFailureListener(diagnostics::add)
+                                .build())
+                .generate();
+
+        assertEquals(
+                "FakeSqlDateFields.stamp", failure.getContext().orElseThrow().path());
+        assertNull(lenient.stamp);
+        assertEquals(
+                List.of("FakeSqlDateFields.stamp"),
+                diagnostics.stream().map(d -> d.context().path()).toList());
+    }
+
+    @Test
     @DisplayName("a range that holds no day a java.sql.Date holds fails as a constraint conflict of the member")
     void rangeWithoutAHeldDayFailsForASqlDateMember() {
         for (LocalDate[] range : List.of(
@@ -282,6 +310,12 @@ class ObjectGeneratorDateRangeTest {
 
         java.sql.Date createdAt;
         java.sql.Date day;
+    }
+
+    static class FakeSqlDateFields {
+
+        @Fake("createdAt")
+        java.sql.Date stamp;
     }
 
     static class LocalDateFields {

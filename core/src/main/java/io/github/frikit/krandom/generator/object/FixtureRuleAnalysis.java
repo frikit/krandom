@@ -684,10 +684,10 @@ final class FixtureRuleAnalysis {
             }
             for (Member member : members(type, !(populating && prefix.isEmpty()))) {
                 if (!isGenerated(member)) {
-                    // An excluded member keeps its default: an argument passes it, and a field holds it unless
-                    // an initializer that generation keeps sets it.
-                    if (member.parameter()
-                            || startsAtDefault(type, Objects.requireNonNull(member.field(), "a field member"))) {
+                    // An excluded field keeps its default unless an initializer that generation keeps sets it. An
+                    // excluded argument passes its default, which the constructor may replace, so it is unknown.
+                    if (!member.parameter()
+                            && startsAtDefault(type, Objects.requireNonNull(member.field(), "a field member"))) {
                         leftNull.add(prefix + member.name() + ".");
                     }
                 } else if (!hasMemberGenerator(member)) {
@@ -770,6 +770,8 @@ final class FixtureRuleAnalysis {
             if (constraints.nullOnly()
                     || (isContainer(rawType) && holdsNoElements(constraints))
                     || alwaysAbsent(element, rawType, constraints)) {
+                // Such an object member is always null, as an empty container leaves no path below it.
+                leftNull.add(path + ".");
                 return;
             }
             if (rawType == Optional.class) {

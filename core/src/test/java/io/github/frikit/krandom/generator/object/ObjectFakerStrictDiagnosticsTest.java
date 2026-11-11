@@ -581,14 +581,23 @@ class ObjectFakerStrictDiagnosticsTest {
                 .ruleFor("name", () -> "n")
                 .ruleFor("purchase.note", () -> "p");
 
+        ObjectFaker<Account> absent = new ObjectFaker<>(
+                        Account.class,
+                        GeneratorConfig.builder().objectNullProbability(1.0).build())
+                .ruleFor("id", () -> "x")
+                .ruleFor("name", () -> "n")
+                .ruleFor("purchase.note", () -> "p");
+
         assertEquals("x", account.generate().purchase.id);
         assertTrue(
                 onlyProblem(account).reason().endsWith("applies at 'purchase.id'"),
                 onlyProblem(account).reason());
-        assertEquals("x", constructed.generate().purchase.id);
+        assertEquals("x", absent.generate().purchase.id);
         assertTrue(
-                onlyProblem(constructed).reason().endsWith("applies at 'purchase.id'"),
-                onlyProblem(constructed).reason());
+                onlyProblem(absent).reason().endsWith("applies at 'purchase.id'"),
+                onlyProblem(absent).reason());
+        // A constructor may replace an argument that the configuration leaves out, so it is not followed.
+        assertEquals(List.of(), problemsOf(constructed));
         // populate(existing) keeps the excluded purchase it is given, which no root rule reaches.
         Account existing = new Account();
         existing.purchase = new Purchase();
