@@ -1640,21 +1640,22 @@ final class FieldGeneratorResolver {
         Randomizer annotation = element.getAnnotation(Randomizer.class);
         if (annotation == null) return null;
         Class<? extends Generator<?>> generatorType = annotation.value();
+        String path = memberPath(fieldName);
         Generator<?> generator = uniqueFieldTracker.randomizer(
-                element, () -> constructRandomizer(element, generatorType, ownerType, fieldName, depth));
+                element, () -> constructRandomizer(element, generatorType, ownerType, path, depth));
         if (generationSeed != null && generator instanceof Seedable seedable) {
             // Seedable randomizers follow the object's seeded stream like built-in generators. The seed
             // is derived by name, so no other member's draws shift.
-            seedable.reseed(GenerationRecipe.deriveChildSeed(generationSeed, "randomizer:" + memberPath(fieldName)));
+            seedable.reseed(GenerationRecipe.deriveChildSeed(generationSeed, "randomizer:" + path));
         }
-        return () -> generateWithRandomizerContext(generator, generatorType, ownerType, fieldName, depth);
+        return () -> generateWithRandomizerContext(generator, generatorType, ownerType, path, depth);
     }
 
     private static Generator<?> constructRandomizer(
             AnnotatedElement element,
             Class<? extends Generator<?>> generatorType,
             Class<?> ownerType,
-            String fieldName,
+            String path,
             int depth) {
         try {
             RandomizerArgument[] args = element.getAnnotationsByType(RandomizerArgument.class);
@@ -1669,9 +1670,9 @@ final class FieldGeneratorResolver {
             return ctor.newInstance(parameterValues);
         } catch (InvocationTargetException e) {
             throw randomizerFailure(
-                    GenerationOperation.CONSTRUCT, generatorType, ownerType, fieldName, depth, e.getTargetException());
+                    GenerationOperation.CONSTRUCT, generatorType, ownerType, path, depth, e.getTargetException());
         } catch (ReflectiveOperationException | RuntimeException e) {
-            throw randomizerFailure(GenerationOperation.CONSTRUCT, generatorType, ownerType, fieldName, depth, e);
+            throw randomizerFailure(GenerationOperation.CONSTRUCT, generatorType, ownerType, path, depth, e);
         }
     }
 
@@ -1679,7 +1680,7 @@ final class FieldGeneratorResolver {
             Generator<?> generator,
             Class<? extends Generator<?>> generatorType,
             Class<?> ownerType,
-            String fieldName,
+            String path,
             int depth) {
         try {
             return generator.generate();
@@ -1687,20 +1688,20 @@ final class FieldGeneratorResolver {
             if (e.getContext().isPresent()) {
                 throw e;
             }
-            throw randomizerFailure(GenerationOperation.GENERATE, generatorType, ownerType, fieldName, depth, e);
+            throw randomizerFailure(GenerationOperation.GENERATE, generatorType, ownerType, path, depth, e);
         } catch (RuntimeException e) {
-            throw randomizerFailure(GenerationOperation.GENERATE, generatorType, ownerType, fieldName, depth, e);
+            throw randomizerFailure(GenerationOperation.GENERATE, generatorType, ownerType, path, depth, e);
         }
     }
 
+    /** A failure of a member's {@code @Randomizer}, at the member's path from the root object. */
     private static ObjectGenerationException randomizerFailure(
             GenerationOperation operation,
             Class<? extends Generator<?>> generatorType,
             Class<?> ownerType,
-            String fieldName,
+            String path,
             int depth,
             Throwable cause) {
-        String path = ownerType.getSimpleName() + "." + fieldName;
         String generatorTypeName = generatorType.getName();
         GenerationFailureContext context = new GenerationFailureContext(
                 GenerationFailureCategory.CUSTOM_GENERATOR, operation, path, ownerType, generatorTypeName, depth, -1);
@@ -2090,7 +2091,7 @@ final class FieldGeneratorResolver {
                 Object val = resolveAndGenerate(
                         v, fieldName + ".value", ownerType, currentDepth, typeArgumentElement(element, 1));
                 if (key != null) {
-                    String entryPath = ownerType.getSimpleName() + "." + fieldName + "[" + map.size() + "]";
+                    String entryPath = memberPath(fieldName) + "[" + map.size() + "]";
                     try {
                         map.put(key, val);
                     } catch (RuntimeException e) {
@@ -2202,7 +2203,7 @@ final class FieldGeneratorResolver {
                         nestedFailure(
                                 GenerationFailureCategory.REFLECTION,
                                 GenerationOperation.GENERATE,
-                                ownerType.getSimpleName() + "." + fieldName,
+                                memberPath(fieldName),
                                 ownerType,
                                 genericType.getTypeName(),
                                 currentDepth,
@@ -2523,7 +2524,7 @@ final class FieldGeneratorResolver {
             int depth,
             RuntimeException cause) {
         GenerationReporter.failed(currentTrace, GenerationDecision.UNSUPPORTED_TYPE);
-        String path = ownerType.getSimpleName() + "." + fieldName;
+        String path = memberPath(fieldName);
         String declaredTypeName = declaredType.getTypeName();
         GenerationFailureContext context = new GenerationFailureContext(
                 GenerationFailureCategory.UNSUPPORTED_TYPE,
@@ -2550,7 +2551,7 @@ final class FieldGeneratorResolver {
             int depth,
             BeanValidationSupport.ConstraintConflictException cause) {
         GenerationReporter.failed(currentTrace, GenerationDecision.CONSTRAINT_CONFLICT);
-        String path = ownerType.getSimpleName() + "." + fieldName;
+        String path = memberPath(fieldName);
         String declaredTypeName = declaredType.getTypeName();
         GenerationFailureContext context = new GenerationFailureContext(
                 GenerationFailureCategory.UNSUPPORTED_TYPE,
@@ -2659,7 +2660,7 @@ final class FieldGeneratorResolver {
     private @Nullable Object handleCollectionInsertionFailure(
             Class<?> ownerType, String fieldName, Type declaredType, int depth, RuntimeException cause) {
         GenerationReporter.failed(currentTrace, GenerationDecision.FAILURE_FALLBACK);
-        String path = ownerType.getSimpleName() + "." + fieldName;
+        String path = memberPath(fieldName);
         String declaredTypeName = declaredType.getTypeName();
         GenerationFailureContext context = new GenerationFailureContext(
                 GenerationFailureCategory.COLLECTION_INSERTION,
@@ -2697,7 +2698,7 @@ final class FieldGeneratorResolver {
     private @Nullable Object handleCollectionConstructionFailure(
             Class<?> ownerType, String fieldName, Type declaredType, int depth, Throwable cause) {
         GenerationReporter.failed(currentTrace, GenerationDecision.FAILURE_FALLBACK);
-        String path = ownerType.getSimpleName() + "." + fieldName;
+        String path = memberPath(fieldName);
         String declaredTypeName = declaredType.getTypeName();
         GenerationFailureContext context = new GenerationFailureContext(
                 GenerationFailureCategory.CONSTRUCTION,
@@ -2773,7 +2774,7 @@ final class FieldGeneratorResolver {
             try {
                 Array.set(arr, i, el);
             } catch (IllegalArgumentException e) {
-                String elementPath = ownerType.getSimpleName() + "." + fieldName + "[" + i + "]";
+                String elementPath = memberPath(fieldName) + "[" + i + "]";
                 String declaredType = declaredArrayType.signature();
                 GenerationFailureContext context = new GenerationFailureContext(
                         GenerationFailureCategory.COLLECTION_INSERTION,

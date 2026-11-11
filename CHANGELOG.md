@@ -116,6 +116,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `past` `now - days - 1 second`. That one value now gives the end of the range, and every other draw keeps its
   value: with seed 42, of 1,000,000 values each, 13 of `future(1)` and 16 of `past(1)` changed, and none of
   `future()`, which spans 3,650 days.
+- A generation failure in a nested object now tells a `GenerationFailureListener` the path that generation
+  reached it on, from the root object, as `GenerationFailureContext` says its path is. It named the declaring
+  type instead, so under `objectIgnoreErrors(true)` failures at `Top.left.task` and `Top.right.task` both
+  reached the listener as `Mid.task`, and a strict failure was told first as `Mid.task` and then, as the
+  exception names it, as `Top.left.task`. An unsupported type, a constraint conflict, a collection, map or
+  array insertion, a collection that cannot be constructed, a `@Randomizer` and a field assignment now name
+  the member's path, as uniqueness and depth-limit failures already did, so a field that the root inherits
+  is named by the root's type rather than by the superclass that declares it. Generated values are unchanged.
 
 ## [3.0.0] - 2026-11-10
 

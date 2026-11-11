@@ -1154,6 +1154,62 @@ class ObjectGeneratorTest {
             assertEquals(NestedRootContextGenerator.class, context.ownerType());
         }
 
+        @Test
+        @DisplayName("a path that a nested type's own generation names moves below the member it fills")
+        void nestedTypeMemberPathMovesBelowTheMember() {
+            ObjectGenerationException error = assertThrows(
+                    ObjectGenerationException.class,
+                    () -> new ObjectGenerator<>(NestedMemberContextRoot.class).generate());
+
+            assertEquals(
+                    "NestedMemberContextRoot.child.value",
+                    error.getContext().orElseThrow().path());
+        }
+
+        @Test
+        @DisplayName("each failure in a nested object tells the listener the path it was reached on")
+        void nestedFailuresTellTheListenerTheirRootRelativePaths() {
+            List<GenerationFailureDiagnostic> lenient = new ArrayList<>();
+            List<GenerationFailureDiagnostic> strict = new ArrayList<>();
+            GeneratorConfig config = GeneratorConfig.builder()
+                    .objectOverride(TwinBranch.class, "label", () -> 42)
+                    .build();
+
+            TwinBranchRoot root = new ObjectGenerator<>(
+                            TwinBranchRoot.class,
+                            config.toBuilder()
+                                    .objectIgnoreErrors(true)
+                                    .generationFailureListener(lenient::add)
+                                    .build())
+                    .generate();
+            ObjectGenerationException error = assertThrows(
+                    ObjectGenerationException.class,
+                    () -> new ObjectGenerator<>(
+                                    TwinBranchRoot.class,
+                                    config.toBuilder()
+                                            .generationFailureListener(strict::add)
+                                            .build())
+                            .generate());
+
+            assertNull(root.left.task);
+            assertNull(root.right.task);
+            assertEquals(
+                    List.of(
+                            "TwinBranchRoot.left.code",
+                            "TwinBranchRoot.left.label",
+                            "TwinBranchRoot.left.task",
+                            "TwinBranchRoot.right.code",
+                            "TwinBranchRoot.right.label",
+                            "TwinBranchRoot.right.task"),
+                    lenient.stream().map(d -> d.context().path()).toList());
+            assertEquals(TwinBranch.class, lenient.getLast().context().ownerType());
+            assertEquals(
+                    "TwinBranchRoot.left.code", error.getContext().orElseThrow().path());
+            assertEquals(
+                    List.of("TwinBranchRoot.left.code", "TwinBranchRoot.left.code"),
+                    strict.stream().map(d -> d.context().path()).toList());
+        }
+
         private void assertUnsupportedTypeFailure(Class<?> ownerType, String fieldName, Class<?> declaredType) {
             ObjectGenerationException error =
                     assertThrows(ObjectGenerationException.class, () -> new ObjectGenerator<>(ownerType).generate());
@@ -1294,6 +1350,48 @@ class ObjectGeneratorTest {
 
             @Randomizer(NestedRootContextGenerator.class)
             String value;
+        }
+
+        static class NestedMemberContextRoot {
+
+            NestedMemberContextChild child;
+        }
+
+        static class NestedMemberContextChild {
+
+            @Randomizer(NestedMemberContextGenerator.class)
+            String value;
+        }
+
+        /** Fails as an object generator run on its own type names the failure: from that type. */
+        public static class NestedMemberContextGenerator implements Generator<String> {
+
+            @Override
+            public String generate() {
+                GenerationFailureContext context = new GenerationFailureContext(
+                        GenerationFailureCategory.ASSIGNMENT,
+                        GenerationOperation.ASSIGN,
+                        NestedMemberContextChild.class.getSimpleName() + ".value",
+                        NestedMemberContextGenerator.class,
+                        String.class.getName(),
+                        1,
+                        -1);
+                throw new ObjectGenerationException("nested member failure", context, null);
+            }
+        }
+
+        static class TwinBranchRoot {
+
+            TwinBranch left;
+            TwinBranch right;
+        }
+
+        static class TwinBranch {
+
+            @Size(min = 5, max = 2) String code;
+
+            String label;
+            Runnable task;
         }
 
         public static class NestedRootContextGenerator implements Generator<String> {
@@ -1804,7 +1902,8 @@ class ObjectGeneratorTest {
             assertNull(top.mid().shape());
             assertEquals(1, diagnostics.size());
             assertEquals(
-                    "RequiredShapeOwner.shape", diagnostics.getFirst().context().path());
+                    "RequiredShapeTop.mid.shape",
+                    diagnostics.getFirst().context().path());
             assertEquals(
                     UnsupportedOperationException.class.getName(),
                     diagnostics.getFirst().causeType());

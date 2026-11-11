@@ -309,6 +309,30 @@ class FieldGeneratorResolverCollectionFallbackTest {
         assertEquals(List.of(expectedPath), notifiedPaths);
     }
 
+    @Test
+    @DisplayName("each collection failure in a nested object tells the listener the path it was reached on")
+    void nestedCollectionFailuresTellTheListenerTheirRootRelativePaths() {
+        List<String> notifiedPaths = new ArrayList<>();
+        GeneratorConfig config = arrayFailureConfig(true).toBuilder()
+                .generationFailureListener(
+                        diagnostic -> notifiedPaths.add(diagnostic.context().path()))
+                .build();
+
+        new ObjectGenerator<>(CollectionFailureRoot.class, config).generate();
+
+        assertEquals(
+                List.of(
+                        "CollectionFailureRoot.left.list",
+                        "CollectionFailureRoot.left.map[0]",
+                        "CollectionFailureRoot.left.numbers[0]",
+                        "CollectionFailureRoot.left.rejecting",
+                        "CollectionFailureRoot.right.list",
+                        "CollectionFailureRoot.right.map[0]",
+                        "CollectionFailureRoot.right.numbers[0]",
+                        "CollectionFailureRoot.right.rejecting"),
+                notifiedPaths);
+    }
+
     private static Stream<Arguments> nonConstructibleCollectionHolders() {
         return Stream.of(
                 Arguments.of("NonConstructibleListHolder.values", NonConstructibleListHolder.class),
@@ -484,6 +508,20 @@ class FieldGeneratorResolverCollectionFallbackTest {
     static final class RejectingListHolder {
 
         RejectingList<String> values;
+    }
+
+    static final class CollectionFailureRoot {
+
+        CollectionFailureBranch left;
+        CollectionFailureBranch right;
+    }
+
+    static final class CollectionFailureBranch {
+
+        NoDefaultCtorList<String> list;
+        ThrowingPutMap<String, Integer> map;
+        int[] numbers;
+        RejectingList<String> rejecting;
     }
 
     static final class RejectingSetHolder {
