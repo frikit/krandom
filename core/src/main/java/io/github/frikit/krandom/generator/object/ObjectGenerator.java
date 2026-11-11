@@ -719,14 +719,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                     depth,
                     (genericType, rawType, memberName, element) -> {
                         constructorMembers.add(memberName);
-                        // The adapter names the type's parameters, as Kotlin metadata does where no name was
-                        // compiled, so an argument meets the constraints of the field it fills too.
-                        if (element instanceof Parameter parameter
-                                && parameter.getDeclaringExecutable().getDeclaringClass() == type) {
-                            BeanValidationSupport.nameConstructorParameter(parameter, memberName);
-                        }
                         // A field predicate override reaches the argument through the field behind it.
-                        return resolver.resolveAndGenerateMember(
+                        Supplier<@Nullable Object> argument = () -> resolver.resolveAndGenerateMember(
                                 genericType,
                                 rawType,
                                 memberName,
@@ -735,6 +729,12 @@ public final class ObjectGenerator<T> implements Generator<T> {
                                 element,
                                 predicateField(memberName, rawType),
                                 memberStreamIdentity(type, "constructor", memberName));
+                        // The adapter names the type's own parameters, as Kotlin metadata does where no name was
+                        // compiled, so the argument meets the constraints of the field it fills too.
+                        return element instanceof Parameter parameter
+                                        && parameter.getDeclaringExecutable().getDeclaringClass() == type
+                                ? BeanValidationSupport.withNamedParameter(parameter, memberName, argument)
+                                : argument.get();
                     },
                     (memberName, rawType) -> {
                         constructorMembers.add(memberName);

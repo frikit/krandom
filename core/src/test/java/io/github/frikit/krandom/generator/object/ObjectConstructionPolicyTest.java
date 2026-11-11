@@ -308,14 +308,13 @@ class ObjectConstructionPolicyTest {
         Field codeField = nameless.getDeclaredField("code");
         codeField.setAccessible(true);
         assertFalse(code.isNamePresent());
-        // Read before the adapter names it, the parameter has its own @NotBlank alone.
+        // Read outside an adapter's call, the parameter has its own @NotBlank alone, before generation and after.
         assertNull(BeanValidationSupport.initializedField(code));
         assertNotEquals(
                 new BeanValidationSupport.SizeRange(2, 2),
                 BeanValidationSupport.constraintModelFor(code, String.class)
                         .text()
                         .size());
-        BeanValidationSupport.constraintModelFor(codeField, String.class);
 
         ObjectGenerator<?> generator = new ObjectGenerator<>(
                 nameless, GeneratorConfig.builder().seed(42L).build());
@@ -324,7 +323,12 @@ class ObjectConstructionPolicyTest {
             assertEquals(2, value.length(), value);
             assertFalse(value.isBlank(), value);
         }
-        assertEquals(codeField, BeanValidationSupport.initializedField(code));
+        assertNull(BeanValidationSupport.initializedField(code));
+        assertNotEquals(
+                new BeanValidationSupport.SizeRange(2, 2),
+                BeanValidationSupport.constraintModelFor(code, String.class)
+                        .text()
+                        .size());
     }
 
     @Test
@@ -347,6 +351,8 @@ class ObjectConstructionPolicyTest {
 
         // The adapter keeps its default unless an override targets the parameter, as the Kotlin adapter does.
         assertEquals("default", kept.name);
+        // A constructor parameter inside an argument the adapter names reads its own constraints.
+        assertEquals(3, kept.inner.text.length(), kept.inner.text);
         assertEquals("predicate", plain.name);
         assertEquals("contextual", contextual.name);
         // A parameter with no field behind it has nothing for a field predicate to match.
@@ -354,7 +360,7 @@ class ObjectConstructionPolicyTest {
         assertFalse(new ObjectGenerator<>(
                         AdapterDefaultFixture.class,
                         GeneratorConfig.builder()
-                                .objectOverride(field -> true, () -> "any")
+                                .objectOverride(field -> field.getType() == String.class, () -> "any")
                                 .build())
                 .generate()
                 .unbackedOverridden);
@@ -728,10 +734,22 @@ class ObjectConstructionPolicyTest {
 
         final String name;
         final boolean unbackedOverridden;
+        final AdapterInner inner;
 
-        AdapterDefaultFixture(String name, boolean unbackedOverridden) {
+        AdapterDefaultFixture(String name, boolean unbackedOverridden, AdapterInner inner) {
             this.name = name;
             this.unbackedOverridden = unbackedOverridden;
+            this.inner = inner;
+        }
+    }
+
+    /** Built through its constructor, inside an argument that an adapter names, whose name it does not take. */
+    static final class AdapterInner {
+
+        final String text;
+
+        AdapterInner(@Size(min = 3, max = 3) String text) {
+            this.text = text;
         }
     }
 

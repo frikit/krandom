@@ -82,6 +82,17 @@ class KotlinConstructorContractTest {
     }
 
     @Test
+    fun generatingOneTypeLeavesTheValuesOfAnotherAsTheyWere() {
+        val before = krandom<SizedCodeHolder> { config { seed(42L) } }
+        val code = krandom<SizedCode> { config { seed(42L) } }
+        val after = krandom<SizedCodeHolder> { config { seed(42L) } }
+
+        // As the generated type, the value class reads the constraints of its property's field too.
+        assertEquals(1000, code.value.length)
+        assertEquals(before, after)
+    }
+
+    @Test
     fun aFieldPredicateOverrideReplacesADefaultArgumentAndFillsARequiredOne() {
         val names = Predicate<Field> { field -> field.name == "name" }
         val plain = GeneratorConfig.builder().objectOverride(names, Generator { "predicate" }).build()
@@ -136,6 +147,17 @@ data class ParameterOverFieldConstraint(
     @param:Size(min = 3, max = 3)
     @field:Size(min = 2, max = 2)
     val code: String,
+)
+
+@JvmInline
+value class SizedCode(
+    @param:NotBlank
+    @field:Size(min = 1000, max = 1000)
+    val value: String,
+)
+
+data class SizedCodeHolder(
+    val code: SizedCode,
 )
 
 data class DefaultedName(

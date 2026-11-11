@@ -70,6 +70,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Supplier;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -115,6 +116,15 @@ final class BeanValidationSupport {
             return new ConcurrentHashMap<>();
         }
     };
+    /** The field each name that a construction adapter gives a parameter finds, which the class fixes. */
+    private static final ClassValue<ConcurrentMap<ParameterName, Optional<Field>>> NAMED_FIELDS = new ClassValue<>() {
+        @Override
+        protected ConcurrentMap<ParameterName, Optional<Field>> computeValue(Class<?> type) {
+            return new ConcurrentHashMap<>();
+        }
+    };
+    /** The parameter whose argument a construction adapter is generating on this thread, as it names it. */
+    private static final ThreadLocal<@Nullable NamedParameter> NAMED_PARAMETER = new ThreadLocal<>();
     /** Read by name, so that no constraint class is loaded when the API is absent. */
     private static final String CONSTRAINT_PACKAGE = "jakarta.validation.constraints";
 
@@ -158,6 +168,13 @@ final class BeanValidationSupport {
     private record ConstraintCacheKey(Object member, Class<?> rawType) {}
 
     private record AccessorMethods(Map<String, List<Method>> declared, Map<String, List<Method>> interfaces) {}
+
+    /** A name that a construction adapter gives a constructor parameter. */
+    private record ParameterName(Parameter parameter, String name) {}
+
+    /** A constructor parameter as a construction adapter names it, with the field that the name finds, if any. */
+    private record NamedParameter(
+            Parameter parameter, @Nullable Field field) {}
 
     static final class ConstraintConflictException extends IllegalArgumentException {
 
@@ -235,7 +252,9 @@ final class BeanValidationSupport {
         }
         if (element instanceof Parameter parameter) {
             Class<?> owner = parameter.getDeclaringExecutable().getDeclaringClass();
-            return cachedConstraintModel(owner, parameter, element, rawType);
+            // A parameter that an adapter names reads the constraints of a field too, so it has an entry of its own.
+            NamedParameter named = named(parameter);
+            return cachedConstraintModel(owner, named != null ? named : parameter, element, rawType);
         }
         return buildConstraintModel(element, rawType);
     }
@@ -1206,6 +1225,10 @@ final class BeanValidationSupport {
      * @return the initialized field, or {@code null} when there is none
      */
     static @Nullable Field initializedField(Parameter parameter) {
+        NamedParameter named = named(parameter);
+        if (named != null) {
+            return named.field();
+        }
         Executable executable = parameter.getDeclaringExecutable();
         return INITIALIZED_FIELDS
                 .get(executable.getDeclaringClass())
@@ -1214,20 +1237,36 @@ final class BeanValidationSupport {
     }
 
     /**
-     * Names a constructor parameter as a construction adapter does, after the property it fills, as Kotlin
-     * metadata names it where the class was compiled without parameter names. The argument then meets the
-     * constraints of the field with that name and the parameter's declared type too, as it does under a compiled
-     * name. Constraints read for the parameter before are dropped, so that they are read again with the field.
+     * Generates a constructor argument with its parameter named as a construction adapter names it, after the
+     * property it fills, as Kotlin metadata names it where the class was compiled without parameter names. While
+     * the argument is generated, it meets the constraints of the field with that name and the parameter's
+     * declared type too, as under a compiled name. The name holds for this argument on this thread alone, so
+     * every other use of the parameter reads it as compiled, whatever was generated before.
      *
      * @param parameter a constructor parameter
      * @param name the name of the property it fills
+     * @param generation generates the argument
+     * @return the argument
      */
-    static void nameConstructorParameter(Parameter parameter, String name) {
+    static <V extends @Nullable Object> V withNamedParameter(Parameter parameter, String name, Supplier<V> generation) {
         Class<?> owner = parameter.getDeclaringExecutable().getDeclaringClass();
-        Optional<Field> field = findInitializedField(parameter, name);
-        if (!field.equals(INITIALIZED_FIELDS.get(owner).put(parameter, field))) {
-            CONSTRAINT_MODELS.get(owner).keySet().removeIf(key -> key.member().equals(parameter));
+        Field field = NAMED_FIELDS
+                .get(owner)
+                .computeIfAbsent(new ParameterName(parameter, name), key -> findInitializedField(parameter, name))
+                .orElse(null);
+        NamedParameter enclosing = NAMED_PARAMETER.get();
+        NAMED_PARAMETER.set(new NamedParameter(parameter, field));
+        try {
+            return generation.get();
+        } finally {
+            NAMED_PARAMETER.set(enclosing);
         }
+    }
+
+    /** The parameter as a construction adapter names it while it generates its argument, or else {@code null}. */
+    private static @Nullable NamedParameter named(Parameter parameter) {
+        NamedParameter named = NAMED_PARAMETER.get();
+        return named != null && named.parameter().equals(parameter) ? named : null;
     }
 
     private static Optional<Field> findInitializedField(Parameter parameter) {

@@ -117,7 +117,13 @@ public final class TestObjectConstructionAdapter implements ObjectConstructionAd
                 ? (String) context.generate(
                         String.class, String.class, "name", constructor.getParameters()[0])
                 : "default";
-        return new ObjectConstructionPolicyTest.AdapterDefaultFixture(name, unbackedOverridden);
+        Object inner = context.generate(
+                ObjectConstructionPolicyTest.AdapterInner.class,
+                ObjectConstructionPolicyTest.AdapterInner.class,
+                "inner",
+                constructor.getParameters()[2]);
+        return new ObjectConstructionPolicyTest.AdapterDefaultFixture(
+                name, unbackedOverridden, (ObjectConstructionPolicyTest.AdapterInner) inner);
     }
 
     /**

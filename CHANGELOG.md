@@ -14,8 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   found: the adapter passed the parameter where it had a constraint, which dropped the field's, and a getter's
   constraints were always dropped. Seeded with `42`, of 2,000 values each, `@param:NotBlank
   @field:Size(min = 2, max = 2) val code` broke its size in 1,994 and `@get:Size(min = 2, max = 2) val code`
-  in 2,000, and now neither does. A construction adapter's parameter is now read with the field its member
-  name gives, as a parameter compiled with its name is. Seeded output changes only for such arguments.
+  in 2,000, and now neither does. While a construction adapter generates an argument of the constructed type,
+  its parameter is read with the field its member name gives, as a parameter compiled with its name is, and
+  only then, so the values of other types do not depend on what was generated before. Seeded output changes
+  only for such arguments.
 - A `GeneratorConfig` field predicate override, `objectOverride(Predicate<Field>, ...)` in either form, now
   replaces a Kotlin default argument and fills a required primary-constructor parameter when it matches the
   property's field, of the parameter's type, as `ObjectConstructionContext` says explicit field overrides stay
