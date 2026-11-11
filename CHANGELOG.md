@@ -18,7 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   name gives, as a parameter compiled with its name is. Seeded output changes only for such arguments.
 - A `GeneratorConfig` field predicate override, `objectOverride(Predicate<Field>, ...)` in either form, now
   replaces a Kotlin default argument and fills a required primary-constructor parameter when it matches the
-  property's field, as `ObjectConstructionContext` says explicit field overrides stay stronger than defaults.
+  property's field, of the parameter's type, as `ObjectConstructionContext` says explicit field overrides stay
+  stronger than defaults.
   `hasExplicitOverride` left both forms out, so the adapter kept `"default"` for
   `data class User(val name: String = "default")`, and the resolver matched a predicate only against a field
   it was given, not a parameter. Seeded with `42`, of 2,000 values each, a predicate on `name` reached neither

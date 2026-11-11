@@ -32,6 +32,7 @@ public final class TestObjectConstructionAdapter implements ObjectConstructionAd
         return type == ObjectConstructionPolicyTest.AdapterFixture.class
                 || type == ObjectConstructionPolicyTest.AdapterBodyFixture.class
                 || type == ObjectConstructionPolicyTest.AdapterDefaultFixture.class
+                || type == ObjectConstructionPolicyTest.AdapterShadowFixture.class
                 || type == ObjectConstructionPolicyTest.AdapterSingletonFixture.class
                 || type == ObjectConstructionPolicyTest.AdapterCompanionHolder.AdapterCompanion.class
                 || type == ObjectConstructionPolicyTest.ExclusionAdapterFixture.class
@@ -73,6 +74,17 @@ public final class TestObjectConstructionAdapter implements ObjectConstructionAd
         }
         if (context.getType() == ObjectConstructionPolicyTest.AdapterDefaultFixture.class) {
             return constructWithDefault(context);
+        }
+        if (context.getType() == ObjectConstructionPolicyTest.AdapterShadowFixture.class) {
+            boolean overridden = context.hasExplicitOverride("code", int.class);
+            Object code = context.generate(
+                    int.class,
+                    int.class,
+                    "code",
+                    ObjectConstructionPolicyTest.AdapterShadowFixture.class
+                            .getDeclaredConstructors()[0]
+                            .getParameters()[0]);
+            return new ObjectConstructionPolicyTest.AdapterShadowFixture((Integer) code, overridden);
         }
         if (context.getType() == ObjectConstructionPolicyTest.AdapterBodyFixture.class) {
             return new ObjectConstructionPolicyTest.AdapterBodyFixture(

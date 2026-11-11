@@ -361,6 +361,21 @@ class ObjectConstructionPolicyTest {
     }
 
     @Test
+    @DisplayName("a field predicate override reaches an adapter's parameter only through a field of its type")
+    void fieldPredicateOverridesNeedAFieldOfTheParametersType() {
+        // The body's String code shares its name with the int parameter, which it is not filled from.
+        AdapterShadowFixture value = new ObjectGenerator<>(
+                        AdapterShadowFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverride(field -> field.getName().equals("code"), () -> "text")
+                                .build())
+                .generate();
+
+        assertFalse(value.overridden);
+        assertEquals("initial", value.code);
+    }
+
+    @Test
     @DisplayName("an adapter's Kotlin object is returned as it is")
     void adapterSingletonKeepsItsState() {
         AdapterSingletonFixture value = new ObjectGenerator<>(
@@ -694,6 +709,18 @@ class ObjectConstructionPolicyTest {
         try (URLClassLoader loader = new URLClassLoader(
                 new URL[] {directory.toUri().toURL()}, ObjectConstructionPolicyTest.class.getClassLoader())) {
             return loader.loadClass("NamelessCode");
+        }
+    }
+
+    static final class AdapterShadowFixture {
+
+        final int number;
+        final boolean overridden;
+        String code = "initial";
+
+        AdapterShadowFixture(int code, boolean overridden) {
+            this.number = code;
+            this.overridden = overridden;
         }
     }
 

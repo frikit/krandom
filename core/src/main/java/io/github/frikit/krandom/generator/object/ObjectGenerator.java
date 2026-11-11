@@ -733,7 +733,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                                 type,
                                 depth,
                                 element,
-                                constructionField(memberName),
+                                predicateField(memberName, rawType),
                                 memberStreamIdentity(type, "constructor", memberName));
                     },
                     (memberName, rawType) -> {
@@ -772,6 +772,15 @@ public final class ObjectGenerator<T> implements Generator<T> {
         return property != null && config.shouldExclude(property);
     }
 
+    /**
+     * The field that a field predicate override matches for a constructor parameter: the field behind it, where
+     * it has the parameter's type, so that the override's value fits the argument.
+     */
+    private @Nullable Field predicateField(String memberName, Class<?> rawType) {
+        Field property = constructionField(memberName);
+        return property != null && property.getType() == rawType ? property : null;
+    }
+
     /** The field behind a constructor parameter: the nearest one with its name, on the type or a superclass. */
     private @Nullable Field constructionField(String memberName) {
         for (Class<?> current = type; current != Object.class; current = current.getSuperclass()) {
@@ -806,10 +815,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     /**
      * Whether an override targets a constructor parameter that an adapter resolves: by the member's name, by a
-     * field predicate that matches the field behind it, or by the parameter's type.
+     * field predicate that matches the field behind it, where that field has the parameter's type, or by the
+     * parameter's type.
      */
     private boolean hasExplicitConstructionOverride(String memberName, Class<?> rawType) {
-        Field property = constructionField(memberName);
+        Field property = predicateField(memberName, rawType);
         return config.getContextualFieldOverride(type, memberName).isPresent()
                 || config.getFieldOverride(type, memberName).isPresent()
                 || (property != null
