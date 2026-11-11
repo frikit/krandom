@@ -1,0 +1,14 @@
+public final class io/github/frikit/krandom/kotest/KrandomArbKt {
+	public static final fun checkAllWithRecipe (Lio/github/frikit/krandom/generator/GeneratorConfig;Lio/kotest/property/Arb;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun checkAllWithRecipe (Lio/github/frikit/krandom/generator/GeneratorConfig;Lkotlin/jvm/functions/Function1;Lio/kotest/property/PropTestConfig;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun checkAllWithRecipe$default (Lio/github/frikit/krandom/generator/GeneratorConfig;Lkotlin/jvm/functions/Function1;Lio/kotest/property/PropTestConfig;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static final fun forKotestSample (Lio/github/frikit/krandom/generator/GeneratorConfig;Lio/kotest/property/RandomSource;)Lio/github/frikit/krandom/generator/GeneratorConfig;
+	public static final fun krandomArb (Lio/github/frikit/krandom/generator/GeneratorConfig;Lkotlin/jvm/functions/Function1;)Lio/kotest/property/Arb;
+	public static final fun krandomDoubleArb (DD)Lio/kotest/property/Arb;
+	public static final fun krandomIntArb (II)Lio/kotest/property/Arb;
+	public static final fun krandomKotestRecipe (Lio/github/frikit/krandom/generator/GeneratorConfig;)Ljava/lang/String;
+	public static synthetic fun krandomKotestRecipe$default (Lio/github/frikit/krandom/generator/GeneratorConfig;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun krandomLongArb (JJ)Lio/kotest/property/Arb;
+	public static final fun krandomPickArb (Ljava/util/List;)Lio/kotest/property/Arb;
+}
+

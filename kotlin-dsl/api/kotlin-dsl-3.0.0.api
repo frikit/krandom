@@ -1,0 +1,32 @@
+public final class io/github/frikit/krandom/dsl/ConfigScope {
+	public final fun collectionSize (II)V
+	public final fun constructionPolicy (Lio/github/frikit/krandom/generator/object/ObjectConstructionPolicy;)V
+	public final fun generationReportListener (Lio/github/frikit/krandom/generator/report/GenerationReportListener;)V
+	public final fun locale (Ljava/util/Locale;)V
+	public final fun objectFieldStreamPolicy (Lio/github/frikit/krandom/generator/object/ObjectFieldStreamPolicy;)V
+	public final fun objectMaxDepth (I)V
+	public final fun objectUniqueFields ([Ljava/lang/String;)V
+	public final fun seed (J)V
+	public final fun seed (Ljava/lang/String;)V
+	public final fun stringLength (II)V
+}
+
+public final class io/github/frikit/krandom/dsl/KrandomBuilder {
+	public fun <init> (Ljava/lang/Class;)V
+	public final fun build ()Lio/github/frikit/krandom/generator/object/ObjectGenerator;
+	public final fun config (Lkotlin/jvm/functions/Function1;)V
+	public final fun exclude (Ljava/lang/String;)V
+	public final fun exclude (Lkotlin/reflect/KProperty1;)V
+	public final fun maxDepth (I)V
+	public final fun rule (Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
+	public final fun rule (Lkotlin/reflect/KProperty1;Lkotlin/jvm/functions/Function0;)V
+	public final fun ruleForType (Ljava/lang/Class;Lkotlin/jvm/functions/Function0;)V
+}
+
+public final class io/github/frikit/krandom/dsl/KrandomDslKt {
+	public static final fun krandomConfig (Lkotlin/jvm/functions/Function1;)Lio/github/frikit/krandom/generator/GeneratorConfig;
+}
+
+public abstract interface annotation class io/github/frikit/krandom/dsl/KrandomDslMarker : java/lang/annotation/Annotation {
+}
+
