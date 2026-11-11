@@ -596,8 +596,16 @@ class ObjectFakerStrictDiagnosticsTest {
         assertTrue(
                 onlyProblem(absent).reason().endsWith("applies at 'purchase.id'"),
                 onlyProblem(absent).reason());
-        // A constructor may replace an argument that the configuration leaves out or null, so it is not followed.
+        // A constructor may replace an argument that the configuration leaves out or null, or what generation
+        // left null below one, so neither is followed.
         assertEquals(List.of(), problemsOf(constructed));
+        assertEquals(
+                List.of(),
+                problemsOf(new ObjectFaker<>(
+                                ConstructedEnvelope.class,
+                                GeneratorConfig.builder().objectMaxDepth(1).build())
+                        .ruleFor("id", () -> "x")
+                        .ruleFor("middle.purchase.note", () -> "n")));
         assertEquals(
                 List.of(),
                 problemsOf(new ObjectFaker<>(
@@ -1119,6 +1127,14 @@ class ObjectFakerStrictDiagnosticsTest {
     static final class PresetPurchaseAccount extends BaseEntity {
         String name;
         Purchase purchase = new Purchase();
+    }
+
+    static final class ConstructedEnvelope extends BaseEntity {
+        Middle middle;
+
+        ConstructedEnvelope(Middle middle) {
+            this.middle = middle;
+        }
     }
 
     static final class ConstructedPurchaseAccount extends BaseEntity {
