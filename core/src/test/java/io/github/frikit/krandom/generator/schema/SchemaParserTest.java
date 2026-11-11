@@ -19,12 +19,15 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.IDN;
 import java.net.URI;
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -764,6 +767,105 @@ class SchemaParserTest {
             Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("email", emptySchema)));
             String value = (String) schema.generate().get("email");
             assertTrue(value.contains("@"), "Expected email, got: " + value);
+        }
+
+        /** A seeded configuration whose clock is in UTC, so the semantic timestamps are UTC midnights. */
+        private static final GeneratorConfig UTC = GeneratorConfig.builder()
+                .seed(31L)
+                .clock(Clock.fixed(Instant.parse("2026-07-10T12:00:00Z"), ZoneOffset.UTC))
+                .build();
+
+        private static List<Object> timestamps(Map<String, Object> property) {
+            List<Object> values = new ArrayList<>();
+            for (Map<String, Object> record : SchemaParser.fromJsonSchema(
+                            objectSchema(Map.of("datetimeTimestamp", property)), UTC)
+                    .generateBatch(200)) {
+                values.add(record.get("datetimeTimestamp"));
+            }
+            return values;
+        }
+
+        @Test
+        @DisplayName("an untyped semantic value keeps its own type, and the schema's keywords for it apply")
+        void untypedSemanticValueMeetsItsTypesKeywords() {
+            List<Object> plain = timestamps(Map.of());
+            // Timestamps run from 1970 to 2100, so none of them is at most -1000000000.
+            for (Object value : timestamps(Map.of("maximum", -1_000_000_000))) {
+                assertTrue(((Number) value).longValue() <= -1_000_000_000L, "above the maximum: " + value);
+            }
+            // Keywords that every timestamp meets leave the values as they were.
+            assertEquals(plain, timestamps(Map.of("minimum", 0)));
+            assertEquals(plain, timestamps(Map.of("multipleOf", 86_400)));
+            // Where some timestamps meet them, those stay, and the others are drawn from the keywords.
+            List<Object> bounded = timestamps(Map.of("maximum", 2_000_000_000L));
+            int kept = 0;
+            for (int i = 0; i < plain.size(); i++) {
+                long value = ((Number) bounded.get(i)).longValue();
+                assertTrue(value <= 2_000_000_000L, "above the maximum: " + value);
+                if (bounded.get(i).equals(plain.get(i))) {
+                    kept++;
+                }
+            }
+            assertTrue(kept > 0 && kept < plain.size(), "kept " + kept + " of " + plain.size());
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf"})
+        @DisplayName("every numeric keyword constrains an untyped semantic integer")
+        void everyNumericKeywordConstrainsASemanticInteger(String keyword) {
+            // Bounds beyond the timestamps on the side each keyword limits, and a step that no later midnight
+            // meets.
+            Map<String, Object> property = Map.of(
+                    keyword,
+                    switch (keyword) {
+                        case "minimum", "exclusiveMinimum" -> 5_000_000_000L;
+                        case "maximum", "exclusiveMaximum" -> -5_000_000_000L;
+                        default -> 86_399;
+                    });
+            for (Object value : timestamps(property)) {
+                // The parser's own check: a const of the value beside the same keyword must be accepted.
+                Map<String, Object> constant = new HashMap<>(property);
+                constant.put("const", value);
+                assertDoesNotThrow(
+                        () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("v", constant))), keyword + " " + value);
+            }
+        }
+
+        @Test
+        @DisplayName("keywords that leave an untyped semantic value's type no value are rejected with the path")
+        void untypedSemanticKeywordsWithoutValueAreRejected() {
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(
+                            objectSchema(Map.of("datetimeTimestamp", Map.of("minimum", 5, "maximum", 4)))));
+            assertTrue(exception.getMessage().contains("$.properties.datetimeTimestamp"), exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("an untyped semantic object meets the schema's object keywords")
+        void untypedSemanticObjectMeetsObjectKeywords() {
+            Schema plain = SchemaParser.fromJsonSchema(objectSchema(Map.of("companyInfo", Map.of())), UTC);
+            // Every company has a name, so the values stay, and so does the company's exported schema.
+            assertEquals(
+                    plain.generateBatch(5),
+                    SchemaParser.fromJsonSchema(
+                                    objectSchema(Map.of("companyInfo", Map.of("required", List.of("name")))), UTC)
+                            .generateBatch(5));
+            Map<?, ?> exported = (Map<?, ?>) plain.toJsonSchema().get("properties");
+            assertTrue(((Map<?, ?>) exported.get("companyInfo")).containsKey("properties"), exported.toString());
+            // A company has more than two members, and a name that is no integer.
+            for (Map<String, Object> property : List.of(
+                    Map.<String, Object>of("maxProperties", 2),
+                    Map.<String, Object>of("properties", Map.of("name", Map.of("type", "integer"))))) {
+                Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("companyInfo", property)), UTC);
+                for (Map<String, Object> record : schema.generateBatch(5)) {
+                    Map<?, ?> value = assertInstanceOf(Map.class, record.get("companyInfo"));
+                    assertTrue(value.size() <= 2 || value.get("name") instanceof Integer, value.toString());
+                }
+                assertEquals(
+                        Map.of("type", "object"),
+                        ((Map<?, ?>) schema.toJsonSchema().get("properties")).get("companyInfo"));
+            }
         }
     }
 
@@ -3161,6 +3263,144 @@ class SchemaParserTest {
                     "additionalProperties",
                     false));
             assertEquals(Map.of("a", "a", "b", "b"), schema.generate());
+        }
+
+        @Test
+        @DisplayName("a root const or enum names whole records, and every record is one of them")
+        void rootConstAndEnumNameRecords() {
+            // A column that gives "actual" cannot make the record that the root const names.
+            assertRootRejected(
+                    root("properties", Map.of("x", Map.of("const", "actual")), "const", Map.of("x", "expected")));
+            // Under a root const, a column of any string gives the const's member in every record.
+            Map<String, Object> constant =
+                    root("properties", Map.of("x", Map.of("type", "string")), "const", Map.of("x", "expected"));
+            for (Map<String, Object> record :
+                    SchemaParser.fromJsonSchema(constant).generateBatch(20)) {
+                assertEquals(Map.of("x", "expected"), record);
+            }
+            // Under a root enum, every record is one of its members, drawn from the record's own stream, so a
+            // seeded schema replays, whether its records have named streams or share one.
+            Map<String, Object> members = root(
+                    "properties",
+                    Map.of("x", Map.of("type", "string"), "y", Map.of("type", "integer")),
+                    "enum",
+                    List.of(Map.of("x", "a", "y", 1), Map.of("x", "b", "y", 2)));
+            GeneratorConfig portable = GeneratorConfig.builder().seed(17L).build();
+            for (GeneratorConfig config : List.of(
+                    portable, portable.toBuilder().objectExcludeField("ghost").build())) {
+                List<Map<String, Object>> records =
+                        SchemaParser.fromJsonSchema(members, config).generateBatch(40);
+                assertEquals(Set.of(Map.of("x", "a", "y", 1), Map.of("x", "b", "y", 2)), new HashSet<>(records));
+                assertEquals(
+                        records, SchemaParser.fromJsonSchema(members, config).generateBatch(40));
+            }
+        }
+
+        @Test
+        @DisplayName("under a root const or enum, each column exports the values that the named records give it")
+        void rootConstAndEnumExportTheirValues() {
+            // The column alone would export the timestamp's integer, which "fixed" is not.
+            Schema constant = SchemaParser.fromJsonSchema(root(
+                    "properties",
+                    Map.of("datetimeTimestamp", Map.of()),
+                    "const",
+                    Map.of("datetimeTimestamp", "fixed")));
+            assertEquals(Map.of("datetimeTimestamp", "fixed"), constant.generate());
+            assertEquals(
+                    Map.of("enum", List.of("fixed")),
+                    ((Map<?, ?>) constant.toJsonSchema().get("properties")).get("datetimeTimestamp"));
+            // Values that JSON compares as equal are listed once, and null as any other value.
+            Map<String, Object> withNull = new HashMap<>();
+            withNull.put("x", 1.0);
+            withNull.put("y", null);
+            Map<String, Object> properties = new LinkedHashMap<>();
+            properties.put("x", Map.of("type", "number"));
+            properties.put("y", Map.of("type", List.of("integer", "null")));
+            Map<?, ?> exported = (Map<?, ?>) SchemaParser.fromJsonSchema(
+                            root("properties", properties, "enum", List.of(Map.of("x", 1, "y", 2), withNull)))
+                    .toJsonSchema()
+                    .get("properties");
+            assertEquals(Map.of("enum", List.of(1)), exported.get("x"));
+            assertEquals(Map.of("enum", Arrays.asList(2, null)), exported.get("y"));
+        }
+
+        @Test
+        @DisplayName("a root const's export holds its values as written, and the columns' providers keep their own")
+        void rootConstExportsWrittenValuesBesideTheProviders() {
+            Map<String, Object> properties = new LinkedHashMap<>();
+            properties.put("x", Map.of("type", "object"));
+            properties.put("y", Map.of("type", "array"));
+            properties.put("z", Map.of());
+            Map<String, Object> constant = new LinkedHashMap<>();
+            constant.put("x", Map.of(1, "v"));
+            constant.put("y", Arrays.asList(1, true, null));
+            constant.put("z", LocalDate.of(2024, 1, 5));
+            Schema schema = SchemaParser.fromJsonSchema(root("properties", properties, "const", constant));
+            assertEquals(constant, schema.generate());
+            // Every writer writes the key 1 as "1" and a date as its RFC 3339 text, and so does the export.
+            Map<?, ?> exported = (Map<?, ?>) schema.toJsonSchema().get("properties");
+            assertEquals(Map.of("enum", List.of(Map.of("1", "v"))), exported.get("x"));
+            assertEquals(Map.of("enum", List.of(Arrays.asList(1, true, null))), exported.get("y"));
+            assertEquals(Map.of("enum", List.of("2024-01-05")), exported.get("z"));
+
+            // A column's provider can still give values that the root replaces, so it keeps its own metadata, and a
+            // schema built from the providers alone exports that.
+            Schema parsed = SchemaParser.fromJsonSchema(root(
+                    "properties", Map.of("x", Map.of("enum", List.of("a", "b"))), "const", Map.of("x", "a")));
+            assertEquals(
+                    Map.of("enum", List.of("a")),
+                    ((Map<?, ?>) parsed.toJsonSchema().get("properties")).get("x"));
+            assertEquals(Map.of(), parsed.getFields().get("x").jsonSchema());
+            assertEquals(
+                    Map.of(),
+                    ((Map<?, ?>) new Schema(parsed.getFields()).toJsonSchema().get("properties")).get("x"));
+        }
+
+        @Test
+        @DisplayName("a record that the columns generate and the root names is kept as it was")
+        void rootEnumKeepsRecordsThatMeetIt() {
+            Map<String, Object> columns = Map.of("x", Map.of("enum", List.of("a", "b")));
+            GeneratorConfig config = GeneratorConfig.builder().seed(23L).build();
+            assertEquals(
+                    SchemaParser.fromJsonSchema(root("properties", columns), config)
+                            .generateBatch(30),
+                    SchemaParser.fromJsonSchema(
+                                    root("properties", columns, "enum", List.of(Map.of("x", "b"), Map.of("x", "a"))),
+                                    config)
+                            .generateBatch(30));
+        }
+
+        @Test
+        @DisplayName("a root const or enum gives only the records that the root can generate")
+        void rootEnumGivesOnlyRecordsOfTheColumns() {
+            Map<String, Object> column = Map.of("x", Map.of("type", "string", "maxLength", 1));
+            // A member beyond the columns, one without the column, one that breaks the column's schema, and
+            // one that is no object are left out.
+            Map<String, Object> mixed = root(
+                    "properties",
+                    column,
+                    "enum",
+                    List.of(Map.of("x", "a", "y", 1), Map.of("y", "b"), Map.of("x", "too long"), 5, Map.of("x", "c")));
+            for (Map<String, Object> record : SchemaParser.fromJsonSchema(mixed).generateBatch(10)) {
+                assertEquals(Map.of("x", "c"), record);
+            }
+            // The key 1 is the member "1", as the writers write it.
+            assertEquals(
+                    Map.of("1", "z"),
+                    SchemaParser.fromJsonSchema(
+                                    root("properties", Map.of("1", Map.of("type", "string")), "const", Map.of(1, "z")))
+                            .generate());
+            // Without such a record, the root is rejected.
+            assertRootRejected(root("properties", column, "enum", List.of(Map.of("y", "b"), 5)));
+            assertRootRejected(root("properties", column, "const", "x"));
+            // A member that is no JSON value cannot be checked.
+            IllegalArgumentException unwritable = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(
+                            root("properties", Map.of("x", Map.of()), "const", Map.of("x", Double.NaN))));
+            assertTrue(
+                    unwritable.getMessage().startsWith("JSON Schema const or enum cannot be checked at $: "),
+                    unwritable.getMessage());
         }
 
         @Test

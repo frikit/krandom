@@ -82,7 +82,7 @@ final class SchemaTemplateEngine {
         return template;
     }
 
-    private Map<String, Object> inferPayloadSchema(Object template) {
+    private Map<String, Object> inferPayloadSchema(@org.jspecify.annotations.Nullable Object template) {
         if (template == null) {
             return JsonSchemaSupport.nullType();
         }
@@ -94,34 +94,27 @@ final class SchemaTemplateEngine {
             return JsonSchemaSupport.string();
         }
         if (template instanceof Map<?, ?> map) {
-            Map<String, Map<String, Object>> properties = new LinkedHashMap<>();
+            // The payload keeps every key, which the writers write as its text.
+            Map<String, List<Map<String, Object>>> members = new LinkedHashMap<>();
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-                if (entry.getKey() instanceof String key) {
-                    properties.put(key, inferPayloadSchema(entry.getValue()));
-                }
+                JsonSchemaSupport.member(members, entry.getKey()).add(inferPayloadSchema(entry.getValue()));
             }
-            return JsonSchemaSupport.object(properties);
+            return JsonSchemaSupport.members(members);
         }
         if (template instanceof Iterable<?> items) {
-            Object firstNonNull = null;
+            List<Map<String, Object>> schemas = new ArrayList<>();
             for (Object item : items) {
-                if (item != null) {
-                    firstNonNull = item;
-                    break;
-                }
+                schemas.add(inferPayloadSchema(item));
             }
-            return JsonSchemaSupport.array(
-                    firstNonNull == null ? JsonSchemaSupport.nullType() : inferPayloadSchema(firstNonNull));
+            return JsonSchemaSupport.array(JsonSchemaSupport.union(schemas));
         }
         if (template.getClass().isArray()) {
             int length = Array.getLength(template);
+            List<Map<String, Object>> schemas = new ArrayList<>(length);
             for (int i = 0; i < length; i++) {
-                Object item = Array.get(template, i);
-                if (item != null) {
-                    return JsonSchemaSupport.array(inferPayloadSchema(item));
-                }
+                schemas.add(inferPayloadSchema(Array.get(template, i)));
             }
-            return JsonSchemaSupport.array(JsonSchemaSupport.nullType());
+            return JsonSchemaSupport.array(JsonSchemaSupport.union(schemas));
         }
         return JsonSchemaSupport.infer(template);
     }
@@ -131,18 +124,25 @@ final class SchemaTemplateEngine {
         StringBuilder out = new StringBuilder(template.length());
         int cursor = 0;
         while (matcher.find()) {
-            appendLiteral(out, template.substring(cursor, matcher.start()));
+            appendLiteral(out, template.substring(cursor, matcher.start()), context);
             Object value = lookup.resolve(matcher.group(1)).generate(context);
             out.append(String.valueOf(value));
             cursor = matcher.end();
         }
-        appendLiteral(out, template.substring(cursor));
+        appendLiteral(out, template.substring(cursor), context);
         return out.toString();
     }
 
-    private void appendLiteral(StringBuilder out, String literal) {
+    /**
+     * Writes literal text with its {@code #} and {@code ?} filled in, from the value's named stream where the
+     * lookup gives the value a configuration of its own, as it does for its references.
+     */
+    private void appendLiteral(StringBuilder out, String literal, SchemaContext context) {
         if (!literal.isEmpty()) {
-            out.append(templateGenerator.bothify(literal));
+            GeneratorConfig valueConfig = lookup.valueConfig(context);
+            TemplateStringGenerator generator =
+                    valueConfig == null ? templateGenerator : new TemplateStringGenerator("", valueConfig);
+            out.append(generator.bothify(literal));
         }
     }
 }

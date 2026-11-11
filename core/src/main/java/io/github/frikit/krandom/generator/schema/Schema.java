@@ -40,14 +40,18 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 /**
  * Declarative schema-based record generator.
  *
  * <p>When supplied a portable seeded {@link GeneratorConfig}, every value receives a named child
  * stream derived from its record index and field name. Adding an unrelated schema column therefore
- * does not perturb existing column values. Caller-owned, secure, and unseeded random sources retain
- * their documented sequential behavior.
+ * does not perturb existing column values. A {@link Field} reference and the {@code #} and {@code ?} of a
+ * {@link Field} template make a generator for each value, seeded from that stream, unless the field's own
+ * configuration uses a caller-owned, factory-made, or secure random source. Caller-owned, secure, and
+ * unseeded random sources retain their documented sequential behavior.
  *
  * <p>Every writer writes a date or time as the RFC 3339 text of the format its type exports, with the
  * seconds always and a fraction only where it is not zero: a {@code ZonedDateTime} with its offset and no
@@ -72,16 +76,44 @@ public final class Schema implements Generator<Map<String, Object>> {
     private static final long LAST_SECOND =
             LocalDate.of(9999, 12, 31).atTime(LocalTime.MAX).toEpochSecond(ZoneOffset.UTC);
 
+    /**
+     * Plain scalars of letters, digits, {@code _} and {@code -} that YAML 1.1 or 1.2 reads as another type
+     * than a string, in any letter case: a boolean or null word; an integer, including YAML 1.1's {@code _}
+     * separators, octal, hexadecimal and binary forms, and YAML 1.2's {@code 0o} octal; a float with an
+     * exponent; and a date.
+     */
+    private static final Pattern YAML_NON_STRING = Pattern.compile("(?i)y|n|yes|no|true|false|on|off|null"
+            + "|[-+]?(?:[0-9][0-9_]*|0x[0-9a-f_]+|0o[0-7]+|0b[01_]+|[0-9][0-9_]*e[-+]?[0-9]+)"
+            + "|[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}");
+
     private final GeneratorConfig config;
     private final Map<String, SchemaValueProvider> fields;
     private final Random random;
     private final Optional<GenerationRecipe> generationRecipe;
+    private final @org.jspecify.annotations.Nullable RecordRule recordRule;
     private int nextRecordIndex;
 
     @FunctionalInterface
     interface StringBuilderWriter {
 
         void write(StringBuilder builder) throws IOException;
+    }
+
+    /**
+     * A rule over whole records, which a parsed root const or enum sets. As every record that the schema gives
+     * then meets the rule, the rule also gives the JSON Schema of each column's values, which the column's
+     * provider alone need not give.
+     */
+    interface RecordRule {
+
+        /**
+         * The record to keep: the generated one where it meets the rule, and otherwise one that does, drawing
+         * from the random source given where it needs a draw.
+         */
+        Map<String, Object> apply(Map<String, Object> record, Supplier<Random> random);
+
+        /** The JSON Schema of a column's values in the records that the rule keeps. */
+        Map<String, ?> columnSchema(String column);
     }
 
     /**
@@ -110,6 +142,14 @@ public final class Schema implements Generator<Map<String, Object>> {
      * @param fields schema field mapping
      */
     public Schema(GeneratorConfig config, Map<String, SchemaValueProvider> fields) {
+        this(config, fields, null);
+    }
+
+    /** A schema whose records also keep to a rule over the whole record, such as a parsed root const or enum. */
+    Schema(
+            GeneratorConfig config,
+            Map<String, SchemaValueProvider> fields,
+            @org.jspecify.annotations.Nullable RecordRule recordRule) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         Objects.requireNonNull(fields, "fields must not be null");
         if (fields.isEmpty()) {
@@ -118,6 +158,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         this.fields = validateAndCopy(fields);
         this.random = config.createRandom();
         this.generationRecipe = config.getGenerationRecipe();
+        this.recordRule = recordRule;
         this.nextRecordIndex = 0;
     }
 
@@ -548,8 +589,11 @@ public final class Schema implements Generator<Map<String, Object>> {
             String field = entry.getKey();
             required.add(field);
             try {
+                // A rule over whole records can give a column values that its provider does not.
                 properties.put(
-                        field, JsonSchemaSupport.copyJsonSchema(entry.getValue().jsonSchema()));
+                        field,
+                        JsonSchemaSupport.copyJsonSchema(
+                                recordRule == null ? entry.getValue().jsonSchema() : recordRule.columnSchema(field)));
             } catch (RuntimeException ex) {
                 throw new SchemaGenerationException(
                         field, -1, GenerationFailureCategory.SCHEMA_METADATA, GenerationOperation.EXPORT_SCHEMA, ex);
@@ -580,14 +624,30 @@ public final class Schema implements Generator<Map<String, Object>> {
                                 .orElse(null));
             }
         }
-        return record;
+        // A rule over the whole record draws from the stream of no column, as a column name is never blank.
+        return recordRule == null ? record : recordRule.apply(record, () -> randomForField(recordIndex, ""));
     }
 
     private Random randomForField(int recordIndex, String fieldName) {
         if (generationRecipe.isEmpty()) {
             return random;
         }
-        return generationRecipe.orElseThrow().childRandom(schemaFieldStreamIdentity(recordIndex, fieldName));
+        // The source that the recipe's childRandom gives for this identity, marked as a named stream.
+        return new FieldStream(GenerationRecipe.deriveChildSeed(
+                generationRecipe.orElseThrow().getSeed(), schemaFieldStreamIdentity(recordIndex, fieldName)));
+    }
+
+    /**
+     * The named stream of one value of a schema with a portable recipe, which this type marks, so that a
+     * provider that makes a generator for each value, such as a {@link Field} reference, seeds it from here.
+     */
+    static final class FieldStream extends Random {
+
+        private static final long serialVersionUID = 1L;
+
+        FieldStream(long seed) {
+            super(seed);
+        }
     }
 
     private static String schemaFieldStreamIdentity(int recordIndex, String fieldName) {
@@ -877,6 +937,18 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     static void appendJsonString(Appendable out, String value) throws IOException {
+        appendQuoted(out, value, false);
+    }
+
+    /**
+     * Writes a TOML basic string. TOML reads the same escapes as JSON, but also forbids U+007F raw, which
+     * JSON allows, so that one is escaped too.
+     */
+    private static void appendTomlString(Appendable out, String value) throws IOException {
+        appendQuoted(out, value, true);
+    }
+
+    private static void appendQuoted(Appendable out, String value, boolean escapeDelete) throws IOException {
         out.append('"');
         for (int i = 0; i < value.length(); i++) {
             char ch = value.charAt(i);
@@ -889,7 +961,7 @@ public final class Schema implements Generator<Map<String, Object>> {
                 case '\r' -> out.append("\\r");
                 case '\t' -> out.append("\\t");
                 default -> {
-                    if (ch < 0x20) {
+                    if (ch < 0x20 || (escapeDelete && ch == 0x7F)) {
                         appendJsonUnicodeEscape(out, ch);
                     } else {
                         out.append(ch);
@@ -968,8 +1040,12 @@ public final class Schema implements Generator<Map<String, Object>> {
         out.append(':');
     }
 
+    /**
+     * Whether a key can be written plain and read back as the same string. Only letters, digits, {@code _}
+     * and {@code -} are plain, and not a key that YAML 1.1 or 1.2 reads as another type.
+     */
     private static boolean isPlainYamlKey(String value) {
-        if (value.isEmpty()) {
+        if (value.isEmpty() || YAML_NON_STRING.matcher(value).matches()) {
             return false;
         }
         for (int i = 0; i < value.length(); i++) {
@@ -1024,11 +1100,11 @@ public final class Schema implements Generator<Map<String, Object>> {
             throw new IllegalArgumentException("TOML does not support null values");
         }
         if (normalized instanceof CharSequence text) {
-            appendJsonString(out, text.toString());
+            appendTomlString(out, text.toString());
             return;
         }
         if (normalized instanceof Character character) {
-            appendJsonString(out, String.valueOf(character));
+            appendTomlString(out, String.valueOf(character));
             return;
         }
         if (normalized instanceof Number || normalized instanceof Boolean) {
@@ -1069,14 +1145,14 @@ public final class Schema implements Generator<Map<String, Object>> {
             out.append(']');
             return;
         }
-        appendJsonString(out, String.valueOf(normalized));
+        appendTomlString(out, String.valueOf(normalized));
     }
 
     private static void appendTomlKey(Appendable out, String key) throws IOException {
         if (isPlainTomlKey(key)) {
             out.append(key);
         } else {
-            appendJsonString(out, key);
+            appendTomlString(out, key);
         }
     }
 

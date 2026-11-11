@@ -146,9 +146,69 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   fast. A token was read only where it held letters, dots and underscores, so `#{Name.noSuchMethod1}`,
   `#{Name.firstName()}` and `#{number.number_between '1','10'}` stayed in the output as literal text.
   Expressions of supported tokens generate as before.
+- `TextGenerator.generate(TextOptions)` with `uniqueWords` no longer runs forever on a word list that repeats
+  a word. It waited for as many different words as the list had entries, so `new TextOptions(20,
+  List.of("one", "one"), true, false)` never returned; it now returns `one.`, and a text holds each distinct
+  word of the list at most once. Seeded output is unchanged for every text that was generated before.
+- `Schema` and `SchemaProjection` YAML output quotes a key that a YAML parser reads as another type than a
+  string: a boolean or null word in any letter case, such as `true`, `No`, `ON`, or `null`; an integer, such
+  as `123`, `-1`, `1_000`, `017`, `0x1F`, `0o17`, or `0b101`; a float with an exponent, such as `1e3`; or a
+  date, such as `2024-01-05`. It wrote them bare, so `- true: 1` read back as a boolean key. Other keys,
+  such as `1st` or `-`, are written as before, and values were already quoted.
+- `Schema` and `SchemaProjection` TOML output escapes U+007F (DEL) as `\u007f` in strings and quoted keys.
+  It wrote the character raw, as JSON allows, but TOML forbids it, so a parser such as Python's `tomllib`
+  rejected the document. Every other character is written as before, and JSON output keeps DEL raw.
+- The JSON Schema that `Field.constant(...)`, `SchemaValueProvider.withSample(...)`, and payload templates
+  export, and so `Schema.toJsonSchema()`, now accepts their own values. Array items came from the first item
+  that is not `null` alone, so `[1, "a"]` exported integer items and `[1, null]` items that reject `null`;
+  items of different types now export `{}`, which allows any value, and a `null` item makes the others'
+  schema allow `null`: `{"type": ["integer", "null"]}` beside integers, and an `anyOf` with the null type
+  beside a schema whose `const` or composition could reject `null`. A map key that is not a string was left out of
+  `properties` beside `additionalProperties: false`, so `{1: "x"}` exported a schema that rejects the
+  `{"1": "x"}` every writer writes; the key is now the member `"1"`. Generated values are unchanged.
+- `SchemaParser.fromJsonSchema(...)` now holds every record to a root `const` or `enum`, which it ignored. A
+  root `const` of `{"x": "expected"}` beside a property `x` with the `const` `actual` was accepted, and every
+  record broke it; it is now rejected at `$`, as is any root `const` or `enum` that names no record of
+  exactly the root's properties that meets their schemas. Beside an `x` of any string, every record is now
+  `{"x": "expected"}`, where with seed 42 the first three held `XFnHbdhjiPu`, `yPJYFTHauN`, and `ZTqiGLl`. A
+  record that the columns generate and that the root names is kept, so seeded output changes only for
+  records that broke the root `const` or `enum`; any other record is replaced by one the root names, drawn
+  from the record's own stream where there are several. `toJsonSchema()` then exports each column as an
+  `enum` of the values that the named records give it, written as the writers write them, while the column's
+  provider in `getFields()` keeps its own metadata.
+- In `SchemaParser.fromJsonSchema(...)`, a property without a `type` whose name chooses a semantic value of
+  another type, such as the integer Unix timestamp of `datetimeTimestamp` or the company object of
+  `companyInfo`, now meets the schema's keywords for that type, which it ignored. With seed 42 and a UTC
+  clock, `datetimeTimestamp` with `maximum` -1000000000 gave 798249600, 1438128000, and 3699302400, and now
+  gives -1521810362, -2139508635, and -1901379525; `companyInfo` with `maxProperties` 2 gave a company of
+  eight members, and now gives `{}`. A semantic value that meets the keywords is kept, so seeded output
+  changes only for values that broke them; any other value is drawn from the keywords as if the schema
+  declared the type, and keywords that leave that type no value, such as `minimum` 5 with `maximum` 4, are
+  rejected with the schema path. The exported schema of such a property names only its type.
+- In a `Schema` with a portable seeded configuration, one that has a `GenerationRecipe`, a `Field` reference,
+  a reference that `registerProvider(...)` adds, the `#` and `?` of a template, and a column that
+  `SchemaParser` resolves by its name now draw from each value's own stream, named by its record and column,
+  as the `Schema` documentation says every value does. They drew from one generator that every column of
+  the `Field` shared, so a column changed the values of the columns after it: with seed 42, a
+  `template("##")` column `x` was `03` alone and `84` after another such column, and is now `37` either way.
+  Each value now makes its generator from a seed drawn from its stream, which changes every such value of a
+  portable seeded schema, and makes it depend on its column's name, as the stream's does: with seed 42, a
+  `person.first_name` column named `name` went from `Victor` and `Kenneth` to `Grace` and `Ivy` in its first
+  two records, and parsed columns `firstName` and `email` from `Victor` and `caroline.tran@example.com` to
+  `Stella` and `landonhill@example.net`. Seeded schemas without a recipe,
+  unseeded schemas, a `Field` whose configuration uses a caller-owned, factory-made, or secure random source,
+  a `SchemaContext` that the caller makes, and `ProviderTemplateGenerator` keep their values. Making a
+  generator for each value takes longer, even though a generator now reads each bundled registry's locale
+  keys once rather than copying them on every lookup, which halved the cost of building one, and a value's
+  configuration reuses one builder: `SchemaOutputBenchmark.largeSchemaBatch`, 250 records of 12 references,
+  gave 933 operations a second and gives 194, and allocates 30.5 MB an operation rather than 3.7 MB. The
+  benchmark methodology records this as an accepted breach of its regression budgets, with the raw runs.
 
 ### Documentation
 
+- The schema guide no longer says that a schema with no `type` always generates a string, or that a
+  property schema `true` does: a property name that chooses a semantic value of another type, such as
+  `datetimeTimestamp` or `companyInfo`, keeps that type, and the schema's keywords for that type apply.
 - The versioning policy, `Seedable`, `NormalDistributionGenerator` and `GenerationRecipe` now say what a seed
   does not fix: values that follow the Java runtime's TZDB and CLDR data, such as zone IDs, zone offsets and
   formatted money amounts, whose versions a recipe does not record; Gaussian values, whose `Math.log`,

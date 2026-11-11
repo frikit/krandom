@@ -51,6 +51,65 @@ class JsonSchemaSupportTest {
     }
 
     @Test
+    @DisplayName("inferred array items and object members follow every item and key")
+    void inferenceFollowsEveryItemAndKey() {
+        assertEquals(JsonSchemaSupport.array(JsonSchemaSupport.integer()), JsonSchemaSupport.infer(List.of(1, 2)));
+        // Items of different types allow any value; a null item makes the others' schema nullable.
+        assertEquals(JsonSchemaSupport.array(Map.of()), JsonSchemaSupport.infer(List.of(1, "a")));
+        assertEquals(
+                JsonSchemaSupport.array(Map.of("type", List.of("integer", "null"))),
+                JsonSchemaSupport.infer(Arrays.asList(1, null)));
+        assertEquals(
+                JsonSchemaSupport.array(Map.of("type", List.of("integer", "null"))),
+                JsonSchemaSupport.infer(Arrays.asList(null, 1)));
+        assertEquals(JsonSchemaSupport.array(Map.of()), JsonSchemaSupport.infer(Arrays.asList(1, null, "a")));
+        assertEquals(
+                JsonSchemaSupport.array(JsonSchemaSupport.nullType()),
+                JsonSchemaSupport.infer(Arrays.asList(null, null)));
+        assertEquals(JsonSchemaSupport.array(JsonSchemaSupport.nullType()), JsonSchemaSupport.infer(List.of()));
+
+        // Every writer writes a key as its text, so the key 1 is the member "1".
+        assertEquals(
+                JsonSchemaSupport.object(Map.of("1", JsonSchemaSupport.string())),
+                JsonSchemaSupport.infer(Map.of(1, "x")));
+        // Two keys written under one name give that member a value of either.
+        Map<Object, Object> sameName = new LinkedHashMap<>();
+        sameName.put(1, "one");
+        sameName.put("1", 1);
+        assertEquals(JsonSchemaSupport.object(Map.of("1", Map.of())), JsonSchemaSupport.infer(sameName));
+        Map<Object, Object> sameNameAndType = new LinkedHashMap<>();
+        sameNameAndType.put(1, "one");
+        sameNameAndType.put("1", null);
+        assertEquals(
+                JsonSchemaSupport.object(Map.of("1", Map.of("type", List.of("string", "null")))),
+                JsonSchemaSupport.infer(sameNameAndType));
+    }
+
+    @Test
+    @DisplayName("constant metadata accepts its own value, whatever its items and keys")
+    void constantMetadataAcceptsItsOwnValue() {
+        Map<Object, Object> mixedKeys = new LinkedHashMap<>();
+        mixedKeys.put(1, "one");
+        mixedKeys.put("two", Arrays.asList(2, null));
+        for (Object value : List.of(
+                List.of(1, "a"),
+                Arrays.asList(1, null),
+                Arrays.asList(null, "a", 2.5),
+                List.of(List.of(1), List.of("a")),
+                List.of(Map.of("id", 1), Map.of("id", "x")),
+                Map.of(1, "x"),
+                mixedKeys)) {
+            // The parser rejects a const that its own schema does not allow.
+            Map<String, Object> property =
+                    new LinkedHashMap<>(new Field().constant(value).jsonSchema());
+            property.put("const", value);
+            Schema schema =
+                    SchemaParser.fromJsonSchema(Map.of("type", "object", "properties", Map.of("value", property)));
+            assertEquals(value, schema.generate().get("value"));
+        }
+    }
+
+    @Test
     @DisplayName("record schemas cover Java scalar, temporal, array, nested, and fallback types")
     void recordSchemaCoversTypeBranches() {
         @SuppressWarnings("unchecked")

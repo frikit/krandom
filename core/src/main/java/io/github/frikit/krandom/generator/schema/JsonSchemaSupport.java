@@ -38,6 +38,10 @@ final class JsonSchemaSupport {
 
     private record VariableResolution(TypeVariable<?> variable, Map<TypeVariable<?>, Type> bindings) {}
 
+    /** Keywords that apply to a value of any type, null among them, so they can reject null beside its type. */
+    private static final Set<String> ANY_TYPE_KEYWORDS = Set.of(
+            "const", "allOf", "anyOf", "oneOf", "not", "if", "then", "else", "$ref", "$dynamicRef", "$recursiveRef");
+
     private JsonSchemaSupport() {}
 
     static Map<String, Object> any() {
@@ -191,25 +195,72 @@ final class JsonSchemaSupport {
             return number();
         }
         if (value instanceof List<?> list) {
-            Object firstNonNull = null;
+            List<Map<String, Object>> items = new ArrayList<>(list.size());
             for (Object item : list) {
-                if (item != null) {
-                    firstNonNull = item;
-                    break;
-                }
+                items.add(infer(item));
             }
-            return array(firstNonNull == null ? nullType() : infer(firstNonNull));
+            return array(union(items));
         }
         if (value instanceof Map<?, ?> nestedMap) {
-            Map<String, Map<String, Object>> nestedProperties = new LinkedHashMap<>();
+            Map<String, List<Map<String, Object>>> members = new LinkedHashMap<>();
             for (Map.Entry<?, ?> nested : nestedMap.entrySet()) {
-                if (nested.getKey() instanceof String key) {
-                    nestedProperties.put(key, infer(nested.getValue()));
-                }
+                member(members, nested.getKey()).add(infer(nested.getValue()));
             }
-            return object(nestedProperties);
+            return members(members);
         }
         return string();
+    }
+
+    /**
+     * The schemas of an object's members, gathered under the names every writer writes their keys as, the
+     * text of {@code String.valueOf}, so the key 1 is the member "1".
+     */
+    static List<Map<String, Object>> member(
+            Map<String, List<Map<String, Object>>> members, @org.jspecify.annotations.Nullable Object key) {
+        return members.computeIfAbsent(String.valueOf(key), name -> new ArrayList<>());
+    }
+
+    /** The object whose members are those gathered, each with the union of the schemas gathered for it. */
+    static Map<String, Object> members(Map<String, List<Map<String, Object>>> members) {
+        Map<String, Map<String, Object>> properties = new LinkedHashMap<>();
+        for (Map.Entry<String, List<Map<String, Object>>> member : members.entrySet()) {
+            properties.put(member.getKey(), union(member.getValue()));
+        }
+        return object(properties);
+    }
+
+    /**
+     * The schema of values that each have one of the given schemas: the one they share, which also allows
+     * null where some of the values are null; {@code {}}, which allows any value, where they differ; and the
+     * null type where there is no other value, as for no values at all.
+     */
+    static Map<String, Object> union(List<Map<String, Object>> schemas) {
+        Set<Map<String, Object>> distinct = new LinkedHashSet<>(schemas);
+        boolean withNull = distinct.remove(nullType());
+        if (distinct.isEmpty()) {
+            return nullType();
+        }
+        if (distinct.size() > 1) {
+            return any();
+        }
+        Map<String, Object> shared = distinct.iterator().next();
+        return withNull ? orNull(shared) : shared;
+    }
+
+    /**
+     * A schema that allows null beside the values another allows. {@code {}} allows null already. Adding null
+     * to the type and the enum, as {@code nullable} does, is exact where no keyword that applies to every type
+     * can reject null, as for every schema that {@code infer} gives; any other schema takes null as an
+     * alternative, which holds whether or not it allows null itself.
+     */
+    private static Map<String, Object> orNull(Map<String, Object> schema) {
+        if (schema.isEmpty()) {
+            return schema;
+        }
+        if (schema.containsKey("type") && Collections.disjoint(schema.keySet(), ANY_TYPE_KEYWORDS)) {
+            return nullable(schema);
+        }
+        return Map.of("anyOf", List.of(schema, nullType()));
     }
 
     static Map<String, Object> copyJsonSchema(Map<String, ?> jsonSchema) {

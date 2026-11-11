@@ -18,6 +18,10 @@ import java.util.function.Function;
 
 /**
  * Mimesis-style field resolver and composition helper.
+ *
+ * <p>In a {@link Schema} with a portable seeded configuration, the providers that {@link #bind(String)} and
+ * the templates give draw from each value's named stream, as {@link FieldLookup} describes, so a column's
+ * values do not depend on other columns.
  */
 public final class Field {
 

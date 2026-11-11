@@ -88,7 +88,7 @@ class FieldTemplateTest {
         shell.put("items", new java.util.ArrayList<>(java.util.Arrays.asList(null, 3, "{{custom.order_id}}")));
         shell.put("emptyItems", List.of());
         shell.put("nullArray", new Object[] {null, null});
-        shell.put("ignoredNonStringKey", Map.of(1, "value"));
+        shell.put("nonStringKey", Map.of(1, "value"));
 
         @SuppressWarnings("unchecked")
         Map<String, Object> generated =
@@ -107,7 +107,63 @@ class FieldTemplateTest {
                 "null", ((Map<?, ?>) ((Map<?, ?>) shellSchemaProperties.get("emptyItems")).get("items")).get("type"));
         assertEquals(
                 "null", ((Map<?, ?>) ((Map<?, ?>) shellSchemaProperties.get("nullArray")).get("items")).get("type"));
-        assertTrue(((Map<?, ?>) shellSchemaProperties.get("ignoredNonStringKey")).containsKey("properties"));
+        assertEquals(
+                Map.of("1", Map.of("type", "string")),
+                ((Map<?, ?>) shellSchemaProperties.get("nonStringKey")).get("properties"));
+    }
+
+    @Test
+    @DisplayName("payload template metadata follows every item and key")
+    void payloadTemplateMetadataFollowsEveryItemAndKey() {
+        Field field = baseField();
+        Map<String, Object> shell = new LinkedHashMap<>();
+        shell.put("texts", List.of("ORD-##", "{{custom.counter.provider}}"));
+        shell.put("mixed", List.of("{{custom.counter.provider}}", 7));
+        shell.put("nullable", java.util.Arrays.asList(null, "{{custom.counter.provider}}"));
+        shell.put("mixedArray", new Object[] {"x", 1});
+        shell.put("nullableArray", new Object[] {2, null});
+        shell.put("numberKey", Map.of(1, "value"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> properties =
+                (Map<String, Object>) field.template(shell).jsonSchema().get("properties");
+
+        assertEquals(JsonSchemaSupport.array(JsonSchemaSupport.string()), properties.get("texts"));
+        assertEquals(JsonSchemaSupport.array(Map.of()), properties.get("mixed"));
+        assertEquals(JsonSchemaSupport.array(Map.of("type", List.of("string", "null"))), properties.get("nullable"));
+        assertEquals(JsonSchemaSupport.array(Map.of()), properties.get("mixedArray"));
+        assertEquals(
+                JsonSchemaSupport.array(Map.of("type", List.of("integer", "null"))), properties.get("nullableArray"));
+        // The payload keeps the key 1, which every writer writes as "1".
+        assertEquals(JsonSchemaSupport.object(Map.of("1", JsonSchemaSupport.string())), properties.get("numberKey"));
+    }
+
+    @Test
+    @DisplayName("payload template metadata allows a null item beside any provider's schema")
+    void payloadTemplateMetadataAllowsNullBesideAnyProvidersSchema() {
+        Map<String, Object> enumWithNull = Map.of("enum", java.util.Arrays.asList("x", null));
+        Map<String, Object> constant = Map.of("type", "string", "const", "x");
+        Field field = baseField()
+                .register("custom.enum", SchemaValueProvider.withJsonSchema(ctx -> "x", enumWithNull))
+                .register("custom.const", SchemaValueProvider.withJsonSchema(ctx -> "x", constant));
+        Map<String, Object> shell = new LinkedHashMap<>();
+        shell.put("enumItems", java.util.Arrays.asList(null, "{{custom.enum}}"));
+        shell.put("constItems", java.util.Arrays.asList(null, "{{custom.const}}"));
+        shell.put("unknownItems", java.util.Arrays.asList(null, "{{custom.customer}}"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> properties =
+                (Map<String, Object>) field.template(shell).jsonSchema().get("properties");
+
+        // An enum that allows null, or a const that does not, keeps its own meaning, and null is an alternative.
+        assertEquals(
+                JsonSchemaSupport.array(Map.of("anyOf", List.of(enumWithNull, JsonSchemaSupport.nullType()))),
+                properties.get("enumItems"));
+        assertEquals(
+                JsonSchemaSupport.array(Map.of("anyOf", List.of(constant, JsonSchemaSupport.nullType()))),
+                properties.get("constItems"));
+        // A provider without metadata allows any value, null included.
+        assertEquals(JsonSchemaSupport.array(Map.of()), properties.get("unknownItems"));
     }
 
     @Test
