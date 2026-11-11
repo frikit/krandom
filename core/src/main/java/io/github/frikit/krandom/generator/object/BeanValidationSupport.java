@@ -40,7 +40,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.RecordComponent;
+import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -70,6 +73,8 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.BiPredicate;
+import java.util.function.Supplier;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -115,6 +120,15 @@ final class BeanValidationSupport {
             return new ConcurrentHashMap<>();
         }
     };
+    /** The field each name that a construction adapter gives a parameter finds, which the class fixes. */
+    private static final ClassValue<ConcurrentMap<ParameterName, Optional<Field>>> NAMED_FIELDS = new ClassValue<>() {
+        @Override
+        protected ConcurrentMap<ParameterName, Optional<Field>> computeValue(Class<?> type) {
+            return new ConcurrentHashMap<>();
+        }
+    };
+    /** The parameter whose argument a construction adapter is generating on this thread, as it names it. */
+    private static final ThreadLocal<@Nullable NamedParameter> NAMED_PARAMETER = new ThreadLocal<>();
     /** Read by name, so that no constraint class is loaded when the API is absent. */
     private static final String CONSTRAINT_PACKAGE = "jakarta.validation.constraints";
 
@@ -158,6 +172,13 @@ final class BeanValidationSupport {
     private record ConstraintCacheKey(Object member, Class<?> rawType) {}
 
     private record AccessorMethods(Map<String, List<Method>> declared, Map<String, List<Method>> interfaces) {}
+
+    /** A name that a construction adapter gives a constructor parameter. */
+    private record ParameterName(Parameter parameter, String name) {}
+
+    /** A constructor parameter as a construction adapter names it, with the field that the name finds, if any. */
+    private record NamedParameter(
+            Parameter parameter, @Nullable Field field) {}
 
     static final class ConstraintConflictException extends IllegalArgumentException {
 
@@ -235,7 +256,9 @@ final class BeanValidationSupport {
         }
         if (element instanceof Parameter parameter) {
             Class<?> owner = parameter.getDeclaringExecutable().getDeclaringClass();
-            return cachedConstraintModel(owner, parameter, element, rawType);
+            // A parameter that an adapter names reads the constraints of a field too, so it has an entry of its own.
+            NamedParameter named = named(parameter);
+            return cachedConstraintModel(owner, named != null ? named : parameter, element, rawType);
         }
         return buildConstraintModel(element, rawType);
     }
@@ -649,9 +672,9 @@ final class BeanValidationSupport {
         if (rawType == Calendar.class || rawType == GregorianCalendar.class) {
             return FieldGeneratorResolver.calendarOf(ZonedDateTime.ofInstant(instant, clock.getZone()));
         }
-        if (rawType == LocalTime.class) return localTimeFor(future, clock);
+        if (rawType == LocalTime.class) return localTimeFor(future, constraint.allowsPresent(), clock);
         if (rawType == OffsetTime.class)
-            return localTimeFor(future, clock)
+            return localTimeFor(future, constraint.allowsPresent(), clock)
                     .atOffset(OffsetDateTime.now(clock).getOffset());
         if (rawType == Year.class)
             return future ? Year.now(clock).plusYears(1) : Year.now(clock).minusYears(1);
@@ -659,7 +682,7 @@ final class BeanValidationSupport {
             return future
                     ? YearMonth.now(clock).plusMonths(1)
                     : YearMonth.now(clock).minusMonths(1);
-        return monthDayFor(future, clock);
+        return monthDayFor(future, constraint.allowsPresent(), clock);
     }
 
     private static Object presentTemporalValueFor(Class<?> rawType, Clock clock) {
@@ -670,11 +693,13 @@ final class BeanValidationSupport {
         if (rawType == LocalDateTime.class) return LocalDateTime.now(clock);
         if (rawType == ZonedDateTime.class) return ZonedDateTime.now(clock);
         if (rawType == OffsetDateTime.class) return OffsetDateTime.now(clock);
-        if (rawType == Date.class) return Date.from(instant);
-        if (rawType == java.sql.Date.class) return new java.sql.Date(instant.toEpochMilli());
-        if (rawType == Timestamp.class) return Timestamp.from(instant);
+        if (rawType == Date.class) return Date.from(presentMillisecond(instant, rawType));
+        if (rawType == java.sql.Date.class)
+            return new java.sql.Date(presentMillisecond(instant, rawType).toEpochMilli());
+        if (rawType == Timestamp.class) return Timestamp.from(presentMillisecond(instant, rawType));
         if (rawType == Calendar.class || rawType == GregorianCalendar.class) {
-            return FieldGeneratorResolver.calendarOf(ZonedDateTime.ofInstant(instant, clock.getZone()));
+            return FieldGeneratorResolver.calendarOf(
+                    ZonedDateTime.ofInstant(presentMillisecond(instant, rawType), clock.getZone()));
         }
         if (rawType == LocalTime.class) return LocalTime.now(clock);
         if (rawType == OffsetTime.class) return OffsetTime.now(clock);
@@ -683,21 +708,43 @@ final class BeanValidationSupport {
         return MonthDay.now(clock);
     }
 
-    private static LocalTime localTimeFor(boolean future, Clock clock) {
+    /**
+     * The clock's instant as a {@code Date}, a {@code Timestamp} or a {@code Calendar} holds it, to the millisecond.
+     * Hibernate Validator compares that millisecond with the clock's whole instant, so where the clock is finer
+     * no value of the type is the present: the millisecond before it is past and the one after it future.
+     */
+    private static Instant presentMillisecond(Instant instant, Class<?> rawType) {
+        if (instant.getNano() % 1_000_000 != 0) {
+            throw conflict("@PastOrPresent and @FutureOrPresent have no representable " + rawType.getSimpleName()
+                    + " at the configured clock, which is finer than the millisecond it holds; configure a clock"
+                    + " at a whole millisecond");
+        }
+        return instant;
+    }
+
+    /**
+     * The last time of day for the future, or the first for the past. At that end of the day the clock's own
+     * time is the only value left, which an inclusive bound allows and a strict one does not.
+     */
+    private static LocalTime localTimeFor(boolean future, boolean allowsPresent, Clock clock) {
         LocalTime now = LocalTime.now(clock);
-        if (future && now.equals(LocalTime.MAX)) {
+        if (future && now.equals(LocalTime.MAX) && !allowsPresent) {
             throw conflict("@Future has no representable LocalTime after the configured clock");
         }
-        if (!future && now.equals(LocalTime.MIN)) {
+        if (!future && now.equals(LocalTime.MIN) && !allowsPresent) {
             throw conflict("@Past has no representable LocalTime before the configured clock");
         }
         return future ? LocalTime.MAX : LocalTime.MIN;
     }
 
-    private static MonthDay monthDayFor(boolean future, Clock clock) {
+    /**
+     * The last day of the year for the future, or the first for the past. On that day it is the clock's own
+     * day, which an inclusive bound allows and a strict one does not.
+     */
+    private static MonthDay monthDayFor(boolean future, boolean allowsPresent, Clock clock) {
         MonthDay today = MonthDay.now(clock);
         MonthDay boundary = future ? MonthDay.of(12, 31) : MonthDay.of(1, 1);
-        if (today.equals(boundary)) {
+        if (today.equals(boundary) && !allowsPresent) {
             throw conflict("temporal constraint has no representable MonthDay at the configured clock");
         }
         return boundary;
@@ -1182,6 +1229,10 @@ final class BeanValidationSupport {
      * @return the initialized field, or {@code null} when there is none
      */
     static @Nullable Field initializedField(Parameter parameter) {
+        NamedParameter named = named(parameter);
+        if (named != null) {
+            return named.field();
+        }
         Executable executable = parameter.getDeclaringExecutable();
         return INITIALIZED_FIELDS
                 .get(executable.getDeclaringClass())
@@ -1189,16 +1240,64 @@ final class BeanValidationSupport {
                 .orElse(null);
     }
 
+    /**
+     * Generates a constructor argument with its parameter named as a construction adapter names it, after the
+     * property it fills, as Kotlin metadata names it where the class was compiled without parameter names. While
+     * the argument is generated, it meets the constraints of the field with that name and the parameter's
+     * declared type too, as under a compiled name, where a type argument may also be the wildcard that Kotlin's
+     * declaration-site variance writes into a parameter, as in {@code List<? extends T>} for a {@code List<T>}
+     * property. The name holds for this argument on this thread alone, so every other use of the parameter reads
+     * it as compiled, whatever was generated before.
+     *
+     * @param parameter a constructor parameter
+     * @param name the name of the property it fills
+     * @param generation generates the argument
+     * @return the argument
+     */
+    static <V extends @Nullable Object> V withNamedParameter(Parameter parameter, String name, Supplier<V> generation) {
+        Class<?> owner = parameter.getDeclaringExecutable().getDeclaringClass();
+        Field field = NAMED_FIELDS
+                .get(owner)
+                .computeIfAbsent(
+                        new ParameterName(parameter, name),
+                        key -> findInitializedField(parameter, name, BeanValidationSupport::sameButForVariance))
+                .orElse(null);
+        NamedParameter enclosing = NAMED_PARAMETER.get();
+        NAMED_PARAMETER.set(new NamedParameter(parameter, field));
+        try {
+            return generation.get();
+        } finally {
+            NAMED_PARAMETER.set(enclosing);
+        }
+    }
+
+    /** The parameter as a construction adapter names it while it generates its argument, or else {@code null}. */
+    private static @Nullable NamedParameter named(Parameter parameter) {
+        NamedParameter named = NAMED_PARAMETER.get();
+        return named != null && named.parameter().equals(parameter) ? named : null;
+    }
+
     private static Optional<Field> findInitializedField(Parameter parameter) {
+        return parameter.isNamePresent()
+                ? findInitializedField(parameter, parameter.getName(), Type::equals)
+                : Optional.empty();
+    }
+
+    /**
+     * The nearest instance field with this name, on the constructor's class or a superclass, where
+     * {@code sameType} accepts the field's declared type for the parameter's.
+     */
+    private static Optional<Field> findInitializedField(
+            Parameter parameter, String name, BiPredicate<Type, Type> sameType) {
         Executable executable = parameter.getDeclaringExecutable();
-        if (!parameter.isNamePresent() || !(executable instanceof Constructor<?>)) {
+        if (!(executable instanceof Constructor<?>)) {
             return Optional.empty();
         }
         for (Class<?> owner = executable.getDeclaringClass(); owner != Object.class; owner = owner.getSuperclass()) {
             try {
-                Field field = owner.getDeclaredField(parameter.getName());
+                Field field = owner.getDeclaredField(name);
                 return !Modifier.isStatic(field.getModifiers())
-                                && field.getGenericType().equals(parameter.getParameterizedType())
+                                && sameType.test(field.getGenericType(), parameter.getParameterizedType())
                         ? Optional.of(field)
                         : Optional.empty();
             } catch (NoSuchFieldException notDeclaredHere) {
@@ -1206,6 +1305,47 @@ final class BeanValidationSupport {
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * Whether two declared types are the same but for wildcards in their type arguments, which Kotlin writes
+     * into a parameter by declaration-site variance and not into the property's field: {@code List<T>} and
+     * {@code List<? extends T>}, or {@code Comparator<T>} and {@code Comparator<? super T>}. The type that owns
+     * an inner class counts too, so {@code Outer<Long>.Inner<T>} is not {@code Outer<String>.Inner<T>}.
+     */
+    private static boolean sameButForVariance(Type fieldType, Type parameterType) {
+        Type field = withoutVariance(fieldType);
+        Type parameter = withoutVariance(parameterType);
+        if (field instanceof ParameterizedType fieldParameterized
+                && parameter instanceof ParameterizedType parameterParameterized) {
+            if (!fieldParameterized.getRawType().equals(parameterParameterized.getRawType())) {
+                return false;
+            }
+            // One raw type has one owner, or none: Outer for Outer<String>.Inner<T>, or Map for Map.Entry<K, V>.
+            Type fieldOwner = fieldParameterized.getOwnerType();
+            if (fieldOwner != null && !sameButForVariance(fieldOwner, parameterParameterized.getOwnerType())) {
+                return false;
+            }
+            // One raw type has one number of type arguments.
+            Type[] fieldArguments = fieldParameterized.getActualTypeArguments();
+            Type[] parameterArguments = parameterParameterized.getActualTypeArguments();
+            for (int i = 0; i < fieldArguments.length; i++) {
+                if (!sameButForVariance(fieldArguments[i], parameterArguments[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return field.equals(parameter);
+    }
+
+    /** The bound of a wildcard, its lower one where it has one, or the type itself. */
+    private static Type withoutVariance(Type type) {
+        if (type instanceof WildcardType wildcard) {
+            Type[] lower = wildcard.getLowerBounds();
+            return lower.length > 0 ? lower[0] : wildcard.getUpperBounds()[0];
+        }
+        return type;
     }
 
     /**

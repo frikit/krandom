@@ -7,6 +7,8 @@ package io.github.frikit.krandom.generator.object;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -23,10 +25,22 @@ import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 @DisplayName("Object construction policy")
 class ObjectConstructionPolicyTest {
@@ -257,6 +271,213 @@ class ObjectConstructionPolicyTest {
         assertFalse(plain.ownExcluded);
         assertFalse(plain.inheritedExcluded);
         assertFalse(plain.missingExcluded);
+    }
+
+    @Test
+    @DisplayName("an adapter stands in for the constructor, and the type's other mutable fields are filled as usual")
+    void adapterBuiltTypesFillTheirOtherFields() {
+        AdapterBodyFixture kept = new ObjectGenerator<>(AdapterBodyFixture.class).generate();
+        AdapterBodyFixture generated = new ObjectGenerator<>(
+                        AdapterBodyFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverrideDefaultInitialization(true)
+                                .build())
+                .generate();
+        AdapterBodyFixture overridden = new ObjectGenerator<>(
+                        AdapterBodyFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverride(AdapterBodyFixture.class, "label", () -> "rule")
+                                .build())
+                .generate();
+
+        // An initializer stays unless default initialization is overridden or a field override targets it.
+        assertEquals("initial", kept.label);
+        assertNotNull(generated.label);
+        assertFalse(generated.label.equals("initial"), generated.label);
+        assertEquals("rule", overridden.label);
+        // A member that the adapter resolved keeps the value it was constructed with.
+        assertEquals(kept.constructedValue, kept.value);
+        assertEquals(generated.constructedValue, generated.value);
+    }
+
+    @Test
+    @DisplayName("an adapter names a parameter compiled without its name, which then meets its field's constraints")
+    void adapterNamesAParameterCompiledWithoutItsName(@TempDir Path directory) throws Exception {
+        Class<?> nameless = compileWithoutParameterNames(directory, NAMELESS_CODE_SOURCE);
+        Parameter code = nameless.getDeclaredConstructors()[0].getParameters()[0];
+        Field codeField = nameless.getDeclaredField("code");
+        codeField.setAccessible(true);
+        assertFalse(code.isNamePresent());
+        // Read outside an adapter's call, the parameter has its own @NotBlank alone, before generation and after.
+        assertNull(BeanValidationSupport.initializedField(code));
+        assertNotEquals(
+                new BeanValidationSupport.SizeRange(2, 2),
+                BeanValidationSupport.constraintModelFor(code, String.class)
+                        .text()
+                        .size());
+
+        ObjectGenerator<?> generator = new ObjectGenerator<>(
+                nameless, GeneratorConfig.builder().seed(42L).build());
+        for (int i = 0; i < 50; i++) {
+            String value = (String) codeField.get(generator.generate());
+            assertEquals(2, value.length(), value);
+            assertFalse(value.isBlank(), value);
+        }
+        assertNull(BeanValidationSupport.initializedField(code));
+        assertNotEquals(
+                new BeanValidationSupport.SizeRange(2, 2),
+                BeanValidationSupport.constraintModelFor(code, String.class)
+                        .text()
+                        .size());
+    }
+
+    @Test
+    @DisplayName("a field predicate override targets an adapter's parameter through the field behind it")
+    void fieldPredicateOverridesReachAnAdaptersParameter() {
+        Predicate<Field> names = field -> field.getName().equals("name");
+        AdapterDefaultFixture kept = new ObjectGenerator<>(AdapterDefaultFixture.class).generate();
+        AdapterDefaultFixture plain = new ObjectGenerator<>(
+                        AdapterDefaultFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverride(names, () -> "predicate")
+                                .build())
+                .generate();
+        AdapterDefaultFixture contextual = new ObjectGenerator<>(
+                        AdapterDefaultFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverride(names, (ContextualGenerator<String>) context -> "contextual")
+                                .build())
+                .generate();
+
+        // The adapter keeps its default unless an override targets the parameter, as the Kotlin adapter does.
+        assertEquals("default", kept.name);
+        // A constructor parameter inside an argument the adapter names reads its own constraints.
+        assertEquals(3, kept.inner.text.length(), kept.inner.text);
+        assertEquals("predicate", plain.name);
+        assertEquals("contextual", contextual.name);
+        // A parameter with no field behind it has nothing for a field predicate to match.
+        assertFalse(plain.unbackedOverridden);
+        assertFalse(new ObjectGenerator<>(
+                        AdapterDefaultFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverride(field -> field.getType() == String.class, () -> "any")
+                                .build())
+                .generate()
+                .unbackedOverridden);
+    }
+
+    @Test
+    @DisplayName("a field predicate override reaches an adapter's parameter only through a field of its type")
+    void fieldPredicateOverridesNeedAFieldOfTheParametersType() {
+        // The body's String code shares its name with the int parameter, which it is not filled from.
+        AdapterShadowFixture value = new ObjectGenerator<>(
+                        AdapterShadowFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverride(field -> field.getName().equals("code"), () -> "text")
+                                .build())
+                .generate();
+
+        assertFalse(value.overridden);
+        assertEquals("initial", value.code);
+    }
+
+    @Test
+    @DisplayName("an adapter's Kotlin object is returned as it is")
+    void adapterSingletonKeepsItsState() {
+        AdapterSingletonFixture value = new ObjectGenerator<>(
+                        AdapterSingletonFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverrideDefaultInitialization(true)
+                                .build())
+                .generate();
+
+        assertSame(AdapterSingletonFixture.INSTANCE, value);
+        assertEquals("kept", value.state);
+    }
+
+    @Test
+    @DisplayName("an adapter's companion object, which its enclosing class holds, is returned as it is")
+    void adapterCompanionKeepsItsState() {
+        AdapterCompanionHolder.Companion value = new ObjectGenerator<>(
+                        AdapterCompanionHolder.Companion.class,
+                        GeneratorConfig.builder()
+                                .objectOverrideDefaultInitialization(true)
+                                .build())
+                .generate();
+
+        assertSame(AdapterCompanionHolder.Companion, value);
+        assertEquals("kept", value.state);
+    }
+
+    @Test
+    @DisplayName("an adapter's instance that a static field of its class holds is returned as it is, whatever the"
+            + " field's declared type")
+    void adapterSharedInstanceKeepsItsState() {
+        AdapterSharedView value = new ObjectGenerator<>(
+                        AdapterSharedView.class,
+                        GeneratorConfig.builder()
+                                .objectOverrideDefaultInitialization(true)
+                                .build())
+                .generate();
+
+        assertSame(AdapterSharedView.INSTANCE, value);
+        assertEquals("kept", value.state);
+    }
+
+    @Test
+    @DisplayName("an adapter may build an interface that is not sealed, as the implementation it chooses")
+    void adapterBuildsAnInterface() {
+        AdapterContract value = new ObjectGenerator<>(
+                        AdapterContract.class,
+                        GeneratorConfig.builder()
+                                .objectOverrideDefaultInitialization(true)
+                                .build())
+                .generate();
+
+        // The interface declares no field to fill, so the implementation stays as the adapter built it, with the
+        // argument the context generated for it.
+        AdapterContractImpl built = assertInstanceOf(AdapterContractImpl.class, value);
+        assertEquals("built", built.state);
+        assertNotNull(built.name);
+        assertFalse(built.ruled);
+    }
+
+    @Test
+    @DisplayName("an adapter's instance keeps the fields the engine cannot open, as a JDK superclass's are")
+    void adapterInstanceKeepsTheFieldsTheEngineCannotOpen() {
+        // Throwable's fields are in java.lang, which is not open to the engine.
+        AdapterErrorFixture value = new ObjectGenerator<>(
+                        AdapterErrorFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverrideDefaultInitialization(true)
+                                .build())
+                .generate();
+
+        assertEquals("boom", value.getMessage());
+        assertNotNull(value.detail);
+        assertNotEquals("initial", value.detail);
+    }
+
+    @Test
+    @DisplayName("looking for a held instance reads no field of an enclosing class but a companion object's")
+    void heldInstanceCheckLeavesEnclosingStaticsAlone() {
+        // Reading InitHost.UNRELATED or InitHost.SAMPLE would run InitHost's static initializer, which fails.
+        InitHost.Child child = new ObjectGenerator<>(InitHost.Child.class).generate();
+
+        assertNotNull(child.state);
+    }
+
+    @Test
+    @DisplayName("reading a static field the engine cannot access fails as a programming error")
+    void inaccessibleStaticFieldFails() throws Exception {
+        Method staticValue = ObjectGenerator.class.getDeclaredMethod("staticValue", Field.class);
+        staticValue.setAccessible(true);
+        // Not made accessible, so reading it is refused.
+        Field hidden = AdapterCompanionHolder.class.getDeclaredField("HIDDEN");
+
+        InvocationTargetException failure =
+                assertThrows(InvocationTargetException.class, () -> staticValue.invoke(null, hidden));
+        assertInstanceOf(IllegalStateException.class, failure.getCause());
     }
 
     @Test
@@ -516,6 +737,176 @@ class ObjectConstructionPolicyTest {
         AdapterFixture(String value, boolean explicitlyOverridden) {
             this.value = value;
             this.explicitlyOverridden = explicitlyOverridden;
+        }
+    }
+
+    /** A class compiled without parameter names, as Kotlin compiles one, whose field and parameter are constrained. */
+    private static final String NAMELESS_CODE_SOURCE = """
+            public final class NamelessCode {
+
+                @jakarta.validation.constraints.Size(min = 2, max = 2) private final String code;
+
+                private final String note;
+
+                public NamelessCode(@jakarta.validation.constraints.NotBlank String code, String note) {
+                    this.code = code;
+                    this.note = note;
+                }
+            }
+            """;
+
+    private static Class<?> compileWithoutParameterNames(Path directory, String source) throws Exception {
+        Path file = directory.resolve("NamelessCode.java");
+        Files.writeString(file, source);
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        assertNotNull(compiler, "tests must run on a JDK with javac");
+        int status = compiler.run(
+                null,
+                null,
+                null,
+                "-cp",
+                System.getProperty("java.class.path"),
+                "-d",
+                directory.toString(),
+                file.toString());
+        assertEquals(0, status, "fixture compilation failed");
+        try (URLClassLoader loader = new URLClassLoader(
+                new URL[] {directory.toUri().toURL()}, ObjectConstructionPolicyTest.class.getClassLoader())) {
+            return loader.loadClass("NamelessCode");
+        }
+    }
+
+    static final class AdapterShadowFixture {
+
+        final int number;
+        final boolean overridden;
+        String code = "initial";
+
+        AdapterShadowFixture(int code, boolean overridden) {
+            this.number = code;
+            this.overridden = overridden;
+        }
+    }
+
+    static final class AdapterDefaultFixture {
+
+        final String name;
+        final boolean unbackedOverridden;
+        final AdapterInner inner;
+
+        AdapterDefaultFixture(String name, boolean unbackedOverridden, AdapterInner inner) {
+            this.name = name;
+            this.unbackedOverridden = unbackedOverridden;
+            this.inner = inner;
+        }
+    }
+
+    /** Built through its constructor, inside an argument that an adapter names, whose name it does not take. */
+    static final class AdapterInner {
+
+        final String text;
+
+        AdapterInner(@Size(min = 3, max = 3) String text) {
+            this.text = text;
+        }
+    }
+
+    static final class AdapterBodyFixture {
+
+        /** A shared instance of the type, which a generated one is not. */
+        static final AdapterBodyFixture TEMPLATE = new AdapterBodyFixture("template");
+
+        final String constructedValue;
+        String value;
+        String label = "initial";
+
+        AdapterBodyFixture(String value) {
+            this.constructedValue = value;
+            this.value = value;
+        }
+    }
+
+    static final class AdapterSingletonFixture {
+
+        static final AdapterSingletonFixture INSTANCE = new AdapterSingletonFixture();
+
+        /** A property of the object, which Kotlin compiles to a static field of its class. */
+        static final String NAME = "singleton";
+
+        String state = "kept";
+    }
+
+    /** A class whose superclass is the JDK's, with fields in a package that is not open to the engine. */
+    static final class AdapterErrorFixture extends RuntimeException {
+
+        private static final long serialVersionUID = 1L;
+
+        String detail = "initial";
+
+        AdapterErrorFixture() {
+            super("boom");
+        }
+    }
+
+    /** An interface that is not sealed, which an adapter builds as an implementation of its choice. */
+    interface AdapterContract {}
+
+    static final class AdapterContractImpl implements AdapterContract {
+
+        final String name;
+        final boolean ruled;
+        String state = "built";
+
+        AdapterContractImpl(String name, boolean ruled) {
+            this.name = name;
+            this.ruled = ruled;
+        }
+    }
+
+    /** A view that is shared through a static field declared with its interface. */
+    interface AdapterView {}
+
+    static final class AdapterSharedView implements AdapterView {
+
+        static final AdapterView INSTANCE = new AdapterSharedView();
+
+        String state = "kept";
+    }
+
+    /** An enclosing class whose static initializer fails, as one with a failing companion property does. */
+    static final class InitHost {
+
+        static final Object UNRELATED = fail();
+
+        /** A static field of the nested class's own type, which is not where Kotlin keeps a companion object. */
+        static final Child SAMPLE = fail();
+
+        /** Named after the nested class but not declared with it, so not a companion object's field either. */
+        static final Object Child = fail();
+
+        private static <V> V fail() {
+            throw new IllegalStateException("InitHost must not be initialized");
+        }
+
+        static final class Child {
+
+            String state;
+        }
+    }
+
+    /**
+     * As Kotlin compiles a companion object: its one instance is the static field of the enclosing class that has
+     * its class's name.
+     */
+    static final class AdapterCompanionHolder {
+
+        static final Companion Companion = new Companion();
+
+        private static final String HIDDEN = "hidden";
+
+        static final class Companion {
+
+            String state = "kept";
         }
     }
 

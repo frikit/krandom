@@ -52,6 +52,36 @@ class UniqueFieldTrackerTest {
     }
 
     @Test
+    @DisplayName("gives back a value only where the member of the object started last took it")
+    void givesBackOnlyAValueTheStartedObjectsMemberTook() {
+        UniqueFieldTracker tracker = new UniqueFieldTracker();
+        tracker.nextUnique("code", "Row.a.code", () -> "held", 1);
+        tracker.startObject();
+        tracker.nextUnique("code", "Row.a.code", () -> "taken", 1);
+        // A value whose member is not known is not remembered.
+        tracker.nextUnique("code", () -> "unnamed", 1);
+
+        // A value an earlier object took, one another member took, one taken where no member was named, and
+        // null, which no object takes, stay as they are.
+        tracker.releaseTaken("code", "held", "Row.a.code");
+        tracker.releaseTaken("code", "taken", "Row.b.code");
+        tracker.releaseTaken("code", "unnamed", "Row.a.code");
+        tracker.releaseTaken("code", null, "Row.a.code");
+        tracker.releaseTaken("other", "taken", "Row.a.code");
+        for (String held : List.of("held", "taken", "unnamed")) {
+            assertThrows(UniqueFieldTracker.ExhaustedException.class, () -> tracker.nextUnique("code", () -> held, 1));
+        }
+
+        tracker.releaseTaken("code", "taken", "Row.a.code");
+        assertEquals("taken", tracker.nextUnique("code", () -> "taken", 1));
+
+        // A new object starts with nothing taken.
+        tracker.startObject();
+        tracker.releaseTaken("code", "taken", "Row.a.code");
+        assertThrows(UniqueFieldTracker.ExhaustedException.class, () -> tracker.nextUnique("code", () -> "taken", 1));
+    }
+
+    @Test
     @DisplayName("fails when uniqueness attempts are exhausted")
     void failsWhenAttemptsAreExhausted() {
         UniqueFieldTracker tracker = new UniqueFieldTracker();

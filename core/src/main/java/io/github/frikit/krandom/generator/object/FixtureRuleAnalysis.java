@@ -326,13 +326,6 @@ final class FixtureRuleAnalysis {
         if (config.getFieldOverride(leaf.ownerType(), leaf.fieldName()).isPresent()) {
             report(Category.SHADOWED, FixtureRule.configured(FixtureRuleKind.FIELD_OVERRIDE, rule.path()), reason);
         }
-        if (config.isRequestedUniqueField(leaf.fieldName())) {
-            report(
-                    Category.SHADOWED,
-                    FixtureRule.configured(FixtureRuleKind.UNIQUE_FIELD, rule.path()),
-                    "the values of " + rule.describe() + " are not checked for uniqueness, because the rule runs"
-                            + " after generation");
-        }
     }
 
     private void findRootFactoryRules() {

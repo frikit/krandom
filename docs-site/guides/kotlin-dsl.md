@@ -138,8 +138,20 @@ check(user.source == "test") // optional parameters retain their Kotlin default
 
 The primary-constructor adapter uses the normal kRandom resolver for each parameter, so field/type
 rules, nested generic containers, semantic values, deterministic seeds, and Jakarta Validation
-annotations all apply. Both `@param:` and `@field:` constraint targets are recognized. An explicit
-field or type rule wins over an optional parameter default.
+annotations all apply. The `@param:`, `@field:` and `@get:` constraint targets are recognized
+together, whether or not the class was compiled with `-java-parameters`: an argument meets the
+constraints of its parameter and of its property's field and getter, and where more than one declares
+a constraint of a type, the parameter's applies, then the field's, as for a Java constructor. An
+explicit field or type rule wins over an optional parameter default, and so does a `GeneratorConfig`
+field predicate override, `objectOverride(Predicate<Field>, ...)`, that matches the property's field
+of the parameter's type, which also fills a required parameter.
+
+The constructor fills its own parameters. A mutable property that it does not take, declared in the
+class body or inherited, is then filled through its field, as a Java class's fields are after its
+constructor runs: a rule replaces its initializer, and in the DSL so does a generated value. With
+`data class User(val id: Long) { var name = "old" }`, `rule(User::name) { "new" }` gives `"new"`. A
+field in a package that is not open to kRandom, such as one that an exception class inherits from
+`Throwable`, keeps what the constructor set.
 
 Kotlin `object` singletons return their one instance, and sealed types and value classes are generated
 as [below](#sealed-types-and-value-classes). An abstract class or interface that is not sealed is

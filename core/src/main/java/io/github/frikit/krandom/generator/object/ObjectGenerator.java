@@ -39,6 +39,7 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jspecify.annotations.Nullable;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
@@ -134,7 +135,18 @@ public final class ObjectGenerator<T> implements Generator<T> {
     private static final ClassValue<List<Field>> SETTABLE_FIELDS = new ClassValue<>() {
         @Override
         protected List<Field> computeValue(Class<?> type) {
-            return doCollectSettableFields(type);
+            return doCollectSettableFields(type, true);
+        }
+    };
+
+    /**
+     * The settable fields of a class that a construction adapter builds, but for those in a package that is not
+     * open to the engine, such as a JDK superclass's, which stay as the adapter built them.
+     */
+    private static final ClassValue<List<Field>> OPEN_SETTABLE_FIELDS = new ClassValue<>() {
+        @Override
+        protected List<Field> computeValue(Class<?> type) {
+            return doCollectSettableFields(type, false);
         }
     };
 
@@ -273,7 +285,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         return null;
     }
 
-    private static boolean isDefaultValue(Object value, Class<?> type) {
+    private static boolean isDefaultValue(@Nullable Object value, Class<?> type) {
         if (!type.isPrimitive()) return value == null;
         return Objects.equals(value, defaultForType(type));
     }
@@ -574,7 +586,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                     collectSettableFields(type),
                     config.isOverrideDefaultInitialization(),
                     Set.of(),
-                    Map.of());
+                    Map.of(),
+                    List.of());
             return instance;
         } catch (ModuleAccessException e) {
             throw moduleAccessFailure(e.getDeclaringType(), e);
@@ -640,7 +653,18 @@ public final class ObjectGenerator<T> implements Generator<T> {
         Optional<ObjectConstructionAdapter> adapter =
                 uniqueFieldTracker.constructionAdapter(type, ObjectGenerator::constructionAdapterFor);
         if (adapter.isPresent()) {
-            return constructWithAdapter(adapter.get(), resolver);
+            Set<String> constructorMembers = new HashSet<>();
+            T instance = constructWithAdapter(adapter.get(), resolver, constructorMembers);
+            if (!isHeldStatically(instance)) {
+                // The adapter stands in for the constructor. The other mutable fields, which no parameter the
+                // adapter asked about names, are filled as for a class built through its constructor, where the
+                // engine can open them; one it cannot, such as a JDK superclass's, stays as the adapter built it.
+                List<Field> otherFields = OPEN_SETTABLE_FIELDS.get(type).stream()
+                        .filter(field -> !constructorMembers.contains(field.getName()))
+                        .toList();
+                populateClass(instance, resolver, coherenceAdjuster, otherFields, true, Set.of(), Map.of(), List.of());
+            }
+            return instance;
         }
         if (requiresKotlinConstructionAdapter(type)) {
             throw new ReflectiveOperationException("Immutable Kotlin type " + type.getName()
@@ -650,8 +674,10 @@ public final class ObjectGenerator<T> implements Generator<T> {
         List<Field> settableFields = collectSettableFields(type);
         Set<String> overriddenConstructorMembers = new HashSet<>();
         Map<String, @Nullable Object> trackedConstructorArguments = new HashMap<>();
+        List<@Nullable Object> constructorArguments = new ArrayList<>();
         // may throw ReflectiveOperationException for throwing constructors
-        T instance = instantiate(resolver, overriddenConstructorMembers, trackedConstructorArguments);
+        T instance =
+                instantiate(resolver, overriddenConstructorMembers, trackedConstructorArguments, constructorArguments);
         populateClass(
                 instance,
                 resolver,
@@ -659,27 +685,85 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 settableFields,
                 true,
                 overriddenConstructorMembers,
-                trackedConstructorArguments);
+                trackedConstructorArguments,
+                constructorArguments);
         return instance;
     }
 
-    private T constructWithAdapter(ObjectConstructionAdapter adapter, FieldGeneratorResolver resolver) {
+    /**
+     * Whether a static field holds this very instance, as the one instance of a Kotlin object or companion object
+     * is held. Such an instance is shared, so it is left as it is. A field is read only where reading it starts
+     * no class: any field of the instance's class or a superclass, which the instance has started, whatever type
+     * it is declared with, as an object's {@code INSTANCE} is one; and the one field of the class that encloses
+     * it that Kotlin keeps a companion object in, named after the companion object's class and declared with it,
+     * as kotlin-reflect reads it. Reading any other field of an enclosing class could start that class. A field
+     * in a package that is not open to the engine, such as a JDK superclass's, cannot be read, and is passed over.
+     */
+    private static boolean isHeldStatically(Object instance) {
+        Class<?> instanceType = instance.getClass();
+        Stream<Field> own = Stream.<Class<?>>iterate(
+                        instanceType, owner -> owner != Object.class, owner -> owner.getSuperclass())
+                .flatMap(owner -> Arrays.stream(owner.getDeclaredFields()));
+        Stream<Field> companion = Stream.ofNullable(instanceType.getDeclaringClass())
+                .flatMap(host -> Arrays.stream(host.getDeclaredFields()))
+                .filter(field ->
+                        field.getName().equals(instanceType.getSimpleName()) && field.getType() == instanceType);
+        return Stream.concat(own, companion)
+                .filter(field -> Modifier.isStatic(field.getModifiers())
+                        && field.getType().isInstance(instance))
+                .filter(Field::trySetAccessible)
+                .anyMatch(field -> staticValue(field) == instance);
+    }
+
+    private static @Nullable Object staticValue(Field field) {
+        try {
+            return field.get(null);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException(
+                    "Field should be accessible: " + field.getDeclaringClass().getSimpleName() + "." + field.getName(),
+                    e);
+        }
+    }
+
+    /**
+     * Constructs the type through the adapter, adding to {@code constructorMembers} the name of each parameter it
+     * resolves or asks about.
+     */
+    private T constructWithAdapter(
+            ObjectConstructionAdapter adapter, FieldGeneratorResolver resolver, Set<String> constructorMembers) {
         try {
             Object value = adapter.construct(new ObjectConstructionContext<>(
                     type,
                     typePath(),
                     type,
                     depth,
-                    (genericType, rawType, memberName, element) -> resolver.resolveAndGenerateMember(
-                            genericType,
-                            rawType,
-                            memberName,
-                            type,
-                            depth,
-                            element,
-                            memberStreamIdentity(type, "constructor", memberName)),
-                    this::hasExplicitConstructionOverride,
-                    this::isExcludedConstructionMember));
+                    (genericType, rawType, memberName, element) -> {
+                        constructorMembers.add(memberName);
+                        // A field predicate override reaches the argument through the field behind it.
+                        Supplier<@Nullable Object> argument = () -> resolver.resolveAndGenerateMember(
+                                genericType,
+                                rawType,
+                                memberName,
+                                type,
+                                depth,
+                                element,
+                                predicateField(memberName, rawType),
+                                memberStreamIdentity(type, "constructor", memberName));
+                        // The adapter names the type's own parameters, as Kotlin metadata does where no name was
+                        // compiled, so the argument meets the constraints of the field it fills too.
+                        return element instanceof Parameter parameter
+                                        && parameter.getDeclaringExecutable().getDeclaringClass() == type
+                                ? BeanValidationSupport.withNamedParameter(parameter, memberName, argument)
+                                : argument.get();
+                    },
+                    (memberName, rawType) -> {
+                        constructorMembers.add(memberName);
+                        return hasExplicitConstructionOverride(memberName, rawType);
+                    },
+                    memberName -> {
+                        constructorMembers.add(memberName);
+                        return isExcludedConstructionMember(memberName);
+                    }));
             if (value == null) {
                 throw new IllegalStateException(adapter.getClass().getName() + " returned null");
             }
@@ -704,14 +788,32 @@ public final class ObjectGenerator<T> implements Generator<T> {
         if (config.getGeneratorConfig().isObjectFieldNameExcluded(memberName)) {
             return true;
         }
-        for (Class<?> current = type; current != Object.class; current = current.getSuperclass()) {
+        Field property = constructionField(memberName);
+        return property != null && config.shouldExclude(property);
+    }
+
+    /**
+     * The field that a field predicate override matches for a constructor parameter: the field behind it, where
+     * it has the parameter's type, so that the override's value fits the argument.
+     */
+    private @Nullable Field predicateField(String memberName, Class<?> rawType) {
+        Field property = constructionField(memberName);
+        return property != null && property.getType() == rawType ? property : null;
+    }
+
+    /**
+     * The field behind a constructor parameter: the nearest one with its name, on the type or a superclass. An
+     * interface, which a construction adapter may build, has no superclass to look in.
+     */
+    private @Nullable Field constructionField(String memberName) {
+        for (Class<?> current = type; current != null && current != Object.class; current = current.getSuperclass()) {
             try {
-                return config.shouldExclude(current.getDeclaredField(memberName));
+                return current.getDeclaredField(memberName);
             } catch (NoSuchFieldException notDeclaredHere) {
                 // Keep looking in the superclass.
             }
         }
-        return false;
+        return null;
     }
 
     /**
@@ -734,9 +836,18 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 || config.getFieldOverride(type, memberName).isPresent();
     }
 
+    /**
+     * Whether an override targets a constructor parameter that an adapter resolves: by the member's name, by a
+     * field predicate that matches the field behind it, where that field has the parameter's type, or by the
+     * parameter's type.
+     */
     private boolean hasExplicitConstructionOverride(String memberName, Class<?> rawType) {
+        Field property = predicateField(memberName, rawType);
         return config.getContextualFieldOverride(type, memberName).isPresent()
                 || config.getFieldOverride(type, memberName).isPresent()
+                || (property != null
+                        && (config.getContextualFieldPredicateOverride(property).isPresent()
+                                || config.getFieldPredicateOverride(property).isPresent()))
                 || config.getContextualTypeOverride(rawType).isPresent()
                 || config.getTypeOverride(rawType).isPresent();
     }
@@ -780,6 +891,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
         }
     }
 
+    /**
+     * Fills the settable fields of an instance, then aligns them. A field that keeps a non-default value is not
+     * generated: the coherence pass leaves it as the class set it, unless it holds one of the
+     * {@code constructorArguments} that generation produced, which it aligns as a generated value.
+     */
     private void populateClass(
             T instance,
             FieldGeneratorResolver resolver,
@@ -787,9 +903,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
             List<Field> settableFields,
             boolean allowOverwriteExisting,
             Set<String> overriddenConstructorMembers,
-            Map<String, @Nullable Object> trackedConstructorArguments) {
+            Map<String, @Nullable Object> trackedConstructorArguments,
+            List<@Nullable Object> constructorArguments) {
         ObjectGenerationFailurePolicy failurePolicy = new ObjectGenerationFailurePolicy(
                 config.isIgnoreErrors(), config.getGeneratorConfig().getGenerationFailureListener());
+        Set<Field> keptFields = new HashSet<>();
         for (Field field : settableFields) {
             if (config.shouldExclude(field)) continue; // exclusion check
             ensureAccessible(field, field.getDeclaringClass());
@@ -798,6 +916,9 @@ public final class ObjectGenerator<T> implements Generator<T> {
             if (!config.isOverrideDefaultInitialization()
                     && hasNonDefaultValue(instance, field)
                     && (overriddenConstructorMembers.contains(field.getName()) || !hasExplicitFieldOverride(field))) {
+                if (!holdsArgument(instance, field, constructorArguments)) {
+                    keptFields.add(field);
+                }
                 continue;
             }
             // The field's new value replaces its constructor argument, which is no longer in use.
@@ -840,7 +961,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 }
             }
         }
-        coherenceAdjuster.adjustInstance(type, instance, settableFields, allowOverwriteExisting);
+        // The coherence pass leaves a kept value as the class set it, unless it is blank.
+        coherenceAdjuster.adjustInstance(type, instance, settableFields, allowOverwriteExisting, keptFields);
     }
 
     /**
@@ -861,7 +983,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
     private T instantiate(
             FieldGeneratorResolver resolver,
             Set<String> overriddenConstructorMembers,
-            Map<String, @Nullable Object> trackedConstructorArguments)
+            Map<String, @Nullable Object> trackedConstructorArguments,
+            List<@Nullable Object> constructorArguments)
             throws ReflectiveOperationException {
         try {
             Constructor<T> ctor = type.getDeclaredConstructor();
@@ -871,7 +994,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
             if (config.getConstructionPolicy() == ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS) {
                 return OBJENESIS.newInstance(type);
             }
-            return invokeUniqueDeclaredConstructor(resolver, overriddenConstructorMembers, trackedConstructorArguments);
+            return invokeUniqueDeclaredConstructor(
+                    resolver, overriddenConstructorMembers, trackedConstructorArguments, constructorArguments);
         }
     }
 
@@ -892,11 +1016,13 @@ public final class ObjectGenerator<T> implements Generator<T> {
         }
     }
 
+    /** Builds the type through its one constructor, and adds the arguments it generated to {@code constructorArguments}. */
     @SuppressWarnings("unchecked")
     private T invokeUniqueDeclaredConstructor(
             FieldGeneratorResolver resolver,
             Set<String> overriddenConstructorMembers,
-            Map<String, @Nullable Object> trackedConstructorArguments)
+            Map<String, @Nullable Object> trackedConstructorArguments,
+            List<@Nullable Object> constructorArguments)
             throws ReflectiveOperationException {
         Constructor<?>[] candidates = type.getDeclaredConstructors();
         if (candidates.length != 1) {
@@ -937,6 +1063,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 trackedConstructorArguments.put(memberName, arguments[index]);
             }
         }
+        constructorArguments.addAll(Arrays.asList(arguments));
         try {
             return constructor.newInstance(arguments);
         } catch (IllegalArgumentException argumentMismatch) {
@@ -963,10 +1090,15 @@ public final class ObjectGenerator<T> implements Generator<T> {
         return "object|sealed=" + sealedType.getName().length() + ':' + sealedType.getName();
     }
 
-    private static List<Field> doCollectSettableFields(Class<?> clazz) {
+    /**
+     * The settable fields of {@code clazz}. One in a package that is not open to the engine fails generation
+     * where {@code failOnClosed} is true, and is left out where it is false. An interface, which a construction
+     * adapter may build, has no superclass and no field to fill.
+     */
+    private static List<Field> doCollectSettableFields(Class<?> clazz, boolean failOnClosed) {
         List<Field> fields = new ArrayList<>();
         Class<?> current = clazz;
-        while (current != Object.class) {
+        while (current != null && current != Object.class) {
             // getDeclaredFields() order is JVM-implementation-specific; sort each class's fields by
             // name so per-field seed allocation (and thus seeded output) is reproducible across JDK
             // builds, vendors, and instrumentation agents. Hierarchy order (subclass before
@@ -977,7 +1109,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 int mods = f.getModifiers();
                 if (Modifier.isStatic(mods)) continue; // class-level, not instance
                 if (Modifier.isFinal(mods)) continue; // immutable after construction
-                ensureAccessible(f, f.getDeclaringClass());
+                if (failOnClosed) {
+                    ensureAccessible(f, f.getDeclaringClass());
+                } else if (!f.trySetAccessible()) {
+                    continue; // in a package not open to the engine
+                }
                 fields.add(f);
             }
             current = current.getSuperclass();
@@ -992,9 +1128,26 @@ public final class ObjectGenerator<T> implements Generator<T> {
     }
 
     private boolean hasNonDefaultValue(T instance, Field field) {
+        return !isDefaultValue(currentValue(instance, field), field.getType());
+    }
+
+    /**
+     * Whether the field holds one of the arguments that generation gave the constructor, as the constructor stored
+     * it: the argument itself, or for a primitive field its value, which reads back in a box of its own.
+     */
+    private boolean holdsArgument(T instance, Field field, List<@Nullable Object> constructorArguments) {
+        Object value = currentValue(instance, field);
+        for (Object argument : constructorArguments) {
+            if (argument == value || (field.getType().isPrimitive() && Objects.equals(argument, value))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private @Nullable Object currentValue(T instance, Field field) {
         try {
-            Object currentValue = field.get(instance);
-            return !isDefaultValue(currentValue, field.getType());
+            return field.get(instance);
         } catch (IllegalAccessException e) {
             throw new IllegalStateException(
                     "Field should be accessible: " + field.getDeclaringClass().getSimpleName() + "." + field.getName(),
