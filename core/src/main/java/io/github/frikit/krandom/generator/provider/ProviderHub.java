@@ -165,7 +165,9 @@ public final class ProviderHub {
     }
 
     /**
-     * Registers provider factory.
+     * Registers provider factory. Under {@link ConflictPolicy#FAIL} a name that is already registered,
+     * as a provider or as an alias, is rejected; under {@link ConflictPolicy#REPLACE} the name then
+     * resolves to this factory.
      *
      * @param name    canonical provider name
      * @param factory provider factory
@@ -176,6 +178,10 @@ public final class ProviderHub {
         ProviderFactory value = Objects.requireNonNull(factory, "factory must not be null");
         ConflictPolicy conflictPolicy = Objects.requireNonNull(policy, "policy must not be null");
         if (conflictPolicy == ConflictPolicy.FAIL) {
+            // A provider of an alias's name would take that name's lookups from the alias's target.
+            if (aliases.containsKey(key)) {
+                throw new IllegalArgumentException("Provider name is already registered as an alias: " + key);
+            }
             if (providers.putIfAbsent(key, value) != null) {
                 throw new IllegalArgumentException("Provider already registered: " + key);
             }

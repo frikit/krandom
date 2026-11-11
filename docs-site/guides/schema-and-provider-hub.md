@@ -341,5 +341,5 @@ UUID second = uniqueIds.generate();
 
 ## Conflict policies
 
-- `ConflictPolicy.FAIL` (default): reject duplicate registration.
+- `ConflictPolicy.FAIL` (default): reject a name that is already registered, as a provider or as an alias.
 - `ConflictPolicy.REPLACE`: override an existing provider or alias.

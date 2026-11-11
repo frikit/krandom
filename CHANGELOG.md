@@ -80,6 +80,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `carolinetran@` and a label of 64 `a`s under `.test`, which `@Email` rejects; the label now has 63. Generated
   company names are unaffected: the longest label of 800,000 seeded names in eight locales has 52 characters,
   so seeded output changes only for a given company name of more than 63 letters and digits.
+- `ProviderHub.register(name, factory)`, which uses `ConflictPolicy.FAIL`, now rejects a name that is already
+  an alias, as the provider-hub guide says `FAIL` rejects a duplicate registration. It checked provider names
+  only, so `register("first_name", ...)` succeeded and `get("first_name")` then returned the new provider
+  instead of the `person.first_name` generator that the built-in alias names. `ConflictPolicy.REPLACE` still
+  lets the name resolve to the new provider. Generated values are unchanged.
 
 ## [3.0.0] - 2026-11-10
 
