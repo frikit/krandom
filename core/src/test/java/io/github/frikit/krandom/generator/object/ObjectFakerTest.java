@@ -464,6 +464,24 @@ class ObjectFakerTest {
     }
 
     @Test
+    @DisplayName("a rule gives back only a value that generation gave the member it replaces")
+    void aRuleGivesBackOnlyTheValueOfTheMemberItReplaces() {
+        AtomicInteger next = new AtomicInteger(10);
+        ObjectFaker<CellRow> faker = new ObjectFaker<>(
+                        CellRow.class,
+                        GeneratorConfig.builder().objectUniqueField("code").build())
+                .ruleFor("kept.code", () -> next.incrementAndGet());
+
+        CellRow first = faker.generate();
+
+        assertEquals(1, first.generated.code);
+        assertEquals(11, first.kept.code);
+        // The kept cell held 1 too, but the class set it; replacing it gives back nothing, so the generated
+        // cell's 1, the only code its constraint allows, stays taken.
+        assertThrows(ObjectGenerationException.class, faker::generate);
+    }
+
+    @Test
     @DisplayName("each field keeps its own values, so a nested rule may repeat a value of another field")
     void aNestedRuleIsCheckedAgainstItsOwnField() {
         AtomicLong tickets = new AtomicLong();
@@ -1439,6 +1457,21 @@ class ObjectFakerTest {
     static final class Ticket {
         long id;
         TicketOwner owner;
+    }
+
+    static final class CellRow {
+        Cell generated;
+        Cell kept = new Cell(1);
+    }
+
+    static final class Cell {
+        @Min(1) @Max(1) int code;
+
+        Cell() {}
+
+        Cell(int code) {
+            this.code = code;
+        }
     }
 
     static final class TicketOwner {

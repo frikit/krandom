@@ -33,10 +33,11 @@ final class UniqueFieldTracker {
 
     /**
      * The values each field took for the root object that an {@link ObjectFaker} is generating, from
-     * {@link #startObject} on, so that a rule that replaces one can give it back. A plain generator applies no
-     * rule after generation and starts no object, so it remembers nothing more.
+     * {@link #startObject} on, with the path of the member that took each, so that a rule that replaces that
+     * member's value can give it back. A plain generator applies no rule after generation and starts no
+     * object, so it remembers nothing more.
      */
-    private @org.jspecify.annotations.Nullable Map<String, Set<Object>> takenByObject;
+    private @org.jspecify.annotations.Nullable Map<String, Map<Object, String>> takenByObject;
 
     private @org.jspecify.annotations.Nullable Object lastAdded;
 
@@ -114,6 +115,18 @@ final class UniqueFieldTracker {
     }
 
     Object nextUnique(String fieldKey, Supplier<Object> supplier, int maxAttempts) {
+        return nextUnique(fieldKey, null, supplier, maxAttempts);
+    }
+
+    /**
+     * A value the field has not had yet, which the member at {@code memberPath}, where it is known, takes: an
+     * object begun by {@link #startObject} remembers it there.
+     */
+    Object nextUnique(
+            String fieldKey,
+            @org.jspecify.annotations.Nullable String memberPath,
+            Supplier<Object> supplier,
+            int maxAttempts) {
         Objects.requireNonNull(fieldKey, "fieldKey must not be null");
         Objects.requireNonNull(supplier, "supplier must not be null");
         if (maxAttempts < 1) {
@@ -128,10 +141,10 @@ final class UniqueFieldTracker {
                 return candidate;
             }
             if (seen.add(candidate)) {
-                if (takenByObject != null) {
+                if (takenByObject != null && memberPath != null) {
                     takenByObject
-                            .computeIfAbsent(fieldKey, ignored -> new HashSet<>())
-                            .add(candidate);
+                            .computeIfAbsent(fieldKey, ignored -> new HashMap<>())
+                            .put(candidate, memberPath);
                 }
                 lastAdded = candidate;
                 lastAddedKey = fieldKey;
@@ -158,14 +171,15 @@ final class UniqueFieldTracker {
     }
 
     /**
-     * Gives back a value that the object begun by {@link #startObject} took for this field, which a rule has
-     * replaced. A value it did not take, such as an initializer it kept, may be another object's, and stays.
+     * Gives back a value that the member at {@code memberPath} took for this field, in the object begun by
+     * {@link #startObject}, which a rule has replaced. A value it did not take, such as an initializer it kept,
+     * may be held by another member or another object, and stays.
      */
-    void releaseTaken(String fieldKey, @org.jspecify.annotations.Nullable Object value) {
-        // An empty set of Collections, unlike Set.of(), answers for a null value too.
-        if (Objects.requireNonNull(takenByObject, "an object has started")
-                .getOrDefault(fieldKey, Collections.emptySet())
-                .contains(value)) {
+    void releaseTaken(String fieldKey, @org.jspecify.annotations.Nullable Object value, String memberPath) {
+        // An empty map of Collections, unlike Map.of(), answers for a null value too.
+        if (memberPath.equals(Objects.requireNonNull(takenByObject, "an object has started")
+                .getOrDefault(fieldKey, Collections.emptyMap())
+                .get(value))) {
             release(fieldKey, value);
         }
     }

@@ -768,8 +768,8 @@ public final class ObjectFaker<T> implements Generator<T> {
     /**
      * The value a rule gives a field whose name {@code objectUniqueField} requested, which must not repeat a value
      * the field took on another object, as a root rule's must not. The value the object holds is no repeat, so a
-     * rule may give it back. Otherwise the value the rule replaces is given back where this object took it, and
-     * a repeat applies the rule again, a dependent rule to the same object, up to
+     * rule may give it back. Otherwise the value the rule replaces is given back where generation gave it to this
+     * member in this object, and a repeat applies the rule again, a dependent rule to the same object, up to
      * {@code objectUniquenessMaxAttempts} times in all. Then generation fails, or with
      * {@code objectIgnoreErrors(true)} the field takes its default.
      */
@@ -780,11 +780,16 @@ public final class ObjectFaker<T> implements Generator<T> {
         }
         RuleTarget leaf = path.leaf();
         String fieldKey = UniqueFieldTracker.fieldKey(leaf.ownerType(), leaf.fieldName());
-        uniqueFieldTracker.releaseTaken(fieldKey, replaced);
+        // The member's path as generation names it, so that only a value generation gave this member goes back.
+        String memberPath = ObjectGenerator.typePath(type) + "." + path.path();
+        uniqueFieldTracker.releaseTaken(fieldKey, replaced, memberPath);
         AtomicBoolean drawn = new AtomicBoolean();
         try {
             return uniqueFieldTracker.nextUnique(
-                    fieldKey, () -> drawn.getAndSet(true) ? rule.get() : first, baseConfig.getUniquenessMaxAttempts());
+                    fieldKey,
+                    memberPath,
+                    () -> drawn.getAndSet(true) ? rule.get() : first,
+                    baseConfig.getUniquenessMaxAttempts());
         } catch (UniqueFieldTracker.ExhaustedException exhausted) {
             ranOut.set(true);
             return new ObjectGenerationFailurePolicy(

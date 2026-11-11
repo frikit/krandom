@@ -381,8 +381,8 @@ gives one object and fails on the next from the same generator. A new generator 
 `ObjectFaker` rule with a generator is an override. A rule on a nested path, a nested context rule and a
 dependent rule run after generation, and their values are checked as well: a repeat applies the rule again,
 a dependent rule to the same object, up to `objectUniquenessMaxAttempts` times. A rule may give an object the
-value it already holds, which repeats nothing, and the value it replaces is given back where the object took
-it. `postProcess` runs last, and its values are not checked.
+value it already holds, which repeats nothing, and the value it replaces is given back where generation gave
+it to that member, but not where the class set it. `postProcess` runs last, and its values are not checked.
 
 A requested name is matched as given, ignoring case and separators, and does not reach a semantic alias.
 Requesting `id` guarantees nothing for `customerId`, because a foreign key can repeat.

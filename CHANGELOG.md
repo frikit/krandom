@@ -51,10 +51,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   checked as a root rule's are: a repeat applies the rule again, a dependent rule to the same object, up to
   `objectUniquenessMaxAttempts` times, and then generation fails, or with `objectIgnoreErrors(true)` the field
   takes its default, which the generation report shows as a fallback. A rule may give an object the value it
-  already holds, which repeats nothing, and the value it replaces is given back where the object took it, so
-  a rule over a small domain does not use it up twice. Each field still has its own values, and a name that is
-  unique by default but not requested may still repeat. `ObjectFaker.strict()` no longer reports such a rule as
-  shadowed. Seeded output changes only for fixtures with such a rule on a requested name.
+  already holds, which repeats nothing, and the value it replaces is given back where generation gave it to
+  that member, so a rule over a small domain does not use it up twice, while a value the class set is not.
+  Each field still has its own values, and a name that is unique by default but not requested may still
+  repeat. `ObjectFaker.strict()` no longer reports such a rule as shadowed. Seeded output changes only for
+  fixtures with such a rule on a requested name.
 - An inclusive temporal constraint on a `MonthDay`, `LocalTime` or `OffsetTime` now gives the present where
   the clock is at the end of its range, as the Bean Validation guide says only a strict one has no value
   there. `@FutureOrPresent MonthDay` failed generation all day on 31 December, `@PastOrPresent MonthDay` all

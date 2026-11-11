@@ -1214,6 +1214,7 @@ final class FieldGeneratorResolver {
         try {
             return uniqueFieldTracker.nextUnique(
                     UniqueFieldTracker.fieldKey(ownerType, fieldName),
+                    memberPath(fieldName),
                     generator::generate,
                     config.getUniquenessMaxAttempts());
         } catch (UniqueFieldTracker.ExhaustedException exhausted) {

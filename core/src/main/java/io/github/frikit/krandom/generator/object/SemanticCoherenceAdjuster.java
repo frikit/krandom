@@ -910,6 +910,7 @@ final class SemanticCoherenceAdjuster {
         try {
             return uniqueFieldTracker.nextUnique(
                     fieldKey,
+                    objectPath + "." + slot.fieldName(),
                     () -> uniquify(semanticKey, candidate, attempt.getAndIncrement()),
                     config.getUniquenessMaxAttempts());
         } catch (UniqueFieldTracker.ExhaustedException exhausted) {
