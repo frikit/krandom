@@ -27,12 +27,13 @@ java -version   # must report 21+
 
    The full gate applies formatting and license headers, then verifies Markdown formatting,
    repository and docs-site links, documentation facts, pinned build inputs, compilation, module
-   boundaries, release SBOMs, Javadoc, all tests (forced to rerun), critical-path mutation testing,
-   and exact core coverage.
+   boundaries, public API compatibility, release SBOMs, Javadoc, all tests (forced to rerun),
+   critical-path mutation testing, and exact core coverage.
 
    While iterating, `./scripts/pre_commit_check.sh --fast` keeps formatting, documentation checks,
-   compilation, module boundaries, tests, and the core coverage gate, but reuses up-to-date test
-   results and skips mutation testing and SBOM validation. Run the full gate before pushing.
+   compilation, module boundaries, public API compatibility, tests, and the core coverage gate, but
+   reuses up-to-date test results and skips mutation testing and SBOM validation. Run the full gate
+   before pushing.
 
 5. **Open a pull request** against `main`.
 
@@ -53,6 +54,13 @@ java -version   # must report 21+
 - **Nullness**: every `krandom-core` package is `@NullMarked` (JSpecify), and `compileJava` runs
   NullAway in JSpecify mode through Error Prone, so a missing `@Nullable` or a possible `null`
   dereference fails compilation. Test sources are not checked.
+- **Public API compatibility**: a minor or patch release keeps the public API that
+  [VERSIONING.md](VERSIONING.md) defines. `./gradlew checkApiCompatibility` compares the Java jars
+  with the `apiBaselineVersion` release on Maven Central using japicmp, and the ABI dumps of the
+  Kotlin modules with the baseline dumps under `<module>/api/`. Additions pass; a removed or
+  incompatibly changed declaration fails, one line per declaration. `check` and the pre-commit gate
+  run it. To retire API, deprecate it; see
+  [Public API compatibility](docs/release-runbook.md#public-api-compatibility).
 - **Module boundaries**: `scripts/verify_module_boundaries.sh` requires a unique JPMS module name
   for every published jar and rejects packages split across published jars.
 - **Release SBOMs**: `./gradlew verifyReleaseSboms` generates and validates the CycloneDX JSON and XML
@@ -72,8 +80,9 @@ java -version   # must report 21+
   local `git blame` skips it (GitHub's blame view reads the file automatically).
 - **Tests**: all tests must pass. Java modules use JUnit Jupiter; Kotlin modules use Kotest.
 
-CI additionally builds on Java 21 and 25, requires the GraalVM native-image smoke test, and runs every
-consumer example against the locally published snapshot.
+CI additionally builds on Java 21 and 25, reports the public API check in a job of its own, requires
+the GraalVM native-image smoke test, and runs every consumer example against the locally published
+snapshot.
 
 ## Maintenance tools
 
@@ -112,7 +121,7 @@ These scripts are run by hand; none of them is part of the pre-commit gate.
 - Keep PRs focused on a single concern.
 - Include tests for new functionality.
 - Update relevant documentation if the public API changes.
-- Describe user-visible changes, including changed or removed API, in the `Unreleased` section of
+- Describe user-visible changes, including added and deprecated API, in the `Unreleased` section of
   [CHANGELOG.md](CHANGELOG.md).
 - Ensure the full `./scripts/pre_commit_check.sh` (without `--fast`) passes locally before requesting review.
 - Write a clear PR description explaining *what* and *why*.
