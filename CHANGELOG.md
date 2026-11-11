@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- The coherence pass now leaves a field initializer that generation keeps as the class set it, as the
+  object-generation guide says initializers are kept unless `objectOverrideDefaultInitialization(true)` is
+  set. It overwrote one, so `fullName = "KEEP"` beside `firstName = "Ada"` and `lastName = "Lovelace"` became
+  `Ada Lovelace`. Seeded with `42`, of 2,000 objects each, it replaced a kept `fullName` beside generated
+  names in 2,000, replaced a kept `email` in 2,000, and moved a kept `updatedAt` of 2001-01-01 in 2,000, and
+  now does so in none. A generated sibling follows the kept value instead, so `createdAt` moves back to that
+  `updatedAt`, and the pass still fills a blank initializer and aligns a field that a constructor fills from a
+  generated argument. Seeded output changes only for objects with an initializer that the pass derives or
+  aligns.
+- A Kotlin class built through its primary constructor now has its other mutable properties, declared in its
+  body or inherited, filled through their fields after construction, as a Java class's fields are after its
+  constructor, and as the Kotlin DSL guide says rules and generated values replace initializers. They kept
+  their initializers whatever the rules: with `data class User(val id: Long) { var name = "old" }`,
+  `rule(User::name) { "new" }` gave `"old"`, as did a `GeneratorConfig` field override, and a `lateinit`
+  property stayed unset. Seeded with `42`, of 2,000 `User` values from the DSL, 2,000 had `name` `"old"` and
+  none now has; the constructor's values are the same. A Kotlin `object` or companion object is still returned
+  as it is. Seeded output changes for such properties.
 - A Kotlin primary-constructor argument now meets the constraints of its parameter and of its property's field
   and getter together, as the Kotlin DSL guide says `@param:` and `@field:` targets are both recognized. Kotlin
   compiles no parameter names unless `-java-parameters` is set, so the field a parameter fills could not be
@@ -21,31 +38,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - A `GeneratorConfig` field predicate override, `objectOverride(Predicate<Field>, ...)` in either form, now
   replaces a Kotlin default argument and fills a required primary-constructor parameter when it matches the
   property's field, of the parameter's type, as `ObjectConstructionContext` says explicit field overrides stay
-  stronger than defaults.
-  `hasExplicitOverride` left both forms out, so the adapter kept `"default"` for
+  stronger than defaults. `hasExplicitOverride` left both forms out, so the adapter kept `"default"` for
   `data class User(val name: String = "default")`, and the resolver matched a predicate only against a field
   it was given, not a parameter. Seeded with `42`, of 2,000 values each, a predicate on `name` reached neither
   the defaulted nor a required `name`, and now reaches both. Seeded output changes only where such an override
   matches a constructor property.
-
-- A Kotlin class built through its primary constructor now has its other mutable properties, declared in its
-  body or inherited, filled through their fields after construction, as a Java class's fields are after its
-  constructor, and as the Kotlin DSL guide says rules and generated values replace initializers. They kept
-  their initializers whatever the rules: with `data class User(val id: Long) { var name = "old" }`,
-  `rule(User::name) { "new" }` gave `"old"`, as did a `GeneratorConfig` field override, and a `lateinit`
-  property stayed unset. Seeded with `42`, of 2,000 `User` values from the DSL, 2,000 had `name` `"old"` and
-  none now has; the constructor's values are the same. A Kotlin `object` or companion object is still returned
-  as it is. Seeded output changes for such properties.
-
-- The coherence pass now leaves a field initializer that generation keeps as the class set it, as the
-  object-generation guide says initializers are kept unless `objectOverrideDefaultInitialization(true)` is
-  set. It overwrote one, so `fullName = "KEEP"` beside `firstName = "Ada"` and `lastName = "Lovelace"` became
-  `Ada Lovelace`. Seeded with `42`, of 2,000 objects each, it replaced a kept `fullName` beside generated
-  names in 2,000, replaced a kept `email` in 2,000, and moved a kept `updatedAt` of 2001-01-01 in 2,000, and
-  now does so in none. A generated sibling follows the kept value instead, so `createdAt` moves back to that
-  `updatedAt`, and the pass still fills a blank initializer and aligns a field that a constructor fills from a
-  generated argument. Seeded output changes only for objects with an initializer that the pass derives or
-  aligns.
+- An `ObjectFaker` rule on a nested path, a nested context rule and a dependent rule now keep a field whose name
+  `objectUniqueField` requested unique, as the object-generation guide and `ObjectGenerator` say such a name
+  stays unique however its value is produced. These rules run after generation and were not checked: seeded
+  with `42`, `ruleFor("address.city", () -> "Berlin")` with `objectUniqueField("city")` gave 5 of 5 objects
+  `Berlin`, as a dependent rule gave 5 of 5 a requested `email` of `ada@example.com`. Their values are now
+  checked as a root rule's are: a repeat applies the rule again, a dependent rule to the same object, up to
+  `objectUniquenessMaxAttempts` times, and then generation fails, or with `objectIgnoreErrors(true)` the field
+  takes its default, which the generation report shows as a fallback. A rule may give an object the value it
+  already holds, which repeats nothing, and the value it replaces is given back where the object took it, so
+  a rule over a small domain does not use it up twice. Each field still has its own values, and a name that is
+  unique by default but not requested may still repeat. `ObjectFaker.strict()` no longer reports such a rule as
+  shadowed. Seeded output changes only for fixtures with such a rule on a requested name.
 - An inclusive temporal constraint on a `MonthDay`, `LocalTime` or `OffsetTime` now gives the present where
   the clock is at the end of its range, as the Bean Validation guide says only a strict one has no value
   there. `@FutureOrPresent MonthDay` failed generation all day on 31 December, `@PastOrPresent MonthDay` all
@@ -61,18 +70,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   break `@PastOrPresent`. Under a clock at a whole millisecond the value is still the clock's instant, which
   Hibernate Validator accepts. Seeded output changes only for these members under a finer clock, such as the
   system clock, where generation now fails.
-- An `ObjectFaker` rule on a nested path, a nested context rule and a dependent rule now keep a field whose name
-  `objectUniqueField` requested unique, as the object-generation guide and `ObjectGenerator` say such a name
-  stays unique however its value is produced. These rules run after generation and were not checked: seeded
-  with `42`, `ruleFor("address.city", () -> "Berlin")` with `objectUniqueField("city")` gave 5 of 5 objects
-  `Berlin`, as a dependent rule gave 5 of 5 a requested `email` of `ada@example.com`. Their values are now
-  checked as a root rule's are: a repeat applies the rule again, a dependent rule to the same object, up to
-  `objectUniquenessMaxAttempts` times, and then generation fails, or with `objectIgnoreErrors(true)` the field
-  takes its default, which the generation report shows as a fallback. A rule may give an object the value it
-  already holds, which repeats nothing, and the value it replaces is given back where the object took it, so
-  a rule over a small domain does not use it up twice. Each field still has its own values, and a name that is
-  unique by default but not requested may still repeat. `ObjectFaker.strict()` no longer reports such a rule as
-  shadowed. Seeded output changes only for fixtures with such a rule on a requested name.
 
 ## [3.0.0] - 2026-11-10
 
