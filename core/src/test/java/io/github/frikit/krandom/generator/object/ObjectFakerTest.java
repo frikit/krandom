@@ -17,8 +17,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
+import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -26,6 +29,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -378,8 +382,8 @@ class ObjectFakerTest {
     }
 
     @Test
-    @DisplayName("dependent and nested rules run after generation, so they may repeat a value on a unique field")
-    void postGenerationRulesMayRepeatValuesOnUniqueFields() {
+    @DisplayName("a dependent or nested rule on a name unique by default, not requested, may repeat its value")
+    void postGenerationRulesMayRepeatValuesOnDefaultUniqueNames() {
         List<FixtureUser> users = new ObjectFaker<>(FixtureUser.class)
                 .ruleFor("firstName", () -> "Ada")
                 .ruleFor("lastName", () -> "Lovelace")
@@ -387,12 +391,117 @@ class ObjectFakerTest {
                 .generateList(5);
         assertTrue(users.stream().allMatch(user -> "ada@example.com".equals(user.email)));
 
-        List<FixtureUserWithAddress> located = new ObjectFaker<>(
-                        FixtureUserWithAddress.class,
-                        GeneratorConfig.builder().objectUniqueField("city").build())
+        List<FixtureUserWithAddress> located = new ObjectFaker<>(FixtureUserWithAddress.class)
                 .ruleFor("address.city", () -> "Berlin")
                 .generateList(5);
         assertTrue(located.stream().allMatch(user -> "Berlin".equals(user.address.city)));
+    }
+
+    @Test
+    @DisplayName("a nested, nested context or dependent rule on a requested name is checked as a root rule is")
+    void postGenerationRulesOnARequestedNameAreChecked() {
+        GeneratorConfig city =
+                GeneratorConfig.builder().objectUniqueField("city").build();
+        ObjectFaker<FixtureUserWithAddress> nested =
+                new ObjectFaker<>(FixtureUserWithAddress.class, city).ruleFor("address.city", () -> "Berlin");
+        ObjectFaker<FixtureUserWithAddress> contextual = new ObjectFaker<>(FixtureUserWithAddress.class, city)
+                .ruleForContext("address.city", context -> "Berlin");
+        ObjectFaker<FixtureUser> dependent = new ObjectFaker<>(
+                        FixtureUser.class,
+                        GeneratorConfig.builder().objectUniqueField("email").build())
+                .ruleFor("email", generated -> "ada@example.com");
+
+        for (ObjectFaker<FixtureUserWithAddress> faker : List.of(nested, contextual)) {
+            assertEquals("Berlin", faker.generate().address.city);
+            ObjectGenerationException repeat = assertThrows(ObjectGenerationException.class, faker::generate);
+            assertEquals(
+                    "FixtureUserWithAddress.address.city",
+                    repeat.getContext().orElseThrow().path());
+            assertEquals(
+                    GenerationOperation.APPLY_RULE,
+                    repeat.getContext().orElseThrow().operation());
+        }
+        assertEquals("ada@example.com", dependent.generate().email);
+        ObjectGenerationException repeat = assertThrows(ObjectGenerationException.class, dependent::generate);
+        assertEquals("FixtureUser.email", repeat.getContext().orElseThrow().path());
+
+        // populate(existing) applies the rules in the same way.
+        ObjectFaker<FixtureUserWithAddress> populating =
+                new ObjectFaker<>(FixtureUserWithAddress.class, city).ruleFor("address.city", () -> "Berlin");
+        assertEquals("Berlin", populating.populate(new FixtureUserWithAddress()).address.city);
+        assertThrows(ObjectGenerationException.class, () -> populating.populate(new FixtureUserWithAddress()));
+    }
+
+    @Test
+    @DisplayName("a rule may give an object the value it holds, and gives back the value it replaces")
+    void aRuleMayGiveAnObjectTheValueItHolds() {
+        // A dependent rule that returns the field's own value changes nothing, whether generation drew the
+        // value or the class set it.
+        List<FixtureUser> drawn = new ObjectFaker<>(
+                        FixtureUser.class,
+                        GeneratorConfig.builder().objectUniqueField("email").build())
+                .ruleFor("email", generated -> generated.email)
+                .generateList(200);
+        List<KeptCode> kept = new ObjectFaker<>(
+                        KeptCode.class,
+                        GeneratorConfig.builder().objectUniqueField("code").build())
+                .ruleFor("code", generated -> generated.code)
+                .generateList(5);
+        // Three seats for three objects: the number generation drew for each is given back when the rule
+        // replaces it, so the rule's numbers never run out.
+        AtomicInteger next = new AtomicInteger();
+        List<SeatHolder> seats = new ObjectFaker<>(
+                        SeatHolder.class,
+                        GeneratorConfig.builder().objectUniqueField("number").build())
+                .ruleFor("seat.number", () -> next.incrementAndGet())
+                .generateList(3);
+
+        assertEquals(200, drawn.stream().map(user -> user.email).distinct().count());
+        assertTrue(kept.stream().allMatch(value -> "X".equals(value.code)));
+        assertEquals(
+                List.of(1, 2, 3),
+                seats.stream().map(holder -> holder.seat.number).toList());
+    }
+
+    @Test
+    @DisplayName("each field keeps its own values, so a nested rule may repeat a value of another field")
+    void aNestedRuleIsCheckedAgainstItsOwnField() {
+        AtomicLong tickets = new AtomicLong();
+        AtomicLong owners = new AtomicLong();
+        List<Ticket> generated = new ObjectFaker<>(
+                        Ticket.class,
+                        GeneratorConfig.builder().objectUniqueField("id").build())
+                .ruleFor("id", () -> tickets.incrementAndGet())
+                .ruleFor("owner.id", () -> owners.incrementAndGet())
+                .generateList(5);
+
+        assertEquals(
+                List.of(1L, 2L, 3L, 4L, 5L),
+                generated.stream().map(ticket -> ticket.id).toList());
+        assertEquals(
+                List.of(1L, 2L, 3L, 4L, 5L),
+                generated.stream().map(ticket -> ticket.owner.id).toList());
+    }
+
+    @Test
+    @DisplayName("a rule whose values run out leaves its field at the default under objectIgnoreErrors(true)")
+    void anExhaustedRuleLeavesTheDefaultUnderIgnoreErrors() {
+        List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+        ObjectFaker<FixtureUserWithAddress> faker = new ObjectFaker<>(
+                        FixtureUserWithAddress.class,
+                        GeneratorConfig.builder()
+                                .objectUniqueField("city")
+                                .objectIgnoreErrors(true)
+                                .generationFailureListener(diagnostics::add)
+                                .build())
+                .ruleFor("address.city", () -> "Berlin");
+
+        assertEquals("Berlin", faker.generate().address.city);
+        assertNull(faker.generate().address.city);
+        assertEquals(1, diagnostics.size(), diagnostics.toString());
+        assertEquals(
+                "FixtureUserWithAddress.address.city",
+                diagnostics.getFirst().context().path());
     }
 
     @Test
@@ -732,13 +841,13 @@ class ObjectFakerTest {
         resolveRulePath.setAccessible(true);
         Object path = resolveRulePath.invoke(faker, "address.city");
         Class<?> rulePathType = Class.forName("io.github.frikit.krandom.generator.object.ObjectFaker$RulePath");
-        Method assignNestedValue = ObjectFaker.class.getDeclaredMethod(
-                "assignNestedValue", Object.class, rulePathType, int.class, Object.class);
+        Method assignNestedValue =
+                ObjectFaker.class.getDeclaredMethod("assignFieldValue", Object.class, rulePathType, Object.class);
         assignNestedValue.setAccessible(true);
 
         FixtureUserWithAddress missingAddress = new FixtureUserWithAddress();
         FixtureUserWithAddress materialized =
-                (FixtureUserWithAddress) assignNestedValue.invoke(faker, missingAddress, path, 0, "Berlin");
+                (FixtureUserWithAddress) assignNestedValue.invoke(faker, missingAddress, path, "Berlin");
         assertSame(missingAddress, materialized);
         assertNotNull(missingAddress.address);
         assertEquals("Berlin", missingAddress.address.city);
@@ -747,7 +856,7 @@ class ObjectFakerTest {
         existingAddressHolder.address = new FixtureAddress();
         FixtureAddress existingAddress = existingAddressHolder.address;
         FixtureUserWithAddress reused =
-                (FixtureUserWithAddress) assignNestedValue.invoke(faker, existingAddressHolder, path, 0, "Paris");
+                (FixtureUserWithAddress) assignNestedValue.invoke(faker, existingAddressHolder, path, "Paris");
         assertSame(existingAddressHolder, reused);
         assertSame(existingAddress, existingAddressHolder.address);
         assertEquals("Paris", existingAddressHolder.address.city);
@@ -1313,6 +1422,27 @@ class ObjectFakerTest {
 
     static final class PrimitiveFixture {
         int age;
+    }
+
+    static final class KeptCode {
+        String code = "X";
+    }
+
+    static final class SeatHolder {
+        Seat seat;
+    }
+
+    static final class Seat {
+        @Min(1) @Max(3) int number;
+    }
+
+    static final class Ticket {
+        long id;
+        TicketOwner owner;
+    }
+
+    static final class TicketOwner {
+        long id;
     }
 
     static final class Basket {

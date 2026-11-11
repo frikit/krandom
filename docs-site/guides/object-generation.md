@@ -378,8 +378,11 @@ Raising `objectUniquenessMaxAttempts` makes that less likely.
 
 An override is drawn again like any other generator, so one that returns a constant on a requested field
 gives one object and fails on the next from the same generator. A new generator starts over. A root
-`ObjectFaker` rule with a generator is an override. A dependent rule, a rule on a nested path and
-`postProcess` run after generation, so their values are not checked.
+`ObjectFaker` rule with a generator is an override. A rule on a nested path, a nested context rule and a
+dependent rule run after generation, and their values are checked as well: a repeat applies the rule again,
+a dependent rule to the same object, up to `objectUniquenessMaxAttempts` times. A rule may give an object the
+value it already holds, which repeats nothing, and the value it replaces is given back where the object took
+it. `postProcess` runs last, and its values are not checked.
 
 A requested name is matched as given, ignoring case and separators, and does not reach a semantic alias.
 Requesting `id` guarantees nothing for `customerId`, because a foreign key can repeat.
@@ -510,7 +513,7 @@ Rules, includes and ignores are numbered in the order they are registered, acros
 | Problem | Reported when |
 |:---|:---|
 | Undecided | A settable root field or record component has no rule, include or ignore. In include mode only the included ones need a rule. |
-| Shadowed | A later rule for the same path replaces a rule. A rule on an ancestor path that runs later overwrites a nested rule. A `GeneratorConfig` contextual field override or contextual predicate override comes before a root rule. A root rule replaces or comes before a `GeneratorConfig` field override for the same member, or a nested or dependent rule overwrites one. A nested or dependent rule sets a member whose name `objectUniqueField` requested, without the uniqueness check. |
+| Shadowed | A later rule for the same path replaces a rule. A rule on an ancestor path that runs later overwrites a nested rule. A `GeneratorConfig` contextual field override or contextual predicate override comes before a root rule. A root rule replaces or comes before a `GeneratorConfig` field override for the same member, or a nested or dependent rule overwrites one. |
 | Unused | A later nested ignore clears the path of a rule. The `GeneratorConfig` excludes the member of a root rule. A `GeneratorConfig` type override builds the root, so `generate()` applies no root rule or root ignore. For `generate()`, a nested ignore clears a member that never gets a value, because `objectMaxDepth`, an exclusion or include mode leaves an object on its path `null`. |
 | Ambiguous | A root rule, a root ignore or an include-mode exclusion also applies at another path. |
 

@@ -52,6 +52,29 @@ class UniqueFieldTrackerTest {
     }
 
     @Test
+    @DisplayName("gives back a value only where the object started last took it")
+    void givesBackOnlyAValueTheStartedObjectTook() {
+        UniqueFieldTracker tracker = new UniqueFieldTracker();
+        tracker.nextUnique("code", () -> "held", 1);
+        tracker.startObject();
+        tracker.nextUnique("code", () -> "taken", 1);
+
+        // A value an earlier object took, and null, which no object takes, stay as they are.
+        tracker.releaseTaken("code", "held");
+        tracker.releaseTaken("code", null);
+        tracker.releaseTaken("other", "taken");
+        assertThrows(UniqueFieldTracker.ExhaustedException.class, () -> tracker.nextUnique("code", () -> "held", 1));
+
+        tracker.releaseTaken("code", "taken");
+        assertEquals("taken", tracker.nextUnique("code", () -> "taken", 1));
+
+        // A new object starts with nothing taken.
+        tracker.startObject();
+        tracker.releaseTaken("code", "taken");
+        assertThrows(UniqueFieldTracker.ExhaustedException.class, () -> tracker.nextUnique("code", () -> "taken", 1));
+    }
+
+    @Test
     @DisplayName("fails when uniqueness attempts are exhausted")
     void failsWhenAttemptsAreExhausted() {
         UniqueFieldTracker tracker = new UniqueFieldTracker();

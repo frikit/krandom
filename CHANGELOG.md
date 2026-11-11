@@ -57,6 +57,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   break `@PastOrPresent`. Under a clock at a whole millisecond the value is still the clock's instant, which
   Hibernate Validator accepts. Seeded output changes only for these members under a finer clock, such as the
   system clock, where generation now fails.
+- An `ObjectFaker` rule on a nested path, a nested context rule and a dependent rule now keep a field whose name
+  `objectUniqueField` requested unique, as the object-generation guide and `ObjectGenerator` say such a name
+  stays unique however its value is produced. These rules run after generation and were not checked: seeded
+  with `42`, `ruleFor("address.city", () -> "Berlin")` with `objectUniqueField("city")` gave 5 of 5 objects
+  `Berlin`, as a dependent rule gave 5 of 5 a requested `email` of `ada@example.com`. Their values are now
+  checked as a root rule's are: a repeat applies the rule again, a dependent rule to the same object, up to
+  `objectUniquenessMaxAttempts` times, and then generation fails, or with `objectIgnoreErrors(true)` the field
+  takes its default, which the generation report shows as a fallback. A rule may give an object the value it
+  already holds, which repeats nothing, and the value it replaces is given back where the object took it, so
+  a rule over a small domain does not use it up twice. Each field still has its own values, and a name that is
+  unique by default but not requested may still repeat. `ObjectFaker.strict()` no longer reports such a rule as
+  shadowed. Seeded output changes only for fixtures with such a rule on a requested name.
 
 ## [3.0.0] - 2026-11-10
 

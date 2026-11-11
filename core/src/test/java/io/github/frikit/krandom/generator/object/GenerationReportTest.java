@@ -432,6 +432,32 @@ class GenerationReportTest {
     }
 
     @Test
+    @DisplayName("a rule whose values on a requested name run out is reported as a fallback to the default")
+    void exhaustedRuleIsReportedAsAFallback() {
+        List<GenerationReportEntry> entries = new ArrayList<>();
+        ObjectFaker<Household> faker = new ObjectFaker<>(
+                        Household.class,
+                        listening(89L)
+                                .objectUniqueField("name")
+                                .objectIgnoreErrors(true)
+                                .generationReportListener(entries::add)
+                                .build())
+                .ruleFor("pet.name", () -> "Rex");
+
+        faker.generate();
+        GenerationReportEntry first = last(entries, "Household.pet.name");
+        entries.clear();
+        faker.generate();
+        GenerationReportEntry repeated = last(entries, "Household.pet.name");
+
+        assertEquals(GenerationStep.RULE, first.step());
+        assertEquals(List.of(), first.decisions());
+        assertEquals(GenerationStep.DEFAULT, repeated.step());
+        assertEquals(List.of(GenerationDecision.FAILURE_FALLBACK), repeated.decisions());
+        assertRule(repeated, FixtureRuleKind.RULE, "pet.name", 1);
+    }
+
+    @Test
     @DisplayName("a required member that objectMaxDepth leaves null is reported as an unmet constraint")
     void requiredMemberCutAtMaxDepthIsAnUnmetConstraint() {
         List<GenerationReportEntry> entries =

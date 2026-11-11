@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -29,6 +30,13 @@ final class UniqueFieldTracker {
     private static final Pattern ELEMENT_SUFFIX = Pattern.compile("[\\[.].*");
 
     private final Map<String, Set<Object>> valuesByField = new HashMap<>();
+
+    /**
+     * The values each field took for the root object that an {@link ObjectFaker} is generating, from
+     * {@link #startObject} on, so that a rule that replaces one can give it back. A plain generator applies no
+     * rule after generation and starts no object, so it remembers nothing more.
+     */
+    private @org.jspecify.annotations.Nullable Map<String, Set<Object>> takenByObject;
 
     private @org.jspecify.annotations.Nullable Object lastAdded;
 
@@ -120,6 +128,11 @@ final class UniqueFieldTracker {
                 return candidate;
             }
             if (seen.add(candidate)) {
+                if (takenByObject != null) {
+                    takenByObject
+                            .computeIfAbsent(fieldKey, ignored -> new HashSet<>())
+                            .add(candidate);
+                }
                 lastAdded = candidate;
                 lastAddedKey = fieldKey;
                 return candidate;
@@ -136,6 +149,24 @@ final class UniqueFieldTracker {
         Set<Object> seen = valuesByField.get(fieldKey);
         if (seen != null) {
             seen.remove(value);
+        }
+    }
+
+    /** Starts a root object whose rules run after generation: the values it takes from now on are remembered. */
+    void startObject() {
+        takenByObject = new HashMap<>();
+    }
+
+    /**
+     * Gives back a value that the object begun by {@link #startObject} took for this field, which a rule has
+     * replaced. A value it did not take, such as an initializer it kept, may be another object's, and stays.
+     */
+    void releaseTaken(String fieldKey, @org.jspecify.annotations.Nullable Object value) {
+        // An empty set of Collections, unlike Set.of(), answers for a null value too.
+        if (Objects.requireNonNull(takenByObject, "an object has started")
+                .getOrDefault(fieldKey, Collections.emptySet())
+                .contains(value)) {
+            release(fieldKey, value);
         }
     }
 

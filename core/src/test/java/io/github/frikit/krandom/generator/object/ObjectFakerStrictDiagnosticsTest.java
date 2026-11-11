@@ -243,22 +243,20 @@ class ObjectFakerStrictDiagnosticsTest {
     }
 
     @Test
-    @DisplayName("a requested unique name that a nested or dependent rule sets is shadowed; a root rule is checked")
-    void requestedUniqueNameBypassedAfterGenerationIsShadowed() {
+    @DisplayName("a requested unique name that a nested, dependent or root rule sets is checked, so none is shadowed")
+    void requestedUniqueNameSetByARuleIsNotShadowed() {
         GeneratorConfig config = GeneratorConfig.builder()
                 .objectUniqueField("city")
+                .objectUniqueField("name")
                 .objectUniqueField("title")
                 .build();
 
-        FixtureRuleProblem problem = onlyProblem(new ObjectFaker<>(Shop.class, config)
-                .ruleFor("client.location.city", () -> "Paris")
-                .ruleFor("title", () -> "Main"));
-
-        assertProblem(problem, Category.SHADOWED, FixtureRuleKind.UNIQUE_FIELD, "client.location.city", -1);
         assertEquals(
-                "the values of rule #1 'client.location.city' are not checked for uniqueness, because the rule runs"
-                        + " after generation",
-                problem.reason());
+                List.of(),
+                problemsOf(new ObjectFaker<>(Shop.class, config)
+                        .ruleFor("client.location.city", () -> "Paris")
+                        .ruleFor("client.name", shop -> "Ada")
+                        .ruleFor("title", () -> "Main")));
         assertEquals(
                 List.of(),
                 problemsOf(new ObjectFaker<>(Shop.class).ruleFor("client.email", () -> "same@example.test")),

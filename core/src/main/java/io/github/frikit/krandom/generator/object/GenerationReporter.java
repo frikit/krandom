@@ -235,11 +235,17 @@ final class GenerationReporter {
         emit(trace);
     }
 
-    /** Reports an {@code ObjectFaker} rule or ignore that runs after generation, at its own path. */
-    void applied(String path, FixtureRule rule) {
+    /**
+     * Reports an {@code ObjectFaker} rule or ignore that runs after generation, at its own path. A rule that
+     * {@code ranOut} of values that do not repeat left the member at its default, which a fallback reports.
+     */
+    void applied(String path, FixtureRule rule, boolean ranOut) {
         Trace trace = new Trace(path);
         trace.step(rule.kind() == FixtureRuleKind.IGNORE ? GenerationStep.IGNORE : GenerationStep.RULE, "ObjectFaker")
                 .rule(rule);
+        if (ranOut) {
+            failed(trace, GenerationDecision.FAILURE_FALLBACK);
+        }
         emit(trace);
     }
 
