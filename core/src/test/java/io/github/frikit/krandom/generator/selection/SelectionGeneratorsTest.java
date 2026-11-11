@@ -59,6 +59,47 @@ class SelectionGeneratorsTest {
     }
 
     @Test
+    @DisplayName("PickSetGenerator counts distinct values, so a source that repeats one gives no repeat")
+    void pickSetCountsDistinctValues() {
+        IllegalArgumentException tooMany = assertThrows(
+                IllegalArgumentException.class, () -> new PickSetGenerator<>(List.of("x", "x"), 2, seeded(42L)));
+        assertEquals("count must be <= the number of distinct values in source (1), got: 2", tooMany.getMessage());
+
+        List<String> source = List.of("a", "a", "b", "b", "c");
+        for (int count = 1; count <= 3; count++) {
+            PickSetGenerator<String> gen = new PickSetGenerator<>(source, count, seeded(42L));
+            java.util.Random reference = seeded(42L).createRandom();
+            for (int i = 0; i < 200; i++) {
+                List<String> picked = gen.generate();
+                assertEquals(count, Set.copyOf(picked).size(), picked.toString());
+                assertEquals(firstDistinct(source, count, reference), picked);
+            }
+        }
+        assertEquals(List.of("x"), new PickSetGenerator<>(List.of("x", "x"), 1, seeded(1L)).generate());
+    }
+
+    @Test
+    @DisplayName("PickSetGenerator picks a source without repeats as before: the first values of one shuffle")
+    void pickSetWithoutRepeatsKeepsItsPicks() {
+        List<Integer> source = IntStream.rangeClosed(1, 10).boxed().toList();
+        PickSetGenerator<Integer> gen = new PickSetGenerator<>(source, 4, seeded(123L));
+        java.util.Random reference = seeded(123L).createRandom();
+
+        for (int i = 0; i < 50; i++) {
+            List<Integer> shuffled = new java.util.ArrayList<>(source);
+            java.util.Collections.shuffle(shuffled, reference);
+            assertEquals(shuffled.subList(0, 4), gen.generate());
+        }
+    }
+
+    /** The first {@code count} distinct values of one shuffle of {@code source}. */
+    private static <T> List<T> firstDistinct(List<T> source, int count, java.util.Random random) {
+        List<T> shuffled = new java.util.ArrayList<>(source);
+        java.util.Collections.shuffle(shuffled, random);
+        return shuffled.stream().distinct().limit(count).toList();
+    }
+
+    @Test
     @DisplayName("PickSetGenerator returns empty list when count is zero")
     void pickSetZeroCountReturnsEmpty() {
         PickSetGenerator<Integer> gen = new PickSetGenerator<>(List.of(1, 2, 3), 0, seeded(7L));

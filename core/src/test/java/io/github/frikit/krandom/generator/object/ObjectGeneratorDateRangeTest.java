@@ -8,17 +8,22 @@ package io.github.frikit.krandom.generator.object;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.core.model.PersonWithDateTimes;
+import io.github.frikit.krandom.generator.failure.GenerationFailureContext;
+import io.github.frikit.krandom.generator.failure.GenerationFailureDiagnostic;
+import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -147,6 +152,147 @@ class ObjectGeneratorDateRangeTest {
     }
 
     @Test
+    @DisplayName("a java.sql.Date member reads back as a day in the range, seeded or not")
+    void sqlDateMemberReadsBackInTheRange() {
+        // 5 to 14 October 1582 read back ten days later, as the Julian days they are.
+        assertSqlDatesWithin(LocalDate.of(1582, 10, 1), LocalDate.of(1582, 10, 15), LocalDate.of(1582, 10, 15));
+        assertSqlDatesWithin(LocalDate.of(1582, 10, 1), LocalDate.of(1582, 10, 10), LocalDate.of(1582, 10, 4));
+    }
+
+    /**
+     * Both a plain member and a semantic one, whose clock-relative range {@code objectDateRange} replaces, read
+     * back in the range, and a drawn day that would not gives {@code lastHeld}.
+     */
+    private static void assertSqlDatesWithin(LocalDate min, LocalDate max, LocalDate lastHeld) {
+        GeneratorConfig unseeded =
+                GeneratorConfig.builder().objectDateRange(min, max).build();
+        for (GeneratorConfig config :
+                List.of(unseeded, unseeded.toBuilder().seed(42L).build())) {
+            ObjectGenerator<SqlDateFields> gen = new ObjectGenerator<>(SqlDateFields.class, config);
+            Set<LocalDate> days = new HashSet<>();
+            for (int i = 0; i < 2_000; i++) {
+                SqlDateFields value = gen.generate();
+                for (java.sql.Date date : List.of(value.day, value.createdAt)) {
+                    LocalDate day = date.toLocalDate();
+                    assertFalse(day.isBefore(min) || day.isAfter(max), day.toString());
+                    days.add(day);
+                }
+            }
+            assertTrue(days.contains(lastHeld), days.toString());
+        }
+    }
+
+    @Test
+    @DisplayName("a java.sql.Date member of a range beyond the instants it holds reads back in the range")
+    void sqlDateMemberOfARangeBeyondItsInstantsReadsBackInTheRange() {
+        // Seeded, past the last instant a java.sql.Date holds, where a day reads back as another or as no date.
+        assertSqlDatesWithin(
+                GeneratorConfig.builder()
+                        .seed(42L)
+                        .objectDateRange(LocalDate.of(292_278_990, 1, 1), LocalDate.of(292_278_999, 12, 31))
+                        .build(),
+                LocalDate.of(292_278_990, 1, 1),
+                LocalDate.of(292_278_999, 12, 31));
+        // Unseeded, every draw the first day: 29 February 5 BC reads back as 29 February of the year 5, no date.
+        java.util.Random first = new java.util.Random() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public long nextLong(long origin, long bound) {
+                return origin;
+            }
+        };
+        SqlDateFields value = new ObjectGenerator<>(
+                        SqlDateFields.class,
+                        GeneratorConfig.builder()
+                                .random(first)
+                                .objectDateRange(LocalDate.of(-4, 2, 29), LocalDate.of(1, 1, 1))
+                                .build())
+                .generate();
+        assertEquals(LocalDate.of(1, 1, 1), value.day.toLocalDate());
+        assertEquals(LocalDate.of(1, 1, 1), value.createdAt.toLocalDate());
+    }
+
+    private static void assertSqlDatesWithin(GeneratorConfig config, LocalDate min, LocalDate max) {
+        ObjectGenerator<SqlDateFields> gen = new ObjectGenerator<>(SqlDateFields.class, config);
+        for (int i = 0; i < 500; i++) {
+            LocalDate day = gen.generate().day.toLocalDate();
+            assertFalse(day.isBefore(min) || day.isAfter(max), day.toString());
+        }
+    }
+
+    @Test
+    @DisplayName("a @Fake java.sql.Date member of a range that holds no such day fails as its constraint conflict")
+    void fakeSqlDateMemberOfARangeWithoutAHeldDayFails() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                .seed(42L)
+                .objectDateRange(LocalDate.of(0, 1, 1), LocalDate.of(0, 12, 31))
+                .build();
+        List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+
+        ObjectGenerationException failure = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(FakeSqlDateFields.class, config).generate());
+        FakeSqlDateFields lenient = new ObjectGenerator<>(
+                        FakeSqlDateFields.class,
+                        config.toBuilder()
+                                .objectIgnoreErrors(true)
+                                .generationFailureListener(diagnostics::add)
+                                .build())
+                .generate();
+
+        assertEquals(
+                "FakeSqlDateFields.stamp", failure.getContext().orElseThrow().path());
+        assertNull(lenient.stamp);
+        assertEquals(
+                List.of("FakeSqlDateFields.stamp"),
+                diagnostics.stream().map(d -> d.context().path()).toList());
+    }
+
+    @Test
+    @DisplayName("a range that holds no day a java.sql.Date holds fails as a constraint conflict of the member")
+    void rangeWithoutAHeldDayFailsForASqlDateMember() {
+        for (LocalDate[] range : List.of(
+                new LocalDate[] {LocalDate.of(0, 1, 1), LocalDate.of(0, 12, 31)},
+                new LocalDate[] {LocalDate.of(1582, 10, 5), LocalDate.of(1582, 10, 14)})) {
+            GeneratorConfig unseeded = GeneratorConfig.builder()
+                    .objectDateRange(range[0], range[1])
+                    .build();
+            for (GeneratorConfig config :
+                    List.of(unseeded, unseeded.toBuilder().seed(42L).build())) {
+                ObjectGenerationException failure = assertThrows(
+                        ObjectGenerationException.class,
+                        () -> new ObjectGenerator<>(SqlDateFields.class, config).generate());
+                GenerationFailureContext context = failure.getContext().orElseThrow();
+                assertEquals("SqlDateFields.createdAt", context.path());
+                assertTrue(
+                        failure.getCause().getMessage().startsWith("no day from " + range[0] + " to " + range[1]),
+                        failure.getCause().getMessage());
+
+                List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
+                SqlDateFields lenient = new ObjectGenerator<>(
+                                SqlDateFields.class,
+                                config.toBuilder()
+                                        .objectIgnoreErrors(true)
+                                        .generationFailureListener(diagnostics::add)
+                                        .build())
+                        .generate();
+                assertNull(lenient.day);
+                assertNull(lenient.createdAt);
+                assertEquals(
+                        List.of("SqlDateFields.createdAt", "SqlDateFields.day"),
+                        diagnostics.stream().map(d -> d.context().path()).toList());
+                assertEquals(
+                        range[0].getYear(),
+                        new ObjectGenerator<>(LocalDateFields.class, config)
+                                .generate()
+                                .day
+                                .getYear());
+            }
+        }
+    }
+
+    @Test
     @DisplayName("dateRange(min > max) throws IllegalArgumentException")
     void invalidRangeThrows() {
         assertThrows(
@@ -158,6 +304,23 @@ class ObjectGeneratorDateRangeTest {
 
         Instant stamp;
         Instant createdAt;
+    }
+
+    static class SqlDateFields {
+
+        java.sql.Date createdAt;
+        java.sql.Date day;
+    }
+
+    static class FakeSqlDateFields {
+
+        @Fake("createdAt")
+        java.sql.Date stamp;
+    }
+
+    static class LocalDateFields {
+
+        LocalDate day;
     }
 
     static class SkippedDayFields {

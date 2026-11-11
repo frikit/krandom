@@ -42,6 +42,9 @@ import org.jspecify.annotations.Nullable;
  * <p>Recipe version and random algorithm are separate compatibility boundaries. Version {@value
  * #RECIPE_VERSION} uses {@value #ALGORITHM}; patch releases must preserve its child-stream and
  * {@link Random} behavior. A future algorithm change requires a new recipe version.
+ *
+ * <p>A recipe does not record the Java runtime's time-zone database or locale data, so values that
+ * follow them, such as zone IDs, zone offsets and formatted money amounts, can differ on another JDK.
  */
 public final class GenerationRecipe {
 
@@ -703,8 +706,16 @@ public final class GenerationRecipe {
             return this;
         }
 
+        /**
+         * Sets the text the seed derives from, any non-blank text, as {@link GeneratorConfig.Builder#seed(String)}
+         * accepts it. The serialized form encodes it, line breaks too.
+         */
         public Builder seedText(String seedText) {
-            this.seedText = requireToken("seedText", seedText);
+            Objects.requireNonNull(seedText, "seedText must not be null");
+            if (seedText.isBlank()) {
+                throw new IllegalArgumentException("seedText must not be blank");
+            }
+            this.seedText = seedText;
             return this;
         }
 

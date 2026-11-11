@@ -69,7 +69,9 @@ import org.jspecify.annotations.Nullable;
  * that member in a nested object: in a nested object of the root's type, or of another subclass of
  * the class that declares an inherited member. Root ignores, and in include mode the root properties
  * left out, are exclusions with the same scope. Then nested rules, nested context rules and dependent
- * rules run, each kind in registration order, and each at its own path only; nested includes prune
+ * rules run, each kind in registration order, and each at its own path only; a rule creates an object
+ * on its path that generation left {@code null}, such as one past {@code objectMaxDepth}, as a root of
+ * its own, which the root rules, root ignores and include-mode exclusions reach too. Nested includes prune
  * and nested ignores clear last, so an ignore clears the value of any rule below it. Against the
  * {@code GeneratorConfig}'s overrides for the same member, a root context rule comes first; a root
  * rule comes after a contextual field override and a contextual predicate override, and before the

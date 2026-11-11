@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -16,6 +17,9 @@ import java.util.Random;
 
 /**
  * Emits every value in a finite pool at most once before reporting exhaustion.
+ *
+ * <p>Values are distinct by {@link Object#equals(Object)}: a value that the pool holds more than once
+ * is emitted once a cycle, and {@link #remaining()} counts distinct values.
  *
  * @param <T> value type
  */
@@ -69,7 +73,10 @@ public final class FinitePoolGenerator<T> implements Generator<T> {
     public void reset() {
         List<T> shuffled = new ArrayList<>(values);
         Collections.shuffle(shuffled, random);
-        remaining = shuffled;
+        // Emitted from the end, each value at its first copy from there; the other copies are dropped.
+        List<T> cycle = new ArrayList<>(new LinkedHashSet<>(shuffled.reversed()));
+        Collections.reverse(cycle);
+        remaining = cycle;
     }
 
     /**

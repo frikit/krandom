@@ -41,6 +41,18 @@ match the format its schema names. The changelog lists every such change under F
 it affects. A new generator, option, or setting leaves existing output unchanged unless you opt in.
 Tests that assert exact generated values should still pin both the library version and the seed.
 
+A seed fixes kRandom's own draws, not the Java runtime under them:
+
+- Values that read the runtime's time-zone or locale data follow its TZDB and CLDR versions, such as the
+  zone IDs that `ZoneIdGenerator` draws from, the offsets of zoned values, and the amounts that
+  `MoneyGenerator` formats. A `GenerationRecipe` records neither version, so another JDK can change these
+  values for the same recipe.
+- `NormalDistributionGenerator` draws with `Math.log`, `Math.sin`, and `Math.cos`, which Java lets differ in
+  the last bit between platforms, so a Gaussian value can differ in its last bit on another JVM or CPU.
+- A generator whose random source is a `SecureRandom`, from `GeneratorConfig.Builder.secureRandom()` or one
+  that you supply, has no sequence to replay: `Seedable.reseed(long)` adds the seed to the
+  `SecureRandom`'s state, as `SecureRandom.setSeed` does, rather than restarting it.
+
 ## Platform requirements
 
 | Module | Requirement |

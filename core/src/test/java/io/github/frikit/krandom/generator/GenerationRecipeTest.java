@@ -137,6 +137,45 @@ class GenerationRecipeTest {
     }
 
     @Test
+    @DisplayName("a seed text of several lines, which GeneratorConfig accepts, makes a recipe that replays it")
+    void multilineSeedTextMakesARecipe() {
+        String seedText = "suite\ncase\r\nend";
+        GeneratorConfig config = GeneratorConfig.builder()
+                .seed(seedText)
+                .clock(Clock.fixed(CLOCK_INSTANT, CLOCK_ZONE))
+                .build();
+
+        GenerationRecipe recipe = config.getGenerationRecipe().orElseThrow();
+        GenerationRecipe parsed = GenerationRecipe.parse(recipe.serialize());
+
+        assertEquals(seedText, recipe.getSeedText());
+        assertEquals(GeneratorConfig.deriveSeed(seedText), recipe.getSeed());
+        assertTrue(recipe.serialize().contains("\nseed-text=suite%0Acase%0D%0Aend\n"), recipe.serialize());
+        assertEquals(recipe, parsed);
+        assertEquals(
+                seedText,
+                parsed.toGeneratorConfig().getGenerationRecipe().orElseThrow().getSeedText());
+        assertEquals(
+                Generators.ofObject(SeededValue.class, config).generate(),
+                Generators.ofObject(SeededValue.class, parsed.toGeneratorConfig())
+                        .generate());
+        assertEquals(
+                1,
+                new io.github.frikit.krandom.generator.schema.Schema(
+                                config,
+                                Map.of(
+                                        "name",
+                                        new io.github.frikit.krandom.generator.schema.Field(config)
+                                                .bind("person.first_name")))
+                        .generateBatch(1)
+                        .size());
+        assertThrows(
+                IllegalArgumentException.class, () -> GenerationRecipe.builder().seedText(" \n "));
+    }
+
+    record SeededValue(String name, int count) {}
+
+    @Test
     @DisplayName("replays the configured payment card safety policy")
     void replaysPaymentCardSafetyPolicy() {
         GeneratorConfig config = GeneratorConfig.builder()

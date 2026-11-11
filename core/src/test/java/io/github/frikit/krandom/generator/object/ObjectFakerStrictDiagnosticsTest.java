@@ -533,6 +533,161 @@ class ObjectFakerStrictDiagnosticsTest {
                 .endsWith("applies at 'middle.purchase.id'"));
     }
 
+    @Test
+    @DisplayName("a parent that a nested rule builds past objectMaxDepth is followed, as a root of its own")
+    void parentBuiltPastMaxDepthIsFollowed() {
+        ObjectFaker<Envelope> faker = new ObjectFaker<>(
+                        Envelope.class,
+                        GeneratorConfig.builder().objectMaxDepth(1).build())
+                .ruleFor("id", () -> "x")
+                .ruleFor("middle.purchase.note", () -> "n");
+
+        // Generation leaves middle.purchase null; the nested rule builds it, with the root rule installed.
+        assertEquals("x", faker.generate().middle.purchase.id);
+        FixtureRuleProblem problem = onlyProblem(faker);
+        assertProblem(problem, Category.AMBIGUOUS, FixtureRuleKind.RULE, "id", 1);
+        assertTrue(problem.reason().endsWith("applies at 'middle.purchase.id'"), problem.reason());
+    }
+
+    @Test
+    @DisplayName(
+            "a parent of the root's type that a nested rule builds past a cycle is followed with a depth of its own")
+    void parentOfTheRootTypeBuiltPastACycleIsFollowed() {
+        ObjectFaker<Mentee> faker =
+                new ObjectFaker<>(Mentee.class).ruleFor("name", () -> "x").ruleFor("mentor.mentor.nickname", () -> "n");
+
+        Mentee mentee = faker.generate();
+        assertEquals("x", mentee.mentor.mentor.name);
+        assertEquals("x", mentee.mentor.mentor.mentor.name);
+        assertTrue(
+                onlyProblem(faker)
+                        .reason()
+                        .endsWith("applies at 'mentor.name', 'mentor.mentor.name', 'mentor.mentor.mentor.name'"),
+                onlyProblem(faker).reason());
+    }
+
+    @Test
+    @DisplayName("an excluded parent that a nested rule builds is followed for generate(), not for populate(existing)")
+    void excludedParentBuiltByANestedRuleIsFollowedForGenerate() {
+        GeneratorConfig excluded =
+                GeneratorConfig.builder().objectExcludeField("purchase").build();
+        ObjectFaker<Account> account = new ObjectFaker<>(Account.class, excluded)
+                .ruleFor("id", () -> "x")
+                .ruleFor("name", () -> "n")
+                .ruleFor("purchase.note", () -> "p");
+        ObjectFaker<ConstructedPurchaseAccount> constructed = new ObjectFaker<>(
+                        ConstructedPurchaseAccount.class, excluded)
+                .ruleFor("id", () -> "x")
+                .ruleFor("name", () -> "n")
+                .ruleFor("purchase.note", () -> "p");
+
+        ObjectFaker<Account> absent = new ObjectFaker<>(
+                        Account.class,
+                        GeneratorConfig.builder().objectNullProbability(1.0).build())
+                .ruleFor("id", () -> "x")
+                .ruleFor("name", () -> "n")
+                .ruleFor("purchase.note", () -> "p");
+
+        assertEquals("x", account.generate().purchase.id);
+        assertTrue(
+                onlyProblem(account).reason().endsWith("applies at 'purchase.id'"),
+                onlyProblem(account).reason());
+        assertEquals("x", absent.generate().purchase.id);
+        assertTrue(
+                onlyProblem(absent).reason().endsWith("applies at 'purchase.id'"),
+                onlyProblem(absent).reason());
+        // A constructor may replace an argument that the configuration leaves out or null, or what generation
+        // left null below one, so neither is followed.
+        assertEquals(List.of(), problemsOf(constructed));
+        assertEquals(
+                List.of(),
+                problemsOf(new ObjectFaker<>(
+                                ConstructedEnvelope.class,
+                                GeneratorConfig.builder().objectMaxDepth(1).build())
+                        .ruleFor("id", () -> "x")
+                        .ruleFor("middle.purchase.note", () -> "n")));
+        assertEquals(
+                List.of(),
+                problemsOf(new ObjectFaker<>(
+                                NodeRecord.class,
+                                GeneratorConfig.builder()
+                                        .objectNullProbability(1.0)
+                                        .build())
+                        .ruleFor("label", () -> "x")
+                        .ruleFor("child.child.label", () -> "y")));
+        // A parent that one class of a sealed root leaves null is built, although another class builds it.
+        assertTrue(onlyProblem(new ObjectFaker<>(
+                                MiddleHolder.class,
+                                GeneratorConfig.builder()
+                                        .objectMaxDepth(1)
+                                        .objectNullProbability(1.0)
+                                        .build())
+                        .ruleFor("id", () -> "x")
+                        .ruleFor("middle.purchase.note", () -> "n"))
+                .reason()
+                .endsWith("applies at 'middle.purchase.id'"));
+        // What one class of a sealed root leaves null stays, although another passes the member as an argument.
+        assertTrue(onlyProblem(new ObjectFaker<>(
+                                MiddleHolder.class,
+                                GeneratorConfig.builder().objectMaxDepth(1).build())
+                        .ruleFor("id", () -> "x")
+                        .ruleFor("middle.purchase.note", () -> "n"))
+                .reason()
+                .endsWith("applies at 'middle.purchase.id'"));
+        assertEquals(
+                List.of(),
+                problemsOf(new ObjectFaker<>(
+                                ConstructedPurchaseAccount.class,
+                                GeneratorConfig.builder()
+                                        .objectNullProbability(1.0)
+                                        .build())
+                        .ruleFor("id", () -> "x")
+                        .ruleFor("name", () -> "n")
+                        .ruleFor("purchase.note", () -> "p")));
+        // populate(existing) keeps the excluded purchase it is given, which no root rule reaches.
+        Account existing = new Account();
+        existing.purchase = new Purchase();
+        assertNull(account.strict().populate(existing).purchase.id);
+    }
+
+    @Test
+    @DisplayName("a parent that a rule, an ignore, an override or an initializer decides is not built by a nested rule")
+    void decidedParentIsNotBuiltByANestedRule() {
+        GeneratorConfig shallow = GeneratorConfig.builder().objectMaxDepth(1).build();
+        ObjectFaker<Envelope> supplied = new ObjectFaker<>(Envelope.class, shallow)
+                .ruleFor("id", () -> "x")
+                .ruleFor("middle.purchase", Purchase::new)
+                .ruleFor("middle.purchase.note", () -> "n");
+        ObjectFaker<Envelope> cleared = new ObjectFaker<>(Envelope.class, shallow)
+                .ruleFor("id", () -> "x")
+                .ruleFor("middle.purchase.note", () -> "n")
+                .ignore("middle.purchase");
+        ObjectFaker<Envelope> overridden = new ObjectFaker<>(
+                        Envelope.class,
+                        GeneratorConfig.builder()
+                                .objectOverride(Middle.class, "purchase", Purchase::new)
+                                .build())
+                .ruleFor("id", () -> "x")
+                .ruleFor("middle.purchase.note", () -> "n");
+        ObjectFaker<PresetPurchaseAccount> preset = new ObjectFaker<>(
+                        PresetPurchaseAccount.class,
+                        GeneratorConfig.builder()
+                                .objectOverrideDefaultInitialization(true)
+                                .objectExcludeField("purchase")
+                                .build())
+                .ruleFor("id", () -> "x")
+                .ruleFor("name", () -> "n")
+                .ruleFor("purchase.note", () -> "p");
+
+        assertNull(supplied.generate().middle.purchase.id);
+        assertEquals(List.of(), problemsOf(supplied));
+        assertEquals(Category.UNUSED, onlyProblem(cleared).category());
+        assertNull(overridden.generate().middle.purchase.id);
+        assertEquals(List.of(), problemsOf(overridden));
+        assertNull(preset.generate().purchase.id);
+        assertEquals(List.of(), problemsOf(preset));
+    }
+
     @ParameterizedTest(name = "{0}")
     @MethodSource("decidedPurchases")
     @DisplayName("a member that an override, an exclusion or a rule decides is not followed")
@@ -989,6 +1144,47 @@ class ObjectFakerStrictDiagnosticsTest {
 
     static final class Purchase extends BaseEntity {
         String note;
+    }
+
+    static final class Mentee {
+        String name;
+        String nickname;
+        Mentee mentor;
+    }
+
+    static final class PresetPurchaseAccount extends BaseEntity {
+        String name;
+        Purchase purchase = new Purchase();
+    }
+
+    abstract static sealed class MiddleHolder extends BaseEntity permits FieldMiddleHolder, PassedMiddleHolder {
+        Middle middle;
+    }
+
+    static final class FieldMiddleHolder extends MiddleHolder {}
+
+    static final class PassedMiddleHolder extends MiddleHolder {
+        PassedMiddleHolder(@NotNull Middle middle) {
+            this.middle = middle;
+        }
+    }
+
+    static final class ConstructedEnvelope extends BaseEntity {
+        Middle middle;
+
+        ConstructedEnvelope(Middle middle) {
+            this.middle = middle;
+        }
+    }
+
+    static final class ConstructedPurchaseAccount extends BaseEntity {
+        String name;
+        Purchase purchase;
+
+        ConstructedPurchaseAccount(String name, Purchase purchase) {
+            this.name = name;
+            this.purchase = purchase;
+        }
     }
 
     static final class Employee {

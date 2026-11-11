@@ -946,7 +946,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 GenerationFailureContext failureContext = new GenerationFailureContext(
                         GenerationFailureCategory.ASSIGNMENT,
                         GenerationOperation.ASSIGN,
-                        field.getDeclaringClass().getSimpleName() + "." + field.getName(),
+                        objectPath + "." + field.getName(),
                         field.getDeclaringClass(),
                         field.getGenericType().getTypeName(),
                         depth,

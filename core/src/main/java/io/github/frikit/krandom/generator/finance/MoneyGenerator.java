@@ -7,6 +7,8 @@ package io.github.frikit.krandom.generator.finance;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.Objects;
@@ -19,6 +21,10 @@ import java.util.Random;
  * {@link java.text.NumberFormat#getCurrencyInstance(Locale)} so that thousand
  * separators, decimal separators, symbol placement, and decimal-place count follow the
  * conventions of the configured locale.
+ *
+ * <p>The amount shown is below the maximum, too: an amount that the currency's rounding would show
+ * at the maximum, such as 0.999 below 1, is rounded down instead ({@code "$0.99"}), so in a currency
+ * without minor units {@code generate(1)} always shows zero.
  *
  * <p><strong>Locale formatting examples:</strong>
  * <ul>
@@ -102,29 +108,46 @@ public final class MoneyGenerator implements Generator<String> {
     }
 
     /**
-     * Formats {@code amount} using the currency of {@code loc}.
+     * Formats {@code amount}, drawn below {@code max}, using the currency of {@code loc}.
      * Falls back to USD / US formatting for unrecognised locales.
      */
-    private static String format(Locale loc, double amount) {
+    private static String format(Locale loc, double amount, double max) {
         Currency currency = Currency.forLocale(loc);
         if (currency == null) {
-            return formatDollar(amount);
+            return formatDollar(amount, max);
         }
         NumberFormat fmt = NumberFormat.getCurrencyInstance(loc);
         fmt.setCurrency(java.util.Currency.getInstance(currency.getCode()));
-        return fmt.format(amount);
+        return formatBelow(fmt, amount, max);
     }
 
-    private static String formatDollar(double amount) {
+    private static String formatDollar(double amount, double max) {
         NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.US);
         fmt.setCurrency(java.util.Currency.getInstance("USD"));
-        return fmt.format(amount);
+        return formatBelow(fmt, amount, max);
     }
 
-    private static String formatEuro(double amount) {
+    private static String formatEuro(double amount, double max) {
         NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.FRANCE);
         fmt.setCurrency(java.util.Currency.getInstance("EUR"));
-        return fmt.format(amount);
+        return formatBelow(fmt, amount, max);
+    }
+
+    /**
+     * Formats an amount drawn below {@code max}. The format rounds it to the currency's minor unit, which
+     * can reach {@code max}, as a draw of 0.999 below 1 shows as {@code $1.00}; such an amount is rounded
+     * down instead, so that the amount shown stays below {@code max}. Every other amount is shown as the
+     * format rounds it.
+     */
+    private static String formatBelow(NumberFormat format, double amount, double max) {
+        if (Double.isFinite(amount)) {
+            BigDecimal shown =
+                    new BigDecimal(amount).setScale(format.getMaximumFractionDigits(), format.getRoundingMode());
+            if (shown.compareTo(new BigDecimal(max)) >= 0) {
+                format.setRoundingMode(RoundingMode.DOWN);
+            }
+        }
+        return format.format(amount);
     }
 
     /**
@@ -134,7 +157,7 @@ public final class MoneyGenerator implements Generator<String> {
      */
     @Override
     public String generate() {
-        return format(locale, nextAmount(DEFAULT_MAX));
+        return format(locale, nextAmount(DEFAULT_MAX), DEFAULT_MAX);
     }
 
     /**
@@ -146,7 +169,7 @@ public final class MoneyGenerator implements Generator<String> {
      */
     public String generate(double max) {
         validateMax(max);
-        return format(locale, nextAmount(max));
+        return format(locale, nextAmount(max), max);
     }
 
     /**
@@ -160,7 +183,7 @@ public final class MoneyGenerator implements Generator<String> {
      */
     public String generate(Locale overrideLocale) {
         Objects.requireNonNull(overrideLocale, "locale must not be null");
-        return format(overrideLocale, nextAmount(DEFAULT_MAX));
+        return format(overrideLocale, nextAmount(DEFAULT_MAX), DEFAULT_MAX);
     }
 
     /**
@@ -175,7 +198,7 @@ public final class MoneyGenerator implements Generator<String> {
     public String generate(Locale overrideLocale, double max) {
         Objects.requireNonNull(overrideLocale, "locale must not be null");
         validateMax(max);
-        return format(overrideLocale, nextAmount(max));
+        return format(overrideLocale, nextAmount(max), max);
     }
 
     // ── Dollar ────────────────────────────────────────────────────────────────
@@ -236,7 +259,7 @@ public final class MoneyGenerator implements Generator<String> {
      * @return dollar-formatted amount string
      */
     public String generateDollar() {
-        return formatDollar(nextAmount(DEFAULT_MAX));
+        return formatDollar(nextAmount(DEFAULT_MAX), DEFAULT_MAX);
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
@@ -250,7 +273,7 @@ public final class MoneyGenerator implements Generator<String> {
      */
     public String generateDollar(double max) {
         validateMax(max);
-        return formatDollar(nextAmount(max));
+        return formatDollar(nextAmount(max), max);
     }
 
     /**
@@ -262,7 +285,7 @@ public final class MoneyGenerator implements Generator<String> {
      * @return euro-formatted amount string
      */
     public String generateEuro() {
-        return formatEuro(nextAmount(DEFAULT_MAX));
+        return formatEuro(nextAmount(DEFAULT_MAX), DEFAULT_MAX);
     }
 
     /**
@@ -274,7 +297,7 @@ public final class MoneyGenerator implements Generator<String> {
      */
     public String generateEuro(double max) {
         validateMax(max);
-        return formatEuro(nextAmount(max));
+        return formatEuro(nextAmount(max), max);
     }
 
     /**

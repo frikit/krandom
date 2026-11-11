@@ -127,8 +127,9 @@ class ObjectGeneratorNullRejectingContainerTest {
         Object generated = new ObjectGenerator<>(top, lenient).generate();
 
         assertNull(values.apply(generated));
+        // The path the container was reached on, as strict mode names it, not its owner's.
         assertEquals(
-                List.of(owner + ".values"),
+                List.of(top.getSimpleName() + ".mid.values"),
                 diagnostics.stream().map(d -> d.context().path()).toList());
         assertEquals(
                 GenerationFailureCategory.COLLECTION_INSERTION,

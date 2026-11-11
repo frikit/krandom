@@ -233,6 +233,26 @@ class ProviderHubTest {
     }
 
     @Test
+    @DisplayName("registration under FAIL rejects a name that is already an alias, which keeps its target")
+    void failRegistrationRejectsAnAliasName() {
+        ProviderHub hub = new ProviderHub();
+
+        IllegalArgumentException plain =
+                assertThrows(IllegalArgumentException.class, () -> hub.register("first_name", cfg -> "x"));
+        IllegalArgumentException profiled =
+                assertThrows(IllegalArgumentException.class, () -> hub.register(" First_Name ", (profile, cfg) -> "x"));
+
+        assertEquals("Provider name is already registered as an alias: first_name", plain.getMessage());
+        assertEquals(plain.getMessage(), profiled.getMessage());
+        assertInstanceOf(FirstNameGenerator.class, hub.get("first_name"));
+        assertFalse(hub.providerNames().contains("first_name"));
+        assertEquals("person.first_name", hub.aliases().get("first_name"));
+
+        hub.register("first_name", cfg -> "replacement", ConflictPolicy.REPLACE);
+        assertEquals("replacement", hub.get("first_name"));
+    }
+
+    @Test
     @DisplayName("alias registration validates target and conflict policy")
     void aliasRegistrationAndConflicts() {
         ProviderHub hub = new ProviderHub();

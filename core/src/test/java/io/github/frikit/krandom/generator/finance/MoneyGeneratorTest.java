@@ -150,6 +150,56 @@ class MoneyGeneratorTest {
     }
 
     @Test
+    @DisplayName("an amount that the currency's rounding would show at max is shown below max")
+    void amountRoundingUpToMaxStaysBelowIt() {
+        MoneyGenerator dollars = drawing(0.999, Locale.US);
+        MoneyGenerator yen = drawing(0.6, Locale.JAPAN);
+        MoneyGenerator largest = drawing(0.9999996, Locale.US);
+
+        assertEquals("$0.99", dollars.generateDollar(1));
+        assertEquals("$0.99", dollars.generate(1));
+        assertEquals("$0.99", dollars.generatePrice(Locale.US, 1));
+        assertEquals(shown(Locale.FRANCE, "EUR", 0.99), dollars.generateEuro(1));
+        assertEquals(shown(Locale.JAPAN, "JPY", 0), yen.generate(1));
+        assertEquals("$9,999.99", largest.generateDollar());
+        assertEquals("$9,999.99", largest.generate());
+        assertEquals(shown(Locale.FRANCE, "EUR", 9_999.99), largest.generateEuro());
+        assertEquals("$0.00", drawing(0.999, Locale.US).generateDollar(0.005));
+    }
+
+    @Test
+    @DisplayName("an amount that the currency's rounding shows below max is shown as before")
+    void amountRoundingBelowMaxIsShownAsBefore() {
+        assertEquals("$0.56", drawing(0.556, Locale.US).generateDollar(1));
+        assertEquals("$0.99", drawing(0.994, Locale.US).generateDollar(1));
+        assertEquals("$1.00", drawing(0.999, Locale.US).generateDollar(1.001));
+        assertEquals(shown(Locale.JAPAN, "JPY", 1), drawing(0.6, Locale.JAPAN).generate(2));
+        assertEquals(
+                shown(Locale.US, "USD", Double.POSITIVE_INFINITY),
+                drawing(0.5, Locale.US).generateDollar(Double.POSITIVE_INFINITY));
+    }
+
+    /** A generator whose every draw is {@code fraction} of the maximum. */
+    private static MoneyGenerator drawing(double fraction, Locale locale) {
+        java.util.Random fixed = new java.util.Random() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public double nextDouble() {
+                return fraction;
+            }
+        };
+        return new MoneyGenerator(
+                GeneratorConfig.builder().random(fixed).locale(locale).build());
+    }
+
+    private static String shown(Locale locale, String currency, double amount) {
+        java.text.NumberFormat format = java.text.NumberFormat.getCurrencyInstance(locale);
+        format.setCurrency(java.util.Currency.getInstance(currency));
+        return format.format(amount);
+    }
+
+    @Test
     @DisplayName("generate(0.0) always returns zero amount")
     void generateWithZeroMax() {
         MoneyGenerator gen = new MoneyGenerator();

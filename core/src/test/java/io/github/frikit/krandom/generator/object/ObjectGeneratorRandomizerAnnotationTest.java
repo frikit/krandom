@@ -113,6 +113,30 @@ class ObjectGeneratorRandomizerAnnotationTest {
     }
 
     @Test
+    @DisplayName("a failing @Randomizer of an inherited field is named by the path generation reached it on")
+    void inheritedRandomizerFailureUsesTheObjectPath() {
+        ObjectGenerationException generating = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(InheritedThrowingRandomizerTarget.class).generate());
+        ObjectGenerationException constructing = assertThrows(
+                ObjectGenerationException.class,
+                () -> new ObjectGenerator<>(InheritedThrowingConstructorRandomizerTarget.class).generate());
+
+        assertEquals(
+                "InheritedThrowingRandomizerTarget.value",
+                generating.getContext().orElseThrow().path());
+        assertEquals(
+                ThrowingRandomizerTarget.class,
+                generating.getContext().orElseThrow().ownerType());
+        assertEquals(
+                "InheritedThrowingConstructorRandomizerTarget.value",
+                constructing.getContext().orElseThrow().path());
+        assertEquals(
+                GenerationOperation.CONSTRUCT,
+                constructing.getContext().orElseThrow().operation());
+    }
+
+    @Test
     @DisplayName("legacy uncontextual @Randomizer failure gains field context")
     void legacyRandomizerFailureGainsContext() {
         ObjectGenerationException error = assertThrows(
@@ -349,6 +373,10 @@ class ObjectGeneratorRandomizerAnnotationTest {
         @Randomizer(ThrowingConstructorGenerator.class)
         private String value;
     }
+
+    static class InheritedThrowingRandomizerTarget extends ThrowingRandomizerTarget {}
+
+    static class InheritedThrowingConstructorRandomizerTarget extends ThrowingConstructorRandomizerTarget {}
 
     static class LegacyFailingRandomizerTarget {
 

@@ -74,6 +74,78 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   break `@PastOrPresent`. Under a clock at a whole millisecond the value is still the clock's instant, which
   Hibernate Validator accepts. Seeded output changes only for these members under a finer clock, such as the
   system clock, where generation now fails.
+- `CompanyEmailGenerator.generate(String)` now keeps the first 63 letters and digits of a company name as the
+  domain label, the most a label may hold, as the data validity guide says every address a generator builds
+  passes Hibernate Validator's `@Email`. It kept them all, so with seed 42 `generate("a".repeat(64))` gave
+  `carolinetran@` and a label of 64 `a`s under `.test`, which `@Email` rejects; the label now has 63. Generated
+  company names are unaffected: the longest label of 800,000 seeded names in eight locales has 52 characters,
+  so seeded output changes only for a given company name of more than 63 letters and digits.
+- `ProviderHub.register(name, factory)`, which uses `ConflictPolicy.FAIL`, now rejects a name that is already
+  an alias, as the provider-hub guide says `FAIL` rejects a duplicate registration. It checked provider names
+  only, so `register("first_name", ...)` succeeded and `get("first_name")` then returned the new provider
+  instead of the `person.first_name` generator that the built-in alias names. `ConflictPolicy.REPLACE` still
+  lets the name resolve to the new provider. Generated values are unchanged.
+- `MoneyGenerator` now shows an amount below its maximum, as its `[0, max)` range says. It bounded the drawn
+  amount, which the currency format then rounded, so a draw of 0.999 through `generateDollar(1)` showed
+  `$1.00`. An amount that would show at the maximum is now rounded down: with seed 42, of 1,000,000 values
+  each, `generateDollar(1)` showed `$1.00` 5,186 times and `generate(1)` in `ja_JP` showed `￥1` 500,202
+  times, and they now show `$0.99` and `￥0`. With the default maximum of 10,000, 50 of 1,000,000 yen amounts
+  showed `￥10,000` and none of 1,000,000 dollar amounts reached `$10,000.00`. Every other value is unchanged.
+- `PickSetGenerator` and `Generators.pickSet` now pick distinct values, and `FinitePoolGenerator` and
+  `Generators.pool` emit each value at most once a cycle, as they say. Both counted positions, so a list that
+  repeats a value gave it twice: `pickSet(List.of("x", "x"), 2)` gave `[x, x]`. They now count values by
+  `equals`, so that a list with repeats keeps working wherever the count can be met: a pick takes the first
+  distinct values of the same shuffle, a count above the number of distinct values fails at construction,
+  and a pool emits each value at its first copy in the same order and drops the others, so `remaining()`
+  counts distinct values. With seed 42, of 100,000 picks of two from `a, a, b, b, c`, the 20,135 that held a
+  repeat changed, such as `[a, a]` to `[a, b]`, and no other did. A list without repeats gives the same
+  values as before.
+- `new SqlDateGenerator(min, max)`, and a `java.sql.Date` member under `objectDateRange`, now give only dates
+  that read back as days of the range. A `java.sql.Date` holds a day as its start in the default time zone,
+  in the Julian calendar before 15 October 1582, so a day before the year 1, after the year 292278994, in
+  5 to 14 October 1582, or that the default zone skipped, such as 30 December 2011 in `Pacific/Apia`, read
+  back as another: a range of the single day 0000-06-01 gave 0001-06-01, and one from 1582-10-01 to
+  1582-10-15 gave days up to 1582-10-24. A drawn day that reads back outside the range now gives the range's
+  last day that a `java.sql.Date` holds, and a range that holds no such day, such as one in the year 0, fails:
+  `new SqlDateGenerator(min, max)` with `IllegalArgumentException`, and a `java.sql.Date` member as a
+  constraint conflict at its path, or under `objectIgnoreErrors(true)` as `null` that the failure listener is
+  told of. With seed 42, of 100,000 values from 1582-10-01 to 1582-10-15, the 60,120 past `max` now give
+  1582-10-15; every value that read back in its range is unchanged, as is every value of a range whose days a
+  `java.sql.Date` all holds.
+- `LocalDateTimeGenerator.future(days)` now stays in `[now + 1 second, now + days]` and `past(days)` in
+  `[now - days, now - 1 second]`, as they say. Each drew from a span one second longer, which `future` began
+  at `now + 1 second` and `past` ended at `now - 1 second`, so `future` could give `now + days + 1 second` and
+  `past` `now - days - 1 second`. That one value now gives the end of the range, and every other draw keeps its
+  value: with seed 42, of 1,000,000 values each, 13 of `future(1)` and 16 of `past(1)` changed, and none of
+  `future()`, which spans 3,650 days.
+- A generation failure in a nested object now tells a `GenerationFailureListener` the path that generation
+  reached it on, from the root object, as `GenerationFailureContext` says its path is. It named the declaring
+  type instead, so under `objectIgnoreErrors(true)` failures at `Top.left.task` and `Top.right.task` both
+  reached the listener as `Mid.task`, and a strict failure was told first as `Mid.task` and then, as the
+  exception names it, as `Top.left.task`. An unsupported type, a constraint conflict, a collection, map or
+  array insertion, a collection that cannot be constructed, a `@Randomizer` and generation's assignment of a
+  field now name the member's path, as uniqueness and depth-limit failures already did, so a field that the root inherits
+  is named by the root's type rather than by the superclass that declares it. Generated values are unchanged.
+- `ObjectFaker.assertConfigurationIsValid()` and `ObjectFaker.strict()` now report a root rule, root ignore or
+  include-mode exclusion as ambiguous where it reaches an object that a nested rule creates, as the
+  object-generation guide says they report every other path it applies at. A nested rule creates an object
+  on its path that generation leaves `null`, past `objectMaxDepth`, at a cycle, where the configuration
+  excludes its field, or under `@Null` or a null probability of one, as a root of its own that those decisions
+  reach, but the check followed only what generation
+  builds. So with `objectMaxDepth(1)`, `ruleFor("id", ...)` beside `ruleFor("middle.purchase.note", ...)` also
+  set `middle.purchase.id` without a report, and a rule on a self-referencing type listed one of the three
+  paths it reached. Generated values are unchanged.
+- A string seed of several lines, which `GeneratorConfig.Builder.seed(String)` accepts as any non-blank text,
+  now makes a `GenerationRecipe`, as the recipe's documentation says it carries any seed text.
+  `GenerationRecipe.Builder.seedText(...)` rejected a line break, so with `seed("suite\ncase")`,
+  `getGenerationRecipe()`, seeded object generation and seeded `Schema` construction all failed with
+  `IllegalArgumentException`. The recipe encodes the breaks, as `seed-text=suite%0Acase`, and replays them.
+  Every other configuration generates as before.
+- `DataFakerExpressionGenerator` and `Generators.ofDataFakerExpression(...)` now reject every `#{...}` token they
+  do not support when they are built, as they and the DataFaker migration guide say an unknown token fails
+  fast. A token was read only where it held letters, dots and underscores, so `#{Name.noSuchMethod1}`,
+  `#{Name.firstName()}` and `#{number.number_between '1','10'}` stayed in the output as literal text.
+  Expressions of supported tokens generate as before.
 - `TextGenerator.generate(TextOptions)` with `uniqueWords` no longer runs forever on a word list that repeats
   a word. It waited for as many different words as the list had entries, so `new TextOptions(20,
   List.of("one", "one"), true, false)` never returned; it now returns `one.`, and a text holds each distinct
@@ -137,6 +209,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The schema guide no longer says that a schema with no `type` always generates a string, or that a
   property schema `true` does: a property name that chooses a semantic value of another type, such as
   `datetimeTimestamp` or `companyInfo`, keeps that type, and the schema's keywords for that type apply.
+- The versioning policy, `Seedable`, `NormalDistributionGenerator` and `GenerationRecipe` now say what a seed
+  does not fix: values that follow the Java runtime's TZDB and CLDR data, such as zone IDs, zone offsets and
+  formatted money amounts, whose versions a recipe does not record; Gaussian values, whose `Math.log`,
+  `Math.sin` and `Math.cos` may differ in the last bit between platforms; and a generator backed by a
+  `SecureRandom`, whose `reseed(long)` adds to its state rather than restarting a sequence.
 
 ## [3.0.0] - 2026-11-10
 

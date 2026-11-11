@@ -18,6 +18,10 @@ import java.util.random.RandomGenerator;
  *
  * <p>Default parameters: mean = 0.0, standard deviation = 1.0 (standard normal distribution).
  *
+ * <p>The transform uses {@link Math#log(double)}, {@link Math#sin(double)} and
+ * {@link Math#cos(double)}, which Java lets differ in the last bit between platforms, so a seeded
+ * value can differ in its last bit on another JVM or CPU.
+ *
  * <pre>{@code
  *   // Standard normal distribution (mean=0, stdDev=1)
  *   double z = new NormalDistributionGenerator().generate();
