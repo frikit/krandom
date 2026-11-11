@@ -39,6 +39,15 @@ final class UniqueFieldTracker {
      */
     private @org.jspecify.annotations.Nullable Map<String, Map<Object, String>> takenByObject;
 
+    /**
+     * The path that the members of a parent, which a nested rule builds as an object of its own, are generated
+     * under, its type's path, while it is built; their values are remembered under {@link #builtPath}, where the
+     * parent stands in the root object, so that the root's members and the parent's are told apart.
+     */
+    private @org.jspecify.annotations.Nullable String builtRoot;
+
+    private String builtPath = "";
+
     private @org.jspecify.annotations.Nullable Object lastAdded;
 
     private @org.jspecify.annotations.Nullable String lastAddedKey;
@@ -144,7 +153,7 @@ final class UniqueFieldTracker {
                 if (takenByObject != null && memberPath != null) {
                     takenByObject
                             .computeIfAbsent(fieldKey, ignored -> new HashMap<>())
-                            .put(candidate, memberPath);
+                            .put(candidate, rememberedPath(memberPath));
                 }
                 lastAdded = candidate;
                 lastAddedKey = fieldKey;
@@ -168,6 +177,27 @@ final class UniqueFieldTracker {
     /** Starts a root object whose rules run after generation: the values it takes from now on are remembered. */
     void startObject() {
         takenByObject = new HashMap<>();
+    }
+
+    /**
+     * Builds a parent that a nested rule writes into, which {@code build} generates as an object of its own, its
+     * members under {@code generatedRoot}, its type's path. The values they take are remembered under
+     * {@code path}, where the parent stands in the root object, as the rule's path names them.
+     */
+    <V> V buildParent(String generatedRoot, String path, Supplier<V> build) {
+        builtRoot = generatedRoot;
+        builtPath = path;
+        try {
+            return build.get();
+        } finally {
+            builtRoot = null;
+        }
+    }
+
+    /** The path a member's value is remembered under: in a parent that a nested rule builds, its path there. */
+    private String rememberedPath(String memberPath) {
+        String root = builtRoot;
+        return root == null ? memberPath : builtPath + memberPath.substring(root.length());
     }
 
     /**

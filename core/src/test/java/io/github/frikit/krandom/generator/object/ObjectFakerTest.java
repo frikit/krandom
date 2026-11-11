@@ -482,6 +482,43 @@ class ObjectFakerTest {
     }
 
     @Test
+    @DisplayName("a parent that a nested rule builds gives back what generation gave it, and keeps what it took")
+    void aBuiltParentGivesBackOnlyItsOwnValues() {
+        // The child is left out of generation, so the nested rule builds it, and it takes the one code its
+        // constraint allows. The root's 1 was the caller's, so a root rule that replaces it gives back nothing,
+        // and the child's 1 stays taken.
+        AtomicInteger roots = new AtomicInteger(2);
+        ObjectFaker<CodeNode> nodes = new ObjectFaker<>(
+                        CodeNode.class,
+                        GeneratorConfig.builder()
+                                .objectUniqueField("code")
+                                .objectExcludeField("child")
+                                .build())
+                .ruleFor("child.code", () -> 1)
+                .ruleFor("code", generated -> roots.incrementAndGet());
+
+        CodeNode first = nodes.populate(new CodeNode(1));
+
+        assertEquals(3, first.code);
+        assertEquals(1, first.child.code);
+        assertThrows(ObjectGenerationException.class, () -> nodes.populate(new CodeNode(1)));
+        // A built cell takes the one code too; the rule replaces that code, which goes back, so the next cell
+        // may take it as well.
+        AtomicInteger next = new AtomicInteger(10);
+        List<CellHolder> holders = new ObjectFaker<>(
+                        CellHolder.class,
+                        GeneratorConfig.builder()
+                                .objectUniqueField("code")
+                                .objectExcludeField("cell")
+                                .build())
+                .ruleFor("cell.code", () -> next.incrementAndGet())
+                .generateList(3);
+        assertEquals(
+                List.of(11, 12, 13),
+                holders.stream().map(holder -> holder.cell.code).toList());
+    }
+
+    @Test
     @DisplayName("each field keeps its own values, so a nested rule may repeat a value of another field")
     void aNestedRuleIsCheckedAgainstItsOwnField() {
         AtomicLong tickets = new AtomicLong();
@@ -1470,6 +1507,22 @@ class ObjectFakerTest {
         Cell() {}
 
         Cell(int code) {
+            this.code = code;
+        }
+    }
+
+    static final class CellHolder {
+        Cell cell;
+    }
+
+    static final class CodeNode {
+        @Min(1) @Max(1) int code;
+
+        CodeNode child;
+
+        CodeNode() {}
+
+        CodeNode(int code) {
             this.code = code;
         }
     }

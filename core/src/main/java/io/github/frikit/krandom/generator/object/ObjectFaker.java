@@ -865,15 +865,18 @@ public final class ObjectFaker<T> implements Generator<T> {
     @SuppressWarnings({"rawtypes", "unchecked"})
     private Object materializeValue(Class<?> rawType, RulePath path, int index) {
         ObjectGeneratorConfig runtime = buildRuntimeConfig();
+        StringBuilder parentPath = new StringBuilder();
+        for (RuleTarget segment : path.segments().subList(0, index + 1)) {
+            parentPath.append('.').append(segment.fieldName());
+        }
         if (runtime.getGeneratorConfig().getGenerationReportListener().isPresent()) {
             // Built as a root of its own, the parent is still reported at its path in the fixture.
-            StringBuilder reported = new StringBuilder(type.getSimpleName());
-            for (RuleTarget segment : path.segments().subList(0, index + 1)) {
-                reported.append('.').append(segment.fieldName());
-            }
-            runtime = runtime.reportedAt(ObjectGenerator.typePath(rawType), reported.toString());
+            runtime = runtime.reportedAt(ObjectGenerator.typePath(rawType), type.getSimpleName() + parentPath);
         }
-        return new ObjectGenerator(rawType, runtime, 0, null, null, uniqueFieldTracker).generate();
+        ObjectGenerator generator = new ObjectGenerator(rawType, runtime, 0, null, null, uniqueFieldTracker);
+        // So are the values its members take, under the path that a rule names them by.
+        return uniqueFieldTracker.buildParent(
+                ObjectGenerator.typePath(rawType), ObjectGenerator.typePath(type) + parentPath, generator::generate);
     }
 
     private Object readTargetValue(Object instance, RuleTarget target) throws ReflectiveOperationException {
