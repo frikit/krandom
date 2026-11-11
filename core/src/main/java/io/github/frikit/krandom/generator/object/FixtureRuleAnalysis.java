@@ -657,13 +657,13 @@ final class FixtureRuleAnalysis {
                     if (activeRules.containsKey(parent) || activeIgnores.containsKey(parent)) {
                         break;
                     }
-                    if (built.contains(member)) {
-                        continue;
-                    }
-                    if ((populating && index == 0) || !leftNull.contains(member)) {
+                    // One class of a sealed hierarchy may leave a parent null where another builds it, so a parent
+                    // that any class leaves null is built here, once, whatever the others do.
+                    if (!(populating && index == 0) && leftNull.remove(member)) {
+                        visitBuilt(segments.get(index).valueType(), member);
+                    } else if (!built.contains(member)) {
                         break;
                     }
-                    visitBuilt(segments.get(index).valueType(), member);
                 }
             }
         }

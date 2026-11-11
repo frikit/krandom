@@ -615,6 +615,17 @@ class ObjectFakerStrictDiagnosticsTest {
                                         .build())
                         .ruleFor("label", () -> "x")
                         .ruleFor("child.child.label", () -> "y")));
+        // A parent that one class of a sealed root leaves null is built, although another class builds it.
+        assertTrue(onlyProblem(new ObjectFaker<>(
+                                MiddleHolder.class,
+                                GeneratorConfig.builder()
+                                        .objectMaxDepth(1)
+                                        .objectNullProbability(1.0)
+                                        .build())
+                        .ruleFor("id", () -> "x")
+                        .ruleFor("middle.purchase.note", () -> "n"))
+                .reason()
+                .endsWith("applies at 'middle.purchase.id'"));
         // What one class of a sealed root leaves null stays, although another passes the member as an argument.
         assertTrue(onlyProblem(new ObjectFaker<>(
                                 MiddleHolder.class,
@@ -1153,7 +1164,7 @@ class ObjectFakerStrictDiagnosticsTest {
     static final class FieldMiddleHolder extends MiddleHolder {}
 
     static final class PassedMiddleHolder extends MiddleHolder {
-        PassedMiddleHolder(Middle middle) {
+        PassedMiddleHolder(@NotNull Middle middle) {
             this.middle = middle;
         }
     }
