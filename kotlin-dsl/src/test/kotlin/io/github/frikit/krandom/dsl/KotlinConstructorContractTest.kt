@@ -139,6 +139,9 @@ class KotlinConstructorContractTest {
     fun aCompanionObjectKeepsItsInheritedState() {
         assertSame(CompanionHost.Companion, krandom<CompanionHost.Companion>())
         assertEquals("kept", CompanionHost.Companion.label)
+        // A named companion object is kept in the field of its own name.
+        assertSame(NamedCompanionHost.Named, krandom<NamedCompanionHost.Named>())
+        assertEquals("kept", NamedCompanionHost.Named.label)
     }
 }
 
@@ -208,6 +211,9 @@ class FailingHost {
 
     companion object {
         val unrelated: Any = error("FailingHost must not be initialized")
+
+        // Of Child's own type, but not where Kotlin keeps a companion object.
+        val sample: Child = error("FailingHost must not be initialized")
     }
 }
 
@@ -217,6 +223,10 @@ open class CompanionState {
 
 class CompanionHost {
     companion object : CompanionState()
+}
+
+class NamedCompanionHost {
+    companion object Named : CompanionState()
 }
 
 object MutableSingleton {

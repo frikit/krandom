@@ -39,6 +39,7 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jspecify.annotations.Nullable;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
@@ -678,22 +679,23 @@ public final class ObjectGenerator<T> implements Generator<T> {
     }
 
     /**
-     * Whether a static field of the type, or of a class that encloses it, holds this very instance, as the one
-     * instance of a Kotlin object or companion object is held. Such an instance is shared, so it is left as it is.
-     * Only a field declared with the instance's own class is read, so no unrelated static state starts a class.
+     * Whether a static field holds this very instance, as the one instance of a Kotlin object or companion object
+     * is held. Such an instance is shared, so it is left as it is. Only a field declared with the instance's own
+     * class is read: one of the type, as an object's {@code INSTANCE} is, and the one field of the class that
+     * encloses it that Kotlin keeps a companion object in, named after the companion object's class, as
+     * kotlin-reflect reads it. Reading any other field of an enclosing class could start that class.
      */
     private boolean isHeldStatically(Object instance) {
-        for (Class<?> owner = type; owner != null; owner = owner.getDeclaringClass()) {
-            for (Field field : owner.getDeclaredFields()) {
-                if (Modifier.isStatic(field.getModifiers()) && field.getType() == instance.getClass()) {
-                    ensureAccessible(field, owner);
-                    if (staticValue(field) == instance) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+        Class<?> instanceType = instance.getClass();
+        Stream<Field> companion = Stream.ofNullable(instanceType.getDeclaringClass())
+                .flatMap(host -> Arrays.stream(host.getDeclaredFields()))
+                .filter(field -> field.getName().equals(instanceType.getSimpleName()));
+        return Stream.concat(Arrays.stream(type.getDeclaredFields()), companion)
+                .filter(field -> Modifier.isStatic(field.getModifiers()) && field.getType() == instanceType)
+                .anyMatch(field -> {
+                    ensureAccessible(field, field.getDeclaringClass());
+                    return staticValue(field) == instance;
+                });
     }
 
     private static @Nullable Object staticValue(Field field) {

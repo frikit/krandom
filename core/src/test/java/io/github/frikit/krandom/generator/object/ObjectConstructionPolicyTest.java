@@ -398,21 +398,21 @@ class ObjectConstructionPolicyTest {
     @Test
     @DisplayName("an adapter's companion object, which its enclosing class holds, is returned as it is")
     void adapterCompanionKeepsItsState() {
-        AdapterCompanionHolder.AdapterCompanion value = new ObjectGenerator<>(
-                        AdapterCompanionHolder.AdapterCompanion.class,
+        AdapterCompanionHolder.Companion value = new ObjectGenerator<>(
+                        AdapterCompanionHolder.Companion.class,
                         GeneratorConfig.builder()
                                 .objectOverrideDefaultInitialization(true)
                                 .build())
                 .generate();
 
-        assertSame(AdapterCompanionHolder.COMPANION, value);
+        assertSame(AdapterCompanionHolder.Companion, value);
         assertEquals("kept", value.state);
     }
 
     @Test
-    @DisplayName("looking for a held instance reads no static field of another type, so no enclosing class starts")
-    void heldInstanceCheckLeavesUnrelatedStaticsAlone() {
-        // Reading InitHost.UNRELATED would run InitHost's static initializer, which fails.
+    @DisplayName("looking for a held instance reads no field of an enclosing class but a companion object's")
+    void heldInstanceCheckLeavesEnclosingStaticsAlone() {
+        // Reading InitHost.UNRELATED or InitHost.SAMPLE would run InitHost's static initializer, which fails.
         InitHost.Child child = new ObjectGenerator<>(InitHost.Child.class).generate();
 
         assertNotNull(child.state);
@@ -789,7 +789,10 @@ class ObjectConstructionPolicyTest {
 
         static final Object UNRELATED = fail();
 
-        private static Object fail() {
+        /** A static field of the nested class's own type, which is not where Kotlin keeps a companion object. */
+        static final Child SAMPLE = fail();
+
+        private static <V> V fail() {
             throw new IllegalStateException("InitHost must not be initialized");
         }
 
@@ -799,14 +802,17 @@ class ObjectConstructionPolicyTest {
         }
     }
 
-    /** As Kotlin compiles a companion object: its one instance is a static field of the enclosing class. */
+    /**
+     * As Kotlin compiles a companion object: its one instance is the static field of the enclosing class that has
+     * its class's name.
+     */
     static final class AdapterCompanionHolder {
 
-        static final AdapterCompanion COMPANION = new AdapterCompanion();
+        static final Companion Companion = new Companion();
 
         private static final String HIDDEN = "hidden";
 
-        static final class AdapterCompanion {
+        static final class Companion {
 
             String state = "kept";
         }
