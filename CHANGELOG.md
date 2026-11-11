@@ -132,6 +132,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   builds. So with `objectMaxDepth(1)`, `ruleFor("id", ...)` beside `ruleFor("middle.purchase.note", ...)` also
   set `middle.purchase.id` without a report, and a rule on a self-referencing type listed one of the three
   paths it reached. Generated values are unchanged.
+- A string seed of several lines, which `GeneratorConfig.Builder.seed(String)` accepts as any non-blank text,
+  now makes a `GenerationRecipe`, as the recipe's documentation says it carries any seed text.
+  `GenerationRecipe.Builder.seedText(...)` rejected a line break, so with `seed("suite\ncase")`,
+  `getGenerationRecipe()`, seeded object generation and seeded `Schema` construction all failed with
+  `IllegalArgumentException`. The recipe encodes the breaks, as `seed-text=suite%0Acase`, and replays them.
+  Every other configuration generates as before.
 
 ## [3.0.0] - 2026-11-10
 

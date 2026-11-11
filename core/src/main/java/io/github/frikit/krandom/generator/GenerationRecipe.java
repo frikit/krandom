@@ -703,8 +703,16 @@ public final class GenerationRecipe {
             return this;
         }
 
+        /**
+         * Sets the text the seed derives from, any non-blank text, as {@link GeneratorConfig.Builder#seed(String)}
+         * accepts it. The serialized form encodes it, line breaks too.
+         */
         public Builder seedText(String seedText) {
-            this.seedText = requireToken("seedText", seedText);
+            Objects.requireNonNull(seedText, "seedText must not be null");
+            if (seedText.isBlank()) {
+                throw new IllegalArgumentException("seedText must not be blank");
+            }
+            this.seedText = seedText;
             return this;
         }
 
