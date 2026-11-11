@@ -173,6 +173,43 @@ class ObjectGeneratorConstructorConstraintTest {
         }
     }
 
+    /** Fields whose parameters differ from them as Kotlin's declaration-site variance does, or otherwise. */
+    @SuppressWarnings({"rawtypes", "unused"})
+    static final class VarianceFixture {
+
+        java.util.List<Number> covariant;
+        java.util.Comparator<Integer> contravariant;
+        java.util.Map<String, ? extends Number> wildcards;
+        String plain;
+        java.util.List<String> otherRawType;
+        java.util.List<String> otherArgument;
+        java.util.List<String> rawParameter;
+        long number;
+        Outer<String>.Inner<Number> sameOwner;
+        Outer<Long>.Inner<Number> otherOwner;
+        java.util.Map.Entry<String, Number> classOwner;
+
+        VarianceFixture(
+                java.util.List<? extends Number> covariant,
+                java.util.Comparator<? super Integer> contravariant,
+                java.util.Map<String, ? extends Number> wildcards,
+                String plain,
+                java.util.Collection<String> otherRawType,
+                java.util.List<Integer> otherArgument,
+                java.util.List rawParameter,
+                int number,
+                Outer<String>.Inner<? extends Number> sameOwner,
+                Outer<String>.Inner<? extends Number> otherOwner,
+                java.util.Map.Entry<String, ? extends Number> classOwner) {}
+    }
+
+    /** A generic class whose inner class is parameterized with it, as in {@code Outer<String>.Inner<Number>}. */
+    @SuppressWarnings({"unused", "InnerClassMayBeStatic"})
+    static final class Outer<T> {
+
+        final class Inner<U> {}
+    }
+
     static final class Mutable {
 
         @Size(min = 3, max = 3) private String code;
@@ -333,6 +370,36 @@ class ObjectGeneratorConstructorConstraintTest {
         assertSame(
                 BeanValidationSupport.constraintModelFor(constructorParameter, String.class),
                 BeanValidationSupport.constraintModelFor(constructorParameter, String.class));
+    }
+
+    @Test
+    @DisplayName("a parameter an adapter names finds its field of the same type, but for variance wildcards")
+    void namedParameterFindsItsFieldButForVarianceWildcards() {
+        // Which parameter of VarianceFixture finds its field when an adapter names it.
+        Map<String, Boolean> finds = new LinkedHashMap<>();
+        finds.put("covariant", true);
+        finds.put("contravariant", true);
+        finds.put("wildcards", true);
+        finds.put("plain", true);
+        finds.put("otherRawType", false);
+        finds.put("otherArgument", false);
+        finds.put("rawParameter", false);
+        finds.put("number", false);
+        finds.put("sameOwner", true);
+        // Outer<Long>.Inner<Number> is not the property of an Outer<String>.Inner<Number>.
+        finds.put("otherOwner", false);
+        finds.put("classOwner", true);
+
+        for (Parameter parameter : VarianceFixture.class.getDeclaredConstructors()[0].getParameters()) {
+            java.lang.reflect.Field found = BeanValidationSupport.withNamedParameter(
+                    parameter, parameter.getName(), () -> BeanValidationSupport.initializedField(parameter));
+            assertEquals(finds.get(parameter.getName()), found != null, parameter.getName());
+            // Outside the adapter's call, a compiled name finds the field of the very same declared type only.
+            assertEquals(
+                    parameter.getName().equals("plain") || parameter.getName().equals("wildcards"),
+                    BeanValidationSupport.initializedField(parameter) != null,
+                    parameter.getName());
+        }
     }
 
     private static void assertValid(Object value) {

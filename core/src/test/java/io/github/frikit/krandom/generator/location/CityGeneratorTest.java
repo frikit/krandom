@@ -26,6 +26,18 @@ import org.junit.jupiter.api.Test;
 @DisplayName("CityGenerator")
 class CityGeneratorTest {
 
+    private static final long SEED = 42L;
+
+    /**
+     * A generator that draws from a fixed seed, so that a test that samples a locale's cities for a few of them
+     * holds on every run. Unseeded, the Chinese test missed its five cities in 500 draws from 211 about six times
+     * in a million runs, as seed 271627 does.
+     */
+    private static CityGenerator seeded(Locale locale) {
+        return new CityGenerator(
+                GeneratorConfig.builder().locale(locale).seed(SEED).build());
+    }
+
     @Test
     @DisplayName("default config uses US locale with US city names")
     void defaultConfig() {
@@ -48,7 +60,7 @@ class CityGeneratorTest {
     @Test
     @DisplayName("US locale returns US city names")
     void usLocaleUSCities() {
-        CityGenerator gen = new CityGenerator(Locale.US);
+        CityGenerator gen = seeded(Locale.US);
 
         Set<String> cities = new HashSet<>();
         for (int i = 0; i < 500; i++) {
@@ -70,7 +82,7 @@ class CityGeneratorTest {
     @Test
     @DisplayName("UK locale returns UK city names")
     void ukLocale() {
-        CityGenerator gen = new CityGenerator(Locale.UK);
+        CityGenerator gen = seeded(Locale.UK);
 
         Set<String> cities = new HashSet<>();
         for (int i = 0; i < 500; i++) {
@@ -92,7 +104,7 @@ class CityGeneratorTest {
     @Test
     @DisplayName("Australian locale returns Australian city names")
     void australianLocale() {
-        CityGenerator gen = new CityGenerator(Locale.of("en", "AU"));
+        CityGenerator gen = seeded(Locale.of("en", "AU"));
 
         Set<String> cities = new HashSet<>();
         for (int i = 0; i < 200; i++) {
@@ -114,7 +126,7 @@ class CityGeneratorTest {
     @Test
     @DisplayName("German locale returns German city names")
     void germanLocale() {
-        CityGenerator gen = new CityGenerator(Locale.GERMANY);
+        CityGenerator gen = seeded(Locale.GERMANY);
 
         Set<String> cities = new HashSet<>();
         for (int i = 0; i < 300; i++) {
@@ -136,7 +148,7 @@ class CityGeneratorTest {
     @Test
     @DisplayName("Japanese locale returns Japanese city names")
     void japaneseLocale() {
-        CityGenerator gen = new CityGenerator(Locale.JAPAN);
+        CityGenerator gen = seeded(Locale.JAPAN);
 
         Set<String> cities = new HashSet<>();
         for (int i = 0; i < 300; i++) {
@@ -157,7 +169,7 @@ class CityGeneratorTest {
     @Test
     @DisplayName("French locale returns French city names")
     void frenchLocale() {
-        CityGenerator gen = new CityGenerator(Locale.FRANCE);
+        CityGenerator gen = seeded(Locale.FRANCE);
 
         Set<String> cities = new HashSet<>();
         for (int i = 0; i < 300; i++) {
@@ -177,12 +189,17 @@ class CityGeneratorTest {
     @Test
     @DisplayName("Chinese locale returns Chinese city names")
     void chineseLocale() {
-        CityGenerator gen = new CityGenerator(Locale.of("zh", "CN"));
+        CityGenerator gen = seeded(Locale.of("zh", "CN"));
 
         Set<String> cities = new HashSet<>();
         for (int i = 0; i < 500; i++) {
             cities.add(gen.generate());
         }
+
+        // Every draw comes from the zh_CN catalog, which holds the five cities looked for.
+        List<String> catalog = Arrays.asList(CityResourceLoader.load("krandom/cities/zh_CN_cities.txt"));
+        assertTrue(catalog.containsAll(cities), cities.toString());
+        assertTrue(catalog.containsAll(List.of("北京", "上海", "广州", "深圳", "成都")));
 
         // Chinese characters
         long chineseCities = cities.stream()
@@ -198,7 +215,7 @@ class CityGeneratorTest {
     @Test
     @DisplayName("Spanish locale returns Spanish city names")
     void spanishLocale() {
-        CityGenerator gen = new CityGenerator(Locale.of("es", "ES"));
+        CityGenerator gen = seeded(Locale.of("es", "ES"));
 
         Set<String> cities = new HashSet<>();
         for (int i = 0; i < 300; i++) {
@@ -218,7 +235,7 @@ class CityGeneratorTest {
     @Test
     @DisplayName("Italian locale returns Italian city names")
     void italianLocale() {
-        CityGenerator gen = new CityGenerator(Locale.of("it", "IT"));
+        CityGenerator gen = seeded(Locale.of("it", "IT"));
 
         Set<String> cities = new HashSet<>();
         for (int i = 0; i < 300; i++) {
@@ -238,7 +255,7 @@ class CityGeneratorTest {
     @Test
     @DisplayName("Brazilian Portuguese locale returns Brazilian city names")
     void brazilianPortugueseLocale() {
-        CityGenerator gen = new CityGenerator(Locale.of("pt", "BR"));
+        CityGenerator gen = seeded(Locale.of("pt", "BR"));
 
         Set<String> cities = new HashSet<>();
         for (int i = 0; i < 300; i++) {
@@ -366,7 +383,7 @@ class CityGeneratorTest {
     @Test
     @DisplayName("generate() produces variety — not always the same value")
     void generateVariety() {
-        CityGenerator gen = new CityGenerator(Locale.US);
+        CityGenerator gen = seeded(Locale.US);
 
         Set<String> seen = new HashSet<>();
         for (int i = 0; i < 200; i++) {

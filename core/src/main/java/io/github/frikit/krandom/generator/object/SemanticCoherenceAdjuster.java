@@ -87,6 +87,8 @@ final class SemanticCoherenceAdjuster {
     private final @Nullable GenerationReporter reporter;
     private @Nullable AddressInfo addressInfo;
     private boolean addressInfoResolved;
+    /** The fields of the instance being aligned that kept a value the class set. */
+    private Set<Field> keptFields = Set.of();
 
     SemanticCoherenceAdjuster(ObjectGeneratorConfig config, UniqueFieldTracker uniqueFieldTracker) {
         this(config, uniqueFieldTracker, null);
@@ -113,8 +115,23 @@ final class SemanticCoherenceAdjuster {
     }
 
     void adjustInstance(Class<?> ownerType, Object instance, List<Field> fields, boolean allowOverwriteExisting) {
+        adjustInstance(ownerType, instance, fields, allowOverwriteExisting, Set.of());
+    }
+
+    /**
+     * Aligns the fields of an instance. A field in {@code keptFields} holds a value the class set, which
+     * generation kept, and the pass writes it only where it is {@code null} or blank, as it writes every field
+     * when {@code allowOverwriteExisting} is {@code false}.
+     */
+    void adjustInstance(
+            Class<?> ownerType,
+            Object instance,
+            List<Field> fields,
+            boolean allowOverwriteExisting,
+            Set<Field> keptFields) {
         Objects.requireNonNull(ownerType, "ownerType must not be null");
         Objects.requireNonNull(instance, "instance must not be null");
+        this.keptFields = Set.copyOf(keptFields);
         if (config.getSemanticMode() == ObjectGenerationSemanticMode.STRUCTURAL_ONLY) {
             return;
         }
@@ -610,7 +627,8 @@ final class SemanticCoherenceAdjuster {
         LocalDate birthDate = toLocalDate(birthDateSlot.getValue());
         Integer age = toInteger(ageSlot.getValue());
         if (birthDate != null) {
-            if (age != null && isProtected(ageSlot)) {
+            // An age the pass cannot write, as an override or a kept initializer holds it, leads instead.
+            if (age != null && !canAssign(ageSlot, allowOverwriteExisting)) {
                 followAge(birthDateSlot, age, allowOverwriteExisting);
                 return;
             }
@@ -812,7 +830,8 @@ final class SemanticCoherenceAdjuster {
         if (isProtected(slot)) {
             return false;
         }
-        if (allowOverwriteExisting) {
+        // A value the class set, which generation kept, is written only where it is null or blank.
+        if (allowOverwriteExisting && !keptFields.contains(slot.annotatedElement())) {
             return true;
         }
         Object currentValue = slot.getValue();
@@ -892,6 +911,7 @@ final class SemanticCoherenceAdjuster {
         try {
             return uniqueFieldTracker.nextUnique(
                     fieldKey,
+                    objectPath + "." + slot.fieldName(),
                     () -> uniquify(semanticKey, candidate, attempt.getAndIncrement()),
                     config.getUniquenessMaxAttempts());
         } catch (UniqueFieldTracker.ExhaustedException exhausted) {

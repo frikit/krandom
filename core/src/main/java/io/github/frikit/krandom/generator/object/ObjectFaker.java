@@ -27,8 +27,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import org.jspecify.annotations.Nullable;
 
@@ -438,10 +440,9 @@ public final class ObjectFaker<T> implements Generator<T> {
      *   <li><b>Shadowed</b>: a rule that a later rule for the same path replaces, including one from a
      *       profile or a composed {@link ObjectModel}; a nested rule that a rule on an ancestor path
      *       overwrites because it runs later; a root rule that a {@code GeneratorConfig} contextual field
-     *       override, or contextual predicate override, for the same member comes before; a
+     *       override, or contextual predicate override, for the same member comes before; and a
      *       {@code GeneratorConfig} field override for a member that a root rule replaces or comes before,
-     *       or that a nested or dependent rule overwrites; and a name requested with
-     *       {@code objectUniqueField} whose values a nested or dependent rule sets without the check.</li>
+     *       or that a nested or dependent rule overwrites.</li>
      *   <li><b>Unused</b>: a rule below a path that a later nested ignore clears; a root rule on a member
      *       that the {@code GeneratorConfig} excludes; a root rule or root ignore when a
      *       {@code GeneratorConfig} type override builds the root, which {@code populate(existing)}
@@ -496,13 +497,17 @@ public final class ObjectFaker<T> implements Generator<T> {
             throw new IllegalArgumentException("instance must be assignable to " + type.getName() + ", got "
                     + instance.getClass().getName());
         }
-        return applyPostGenerationRules(generator().populate(type.cast(instance)));
+        ObjectGenerator<T> objectGenerator = generator();
+        uniqueFieldTracker.startObject();
+        return applyPostGenerationRules(objectGenerator.populate(type.cast(instance)));
     }
 
     @Override
     public T generate() {
         validateIfStrict(false);
-        return applyPostGenerationRules(generator().generate());
+        ObjectGenerator<T> objectGenerator = generator();
+        uniqueFieldTracker.startObject();
+        return applyPostGenerationRules(objectGenerator.generate());
     }
 
     private void validateIfStrict(boolean populating) {
@@ -657,8 +662,13 @@ public final class ObjectFaker<T> implements Generator<T> {
 
     /** Reports a rule or ignore that ran after generation, when a report listener is set. */
     private void reportApplied(@Nullable GenerationReporter reporter, String path, boolean ignore) {
+        reportApplied(reporter, path, ignore, false);
+    }
+
+    /** Reports a rule that ran after generation, which left its field at the default where it {@code ranOut}. */
+    private void reportApplied(@Nullable GenerationReporter reporter, String path, boolean ignore, boolean ranOut) {
         if (reporter != null) {
-            reporter.applied(type.getSimpleName() + "." + path, activeRule(path, ignore));
+            reporter.applied(type.getSimpleName() + "." + path, activeRule(path, ignore), ranOut);
         }
     }
 
@@ -668,32 +678,36 @@ public final class ObjectFaker<T> implements Generator<T> {
         for (Map.Entry<String, Generator<?>> entry : fieldRules.entrySet()) {
             RulePath path = Objects.requireNonNull(rulePaths.get(entry.getKey()));
             if (!path.isRoot()) {
-                current = assignFieldValue(current, path, entry.getValue().generate());
-                reportApplied(reporter, entry.getKey(), false);
+                Applied<T> applied = applyRule(current, path, entry.getValue()::generate);
+                current = applied.root();
+                reportApplied(reporter, entry.getKey(), false, applied.ranOut());
             }
         }
         for (Map.Entry<String, ContextualGenerator<?>> entry : contextualFieldRules.entrySet()) {
             RulePath path = Objects.requireNonNull(rulePaths.get(entry.getKey()));
             if (!path.isRoot()) {
                 RuleTarget target = path.leaf();
-                Object fieldValue = entry.getValue()
-                        .generate(new GenerationContext(
-                                target.fieldName(),
-                                target.ownerType(),
-                                path.depth(),
-                                type.getSimpleName() + "." + path.path(),
-                                target.field() != null ? target.field().getGenericType() : target.valueType(),
-                                target.field() != null ? target.field() : target.accessor(),
-                                baseConfig.getGeneratorConfig()));
-                current = assignFieldValue(current, path, fieldValue);
-                reportApplied(reporter, entry.getKey(), false);
+                GenerationContext context = new GenerationContext(
+                        target.fieldName(),
+                        target.ownerType(),
+                        path.depth(),
+                        type.getSimpleName() + "." + path.path(),
+                        target.field() != null ? target.field().getGenericType() : target.valueType(),
+                        target.field() != null ? target.field() : target.accessor(),
+                        baseConfig.getGeneratorConfig());
+                ContextualGenerator<?> rule = entry.getValue();
+                Applied<T> applied = applyRule(current, path, () -> rule.generate(context));
+                current = applied.root();
+                reportApplied(reporter, entry.getKey(), false, applied.ranOut());
             }
         }
         for (Map.Entry<String, Function<? super T, ?>> entry : dependentFieldRules.entrySet()) {
             RulePath path = Objects.requireNonNull(rulePaths.get(entry.getKey()));
-            Object fieldValue = entry.getValue().apply(current);
-            current = assignFieldValue(current, path, fieldValue);
-            reportApplied(reporter, entry.getKey(), false);
+            T generated = current;
+            Function<? super T, ?> rule = entry.getValue();
+            Applied<T> applied = applyRule(current, path, () -> rule.apply(generated));
+            current = applied.root();
+            reportApplied(reporter, entry.getKey(), false, applied.ranOut());
         }
         current = applyNestedIncludeRules(current);
         current = applyNestedIgnoreRules(current, reporter);
@@ -723,25 +737,88 @@ public final class ObjectFaker<T> implements Generator<T> {
         return current;
     }
 
-    private T assignFieldValue(T instance, RulePath path, Object value) {
+    /** The root after a rule ran after generation, and whether the rule ran out of values that do not repeat. */
+    private record Applied<R>(R root, boolean ranOut) {}
+
+    /** The value a rule writes at its path, from the object that holds its member, once the path exists. */
+    @FunctionalInterface
+    private interface LeafValue {
+
+        @Nullable Object valueFor(Object holder) throws ReflectiveOperationException;
+    }
+
+    /**
+     * Writes a rule's value at its path. A field whose name {@code objectUniqueField} requested takes a value
+     * that does not repeat, as {@link #uniqueRuleValue} chooses it; any other takes the rule's value as it is.
+     */
+    private Applied<T> applyRule(T instance, RulePath path, Supplier<?> rule) {
+        Object value = rule.get();
+        if (!baseConfig.isRequestedUniqueField(path.fieldName())) {
+            return new Applied<>(assignFieldValue(instance, path, value), false);
+        }
+        AtomicBoolean ranOut = new AtomicBoolean();
+        T root = assignLeaf(
+                instance,
+                path,
+                holder -> uniqueRuleValue(path, readTargetValue(holder, path.leaf()), value, rule, ranOut),
+                true);
+        return new Applied<>(root, ranOut.get());
+    }
+
+    /**
+     * The value a rule gives a field whose name {@code objectUniqueField} requested, which must not repeat a value
+     * the field took on another object, as a root rule's must not. The value the object holds is no repeat, so a
+     * rule may give it back. Otherwise the value the rule replaces is given back where generation gave it to this
+     * member in this object, and a repeat applies the rule again, a dependent rule to the same object, up to
+     * {@code objectUniquenessMaxAttempts} times in all. Then generation fails, or with
+     * {@code objectIgnoreErrors(true)} the field takes its default.
+     */
+    private @Nullable Object uniqueRuleValue(
+            RulePath path, @Nullable Object replaced, @Nullable Object first, Supplier<?> rule, AtomicBoolean ranOut) {
+        if (Objects.equals(first, replaced)) {
+            return first;
+        }
+        RuleTarget leaf = path.leaf();
+        String fieldKey = UniqueFieldTracker.fieldKey(leaf.ownerType(), leaf.fieldName());
+        // The member's path as generation names it, so that only a value generation gave this member goes back.
+        String memberPath = ObjectGenerator.typePath(type) + "." + path.path();
+        uniqueFieldTracker.releaseTaken(fieldKey, replaced, memberPath);
+        AtomicBoolean drawn = new AtomicBoolean();
         try {
-            return type.cast(assignNestedValue(instance, path, 0, value));
+            return uniqueFieldTracker.nextUnique(
+                    fieldKey,
+                    memberPath,
+                    () -> drawn.getAndSet(true) ? rule.get() : first,
+                    baseConfig.getUniquenessMaxAttempts());
+        } catch (UniqueFieldTracker.ExhaustedException exhausted) {
+            ranOut.set(true);
+            return new ObjectGenerationFailurePolicy(
+                            baseConfig.isIgnoreErrors(),
+                            baseConfig.getGeneratorConfig().getGenerationFailureListener())
+                    .handle(
+                            fakerFailure(GenerationFailureCategory.UNSUPPORTED_TYPE, path, exhausted),
+                            defaultValue(leaf.valueType()));
+        }
+    }
+
+    private T assignFieldValue(T instance, RulePath path, @Nullable Object value) {
+        return assignLeaf(instance, path, holder -> value, true);
+    }
+
+    private T assignLeaf(T instance, RulePath path, LeafValue value, boolean materializeMissingParents) {
+        try {
+            return type.cast(assignNestedValue(instance, path, 0, value, materializeMissingParents));
         } catch (ReflectiveOperationException | IllegalArgumentException e) {
             throw fakerFailure(GenerationFailureCategory.ASSIGNMENT, path, e);
         }
     }
 
-    private Object assignNestedValue(Object current, RulePath path, int index, @Nullable Object fieldValue)
-            throws ReflectiveOperationException {
-        return assignNestedValue(current, path, index, fieldValue, true);
-    }
-
     private Object assignNestedValue(
-            Object current, RulePath path, int index, @Nullable Object fieldValue, boolean materializeMissingParents)
+            Object current, RulePath path, int index, LeafValue leafValue, boolean materializeMissingParents)
             throws ReflectiveOperationException {
         RuleTarget segment = path.segments().get(index);
         if (index == path.segments().size() - 1) {
-            return writeTargetValue(current, segment, fieldValue);
+            return writeTargetValue(current, segment, leafValue.valueFor(current));
         }
 
         Object nestedValue = readTargetValue(current, segment);
@@ -754,7 +831,7 @@ public final class ObjectFaker<T> implements Generator<T> {
             materialized = true;
         }
 
-        Object updatedNested = assignNestedValue(nestedValue, path, index + 1, fieldValue, materializeMissingParents);
+        Object updatedNested = assignNestedValue(nestedValue, path, index + 1, leafValue, materializeMissingParents);
         if (materialized || updatedNested != nestedValue) {
             return writeTargetValue(current, segment, updatedNested);
         }
@@ -762,12 +839,7 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     private T clearFieldValue(T instance, RulePath path) {
-        try {
-            return type.cast(assignNestedValue(
-                    instance, path, 0, defaultValue(path.leaf().valueType()), false));
-        } catch (ReflectiveOperationException | IllegalArgumentException e) {
-            throw fakerFailure(GenerationFailureCategory.ASSIGNMENT, path, e);
-        }
+        return assignLeaf(instance, path, holder -> defaultValue(path.leaf().valueType()), false);
     }
 
     private ObjectGenerationException fakerFailure(GenerationFailureCategory category, RulePath path, Throwable cause) {
@@ -793,15 +865,18 @@ public final class ObjectFaker<T> implements Generator<T> {
     @SuppressWarnings({"rawtypes", "unchecked"})
     private Object materializeValue(Class<?> rawType, RulePath path, int index) {
         ObjectGeneratorConfig runtime = buildRuntimeConfig();
+        StringBuilder parentPath = new StringBuilder();
+        for (RuleTarget segment : path.segments().subList(0, index + 1)) {
+            parentPath.append('.').append(segment.fieldName());
+        }
         if (runtime.getGeneratorConfig().getGenerationReportListener().isPresent()) {
             // Built as a root of its own, the parent is still reported at its path in the fixture.
-            StringBuilder reported = new StringBuilder(type.getSimpleName());
-            for (RuleTarget segment : path.segments().subList(0, index + 1)) {
-                reported.append('.').append(segment.fieldName());
-            }
-            runtime = runtime.reportedAt(ObjectGenerator.typePath(rawType), reported.toString());
+            runtime = runtime.reportedAt(ObjectGenerator.typePath(rawType), type.getSimpleName() + parentPath);
         }
-        return new ObjectGenerator(rawType, runtime, 0, null, null, uniqueFieldTracker).generate();
+        ObjectGenerator generator = new ObjectGenerator(rawType, runtime, 0, null, null, uniqueFieldTracker);
+        // So are the values its members take, under the path that a rule names them by.
+        return uniqueFieldTracker.buildParent(
+                ObjectGenerator.typePath(rawType), ObjectGenerator.typePath(type) + parentPath, generator::generate);
     }
 
     private Object readTargetValue(Object instance, RuleTarget target) throws ReflectiveOperationException {

@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -29,6 +30,23 @@ final class UniqueFieldTracker {
     private static final Pattern ELEMENT_SUFFIX = Pattern.compile("[\\[.].*");
 
     private final Map<String, Set<Object>> valuesByField = new HashMap<>();
+
+    /**
+     * The values each field took for the root object that an {@link ObjectFaker} is generating, from
+     * {@link #startObject} on, with the path of the member that took each, so that a rule that replaces that
+     * member's value can give it back. A plain generator applies no rule after generation and starts no
+     * object, so it remembers nothing more.
+     */
+    private @org.jspecify.annotations.Nullable Map<String, Map<Object, String>> takenByObject;
+
+    /**
+     * The path that the members of a parent, which a nested rule builds as an object of its own, are generated
+     * under, its type's path, while it is built; their values are remembered under {@link #builtPath}, where the
+     * parent stands in the root object, so that the root's members and the parent's are told apart.
+     */
+    private @org.jspecify.annotations.Nullable String builtRoot;
+
+    private String builtPath = "";
 
     private @org.jspecify.annotations.Nullable Object lastAdded;
 
@@ -106,6 +124,18 @@ final class UniqueFieldTracker {
     }
 
     Object nextUnique(String fieldKey, Supplier<Object> supplier, int maxAttempts) {
+        return nextUnique(fieldKey, null, supplier, maxAttempts);
+    }
+
+    /**
+     * A value the field has not had yet, which the member at {@code memberPath}, where it is known, takes: an
+     * object begun by {@link #startObject} remembers it there.
+     */
+    Object nextUnique(
+            String fieldKey,
+            @org.jspecify.annotations.Nullable String memberPath,
+            Supplier<Object> supplier,
+            int maxAttempts) {
         Objects.requireNonNull(fieldKey, "fieldKey must not be null");
         Objects.requireNonNull(supplier, "supplier must not be null");
         if (maxAttempts < 1) {
@@ -120,6 +150,11 @@ final class UniqueFieldTracker {
                 return candidate;
             }
             if (seen.add(candidate)) {
+                if (takenByObject != null && memberPath != null) {
+                    takenByObject
+                            .computeIfAbsent(fieldKey, ignored -> new HashMap<>())
+                            .put(candidate, rememberedPath(memberPath));
+                }
                 lastAdded = candidate;
                 lastAddedKey = fieldKey;
                 return candidate;
@@ -136,6 +171,46 @@ final class UniqueFieldTracker {
         Set<Object> seen = valuesByField.get(fieldKey);
         if (seen != null) {
             seen.remove(value);
+        }
+    }
+
+    /** Starts a root object whose rules run after generation: the values it takes from now on are remembered. */
+    void startObject() {
+        takenByObject = new HashMap<>();
+    }
+
+    /**
+     * Builds a parent that a nested rule writes into, which {@code build} generates as an object of its own, its
+     * members under {@code generatedRoot}, its type's path. The values they take are remembered under
+     * {@code path}, where the parent stands in the root object, as the rule's path names them.
+     */
+    <V> V buildParent(String generatedRoot, String path, Supplier<V> build) {
+        builtRoot = generatedRoot;
+        builtPath = path;
+        try {
+            return build.get();
+        } finally {
+            builtRoot = null;
+        }
+    }
+
+    /** The path a member's value is remembered under: in a parent that a nested rule builds, its path there. */
+    private String rememberedPath(String memberPath) {
+        String root = builtRoot;
+        return root == null ? memberPath : builtPath + memberPath.substring(root.length());
+    }
+
+    /**
+     * Gives back a value that the member at {@code memberPath} took for this field, in the object begun by
+     * {@link #startObject}, which a rule has replaced. A value it did not take, such as an initializer it kept,
+     * may be held by another member or another object, and stays.
+     */
+    void releaseTaken(String fieldKey, @org.jspecify.annotations.Nullable Object value, String memberPath) {
+        // An empty map of Collections, unlike Map.of(), answers for a null value too.
+        if (memberPath.equals(Objects.requireNonNull(takenByObject, "an object has started")
+                .getOrDefault(fieldKey, Collections.emptyMap())
+                .get(value))) {
+            release(fieldKey, value);
         }
     }
 

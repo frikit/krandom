@@ -1160,6 +1160,99 @@ class ObjectGeneratorSemanticCoherenceTest {
     }
 
     @Test
+    @DisplayName("coherence leaves a field initializer that generation keeps as the class set it")
+    void coherenceLeavesKeptInitializers() {
+        ObjectGenerator<KeptNames> kept = new ObjectGenerator<>(
+                KeptNames.class, GeneratorConfig.builder().seed(42L).build());
+        ObjectGenerator<KeptFullName> keptFullName = new ObjectGenerator<>(
+                KeptFullName.class, GeneratorConfig.builder().seed(42L).build());
+
+        for (KeptNames value : kept.generateList(200)) {
+            assertEquals("Ada", value.firstName);
+            assertEquals("Lovelace", value.lastName);
+            assertEquals("KEEP", value.fullName);
+            // A generated sibling still follows the kept names.
+            assertTrue(value.email.startsWith("ada.lovelace"), value.email);
+        }
+        for (KeptFullName value : keptFullName.generateList(2_000)) {
+            assertNotNull(value.firstName);
+            assertEquals("KEEP", value.fullName);
+        }
+    }
+
+    @Test
+    @DisplayName("a kept timestamp stays, and the generated one moves to keep the pair in order")
+    void keptTimestampStaysAndSiblingFollows() {
+        ObjectGenerator<KeptUpdatedAt> generator = new ObjectGenerator<>(
+                KeptUpdatedAt.class, GeneratorConfig.builder().seed(42L).build());
+
+        for (KeptUpdatedAt value : generator.generateList(200)) {
+            assertEquals(KeptUpdatedAt.UPDATED_AT, value.updatedAt);
+            assertFalse(value.createdAt.isAfter(value.updatedAt), value.createdAt.toString());
+        }
+    }
+
+    @Test
+    @DisplayName("coherence aligns the fields a constructor fills from generated arguments, and keeps its initializers")
+    void coherenceAlignsConstructorArgumentsAndKeepsInitializers() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneOffset.UTC);
+        ObjectGenerator<ConstructedPerson> generator = new ObjectGenerator<>(
+                ConstructedPerson.class,
+                GeneratorConfig.builder().seed(42L).clock(clock).build());
+
+        for (ConstructedPerson value : generator.generateList(200)) {
+            // Generated arguments, a primitive among them, are aligned as generated fields are.
+            assertEquals(value.firstName + " " + value.lastName, value.fullName);
+            assertEquals(
+                    java.time.Period.between(value.birthDate, LocalDate.now(clock))
+                            .getYears(),
+                    value.age);
+            // An initializer that no argument fills stays as the class set it.
+            assertEquals("owner@example.test", value.email);
+            assertEquals(4, value.legs);
+        }
+        // A double holds its argument's value in a box of its own, and is aligned too.
+        for (ConstructedCharge charge : new ObjectGenerator<>(
+                        ConstructedCharge.class,
+                        GeneratorConfig.builder().seed(42L).build())
+                .generateList(200)) {
+            assertTrue(charge.price <= charge.amount && charge.amount <= charge.balance, charge.toString());
+        }
+    }
+
+    @Test
+    @DisplayName("a generated birthDate follows a kept age, as it follows an age that cannot move")
+    void generatedBirthDateFollowsAKeptAge() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneOffset.UTC);
+        ObjectGenerator<KeptAge> generator = new ObjectGenerator<>(
+                KeptAge.class, GeneratorConfig.builder().seed(42L).clock(clock).build());
+
+        for (KeptAge value : generator.generateList(200)) {
+            assertEquals(42, value.age);
+            assertEquals(
+                    42,
+                    java.time.Period.between(value.birthDate, LocalDate.now(clock))
+                            .getYears(),
+                    value.birthDate.toString());
+        }
+    }
+
+    @Test
+    @DisplayName("coherence still fills a blank kept initializer and derives a replaced one")
+    void coherenceFillsBlankAndReplacedInitializers() {
+        BlankKeptFullName blank = new ObjectGenerator<>(BlankKeptFullName.class).generate();
+        KeptNames replaced = new ObjectGenerator<>(
+                        KeptNames.class,
+                        GeneratorConfig.builder()
+                                .objectOverrideDefaultInitialization(true)
+                                .build())
+                .generate();
+
+        assertEquals("Ada Lovelace", blank.fullName);
+        assertEquals(replaced.firstName + " " + replaced.lastName, replaced.fullName);
+    }
+
+    @Test
     @DisplayName("a seeded coherence failure carries the replay recipe")
     void seededCoherenceFailureCarriesReplayRecipe() {
         List<GenerationFailureDiagnostic> diagnostics = new ArrayList<>();
@@ -1672,6 +1765,80 @@ class ObjectGeneratorSemanticCoherenceTest {
     static class PresetDomain {
 
         String domain = "acme.test";
+    }
+
+    /** Built through its one constructor, with generated arguments, beside fields that keep their initializers. */
+    static final class ConstructedPerson {
+
+        String firstName;
+        String lastName;
+        String fullName;
+        String email = "owner@example.test";
+        LocalDate birthDate;
+        int age;
+        int legs = 4;
+
+        ConstructedPerson(String firstName, String lastName, String fullName, LocalDate birthDate, int age) {
+            this.firstName = firstName;
+            this.lastName = lastName;
+            this.fullName = fullName;
+            this.birthDate = birthDate;
+            this.age = age;
+        }
+    }
+
+    static final class KeptAge {
+
+        int age = 42;
+        LocalDate birthDate;
+    }
+
+    static final class ConstructedCharge {
+
+        double price;
+        double amount;
+        double balance;
+
+        ConstructedCharge(double price, double amount, double balance) {
+            this.price = price;
+            this.amount = amount;
+            this.balance = balance;
+        }
+
+        @Override
+        public String toString() {
+            return price + " " + amount + " " + balance;
+        }
+    }
+
+    static class KeptNames {
+
+        String firstName = "Ada";
+        String lastName = "Lovelace";
+        String fullName = "KEEP";
+        String email;
+    }
+
+    static class KeptFullName {
+
+        String firstName;
+        String lastName;
+        String fullName = "KEEP";
+    }
+
+    static class BlankKeptFullName {
+
+        String firstName = "Ada";
+        String lastName = "Lovelace";
+        String fullName = " ";
+    }
+
+    static class KeptUpdatedAt {
+
+        static final LocalDateTime UPDATED_AT = LocalDateTime.of(2001, 1, 1, 0, 0);
+
+        LocalDateTime createdAt;
+        LocalDateTime updatedAt = UPDATED_AT;
     }
 
     record Lifecycle(LocalDateTime createdAt, LocalDateTime updatedAt) {}

@@ -97,6 +97,12 @@ public final class ObjectConstructionContext<T> {
     /**
      * Resolves one constructor parameter through the active object-generation pipeline.
      *
+     * <p>A {@link java.lang.reflect.Parameter} of the constructed type's own constructor as {@code element} is
+     * read with the field that {@code memberName} names, as a parameter compiled with its name is read with the
+     * field of that name and declared type, whose type arguments may also be the wildcards that Kotlin's
+     * declaration-site variance writes into the parameter: the argument meets the constraints of both, and of
+     * the field's getter, and the parameter's own win where both declare one of a type.
+     *
      * @param genericType parameter generic type
      * @param rawType parameter runtime type
      * @param memberName parameter name used for semantic and explicit field overrides
@@ -113,7 +119,11 @@ public final class ObjectConstructionContext<T> {
     }
 
     /**
-     * Returns whether a field or type override explicitly targets this constructor parameter.
+     * Returns whether a field or type override explicitly targets this constructor parameter: an override
+     * for {@code memberName} on the constructed type, a field predicate override that matches the field
+     * behind the parameter, the nearest field named {@code memberName} on the type or a superclass where its
+     * type is {@code rawType}, or an override for {@code rawType}. {@link #generate} applies the same
+     * overrides.
      *
      * <p>Adapters can preserve a language-level default when this returns {@code false} and a
      * parameter is optional. Explicit field and type overrides must remain stronger than defaults.
