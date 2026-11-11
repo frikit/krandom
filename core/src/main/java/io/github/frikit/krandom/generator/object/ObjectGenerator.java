@@ -135,7 +135,18 @@ public final class ObjectGenerator<T> implements Generator<T> {
     private static final ClassValue<List<Field>> SETTABLE_FIELDS = new ClassValue<>() {
         @Override
         protected List<Field> computeValue(Class<?> type) {
-            return doCollectSettableFields(type);
+            return doCollectSettableFields(type, true);
+        }
+    };
+
+    /**
+     * The settable fields of a class that a construction adapter builds, but for those in a package that is not
+     * open to the engine, such as a JDK superclass's, which stay as the adapter built them.
+     */
+    private static final ClassValue<List<Field>> OPEN_SETTABLE_FIELDS = new ClassValue<>() {
+        @Override
+        protected List<Field> computeValue(Class<?> type) {
+            return doCollectSettableFields(type, false);
         }
     };
 
@@ -646,8 +657,9 @@ public final class ObjectGenerator<T> implements Generator<T> {
             T instance = constructWithAdapter(adapter.get(), resolver, constructorMembers);
             if (!isHeldStatically(instance)) {
                 // The adapter stands in for the constructor. The other mutable fields, which no parameter the
-                // adapter asked about names, are filled as for a class built through its constructor.
-                List<Field> otherFields = collectSettableFields(type).stream()
+                // adapter asked about names, are filled as for a class built through its constructor, where the
+                // engine can open them; one it cannot, such as a JDK superclass's, stays as the adapter built it.
+                List<Field> otherFields = OPEN_SETTABLE_FIELDS.get(type).stream()
                         .filter(field -> !constructorMembers.contains(field.getName()))
                         .toList();
                 populateClass(instance, resolver, coherenceAdjuster, otherFields, true, Set.of(), Map.of(), List.of());
@@ -684,7 +696,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
      * no class: any field of the instance's class or a superclass, which the instance has started, whatever type
      * it is declared with, as an object's {@code INSTANCE} is one; and the one field of the class that encloses
      * it that Kotlin keeps a companion object in, named after the companion object's class and declared with it,
-     * as kotlin-reflect reads it. Reading any other field of an enclosing class could start that class.
+     * as kotlin-reflect reads it. Reading any other field of an enclosing class could start that class. A field
+     * in a package that is not open to the engine, such as a JDK superclass's, cannot be read, and is passed over.
      */
     private static boolean isHeldStatically(Object instance) {
         Class<?> instanceType = instance.getClass();
@@ -693,14 +706,13 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 .flatMap(owner -> Arrays.stream(owner.getDeclaredFields()));
         Stream<Field> companion = Stream.ofNullable(instanceType.getDeclaringClass())
                 .flatMap(host -> Arrays.stream(host.getDeclaredFields()))
-                .filter(field -> field.getName().equals(instanceType.getSimpleName())
-                        && field.getType() == instanceType);
+                .filter(field ->
+                        field.getName().equals(instanceType.getSimpleName()) && field.getType() == instanceType);
         return Stream.concat(own, companion)
-                .filter(field -> Modifier.isStatic(field.getModifiers()) && field.getType().isInstance(instance))
-                .anyMatch(field -> {
-                    ensureAccessible(field, field.getDeclaringClass());
-                    return staticValue(field) == instance;
-                });
+                .filter(field -> Modifier.isStatic(field.getModifiers())
+                        && field.getType().isInstance(instance))
+                .filter(Field::trySetAccessible)
+                .anyMatch(field -> staticValue(field) == instance);
     }
 
     private static @Nullable Object staticValue(Field field) {
@@ -1075,7 +1087,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
         return "object|sealed=" + sealedType.getName().length() + ':' + sealedType.getName();
     }
 
-    private static List<Field> doCollectSettableFields(Class<?> clazz) {
+    /**
+     * The settable fields of {@code clazz}. One in a package that is not open to the engine fails generation
+     * where {@code failOnClosed} is true, and is left out where it is false.
+     */
+    private static List<Field> doCollectSettableFields(Class<?> clazz, boolean failOnClosed) {
         List<Field> fields = new ArrayList<>();
         Class<?> current = clazz;
         while (current != Object.class) {
@@ -1089,7 +1105,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 int mods = f.getModifiers();
                 if (Modifier.isStatic(mods)) continue; // class-level, not instance
                 if (Modifier.isFinal(mods)) continue; // immutable after construction
-                ensureAccessible(f, f.getDeclaringClass());
+                if (failOnClosed) {
+                    ensureAccessible(f, f.getDeclaringClass());
+                } else if (!f.trySetAccessible()) {
+                    continue; // in a package not open to the engine
+                }
                 fields.add(f);
             }
             current = current.getSuperclass();

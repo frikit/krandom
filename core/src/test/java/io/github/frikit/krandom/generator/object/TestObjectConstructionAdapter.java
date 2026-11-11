@@ -36,6 +36,7 @@ public final class TestObjectConstructionAdapter implements ObjectConstructionAd
                 || type == ObjectConstructionPolicyTest.AdapterSingletonFixture.class
                 || type == ObjectConstructionPolicyTest.AdapterCompanionHolder.Companion.class
                 || type == ObjectConstructionPolicyTest.AdapterSharedView.class
+                || type == ObjectConstructionPolicyTest.AdapterErrorFixture.class
                 || type == ObjectConstructionPolicyTest.InitHost.Child.class
                 || type == ObjectConstructionPolicyTest.ExclusionAdapterFixture.class
                 || type == ObjectConstructionPolicyTest.NullAdapterFixture.class
@@ -100,6 +101,9 @@ public final class TestObjectConstructionAdapter implements ObjectConstructionAd
         }
         if (context.getType() == ObjectConstructionPolicyTest.AdapterSharedView.class) {
             return ObjectConstructionPolicyTest.AdapterSharedView.INSTANCE;
+        }
+        if (context.getType() == ObjectConstructionPolicyTest.AdapterErrorFixture.class) {
+            return new ObjectConstructionPolicyTest.AdapterErrorFixture();
         }
         if (context.getType() == ObjectConstructionPolicyTest.InitHost.Child.class) {
             return new ObjectConstructionPolicyTest.InitHost.Child();

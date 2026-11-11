@@ -425,6 +425,22 @@ class ObjectConstructionPolicyTest {
     }
 
     @Test
+    @DisplayName("an adapter's instance keeps the fields the engine cannot open, as a JDK superclass's are")
+    void adapterInstanceKeepsTheFieldsTheEngineCannotOpen() {
+        // Throwable's fields are in java.lang, which is not open to the engine.
+        AdapterErrorFixture value = new ObjectGenerator<>(
+                        AdapterErrorFixture.class,
+                        GeneratorConfig.builder()
+                                .objectOverrideDefaultInitialization(true)
+                                .build())
+                .generate();
+
+        assertEquals("boom", value.getMessage());
+        assertNotNull(value.detail);
+        assertNotEquals("initial", value.detail);
+    }
+
+    @Test
     @DisplayName("looking for a held instance reads no field of an enclosing class but a companion object's")
     void heldInstanceCheckLeavesEnclosingStaticsAlone() {
         // Reading InitHost.UNRELATED or InitHost.SAMPLE would run InitHost's static initializer, which fails.
@@ -800,6 +816,18 @@ class ObjectConstructionPolicyTest {
         static final String NAME = "singleton";
 
         String state = "kept";
+    }
+
+    /** A class whose superclass is the JDK's, with fields in a package that is not open to the engine. */
+    static final class AdapterErrorFixture extends RuntimeException {
+
+        private static final long serialVersionUID = 1L;
+
+        String detail = "initial";
+
+        AdapterErrorFixture() {
+            super("boom");
+        }
     }
 
     /** A view that is shared through a static field declared with its interface. */

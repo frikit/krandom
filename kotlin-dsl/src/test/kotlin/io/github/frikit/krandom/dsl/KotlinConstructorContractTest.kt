@@ -14,6 +14,7 @@ import jakarta.validation.constraints.Size
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.lang.reflect.Field
 import java.util.function.Predicate
@@ -59,6 +60,15 @@ class KotlinConstructorContractTest {
         val user = ObjectGenerator(LateinitUser::class.java).generate()
 
         assertFalse(user.name.isEmpty())
+    }
+
+    @Test
+    fun aClassWithAJdkSuperclassFillsOnlyTheFieldsItCanOpen() {
+        // Throwable's fields are in java.lang, which is not open to krandom, so they stay as built.
+        val errors = krandomList<DomainError>(20) { config { seed(42L) } }
+
+        assertTrue(errors.all { error -> error.message == "boom" })
+        assertFalse(errors.any { error -> error.detail == "old" }, errors.map { error -> error.detail }.toString())
     }
 
     @Test
@@ -155,6 +165,12 @@ data class LateinitUser(
     val id: Long,
 ) {
     lateinit var name: String
+}
+
+class DomainError(
+    val code: Long,
+) : RuntimeException("boom") {
+    var detail: String = "old"
 }
 
 data class ParameterAndFieldConstraints(

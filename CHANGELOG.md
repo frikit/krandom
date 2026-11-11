@@ -24,7 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `rule(User::name) { "new" }` gave `"old"`, as did a `GeneratorConfig` field override, and a `lateinit`
   property stayed unset. Seeded with `42`, of 2,000 `User` values from the DSL, 2,000 had `name` `"old"` and
   none now has; the constructor's values are the same. A Kotlin `object` or companion object is still returned
-  as it is. Seeded output changes for such properties.
+  as it is, and a field in a package that is not open to kRandom, such as one that an exception class
+  inherits from `Throwable`, keeps what the constructor set. Seeded output changes for such properties.
 - A Kotlin primary-constructor argument now meets the constraints of its parameter and of its property's field
   and getter together, as the Kotlin DSL guide says `@param:` and `@field:` targets are both recognized. Kotlin
   compiles no parameter names unless `-java-parameters` is set, so the field a parameter fills could not be

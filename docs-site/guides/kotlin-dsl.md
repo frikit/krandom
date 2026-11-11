@@ -149,7 +149,9 @@ of the parameter's type, which also fills a required parameter.
 The constructor fills its own parameters. A mutable property that it does not take, declared in the
 class body or inherited, is then filled through its field, as a Java class's fields are after its
 constructor runs: a rule replaces its initializer, and in the DSL so does a generated value. With
-`data class User(val id: Long) { var name = "old" }`, `rule(User::name) { "new" }` gives `"new"`.
+`data class User(val id: Long) { var name = "old" }`, `rule(User::name) { "new" }` gives `"new"`. A
+field in a package that is not open to kRandom, such as one that an exception class inherits from
+`Throwable`, keeps what the constructor set.
 
 Kotlin `object` singletons return their one instance, and sealed types and value classes are generated
 as [below](#sealed-types-and-value-classes). An abstract class or interface that is not sealed is
