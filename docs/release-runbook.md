@@ -84,16 +84,18 @@ it. `./gradlew checkApiCompatibility --continue` compares every published jar wi
   the released jar from Maven Central and fails on any binary- or source-incompatible change to public
   or protected API in the public-API packages: the packages that the released `krandom-core` module
   descriptor exports, and `io.github.frikit.krandom.jackson`, `.junit`, and `.spring`. Packages that
-  `krandom-core` does not export are not checked. A package the baseline exported must stay exported,
-  and each module keeps its JPMS name. The `krandom.*` properties bind through the setters of
+  `krandom-core` does not export are not checked. Each of these packages must stay exported, also if
+  an integration module, now an automatic module, gains a module descriptor, and each module keeps its
+  JPMS name. The `krandom.*` properties bind through the setters of
   `KrandomProperties`, so a removed or retyped property fails too. The full reports are in
   `build/reports/api-compatibility/<module>/`.
 - **Kotlin modules** (`kotlin-dsl`, `kotest-extensions`): the Kotlin Gradle plugin dumps the ABI of
   the current code, leaving out `internal` declarations that are public in bytecode, and every class
   and member of the committed baseline `<module>/api/<module>-<apiBaselineVersion>.api` must still be
   there. A member may move to a supertype, become more visible, or lose `final` or `abstract`, and a
-  class may gain supertypes; a type that users can implement or extend must not gain an abstract
-  member. The plugin's `checkKotlinAbi`, which would reject additions, is turned off, and
+  class may gain supertypes; a type that users can implement, extend, or apply, such as an
+  annotation, must not gain an abstract member. The plugin's `checkKotlinAbi`, which would reject
+  additions, is turned off, and
   `updateKotlinAbi` only writes the current dump to `<module>/build/api-compatibility/current/`.
 
 A failure names each broken declaration on its own line:
@@ -120,9 +122,12 @@ What to do:
 - **A removal or an incompatible change** fails; restore the baseline declaration. Only a major
   release removes or changes public API, and the owner decides how the baseline moves when a major
   release line opens.
-- **A compatible change that the Kotlin check rejects**, such as an abstract member added to a sealed
-  type, which no user can implement: record it with `./gradlew updateKotlinApiBaseline` in the same
-  pull request and explain it there, so that review sees the baseline diff.
+- **A compatible change that the Kotlin check rejects**, such as an annotation element with a default
+  value or an abstract member added to a sealed type, which no user can implement: record it with
+  `./gradlew updateKotlinApiBaseline` in the same pull request and explain it there, so that review
+  sees the baseline diff. japicmp also rejects an element added to a Java annotation even when it has
+  a default value, and the Java check has no such escape; give the new setting another form, such as
+  a new annotation.
 
 The check does not cover:
 
@@ -131,6 +136,10 @@ The check does not cover:
   `KrandomBuilder.ruleForType`, and `krandomReplayObjectArb`). The `@PublishedApi` members they call
   are checked, so compiled callers keep working, but a change to their own signatures shows only in
   the module tests that call them; review such changes by hand.
+- Kotlin source details that a JVM signature does not carry: parameter names, nullability, default
+  values, `vararg` versus an array, and type arguments. The ABI dump records erased JVM signatures, so
+  a change to one of these passes; review it by hand. For the Java modules, japicmp reports changed
+  type arguments and a parameter that stops being varargs.
 - Behavior: seeded output, the `krandom-recipe/v1` format, and the `fnv1a64-v1` derivation stay with
   the tests, such as `GenerationRecipeTest`.
 
@@ -185,7 +194,13 @@ unless it resolves to that same commit.
   `kotlin-dsl/api/` and `kotest-extensions/api/` with those of the current code.
   Run it before any other change lands on `main`, or else on a checkout of the
   `v<version>` tag with `-PapiBaselineVersion=<version>` and copy the two dumps
-  over. Then run `./scripts/verify_documentation_facts.sh` and
+  over. The new baseline jars need checksums before strict verification
+  accepts them: run `./scripts/update_verification_metadata.sh` under JDK 21
+  and JDK 25, as [dependency reproducibility](development/dependency-reproducibility.md)
+  describes, check that it added only the `krandom-*` `<version>` jars and
+  module files, and confirm each jar with
+  `gh attestation verify --repo frikit/krandom <jar>`. Then run
+  `./scripts/verify_documentation_facts.sh` and
   `./gradlew checkApiCompatibility`; the published install guidance stays
   unchanged.
 - Confirm the GitHub Pages deployment includes that follow-up documentation

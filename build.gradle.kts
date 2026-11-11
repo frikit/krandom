@@ -199,7 +199,7 @@ tasks.register("verifyReleaseSboms") {
 // - Java modules: japicmp compares the jar with the released jar from Maven Central, together with the
 //   dependency classpath of each, limited to public and protected API in the public-API packages: the
 //   unqualified exports of the released krandom-core module descriptor and the one package of each
-//   integration module. The module name and those exports must also stay.
+//   integration module. The JPMS module name must stay, and so must the export of each of those packages.
 // - Kotlin modules: the Kotlin Gradle plugin dumps the ABI of the current code, leaving out `internal`
 //   declarations that are public in bytecode, and every declaration of the baseline dump committed as
 //   <module>/api/<module>-<apiBaselineVersion>.api must still be there with compatible modifiers.
@@ -325,21 +325,29 @@ fun jpmsModuleName(jar: File): String? =
         } ?: file.manifest?.mainAttributes?.getValue("Automatic-Module-Name")
     }
 
-// Packages a jar's module descriptor exports to every module; empty when the jar has no descriptor.
-fun unqualifiedExports(jar: File): Set<String> =
+// Packages a jar exports to every module: the unqualified exports of its module descriptor or, for an
+// automatic module without one, every package that holds a class.
+fun exportedPackages(jar: File): Set<String> =
     java.util.jar.JarFile(jar).use { file ->
-        file
-            .getEntry("module-info.class")
-            ?.let { entry ->
+        val descriptor =
+            file.getEntry("module-info.class")?.let { entry ->
                 file.getInputStream(entry).use { input ->
                     java.lang.module.ModuleDescriptor
                         .read(input)
-                        .exports()
-                        .filterNot { export -> export.isQualified }
-                        .map { export -> export.source() }
-                        .toSortedSet()
                 }
-            }.orEmpty()
+            }
+        descriptor
+            ?.exports()
+            ?.filterNot { export -> export.isQualified }
+            ?.map { export -> export.source() }
+            ?.toSortedSet()
+            ?: file
+                .entries()
+                .asSequence()
+                .map { entry -> entry.name }
+                .filter { name -> name.endsWith(".class") && "/" in name && !name.startsWith("META-INF/") }
+                .map { name -> name.substringBeforeLast('/').replace('/', '.') }
+                .toSortedSet()
     }
 
 fun xmlChildren(
@@ -474,13 +482,15 @@ val javaApiCompatibilityTasks =
                     moduleProblems += "JPMS module name: $oldModuleName is now $newModuleName"
                 }
                 val apiPackages =
-                    integrationApiPackages[moduleName]?.let(::setOf) ?: unqualifiedExports(oldJar).also { exported ->
+                    integrationApiPackages[moduleName]?.let(::setOf) ?: exportedPackages(oldJar).also { exported ->
                         check(exported.isNotEmpty()) { "krandom-$moduleName $apiBaselineVersion exports no package" }
-                        val stillExported = unqualifiedExports(newJar)
-                        exported.filterNot(stillExported::contains).forEach { lost ->
-                            moduleProblems += "$lost: no longer exported by module $newModuleName"
-                        }
                     }
+                // An integration module is an automatic module that exports every package; an explicit
+                // descriptor added later must still export its public-API package.
+                val stillExported = exportedPackages(newJar)
+                apiPackages.filterNot(stillExported::contains).forEach { lost ->
+                    moduleProblems += "$lost: no longer exported by module $newModuleName"
+                }
 
                 args =
                     listOf(
@@ -627,8 +637,9 @@ fun kotlinAbiMember(line: String): Pair<Set<String>, String> {
 
 // Declarations of the baseline dump that the current dump removes or changes incompatibly. A member
 // may move to a supertype in the current dump; a class may gain supertypes, never lose one. A type
-// that code outside the module can implement or extend (not final, not an annotation) must not gain
-// an abstract member, which every existing implementation would lack.
+// that code outside the module can implement, extend, or apply (any type that is not final) must not
+// gain an abstract member: existing implementations would lack it, and so would existing usages of an
+// annotation unless the new element has a default value, which the dump does not show.
 fun kotlinAbiBreaks(
     baseline: Map<String, KotlinAbiClass>,
     current: Map<String, KotlinAbiClass>,
@@ -681,15 +692,22 @@ fun kotlinAbiBreaks(
                 listOf("${displayName(className)}: `${oldClass.header}` is now `${newClass.header}`")
             }
         val oldSignatures = oldClass.members.map { line -> kotlinAbiMember(line).second }.toSet()
+        val newHeaderModifiers = headerModifiers(newClass.header)
+        val consequence =
+            if ("annotation" in newHeaderModifiers) {
+                "which existing usages lack unless it has a default value"
+            } else {
+                "which existing implementations lack"
+            }
         val newAbstractMembers =
-            if ("final" in headerModifiers(newClass.header) || "annotation" in headerModifiers(newClass.header)) {
+            if ("final" in newHeaderModifiers) {
                 emptyList()
             } else {
                 newClass.members
                     .filter { line ->
                         val (modifiers, signature) = kotlinAbiMember(line)
                         "abstract" in modifiers && signature !in oldSignatures
-                    }.map { line -> "${displayName(className)}: added `$line`, which existing implementations lack" }
+                    }.map { line -> "${displayName(className)}: added `$line`, $consequence" }
             }
         headerBreaks + newAbstractMembers +
             oldClass.members.mapNotNull { line ->
@@ -807,7 +825,8 @@ tasks.named("check") {
 tasks.register("updateKotlinApiBaseline") {
     group = "verification"
     description =
-        "Records the current Kotlin ABI as the $apiBaselineVersion baseline; run it on that release commit only."
+        "Records the current Kotlin ABI as the $apiBaselineVersion baseline: on the release commit after a release, " +
+        "or for a compatible change the check rejects (docs/release-runbook.md)."
     kotlinApiModules.forEach { moduleName -> dependsOn(":$moduleName:updateKotlinAbi") }
     val dumps =
         kotlinApiModules.map { moduleName ->
