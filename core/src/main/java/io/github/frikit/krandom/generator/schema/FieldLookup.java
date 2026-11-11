@@ -40,6 +40,12 @@ public final class FieldLookup {
     private final boolean seedsValues;
 
     /**
+     * A builder of this lookup's configuration for each thread, which only ever changes its seed, so that a
+     * value's configuration costs the copy that {@code build()} makes and not a new builder's copy as well.
+     */
+    private final ThreadLocal<GeneratorConfig.Builder> valueBuilders;
+
+    /**
      * Creates a lookup with generators initialized from the provided config.
      *
      * @param config generator config used for locale/seed propagation
@@ -48,6 +54,7 @@ public final class FieldLookup {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.seedsValues =
                 config.getRandom().isEmpty() && config.getRandomFactory().isEmpty() && !config.isSecureRandom();
+        this.valueBuilders = ThreadLocal.withInitial(config::toBuilder);
         registerBuiltIns();
         registerExtensions();
     }
@@ -59,7 +66,7 @@ public final class FieldLookup {
      */
     @org.jspecify.annotations.Nullable GeneratorConfig valueConfig(SchemaContext context) {
         return seedsValues && context.random() instanceof Schema.FieldStream stream
-                ? config.toBuilder().seed(stream.nextLong()).build()
+                ? valueBuilders.get().seed(stream.nextLong()).build()
                 : null;
     }
 
