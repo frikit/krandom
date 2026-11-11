@@ -434,8 +434,12 @@ class ObjectConstructionPolicyTest {
                                 .build())
                 .generate();
 
-        // The interface declares no field to fill, so the implementation stays as the adapter built it.
-        assertEquals("built", assertInstanceOf(AdapterContractImpl.class, value).state);
+        // The interface declares no field to fill, so the implementation stays as the adapter built it, with the
+        // argument the context generated for it.
+        AdapterContractImpl built = assertInstanceOf(AdapterContractImpl.class, value);
+        assertEquals("built", built.state);
+        assertNotNull(built.name);
+        assertFalse(built.ruled);
     }
 
     @Test
@@ -849,7 +853,14 @@ class ObjectConstructionPolicyTest {
 
     static final class AdapterContractImpl implements AdapterContract {
 
+        final String name;
+        final boolean ruled;
         String state = "built";
+
+        AdapterContractImpl(String name, boolean ruled) {
+            this.name = name;
+            this.ruled = ruled;
+        }
     }
 
     /** A view that is shared through a static field declared with its interface. */

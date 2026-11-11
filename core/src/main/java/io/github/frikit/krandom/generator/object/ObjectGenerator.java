@@ -801,9 +801,12 @@ public final class ObjectGenerator<T> implements Generator<T> {
         return property != null && property.getType() == rawType ? property : null;
     }
 
-    /** The field behind a constructor parameter: the nearest one with its name, on the type or a superclass. */
+    /**
+     * The field behind a constructor parameter: the nearest one with its name, on the type or a superclass. An
+     * interface, which a construction adapter may build, has no superclass to look in.
+     */
     private @Nullable Field constructionField(String memberName) {
-        for (Class<?> current = type; current != Object.class; current = current.getSuperclass()) {
+        for (Class<?> current = type; current != null && current != Object.class; current = current.getSuperclass()) {
             try {
                 return current.getDeclaredField(memberName);
             } catch (NoSuchFieldException notDeclaredHere) {

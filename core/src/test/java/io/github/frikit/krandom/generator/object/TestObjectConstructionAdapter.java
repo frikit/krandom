@@ -107,7 +107,11 @@ public final class TestObjectConstructionAdapter implements ObjectConstructionAd
             return new ObjectConstructionPolicyTest.AdapterErrorFixture();
         }
         if (context.getType() == ObjectConstructionPolicyTest.AdapterContract.class) {
-            return new ObjectConstructionPolicyTest.AdapterContractImpl();
+            // An interface declares no field behind a parameter, so neither question finds one.
+            boolean overridden = context.hasExplicitOverride("name", String.class);
+            boolean excluded = context.isExcluded("name");
+            return new ObjectConstructionPolicyTest.AdapterContractImpl(
+                    (String) context.generate(String.class, String.class, "name", null), overridden || excluded);
         }
         if (context.getType() == ObjectConstructionPolicyTest.InitHost.Child.class) {
             return new ObjectConstructionPolicyTest.InitHost.Child();
