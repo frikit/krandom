@@ -425,6 +425,20 @@ class ObjectConstructionPolicyTest {
     }
 
     @Test
+    @DisplayName("an adapter may build an interface that is not sealed, as the implementation it chooses")
+    void adapterBuildsAnInterface() {
+        AdapterContract value = new ObjectGenerator<>(
+                        AdapterContract.class,
+                        GeneratorConfig.builder()
+                                .objectOverrideDefaultInitialization(true)
+                                .build())
+                .generate();
+
+        // The interface declares no field to fill, so the implementation stays as the adapter built it.
+        assertEquals("built", assertInstanceOf(AdapterContractImpl.class, value).state);
+    }
+
+    @Test
     @DisplayName("an adapter's instance keeps the fields the engine cannot open, as a JDK superclass's are")
     void adapterInstanceKeepsTheFieldsTheEngineCannotOpen() {
         // Throwable's fields are in java.lang, which is not open to the engine.
@@ -828,6 +842,14 @@ class ObjectConstructionPolicyTest {
         AdapterErrorFixture() {
             super("boom");
         }
+    }
+
+    /** An interface that is not sealed, which an adapter builds as an implementation of its choice. */
+    interface AdapterContract {}
+
+    static final class AdapterContractImpl implements AdapterContract {
+
+        String state = "built";
     }
 
     /** A view that is shared through a static field declared with its interface. */

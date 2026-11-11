@@ -1089,12 +1089,13 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     /**
      * The settable fields of {@code clazz}. One in a package that is not open to the engine fails generation
-     * where {@code failOnClosed} is true, and is left out where it is false.
+     * where {@code failOnClosed} is true, and is left out where it is false. An interface, which a construction
+     * adapter may build, has no superclass and no field to fill.
      */
     private static List<Field> doCollectSettableFields(Class<?> clazz, boolean failOnClosed) {
         List<Field> fields = new ArrayList<>();
         Class<?> current = clazz;
-        while (current != Object.class) {
+        while (current != null && current != Object.class) {
             // getDeclaredFields() order is JVM-implementation-specific; sort each class's fields by
             // name so per-field seed allocation (and thus seeded output) is reproducible across JDK
             // builds, vendors, and instrumentation agents. Hierarchy order (subclass before
