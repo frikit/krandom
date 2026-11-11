@@ -85,6 +85,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   only, so `register("first_name", ...)` succeeded and `get("first_name")` then returned the new provider
   instead of the `person.first_name` generator that the built-in alias names. `ConflictPolicy.REPLACE` still
   lets the name resolve to the new provider. Generated values are unchanged.
+- `MoneyGenerator` now shows an amount below its maximum, as its `[0, max)` range says. It bounded the drawn
+  amount, which the currency format then rounded, so a draw of 0.999 through `generateDollar(1)` showed
+  `$1.00`. An amount that would show at the maximum is now rounded down: with seed 42, of 1,000,000 values
+  each, `generateDollar(1)` showed `$1.00` 5,186 times and `generate(1)` in `ja_JP` showed `￥1` 500,202
+  times, and they now show `$0.99` and `￥0`. With the default maximum of 10,000, 50 of 1,000,000 yen amounts
+  showed `￥10,000` and none of 1,000,000 dollar amounts reached `$10,000.00`. Every other value is unchanged.
 
 ## [3.0.0] - 2026-11-10
 
