@@ -699,6 +699,11 @@ final class FixtureRuleAnalysis {
                             prefix + member.name(),
                             depth,
                             inProgress);
+                    if (member.parameter()) {
+                        // The constructor may replace an argument that generation leaves null, so nothing is
+                        // known of it; a field of its name that generation fills afterwards counts again.
+                        leftNull.remove(prefix + member.name() + ".");
+                    }
                 }
             }
         }

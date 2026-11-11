@@ -596,8 +596,18 @@ class ObjectFakerStrictDiagnosticsTest {
         assertTrue(
                 onlyProblem(absent).reason().endsWith("applies at 'purchase.id'"),
                 onlyProblem(absent).reason());
-        // A constructor may replace an argument that the configuration leaves out, so it is not followed.
+        // A constructor may replace an argument that the configuration leaves out or null, so it is not followed.
         assertEquals(List.of(), problemsOf(constructed));
+        assertEquals(
+                List.of(),
+                problemsOf(new ObjectFaker<>(
+                                ConstructedPurchaseAccount.class,
+                                GeneratorConfig.builder()
+                                        .objectNullProbability(1.0)
+                                        .build())
+                        .ruleFor("id", () -> "x")
+                        .ruleFor("name", () -> "n")
+                        .ruleFor("purchase.note", () -> "p")));
         // populate(existing) keeps the excluded purchase it is given, which no root rule reaches.
         Account existing = new Account();
         existing.purchase = new Purchase();
