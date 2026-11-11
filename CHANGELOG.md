@@ -20,6 +20,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `Schema` and `SchemaProjection` TOML output escapes U+007F (DEL) as `\u007f` in strings and quoted keys.
   It wrote the character raw, as JSON allows, but TOML forbids it, so a parser such as Python's `tomllib`
   rejected the document. Every other character is written as before, and JSON output keeps DEL raw.
+- The JSON Schema that `Field.constant(...)`, `SchemaValueProvider.withSample(...)`, and payload templates
+  export, and so `Schema.toJsonSchema()`, now accepts their own values. Array items came from the first item
+  that is not `null` alone, so `[1, "a"]` exported integer items and `[1, null]` items that reject `null`;
+  items of different types now export `{}`, which allows any value, and a `null` item makes the others'
+  schema nullable, as `{"type": ["integer", "null"]}`. A map key that is not a string was left out of
+  `properties` beside `additionalProperties: false`, so `{1: "x"}` exported a schema that rejects the
+  `{"1": "x"}` every writer writes; the key is now the member `"1"`. Generated values are unchanged.
 
 ## [3.0.0] - 2026-11-10
 

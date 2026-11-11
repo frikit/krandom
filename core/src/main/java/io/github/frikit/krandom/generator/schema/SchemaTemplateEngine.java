@@ -82,7 +82,7 @@ final class SchemaTemplateEngine {
         return template;
     }
 
-    private Map<String, Object> inferPayloadSchema(Object template) {
+    private Map<String, Object> inferPayloadSchema(@org.jspecify.annotations.Nullable Object template) {
         if (template == null) {
             return JsonSchemaSupport.nullType();
         }
@@ -94,34 +94,27 @@ final class SchemaTemplateEngine {
             return JsonSchemaSupport.string();
         }
         if (template instanceof Map<?, ?> map) {
-            Map<String, Map<String, Object>> properties = new LinkedHashMap<>();
+            // The payload keeps every key, which the writers write as its text.
+            Map<String, List<Map<String, Object>>> members = new LinkedHashMap<>();
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-                if (entry.getKey() instanceof String key) {
-                    properties.put(key, inferPayloadSchema(entry.getValue()));
-                }
+                JsonSchemaSupport.member(members, entry.getKey()).add(inferPayloadSchema(entry.getValue()));
             }
-            return JsonSchemaSupport.object(properties);
+            return JsonSchemaSupport.members(members);
         }
         if (template instanceof Iterable<?> items) {
-            Object firstNonNull = null;
+            List<Map<String, Object>> schemas = new ArrayList<>();
             for (Object item : items) {
-                if (item != null) {
-                    firstNonNull = item;
-                    break;
-                }
+                schemas.add(inferPayloadSchema(item));
             }
-            return JsonSchemaSupport.array(
-                    firstNonNull == null ? JsonSchemaSupport.nullType() : inferPayloadSchema(firstNonNull));
+            return JsonSchemaSupport.array(JsonSchemaSupport.union(schemas));
         }
         if (template.getClass().isArray()) {
             int length = Array.getLength(template);
+            List<Map<String, Object>> schemas = new ArrayList<>(length);
             for (int i = 0; i < length; i++) {
-                Object item = Array.get(template, i);
-                if (item != null) {
-                    return JsonSchemaSupport.array(inferPayloadSchema(item));
-                }
+                schemas.add(inferPayloadSchema(Array.get(template, i)));
             }
-            return JsonSchemaSupport.array(JsonSchemaSupport.nullType());
+            return JsonSchemaSupport.array(JsonSchemaSupport.union(schemas));
         }
         return JsonSchemaSupport.infer(template);
     }

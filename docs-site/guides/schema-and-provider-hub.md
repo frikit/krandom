@@ -192,7 +192,10 @@ reason: the importer has no document-ID or reference-resolution model.
 
 Schema export is metadata-driven and side-effect free. Built-in `Field` providers carry an exact
 fragment; a custom lambda with no metadata deliberately exports `{}` to mean **unknown**, not an
-invented type. A record member exports by its Java type: a `LocalDate` as `format: date`, an
+invented type. A constant, a `withSample(...)` sample, and a payload template export the schema of their
+value, which every value they give meets: array items follow every item, so items of different types
+export `{}` and a `null` item makes the others' schema nullable, and a map member is named as the writers
+write its key, so the key `1` is the member `"1"`. A record member exports by its Java type: a `LocalDate` as `format: date`, an
 `OffsetTime` as `time`, an `OffsetDateTime`, `ZonedDateTime`, or `Instant` as `date-time`, and a
 `LocalDateTime` or `LocalTime` as `date-time-local` or `time-local`, as the `datetime.time` provider
 does too, because RFC 3339's `date-time` and `time` need an offset that those values do not have.

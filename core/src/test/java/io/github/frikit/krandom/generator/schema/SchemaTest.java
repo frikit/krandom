@@ -214,9 +214,9 @@ class SchemaTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> mapWithNonStringKeyType = (Map<String, Object>) properties.get("mapWithNonStringKey");
         assertEquals("object", mapWithNonStringKeyType.get("type"));
-        @SuppressWarnings("unchecked")
-        Map<String, Object> nonStringProperties = (Map<String, Object>) mapWithNonStringKeyType.get("properties");
-        assertTrue(nonStringProperties.isEmpty());
+        // The writers write the key 1 as "1", so the member is there under that name.
+        assertEquals(Map.of("1", Map.of("type", "string")), mapWithNonStringKeyType.get("properties"));
+        assertEquals(List.of("1"), mapWithNonStringKeyType.get("required"));
 
         @SuppressWarnings("unchecked")
         Map<String, Object> customObjectType = (Map<String, Object>) properties.get("customObject");
