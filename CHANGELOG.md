@@ -53,9 +53,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the `Field` shared, so a column changed the values of the columns after it: with seed 42, a
   `template("##")` column `x` was `03` alone and `84` after another such column, and is now `37` either way.
   Each value now makes its generator from a seed drawn from its stream, which changes every such value of a
-  portable seeded schema: with seed 42, the first two `person.first_name` values went from `Victor` and
-  `Kenneth` to `Grace` and `Ivy`, and a parsed `firstName` and `email` from `Victor` and
-  `caroline.tran@example.com` to `Stella` and `landonhill@example.net`. Seeded schemas without a recipe,
+  portable seeded schema, and makes it depend on its column's name, as the stream's does: with seed 42, a
+  `person.first_name` column named `name` went from `Victor` and `Kenneth` to `Grace` and `Ivy` in its first
+  two records, and parsed columns `firstName` and `email` from `Victor` and `caroline.tran@example.com` to
+  `Stella` and `landonhill@example.net`. Seeded schemas without a recipe,
   unseeded schemas, a `Field` whose configuration uses a caller-owned, factory-made, or secure random source,
   a `SchemaContext` that the caller makes, and `ProviderTemplateGenerator` keep their values. Making a
   generator for each value takes longer: a record of the 12 references in `SchemaOutputBenchmark` took
