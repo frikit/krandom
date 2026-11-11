@@ -19,12 +19,15 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.IDN;
 import java.net.URI;
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -764,6 +767,105 @@ class SchemaParserTest {
             Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("email", emptySchema)));
             String value = (String) schema.generate().get("email");
             assertTrue(value.contains("@"), "Expected email, got: " + value);
+        }
+
+        /** A seeded configuration whose clock is in UTC, so the semantic timestamps are UTC midnights. */
+        private static final GeneratorConfig UTC = GeneratorConfig.builder()
+                .seed(31L)
+                .clock(Clock.fixed(Instant.parse("2026-07-10T12:00:00Z"), ZoneOffset.UTC))
+                .build();
+
+        private static List<Object> timestamps(Map<String, Object> property) {
+            List<Object> values = new ArrayList<>();
+            for (Map<String, Object> record : SchemaParser.fromJsonSchema(
+                            objectSchema(Map.of("datetimeTimestamp", property)), UTC)
+                    .generateBatch(200)) {
+                values.add(record.get("datetimeTimestamp"));
+            }
+            return values;
+        }
+
+        @Test
+        @DisplayName("an untyped semantic value keeps its own type, and the schema's keywords for it apply")
+        void untypedSemanticValueMeetsItsTypesKeywords() {
+            List<Object> plain = timestamps(Map.of());
+            // Timestamps run from 1970 to 2100, so none of them is at most -1000000000.
+            for (Object value : timestamps(Map.of("maximum", -1_000_000_000))) {
+                assertTrue(((Number) value).longValue() <= -1_000_000_000L, "above the maximum: " + value);
+            }
+            // Keywords that every timestamp meets leave the values as they were.
+            assertEquals(plain, timestamps(Map.of("minimum", 0)));
+            assertEquals(plain, timestamps(Map.of("multipleOf", 86_400)));
+            // Where some timestamps meet them, those stay, and the others are drawn from the keywords.
+            List<Object> bounded = timestamps(Map.of("maximum", 2_000_000_000L));
+            int kept = 0;
+            for (int i = 0; i < plain.size(); i++) {
+                long value = ((Number) bounded.get(i)).longValue();
+                assertTrue(value <= 2_000_000_000L, "above the maximum: " + value);
+                if (bounded.get(i).equals(plain.get(i))) {
+                    kept++;
+                }
+            }
+            assertTrue(kept > 0 && kept < plain.size(), "kept " + kept + " of " + plain.size());
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf"})
+        @DisplayName("every numeric keyword constrains an untyped semantic integer")
+        void everyNumericKeywordConstrainsASemanticInteger(String keyword) {
+            // Bounds beyond the timestamps on the side each keyword limits, and a step that no later midnight
+            // meets.
+            Map<String, Object> property = Map.of(
+                    keyword,
+                    switch (keyword) {
+                        case "minimum", "exclusiveMinimum" -> 5_000_000_000L;
+                        case "maximum", "exclusiveMaximum" -> -5_000_000_000L;
+                        default -> 86_399;
+                    });
+            for (Object value : timestamps(property)) {
+                // The parser's own check: a const of the value beside the same keyword must be accepted.
+                Map<String, Object> constant = new HashMap<>(property);
+                constant.put("const", value);
+                assertDoesNotThrow(
+                        () -> SchemaParser.fromJsonSchema(objectSchema(Map.of("v", constant))), keyword + " " + value);
+            }
+        }
+
+        @Test
+        @DisplayName("keywords that leave an untyped semantic value's type no value are rejected with the path")
+        void untypedSemanticKeywordsWithoutValueAreRejected() {
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(
+                            objectSchema(Map.of("datetimeTimestamp", Map.of("minimum", 5, "maximum", 4)))));
+            assertTrue(exception.getMessage().contains("$.properties.datetimeTimestamp"), exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("an untyped semantic object meets the schema's object keywords")
+        void untypedSemanticObjectMeetsObjectKeywords() {
+            Schema plain = SchemaParser.fromJsonSchema(objectSchema(Map.of("companyInfo", Map.of())), UTC);
+            // Every company has a name, so the values stay, and so does the company's exported schema.
+            assertEquals(
+                    plain.generateBatch(5),
+                    SchemaParser.fromJsonSchema(
+                                    objectSchema(Map.of("companyInfo", Map.of("required", List.of("name")))), UTC)
+                            .generateBatch(5));
+            Map<?, ?> exported = (Map<?, ?>) plain.toJsonSchema().get("properties");
+            assertTrue(((Map<?, ?>) exported.get("companyInfo")).containsKey("properties"), exported.toString());
+            // A company has more than two members, and a name that is no integer.
+            for (Map<String, Object> property : List.of(
+                    Map.<String, Object>of("maxProperties", 2),
+                    Map.<String, Object>of("properties", Map.of("name", Map.of("type", "integer"))))) {
+                Schema schema = SchemaParser.fromJsonSchema(objectSchema(Map.of("companyInfo", property)), UTC);
+                for (Map<String, Object> record : schema.generateBatch(5)) {
+                    Map<?, ?> value = assertInstanceOf(Map.class, record.get("companyInfo"));
+                    assertTrue(value.size() <= 2 || value.get("name") instanceof Integer, value.toString());
+                }
+                assertEquals(
+                        Map.of("type", "object"),
+                        ((Map<?, ?>) schema.toJsonSchema().get("properties")).get("companyInfo"));
+            }
         }
     }
 

@@ -111,7 +111,10 @@ import org.jspecify.annotations.Nullable;
  * {@code enum} beside it names the values, as those are only checked against it.
  *
  * <p>Field names are matched against krandom's semantic resolver for realistic data.
- * For example, a property named "email" with type "string" will produce email addresses.
+ * For example, a property named "email" with type "string" will produce email addresses. A schema without a
+ * type leaves a semantic value its own type, such as the integer timestamp of "datetimeTimestamp", so the
+ * schema's keywords for that type apply to it: a value that misses them is replaced by one drawn from them, as
+ * if the schema declared the type, and keywords that leave the type no value are rejected with the path.
  *
  * <pre>{@code
  *   Map<String, Object> jsonSchema = Map.of(
@@ -167,6 +170,30 @@ public final class SchemaParser {
      * draws no more than it.
      */
     private static final int SIZE_LIMIT = 1_000_000;
+
+    /** The keywords that constrain a number, an integer among them. */
+    private static final List<String> NUMERIC_KEYWORDS =
+            List.of("minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf");
+
+    /**
+     * The keywords that constrain a value of each JSON type, other than a string, that a semantic value can
+     * have. A schema without a type leaves such a value its type, so these apply to it.
+     */
+    private static final Map<String, List<String>> TYPE_KEYWORDS = Map.of(
+            "integer",
+            NUMERIC_KEYWORDS,
+            "number",
+            NUMERIC_KEYWORDS,
+            "array",
+            List.of("items", "additionalItems", "minItems", "maxItems", "uniqueItems"),
+            "object",
+            List.of(
+                    "properties",
+                    "required",
+                    "additionalProperties",
+                    "minProperties",
+                    "maxProperties",
+                    "dependencies"));
 
     /** How a rejection of the root's member keywords begins. */
     private static final String ROOT_COLUMNS =
@@ -655,7 +682,8 @@ public final class SchemaParser {
             case "array" -> resolveArray(fieldName, path, fieldSchema, field, config);
             case "object" -> resolveNestedObject(path, fieldSchema, field, config);
             case "null" -> ctx -> null;
-            // A schema without a type also generates a string, so string constraints apply to it too.
+            // A schema without a type also generates a string, unless its name chooses a semantic value of
+            // another type, so string constraints apply to it too.
             default -> resolveString(fieldName, path, fieldSchema, format, field, config);
         };
     }
@@ -919,10 +947,15 @@ public final class SchemaParser {
         if (!declaresLength(schema)) {
             SchemaValueProvider semantic = trySemanticResolve(fieldName, field);
             if (semantic != null) {
-                // A semantic value can have its own type, such as a numeric timestamp; a declared type wins.
-                return schema.containsKey("type")
-                                && !"string".equals(semantic.jsonSchema().get("type"))
-                        ? ctx -> String.valueOf(semantic.generate(ctx))
+                String semanticType = String.valueOf(semantic.jsonSchema().get("type"));
+                if (schema.containsKey("type")) {
+                    // A semantic value can have its own type, such as a numeric timestamp; a declared type wins.
+                    return "string".equals(semanticType) ? semantic : ctx -> String.valueOf(semantic.generate(ctx));
+                }
+                // Without a type, a semantic value keeps its own, so the schema's keywords for that type apply.
+                return TYPE_KEYWORDS.getOrDefault(semanticType, List.of()).stream()
+                                .anyMatch(schema::containsKey)
+                        ? meeting(semantic, semanticType, fieldName, path, schema, field, config)
                         : semantic;
             }
         }
@@ -936,6 +969,32 @@ public final class SchemaParser {
         int minLength = schema.containsKey("minLength") ? fewest : Math.min(config.getMinStringLength(), maxLength);
         // Generated text has at least one character, so only maxLength 0 needs the empty string.
         return maxLength == 0 ? ctx -> "" : text(Math.max(minLength, 1), maxLength);
+    }
+
+    /**
+     * A semantic value where it meets the schema, and otherwise a value drawn from the schema as if it declared
+     * the semantic value's type, which also rejects keywords that leave that type no value, with the path.
+     */
+    private static SchemaValueProvider meeting(
+            SchemaValueProvider semantic,
+            String type,
+            String fieldName,
+            String path,
+            Map<String, Object> schema,
+            Field field,
+            GeneratorConfig config) {
+        Map<String, Object> typed = new LinkedHashMap<>();
+        typed.put("type", type);
+        typed.putAll(schema);
+        SchemaValueProvider drawn = resolveProvider(fieldName, path, typed, field, config);
+        // Values keep to the keywords as parsed, even if the caller's map changes later.
+        Map<String, Object> parsed = new LinkedHashMap<>(schema);
+        return SchemaValueProvider.withJsonSchema(
+                ctx -> {
+                    Object value = semantic.generate(ctx);
+                    return satisfies(value, parsed) ? value : drawn.generate(ctx);
+                },
+                Map.of("type", type));
     }
 
     /**

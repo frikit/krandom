@@ -35,6 +35,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   record that the columns generate and that the root names is kept, so seeded output changes only for
   records that broke the root `const` or `enum`; any other record is replaced by one the root names, drawn
   from the record's own stream where there are several.
+- In `SchemaParser.fromJsonSchema(...)`, a property without a `type` whose name chooses a semantic value of
+  another type, such as the integer Unix timestamp of `datetimeTimestamp` or the company object of
+  `companyInfo`, now meets the schema's keywords for that type, which it ignored. With seed 42 and a UTC
+  clock, `datetimeTimestamp` with `maximum` -1000000000 gave 798249600, 1438128000, and 3699302400, and now
+  gives -1521810362, -2139508635, and -1901379525; `companyInfo` with `maxProperties` 2 gave a company of
+  eight members, and now gives `{}`. A semantic value that meets the keywords is kept, so seeded output
+  changes only for values that broke them; any other value is drawn from the keywords as if the schema
+  declared the type, and keywords that leave that type no value, such as `minimum` 5 with `maximum` 4, are
+  rejected with the schema path. The exported schema of such a property names only its type.
 
 ## [3.0.0] - 2026-11-10
 
