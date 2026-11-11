@@ -524,7 +524,9 @@ declaring class and name, so they also reach that member in a nested object of t
 another subclass of the class that declares an inherited member: `ruleFor("id", () -> 42L)` on
 `Order extends BaseEntity` also sets the `id` of a `Customer extends BaseEntity` generated inside it. A dependent rule,
 such as `ruleFor("id", order -> 42L)`, applies at its own path only. A nested rule past `objectMaxDepth` is
-used: it creates the objects on its path.
+used: it creates the objects on its path that generation leaves `null`, there or at a cycle or an
+exclusion, each as a root of its own, so a root rule, a root ignore and include mode also reach their
+members, and the check lists those paths too.
 
 A rule that replaces an earlier one for the same path is how a profile or a shared `ObjectModel` is refined
 per test, and `ObjectFaker.strict()` reports the earlier rule as shadowed, so leave `ObjectFaker.strict()`

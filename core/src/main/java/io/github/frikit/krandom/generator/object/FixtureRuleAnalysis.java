@@ -572,6 +572,8 @@ final class FixtureRuleAnalysis {
      * where each subject's member appears in them. It stops wherever generation would: past
      * {@code objectMaxDepth}, at a type already being generated on the path, at a type it cannot construct,
      * and at a member that an exclusion, an override, a {@code @Randomizer} or a kept initializer decides.
+     * Then it follows the parents that a nested rule builds where generation leaves them {@code null}, as
+     * {@link ObjectFaker} builds them: each as a root of its own, which the root decisions reach too.
      */
     private final class RouteWalk {
 
@@ -579,6 +581,10 @@ final class FixtureRuleAnalysis {
         private final Set<String> installedKeys;
         private final Set<Field> fakerExcluded;
         private final boolean populating;
+        /** The paths of the objects that generation builds, each ending in a dot, such as {@code "client."}. */
+        private final Set<String> built = new HashSet<>();
+        /** The paths, ending in a dot, of the object members that generation reaches but leaves {@code null}. */
+        private final Set<String> leftNull = new HashSet<>();
 
         private RouteWalk(
                 List<Subject> subjects, Set<String> installedKeys, Set<Field> fakerExcluded, boolean populating) {
@@ -591,41 +597,81 @@ final class FixtureRuleAnalysis {
         /**
          * Visits the root: {@code populate(existing)} fills the given object's fields, and {@code generate()}
          * builds the root as a member of its type is built, or with its type override, which fills nothing.
+         * Then visits the parents that the nested rules build.
          */
         private void visitRoot() {
             if (populating) {
                 visit(rootType, ResolvedType.bindingsFor(rootType), "", 0, Set.of());
+            } else {
+                visitBuilt(rootType, "");
+            }
+            visitBuiltParents();
+        }
+
+        /**
+         * Visits an object that generation builds as a root of its own, at {@code prefix}: the fixture's root,
+         * or a parent that a nested rule builds. A type override builds it and fills nothing, and an abstract
+         * type is built as the subtype it maps to or as one class of its sealed hierarchy.
+         */
+        private void visitBuilt(Class<?> type, String prefix) {
+            if (typeOverridden(type)) {
                 return;
             }
-            if (typeOverridden(rootType)) {
+            if (!SealedTypes.isAbstract(type)) {
+                visit(type, ResolvedType.bindingsFor(type), prefix, 0, Set.of());
                 return;
             }
-            if (!SealedTypes.isAbstract(rootType)) {
-                visit(rootType, ResolvedType.bindingsFor(rootType), "", 0, Set.of());
-                return;
-            }
-            Class<?> mapped = config.resolveSubtype(rootType);
-            if (mapped != rootType) {
+            Class<?> mapped = config.resolveSubtype(type);
+            if (mapped != type) {
                 if (!typeOverridden(mapped)) {
-                    visit(mapped, ResolvedType.bindingsFor(mapped), "", 0, Set.of());
+                    visit(mapped, ResolvedType.bindingsFor(mapped), prefix, 0, Set.of());
                 }
                 return;
             }
-            for (Class<?> chosen : sealedChoices(rootType, Map.of(), null, Set.of())) {
+            for (Class<?> chosen : sealedChoices(type, Map.of(), null, Set.of())) {
                 // A sealed root's choice counts as being generated, as a member's choice does.
                 Map<TypeVariable<?>, Type> bindings = ResolvedType.bindingsFor(chosen);
                 visit(
                         chosen,
                         bindings,
-                        "",
+                        prefix,
                         0,
                         Set.of(cycleKey(chosen, ResolvedType.resolvedSignature(chosen, bindings))));
+            }
+        }
+
+        /**
+         * Visits the parents that a nested rule builds. {@link ObjectFaker} builds a parent on a rule's path
+         * that generation leaves {@code null} as a root of its own, with the root rules, root ignores and
+         * include-mode exclusions, and with a depth of its own, so the root decisions reach its members and
+         * the objects below it. Where a rule supplies a parent or an ignore clears it, or nothing is known of
+         * it, as of a member that an override supplies or that {@code populate(existing)} is given, nothing
+         * below it is built.
+         */
+        private void visitBuiltParents() {
+            for (String rulePath : activeRules.keySet()) {
+                List<RuleTarget> segments = path(rulePath).segments();
+                for (int index = 0; index < segments.size() - 1; index++) {
+                    String parent = prefix(segments, index);
+                    String member = parent + ".";
+                    if (activeRules.containsKey(parent) || activeIgnores.containsKey(parent)) {
+                        break;
+                    }
+                    if (built.contains(member)) {
+                        continue;
+                    }
+                    if ((populating && index == 0) || !leftNull.contains(member)) {
+                        break;
+                    }
+                    visitBuilt(segments.get(index).valueType(), member);
+                }
             }
         }
 
         /** Visits the members of an object of {@code type} that generation builds at {@code depth}. */
         private void visit(
                 Class<?> type, Map<TypeVariable<?>, Type> bindings, String prefix, int depth, Set<String> inProgress) {
+            built.add(prefix);
             if (!type.isRecord()
                     && (adapters.constructionAdapter(type, ObjectGenerator::constructionAdapterFor)
                                     .isPresent()
@@ -633,11 +679,18 @@ final class FixtureRuleAnalysis {
                 // A construction adapter decides such a type's members, or generation cannot build it.
                 return;
             }
-            if (depth > 0) {
+            if (!prefix.isEmpty()) {
                 recordRoutes(type, prefix);
             }
-            for (Member member : members(type, !(populating && depth == 0))) {
-                if (isGenerated(member) && !hasMemberGenerator(member)) {
+            for (Member member : members(type, !(populating && prefix.isEmpty()))) {
+                if (!isGenerated(member)) {
+                    // An excluded member keeps its default: an argument passes it, and a field holds it unless
+                    // an initializer that generation keeps sets it.
+                    if (member.parameter()
+                            || startsAtDefault(type, Objects.requireNonNull(member.field(), "a field member"))) {
+                        leftNull.add(prefix + member.name() + ".");
+                    }
+                } else if (!hasMemberGenerator(member)) {
                     descend(
                             member.genericType(),
                             member.element(),
@@ -741,9 +794,13 @@ final class FixtureRuleAnalysis {
                 elements(declaredType, rawType, element, bindings, Map.class, path, depth, inProgress);
             } else if (!rawType.isEnum()
                     && resolved.isResolved()
-                    && !(resolved.kind() == ResolvedType.Kind.CLASS && rawType.getTypeParameters().length > 0)
-                    && depth < config.getMaxDepth()) {
-                nested(resolved, rawType, bindings, path, depth, inProgress);
+                    && !(resolved.kind() == ResolvedType.Kind.CLASS && rawType.getTypeParameters().length > 0)) {
+                if (depth < config.getMaxDepth()) {
+                    nested(resolved, rawType, bindings, path, depth, inProgress);
+                } else {
+                    // Generation leaves an object past objectMaxDepth null.
+                    leftNull.add(path + ".");
+                }
             }
         }
 
@@ -814,12 +871,18 @@ final class FixtureRuleAnalysis {
                 Set<String> inProgress) {
             Class<?> nestedType = config.resolveSubtype(rawType);
             boolean sealed = SealedTypes.isSealed(nestedType, adapters);
-            List<Class<?>> classes = sealed
-                    ? sealedChoices(nestedType, bindings, resolved, inProgress)
-                    : FieldGeneratorResolver.isNestableType(nestedType)
-                                    && !inProgress.contains(cycleKey(nestedType, resolved.resolvedSignature()))
-                            ? List.of(nestedType)
-                            : List.of();
+            List<Class<?>> classes;
+            if (sealed) {
+                classes = sealedChoices(nestedType, bindings, resolved, inProgress);
+            } else if (!FieldGeneratorResolver.isNestableType(nestedType)) {
+                classes = List.of();
+            } else if (inProgress.contains(cycleKey(nestedType, resolved.resolvedSignature()))) {
+                // Generation cuts the cycle there, with an object of the type that it built before, or null.
+                leftNull.add(path + ".");
+                classes = List.of();
+            } else {
+                classes = List.of(nestedType);
+            }
             for (Class<?> generated : classes) {
                 if (!isConstructible(generated) || typeOverridden(generated)) {
                     continue;
