@@ -683,14 +683,16 @@ final class FixtureRuleAnalysis {
                 recordRoutes(type, prefix);
             }
             for (Member member : members(type, !(populating && prefix.isEmpty()))) {
+                // A constructor argument, a record component's too, may be replaced by the constructor.
+                boolean argument = member.parameter() || type.isRecord();
                 if (!isGenerated(member)) {
                     // An excluded field keeps its default unless an initializer that generation keeps sets it. An
                     // excluded argument passes its default, which the constructor may replace, so it is unknown.
-                    if (!member.parameter()
-                            && startsAtDefault(type, Objects.requireNonNull(member.field(), "a field member"))) {
+                    if (!argument && startsAtDefault(type, Objects.requireNonNull(member.field(), "a field member"))) {
                         leftNull.add(prefix + member.name() + ".");
                     }
                 } else if (!hasMemberGenerator(member)) {
+                    Set<String> before = argument ? Set.copyOf(leftNull) : Set.of();
                     descend(
                             member.genericType(),
                             member.element(),
@@ -699,12 +701,12 @@ final class FixtureRuleAnalysis {
                             prefix + member.name(),
                             depth,
                             inProgress);
-                    if (member.parameter()) {
+                    if (argument) {
                         // The constructor may replace an argument that generation leaves null, or what it left
-                        // null below one, so nothing is known of them; a field of its name that generation fills
-                        // afterwards counts again.
-                        String argument = prefix + member.name() + ".";
-                        leftNull.removeIf(path -> path.startsWith(argument));
+                        // null below one, so nothing this argument records is known; what another class of a
+                        // sealed hierarchy, or a field of its name that generation fills afterwards, records stays.
+                        String path = prefix + member.name() + ".";
+                        leftNull.removeIf(marker -> marker.startsWith(path) && !before.contains(marker));
                     }
                 }
             }

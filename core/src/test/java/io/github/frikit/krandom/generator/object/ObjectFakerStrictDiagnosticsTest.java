@@ -609,6 +609,23 @@ class ObjectFakerStrictDiagnosticsTest {
         assertEquals(
                 List.of(),
                 problemsOf(new ObjectFaker<>(
+                                NodeRecord.class,
+                                GeneratorConfig.builder()
+                                        .objectNullProbability(1.0)
+                                        .build())
+                        .ruleFor("label", () -> "x")
+                        .ruleFor("child.child.label", () -> "y")));
+        // What one class of a sealed root leaves null stays, although another passes the member as an argument.
+        assertTrue(onlyProblem(new ObjectFaker<>(
+                                MiddleHolder.class,
+                                GeneratorConfig.builder().objectMaxDepth(1).build())
+                        .ruleFor("id", () -> "x")
+                        .ruleFor("middle.purchase.note", () -> "n"))
+                .reason()
+                .endsWith("applies at 'middle.purchase.id'"));
+        assertEquals(
+                List.of(),
+                problemsOf(new ObjectFaker<>(
                                 ConstructedPurchaseAccount.class,
                                 GeneratorConfig.builder()
                                         .objectNullProbability(1.0)
@@ -1127,6 +1144,18 @@ class ObjectFakerStrictDiagnosticsTest {
     static final class PresetPurchaseAccount extends BaseEntity {
         String name;
         Purchase purchase = new Purchase();
+    }
+
+    abstract static sealed class MiddleHolder extends BaseEntity permits PlainMiddleHolder, ConstructedMiddleHolder {
+        Middle middle;
+    }
+
+    static final class PlainMiddleHolder extends MiddleHolder {}
+
+    static final class ConstructedMiddleHolder extends MiddleHolder {
+        ConstructedMiddleHolder(Middle middle) {
+            this.middle = middle;
+        }
     }
 
     static final class ConstructedEnvelope extends BaseEntity {
