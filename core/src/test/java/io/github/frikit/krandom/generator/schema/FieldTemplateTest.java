@@ -139,6 +139,34 @@ class FieldTemplateTest {
     }
 
     @Test
+    @DisplayName("payload template metadata allows a null item beside any provider's schema")
+    void payloadTemplateMetadataAllowsNullBesideAnyProvidersSchema() {
+        Map<String, Object> enumWithNull = Map.of("enum", java.util.Arrays.asList("x", null));
+        Map<String, Object> constant = Map.of("type", "string", "const", "x");
+        Field field = baseField()
+                .register("custom.enum", SchemaValueProvider.withJsonSchema(ctx -> "x", enumWithNull))
+                .register("custom.const", SchemaValueProvider.withJsonSchema(ctx -> "x", constant));
+        Map<String, Object> shell = new LinkedHashMap<>();
+        shell.put("enumItems", java.util.Arrays.asList(null, "{{custom.enum}}"));
+        shell.put("constItems", java.util.Arrays.asList(null, "{{custom.const}}"));
+        shell.put("unknownItems", java.util.Arrays.asList(null, "{{custom.customer}}"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> properties =
+                (Map<String, Object>) field.template(shell).jsonSchema().get("properties");
+
+        // An enum that allows null, or a const that does not, keeps its own meaning, and null is an alternative.
+        assertEquals(
+                JsonSchemaSupport.array(Map.of("anyOf", List.of(enumWithNull, JsonSchemaSupport.nullType()))),
+                properties.get("enumItems"));
+        assertEquals(
+                JsonSchemaSupport.array(Map.of("anyOf", List.of(constant, JsonSchemaSupport.nullType()))),
+                properties.get("constItems"));
+        // A provider without metadata allows any value, null included.
+        assertEquals(JsonSchemaSupport.array(Map.of()), properties.get("unknownItems"));
+    }
+
+    @Test
     @DisplayName("provider-backed tokens can be interpolated through templates")
     void providerBackedTokensCanBeInterpolatedThroughTemplates() {
         Field field = baseField();

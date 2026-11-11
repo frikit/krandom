@@ -24,7 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   export, and so `Schema.toJsonSchema()`, now accepts their own values. Array items came from the first item
   that is not `null` alone, so `[1, "a"]` exported integer items and `[1, null]` items that reject `null`;
   items of different types now export `{}`, which allows any value, and a `null` item makes the others'
-  schema nullable, as `{"type": ["integer", "null"]}`. A map key that is not a string was left out of
+  schema allow `null`: `{"type": ["integer", "null"]}` beside integers, and an `anyOf` with the null type
+  beside a schema whose `const` or composition could reject `null`. A map key that is not a string was left out of
   `properties` beside `additionalProperties: false`, so `{1: "x"}` exported a schema that rejects the
   `{"1": "x"}` every writer writes; the key is now the member `"1"`. Generated values are unchanged.
 - `SchemaParser.fromJsonSchema(...)` now holds every record to a root `const` or `enum`, which it ignored. A
