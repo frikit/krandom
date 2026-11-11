@@ -144,6 +144,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `#{Name.firstName()}` and `#{number.number_between '1','10'}` stayed in the output as literal text.
   Expressions of supported tokens generate as before.
 
+### Documentation
+
+- The versioning policy, `Seedable`, `NormalDistributionGenerator` and `GenerationRecipe` now say what a seed
+  does not fix: values that follow the Java runtime's TZDB and CLDR data, such as zone IDs, zone offsets and
+  formatted money amounts, whose versions a recipe does not record; Gaussian values, whose `Math.log`,
+  `Math.sin` and `Math.cos` may differ in the last bit between platforms; and a generator backed by a
+  `SecureRandom`, whose `reseed(long)` adds to its state rather than restarting a sequence.
+
 ## [3.0.0] - 2026-11-10
 
 ### Changed

@@ -42,6 +42,9 @@ import org.jspecify.annotations.Nullable;
  * <p>Recipe version and random algorithm are separate compatibility boundaries. Version {@value
  * #RECIPE_VERSION} uses {@value #ALGORITHM}; patch releases must preserve its child-stream and
  * {@link Random} behavior. A future algorithm change requires a new recipe version.
+ *
+ * <p>A recipe does not record the Java runtime's time-zone database or locale data, so values that
+ * follow them, such as zone IDs, zone offsets and formatted money amounts, can differ on another JDK.
  */
 public final class GenerationRecipe {
 
