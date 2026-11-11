@@ -91,6 +91,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   each, `generateDollar(1)` showed `$1.00` 5,186 times and `generate(1)` in `ja_JP` showed `￥1` 500,202
   times, and they now show `$0.99` and `￥0`. With the default maximum of 10,000, 50 of 1,000,000 yen amounts
   showed `￥10,000` and none of 1,000,000 dollar amounts reached `$10,000.00`. Every other value is unchanged.
+- `PickSetGenerator` and `Generators.pickSet` now pick distinct values, and `FinitePoolGenerator` and
+  `Generators.pool` emit each value at most once a cycle, as they say. Both counted positions, so a list that
+  repeats a value gave it twice: `pickSet(List.of("x", "x"), 2)` gave `[x, x]`. They now count values by
+  `equals`, so that a list with repeats keeps working wherever the count can be met: a pick takes the first
+  distinct values of the same shuffle, a count above the number of distinct values fails at construction,
+  and a pool emits each value at its first copy in the same order and drops the others, so `remaining()`
+  counts distinct values. With seed 42, of 100,000 picks of two from `a, a, b, b, c`, the 20,135 that held a
+  repeat changed, such as `[a, a]` to `[a, b]`, and no other did. A list without repeats gives the same
+  values as before.
 
 ## [3.0.0] - 2026-11-10
 

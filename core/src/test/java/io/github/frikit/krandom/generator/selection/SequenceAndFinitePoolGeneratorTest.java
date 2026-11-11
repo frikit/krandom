@@ -83,6 +83,49 @@ class SequenceAndFinitePoolGeneratorTest {
         assertTrue(List.of("a", "b").contains(new FinitePoolGenerator<>(List.of("a", "b")).generate()));
     }
 
+    @Test
+    @DisplayName("a finite pool emits each distinct value once a cycle, in the order of its first copy")
+    void finitePoolEmitsEachDistinctValueOnce() {
+        List<String> values = List.of("x", "x", "y", "z", "y");
+        FinitePoolGenerator<String> pool = new FinitePoolGenerator<>(values, seeded(42L));
+        java.util.Random reference = seeded(42L).createRandom();
+
+        for (int cycle = 0; cycle < 50; cycle++) {
+            assertEquals(3, pool.remaining());
+            List<String> emitted = List.of(pool.generate(), pool.generate(), pool.generate());
+            assertEquals(emissionOrder(values, reference), emitted);
+            assertEquals(0, pool.remaining());
+            assertThrows(NoSuchElementException.class, pool::generate);
+            pool.reset();
+        }
+    }
+
+    @Test
+    @DisplayName("a finite pool without repeats emits as before: one shuffle, from its end")
+    void finitePoolWithoutRepeatsKeepsItsOrder() {
+        List<Integer> values = List.of(1, 2, 3, 4, 5, 6, 7);
+        FinitePoolGenerator<Integer> pool = new FinitePoolGenerator<>(values, seeded(7L));
+        java.util.Random reference = seeded(7L).createRandom();
+
+        for (int cycle = 0; cycle < 20; cycle++) {
+            List<Integer> shuffled = new ArrayList<>(values);
+            java.util.Collections.shuffle(shuffled, reference);
+            List<Integer> emitted = new ArrayList<>();
+            while (pool.remaining() > 0) {
+                emitted.add(pool.generate());
+            }
+            assertEquals(shuffled.reversed(), emitted);
+            pool.reset();
+        }
+    }
+
+    /** The values of one shuffle as the pool emits them, from the end, each value at its first copy. */
+    private static <T> List<T> emissionOrder(List<T> values, java.util.Random random) {
+        List<T> shuffled = new ArrayList<>(values);
+        java.util.Collections.shuffle(shuffled, random);
+        return shuffled.reversed().stream().distinct().toList();
+    }
+
     private static GeneratorConfig seeded(long seed) {
         return GeneratorConfig.builder().seed(seed).build();
     }
