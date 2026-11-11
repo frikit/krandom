@@ -82,6 +82,20 @@ class KotlinConstructorContractTest {
     }
 
     @Test
+    fun aGetterConstraintReachesAParameterThatKotlinWritesWithAWildcard() {
+        // The field is List<T>, and the parameter, by declaration-site variance, List<? extends T>.
+        val parameterType =
+            VarianceHost::class.java.declaredConstructors
+                .single()
+                .parameters[0]
+                .parameterizedType
+        val outer = krandom<VarianceOuter> { config { collectionSize(3, 3) } }
+
+        assertEquals("java.util.List<? extends T>", parameterType.typeName)
+        assertEquals(2, outer.host.items.size, outer.toString())
+    }
+
+    @Test
     fun generatingOneTypeLeavesTheValuesOfAnotherAsTheyWere() {
         val before = krandom<SizedCodeHolder> { config { seed(42L) } }
         val code = krandom<SizedCode> { config { seed(42L) } }
@@ -155,6 +169,15 @@ data class ParameterOverFieldConstraint(
     @param:Size(min = 3, max = 3)
     @field:Size(min = 2, max = 2)
     val code: String,
+)
+
+data class VarianceHost<T>(
+    @get:Size(min = 2, max = 2)
+    val items: List<T>,
+)
+
+data class VarianceOuter(
+    val host: VarianceHost<String>,
 )
 
 @JvmInline

@@ -40,7 +40,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.RecordComponent;
+import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -70,6 +73,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.BiPredicate;
 import java.util.function.Supplier;
 import org.jspecify.annotations.Nullable;
 
@@ -1240,8 +1244,10 @@ final class BeanValidationSupport {
      * Generates a constructor argument with its parameter named as a construction adapter names it, after the
      * property it fills, as Kotlin metadata names it where the class was compiled without parameter names. While
      * the argument is generated, it meets the constraints of the field with that name and the parameter's
-     * declared type too, as under a compiled name. The name holds for this argument on this thread alone, so
-     * every other use of the parameter reads it as compiled, whatever was generated before.
+     * declared type too, as under a compiled name, where a type argument may also be the wildcard that Kotlin's
+     * declaration-site variance writes into a parameter, as in {@code List<? extends T>} for a {@code List<T>}
+     * property. The name holds for this argument on this thread alone, so every other use of the parameter reads
+     * it as compiled, whatever was generated before.
      *
      * @param parameter a constructor parameter
      * @param name the name of the property it fills
@@ -1252,7 +1258,9 @@ final class BeanValidationSupport {
         Class<?> owner = parameter.getDeclaringExecutable().getDeclaringClass();
         Field field = NAMED_FIELDS
                 .get(owner)
-                .computeIfAbsent(new ParameterName(parameter, name), key -> findInitializedField(parameter, name))
+                .computeIfAbsent(
+                        new ParameterName(parameter, name),
+                        key -> findInitializedField(parameter, name, BeanValidationSupport::sameButForVariance))
                 .orElse(null);
         NamedParameter enclosing = NAMED_PARAMETER.get();
         NAMED_PARAMETER.set(new NamedParameter(parameter, field));
@@ -1270,10 +1278,17 @@ final class BeanValidationSupport {
     }
 
     private static Optional<Field> findInitializedField(Parameter parameter) {
-        return parameter.isNamePresent() ? findInitializedField(parameter, parameter.getName()) : Optional.empty();
+        return parameter.isNamePresent()
+                ? findInitializedField(parameter, parameter.getName(), Type::equals)
+                : Optional.empty();
     }
 
-    private static Optional<Field> findInitializedField(Parameter parameter, String name) {
+    /**
+     * The nearest instance field with this name, on the constructor's class or a superclass, where
+     * {@code sameType} accepts the field's declared type for the parameter's.
+     */
+    private static Optional<Field> findInitializedField(
+            Parameter parameter, String name, BiPredicate<Type, Type> sameType) {
         Executable executable = parameter.getDeclaringExecutable();
         if (!(executable instanceof Constructor<?>)) {
             return Optional.empty();
@@ -1282,7 +1297,7 @@ final class BeanValidationSupport {
             try {
                 Field field = owner.getDeclaredField(name);
                 return !Modifier.isStatic(field.getModifiers())
-                                && field.getGenericType().equals(parameter.getParameterizedType())
+                                && sameType.test(field.getGenericType(), parameter.getParameterizedType())
                         ? Optional.of(field)
                         : Optional.empty();
             } catch (NoSuchFieldException notDeclaredHere) {
@@ -1290,6 +1305,41 @@ final class BeanValidationSupport {
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * Whether two declared types are the same but for wildcards in their type arguments, which Kotlin writes
+     * into a parameter by declaration-site variance and not into the property's field: {@code List<T>} and
+     * {@code List<? extends T>}, or {@code Comparator<T>} and {@code Comparator<? super T>}.
+     */
+    private static boolean sameButForVariance(Type fieldType, Type parameterType) {
+        Type field = withoutVariance(fieldType);
+        Type parameter = withoutVariance(parameterType);
+        if (field instanceof ParameterizedType fieldParameterized
+                && parameter instanceof ParameterizedType parameterParameterized) {
+            if (!fieldParameterized.getRawType().equals(parameterParameterized.getRawType())) {
+                return false;
+            }
+            // One raw type has one number of type arguments.
+            Type[] fieldArguments = fieldParameterized.getActualTypeArguments();
+            Type[] parameterArguments = parameterParameterized.getActualTypeArguments();
+            for (int i = 0; i < fieldArguments.length; i++) {
+                if (!sameButForVariance(fieldArguments[i], parameterArguments[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return field.equals(parameter);
+    }
+
+    /** The bound of a wildcard, its lower one where it has one, or the type itself. */
+    private static Type withoutVariance(Type type) {
+        if (type instanceof WildcardType wildcard) {
+            Type[] lower = wildcard.getLowerBounds();
+            return lower.length > 0 ? lower[0] : wildcard.getUpperBounds()[0];
+        }
+        return type;
     }
 
     /**

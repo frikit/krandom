@@ -33,7 +33,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   @field:Size(min = 2, max = 2) val code` broke its size in 1,994 and `@get:Size(min = 2, max = 2) val code`
   in 2,000, and now neither does. While a construction adapter generates an argument of the constructed type,
   its parameter is read with the field its member name gives, as a parameter compiled with its name is, and
-  only then, so the values of other types do not depend on what was generated before. Seeded output changes
+  only then, so the values of other types do not depend on what was generated before. The field's type may
+  differ from the parameter's only by the wildcards that Kotlin's declaration-site variance writes, so the
+  getter constraint of a `List<T>` property reaches its `List<? extends T>` parameter. Seeded output changes
   only for such arguments.
 - A `GeneratorConfig` field predicate override, `objectOverride(Predicate<Field>, ...)` in either form, now
   replaces a Kotlin default argument and fills a required primary-constructor parameter when it matches the
