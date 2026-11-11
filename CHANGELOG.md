@@ -126,8 +126,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `Stella` and `landonhill@example.net`. Seeded schemas without a recipe,
   unseeded schemas, a `Field` whose configuration uses a caller-owned, factory-made, or secure random source,
   a `SchemaContext` that the caller makes, and `ProviderTemplateGenerator` keep their values. Making a
-  generator for each value takes longer: a record of the 12 references in `SchemaOutputBenchmark` took
-  5.3 µs and now takes 70.7 µs.
+  generator for each value takes longer, even though a generator now reads each bundled registry's locale
+  keys once rather than copying them on every lookup, which halved the cost of building one, and a value's
+  configuration reuses one builder: `SchemaOutputBenchmark.largeSchemaBatch`, 250 records of 12 references,
+  gave 933 operations a second and gives 194, and allocates 30.5 MB an operation rather than 3.7 MB. The
+  benchmark methodology records this as an accepted breach of its regression budgets, with the raw runs.
 
 ### Documentation
 

@@ -50,3 +50,20 @@ environment:
 
 Budgets detect regressions; they are not cross-machine performance promises. Any accepted breach
 must document the behavioral or safety improvement that justifies it.
+
+## Accepted breaches
+
+- **3.0.1, `SchemaOutputBenchmark`.** In a `Schema` with a portable seeded configuration, a `Field`
+  reference, a reference that `registerProvider(...)` adds, a template's `#` and `?`, and a column that
+  `SchemaParser` resolves by its name now draw from each value's own named stream, as the `Schema`
+  documentation promises, so that adding a column no longer changes the values of the others. Each such
+  value builds its generator from a seed drawn from its stream. On one machine
+  ([raw output](results/2026-11-11-schema-output-3.0.1.txt)), the four workloads gave, before the fix,
+  with it, and once each bundled registry's locale keys were read once and each value's configuration
+  reused one builder, in operations a second: `largeSchemaBatch` 933, 88 and 194;
+  `largeSchemaJsonLines` 748, 87 and 183; `streamingCsv` 864, 85 and 189; and `streamingJsonLines` 798,
+  88 and 183. `largeSchemaBatch` allocated 3.7 MB, 61.7 MB and then 30.5 MB an operation. A 79%
+  throughput decrease and an 8.3-fold allocation increase remain, outside both budgets. They are
+  accepted because the fix restores the documented independence of schema columns. Reaching the budgets
+  with the same values needs the composite generators to reset their streams for each value, which is
+  new public API, so it waits for a minor release.
