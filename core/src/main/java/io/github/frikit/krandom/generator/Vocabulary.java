@@ -587,10 +587,37 @@ public final class Vocabulary<P extends LocaleDataProvider> {
         this.name = name;
         this.providerType = providerType;
         this.globalLookup = globalLookup;
-        this.globalKeys = globalKeys;
+        // A bundled registry registers its providers in its own static initializer and has no other way to
+        // change, so its keys are read once rather than copied on every lookup.
+        this.globalKeys = builtInData ? new BundledKeys(globalKeys) : globalKeys;
         this.validator = validator;
         this.countryIndexed = countryIndexed;
         this.builtInData = builtInData;
+    }
+
+    /**
+     * The locale keys of a bundled registry, read on first use and kept. A bundled registry registers its
+     * providers in its own static initializer and has no other way to change, so the keys it lists never
+     * change after that, and a lookup need not copy them again.
+     */
+    private static final class BundledKeys implements Supplier<Set<String>> {
+
+        private final Supplier<Set<String>> registry;
+        private volatile @Nullable Set<String> keys;
+
+        BundledKeys(Supplier<Set<String>> registry) {
+            this.registry = registry;
+        }
+
+        @Override
+        public Set<String> get() {
+            Set<String> read = keys;
+            if (read == null) {
+                read = registry.get();
+                keys = read;
+            }
+            return read;
+        }
     }
 
     private static <P extends LocaleDataProvider> Vocabulary<P> builtIn(
