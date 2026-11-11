@@ -45,6 +45,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   declared the type, and keywords that leave that type no value, such as `minimum` 5 with `maximum` 4, are
   rejected with the schema path. The exported schema of such a property names only its type.
 
+### Documentation
+
+- The schema guide no longer says that a schema with no `type` always generates a string, or that a
+  property schema `true` does: a property name that chooses a semantic value of another type, such as
+  `datetimeTimestamp` or `companyInfo`, keeps that type, and the schema's keywords for that type apply.
+
 ## [3.0.0] - 2026-11-10
 
 ### Changed
