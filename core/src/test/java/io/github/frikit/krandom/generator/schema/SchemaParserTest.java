@@ -3164,6 +3164,84 @@ class SchemaParserTest {
         }
 
         @Test
+        @DisplayName("a root const or enum names whole records, and every record is one of them")
+        void rootConstAndEnumNameRecords() {
+            // A column that gives "actual" cannot make the record that the root const names.
+            assertRootRejected(
+                    root("properties", Map.of("x", Map.of("const", "actual")), "const", Map.of("x", "expected")));
+            // Under a root const, a column of any string gives the const's member in every record.
+            Map<String, Object> constant =
+                    root("properties", Map.of("x", Map.of("type", "string")), "const", Map.of("x", "expected"));
+            for (Map<String, Object> record :
+                    SchemaParser.fromJsonSchema(constant).generateBatch(20)) {
+                assertEquals(Map.of("x", "expected"), record);
+            }
+            // Under a root enum, every record is one of its members, drawn from the record's own stream, so a
+            // seeded schema replays, whether its records have named streams or share one.
+            Map<String, Object> members = root(
+                    "properties",
+                    Map.of("x", Map.of("type", "string"), "y", Map.of("type", "integer")),
+                    "enum",
+                    List.of(Map.of("x", "a", "y", 1), Map.of("x", "b", "y", 2)));
+            GeneratorConfig portable = GeneratorConfig.builder().seed(17L).build();
+            for (GeneratorConfig config : List.of(
+                    portable, portable.toBuilder().objectExcludeField("ghost").build())) {
+                List<Map<String, Object>> records =
+                        SchemaParser.fromJsonSchema(members, config).generateBatch(40);
+                assertEquals(Set.of(Map.of("x", "a", "y", 1), Map.of("x", "b", "y", 2)), new HashSet<>(records));
+                assertEquals(
+                        records, SchemaParser.fromJsonSchema(members, config).generateBatch(40));
+            }
+        }
+
+        @Test
+        @DisplayName("a record that the columns generate and the root names is kept as it was")
+        void rootEnumKeepsRecordsThatMeetIt() {
+            Map<String, Object> columns = Map.of("x", Map.of("enum", List.of("a", "b")));
+            GeneratorConfig config = GeneratorConfig.builder().seed(23L).build();
+            assertEquals(
+                    SchemaParser.fromJsonSchema(root("properties", columns), config)
+                            .generateBatch(30),
+                    SchemaParser.fromJsonSchema(
+                                    root("properties", columns, "enum", List.of(Map.of("x", "b"), Map.of("x", "a"))),
+                                    config)
+                            .generateBatch(30));
+        }
+
+        @Test
+        @DisplayName("a root const or enum gives only the records that the root can generate")
+        void rootEnumGivesOnlyRecordsOfTheColumns() {
+            Map<String, Object> column = Map.of("x", Map.of("type", "string", "maxLength", 1));
+            // A member beyond the columns, one without the column, one that breaks the column's schema, and
+            // one that is no object are left out.
+            Map<String, Object> mixed = root(
+                    "properties",
+                    column,
+                    "enum",
+                    List.of(Map.of("x", "a", "y", 1), Map.of("y", "b"), Map.of("x", "too long"), 5, Map.of("x", "c")));
+            for (Map<String, Object> record : SchemaParser.fromJsonSchema(mixed).generateBatch(10)) {
+                assertEquals(Map.of("x", "c"), record);
+            }
+            // The key 1 is the member "1", as the writers write it.
+            assertEquals(
+                    Map.of("1", "z"),
+                    SchemaParser.fromJsonSchema(
+                                    root("properties", Map.of("1", Map.of("type", "string")), "const", Map.of(1, "z")))
+                            .generate());
+            // Without such a record, the root is rejected.
+            assertRootRejected(root("properties", column, "enum", List.of(Map.of("y", "b"), 5)));
+            assertRootRejected(root("properties", column, "const", "x"));
+            // A member that is no JSON value cannot be checked.
+            IllegalArgumentException unwritable = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> SchemaParser.fromJsonSchema(
+                            root("properties", Map.of("x", Map.of()), "const", Map.of("x", Double.NaN))));
+            assertTrue(
+                    unwritable.getMessage().startsWith("JSON Schema const or enum cannot be checked at $: "),
+                    unwritable.getMessage());
+        }
+
+        @Test
         @DisplayName("seeded objects replay when members are left out or added")
         void objectsReplay() {
             List<Map<String, Object>> properties = List.of(

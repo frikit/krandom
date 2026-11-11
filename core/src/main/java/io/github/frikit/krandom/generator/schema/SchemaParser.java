@@ -88,9 +88,12 @@ import org.jspecify.annotations.Nullable;
  * that would hold more properties fails with its path. A list of items holds the whole tuple by default, and {@code additionalItems} is read only
  * beside one, as in the drafts that define it; {@code prefixItems}, its Draft 2020-12 replacement, is
  * rejected. The root generates every property as a column, so its {@code required} names, property
- * dependencies, and member counts must allow exactly those. References and schema composition
- * ({@code $ref}, {@code allOf}, {@code anyOf}, {@code oneOf}, schema dependencies, and related conditional
- * keywords) are rejected with a schema path because this parser has no resolver or composition semantics.
+ * dependencies, and member counts must allow exactly those. A root {@code const} or {@code enum} names whole
+ * records, so a record that is none of those it names that hold exactly the columns and meet the other
+ * constraints is replaced by one, and a root that names no such record is rejected. References and schema
+ * composition ({@code $ref}, {@code allOf}, {@code anyOf}, {@code oneOf}, schema dependencies, and related
+ * conditional keywords) are rejected with a schema path because this parser has no resolver or composition
+ * semantics.
  *
  * <p>Constraints apply together, and a keyword constrains only values of its own JSON type. A
  * {@code const} or {@code enum} value must meet the other constraints, and an {@code enum} keeps only
@@ -258,7 +261,56 @@ public final class SchemaParser {
             resolveProvider("", "$.additionalProperties", rootAdditional, field, config);
         }
 
-        return new Schema(config, providers);
+        // A root const or enum names whole records, which columns drawn one by one need not give.
+        return new Schema(config, providers, rootRule(jsonSchema, columns.keySet()));
+    }
+
+    /**
+     * The rule that a root const or enum sets for whole records, or null where the root names neither. The
+     * root generates exactly its properties, as columns, so it gives only the named records that hold exactly
+     * them and meet the other constraints, and must name one. A generated record that is one of them, as JSON
+     * values compare, is kept, and any other is replaced by one of them, drawn from the record's own stream
+     * where there are several.
+     */
+    private static Schema.@Nullable RecordRule rootRule(Map<String, Object> root, Set<String> columns) {
+        List<?> named;
+        if (root.containsKey("const")) {
+            named = Collections.singletonList(root.get("const"));
+        } else if (root.get("enum") instanceof List<?> members) {
+            named = members;
+        } else {
+            return null;
+        }
+        List<Map<String, Object>> records = new ArrayList<>();
+        Set<@Nullable Object> allowed = new HashSet<>();
+        try {
+            for (Object value : named) {
+                if (JsonSchemaSupport.normalizeStructuredValue(value) instanceof Map<?, ?> object
+                        && byName(object).keySet().equals(columns)
+                        && satisfies(value, root)) {
+                    Map<String, @Nullable Object> members = byName(object);
+                    Map<String, Object> record = new LinkedHashMap<>();
+                    for (String column : columns) {
+                        record.put(column, members.get(column));
+                    }
+                    records.add(record);
+                    allowed.add(json(value));
+                }
+            }
+        } catch (IllegalArgumentException exception) {
+            // A number that JSON cannot write, such as NaN, or two keys written under one name.
+            throw new IllegalArgumentException(
+                    "JSON Schema const or enum cannot be checked at $: " + exception.getMessage(), exception);
+        }
+        if (records.isEmpty()) {
+            throw new IllegalArgumentException(ROOT_COLUMNS
+                    + "its const or enum must name a record that holds exactly them and meets the other"
+                    + " constraints at $");
+        }
+        return (record, random) -> allowed.contains(json(record))
+                ? record
+                : new LinkedHashMap<>(
+                        records.get(records.size() == 1 ? 0 : random.get().nextInt(records.size())));
     }
 
     /**

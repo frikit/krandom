@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 /**
@@ -87,12 +88,24 @@ public final class Schema implements Generator<Map<String, Object>> {
     private final Map<String, SchemaValueProvider> fields;
     private final Random random;
     private final Optional<GenerationRecipe> generationRecipe;
+    private final @org.jspecify.annotations.Nullable RecordRule recordRule;
     private int nextRecordIndex;
 
     @FunctionalInterface
     interface StringBuilderWriter {
 
         void write(StringBuilder builder) throws IOException;
+    }
+
+    /**
+     * A rule over whole records, which a parsed root const or enum sets. Given a generated record, it gives
+     * the record to keep: that one where it meets the rule, and otherwise one that does, drawing from the
+     * random source given where it needs a draw.
+     */
+    @FunctionalInterface
+    interface RecordRule {
+
+        Map<String, Object> apply(Map<String, Object> record, Supplier<Random> random);
     }
 
     /**
@@ -121,6 +134,14 @@ public final class Schema implements Generator<Map<String, Object>> {
      * @param fields schema field mapping
      */
     public Schema(GeneratorConfig config, Map<String, SchemaValueProvider> fields) {
+        this(config, fields, null);
+    }
+
+    /** A schema whose records also keep to a rule over the whole record, such as a parsed root const or enum. */
+    Schema(
+            GeneratorConfig config,
+            Map<String, SchemaValueProvider> fields,
+            @org.jspecify.annotations.Nullable RecordRule recordRule) {
         this.config = Objects.requireNonNull(config, "config must not be null");
         Objects.requireNonNull(fields, "fields must not be null");
         if (fields.isEmpty()) {
@@ -129,6 +150,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         this.fields = validateAndCopy(fields);
         this.random = config.createRandom();
         this.generationRecipe = config.getGenerationRecipe();
+        this.recordRule = recordRule;
         this.nextRecordIndex = 0;
     }
 
@@ -591,7 +613,8 @@ public final class Schema implements Generator<Map<String, Object>> {
                                 .orElse(null));
             }
         }
-        return record;
+        // A rule over the whole record draws from the stream of no column, as a column name is never blank.
+        return recordRule == null ? record : recordRule.apply(record, () -> randomForField(recordIndex, ""));
     }
 
     private Random randomForField(int recordIndex, String fieldName) {

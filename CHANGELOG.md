@@ -27,6 +27,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   schema nullable, as `{"type": ["integer", "null"]}`. A map key that is not a string was left out of
   `properties` beside `additionalProperties: false`, so `{1: "x"}` exported a schema that rejects the
   `{"1": "x"}` every writer writes; the key is now the member `"1"`. Generated values are unchanged.
+- `SchemaParser.fromJsonSchema(...)` now holds every record to a root `const` or `enum`, which it ignored. A
+  root `const` of `{"x": "expected"}` beside a property `x` with the `const` `actual` was accepted, and every
+  record broke it; it is now rejected at `$`, as is any root `const` or `enum` that names no record of
+  exactly the root's properties that meets their schemas. Beside an `x` of any string, every record is now
+  `{"x": "expected"}`, where with seed 42 the first three held `XFnHbdhjiPu`, `yPJYFTHauN`, and `ZTqiGLl`. A
+  record that the columns generate and that the root names is kept, so seeded output changes only for
+  records that broke the root `const` or `enum`; any other record is replaced by one the root names, drawn
+  from the record's own stream where there are several.
 
 ## [3.0.0] - 2026-11-10
 
