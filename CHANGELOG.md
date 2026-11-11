@@ -110,6 +110,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   generated, and a drawn day that reads back past `max` gives `max`. With seed 42, of 100,000 values from
   1582-10-01 to 1582-10-15, the 60,120 past `max` now give 1582-10-15; every value that read back in its
   range, which is every value of a range that holds no such day, is unchanged.
+- `LocalDateTimeGenerator.future(days)` now stays in `[now + 1 second, now + days]` and `past(days)` in
+  `[now - days, now - 1 second]`, as they say. Each drew from a span one second longer, which `future` began
+  at `now + 1 second` and `past` ended at `now - 1 second`, so `future` could give `now + days + 1 second` and
+  `past` `now - days - 1 second`. That one value now gives the end of the range, and every other draw keeps its
+  value: with seed 42, of 1,000,000 values each, 13 of `future(1)` and 16 of `past(1)` changed, and none of
+  `future()`, which spans 3,650 days.
 
 ## [3.0.0] - 2026-11-10
 

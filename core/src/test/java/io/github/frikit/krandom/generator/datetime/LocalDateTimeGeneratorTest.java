@@ -140,4 +140,58 @@ class LocalDateTimeGeneratorTest {
         assertThrows(IllegalArgumentException.class, () -> gen.future(0));
         assertThrows(IllegalArgumentException.class, () -> gen.past(0));
     }
+
+    @Test
+    @DisplayName("future(days) stays in [now + 1 s, now + days] and past(days) in [now - days, now - 1 s]")
+    void futureAndPastStayInTheirDocumentedRanges() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
+        LocalDateTime now = LocalDateTime.now(clock);
+
+        // The draw one past the range gives the range's end; every other draw keeps its value.
+        LocalDateTimeGenerator future = scripted(clock, 86_400L, 86_399L, 0L);
+        assertEquals(now.plusDays(1), future.future(1));
+        assertEquals(now.plusDays(1), future.future(1));
+        assertEquals(now.plusSeconds(1), future.future(1));
+
+        LocalDateTimeGenerator past = scripted(clock, 0L, 1L, 86_400L);
+        assertEquals(now.minusDays(1), past.past(1));
+        assertEquals(now.minusDays(1), past.past(1));
+        assertEquals(now.minusSeconds(1), past.past(1));
+    }
+
+    @Test
+    @DisplayName("future and past keep the value of every draw in their range, as before")
+    void futureAndPastKeepTheirDrawsInRange() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneId.of("UTC"));
+        LocalDateTime now = LocalDateTime.now(clock);
+        GeneratorConfig config =
+                GeneratorConfig.builder().seed(94L).clock(clock).build();
+        LocalDateTimeGenerator gen = new LocalDateTimeGenerator(config);
+        java.util.Random reference = config.createRandom();
+
+        for (int i = 0; i < 1_000; i++) {
+            int days = 1 + i % 3;
+            LocalDateTime later = now.plusSeconds(1 + reference.nextLong(days * 86_400L + 1));
+            assertEquals(later.isAfter(now.plusDays(days)) ? now.plusDays(days) : later, gen.future(days));
+
+            LocalDateTime earlier =
+                    now.minusSeconds(1 + days * 86_400L).plusSeconds(reference.nextLong(days * 86_400L + 1));
+            assertEquals(earlier.isBefore(now.minusDays(days)) ? now.minusDays(days) : earlier, gen.past(days));
+        }
+    }
+
+    /** A generator whose bounded long draws are {@code draws}, in order. */
+    private static LocalDateTimeGenerator scripted(Clock clock, long... draws) {
+        java.util.Random source = new java.util.Random() {
+            private static final long serialVersionUID = 1L;
+            private int next;
+
+            @Override
+            public long nextLong(long bound) {
+                return draws[next++];
+            }
+        };
+        return new LocalDateTimeGenerator(
+                GeneratorConfig.builder().random(source).clock(clock).build());
+    }
 }

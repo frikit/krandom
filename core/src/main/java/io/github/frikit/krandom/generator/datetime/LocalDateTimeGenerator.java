@@ -200,9 +200,13 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime>, S
         if (maxDaysAhead <= 0) {
             throw new IllegalArgumentException("maxDaysAhead must be > 0, got: " + maxDaysAhead);
         }
-        LocalDateTime start = LocalDateTime.now(clock).plusSeconds(1);
-        LocalDateTime end = start.plusDays(maxDaysAhead);
-        return between(start, end);
+        LocalDateTime now = LocalDateTime.now(clock);
+        LocalDateTime start = now.plusSeconds(1);
+        LocalDateTime end = now.plusDays(maxDaysAhead);
+        // Drawn from a span one second longer than the range, as before, so that every other value keeps its
+        // draw; the second past the range gives the range's end.
+        LocalDateTime value = between(start, start.plusDays(maxDaysAhead));
+        return value.isAfter(end) ? end : value;
     }
 
     /**
@@ -224,9 +228,13 @@ public final class LocalDateTimeGenerator implements Generator<LocalDateTime>, S
         if (maxDaysBack <= 0) {
             throw new IllegalArgumentException("maxDaysBack must be > 0, got: " + maxDaysBack);
         }
-        LocalDateTime end = LocalDateTime.now(clock).minusSeconds(1);
-        LocalDateTime start = end.minusDays(maxDaysBack);
-        return between(start, end);
+        LocalDateTime now = LocalDateTime.now(clock);
+        LocalDateTime start = now.minusDays(maxDaysBack);
+        LocalDateTime end = now.minusSeconds(1);
+        // Drawn from a span one second longer than the range, as before, so that every other value keeps its
+        // draw; the second before the range gives the range's start.
+        LocalDateTime value = between(end.minusDays(maxDaysBack), end);
+        return value.isBefore(start) ? start : value;
     }
 
     /**
