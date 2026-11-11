@@ -20,6 +20,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import org.junit.jupiter.api.DisplayName;
@@ -174,6 +175,128 @@ class SchemaNamedChildStreamTest {
                         Map.of("firstName", "Kenneth", "email", "steven_mitchell@example.net")),
                 SchemaParser.fromJsonSchema(Map.of("type", "object", "properties", properties), sequential)
                         .generateBatch(2));
+    }
+
+    @Test
+    @DisplayName("Field values from named streams keep the values they first gave")
+    void namedStreamValuesArePinned() {
+        GeneratorConfig portable = GeneratorConfig.builder().seed(42L).build();
+        // A template column gives the same value alone and after another such column.
+        Field alone = new Field(portable);
+        Map<String, SchemaValueProvider> single = new LinkedHashMap<>();
+        single.put("x", alone.template("##"));
+        assertEquals("37", new Schema(portable, single).generate().get("x"));
+        Field after = new Field(portable);
+        Map<String, SchemaValueProvider> pair = new LinkedHashMap<>();
+        pair.put("before", after.template("##"));
+        pair.put("x", after.template("##"));
+        assertEquals("37", new Schema(portable, pair).generate().get("x"));
+        // A reference, a template, and a list of references.
+        assertEquals(
+                List.of(
+                        pinnedRecord("Grace", "62-ls", "droushsuldchassiest", "smierdclou"),
+                        pinnedRecord("Ivy", "02-us", "chogreasnermean", "glaeldstae")),
+                new Schema(portable, pinned(new Field(portable))).generateBatch(2));
+        // A reference that registerProvider adds.
+        Field provider = new Field(portable)
+                .registerProvider("custom.word", WordGenerator::new, WordGenerator.class, WordGenerator::generateWord);
+        Map<String, SchemaValueProvider> word = new LinkedHashMap<>();
+        word.put("word", provider.bind("custom.word"));
+        assertEquals(
+                List.of(Map.of("word", "sweempplearknut"), Map.of("word", "duinkootraemp")),
+                new Schema(portable, word).generateBatch(2));
+        // Parsed columns that their names resolve.
+        Map<String, Object> properties = new LinkedHashMap<>();
+        properties.put("firstName", Map.of("type", "string"));
+        properties.put("email", Map.of());
+        assertEquals(
+                List.of(
+                        Map.of("firstName", "Stella", "email", "landonhill@example.net"),
+                        Map.of("firstName", "Dennis", "email", "savannah_edwards@example.com")),
+                SchemaParser.fromJsonSchema(Map.of("type", "object", "properties", properties), portable)
+                        .generateBatch(2));
+    }
+
+    @Test
+    @DisplayName("SchemaOutputBenchmark's schema keeps the values its named streams first gave")
+    void benchmarkSchemaValuesArePinned() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                .locale(Locale.US)
+                .seed(7L)
+                .clock(Clock.fixed(Instant.parse("2026-07-10T12:00:00Z"), ZoneOffset.UTC))
+                .build();
+        Field field = new Field(config);
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("orderId", field.bind("code.uuid"));
+        fields.put("customer", field.bind("person.full_name"));
+        fields.put("email", field.bind("person.email"));
+        fields.put("phone", field.bind("address.phone_number"));
+        fields.put("currency", field.bind("finance.currency"));
+        fields.put("amount", field.bind("finance.money"));
+        fields.put("shipTo", field.bind("address.street_address"));
+        fields.put("city", field.bind("address.city"));
+        fields.put("state", field.bind("address.state"));
+        fields.put("postalCode", field.bind("address.postal_code"));
+        fields.put("createdAt", field.bind("datetime.timestamp"));
+        fields.put("notes", field.bind("text.sentence"));
+
+        assertEquals(
+                List.of(
+                        orderedRecord(
+                                "326c463e-6517-400e-99ea-a1a12914b3ca",
+                                "Gary Peterson",
+                                "mgriffin@example.com",
+                                "618-555-0114",
+                                "USD",
+                                "$7,134.60",
+                                "8731 Forest Aly",
+                                "Hayward",
+                                "District of Columbia",
+                                "20355",
+                                2063491200L,
+                                "Smeamgraingluisjit roldjaerksiengstiend vieldsaint zaestthelrour comchund"
+                                        + " rumppreeroanthoat seasfaird clielcrampgoutnoold chirruint"
+                                        + " mourdsnorjierdswerd praerkkaet smotgirkcreetcrurk stailgathwairgaen"
+                                        + " foohingprurtfe neaboongglem crildswooshsmaen."),
+                        orderedRecord(
+                                "7e434675-0b7c-4c67-a1c0-91f547597f84",
+                                "Chloe Gonzales",
+                                "nkim@example.net",
+                                "(346) 555-0111",
+                                "USD",
+                                "$7,894.54",
+                                "1758 River Pike",
+                                "Evansville",
+                                "Missouri",
+                                "64650",
+                                1391385600L,
+                                "Chuirtninsweald zountprairdrirdshuirk foumootneeshzan puishrush snartdrol"
+                                        + " steertploont zerdmithmear wainsiest geensnoastdruingiel"
+                                        + " swooldpeangfrotriend heertbotploor craerpes sleentoaldfroonork"
+                                        + " brirkruird.")),
+                new Schema(config, fields).generateBatch(2));
+    }
+
+    /** A record of the benchmark's columns, in their order. */
+    private static Map<String, Object> orderedRecord(Object... values) {
+        List<String> names = List.of(
+                "orderId",
+                "customer",
+                "email",
+                "phone",
+                "currency",
+                "amount",
+                "shipTo",
+                "city",
+                "state",
+                "postalCode",
+                "createdAt",
+                "notes");
+        Map<String, Object> record = new LinkedHashMap<>();
+        for (int i = 0; i < names.size(); i++) {
+            record.put(names.get(i), values[i]);
+        }
+        return record;
     }
 
     private static Map<String, SchemaValueProvider> columns(String reference, String... names) {
