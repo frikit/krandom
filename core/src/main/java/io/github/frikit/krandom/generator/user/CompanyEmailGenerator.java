@@ -22,10 +22,16 @@ import java.util.Random;
  * top-level domain (RFC 2606 / RFC 6761), for example {@code jsmith@acme.test}, so the address can
  * never reach a real company. {@link EmailDomainPolicy#REALISTIC_UNCLASSIFIED} restores realistic
  * top-level domains for isolated fixtures.
+ *
+ * <p>The label keeps the company name's ASCII letters and digits, at most the 63 characters that a
+ * domain label may hold, so that every address passes Hibernate Validator's {@code @Email}.
  */
 public final class CompanyEmailGenerator implements Generator<String> {
 
     private static final String RESERVED_TLD = "test";
+
+    /** The most characters a domain label may hold (RFC 1035), which Hibernate Validator's {@code @Email} checks. */
+    private static final int MAX_LABEL_LENGTH = 63;
 
     private final Random random;
     private final FirstNameGenerator firstNameGenerator;
@@ -68,7 +74,7 @@ public final class CompanyEmailGenerator implements Generator<String> {
     /**
      * Generates a company email using the provided company name for the domain.
      *
-     * @param companyName company name used as domain label
+     * @param companyName company name used as domain label, of which the first 63 letters and digits are kept
      * @return company email
      */
     public String generate(String companyName) {
@@ -77,6 +83,8 @@ public final class CompanyEmailGenerator implements Generator<String> {
         String domainLabel = normalize(companyName);
         if (domainLabel.isBlank()) {
             domainLabel = domainGenerator.generateName();
+        } else if (domainLabel.length() > MAX_LABEL_LENGTH) {
+            domainLabel = domainLabel.substring(0, MAX_LABEL_LENGTH);
         }
         String tld =
                 emailDomainPolicy == EmailDomainPolicy.REALISTIC_UNCLASSIFIED ? domainGenerator.getTLD() : RESERVED_TLD;

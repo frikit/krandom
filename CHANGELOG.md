@@ -74,6 +74,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   break `@PastOrPresent`. Under a clock at a whole millisecond the value is still the clock's instant, which
   Hibernate Validator accepts. Seeded output changes only for these members under a finer clock, such as the
   system clock, where generation now fails.
+- `CompanyEmailGenerator.generate(String)` now keeps the first 63 letters and digits of a company name as the
+  domain label, the most a label may hold, as the data validity guide says every address a generator builds
+  passes Hibernate Validator's `@Email`. It kept them all, so with seed 42 `generate("a".repeat(64))` gave
+  `carolinetran@` and a label of 64 `a`s under `.test`, which `@Email` rejects; the label now has 63. Generated
+  company names are unaffected: the longest label of 800,000 seeded names in eight locales has 52 characters,
+  so seeded output changes only for a given company name of more than 63 letters and digits.
 
 ## [3.0.0] - 2026-11-10
 

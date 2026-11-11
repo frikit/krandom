@@ -84,11 +84,11 @@ country-specific official test allocation only when the generator documents it.
 on its own. Personal addresses from `EmailGenerator` (and the contact, person, and profile payloads
 built on it) use only the [RFC 2606](https://www.rfc-editor.org/rfc/rfc2606) reserved domains
 `example.com`, `example.net`, and `example.org`; company addresses from `CompanyEmailGenerator`
-keep the company-derived label under the reserved `.test` top-level domain (for example
-`jsmith@acme.test`). None of these can reach a real mailbox. Local parts are always lowercase ASCII:
-Latin-script names lose their diacritics (German umlauts expand to `ae`/`oe`/`ue`), Cyrillic and
-Greek names are transliterated, and names in other scripts are replaced by romanized names for the
-locale's language.
+keep the company-derived label, cut to the 63 characters a label may hold, under the reserved
+`.test` top-level domain (for example `jsmith@acme.test`). None of these can reach a real mailbox.
+Local parts are always lowercase ASCII: Latin-script names lose their diacritics (German umlauts
+expand to `ae`/`oe`/`ue`), Cyrillic and Greek names are transliterated, and names in other scripts
+are replaced by romanized names for the locale's language.
 
 The same rule holds when an object has related fields. A generated email takes the domain of a
 sibling such as `domain` or `url` only if that domain is reserved or was set through an override, and
