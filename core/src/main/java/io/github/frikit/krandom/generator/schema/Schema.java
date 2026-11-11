@@ -48,8 +48,10 @@ import java.util.regex.Pattern;
  *
  * <p>When supplied a portable seeded {@link GeneratorConfig}, every value receives a named child
  * stream derived from its record index and field name. Adding an unrelated schema column therefore
- * does not perturb existing column values. Caller-owned, secure, and unseeded random sources retain
- * their documented sequential behavior.
+ * does not perturb existing column values. A {@link Field} reference and the {@code #} and {@code ?} of a
+ * {@link Field} template make a generator for each value, seeded from that stream, unless the field's own
+ * configuration uses a caller-owned, factory-made, or secure random source. Caller-owned, secure, and
+ * unseeded random sources retain their documented sequential behavior.
  *
  * <p>Every writer writes a date or time as the RFC 3339 text of the format its type exports, with the
  * seconds always and a fraction only where it is not zero: a {@code ZonedDateTime} with its offset and no
@@ -621,7 +623,22 @@ public final class Schema implements Generator<Map<String, Object>> {
         if (generationRecipe.isEmpty()) {
             return random;
         }
-        return generationRecipe.orElseThrow().childRandom(schemaFieldStreamIdentity(recordIndex, fieldName));
+        // The source that the recipe's childRandom gives for this identity, marked as a named stream.
+        return new FieldStream(GenerationRecipe.deriveChildSeed(
+                generationRecipe.orElseThrow().getSeed(), schemaFieldStreamIdentity(recordIndex, fieldName)));
+    }
+
+    /**
+     * The named stream of one value of a schema with a portable recipe, which this type marks, so that a
+     * provider that makes a generator for each value, such as a {@link Field} reference, seeds it from here.
+     */
+    static final class FieldStream extends Random {
+
+        private static final long serialVersionUID = 1L;
+
+        FieldStream(long seed) {
+            super(seed);
+        }
     }
 
     private static String schemaFieldStreamIdentity(int recordIndex, String fieldName) {

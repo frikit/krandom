@@ -44,6 +44,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   changes only for values that broke them; any other value is drawn from the keywords as if the schema
   declared the type, and keywords that leave that type no value, such as `minimum` 5 with `maximum` 4, are
   rejected with the schema path. The exported schema of such a property names only its type.
+- In a `Schema` with a portable seeded configuration, one that has a `GenerationRecipe`, a `Field` reference,
+  a reference that `registerProvider(...)` adds, the `#` and `?` of a template, and a column that
+  `SchemaParser` resolves by its name now draw from each value's own stream, named by its record and column,
+  as the `Schema` documentation says every value does. They drew from one generator that every column of
+  the `Field` shared, so a column changed the values of the columns after it: with seed 42, a
+  `template("##")` column `x` was `03` alone and `84` after another such column, and is now `37` either way.
+  Each value now makes its generator from a seed drawn from its stream, which changes every such value of a
+  portable seeded schema: with seed 42, the first two `person.first_name` values went from `Victor` and
+  `Kenneth` to `Grace` and `Ivy`, and a parsed `firstName` and `email` from `Victor` and
+  `caroline.tran@example.com` to `Stella` and `landonhill@example.net`. Seeded schemas without a recipe,
+  unseeded schemas, a `Field` whose configuration uses a caller-owned, factory-made, or secure random source,
+  a `SchemaContext` that the caller makes, and `ProviderTemplateGenerator` keep their values. Making a
+  generator for each value takes longer: a record of the 12 references in `SchemaOutputBenchmark` took
+  5.3 µs and now takes 70.7 µs.
 
 ### Documentation
 

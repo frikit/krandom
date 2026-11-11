@@ -124,18 +124,25 @@ final class SchemaTemplateEngine {
         StringBuilder out = new StringBuilder(template.length());
         int cursor = 0;
         while (matcher.find()) {
-            appendLiteral(out, template.substring(cursor, matcher.start()));
+            appendLiteral(out, template.substring(cursor, matcher.start()), context);
             Object value = lookup.resolve(matcher.group(1)).generate(context);
             out.append(String.valueOf(value));
             cursor = matcher.end();
         }
-        appendLiteral(out, template.substring(cursor));
+        appendLiteral(out, template.substring(cursor), context);
         return out.toString();
     }
 
-    private void appendLiteral(StringBuilder out, String literal) {
+    /**
+     * Writes literal text with its {@code #} and {@code ?} filled in, from the value's named stream where the
+     * lookup gives the value a configuration of its own, as it does for its references.
+     */
+    private void appendLiteral(StringBuilder out, String literal, SchemaContext context) {
         if (!literal.isEmpty()) {
-            out.append(templateGenerator.bothify(literal));
+            GeneratorConfig valueConfig = lookup.valueConfig(context);
+            TemplateStringGenerator generator =
+                    valueConfig == null ? templateGenerator : new TemplateStringGenerator("", valueConfig);
+            out.append(generator.bothify(literal));
         }
     }
 }

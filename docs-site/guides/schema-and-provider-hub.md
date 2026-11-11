@@ -32,6 +32,14 @@ String yaml = schema.toYaml(10);
 String toml = schema.toToml(10);
 ```
 
+With a portable seeded configuration, one that has a `GenerationRecipe`, every value draws from its own
+stream, named by its record index and column, so adding a column leaves the values of the others as they
+were, and a recipe replays each column. A `Field` reference, a reference that `registerProvider(...)`
+adds, and the `#` and `?` of a template then make a generator for each value, from a seed drawn from that
+stream, which takes longer than drawing from one shared generator. A `Field` whose configuration uses a
+caller-owned, factory-made, or secure random source keeps that source, and other schemas draw from one
+generator for each reference, in sequence.
+
 `Field.bind(...)` covers both scalar tokens and composite provider payloads. Composite records are
 kept as nested JSON objects in JSONL, JSON, YAML, TOML, and JSON Schema, and as JSON cell/literal
 values in CSV, XML, and SQL exports:
