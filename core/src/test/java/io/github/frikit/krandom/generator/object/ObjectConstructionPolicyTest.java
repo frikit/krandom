@@ -410,6 +410,15 @@ class ObjectConstructionPolicyTest {
     }
 
     @Test
+    @DisplayName("looking for a held instance reads no static field of another type, so no enclosing class starts")
+    void heldInstanceCheckLeavesUnrelatedStaticsAlone() {
+        // Reading InitHost.UNRELATED would run InitHost's static initializer, which fails.
+        InitHost.Child child = new ObjectGenerator<>(InitHost.Child.class).generate();
+
+        assertNotNull(child.state);
+    }
+
+    @Test
     @DisplayName("reading a static field the engine cannot access fails as a programming error")
     void inaccessibleStaticFieldFails() throws Exception {
         Method staticValue = ObjectGenerator.class.getDeclaredMethod("staticValue", Field.class);
@@ -773,6 +782,21 @@ class ObjectConstructionPolicyTest {
         static final AdapterSingletonFixture INSTANCE = new AdapterSingletonFixture();
 
         String state = "kept";
+    }
+
+    /** An enclosing class whose static initializer fails, as one with a failing companion property does. */
+    static final class InitHost {
+
+        static final Object UNRELATED = fail();
+
+        private static Object fail() {
+            throw new IllegalStateException("InitHost must not be initialized");
+        }
+
+        static final class Child {
+
+            String state;
+        }
     }
 
     /** As Kotlin compiles a companion object: its one instance is a static field of the enclosing class. */

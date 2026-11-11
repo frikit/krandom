@@ -680,11 +680,12 @@ public final class ObjectGenerator<T> implements Generator<T> {
     /**
      * Whether a static field of the type, or of a class that encloses it, holds this very instance, as the one
      * instance of a Kotlin object or companion object is held. Such an instance is shared, so it is left as it is.
+     * Only a field declared with the instance's own class is read, so no unrelated static state starts a class.
      */
     private boolean isHeldStatically(Object instance) {
         for (Class<?> owner = type; owner != null; owner = owner.getDeclaringClass()) {
             for (Field field : owner.getDeclaredFields()) {
-                if (Modifier.isStatic(field.getModifiers()) && field.getType().isInstance(instance)) {
+                if (Modifier.isStatic(field.getModifiers()) && field.getType() == instance.getClass()) {
                     ensureAccessible(field, owner);
                     if (staticValue(field) == instance) {
                         return true;

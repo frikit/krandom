@@ -114,6 +114,14 @@ class KotlinConstructorContractTest {
     }
 
     @Test
+    fun aNestedClassLeavesItsHostUninitialized() {
+        // FailingHost's companion property fails as soon as FailingHost starts.
+        val child = krandom<FailingHost.Child> { config { seed(42L) } }
+
+        assertFalse(child.label.isEmpty())
+    }
+
+    @Test
     fun aCompanionObjectKeepsItsInheritedState() {
         assertSame(CompanionHost.Companion, krandom<CompanionHost.Companion>())
         assertEquals("kept", CompanionHost.Companion.label)
@@ -167,6 +175,18 @@ data class DefaultedName(
 data class RequiredName(
     val name: String,
 )
+
+class FailingHost {
+    data class Child(
+        val id: Long,
+    ) {
+        var label: String = ""
+    }
+
+    companion object {
+        val unrelated: Any = error("FailingHost must not be initialized")
+    }
+}
 
 open class CompanionState {
     var label: String = "kept"
