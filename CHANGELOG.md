@@ -31,8 +31,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   their initializers whatever the rules: with `data class User(val id: Long) { var name = "old" }`,
   `rule(User::name) { "new" }` gave `"old"`, as did a `GeneratorConfig` field override, and a `lateinit`
   property stayed unset. Seeded with `42`, of 2,000 `User` values from the DSL, 2,000 had `name` `"old"` and
-  none now has; the constructor's values are the same. A Kotlin `object` is still returned as it is. Seeded
-  output changes for such properties.
+  none now has; the constructor's values are the same. A Kotlin `object` or companion object is still returned
+  as it is. Seeded output changes for such properties.
 
 - The coherence pass now leaves a field initializer that generation keeps as the class set it, as the
   object-generation guide says initializers are kept unless `objectOverrideDefaultInitialization(true)` is

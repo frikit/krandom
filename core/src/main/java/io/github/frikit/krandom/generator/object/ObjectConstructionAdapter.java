@@ -33,8 +33,9 @@ public interface ObjectConstructionAdapter {
      *
      * <p>The adapter stands in for a constructor. Object generation then fills the type's other mutable
      * fields, those that no parameter the adapter resolved or asked about through the context names, as it
-     * fills a class that it builds through a constructor. A Kotlin {@code object}'s one instance is returned
-     * as it is.
+     * fills a class that it builds through a constructor. An instance that a static field of the type, or of a
+     * class enclosing it, holds, as the one instance of a Kotlin {@code object} or companion object is held, is
+     * returned as it is.
      *
      * @param context requested type and access to the standard parameter resolver
      * @return a non-null value assignable to {@link ObjectConstructionContext#getType()}

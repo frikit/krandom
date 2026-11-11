@@ -101,6 +101,12 @@ class KotlinConstructorContractTest {
         assertSame(MutableSingleton, krandom<MutableSingleton>())
         assertEquals("kept", MutableSingleton.label)
     }
+
+    @Test
+    fun aCompanionObjectKeepsItsInheritedState() {
+        assertSame(CompanionHost.Companion, krandom<CompanionHost.Companion>())
+        assertEquals("kept", CompanionHost.Companion.label)
+    }
 }
 
 data class BodyPropertyUser(
@@ -139,6 +145,14 @@ data class DefaultedName(
 data class RequiredName(
     val name: String,
 )
+
+open class CompanionState {
+    var label: String = "kept"
+}
+
+class CompanionHost {
+    companion object : CompanionState()
+}
 
 object MutableSingleton {
     var label: String = "kept"

@@ -643,7 +643,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         if (adapter.isPresent()) {
             Set<String> constructorMembers = new HashSet<>();
             T instance = constructWithAdapter(adapter.get(), resolver, constructorMembers);
-            if (!hasKotlinObjectInstance(type)) {
+            if (!isHeldStatically(instance)) {
                 // The adapter stands in for the constructor. The other mutable fields, which no parameter the
                 // adapter asked about names, are filled as for a class built through its constructor.
                 List<Field> otherFields = collectSettableFields(type).stream()
@@ -675,6 +675,34 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 trackedConstructorArguments,
                 constructorArguments);
         return instance;
+    }
+
+    /**
+     * Whether a static field of the type, or of a class that encloses it, holds this very instance, as the one
+     * instance of a Kotlin object or companion object is held. Such an instance is shared, so it is left as it is.
+     */
+    private boolean isHeldStatically(Object instance) {
+        for (Class<?> owner = type; owner != null; owner = owner.getDeclaringClass()) {
+            for (Field field : owner.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers()) && field.getType().isInstance(instance)) {
+                    ensureAccessible(field, owner);
+                    if (staticValue(field) == instance) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private static @Nullable Object staticValue(Field field) {
+        try {
+            return field.get(null);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException(
+                    "Field should be accessible: " + field.getDeclaringClass().getSimpleName() + "." + field.getName(),
+                    e);
+        }
     }
 
     /**

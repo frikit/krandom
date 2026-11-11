@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.object;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -25,6 +26,8 @@ import io.github.frikit.krandom.generator.object.exception.ObjectGenerationExcep
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -372,6 +375,33 @@ class ObjectConstructionPolicyTest {
     }
 
     @Test
+    @DisplayName("an adapter's companion object, which its enclosing class holds, is returned as it is")
+    void adapterCompanionKeepsItsState() {
+        AdapterCompanionHolder.AdapterCompanion value = new ObjectGenerator<>(
+                        AdapterCompanionHolder.AdapterCompanion.class,
+                        GeneratorConfig.builder()
+                                .objectOverrideDefaultInitialization(true)
+                                .build())
+                .generate();
+
+        assertSame(AdapterCompanionHolder.COMPANION, value);
+        assertEquals("kept", value.state);
+    }
+
+    @Test
+    @DisplayName("reading a static field the engine cannot access fails as a programming error")
+    void inaccessibleStaticFieldFails() throws Exception {
+        Method staticValue = ObjectGenerator.class.getDeclaredMethod("staticValue", Field.class);
+        staticValue.setAccessible(true);
+        // Not made accessible, so reading it is refused.
+        Field hidden = AdapterCompanionHolder.class.getDeclaredField("HIDDEN");
+
+        InvocationTargetException failure =
+                assertThrows(InvocationTargetException.class, () -> staticValue.invoke(null, hidden));
+        assertInstanceOf(IllegalStateException.class, failure.getCause());
+    }
+
+    @Test
     @DisplayName("construction adapters validate output and preserve structured failures")
     void constructionAdapterFailuresAreContextual() {
         assertConstructionAdapterFailure(NullAdapterFixture.class, IllegalStateException.class);
@@ -680,6 +710,9 @@ class ObjectConstructionPolicyTest {
 
     static final class AdapterBodyFixture {
 
+        /** A shared instance of the type, which a generated one is not. */
+        static final AdapterBodyFixture TEMPLATE = new AdapterBodyFixture("template");
+
         final String constructedValue;
         String value;
         String label = "initial";
@@ -695,6 +728,19 @@ class ObjectConstructionPolicyTest {
         static final AdapterSingletonFixture INSTANCE = new AdapterSingletonFixture();
 
         String state = "kept";
+    }
+
+    /** As Kotlin compiles a companion object: its one instance is a static field of the enclosing class. */
+    static final class AdapterCompanionHolder {
+
+        static final AdapterCompanion COMPANION = new AdapterCompanion();
+
+        private static final String HIDDEN = "hidden";
+
+        static final class AdapterCompanion {
+
+            String state = "kept";
+        }
     }
 
     static final class NullAdapterFixture {}
