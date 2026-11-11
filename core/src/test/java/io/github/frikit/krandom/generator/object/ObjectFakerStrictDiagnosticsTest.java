@@ -1146,14 +1146,14 @@ class ObjectFakerStrictDiagnosticsTest {
         Purchase purchase = new Purchase();
     }
 
-    abstract static sealed class MiddleHolder extends BaseEntity permits PlainMiddleHolder, ConstructedMiddleHolder {
+    abstract static sealed class MiddleHolder extends BaseEntity permits FieldMiddleHolder, PassedMiddleHolder {
         Middle middle;
     }
 
-    static final class PlainMiddleHolder extends MiddleHolder {}
+    static final class FieldMiddleHolder extends MiddleHolder {}
 
-    static final class ConstructedMiddleHolder extends MiddleHolder {
-        ConstructedMiddleHolder(Middle middle) {
+    static final class PassedMiddleHolder extends MiddleHolder {
+        PassedMiddleHolder(Middle middle) {
             this.middle = middle;
         }
     }
