@@ -14,8 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `Ada Lovelace`. Seeded with `42`, of 2,000 objects each, it replaced a kept `fullName` beside generated
   names in 2,000, replaced a kept `email` in 2,000, and moved a kept `updatedAt` of 2001-01-01 in 2,000, and
   now does so in none. A generated sibling follows the kept value instead, so `createdAt` moves back to that
-  `updatedAt`, and the pass still fills a blank initializer and aligns a field that a constructor fills from a
-  generated argument. Seeded output changes only for objects with an initializer that the pass derives or
+  `updatedAt` and `birthDate` to a kept `age`, and the pass still fills a blank initializer and aligns a field
+  that a constructor fills from a generated argument. Seeded output changes only for objects with an initializer that the pass derives or
   aligns.
 - A Kotlin class built through its primary constructor now has its other mutable properties, declared in its
   body or inherited, filled through their fields after construction, as a Java class's fields are after its

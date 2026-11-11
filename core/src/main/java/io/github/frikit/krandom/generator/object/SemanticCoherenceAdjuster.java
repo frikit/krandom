@@ -627,7 +627,8 @@ final class SemanticCoherenceAdjuster {
         LocalDate birthDate = toLocalDate(birthDateSlot.getValue());
         Integer age = toInteger(ageSlot.getValue());
         if (birthDate != null) {
-            if (age != null && isProtected(ageSlot)) {
+            // An age the pass cannot write, as an override or a kept initializer holds it, leads instead.
+            if (age != null && !canAssign(ageSlot, allowOverwriteExisting)) {
                 followAge(birthDateSlot, age, allowOverwriteExisting);
                 return;
             }

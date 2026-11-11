@@ -1221,6 +1221,23 @@ class ObjectGeneratorSemanticCoherenceTest {
     }
 
     @Test
+    @DisplayName("a generated birthDate follows a kept age, as it follows an age that cannot move")
+    void generatedBirthDateFollowsAKeptAge() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneOffset.UTC);
+        ObjectGenerator<KeptAge> generator = new ObjectGenerator<>(
+                KeptAge.class, GeneratorConfig.builder().seed(42L).clock(clock).build());
+
+        for (KeptAge value : generator.generateList(200)) {
+            assertEquals(42, value.age);
+            assertEquals(
+                    42,
+                    java.time.Period.between(value.birthDate, LocalDate.now(clock))
+                            .getYears(),
+                    value.birthDate.toString());
+        }
+    }
+
+    @Test
     @DisplayName("coherence still fills a blank kept initializer and derives a replaced one")
     void coherenceFillsBlankAndReplacedInitializers() {
         BlankKeptFullName blank = new ObjectGenerator<>(BlankKeptFullName.class).generate();
@@ -1768,6 +1785,12 @@ class ObjectGeneratorSemanticCoherenceTest {
             this.birthDate = birthDate;
             this.age = age;
         }
+    }
+
+    static final class KeptAge {
+
+        int age = 42;
+        LocalDate birthDate;
     }
 
     static final class ConstructedCharge {
