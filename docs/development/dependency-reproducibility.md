@@ -38,7 +38,7 @@ use with `--write-verification-metadata sha256`:
 
 | Invocation | Graph |
 | --- | --- |
-| `spotlessCheck build` | compilation, all tests (benchmarks and examples-e2e included), coverage, and Javadoc |
+| `spotlessCheck build` | compilation, all tests (benchmarks and examples-e2e included), coverage, Javadoc, and the public API check (japicmp and the `apiBaselineVersion` jars) |
 | `verifyReleaseSboms` | CycloneDX, in its own invocation as in CI |
 | `:core:pitest` | PIT and its JUnit 5 plugin |
 | `nmcpZipAggregation` | publications for Maven Central and Maven local |

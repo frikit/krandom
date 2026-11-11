@@ -14,7 +14,9 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Job timeouts are 4-5x the slowest successful runs observed in September 2026 (build 7 min,
-# native image 4.5 min, mutation 6 min, examples 6 min), so they only stop hung jobs.
+# native image 4.5 min, mutation 6 min, examples 6 min), so they only stop hung jobs. The API
+# compatibility job, added in November 2026, took 15 s locally from a clean build with cached
+# dependencies; its 10 minutes leave room for a cold dependency cache until CI runs are measured.
 jobs:
   build:
     name: Test & Coverage (Java ${{ matrix.java }})
@@ -71,6 +73,32 @@ jobs:
           # Integration modules enforce their own line/branch floors; only core is gated at 100% and uploaded.
           disable_search: true
           fail_ci_if_error: false
+
+  # The build job's `check` runs the same check; this job reports it on its own, so a pull request
+  # that breaks the public API of the apiBaselineVersion release shows which declarations it breaks.
+  api-compatibility:
+    name: Public API Compatibility (Java 21)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Check the public API against the apiBaselineVersion release
+        run: ./gradlew checkApiCompatibility --continue --console=plain --max-workers=1 --no-daemon
 
   native-image:
     name: GraalVM Native Image Smoke (Java 25)

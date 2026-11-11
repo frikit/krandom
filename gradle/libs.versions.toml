@@ -24,6 +24,7 @@ pitest-junit5-plugin = "1.2.3"
 errorprone = "2.52.0"
 errorprone-plugin = "5.2.0"
 nullaway = "0.14.3"
+japicmp = "0.27.0"
 
 [libraries]
 # Tools resolved by the JaCoCo and PIT Gradle plugins (core/build.gradle.kts reads the versions);
@@ -34,6 +35,9 @@ pitest-junit5-plugin = { module = "org.pitest:pitest-junit5-plugin", version.ref
 # Nullness verification for core main sources (core/build.gradle.kts): Error Prone runs NullAway only.
 errorprone-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorprone" }
 nullaway = { module = "com.uber.nullaway:nullaway", version.ref = "nullaway" }
+# Public API compatibility checker (build.gradle.kts, checkApiCompatibility); the build resolves its
+# jar-with-dependencies classifier.
+japicmp = { module = "com.github.siom79.japicmp:japicmp", version.ref = "japicmp" }
 # Formatters resolved by Spotless (build.gradle.kts reads the versions); declared so Dependabot updates them.
 palantir-java-format = { module = "com.palantir.javaformat:palantir-java-format", version.ref = "palantir-java-format" }
 ktlint-cli = { module = "com.pinterest.ktlint:ktlint-cli", version.ref = "ktlint" }

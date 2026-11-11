@@ -1,7 +1,7 @@
 #!/bin/bash
 # Run the local quality gate: formatting and license headers, documentation checks, compilation,
-# module boundaries, release SBOMs, Javadoc, tests, critical-path mutation testing, and the exact
-# core coverage gate.
+# module boundaries, public API compatibility, release SBOMs, Javadoc, tests, critical-path mutation
+# testing, and the exact core coverage gate.
 # Usage: ./scripts/pre_commit_check.sh [--fast]
 #   --fast  Iteration mode: reuse up-to-date test results instead of forcing a rerun, and skip
 #           mutation testing and SBOM validation. Run the full gate before pushing.
@@ -136,6 +136,16 @@ if bash "${REPO_ROOT}/scripts/verify_module_boundaries.sh"; then
     ok "Module identities are unique and no package is split"
 else
     fail "Module boundary verification failed"
+    exit 1
+fi
+
+API_BASELINE_VERSION="$(awk -F= '$1 == "apiBaselineVersion" { print substr($0, index($0, "=") + 1) }' "${REPO_ROOT}/gradle.properties")"
+step "Verify public API compatibility with ${API_BASELINE_VERSION}"
+# --continue reports every module that breaks the baseline, not only the first.
+if "${GRADLEW}" checkApiCompatibility --continue --quiet; then
+    ok "Public API keeps every ${API_BASELINE_VERSION} declaration compatible"
+else
+    fail "Public API compatibility failed — see the changes listed above and build/reports/api-compatibility"
     exit 1
 fi
 
