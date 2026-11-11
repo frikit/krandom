@@ -1193,6 +1193,34 @@ class ObjectGeneratorSemanticCoherenceTest {
     }
 
     @Test
+    @DisplayName("coherence aligns the fields a constructor fills from generated arguments, and keeps its initializers")
+    void coherenceAlignsConstructorArgumentsAndKeepsInitializers() {
+        Clock clock = Clock.fixed(Instant.parse("2026-06-04T12:00:00Z"), ZoneOffset.UTC);
+        ObjectGenerator<ConstructedPerson> generator = new ObjectGenerator<>(
+                ConstructedPerson.class,
+                GeneratorConfig.builder().seed(42L).clock(clock).build());
+
+        for (ConstructedPerson value : generator.generateList(200)) {
+            // Generated arguments, a primitive among them, are aligned as generated fields are.
+            assertEquals(value.firstName + " " + value.lastName, value.fullName);
+            assertEquals(
+                    java.time.Period.between(value.birthDate, LocalDate.now(clock))
+                            .getYears(),
+                    value.age);
+            // An initializer that no argument fills stays as the class set it.
+            assertEquals("owner@example.test", value.email);
+            assertEquals(4, value.legs);
+        }
+        // A double holds its argument's value in a box of its own, and is aligned too.
+        for (ConstructedCharge charge : new ObjectGenerator<>(
+                        ConstructedCharge.class,
+                        GeneratorConfig.builder().seed(42L).build())
+                .generateList(200)) {
+            assertTrue(charge.price <= charge.amount && charge.amount <= charge.balance, charge.toString());
+        }
+    }
+
+    @Test
     @DisplayName("coherence still fills a blank kept initializer and derives a replaced one")
     void coherenceFillsBlankAndReplacedInitializers() {
         BlankKeptFullName blank = new ObjectGenerator<>(BlankKeptFullName.class).generate();
@@ -1720,6 +1748,44 @@ class ObjectGeneratorSemanticCoherenceTest {
     static class PresetDomain {
 
         String domain = "acme.test";
+    }
+
+    /** Built through its one constructor, with generated arguments, beside fields that keep their initializers. */
+    static final class ConstructedPerson {
+
+        String firstName;
+        String lastName;
+        String fullName;
+        String email = "owner@example.test";
+        LocalDate birthDate;
+        int age;
+        int legs = 4;
+
+        ConstructedPerson(String firstName, String lastName, String fullName, LocalDate birthDate, int age) {
+            this.firstName = firstName;
+            this.lastName = lastName;
+            this.fullName = fullName;
+            this.birthDate = birthDate;
+            this.age = age;
+        }
+    }
+
+    static final class ConstructedCharge {
+
+        double price;
+        double amount;
+        double balance;
+
+        ConstructedCharge(double price, double amount, double balance) {
+            this.price = price;
+            this.amount = amount;
+            this.balance = balance;
+        }
+
+        @Override
+        public String toString() {
+            return price + " " + amount + " " + balance;
+        }
     }
 
     static class KeptNames {

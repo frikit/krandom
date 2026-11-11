@@ -273,7 +273,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
         return null;
     }
 
-    private static boolean isDefaultValue(Object value, Class<?> type) {
+    private static boolean isDefaultValue(@Nullable Object value, Class<?> type) {
         if (!type.isPrimitive()) return value == null;
         return Objects.equals(value, defaultForType(type));
     }
@@ -574,7 +574,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                     collectSettableFields(type),
                     config.isOverrideDefaultInitialization(),
                     Set.of(),
-                    Map.of());
+                    Map.of(),
+                    List.of());
             return instance;
         } catch (ModuleAccessException e) {
             throw moduleAccessFailure(e.getDeclaringType(), e);
@@ -648,7 +649,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 List<Field> otherFields = collectSettableFields(type).stream()
                         .filter(field -> !constructorMembers.contains(field.getName()))
                         .toList();
-                populateClass(instance, resolver, coherenceAdjuster, otherFields, true, Set.of(), Map.of());
+                populateClass(instance, resolver, coherenceAdjuster, otherFields, true, Set.of(), Map.of(), List.of());
             }
             return instance;
         }
@@ -660,8 +661,10 @@ public final class ObjectGenerator<T> implements Generator<T> {
         List<Field> settableFields = collectSettableFields(type);
         Set<String> overriddenConstructorMembers = new HashSet<>();
         Map<String, @Nullable Object> trackedConstructorArguments = new HashMap<>();
+        List<@Nullable Object> constructorArguments = new ArrayList<>();
         // may throw ReflectiveOperationException for throwing constructors
-        T instance = instantiate(resolver, overriddenConstructorMembers, trackedConstructorArguments);
+        T instance =
+                instantiate(resolver, overriddenConstructorMembers, trackedConstructorArguments, constructorArguments);
         populateClass(
                 instance,
                 resolver,
@@ -669,7 +672,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 settableFields,
                 true,
                 overriddenConstructorMembers,
-                trackedConstructorArguments);
+                trackedConstructorArguments,
+                constructorArguments);
         return instance;
     }
 
@@ -826,6 +830,11 @@ public final class ObjectGenerator<T> implements Generator<T> {
         }
     }
 
+    /**
+     * Fills the settable fields of an instance, then aligns them. A field that keeps a non-default value is not
+     * generated: the coherence pass leaves it as the class set it, unless it holds one of the
+     * {@code constructorArguments} that generation produced, which it aligns as a generated value.
+     */
     private void populateClass(
             T instance,
             FieldGeneratorResolver resolver,
@@ -833,7 +842,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
             List<Field> settableFields,
             boolean allowOverwriteExisting,
             Set<String> overriddenConstructorMembers,
-            Map<String, @Nullable Object> trackedConstructorArguments) {
+            Map<String, @Nullable Object> trackedConstructorArguments,
+            List<@Nullable Object> constructorArguments) {
         ObjectGenerationFailurePolicy failurePolicy = new ObjectGenerationFailurePolicy(
                 config.isIgnoreErrors(), config.getGeneratorConfig().getGenerationFailureListener());
         Set<Field> keptFields = new HashSet<>();
@@ -845,7 +855,9 @@ public final class ObjectGenerator<T> implements Generator<T> {
             if (!config.isOverrideDefaultInitialization()
                     && hasNonDefaultValue(instance, field)
                     && (overriddenConstructorMembers.contains(field.getName()) || !hasExplicitFieldOverride(field))) {
-                keptFields.add(field);
+                if (!holdsArgument(instance, field, constructorArguments)) {
+                    keptFields.add(field);
+                }
                 continue;
             }
             // The field's new value replaces its constructor argument, which is no longer in use.
@@ -910,7 +922,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
     private T instantiate(
             FieldGeneratorResolver resolver,
             Set<String> overriddenConstructorMembers,
-            Map<String, @Nullable Object> trackedConstructorArguments)
+            Map<String, @Nullable Object> trackedConstructorArguments,
+            List<@Nullable Object> constructorArguments)
             throws ReflectiveOperationException {
         try {
             Constructor<T> ctor = type.getDeclaredConstructor();
@@ -920,7 +933,8 @@ public final class ObjectGenerator<T> implements Generator<T> {
             if (config.getConstructionPolicy() == ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS) {
                 return OBJENESIS.newInstance(type);
             }
-            return invokeUniqueDeclaredConstructor(resolver, overriddenConstructorMembers, trackedConstructorArguments);
+            return invokeUniqueDeclaredConstructor(
+                    resolver, overriddenConstructorMembers, trackedConstructorArguments, constructorArguments);
         }
     }
 
@@ -941,11 +955,13 @@ public final class ObjectGenerator<T> implements Generator<T> {
         }
     }
 
+    /** Builds the type through its one constructor, and adds the arguments it generated to {@code constructorArguments}. */
     @SuppressWarnings("unchecked")
     private T invokeUniqueDeclaredConstructor(
             FieldGeneratorResolver resolver,
             Set<String> overriddenConstructorMembers,
-            Map<String, @Nullable Object> trackedConstructorArguments)
+            Map<String, @Nullable Object> trackedConstructorArguments,
+            List<@Nullable Object> constructorArguments)
             throws ReflectiveOperationException {
         Constructor<?>[] candidates = type.getDeclaredConstructors();
         if (candidates.length != 1) {
@@ -986,6 +1002,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 trackedConstructorArguments.put(memberName, arguments[index]);
             }
         }
+        constructorArguments.addAll(Arrays.asList(arguments));
         try {
             return constructor.newInstance(arguments);
         } catch (IllegalArgumentException argumentMismatch) {
@@ -1041,9 +1058,26 @@ public final class ObjectGenerator<T> implements Generator<T> {
     }
 
     private boolean hasNonDefaultValue(T instance, Field field) {
+        return !isDefaultValue(currentValue(instance, field), field.getType());
+    }
+
+    /**
+     * Whether the field holds one of the arguments that generation gave the constructor, as the constructor stored
+     * it: the argument itself, or for a primitive field its value, which reads back in a box of its own.
+     */
+    private boolean holdsArgument(T instance, Field field, List<@Nullable Object> constructorArguments) {
+        Object value = currentValue(instance, field);
+        for (Object argument : constructorArguments) {
+            if (argument == value || (field.getType().isPrimitive() && Objects.equals(argument, value))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private @Nullable Object currentValue(T instance, Field field) {
         try {
-            Object currentValue = field.get(instance);
-            return !isDefaultValue(currentValue, field.getType());
+            return field.get(instance);
         } catch (IllegalAccessException e) {
             throw new IllegalStateException(
                     "Field should be accessible: " + field.getDeclaringClass().getSimpleName() + "." + field.getName(),
