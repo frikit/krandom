@@ -14,6 +14,8 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.location.StateDataRegistry;
+import io.github.frikit.krandom.generator.user.FirstNameDataRegistry;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdProvider;
 import java.lang.reflect.Proxy;
 import java.util.HashSet;
@@ -25,6 +27,16 @@ import org.junit.jupiter.api.Test;
 
 @DisplayName("Vocabulary keys")
 class VocabularyTest {
+
+    @Test
+    @DisplayName("a vocabulary reads its bundled registry's keys once, and they are the registry's keys")
+    void bundledKeysAreReadOnce() {
+        assertEquals(StateDataRegistry.registeredKeys(), Vocabulary.STATE.globalKeys());
+        assertEquals(FirstNameDataRegistry.registeredKeys(), Vocabulary.FIRST_NAME.globalKeys());
+        for (Vocabulary<?> vocabulary : Vocabulary.all()) {
+            assertSame(vocabulary.globalKeys(), vocabulary.globalKeys(), vocabulary.name());
+        }
+    }
 
     /** A consumer-defined vocabulary: colour names per locale. */
     interface ColorProvider extends LocaleDataProvider {

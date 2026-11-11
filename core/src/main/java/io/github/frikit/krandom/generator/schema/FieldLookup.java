@@ -23,12 +23,27 @@ import java.util.function.Function;
 
 /**
  * Resolves string field references to concrete value providers.
+ *
+ * <p>In a {@link Schema} with a portable seeded configuration, which gives each value a stream named by its
+ * record index and column, a built-in reference, and one that {@code registerProvider} adds, make their
+ * generator for each value, seeded from that stream, so a column's values do not depend on other columns.
+ * Elsewhere, and for a lookup whose configuration uses a caller-owned, factory-made, or secure random
+ * source, each reference draws from one generator, in sequence.
  */
 public final class FieldLookup {
 
     private final GeneratorConfig config;
     private final Map<String, SchemaValueProvider> providers = new LinkedHashMap<>();
     private final Map<String, String> aliases = new LinkedHashMap<>();
+
+    /** Whether a value may take a seed of its own, which a caller-owned, factory-made, or secure source may not. */
+    private final boolean seedsValues;
+
+    /**
+     * A builder of this lookup's configuration for each thread, which only ever changes its seed, so that a
+     * value's configuration costs the copy that {@code build()} makes and not a new builder's copy as well.
+     */
+    private final ThreadLocal<GeneratorConfig.Builder> valueBuilders;
 
     /**
      * Creates a lookup with generators initialized from the provided config.
@@ -37,8 +52,22 @@ public final class FieldLookup {
      */
     public FieldLookup(GeneratorConfig config) {
         this.config = Objects.requireNonNull(config, "config must not be null");
+        this.seedsValues =
+                config.getRandom().isEmpty() && config.getRandomFactory().isEmpty() && !config.isSecureRandom();
+        this.valueBuilders = ThreadLocal.withInitial(config::toBuilder);
         registerBuiltIns();
         registerExtensions();
+    }
+
+    /**
+     * The configuration for one value: in a schema with a portable recipe, which gives each value a stream
+     * named by its record and column, this lookup's configuration seeded from that stream, so that the value
+     * depends on nothing else; otherwise null, and a shared generator gives the value in its own sequence.
+     */
+    @org.jspecify.annotations.Nullable GeneratorConfig valueConfig(SchemaContext context) {
+        return seedsValues && context.random() instanceof Schema.FieldStream stream
+                ? valueBuilders.get().seed(stream.nextLong()).build()
+                : null;
     }
 
     private static String normalize(String reference) {
@@ -157,14 +186,28 @@ public final class FieldLookup {
         if ((providers.containsKey(key) || aliases.containsKey(key)) && conflictPolicy == ConflictPolicy.FAIL) {
             throw new IllegalArgumentException("Field reference already registered: " + key);
         }
-        Object provider =
-                Objects.requireNonNull(providerFactory.create(config), "provider factory must not return null");
-        if (!expectedType.isInstance(provider)) {
+        T typedProvider = provider(providerFactory, expectedType, reference, config);
+        register(
+                key,
+                ctx -> {
+                    GeneratorConfig valueConfig = valueConfig(ctx);
+                    return extractor.apply(
+                            valueConfig == null
+                                    ? typedProvider
+                                    : provider(providerFactory, expectedType, reference, valueConfig));
+                },
+                schema,
+                conflictPolicy);
+    }
+
+    private static <T> T provider(
+            ProviderFactory factory, Class<T> providerType, String reference, GeneratorConfig config) {
+        Object provider = Objects.requireNonNull(factory.create(config), "provider factory must not return null");
+        if (!providerType.isInstance(provider)) {
             throw new IllegalArgumentException("Provider for reference '" + reference + "' is "
-                    + provider.getClass().getName() + ", not " + expectedType.getName());
+                    + provider.getClass().getName() + ", not " + providerType.getName());
         }
-        T typedProvider = expectedType.cast(provider);
-        register(key, ctx -> extractor.apply(typedProvider), schema, conflictPolicy);
+        return providerType.cast(provider);
     }
 
     /**
@@ -285,7 +328,12 @@ public final class FieldLookup {
         for (ProviderSchemaProjection<T> projection : descriptor.getSchemaProjections()) {
             register(
                     projection.getReference(),
-                    context -> projection.extract(provider, config),
+                    context -> {
+                        GeneratorConfig valueConfig = valueConfig(context);
+                        return valueConfig == null
+                                ? projection.extract(provider, config)
+                                : projection.extract(descriptor.create(valueConfig), valueConfig);
+                    },
                     jsonSchemaFor(projection),
                     policy);
             for (String alias : projection.getAliases()) {

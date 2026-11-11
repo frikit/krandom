@@ -9,6 +9,7 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Vocabulary;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -120,13 +121,26 @@ public final class TextGenerator implements Generator<String> {
             }
             return words;
         }
+        // A word repeated in the vocabulary is still one word, so the text ends after the distinct ones.
+        int distinct = new HashSet<>(vocabulary).size();
         Set<String> selected = new LinkedHashSet<>();
-        while (selected.size() < count && selected.size() < vocabulary.size()) {
+        while (selected.size() < count && selected.size() < distinct) {
             selected.add(vocabulary.get(random.nextInt(vocabulary.size())));
         }
         return new ArrayList<>(selected);
     }
 
+    /**
+     * Options for one generated text.
+     *
+     * @param maxChars          the most characters the text holds, at least 1
+     * @param extWordList       the words to draw from instead of the locale vocabulary, or {@code null} or
+     *                          empty for the locale vocabulary
+     * @param uniqueWords       whether each word appears at most once. A word that the vocabulary lists
+     *                          more than once is still one word, so the text holds at most as many words
+     *                          as the vocabulary has distinct ones
+     * @param variableWordCount whether the text draws 4 to 13 words rather than 8
+     */
     public record TextOptions(
             int maxChars,
             @org.jspecify.annotations.Nullable List<String> extWordList,

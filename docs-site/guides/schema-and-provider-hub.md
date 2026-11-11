@@ -32,6 +32,14 @@ String yaml = schema.toYaml(10);
 String toml = schema.toToml(10);
 ```
 
+With a portable seeded configuration, one that has a `GenerationRecipe`, every value draws from its own
+stream, named by its record index and column, so adding a column leaves the values of the others as they
+were, and a recipe replays each column. A `Field` reference, a reference that `registerProvider(...)`
+adds, and the `#` and `?` of a template then make a generator for each value, from a seed drawn from that
+stream, which takes longer than drawing from one shared generator. A `Field` whose configuration uses a
+caller-owned, factory-made, or secure random source keeps that source, and other schemas draw from one
+generator for each reference, in sequence.
+
 `Field.bind(...)` covers both scalar tokens and composite provider payloads. Composite records are
 kept as nested JSON objects in JSONL, JSON, YAML, TOML, and JSON Schema, and as JSON cell/literal
 values in CSV, XML, and SQL exports:
@@ -85,10 +93,10 @@ is a fixture-schema importer, not a general JSON Schema validator or reference r
 
 | Construct | Supported behavior |
 | --- | --- |
-| Root | An object with a non-empty `properties` map of schema objects is required. Every record holds each of those properties, as a column, so a root `required` name or property dependency that names another property, or a `minProperties` or `maxProperties` that those properties do not meet, is rejected at `$`. |
+| Root | An object with a non-empty `properties` map of schema objects is required. Every record holds each of those properties, as a column, so a root `required` name or property dependency that names another property, or a `minProperties` or `maxProperties` that those properties do not meet, is rejected at `$`. A root `const` or `enum` names whole records: a record that the columns generate and the root names is kept, and any other is replaced by one of the named records that hold exactly the columns and meet the other constraints, so a root that names none is rejected at `$`. `toJsonSchema()` then gives each column an `enum` of the values that those records give it, while `getFields()` keeps each column's own provider and metadata. |
 | Types | `string`, `integer`, `number`, `boolean`, `array`, `object`, and `null`; a type list may contain exactly one concrete type plus `null`. |
 | Scalars | `const`, a non-empty `enum`, numeric bounds, `multipleOf`, string length bounds, and a `pattern` in the [syntax `RegexGenerator` supports]({{ '/guides/data-validity-and-safety/' | relative_url }}#regular-expression-contract). |
-| Strings | Every format Draft 2020-12 defines receives dedicated generation: `date`, and `date-time` and `time` as RFC 3339, with seconds and an offset; `duration` as RFC 3339 days, hours, minutes, and seconds; `email` and `idn-email`; `hostname` and `idn-hostname`; `ipv4` and `ipv6`; `uri`, `uri-reference`, `iri`, `iri-reference`, and `uri-template`, all from one URL generator, as a URI with no quote or brace is each of the others; `uuid`; `json-pointer` and `relative-json-pointer`; and `regex`, as letters, which match themselves. So do OpenAPI's `byte`, as base64; `date-time-local` and `time-local`, which the [OpenAPI Format Registry](https://spec.openapis.org/registry/format/) describes as RFC 3339 date-time and time without the timezone component, written with the seconds; and the `url` alias. OpenAPI's `binary` and `password` allow any string, and no standard validator checks any other format, so they deliberately use the semantic-name or bounded-string fallback. A schema with no `type` generates a string under the same rules. |
+| Strings | Every format Draft 2020-12 defines receives dedicated generation: `date`, and `date-time` and `time` as RFC 3339, with seconds and an offset; `duration` as RFC 3339 days, hours, minutes, and seconds; `email` and `idn-email`; `hostname` and `idn-hostname`; `ipv4` and `ipv6`; `uri`, `uri-reference`, `iri`, `iri-reference`, and `uri-template`, all from one URL generator, as a URI with no quote or brace is each of the others; `uuid`; `json-pointer` and `relative-json-pointer`; and `regex`, as letters, which match themselves. So do OpenAPI's `byte`, as base64; `date-time-local` and `time-local`, which the [OpenAPI Format Registry](https://spec.openapis.org/registry/format/) describes as RFC 3339 date-time and time without the timezone component, written with the seconds; and the `url` alias. OpenAPI's `binary` and `password` allow any string, and no standard validator checks any other format, so they deliberately use the semantic-name or bounded-string fallback. A schema with no `type` generates a string under the same rules, unless its property name chooses a semantic value of another type, which keeps that type: `datetimeTimestamp` gives an integer Unix timestamp and `companyInfo` a company object. The schema's keywords for that type apply to such a value, so a value that misses `maximum` or `maxProperties` is replaced by one drawn from them, as if the schema declared the type, and keywords that leave the type no value are rejected with the schema path. |
 | Structures | `items` as one schema or as a list of schemas, `additionalItems` beside a list, `minItems`/`maxItems`, and `uniqueItems` for arrays; nested `properties`, `required`, `additionalProperties`, `minProperties`/`maxProperties`, and property `dependencies` for objects. An array without `items` produces strings, and `true` and `false` work as schemas that allow any value or none. |
 | OpenAPI controls | OpenAPI 3.0 `nullable`, plus the `$schema` that `toJsonSchema()` emits, which is accepted as a document control rather than a generation constraint. |
 
@@ -144,8 +152,9 @@ Constraints apply together, and a keyword constrains only values of its own JSON
   without one. A `required` property that is not in `properties` is generated the same way, and its
   name chooses a realistic value where it can, so `required: ["email"]` gives an email address. Where
   `additionalProperties` is `false`, none of these can be added, so the schema is rejected with its
-  path. A property schema `true` generates a string, as `{}` does, and `false` leaves the property out,
-  so a `required` property whose schema is `false`, or is no schema at all, is rejected.
+  path. A property schema `true` generates what `{}` does, a string or the semantic value that the
+  property's name chooses, and `false` leaves the property out, so a `required` property whose schema is
+  `false`, or is no schema at all, is rejected.
 - A property dependency, such as `"dependencies": {"card": ["billing"]}`, brings the properties it
   names, through every link, beside the property that needs them, so `required` brings them too. A
   property whose dependencies cannot be generated is left out, and rejected if it is required.
@@ -192,7 +201,10 @@ reason: the importer has no document-ID or reference-resolution model.
 
 Schema export is metadata-driven and side-effect free. Built-in `Field` providers carry an exact
 fragment; a custom lambda with no metadata deliberately exports `{}` to mean **unknown**, not an
-invented type. A record member exports by its Java type: a `LocalDate` as `format: date`, an
+invented type. A constant, a `withSample(...)` sample, and a payload template export the schema of their
+value, which every value they give meets: array items follow every item, so items of different types
+export `{}` and a `null` item makes the others' schema nullable, and a map member is named as the writers
+write its key, so the key `1` is the member `"1"`. A record member exports by its Java type: a `LocalDate` as `format: date`, an
 `OffsetTime` as `time`, an `OffsetDateTime`, `ZonedDateTime`, or `Instant` as `date-time`, and a
 `LocalDateTime` or `LocalTime` as `date-time-local` or `time-local`, as the `datetime.time` provider
 does too, because RFC 3339's `date-time` and `time` need an offset that those values do not have.
@@ -225,8 +237,10 @@ schema.writeToml(out, 1000);
 For stream-based output, `writeTo(OutputStream, OutputFormat, count)` writes UTF-8 and flushes its adapter writer without closing the caller-owned stream. The `Writer` overload also leaves ownership with the caller.
 
 `JSON` is an array document; `JSONL` stays one object per line. YAML renders an ordinary sequence
-and TOML renders an array of `records` tables. TOML has no `null` value, so its writer rejects a
-null field instead of silently changing data.
+and TOML renders an array of `records` tables. YAML quotes a field name that a parser would read as a
+boolean, null, number, or date, such as `true`, `null`, `123`, or `2024-01-05`, so every name reads back
+as the same string. TOML has no `null` value, so its writer rejects a null field instead of silently
+changing data.
 
 ### Projecting existing objects
 

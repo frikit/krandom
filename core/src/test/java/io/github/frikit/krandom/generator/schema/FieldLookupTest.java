@@ -22,8 +22,14 @@ import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
 import io.github.frikit.krandom.generator.provider.ProviderSchemaProjection;
 import io.github.frikit.krandom.generator.text.WordGenerator;
 import java.lang.reflect.Field;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -32,6 +38,39 @@ import org.junit.jupiter.api.Test;
 
 @DisplayName("FieldLookup")
 class FieldLookupTest {
+
+    @Test
+    @DisplayName("a value's configuration is the lookup's own with the value's seed, value after value, on any thread")
+    void valueConfigurationsDifferOnlyInTheirSeed() throws InterruptedException {
+        GeneratorConfig config = GeneratorConfig.builder()
+                .seed("text seed")
+                .locale(Locale.GERMANY)
+                .stringLength(3, 9)
+                .clock(Clock.fixed(Instant.parse("2026-07-10T12:00:00Z"), ZoneOffset.UTC))
+                .build();
+        FieldLookup lookup = new FieldLookup(config);
+        // Two values on this thread reuse its builder; a third comes from a thread of its own.
+        List<GeneratorConfig> values = new ArrayList<>();
+        values.add(lookup.valueConfig(new SchemaContext(Locale.GERMANY, new Schema.FieldStream(1L), 0)));
+        values.add(lookup.valueConfig(new SchemaContext(Locale.GERMANY, new Schema.FieldStream(2L), 1)));
+        Thread other = new Thread(
+                () -> values.add(lookup.valueConfig(new SchemaContext(Locale.GERMANY, new Schema.FieldStream(3L), 2))));
+        other.start();
+        other.join();
+
+        long[] streams = {1L, 2L, 3L};
+        for (int i = 0; i < streams.length; i++) {
+            GeneratorConfig expected =
+                    config.toBuilder().seed(new Random(streams[i]).nextLong()).build();
+            GeneratorConfig actual = values.get(i);
+            assertEquals(expected.getSeed(), actual.getSeed());
+            assertEquals(Optional.empty(), actual.getStringSeed());
+            assertFalse(actual.isRestoredFromRecipe());
+            assertEquals(
+                    expected.getGenerationRecipe().orElseThrow().serialize(),
+                    actual.getGenerationRecipe().orElseThrow().serialize());
+        }
+    }
 
     @Test
     @DisplayName("supported references are exposed")

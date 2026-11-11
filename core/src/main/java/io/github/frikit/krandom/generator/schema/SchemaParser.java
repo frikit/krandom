@@ -39,6 +39,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import org.jspecify.annotations.Nullable;
 
@@ -88,9 +89,12 @@ import org.jspecify.annotations.Nullable;
  * that would hold more properties fails with its path. A list of items holds the whole tuple by default, and {@code additionalItems} is read only
  * beside one, as in the drafts that define it; {@code prefixItems}, its Draft 2020-12 replacement, is
  * rejected. The root generates every property as a column, so its {@code required} names, property
- * dependencies, and member counts must allow exactly those. References and schema composition
- * ({@code $ref}, {@code allOf}, {@code anyOf}, {@code oneOf}, schema dependencies, and related conditional
- * keywords) are rejected with a schema path because this parser has no resolver or composition semantics.
+ * dependencies, and member counts must allow exactly those. A root {@code const} or {@code enum} names whole
+ * records, so a record that is none of those it names that hold exactly the columns and meet the other
+ * constraints is replaced by one, and a root that names no such record is rejected. References and schema
+ * composition ({@code $ref}, {@code allOf}, {@code anyOf}, {@code oneOf}, schema dependencies, and related
+ * conditional keywords) are rejected with a schema path because this parser has no resolver or composition
+ * semantics.
  *
  * <p>Constraints apply together, and a keyword constrains only values of its own JSON type. A
  * {@code const} or {@code enum} value must meet the other constraints, and an {@code enum} keeps only
@@ -108,7 +112,10 @@ import org.jspecify.annotations.Nullable;
  * {@code enum} beside it names the values, as those are only checked against it.
  *
  * <p>Field names are matched against krandom's semantic resolver for realistic data.
- * For example, a property named "email" with type "string" will produce email addresses.
+ * For example, a property named "email" with type "string" will produce email addresses. A schema without a
+ * type leaves a semantic value its own type, such as the integer timestamp of "datetimeTimestamp", so the
+ * schema's keywords for that type apply to it: a value that misses them is replaced by one drawn from them, as
+ * if the schema declared the type, and keywords that leave the type no value are rejected with the path.
  *
  * <pre>{@code
  *   Map<String, Object> jsonSchema = Map.of(
@@ -164,6 +171,30 @@ public final class SchemaParser {
      * draws no more than it.
      */
     private static final int SIZE_LIMIT = 1_000_000;
+
+    /** The keywords that constrain a number, an integer among them. */
+    private static final List<String> NUMERIC_KEYWORDS =
+            List.of("minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf");
+
+    /**
+     * The keywords that constrain a value of each JSON type, other than a string, that a semantic value can
+     * have. A schema without a type leaves such a value its type, so these apply to it.
+     */
+    private static final Map<String, List<String>> TYPE_KEYWORDS = Map.of(
+            "integer",
+            NUMERIC_KEYWORDS,
+            "number",
+            NUMERIC_KEYWORDS,
+            "array",
+            List.of("items", "additionalItems", "minItems", "maxItems", "uniqueItems"),
+            "object",
+            List.of(
+                    "properties",
+                    "required",
+                    "additionalProperties",
+                    "minProperties",
+                    "maxProperties",
+                    "dependencies"));
 
     /** How a rejection of the root's member keywords begins. */
     private static final String ROOT_COLUMNS =
@@ -258,7 +289,117 @@ public final class SchemaParser {
             resolveProvider("", "$.additionalProperties", rootAdditional, field, config);
         }
 
-        return new Schema(config, providers);
+        // A root const or enum names whole records, which columns drawn one by one need not give.
+        List<Map<String, Object>> records = rootRecords(jsonSchema, columns.keySet());
+        return new Schema(config, providers, records == null ? null : new RootRecords(records, columns.keySet()));
+    }
+
+    /**
+     * The records that a root const or enum names, as a rule over whole records. A generated record that is
+     * one of them, as JSON values compare, is kept, and any other is replaced by one of them, drawn from the
+     * record's own stream where there are several. Each column then holds one of their values, so its exported
+     * schema is the enum of those values, written as the writers write them; its provider keeps its own.
+     */
+    private static final class RootRecords implements Schema.RecordRule {
+
+        private final List<Map<String, Object>> records;
+        private final Set<@Nullable Object> allowed = new HashSet<>();
+        private final Map<String, Map<String, Object>> columnSchemas = new LinkedHashMap<>();
+
+        RootRecords(List<Map<String, Object>> records, Set<String> columns) {
+            this.records = records;
+            for (Map<String, Object> record : records) {
+                allowed.add(json(record));
+            }
+            for (String column : columns) {
+                List<@Nullable Object> values = new ArrayList<>();
+                Set<@Nullable Object> seen = new HashSet<>();
+                for (Map<String, Object> record : records) {
+                    Object value = record.get(column);
+                    if (seen.add(json(value))) {
+                        values.add(writtenValue(value));
+                    }
+                }
+                columnSchemas.put(column, Map.of("enum", values));
+            }
+        }
+
+        @Override
+        public Map<String, Object> apply(Map<String, Object> record, Supplier<Random> random) {
+            return allowed.contains(json(record))
+                    ? record
+                    : new LinkedHashMap<>(
+                            records.get(records.size() == 1 ? 0 : random.get().nextInt(records.size())));
+        }
+
+        @Override
+        public Map<String, ?> columnSchema(String column) {
+            return columnSchemas.getOrDefault(column, Map.of());
+        }
+    }
+
+    /**
+     * A value as the writers write it, for metadata: a date or time as its RFC 3339 text, a structure with every
+     * key at any depth as its text, and any other value that is no number or boolean as its text.
+     */
+    private static @Nullable Object writtenValue(@Nullable Object explicit) {
+        Object value = Schema.normalizeStructuredValue(explicit);
+        if (value instanceof Map<?, ?> object) {
+            Map<String, @Nullable Object> members = new LinkedHashMap<>();
+            for (Map.Entry<?, ?> member : object.entrySet()) {
+                members.put(String.valueOf(member.getKey()), writtenValue(member.getValue()));
+            }
+            return members;
+        }
+        if (value instanceof List<?> items) {
+            List<@Nullable Object> written = new ArrayList<>(items.size());
+            for (Object item : items) {
+                written.add(writtenValue(item));
+            }
+            return written;
+        }
+        return value == null || value instanceof Number || value instanceof Boolean ? value : Schema.writtenText(value);
+    }
+
+    /**
+     * The records that a root const or enum names, each with the columns' values in their order, or null
+     * where the root names neither. The root generates exactly its properties, as columns, so it gives only
+     * the named records that hold exactly them and meet the other constraints, and must name one.
+     */
+    private static @Nullable List<Map<String, Object>> rootRecords(Map<String, Object> root, Set<String> columns) {
+        List<?> named;
+        if (root.containsKey("const")) {
+            named = Collections.singletonList(root.get("const"));
+        } else if (root.get("enum") instanceof List<?> members) {
+            named = members;
+        } else {
+            return null;
+        }
+        List<Map<String, Object>> records = new ArrayList<>();
+        try {
+            for (Object value : named) {
+                if (JsonSchemaSupport.normalizeStructuredValue(value) instanceof Map<?, ?> object
+                        && byName(object).keySet().equals(columns)
+                        && satisfies(value, root)) {
+                    Map<String, @Nullable Object> members = byName(object);
+                    Map<String, Object> record = new LinkedHashMap<>();
+                    for (String column : columns) {
+                        record.put(column, members.get(column));
+                    }
+                    records.add(record);
+                }
+            }
+        } catch (IllegalArgumentException exception) {
+            // A number that JSON cannot write, such as NaN, or two keys written under one name.
+            throw new IllegalArgumentException(
+                    "JSON Schema const or enum cannot be checked at $: " + exception.getMessage(), exception);
+        }
+        if (records.isEmpty()) {
+            throw new IllegalArgumentException(ROOT_COLUMNS
+                    + "its const or enum must name a record that holds exactly them and meets the other"
+                    + " constraints at $");
+        }
+        return records;
     }
 
     /**
@@ -603,7 +744,8 @@ public final class SchemaParser {
             case "array" -> resolveArray(fieldName, path, fieldSchema, field, config);
             case "object" -> resolveNestedObject(path, fieldSchema, field, config);
             case "null" -> ctx -> null;
-            // A schema without a type also generates a string, so string constraints apply to it too.
+            // A schema without a type also generates a string, unless its name chooses a semantic value of
+            // another type, so string constraints apply to it too.
             default -> resolveString(fieldName, path, fieldSchema, format, field, config);
         };
     }
@@ -867,10 +1009,15 @@ public final class SchemaParser {
         if (!declaresLength(schema)) {
             SchemaValueProvider semantic = trySemanticResolve(fieldName, field);
             if (semantic != null) {
-                // A semantic value can have its own type, such as a numeric timestamp; a declared type wins.
-                return schema.containsKey("type")
-                                && !"string".equals(semantic.jsonSchema().get("type"))
-                        ? ctx -> String.valueOf(semantic.generate(ctx))
+                String semanticType = String.valueOf(semantic.jsonSchema().get("type"));
+                if (schema.containsKey("type")) {
+                    // A semantic value can have its own type, such as a numeric timestamp; a declared type wins.
+                    return "string".equals(semanticType) ? semantic : ctx -> String.valueOf(semantic.generate(ctx));
+                }
+                // Without a type, a semantic value keeps its own, so the schema's keywords for that type apply.
+                return TYPE_KEYWORDS.getOrDefault(semanticType, List.of()).stream()
+                                .anyMatch(schema::containsKey)
+                        ? meeting(semantic, semanticType, fieldName, path, schema, field, config)
                         : semantic;
             }
         }
@@ -884,6 +1031,32 @@ public final class SchemaParser {
         int minLength = schema.containsKey("minLength") ? fewest : Math.min(config.getMinStringLength(), maxLength);
         // Generated text has at least one character, so only maxLength 0 needs the empty string.
         return maxLength == 0 ? ctx -> "" : text(Math.max(minLength, 1), maxLength);
+    }
+
+    /**
+     * A semantic value where it meets the schema, and otherwise a value drawn from the schema as if it declared
+     * the semantic value's type, which also rejects keywords that leave that type no value, with the path.
+     */
+    private static SchemaValueProvider meeting(
+            SchemaValueProvider semantic,
+            String type,
+            String fieldName,
+            String path,
+            Map<String, Object> schema,
+            Field field,
+            GeneratorConfig config) {
+        Map<String, Object> typed = new LinkedHashMap<>();
+        typed.put("type", type);
+        typed.putAll(schema);
+        SchemaValueProvider drawn = resolveProvider(fieldName, path, typed, field, config);
+        // Values keep to the keywords as parsed, even if the caller's map changes later.
+        Map<String, Object> parsed = new LinkedHashMap<>(schema);
+        return SchemaValueProvider.withJsonSchema(
+                ctx -> {
+                    Object value = semantic.generate(ctx);
+                    return satisfies(value, parsed) ? value : drawn.generate(ctx);
+                },
+                Map.of("type", type));
     }
 
     /**
