@@ -138,6 +138,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `getGenerationRecipe()`, seeded object generation and seeded `Schema` construction all failed with
   `IllegalArgumentException`. The recipe encodes the breaks, as `seed-text=suite%0Acase`, and replays them.
   Every other configuration generates as before.
+- `DataFakerExpressionGenerator` and `Generators.ofDataFakerExpression(...)` now reject every `#{...}` token they
+  do not support when they are built, as they and the DataFaker migration guide say an unknown token fails
+  fast. A token was read only where it held letters, dots and underscores, so `#{Name.noSuchMethod1}`,
+  `#{Name.firstName()}` and `#{number.number_between '1','10'}` stayed in the output as literal text.
+  Expressions of supported tokens generate as before.
 
 ## [3.0.0] - 2026-11-10
 

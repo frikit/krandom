@@ -80,6 +80,28 @@ class DataFakerExpressionGeneratorTest {
     }
 
     @Test
+    @DisplayName("a token with digits, spaces or arguments fails at construction as any other unknown token does")
+    void unknownTokenOfAnyShapeThrows() {
+        for (String expression : java.util.List.of(
+                "#{Name.noSuchMethod1}",
+                "Hi #{number.number_between '1','10'}!",
+                "#{Name.first name}",
+                "#{Name.firstName()}",
+                "#{}")) {
+            IllegalArgumentException error =
+                    assertThrows(IllegalArgumentException.class, () -> new DataFakerExpressionGenerator(expression));
+            assertTrue(error.getMessage().startsWith("Unsupported DataFaker expression '#{"), error.getMessage());
+            assertTrue(error.getMessage().contains("name.firstname"), error.getMessage());
+        }
+        assertTrue(assertThrows(
+                        IllegalArgumentException.class, () -> new DataFakerExpressionGenerator("#{Name.noSuchMethod1}"))
+                .getMessage()
+                .startsWith("Unsupported DataFaker expression '#{Name.noSuchMethod1}'."));
+        assertEquals("#{Name.firstName", new DataFakerExpressionGenerator("#{Name.firstName").generate());
+        assertEquals("price {5} #5", new DataFakerExpressionGenerator("price {5} #5").generate());
+    }
+
+    @Test
     @DisplayName("every supported expression resolves against the provider hub")
     void allSupportedExpressionsResolve() {
         for (String key : DataFakerExpressionGenerator.supportedExpressions()) {

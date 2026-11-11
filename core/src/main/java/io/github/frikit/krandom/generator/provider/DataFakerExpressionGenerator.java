@@ -30,12 +30,13 @@ import java.util.regex.Pattern;
  *       .generate();
  * }</pre>
  *
- * <p>Unknown tokens fail fast at construction with the list of supported expressions. For
- * kRandom-native templates prefer {@code Generators.ofProviderTemplate("{firstname}-##")}.
+ * <p>A token is any {@code #{...}}, whatever it holds, so an unknown token, with its digits, spaces or
+ * arguments too, fails fast at construction with the list of supported expressions. For kRandom-native
+ * templates prefer {@code Generators.ofProviderTemplate("{firstname}-##")}.
  */
 public final class DataFakerExpressionGenerator implements Generator<String> {
 
-    private static final Pattern TOKEN = Pattern.compile("#\\{([A-Za-z._]+)}");
+    private static final Pattern TOKEN = Pattern.compile("#\\{([^}]*)}");
 
     private static final Map<String, String> PROVIDER_TOKENS = Map.ofEntries(
             Map.entry("name.firstname", "person.first_name"),
