@@ -34,9 +34,10 @@ public interface ObjectConstructionAdapter {
      * <p>The adapter stands in for a constructor. Object generation then fills the type's other mutable
      * fields, those that no parameter the adapter resolved or asked about through the context names, as it
      * fills a class that it builds through a constructor. An instance is returned as it is where a static field
-     * declared with its class holds it: one of the type, as a Kotlin {@code object}'s {@code INSTANCE} holds it,
-     * or the field of the enclosing class named after the instance's class, as a Kotlin companion object is
-     * held. No other field of an enclosing class is read, since reading one could initialize that class.
+     * holds it: one of its class or a superclass, whatever type the field is declared with, as a Kotlin
+     * {@code object}'s {@code INSTANCE} holds it, or the field of the enclosing class that is named after the
+     * instance's class and declared with it, as a Kotlin companion object is held. No other field of an
+     * enclosing class is read, since reading one could initialize that class.
      *
      * @param context requested type and access to the standard parameter resolver
      * @return a non-null value assignable to {@link ObjectConstructionContext#getType()}

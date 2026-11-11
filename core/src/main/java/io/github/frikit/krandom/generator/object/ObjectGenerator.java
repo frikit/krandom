@@ -680,18 +680,23 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     /**
      * Whether a static field holds this very instance, as the one instance of a Kotlin object or companion object
-     * is held. Such an instance is shared, so it is left as it is. Only a field declared with the instance's own
-     * class is read: one of the type, as an object's {@code INSTANCE} is, and the one field of the class that
-     * encloses it that Kotlin keeps a companion object in, named after the companion object's class, as
-     * kotlin-reflect reads it. Reading any other field of an enclosing class could start that class.
+     * is held. Such an instance is shared, so it is left as it is. A field is read only where reading it starts
+     * no class: any field of the instance's class or a superclass, which the instance has started, whatever type
+     * it is declared with, as an object's {@code INSTANCE} is one; and the one field of the class that encloses
+     * it that Kotlin keeps a companion object in, named after the companion object's class and declared with it,
+     * as kotlin-reflect reads it. Reading any other field of an enclosing class could start that class.
      */
-    private boolean isHeldStatically(Object instance) {
+    private static boolean isHeldStatically(Object instance) {
         Class<?> instanceType = instance.getClass();
+        Stream<Field> own = Stream.<Class<?>>iterate(
+                        instanceType, owner -> owner != Object.class, owner -> owner.getSuperclass())
+                .flatMap(owner -> Arrays.stream(owner.getDeclaredFields()));
         Stream<Field> companion = Stream.ofNullable(instanceType.getDeclaringClass())
                 .flatMap(host -> Arrays.stream(host.getDeclaredFields()))
-                .filter(field -> field.getName().equals(instanceType.getSimpleName()));
-        return Stream.concat(Arrays.stream(type.getDeclaredFields()), companion)
-                .filter(field -> Modifier.isStatic(field.getModifiers()) && field.getType() == instanceType)
+                .filter(field -> field.getName().equals(instanceType.getSimpleName())
+                        && field.getType() == instanceType);
+        return Stream.concat(own, companion)
+                .filter(field -> Modifier.isStatic(field.getModifiers()) && field.getType().isInstance(instance))
                 .anyMatch(field -> {
                     ensureAccessible(field, field.getDeclaringClass());
                     return staticValue(field) == instance;

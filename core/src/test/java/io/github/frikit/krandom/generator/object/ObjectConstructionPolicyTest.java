@@ -410,6 +410,21 @@ class ObjectConstructionPolicyTest {
     }
 
     @Test
+    @DisplayName("an adapter's instance that a static field of its class holds is returned as it is, whatever the"
+            + " field's declared type")
+    void adapterSharedInstanceKeepsItsState() {
+        AdapterSharedView value = new ObjectGenerator<>(
+                        AdapterSharedView.class,
+                        GeneratorConfig.builder()
+                                .objectOverrideDefaultInitialization(true)
+                                .build())
+                .generate();
+
+        assertSame(AdapterSharedView.INSTANCE, value);
+        assertEquals("kept", value.state);
+    }
+
+    @Test
     @DisplayName("looking for a held instance reads no field of an enclosing class but a companion object's")
     void heldInstanceCheckLeavesEnclosingStaticsAlone() {
         // Reading InitHost.UNRELATED or InitHost.SAMPLE would run InitHost's static initializer, which fails.
@@ -781,6 +796,19 @@ class ObjectConstructionPolicyTest {
 
         static final AdapterSingletonFixture INSTANCE = new AdapterSingletonFixture();
 
+        /** A property of the object, which Kotlin compiles to a static field of its class. */
+        static final String NAME = "singleton";
+
+        String state = "kept";
+    }
+
+    /** A view that is shared through a static field declared with its interface. */
+    interface AdapterView {}
+
+    static final class AdapterSharedView implements AdapterView {
+
+        static final AdapterView INSTANCE = new AdapterSharedView();
+
         String state = "kept";
     }
 
@@ -791,6 +819,9 @@ class ObjectConstructionPolicyTest {
 
         /** A static field of the nested class's own type, which is not where Kotlin keeps a companion object. */
         static final Child SAMPLE = fail();
+
+        /** Named after the nested class but not declared with it, so not a companion object's field either. */
+        static final Object Child = fail();
 
         private static <V> V fail() {
             throw new IllegalStateException("InitHost must not be initialized");
