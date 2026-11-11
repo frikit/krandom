@@ -28,7 +28,7 @@ its replacement, and the [changelog](CHANGELOG.md) lists it. Only the latest rel
 and fixes are not backported to earlier ones. Releases before 3.0.0 made no compatibility promise, so
 read the changelog when upgrading from 2.x.
 
-The latest stable release is `3.0.0`.
+The latest stable release is `3.0.1`.
 The repository development line is `3.0.1-SNAPSHOT`.
 
 ## Determinism
