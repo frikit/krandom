@@ -14,14 +14,22 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.commerce.OrderInfo;
 import io.github.frikit.krandom.generator.datetime.ZoneOffsetGenerator;
 import io.github.frikit.krandom.generator.schema.Field;
+import io.github.frikit.krandom.generator.schema.OutputFormat;
 import io.github.frikit.krandom.generator.schema.Schema;
 import io.github.frikit.krandom.generator.schema.SchemaValueProvider;
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
@@ -159,6 +167,46 @@ class KrandomJacksonTest {
                 InvalidFormatException.class,
                 () -> mapper.readValue("\"2020-01-01T10:15:30+07:17:55\"", Date.class),
                 "the parser refuses seconds in an offset, so the loop above is a real check");
+    }
+
+    @Test
+    @DisplayName("schema JSON with unpaired surrogates encodes as strict UTF-8 and reads back with U+FFFD")
+    void schemaJsonWithUnpairedSurrogatesReadsBack() throws Exception {
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("high\uD800", ctx -> "a\uD800b");
+        fields.put("low\uDC00", ctx -> "a\uDC00b");
+        fields.put("reversed", ctx -> "\uDC00\uD800");
+        fields.put("pair\uD83D\uDE00", ctx -> "a\uD83D\uDE00b");
+        fields.put("nested", ctx -> Map.of("k\uDBFF", List.of("\uDC00", '\uD800')));
+        Schema schema = new Schema(fields);
+        JsonMapper mapper = KrandomJackson.newJsonMapper();
+        CharsetEncoder strict = StandardCharsets.UTF_8
+                .newEncoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT);
+        ByteArrayOutputStream streamed = new ByteArrayOutputStream();
+        schema.writeTo(streamed, OutputFormat.JSON, 1);
+
+        List<JsonNode> rows = List.of(
+                mapper.readTree(bytes(strict.encode(CharBuffer.wrap(schema.toJson(1)))))
+                        .get(0),
+                mapper.readTree(bytes(strict.encode(CharBuffer.wrap(schema.toJsonLines(1))))),
+                mapper.readTree(streamed.toByteArray()).get(0));
+
+        for (JsonNode row : rows) {
+            assertEquals("a\uFFFDb", row.path("high\uFFFD").asString());
+            assertEquals("a\uFFFDb", row.path("low\uFFFD").asString());
+            assertEquals("\uFFFD\uFFFD", row.path("reversed").asString());
+            assertEquals("a\uD83D\uDE00b", row.path("pair\uD83D\uDE00").asString());
+            assertEquals("\uFFFD", row.path("nested").path("k\uFFFD").path(0).asString());
+            assertEquals("\uFFFD", row.path("nested").path("k\uFFFD").path(1).asString());
+        }
+    }
+
+    private static byte[] bytes(ByteBuffer buffer) {
+        byte[] bytes = new byte[buffer.remaining()];
+        buffer.get(bytes);
+        return bytes;
     }
 
     @Test

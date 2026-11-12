@@ -242,6 +242,12 @@ boolean, null, number, or date, such as `true`, `null`, `123`, or `2024-01-05`, 
 as the same string. TOML has no `null` value, so its writer rejects a null field instead of silently
 changing data.
 
+Every format writes text that UTF-8 can encode. An unpaired surrogate, half of a UTF-16 surrogate pair
+without its other half, is written as U+FFFD wherever it is, in a value, a key, a CSV header, or a table
+or column name, and a pair as the character it encodes. An escape such as `\ud800` would not keep it:
+TOML has no escape for a surrogate, and strict JSON parsers reject a lone one. XML also writes U+FFFD
+for any other character that XML 1.0 cannot represent.
+
 ### Projecting existing objects
 
 `SchemaProjection<T>` applies named extractors to objects you already have. It consumes an

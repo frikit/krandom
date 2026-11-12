@@ -21,6 +21,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   with seed 42, 2,000 of 2,000 such values changed. Generated company names are unaffected, as the longest
   label of 5,000,000 seeded names in the 50 supported locales has 51 characters, so seeded output changes
   only for a company name of more than 63 ASCII letters and digits.
+- `Schema` and `SchemaProjection` now write an unpaired surrogate, half of a UTF-16 surrogate pair without
+  its other half, as U+FFFD in JSON, JSON Lines, CSV, YAML, SQL and TOML, in values and in keys, CSV headers,
+  and table and column names, as their XML output already did, so that each document can be encoded as the
+  UTF-8 that the schema guide says `writeTo(OutputStream, ...)` writes. They wrote it as it was, which no
+  Unicode encoding can hold: a strict UTF-8 encoder rejected the document, and `writeTo(OutputStream, ...)`
+  wrote `?` in its place, so the value `"a\ud800b"` read back as `a?b`. U+FFFD is written rather than an
+  escape such as `\ud800`, which TOML cannot write and strict JSON parsers reject. A surrogate pair, every
+  other character, and XML output are written as before. No built-in generator gives an unpaired surrogate
+  from its own data, so seeded output changes only for text that holds one, such as a value or a column name
+  that the caller supplies.
 
 ## [3.0.1] - 2026-11-11
 

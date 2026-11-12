@@ -60,6 +60,10 @@ import java.util.regex.Pattern;
  * {@code Time} as its date or time of day. A year outside 0000 to 9999, an offset with seconds or beyond
  * 23:59, and a Julian day of a {@code java.sql.Date} that ISO does not have, which RFC 3339 cannot write,
  * are refused with an {@link IllegalArgumentException}.
+ *
+ * <p>Every writer writes text that UTF-8 can encode. An unpaired surrogate, half of a UTF-16 surrogate pair
+ * without its other half, is written as U+FFFD wherever it is, in a value, a key, a CSV header, or a table or
+ * column name, and a pair as the character it encodes.
  */
 public final class Schema implements Generator<Map<String, Object>> {
 
@@ -789,6 +793,7 @@ public final class Schema implements Generator<Map<String, Object>> {
 
     /** Writes a column name as one quoted identifier, even when it contains dots. */
     static void appendSqlColumn(Appendable out, String column) throws IOException {
+        column = encodable(column);
         out.append('"');
         for (int j = 0; j < column.length(); j++) {
             char ch = column.charAt(j);
@@ -825,6 +830,7 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     private static void appendSqlStringLiteral(Appendable out, String value) throws IOException {
+        value = encodable(value);
         out.append('\'');
         for (int i = 0; i < value.length(); i++) {
             char ch = value.charAt(i);
@@ -949,6 +955,7 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     private static void appendQuoted(Appendable out, String value, boolean escapeDelete) throws IOException {
+        value = encodable(value);
         out.append('"');
         for (int i = 0; i < value.length(); i++) {
             char ch = value.charAt(i);
@@ -970,6 +977,30 @@ public final class Schema implements Generator<Map<String, Object>> {
             }
         }
         out.append('"');
+    }
+
+    /**
+     * The text that every writer writes for a string: the string, with each unpaired surrogate, half of a
+     * UTF-16 surrogate pair without its other half, as U+FFFD, so that UTF-8 can encode the document, and
+     * each pair kept as the character it encodes. A writer cannot escape such a half instead, as TOML has no
+     * escape for a surrogate and strict JSON parsers reject a lone one. XML writes U+FFFD for it too.
+     */
+    private static String encodable(String value) {
+        StringBuilder replaced = null;
+        for (int i = 0; i < value.length(); i++) {
+            char ch = value.charAt(i);
+            if (Character.isHighSurrogate(ch)
+                    && i + 1 < value.length()
+                    && Character.isLowSurrogate(value.charAt(i + 1))) {
+                i++;
+            } else if (Character.isSurrogate(ch)) {
+                if (replaced == null) {
+                    replaced = new StringBuilder(value);
+                }
+                replaced.setCharAt(i, '\uFFFD');
+            }
+        }
+        return replaced == null ? value : replaced.toString();
     }
 
     private static void appendJsonUnicodeEscape(Appendable out, char ch) throws IOException {
@@ -1200,6 +1231,7 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     private static void appendCsvCell(Appendable out, String value) throws IOException {
+        value = encodable(value);
         if (!needsCsvQuoting(value)) {
             out.append(value);
             return;
