@@ -26,15 +26,17 @@ fi
 
 step() { echo; echo "==> $*"; }
 
-# Succeeds when ANDROID_HOME or ANDROID_SDK_ROOT names a directory, which is then exported as ANDROID_HOME
-# for the Android Gradle plugin. Without one, the Android consumer is skipped unless KRANDOM_REQUIRE_ANDROID_SDK
-# is true, which makes a missing SDK an error.
+# Succeeds when ANDROID_HOME, or else ANDROID_SDK_ROOT, names a directory, which is then exported as
+# ANDROID_HOME for the Android Gradle plugin. Without one, the Android consumer is skipped unless
+# KRANDOM_REQUIRE_ANDROID_SDK is true, which makes a missing SDK an error.
 require_android_sdk() {
-    local sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
-    if [[ -n "${sdk}" && -d "${sdk}" ]]; then
-        export ANDROID_HOME="${sdk}"
-        return 0
-    fi
+    local sdk
+    for sdk in "${ANDROID_HOME:-}" "${ANDROID_SDK_ROOT:-}"; do
+        if [[ -n "${sdk}" && -d "${sdk}" ]]; then
+            export ANDROID_HOME="${sdk}"
+            return 0
+        fi
+    done
     if [[ "${REQUIRE_ANDROID_SDK}" == "true" ]]; then
         echo "An Android SDK is required: set ANDROID_HOME or ANDROID_SDK_ROOT to its directory."
         exit 1
