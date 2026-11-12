@@ -55,6 +55,9 @@ The GPG public key must be uploaded to a public keyserver (for example
    - "Assemble signed Maven Central bundle" and "Attest release build
      provenance" — create the exact upload ZIP and record signed GitHub/Sigstore
      provenance for it, all module jars, and all SBOM assets before publication.
+   - "Keep attested release assets" — keeps those attested files, the ones the GitHub release
+     attaches, as the Actions artifact `release-assets-<version>` for 90 days, before
+     publication, so that a resumed run attaches them instead of rebuilding them.
    - "Publish to Maven Central (Central Portal)" — runs
      `./gradlew publishAggregationToCentralPortal`. The
      `com.gradleup.nmcp.aggregation` plugin uploads the already attested signed
@@ -67,10 +70,12 @@ The GPG public key must be uploaded to a public keyserver (for example
 6. **(USER_MANAGED only) Release in the portal and finish GitHub publication.**
    <https://central.sonatype.com> → "Deployments" → find the upload →
    "Publish". Validation runs first; if it fails, fix and re-upload. Once Maven Central shows the
-   version as published, rerun the workflow before `main` moves, with the same version,
-   `resumeGithubRelease=true`, and `releaseCommit=<SHA printed by the initial run>`. The workflow
-   verifies the commit and public Central POM, skips Central upload, and creates the tag and GitHub
-   release.
+   version as published, rerun the workflow before `main` moves and within 90 days of the initial
+   run, with the same version, `resumeGithubRelease=true`, and
+   `releaseCommit=<SHA printed by the initial run>`. The workflow verifies the commit and public
+   Central POM, skips the build and the Central upload, checks the release assets that the initial
+   run kept as [Release rehearsal and recovery](#release-rehearsal-and-recovery) describes, and
+   creates the tag and GitHub release with them.
    Releases are immutable once published.
 
 ## Public API compatibility
@@ -165,15 +170,41 @@ retrying:
 | Last completed step | Safe recovery |
 | --- | --- |
 | Before **Publish to Maven Central** | Fix the failure and dispatch the normal workflow again. No immutable artifact has been uploaded. |
-| **Publish to Maven Central** completed, but the deployment is pending | Do not re-upload. Complete validation and publish in Central Portal; then rerun before `main` moves with `resumeGithubRelease=true` and the recorded `releaseCommit`. |
-| **Publish to Maven Central** completed, but **Create GitHub Release** failed | Verify the exact version and target commit in Central Portal, then re-dispatch with the same version, `resumeGithubRelease=true`, and the recorded `releaseCommit`. An existing tag is accepted only when it already points to that commit. |
-| `main` moved after a USER_MANAGED upload | Do not tag the newer commit or re-upload immutable coordinates. Create or repair the GitHub release at the recorded release commit, then verify its assets and attestations manually. |
+| **Publish to Maven Central** completed, but the deployment is pending | Do not re-upload. Complete validation and publish in Central Portal; then rerun before `main` moves, and within 90 days of the initial run, with `resumeGithubRelease=true` and the recorded `releaseCommit`. |
+| **Publish to Maven Central** completed, but **Create GitHub Release** failed | Verify the exact version and target commit in Central Portal, then re-dispatch within 90 days of the initial run with the same version, `resumeGithubRelease=true`, and the recorded `releaseCommit`. An existing tag is accepted only when it already points to that commit. |
+| `main` moved after a USER_MANAGED upload | Do not tag the newer commit or re-upload immutable coordinates. Repair the GitHub release at the recorded release commit by hand, as [Manual GitHub release repair](#manual-github-release-repair) describes. |
+| A resumed run failed in **Find**, **Download**, or **Verify the original release assets** | Do not rebuild or re-sign. Follow [Manual GitHub release repair](#manual-github-release-repair). |
 | Maven Central has already published the version | Never rerun the Central upload. Published coordinates are immutable. Repair only the missing GitHub release/announcement and retain the original version. |
 
 `resumeGithubRelease=true` is a recovery control, not a shortcut: it must only be used after
 confirming that the Central deployment for that exact version and commit exists. The workflow
 requires the recorded commit, verifies the public Maven Central POM, and refuses an existing tag
-unless it resolves to that same commit.
+unless it resolves to that same commit. It does not build, sign, or attest again. It takes the
+`release-assets-<version>` artifact that a run of the workflow at the recorded commit kept, and when
+several runs kept one, the artifact of the one run that succeeded. It attaches those files only when
+each passes `gh attestation verify` as built by the workflow from the recorded commit on `main`, when
+they are exactly the files that this run attested, and when every jar, and every file and signature
+in the signed bundle other than its checksums, is the file that Maven Central serves. Maven Central
+holds no SBOMs; the run's attestation binds them to the bundle. GitHub keeps the artifact for 90
+days.
+
+### Manual GitHub release repair
+
+A resumed run that cannot attach the initial run's release assets fails and points here. Never
+rebuild them instead: a new build signs and describes other files than the ones Maven Central holds.
+
+- **Several runs kept assets.** The failed step lists them. Delete the `release-assets-<version>`
+  artifacts of the runs whose bundle Maven Central does not hold, then resume again.
+- **The kept assets fail a check, or `main` moved.** A network failure needs only another resumed
+  run. Otherwise download the artifact of the run that uploaded to Maven Central with
+  `gh run download <run-id> --repo frikit/krandom --name release-assets-<version>`, verify each file
+  with
+  `gh attestation verify --repo frikit/krandom --signer-workflow frikit/krandom/.github/workflows/release-maven-central.yml --source-digest <releaseCommit> <file>`,
+  and create the tag and GitHub release at the recorded commit with those files.
+- **No kept assets remain**, for example because the artifact expired. Create the tag and GitHub
+  release at the recorded commit with the module jars that Maven Central serves, after
+  `gh attestation verify` passes for each, and say in the release notes that the signed bundle and
+  the SBOMs are not attached.
 
 ## Post-release
 

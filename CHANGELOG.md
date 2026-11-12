@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- A resumed release (`resumeGithubRelease=true`) now attaches the signed Maven Central bundle, module
+  jars, and SBOMs that the initial run attested and kept, after checking them against their attestations
+  and against the files that Maven Central serves, rather than building and signing them again. The rebuilt
+  files carried new signatures and SBOMs, so a GitHub release could hold files that differ from the
+  deployment on Maven Central and from the ones the initial run attested.
+
 ## [3.0.2] - 2026-11-12
 
 ### Changed

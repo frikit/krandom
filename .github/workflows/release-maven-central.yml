@@ -34,6 +34,8 @@ permissions:
   id-token: write
   attestations: write
   artifact-metadata: write
+  # A resumed run finds and downloads the release assets that the initial run kept.
+  actions: read
 
 jobs:
   release:
@@ -137,24 +139,30 @@ jobs:
       - name: Verify pinned build inputs
         run: ./scripts/verify_build_input_pins.sh
 
+      # A resumed run attaches the files that the initial run attested and kept,
+      # so it neither builds, signs, nor attests again.
       - name: Build, test, and check
+        if: github.event.inputs.resumeGithubRelease != 'true'
         run: ./gradlew clean build check -PreleaseVersion="${VERSION}" --stacktrace --console=plain --max-workers=1 --no-daemon -x :benchmarks:test -x :benchmarks:check
 
       # CycloneDX attaches direct-BOM artifacts lazily. Keep SBOM generation in
       # its own Gradle invocation so the build graph cannot consume that variant
       # before the plugin wires its output artifacts.
       - name: Generate and verify release SBOMs
+        if: github.event.inputs.resumeGithubRelease != 'true'
         run: ./gradlew verifyReleaseSboms -PreleaseVersion="${VERSION}" --stacktrace --console=plain --max-workers=1 --no-daemon
 
       # Assemble before attestation so a provenance failure cannot occur after an
       # AUTOMATIC Central publication. This is the exact signed ZIP uploaded below.
       - name: Assemble signed Maven Central bundle
+        if: github.event.inputs.resumeGithubRelease != 'true'
         env:
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
           GPG_SIGNING_PASSWORD: ${{ secrets.GPG_SIGNING_PASSWORD }}
         run: ./gradlew nmcpZipAggregation -PreleaseVersion="${VERSION}" --stacktrace --console=plain --no-daemon
 
       - name: Attest release build provenance
+        if: github.event.inputs.resumeGithubRelease != 'true'
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: |
@@ -167,6 +175,29 @@ jobs:
             kotlin-dsl/build/libs/*.jar
             build/reports/sbom/*.cdx.json
             build/reports/sbom/*.cdx.xml
+
+      # Keep the attested files that "Create GitHub Release" attaches, before
+      # anything is published, so that a resumed run attaches these files rather
+      # than new ones. The search paths share only the workspace root, so each
+      # file keeps its workspace path. Overwriting stays off, so this step fails
+      # rather than replace an artifact of the same name.
+      - name: Keep attested release assets
+        if: github.event.inputs.resumeGithubRelease != 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-assets-${{ env.VERSION }}
+          path: |
+            core/build/libs/*.jar
+            jackson/build/libs/*.jar
+            junit/build/libs/*.jar
+            spring-boot-starter/build/libs/*.jar
+            kotest-extensions/build/libs/*.jar
+            kotlin-dsl/build/libs/*.jar
+            build/nmcp/zip/aggregation.zip
+            build/reports/sbom/*.cdx.json
+            build/reports/sbom/*.cdx.xml
+          if-no-files-found: error
+          retention-days: 90
 
       # publishingType=USER_MANAGED: artifacts arrive in the portal "Pending"
       # state; you must click "Publish" in the Central Portal UI to release them.
@@ -198,6 +229,146 @@ jobs:
             --retry 5 --retry-delay 10 --retry-all-errors \
             --output /dev/null "${POM_URL}"
           echo "Verified public Maven Central POM: ${POM_URL}"
+
+      # Take the release assets that a run of this workflow at the release commit
+      # kept. When several runs kept them, take the one from the run that
+      # succeeded. Never rebuild instead: a new build signs and describes other
+      # files than the ones Maven Central holds.
+      - name: Find the original release assets
+        id: original-release-assets
+        if: github.event.inputs.resumeGithubRelease == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ARTIFACT_NAME="release-assets-${VERSION}"
+          WORKFLOW_FILE="${GITHUB_WORKFLOW_REF%@*}"
+          WORKFLOW_FILE="${WORKFLOW_FILE##*/}"
+          RUNS="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/actions/workflows/${WORKFLOW_FILE}/runs" \
+            -f head_sha="${RELEASE_COMMIT}" -f branch=main -F per_page=100 \
+            --jq '.workflow_runs[] | "\(.id) \(.conclusion)"')"
+          candidates=()
+          mapfile -t runs <<< "${RUNS}"
+          for run in "${runs[@]}"; do
+            read -r run_id conclusion <<< "${run}"
+            [[ -n "${run_id}" && "${run_id}" != "${GITHUB_RUN_ID}" ]] || continue
+            artifact_ids="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/artifacts" \
+              -f name="${ARTIFACT_NAME}" --jq '.artifacts[] | select(.expired | not) | .id')"
+            for artifact_id in ${artifact_ids}; do
+              candidates+=("${run_id} ${artifact_id} ${conclusion}")
+            done
+          done
+          chosen=("${candidates[@]}")
+          if (( ${#candidates[@]} > 1 )); then
+            chosen=()
+            for candidate in "${candidates[@]}"; do
+              [[ "${candidate}" != *" success" ]] || chosen+=("${candidate}")
+            done
+          fi
+          if (( ${#chosen[@]} != 1 )); then
+            if (( ${#candidates[@]} == 0 )); then
+              echo "No run of ${WORKFLOW_FILE} at ${RELEASE_COMMIT} kept an unexpired ${ARTIFACT_NAME} artifact."
+              echo "GitHub keeps it for 90 days after the initial run."
+            else
+              echo "Runs of ${WORKFLOW_FILE} at ${RELEASE_COMMIT} kept ${#candidates[@]} ${ARTIFACT_NAME} artifacts,"
+              echo "and not exactly one of them comes from a run that succeeded:"
+              for candidate in "${candidates[@]}"; do
+                read -r run_id artifact_id conclusion <<< "${candidate}"
+                echo "  run ${run_id} (${conclusion}): artifact ${artifact_id}"
+              done
+            fi
+            echo "Do not rebuild. See 'Manual GitHub release repair' in docs/release-runbook.md."
+            exit 1
+          fi
+          read -r run_id artifact_id conclusion <<< "${chosen[0]}"
+          echo "Using ${ARTIFACT_NAME} artifact ${artifact_id} of run ${run_id} (${conclusion})."
+          echo "run-id=${run_id}" >> "$GITHUB_OUTPUT"
+          echo "artifact-id=${artifact_id}" >> "$GITHUB_OUTPUT"
+
+      - name: Download the original release assets
+        if: github.event.inputs.resumeGithubRelease == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          artifact-ids: ${{ steps.original-release-assets.outputs.artifact-id }}
+          run-id: ${{ steps.original-release-assets.outputs.run-id }}
+          github-token: ${{ github.token }}
+          path: ${{ github.workspace }}
+
+      # Attach the downloaded files only when each verifies as built by this
+      # workflow from the release commit on main, together they are exactly the
+      # files that the original run attested, and every jar, and every file and
+      # signature in the bundle other than checksums, is the one that Maven
+      # Central serves. Maven Central has no SBOMs; the original run's
+      # attestation binds them.
+      - name: Verify the original release assets
+        if: github.event.inputs.resumeGithubRelease == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ORIGINAL_RUN_ID: ${{ steps.original-release-assets.outputs.run-id }}
+        run: |
+          shopt -s nullglob
+          CENTRAL="https://repo1.maven.org/maven2"
+          BUNDLE="build/nmcp/zip/aggregation.zip"
+          JARS=(core/build/libs/*.jar jackson/build/libs/*.jar junit/build/libs/*.jar
+            spring-boot-starter/build/libs/*.jar kotest-extensions/build/libs/*.jar kotlin-dsl/build/libs/*.jar)
+          ASSETS=("${JARS[@]}" "${BUNDLE}" build/reports/sbom/*.cdx.json build/reports/sbom/*.cdx.xml)
+          repair() {
+            echo "$1"
+            echo "Do not rebuild. See 'Manual GitHub release repair' in docs/release-runbook.md."
+            exit 1
+          }
+          attestations() {
+            gh attestation verify "$1" --repo "${GITHUB_REPOSITORY}" --signer-workflow "${GITHUB_WORKFLOW_REF%@*}" \
+              --source-ref refs/heads/main --source-digest "${RELEASE_COMMIT}" --deny-self-hosted-runners --format json
+          }
+          central() {
+            curl --fail --silent --show-error --location --retry 5 --retry-delay 10 --retry-all-errors "${CENTRAL}/$1"
+          }
+
+          [[ -f "${BUNDLE}" ]] || repair "The downloaded release assets hold no ${BUNDLE}."
+          for asset in "${ASSETS[@]}"; do
+            attestations "${asset}" > /dev/null \
+              || repair "${asset} fails gh attestation verify for this workflow at ${RELEASE_COMMIT} on main."
+          done
+
+          PRESENT="$(for asset in "${ASSETS[@]}"; do
+            jq -n --arg name "${asset##*/}" --arg sha256 "$(sha256sum "${asset}" | cut -c1-64)" '{name: $name, sha256: $sha256}'
+          done | jq -c --slurp 'sort_by(.name)')"
+          ATTESTED="$(attestations "${BUNDLE}" | jq -c \
+            --arg run "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${ORIGINAL_RUN_ID}/attempts/" \
+            'map(.verificationResult | select(.signature.certificate.runInvocationURI | startswith($run))
+              | [.statement.subject[] | {name, sha256: .digest.sha256}] | sort_by(.name)) | first // []')"
+          if ! jq -e -n --argjson attested "${ATTESTED}" --argjson present "${PRESENT}" '$attested == $present' > /dev/null; then
+            jq -r -n --argjson attested "${ATTESTED}" --argjson present "${PRESENT}" \
+              '($attested - $present | .[] | "Attested by the original run, not downloaded: \(.name)"),
+               ($present - $attested | .[] | "Downloaded, not attested by the original run: \(.name)")'
+            repair "The downloaded files are not exactly the files that run ${ORIGINAL_RUN_ID} attested with ${BUNDLE}."
+          fi
+
+          for jar in "${JARS[@]}"; do
+            remote="io/github/frikit/krandom-${jar%%/*}/${VERSION}/krandom-${jar##*/}"
+            [[ "$(central "${remote}.sha512" | cut -c1-128)" == "$(sha512sum "${jar}" | cut -c1-128)" ]] \
+              || repair "${jar} is not the file that Maven Central serves as ${remote}."
+          done
+          signatures=0
+          while IFS= read -r entry; do
+            case "${entry}" in
+              */ | *.md5 | *.sha1 | *.sha256 | *.sha512) ;;
+              *.asc)
+                cmp -s <(unzip -p "${BUNDLE}" "${entry}") <(central "${entry}") \
+                  || repair "The signature ${entry} in ${BUNDLE} is not the one that Maven Central serves."
+                signatures=$((signatures + 1))
+                ;;
+              *)
+                [[ "$(central "${entry}.sha512" | cut -c1-128)" == "$(unzip -p "${BUNDLE}" "${entry}" | sha512sum | cut -c1-128)" ]] \
+                  || repair "${entry} in ${BUNDLE} is not the file that Maven Central serves."
+                ;;
+            esac
+          done < <(unzip -Z1 "${BUNDLE}")
+          (( signatures > 0 )) || repair "${BUNDLE} holds no signatures."
+          echo "Verified ${#ASSETS[@]} release assets of run ${ORIGINAL_RUN_ID} against their attestations,"
+          echo "and every jar and the bundle, with its ${signatures} signatures, against Maven Central."
 
       - name: Confirm GitHub Release recovery mode
         if: github.event.inputs.resumeGithubRelease == 'true'
