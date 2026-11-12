@@ -40,8 +40,8 @@ class SchemaNamedChildStreamTest {
         Schema original = new Schema(CONFIG, orderedFields("first", "second"));
         Schema expanded = new Schema(CONFIG, orderedFields("unrelated", "first", "second"));
 
-        List<Map<String, Object>> originalRecords = original.generateRecords(3);
-        List<Map<String, Object>> expandedRecords = expanded.generateRecords(3);
+        List<Map<String, Object>> originalRecords = original.nextRecords(3);
+        List<Map<String, Object>> expandedRecords = expanded.nextRecords(3);
 
         for (int recordIndex = 0; recordIndex < originalRecords.size(); recordIndex++) {
             assertEquals(
@@ -60,7 +60,7 @@ class SchemaNamedChildStreamTest {
         Schema original = new Schema(CONFIG, orderedFields("first", "second"));
         Schema replay = new Schema(recipe.toGeneratorConfig(), orderedFields("first", "second"));
 
-        assertEquals(original.generateRecords(4), replay.generateRecords(4));
+        assertEquals(original.nextRecords(4), replay.nextRecords(4));
     }
 
     @Test
@@ -71,7 +71,7 @@ class SchemaNamedChildStreamTest {
                     throw new IllegalStateException("fixture failure");
                 }));
 
-        SchemaGenerationException error = assertThrows(SchemaGenerationException.class, schema::generateRecord);
+        SchemaGenerationException error = assertThrows(SchemaGenerationException.class, schema::nextRecord);
 
         String recipe = error.getReplayRecipe().orElseThrow();
         assertTrue(error.getMessage().contains("Replay recipe:"));
@@ -94,9 +94,9 @@ class SchemaNamedChildStreamTest {
         // Fresh fields and schemas, with an unrelated column of the same kind first: it used to take the
         // shared generator's first values, and so change the values of the column after it.
         for (String reference : List.of("person.first_name", "custom.word", "template")) {
-            List<Map<String, Object>> alone = new Schema(CONFIG, columns(reference, "x")).generateRecords(5);
+            List<Map<String, Object>> alone = new Schema(CONFIG, columns(reference, "x")).nextRecords(5);
             List<Map<String, Object>> expanded =
-                    new Schema(CONFIG, columns(reference, "unrelated", "x")).generateRecords(5);
+                    new Schema(CONFIG, columns(reference, "unrelated", "x")).nextRecords(5);
             for (int i = 0; i < 5; i++) {
                 assertEquals(alone.get(i).get("x"), expanded.get(i).get("x"), reference);
             }
@@ -106,7 +106,7 @@ class SchemaNamedChildStreamTest {
                     .count();
             assertTrue(repeated < 2, reference + ": " + expanded);
             GeneratorConfig replay = CONFIG.getGenerationRecipe().orElseThrow().toGeneratorConfig();
-            assertEquals(expanded, new Schema(replay, columns(reference, "unrelated", "x")).generateRecords(5));
+            assertEquals(expanded, new Schema(replay, columns(reference, "unrelated", "x")).nextRecords(5));
         }
     }
 
@@ -119,10 +119,10 @@ class SchemaNamedChildStreamTest {
         wider.put("email", Map.of());
         List<Map<String, Object>> alone = SchemaParser.fromJsonSchema(
                         Map.of("type", "object", "properties", Map.of("email", Map.of())), CONFIG)
-                .generateRecords(5);
+                .nextRecords(5);
         List<Map<String, Object>> expanded = SchemaParser.fromJsonSchema(
                         Map.of("type", "object", "properties", wider), CONFIG)
-                .generateRecords(5);
+                .nextRecords(5);
         for (int i = 0; i < 5; i++) {
             assertEquals(alone.get(i).get("email"), expanded.get(i).get("email"));
         }
@@ -140,7 +140,7 @@ class SchemaNamedChildStreamTest {
                         pinnedRecord("Victor", "84-ah", "vaerksmoondmeestsweeld", "fompfoo"),
                         pinnedRecord("Kenneth", "58-ar", "slungproold", "theangrinsturtduit"),
                         pinnedRecord("Mia", "22-dp", "dreerdzump", "trochemptoand")),
-                new Schema(sequential, pinned(new Field(sequential))).generateRecords(3));
+                new Schema(sequential, pinned(new Field(sequential))).nextRecords(3));
         // A field whose configuration owns its random source keeps it, even in a schema with named streams.
         Field owned = new Field(GeneratorConfig.builder().random(new Random(5L)).build());
         assertEquals(
@@ -148,19 +148,19 @@ class SchemaNamedChildStreamTest {
                         pinnedRecord("Austin", "65-ak", "thousshondrairk", "baengfuist"),
                         pinnedRecord("Paisley", "75-uo", "spainhaentsienfourt", "pruishcrourt"),
                         pinnedRecord("Mia", "73-dm", "tringkuird", "prarddraer")),
-                new Schema(portable, pinned(owned)).generateRecords(3));
+                new Schema(portable, pinned(owned)).nextRecords(3));
         // A factory-made or secure source is the field's own too: with a factory, a schema with named streams
         // gives what one without them gives, and secure values differ from schema to schema, as values seeded
         // from the named streams would not.
         GeneratorConfig factory =
                 GeneratorConfig.builder().randomFactory(() -> new Random(5L)).build();
         assertEquals(
-                new Schema(sequential, pinned(new Field(factory))).generateRecords(3),
-                new Schema(portable, pinned(new Field(factory))).generateRecords(3));
+                new Schema(sequential, pinned(new Field(factory))).nextRecords(3),
+                new Schema(portable, pinned(new Field(factory))).nextRecords(3));
         GeneratorConfig secure = GeneratorConfig.builder().secureRandom().build();
         assertNotEquals(
-                new Schema(portable, pinned(new Field(secure))).generateRecords(3),
-                new Schema(portable, pinned(new Field(secure))).generateRecords(3));
+                new Schema(portable, pinned(new Field(secure))).nextRecords(3),
+                new Schema(portable, pinned(new Field(secure))).nextRecords(3));
         // A provider template passes its own context, which is no named stream.
         ProviderTemplateGenerator template = new ProviderTemplateGenerator("{firstname} ##-?? {word}", portable);
         assertEquals("Victor 84-ah vaerksmoondmeestsweeld", template.generate());
@@ -174,7 +174,7 @@ class SchemaNamedChildStreamTest {
                         Map.of("firstName", "Victor", "email", "caroline.tran@example.com"),
                         Map.of("firstName", "Kenneth", "email", "steven_mitchell@example.net")),
                 SchemaParser.fromJsonSchema(Map.of("type", "object", "properties", properties), sequential)
-                        .generateRecords(2));
+                        .nextRecords(2));
     }
 
     @Test
@@ -185,18 +185,18 @@ class SchemaNamedChildStreamTest {
         Field alone = new Field(portable);
         Map<String, SchemaValueProvider> single = new LinkedHashMap<>();
         single.put("x", alone.template("##"));
-        assertEquals("37", new Schema(portable, single).generateRecord().get("x"));
+        assertEquals("37", new Schema(portable, single).nextRecord().get("x"));
         Field after = new Field(portable);
         Map<String, SchemaValueProvider> pair = new LinkedHashMap<>();
         pair.put("before", after.template("##"));
         pair.put("x", after.template("##"));
-        assertEquals("37", new Schema(portable, pair).generateRecord().get("x"));
+        assertEquals("37", new Schema(portable, pair).nextRecord().get("x"));
         // A reference, a template, and a list of references.
         assertEquals(
                 List.of(
                         pinnedRecord("Grace", "62-ls", "droushsuldchassiest", "smierdclou"),
                         pinnedRecord("Ivy", "02-us", "chogreasnermean", "glaeldstae")),
-                new Schema(portable, pinned(new Field(portable))).generateRecords(2));
+                new Schema(portable, pinned(new Field(portable))).nextRecords(2));
         // A reference that registerProvider adds.
         Field provider = new Field(portable)
                 .registerProvider("custom.word", WordGenerator::new, WordGenerator.class, WordGenerator::generateWord);
@@ -204,7 +204,7 @@ class SchemaNamedChildStreamTest {
         word.put("word", provider.bind("custom.word"));
         assertEquals(
                 List.of(Map.of("word", "sweempplearknut"), Map.of("word", "duinkootraemp")),
-                new Schema(portable, word).generateRecords(2));
+                new Schema(portable, word).nextRecords(2));
         // Parsed columns that their names resolve.
         Map<String, Object> properties = new LinkedHashMap<>();
         properties.put("firstName", Map.of("type", "string"));
@@ -214,7 +214,7 @@ class SchemaNamedChildStreamTest {
                         Map.of("firstName", "Stella", "email", "landonhill@example.net"),
                         Map.of("firstName", "Dennis", "email", "savannah_edwards@example.com")),
                 SchemaParser.fromJsonSchema(Map.of("type", "object", "properties", properties), portable)
-                        .generateRecords(2));
+                        .nextRecords(2));
     }
 
     @Test
@@ -274,7 +274,7 @@ class SchemaNamedChildStreamTest {
                                         + " steertploont zerdmithmear wainsiest geensnoastdruingiel"
                                         + " swooldpeangfrotriend heertbotploor craerpes sleentoaldfroonork"
                                         + " brirkruird.")),
-                new Schema(config, fields).generateRecords(2));
+                new Schema(config, fields).nextRecords(2));
     }
 
     /** A record of the benchmark's columns, in their order. */

@@ -30,7 +30,7 @@ class SchemaProjectionTest {
         fields.put("age", Person::age);
         SchemaProjection<Person> projection = SchemaProjection.of(fields);
 
-        assertEquals(Map.of("name", "Ada", "age", 36), projection.projectRecord(new Person("Ada", 36)));
+        assertEquals(Map.of("name", "Ada", "age", 36), projection.projectRow(new Person("Ada", 36)));
         assertEquals(
                 "[{\"name\":\"Ada\",\"age\":36},{\"name\":\"Lin\",\"age\":28}]\n",
                 projection.toJson(List.of(new Person("Ada", 36), new Person("Lin", 28))));
@@ -67,7 +67,7 @@ class SchemaProjectionTest {
         assertThrows(IllegalArgumentException.class, () -> SchemaProjection.of(nullName));
 
         SchemaProjection<Person> projection = SchemaProjection.of(Map.of("name", Person::name));
-        assertThrows(NullPointerException.class, () -> projection.projectRecord(null));
+        assertThrows(NullPointerException.class, () -> projection.projectRow(null));
         assertThrows(NullPointerException.class, () -> projection.toJson(null));
         assertThrows(
                 IllegalArgumentException.class,

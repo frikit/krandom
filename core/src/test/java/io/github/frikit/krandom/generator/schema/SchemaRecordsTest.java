@@ -43,7 +43,7 @@ class SchemaRecordsTest {
     @Test
     @DisplayName("a record keeps the null a provider returns under its column")
     void recordKeepsNull() {
-        Map<String, Object> record = indexed(1L).generateRecord();
+        Map<String, Object> record = indexed(1L).nextRecord();
 
         assertEquals(List.of("index", "word", "missing"), List.copyOf(record.keySet()));
         assertEquals(0, record.get("index"));
@@ -52,15 +52,14 @@ class SchemaRecordsTest {
     }
 
     @Test
-    @DisplayName("generateRecords rejects a negative count and returns that many records in order")
-    void generateRecordsCount() {
+    @DisplayName("nextRecords rejects a negative count and returns that many records in order")
+    void nextRecordsCount() {
         Schema schema = indexed(2L);
 
-        IllegalArgumentException negative =
-                assertThrows(IllegalArgumentException.class, () -> schema.generateRecords(-1));
+        IllegalArgumentException negative = assertThrows(IllegalArgumentException.class, () -> schema.nextRecords(-1));
         assertEquals("count must be >= 0, got: -1", negative.getMessage());
-        assertEquals(List.of(), schema.generateRecords(0));
-        List<Map<String, Object>> records = schema.generateRecords(3);
+        assertEquals(List.of(), schema.nextRecords(0));
+        List<Map<String, Object>> records = schema.nextRecords(3);
         assertEquals(
                 List.of(0, 1, 2),
                 records.stream().map(record -> record.get("index")).toList());
@@ -69,14 +68,14 @@ class SchemaRecordsTest {
 
     @Test
     @SuppressWarnings("deprecation")
-    @DisplayName("generate, generateBatch and loop return the records that generateRecord and generateRecords do")
+    @DisplayName("generate, generateBatch and loop return the records that nextRecord and nextRecords do")
     void deprecatedMethodsReturnTheSameRecords() {
         Schema legacy = indexed(7L);
         Schema current = indexed(7L);
 
-        assertEquals(current.generateRecord(), legacy.generate());
-        assertEquals(current.generateRecords(3), legacy.generateBatch(3));
-        assertEquals(current.generateRecords(2), legacy.loop(2));
+        assertEquals(current.nextRecord(), legacy.generate());
+        assertEquals(current.nextRecords(3), legacy.generateBatch(3));
+        assertEquals(current.nextRecords(2), legacy.loop(2));
         assertTrue(legacy.generate().containsKey("missing"));
         assertNull(legacy.generate().get("missing"));
         assertEquals(
@@ -97,18 +96,18 @@ class SchemaRecordsTest {
         List<Map<String, Object>> drawn = new ArrayList<>();
 
         drawn.add(mixed.generate());
-        drawn.add(mixed.generateRecord());
+        drawn.add(mixed.nextRecord());
         drawn.addAll(mixed.generateBatch(1));
-        drawn.addAll(mixed.generateRecords(1));
+        drawn.addAll(mixed.nextRecords(1));
         drawn.addAll(mixed.loop(1));
         drawn.add(mixed.generateList(1).getFirst());
 
-        assertEquals(indexed(9L).generateRecords(6), drawn);
+        assertEquals(indexed(9L).nextRecords(6), drawn);
     }
 
     @Test
     @SuppressWarnings("deprecation")
-    @DisplayName("projectRecord keeps the null an extractor returns, and project returns the same row")
+    @DisplayName("projectRow keeps the null an extractor returns, and project returns the same row")
     void projectionKeepsNull() {
         Map<String, Function<Person, ?>> columns = new LinkedHashMap<>();
         columns.put("name", Person::name);
@@ -116,13 +115,13 @@ class SchemaRecordsTest {
         SchemaProjection<Person> projection = SchemaProjection.of(columns);
         Person ada = new Person("Ada", null);
 
-        Map<String, Object> row = projection.projectRecord(ada);
+        Map<String, Object> row = projection.projectRow(ada);
 
         assertEquals(List.of("name", "nickname"), List.copyOf(row.keySet()));
         assertEquals("Ada", row.get("name"));
         assertNull(row.get("nickname"));
         assertEquals(row, projection.project(ada));
         assertThrows(UnsupportedOperationException.class, () -> row.put("name", "Grace"));
-        assertThrows(NullPointerException.class, () -> projection.projectRecord(null));
+        assertThrows(NullPointerException.class, () -> projection.projectRow(null));
     }
 }

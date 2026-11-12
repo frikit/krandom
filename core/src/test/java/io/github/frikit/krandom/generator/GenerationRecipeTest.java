@@ -167,7 +167,7 @@ class GenerationRecipeTest {
                                         "name",
                                         new io.github.frikit.krandom.generator.schema.Field(config)
                                                 .bind("person.first_name")))
-                        .generateRecords(1)
+                        .nextRecords(1)
                         .size());
         assertThrows(
                 IllegalArgumentException.class, () -> GenerationRecipe.builder().seedText(" \n "));

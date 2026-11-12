@@ -110,13 +110,15 @@ provider returns `null`. Composite provider outputs are Java records, so Jackson
 nested objects:
 
 ```java
-Map<String, @Nullable Object> row = schema.generateRecord();
+Map<String, @Nullable Object> row = schema.nextRecord();
 
 JsonNode rowJson = mapper.valueToTree(row);
 String orderNumber = rowJson.path("order").path("orderNumber").asString();
 String companyName = rowJson.path("company").path("name").asString();
 String orderedOn = rowJson.path("order").path("orderedOn").asString(); // ISO-8601 date text
 ```
+
+`nextRecord()` is new in 3.1.0; on 3.0.x, call `generate()`, which returns the same record.
 
 By default, Jackson 3 serializes `java.time` values, such as an order's `orderedOn` date, as ISO-8601
 text without an extra module, and writes a `java.util.Date` as ISO-8601 text rather than epoch

@@ -175,7 +175,7 @@ class KotlinMavenIntegrationUsageTest {
         assertEquals("object", jsonSchema.at("/properties/order/type").asString())
 
         // Jackson 3 writes java.time values as ISO-8601 text without an extra module.
-        val row = schema.generateRecord()
+        val row = schema.nextRecord()
         val json: JsonNode = mapper.valueToTree(row)
         val order = row.getValue("order") as OrderInfo
         assertEquals(order.orderedOn().toString(), json.at("/order/orderedOn").asString())

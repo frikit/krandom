@@ -29,7 +29,7 @@ import org.jspecify.annotations.Nullable;
  * {@link Schema} writes it, an unpaired surrogate as U+FFFD.
  *
  * <p>A projected row maps each field to the value its extractor returns, which may be {@code null}, so
- * {@link #projectRecord(Object)} types the row as {@code Map<String, @Nullable Object>}. The deprecated
+ * {@link #projectRow(Object)} types the row as {@code Map<String, @Nullable Object>}. The deprecated
  * {@link #project(Object)} returns the same row as {@code Map<String, Object>}.
  *
  * @param <T> source object type
@@ -76,12 +76,12 @@ public final class SchemaProjection<T> {
      * @param value source object
      * @return projected fields
      * @deprecated The row's type claims values that are never {@code null}, but a value is {@code null} where
-     *     its extractor returns {@code null}. Use {@link #projectRecord(Object)}, which returns the same row
+     *     its extractor returns {@code null}. Use {@link #projectRow(Object)}, which returns the same row
      *     typed {@code Map<String, @Nullable Object>}.
      */
     @Deprecated
     public Map<String, Object> project(T value) {
-        return Schema.legacyRecord(projectRecord(value));
+        return Schema.legacyRecord(projectRow(value));
     }
 
     /**
@@ -91,7 +91,7 @@ public final class SchemaProjection<T> {
      * @param value source object
      * @return projected fields
      */
-    public Map<String, @Nullable Object> projectRecord(T value) {
+    public Map<String, @Nullable Object> projectRow(T value) {
         Objects.requireNonNull(value, "value must not be null");
         Map<String, @Nullable Object> projected = new LinkedHashMap<>(fields.size());
         for (Map.Entry<String, Function<T, ?>> entry : fields.entrySet()) {
@@ -129,7 +129,7 @@ public final class SchemaProjection<T> {
     public void writeJsonLines(Appendable out, Iterable<? extends T> values) throws IOException {
         Objects.requireNonNull(out, "out must not be null");
         for (T value : requireValues(values)) {
-            Schema.appendJsonObject(out, projectRecord(value));
+            Schema.appendJsonObject(out, projectRow(value));
             out.append(Schema.NEWLINE);
         }
     }
@@ -160,7 +160,7 @@ public final class SchemaProjection<T> {
             if (!first) {
                 out.append(',');
             }
-            Schema.appendJsonObject(out, projectRecord(iterator.next()));
+            Schema.appendJsonObject(out, projectRow(iterator.next()));
             first = false;
         }
         out.append(']').append(Schema.NEWLINE);
@@ -215,7 +215,7 @@ public final class SchemaProjection<T> {
         Schema.appendCsvRow(out, columns, formulaPolicy);
         out.append(Schema.NEWLINE);
         for (T value : requireValues(values)) {
-            Map<String, @Nullable Object> row = projectRecord(value);
+            Map<String, @Nullable Object> row = projectRow(value);
             List<String> cells = new ArrayList<>(columns.size());
             for (String column : columns) {
                 cells.add(Schema.toCsvCell(row.get(column)));
@@ -252,7 +252,7 @@ public final class SchemaProjection<T> {
         }
         out.append('<').append(Schema.DEFAULT_XML_ROOT_ELEMENT).append('>').append(Schema.NEWLINE);
         while (iterator.hasNext()) {
-            Map<String, @Nullable Object> row = projectRecord(iterator.next());
+            Map<String, @Nullable Object> row = projectRow(iterator.next());
             Schema.appendIndent(out, 2);
             out.append('<')
                     .append(Schema.DEFAULT_XML_RECORD_ELEMENT)
@@ -294,7 +294,7 @@ public final class SchemaProjection<T> {
         String normalizedTableName = Schema.requireSqlIdentifier(tableName, "tableName");
         List<String> columns = new ArrayList<>(fields.keySet());
         for (T value : requireValues(values)) {
-            Map<String, @Nullable Object> row = projectRecord(value);
+            Map<String, @Nullable Object> row = projectRow(value);
             out.append("INSERT INTO ");
             Schema.appendSqlIdentifier(out, normalizedTableName);
             out.append(" (");
@@ -340,7 +340,7 @@ public final class SchemaProjection<T> {
             return;
         }
         while (iterator.hasNext()) {
-            Schema.appendYamlListItem(out, projectRecord(iterator.next()), 0);
+            Schema.appendYamlListItem(out, projectRow(iterator.next()), 0);
         }
     }
 
@@ -364,7 +364,7 @@ public final class SchemaProjection<T> {
     public void writeToml(Appendable out, Iterable<? extends T> values) throws IOException {
         Objects.requireNonNull(out, "out must not be null");
         for (T value : requireValues(values)) {
-            Schema.appendTomlRecord(out, projectRecord(value));
+            Schema.appendTomlRecord(out, projectRow(value));
         }
     }
 

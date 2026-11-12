@@ -45,11 +45,11 @@ class NullableSchemaRecordsTest {
     }
 
     @Test
-    @DisplayName("generateRecord and generateRecords keep the null a provider returns")
+    @DisplayName("nextRecord and nextRecords keep the null a provider returns")
     void generatedRecordsKeepNull() {
         Schema schema = profiles();
-        Map<String, @Nullable Object> record = schema.generateRecord();
-        List<Map<String, @Nullable Object>> records = schema.generateRecords(2);
+        Map<String, @Nullable Object> record = schema.nextRecord();
+        List<Map<String, @Nullable Object>> records = schema.nextRecords(2);
 
         assertEquals("Ada", record.get("name"));
         assertTrue(record.containsKey("nickname"));
@@ -62,9 +62,9 @@ class NullableSchemaRecordsTest {
     }
 
     @Test
-    @DisplayName("schema::generateRecord is a Generator of nullable records that composes")
-    void generateRecordReferenceIsAGenerator() {
-        Generator<Map<String, @Nullable Object>> records = profiles()::generateRecord;
+    @DisplayName("schema::nextRecord is a Generator of nullable records that composes")
+    void nextRecordReferenceIsAGenerator() {
+        Generator<Map<String, @Nullable Object>> records = profiles()::nextRecord;
         RepeatGenerator<Map<String, @Nullable Object>> pairs = Generators.repeat(records, 2);
 
         for (Map<String, @Nullable Object> each : pairs.generate()) {
@@ -85,7 +85,7 @@ class NullableSchemaRecordsTest {
         jsonSchema.put("properties", properties);
 
         Map<String, @Nullable Object> record =
-                SchemaParser.fromJsonSchema(jsonSchema).generateRecord();
+                SchemaParser.fromJsonSchema(jsonSchema).nextRecord();
 
         assertEquals("Ada", record.get("name"));
         assertTrue(record.containsKey("gone"));
@@ -93,14 +93,14 @@ class NullableSchemaRecordsTest {
     }
 
     @Test
-    @DisplayName("projectRecord keeps the null an extractor returns")
+    @DisplayName("projectRow keeps the null an extractor returns")
     void projectedRowKeepsNull() {
         Map<String, Function<Profile, @Nullable Object>> columns = new LinkedHashMap<>();
         columns.put("name", Profile::name);
         columns.put("nickname", Profile::nickname);
         SchemaProjection<Profile> projection = SchemaProjection.of(columns);
 
-        Map<String, @Nullable Object> row = projection.projectRecord(new Profile("Ada", null));
+        Map<String, @Nullable Object> row = projection.projectRow(new Profile("Ada", null));
 
         assertEquals("Ada", row.get("name"));
         assertTrue(row.containsKey("nickname"));

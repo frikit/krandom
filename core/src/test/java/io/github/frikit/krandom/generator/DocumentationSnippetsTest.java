@@ -202,7 +202,7 @@ class DocumentationSnippetsTest {
                         "amount", f.bind("finance.money"),
                         "shipTo", f.bind("address.street_address"))));
 
-        List<Map<String, Object>> batch = orders.generateRecords(5);
+        List<Map<String, Object>> batch = orders.nextRecords(5);
         Generator<Integer> stableIds =
                 Generators.ofInt(1000, 9999, GeneratorConfig.builder().seed(77L).build());
         UniqueGenerator<String> uniqueEmails = Generators.unique(Generators.ofEmail());
@@ -337,7 +337,7 @@ class DocumentationSnippetsTest {
         fields.put("amount", field.bind("finance.money"));
 
         Schema orders = Generators.ofSchema(cfg, fields);
-        Map<String, Object> row = orders.generateRecord();
+        Map<String, Object> row = orders.nextRecord();
 
         final class TestFixtureFactory {
 

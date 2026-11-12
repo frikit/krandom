@@ -128,7 +128,7 @@ import org.jspecify.annotations.Nullable;
  *   );
  *
  *   Schema schema = SchemaParser.fromJsonSchema(jsonSchema);
- *   Map<String, @Nullable Object> record = schema.generateRecord();
+ *   Map<String, @Nullable Object> record = schema.nextRecord();
  * }</pre>
  */
 public final class SchemaParser {

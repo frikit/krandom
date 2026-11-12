@@ -71,8 +71,10 @@ Schema orders = Generators.ofSchema(cfg, Map.of(
         "shipTo", f.bind("address.street_address")
 ));
 
-List<Map<String, @Nullable Object>> batch = orders.generateRecords(50);
+List<Map<String, @Nullable Object>> batch = orders.nextRecords(50);
 ```
+
+`nextRecords(count)` is new in 3.1.0; on 3.0.x, call `generateBatch(count)`, which returns the same records.
 
 ## Mixed random strategy in tests
 

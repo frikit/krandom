@@ -386,7 +386,7 @@ class GeneratorCatalogNetworkSafetyTest {
         }
         Map<String, Object> schema = Map.of("type", "object", "properties", properties);
         for (Map<String, Object> record :
-                SchemaParser.fromJsonSchema(schema, config).generateRecords(DRAWS)) {
+                SchemaParser.fromJsonSchema(schema, config).nextRecords(DRAWS)) {
             record.forEach((name, value) -> sink.accept("schema." + name, text(value)));
         }
     }

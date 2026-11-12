@@ -64,7 +64,7 @@ public class SchemaOutputBenchmark {
 
     @Benchmark
     public List<Map<String, @Nullable Object>> largeSchemaBatch(SchemaState state) {
-        return state.schema.generateRecords(RECORD_COUNT);
+        return state.schema.nextRecords(RECORD_COUNT);
     }
 
     @Benchmark

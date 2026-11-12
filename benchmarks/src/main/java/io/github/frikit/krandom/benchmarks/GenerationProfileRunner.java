@@ -85,7 +85,7 @@ public final class GenerationProfileRunner {
                 "object-semantic-customer",
                 Generators.ofObject(BenchmarkFixtures.SemanticCustomer.class, semanticObjectConfig));
         profileCase("unique-email", Generators.unique(new EmailGenerator(config), 2_000));
-        profileTask("schema-batch-250", () -> schema.generateRecords(250));
+        profileTask("schema-batch-250", () -> schema.nextRecords(250));
         profileTask("schema-jsonl-stream-250", () -> writeJsonLines(schema, jsonlSink, 250));
         profileTask("schema-csv-stream-250", () -> writeCsv(schema, csvSink, 250));
     }
