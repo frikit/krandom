@@ -62,8 +62,13 @@ must document the behavioral or safety improvement that justifies it.
   with it, and once each bundled registry's locale keys were read once and each value's configuration
   reused one builder, in operations a second: `largeSchemaBatch` 933, 88 and 194;
   `largeSchemaJsonLines` 748, 87 and 183; `streamingCsv` 864, 85 and 189; and `streamingJsonLines` 798,
-  88 and 183. `largeSchemaBatch` allocated 3.7 MB, 61.7 MB and then 30.5 MB an operation. A 79%
-  throughput decrease and an 8.3-fold allocation increase remain, outside both budgets. They are
-  accepted because the fix restores the documented independence of schema columns. Reaching the budgets
-  with the same values needs the composite generators to reset their streams for each value, which is
-  new public API, so it waits for a minor release.
+  88 and 183. `largeSchemaBatch` allocated 3.7 MB, 61.7 MB and then 30.5 MB an operation. In 3.0.2, the
+  child stream that a composite generator gives each of its children copies a configuration without
+  modules instead of rebuilding it, with the same values. In one sitting on the same machine
+  ([raw output](results/2026-11-12-schema-output-3.0.2.txt)), that took the four workloads from 197,
+  186, 194 and 189 to 264, 245, 259 and 253 operations a second, and `largeSchemaBatch` from 30.8 MB to
+  20.6 MB an operation. Against the runs before the fix, a 72% throughput decrease and a 5.6-fold
+  allocation increase remain, outside both budgets. They are accepted because the fix restores the
+  documented independence of schema columns. Reaching the budgets with the same values needs the
+  composite generators to reset their streams for each value, which is new public API, so it waits for a
+  minor release.
