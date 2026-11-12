@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- `GeneratorConfig.forChildStream(name)`, which a composite generator calls for each child it builds, now
+  copies a seeded configuration that installs no module, with the child's numeric seed, rather than
+  rebuilding it through a builder, which copied each of the configuration's collections twice. No
+  generated value changes: the child equals the rebuilt configuration in every field, and every pinned
+  seeded test passes unchanged. A configuration that installs a module is still rebuilt, so the module's
+  `configure` still runs for each child. A portable seeded `Schema`, whose `Field` values each build their
+  own generators, gains the most: `SchemaOutputBenchmark.largeSchemaBatch`, 250 records of 12 references,
+  gave 197 operations a second and gives 264, and allocates 20.6 MB an operation rather than 30.8 MB.
+  Before 3.0.1 gave each schema value its own stream, it gave 933 operations a second and allocated
+  3.7 MB, and the benchmark methodology still records the difference as an accepted breach of its
+  regression budgets, with the raw runs.
+
 ## [3.0.1] - 2026-11-11
 
 ### Fixed
