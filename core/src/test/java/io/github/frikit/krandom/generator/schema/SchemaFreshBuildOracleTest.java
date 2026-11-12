@@ -57,6 +57,8 @@ class SchemaFreshBuildOracleTest {
         long recipeSeed = config.getGenerationRecipe().orElseThrow().getSeed();
         for (ProviderSchemaProjection<T> projection : descriptor.getSchemaProjections()) {
             String reference = projection.getReference();
+            // A value whose generation fails, such as banking data under the default safety policy, is compared
+            // by the class of what it throws.
             List<Object> expected = new ArrayList<>();
             try {
                 for (int record = 0; record < RECORDS; record++) {
@@ -64,16 +66,26 @@ class SchemaFreshBuildOracleTest {
                                     recipeSeed, "schema|record=" + record + "|field=1:v"))
                             .nextLong();
                     GeneratorConfig valueConfig = config.toBuilder().seed(seed).build();
-                    expected.add(projection.extract(descriptor.create(valueConfig), valueConfig));
+                    T valueProvider = descriptor.create(valueConfig);
+                    try {
+                        expected.add(projection.extract(valueProvider, valueConfig));
+                    } catch (RuntimeException failure) {
+                        expected.add("threw " + failure.getClass().getName());
+                    }
                 }
             } catch (UnsupportedOperationException unsupportedLocale) {
                 continue;
             }
             Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
             fields.put("v", new Field(config).bind(reference));
+            Schema schema = new Schema(config, fields);
             List<Object> actual = new ArrayList<>();
-            for (Map<String, Object> record : new Schema(config, fields).generateBatch(RECORDS)) {
-                actual.add(record.get("v"));
+            for (int record = 0; record < RECORDS; record++) {
+                try {
+                    actual.add(schema.generate().get("v"));
+                } catch (SchemaGenerationException failure) {
+                    actual.add("threw " + failure.getCause().getClass().getName());
+                }
             }
             assertEquals(expected, actual, reference + " " + config.getLocale() + " " + config.getChildStreamPolicy());
         }
