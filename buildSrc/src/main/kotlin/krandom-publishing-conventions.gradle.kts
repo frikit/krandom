@@ -26,7 +26,7 @@ val moduleDescriptions =
     mapOf(
         "bom" to "kRandom bill of materials for aligning all published kRandom module versions.",
         "core" to
-            "kRandom core: Java 21 random and fake-data generation toolkit with seedable generators, locale-aware data, ObjectGenerator/ObjectFaker, and Schema export.",
+            "kRandom core: random and fake-data generation toolkit for Java 17 and later with seedable generators, locale-aware data, ObjectGenerator/ObjectFaker, and Schema export.",
         "jackson" to
             "Jackson 3 (tools.jackson) serialization integration for kRandom generators (databind module wiring on top of krandom-core).",
         "junit" to

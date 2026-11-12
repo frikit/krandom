@@ -33,6 +33,13 @@ To use a different artifact version:
 ./gradlew -PkrandomVersion=<version> test
 ```
 
+The tests compile and run on Java 21. To run them on another Java, such as 17, the oldest that
+`krandom-core` runs on, name it; Gradle must detect a JDK of that version (`./gradlew javaToolchains`):
+
+```bash
+./gradlew -PjavaVersion=17 test
+```
+
 ## Scoped locale overrides
 
 Keep application-specific locale data on `GeneratorConfig` instead of calling a static registry

@@ -25,6 +25,8 @@ That script:
 - verifies Java 21+
 - publishes all current `krandom-*` consumer artifacts to Maven local
 - runs the example test suites against the local artifact
+- runs the Java + Gradle example again on Java 17, the oldest Java that the Java modules run on, when
+  Gradle detects a JDK 17; it skips that run otherwise, unless `KRANDOM_REQUIRE_JAVA17=true`, as CI sets
 - verifies both successful qualified `opens` and actionable missing-`opens` behavior from named modules
 
 To point the examples at a different artifact version, set `KRANDOM_VERSION` or the build-tool-specific property:

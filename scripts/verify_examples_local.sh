@@ -7,11 +7,17 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GRADLEW="${REPO_ROOT}/gradlew"
 DEFAULT_VERSION="$(awk -F= '$1 == "developmentVersion" { print substr($0, index($0, "=") + 1) }' "${REPO_ROOT}/gradle.properties")"
 PUBLISHED_MODULES="$(awk -F= '$1 == "publishedModules" { print substr($0, index($0, "=") + 1) }' "${REPO_ROOT}/gradle.properties")"
+JAVA_MINIMUM_VERSION="$(awk -F= '$1 == "javaMinimumVersion" { print substr($0, index($0, "=") + 1) }' "${REPO_ROOT}/gradle.properties")"
 VERSION="${KRANDOM_VERSION:-${DEFAULT_VERSION}}"
 REQUIRE_SCALA_TOOLS="${KRANDOM_REQUIRE_SCALA_TOOLS:-false}"
+REQUIRE_JAVA17="${KRANDOM_REQUIRE_JAVA17:-false}"
 
 if [[ -z "${PUBLISHED_MODULES}" ]]; then
     echo "gradle.properties must define publishedModules." >&2
+    exit 1
+fi
+if [[ -z "${JAVA_MINIMUM_VERSION}" ]]; then
+    echo "gradle.properties must define javaMinimumVersion." >&2
     exit 1
 fi
 PUBLISH_TASKS=()
@@ -34,6 +40,24 @@ require_tool() {
     return 1
 }
 
+# Whether Gradle's toolchain detection, which the example builds use, finds a JDK of the given version.
+# Without one the run fails when KRANDOM_REQUIRE_JAVA17=true, as CI sets, and skips that example otherwise.
+require_jdk() {
+    local version="$1" toolchains
+    if ! toolchains="$("${GRADLEW}" -p "${REPO_ROOT}/examples/java-gradle" -q javaToolchains --no-daemon --console=plain)"; then
+        echo "Listing the JDKs that Gradle detects failed."
+        exit 1
+    fi
+    if grep -Eq "Language Version:[[:space:]]+${version}\$" <<< "${toolchains}"; then
+        return 0
+    fi
+    if [[ "${REQUIRE_JAVA17}" == "true" ]]; then
+        echo "Gradle detects no JDK ${version} (./gradlew javaToolchains), which KRANDOM_REQUIRE_JAVA17=true requires."
+        exit 1
+    fi
+    return 1
+}
+
 cd "${REPO_ROOT}"
 
 "${REPO_ROOT}/scripts/require_java21.sh"
@@ -50,6 +74,18 @@ step "Verify Java + Gradle example"
     cd "${REPO_ROOT}/examples/java-gradle"
     ./gradlew -PkrandomVersion="${VERSION}" test --no-daemon --console=plain
 )
+
+# The oldest Java that the Java modules run on: a consumer on it resolves their Gradle metadata and runs them.
+if require_jdk "${JAVA_MINIMUM_VERSION}"; then
+    step "Verify Java + Gradle example on Java ${JAVA_MINIMUM_VERSION}"
+    (
+        cd "${REPO_ROOT}/examples/java-gradle"
+        ./gradlew -PkrandomVersion="${VERSION}" -PjavaVersion="${JAVA_MINIMUM_VERSION}" test --no-daemon --console=plain
+    )
+else
+    step "Skip Java + Gradle example on Java ${JAVA_MINIMUM_VERSION}"
+    echo "Gradle detects no JDK ${JAVA_MINIMUM_VERSION} (./gradlew javaToolchains); install one, or set KRANDOM_REQUIRE_JAVA17=true to fail instead."
+fi
 
 step "Verify Java + Maven example"
 (

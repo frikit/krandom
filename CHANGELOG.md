@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- `krandom-core`, `krandom-jackson`, `krandom-junit` and `krandom-spring-boot-starter` now run on Java 17 or
+  later, rather than 21: the build compiles them against the Java 17 API (`--release 17`), their Gradle module
+  metadata declares Java 17 (`org.gradle.jvm.version`), so a Gradle build on Java 17 resolves them, and CI runs
+  their tests on Java 17. Seeded output on Java 21 and later does not change: the code that used the API or
+  language of Java 18 to 21, such as `Locale.of`, `Math.clamp`, `Math.ceilDiv`, `List.getFirst` and
+  pattern-matching `switch`, now computes the same values with Java 17's, and every pinned seeded test passes
+  unchanged on Java 21. Values drawn from the JDK's own data follow the JDK that runs them, on Java 17 as on
+  any other: locale display names and date formats from its CLDR version, time zones from its TZDB, and its
+  ISO country list. `krandom-kotlin-dsl` and `krandom-kotest-extensions` still need Java 21, and building
+  kRandom still needs JDK 21 or later.
+
 ## [3.0.3] - 2026-11-12
 
 ### Changed

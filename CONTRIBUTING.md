@@ -4,7 +4,7 @@ Thank you for your interest in contributing to krandom! This document describes 
 
 ## Prerequisites
 
-- **Java 21** (Temurin recommended)
+- **Java 21** (Temurin recommended) to build
 - The included Gradle wrapper
 
 Verify your setup:
@@ -13,6 +13,10 @@ Verify your setup:
 java -version   # must report 21+
 ./gradlew --version
 ```
+
+The Java modules (`core`, `jackson`, `junit`, `spring-boot-starter`) run on Java 17 or later, so their
+main and test code keeps to the Java 17 API and language: the JDK 21 build compiles them with
+`--release 17`, which rejects anything newer, and CI runs their tests on Java 17.
 
 ## Development workflow
 
@@ -80,9 +84,9 @@ java -version   # must report 21+
   local `git blame` skips it (GitHub's blame view reads the file automatically).
 - **Tests**: all tests must pass. Java modules use JUnit Jupiter; Kotlin modules use Kotest.
 
-CI additionally builds on Java 21 and 25, reports the public API check in a job of its own, requires
-the GraalVM native-image smoke test, and runs every consumer example against the locally published
-snapshot.
+CI additionally builds on Java 21 and 25, runs the tests of the Java modules on Java 17, reports the
+public API check in a job of its own, requires the GraalVM native-image smoke test, and runs every
+consumer example against the locally published snapshot.
 
 ## Maintenance tools
 

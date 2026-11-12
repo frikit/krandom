@@ -5,7 +5,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.frikit/krandom-core?label=maven%20central)](https://central.sonatype.com/artifact/io.github.frikit/krandom-core)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-kRandom is a Java 21 random and fake-data generation toolkit. The repository is centered on the Java core plus focused integration modules for Jackson, Spring Boot, property-based testing, and Kotlin DSL usage.
+kRandom is a random and fake-data generation toolkit for Java 17 and later. The repository is centered on the Java core plus focused integration modules for Jackson, Spring Boot, property-based testing, and Kotlin DSL usage.
 
 ## Modules
 
@@ -31,8 +31,10 @@ kRandom is a Java 21 random and fake-data generation toolkit. The repository is 
 - `bom` aligns the versions of all published modules.
 - `jackson`, `junit`, `spring-boot-starter`, `kotest-extensions`, and `kotlin-dsl` are published integration modules.
 - `benchmarks` stays in-repo for performance profiling but is not a published consumer module.
-- CI runs the core contract suite on Java 21 and Java 25, with separate GraalVM native-image and
-  critical-path mutation jobs.
+- `core`, `jackson`, `junit`, and `spring-boot-starter` run on Java 17 or later; `kotest-extensions` and
+  `kotlin-dsl` need Java 21 or later. Building the repository needs JDK 21 or later.
+- CI builds on Java 21 and Java 25 and runs the tests of the Java modules on Java 17 as well, with
+  separate GraalVM native-image and critical-path mutation jobs.
 - Local quality checks are standardized through `./scripts/pre_commit_check.sh`.
 - Published to Maven Central under `io.github.frikit`. See [`docs/release-runbook.md`](docs/release-runbook.md) for the release process.
 
@@ -160,7 +162,7 @@ Ensure `java -version` reports Java 21+ before running the local checks.
 
 `pre_commit_check.sh` runs formatting, Markdown, link, and documentation-fact checks, compilation, module boundaries, release SBOM validation, Javadoc, tests, critical-path mutation testing, and the exact core coverage gate, and fails fast when Java 21+ is not active. `--fast` reuses up-to-date test results and skips mutation testing and SBOM validation while iterating.
 
-`verify_examples_local.sh` publishes all current `krandom-*` consumer artifacts to Maven local and runs the consumer examples against that local snapshot. CI installs `sbt` and `mill` and runs the full matrix; locally the Scala examples are skipped unless those tools are installed or `KRANDOM_REQUIRE_SCALA_TOOLS=true` is set.
+`verify_examples_local.sh` publishes all current `krandom-*` consumer artifacts to Maven local and runs the consumer examples against that local snapshot. CI installs `sbt` and `mill` and runs the full matrix; locally the Scala examples are skipped unless those tools are installed or `KRANDOM_REQUIRE_SCALA_TOOLS=true` is set. The Java + Gradle example also runs on Java 17 when Gradle detects a JDK 17 (`./gradlew javaToolchains`); CI sets `KRANDOM_REQUIRE_JAVA17=true`, which fails the run without one.
 
 ## Install
 
