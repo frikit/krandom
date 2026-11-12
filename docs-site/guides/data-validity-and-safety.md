@@ -92,7 +92,8 @@ are replaced by romanized names for the locale's language.
 
 The same rule holds when an object has related fields. A generated email takes the domain of a
 sibling such as `domain` or `url` only if that domain is reserved or was set through an override, and
-a domain derived from `companyName` ends in `.test` (`hello@acmelabs.test`). An `@Email` field uses
+a domain derived from `companyName` ends in `.test` (`hello@acmelabs.test`), with a label of the name's
+ASCII letters and digits, cut to the 63 characters a label may hold. An `@Email` field uses
 `example.com`, `example.net` or `example.org`, or a `.test` domain when its `@Size` rules those out.
 The policy covers only domains a generator chooses: values from your own overrides, rules and
 randomizers, and domains in an `@Email` `regexp` or a `@Pattern`, are used as written.
@@ -138,7 +139,8 @@ privately, so keep integration tests away from them when that matters.
 The same holds for the object engine, JSON Schema formats, and providers. A generated `url`, `website`,
 `domain`, or `companyUrl` takes the domain of a sibling only if that domain is reserved or was set
 through an override of a `domain`, `url`, or `companyUrl` member, and a domain derived from `companyName`
-ends in `.test`. An object's `URI` and `URL` members are reserved too.
+ends in `.test`, under a label of at most 63 characters. An object's `URI` and `URL` members are reserved
+too.
 
 An explicit argument is used verbatim: `generate("com")` ends in `.com`, and `generateWithDomain` and
 the `domain` of `URLOptions` name the destination. A supplied username, subdomain, scheme, path, company

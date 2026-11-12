@@ -220,8 +220,14 @@ class GeneratedEmailValidityTest {
         List<Route> all = new ArrayList<>(routes.values());
         all.add(new Route("session.email", config -> Krandom.of(config)::email));
         all.add(new Route("schema", config -> schemaRecords(config)));
-        for (Class<?> type :
-                List.of(Person.class, Contact.class, Employee.class, CompanySite.class, Web.class, Constrained.class)) {
+        for (Class<?> type : List.of(
+                Person.class,
+                Contact.class,
+                Employee.class,
+                CompanySite.class,
+                LongCompany.class,
+                Web.class,
+                Constrained.class)) {
             all.add(new Route("object:" + type.getSimpleName(), config -> objects(type, config)));
         }
         return all;
@@ -396,6 +402,9 @@ class GeneratedEmailValidityTest {
     record Employee(String firstName, String lastName, String companyName, String email, String businessEmail) {}
 
     record CompanySite(String companyName, String companyUrl, String companyEmail) {}
+
+    /** A company name longer than the 63 characters a domain label may hold, from which its email is derived. */
+    record LongCompany(@Size(min = 64, max = 100) String companyName, String companyEmail) {}
 
     record Web(String url, String domain, String email, String corporateEmail) {}
 

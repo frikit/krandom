@@ -60,6 +60,12 @@ final class SemanticCoherenceAdjuster {
     /** The domains RFC 2606 reserves, which cannot reach a real mailbox. */
     private static final Pattern RESERVED_DOMAIN = Pattern.compile(
             "(?:[a-z0-9_-]+\\.)*example\\.(?:com|net|org)|(?:[a-z0-9_-]+\\.)+(?:test|example|invalid|localhost)");
+    /**
+     * The most characters a domain label may hold (RFC 1035), which {@code IDN.toASCII} and Hibernate
+     * Validator's {@code @Email} check.
+     */
+    private static final int MAX_DOMAIN_LABEL_LENGTH = 63;
+
     /** The fields this pass derives a value for that it cannot number apart from one already used. */
     private static final Set<String> UNNUMBERED_KEYS =
             Set.of("createdat", "updatedat", "birthdate", "age", "price", "amount", "balance", "active", "status");
@@ -1025,6 +1031,10 @@ final class SemanticCoherenceAdjuster {
         return stringValue(slotsBySemanticKey.get("companyname")) != null ? "hello" : null;
     }
 
+    /**
+     * The domain of a company: the ASCII letters and digits of its name, at most the first 63, as a label,
+     * under {@code .test} where a reserved name is required and {@code .com} otherwise.
+     */
     private @Nullable String domainFromCompany(@Nullable String companyName, Map<String, Slot> slotsBySemanticKey) {
         String slug = slugFragment(companyName);
         if (slug == null) {
@@ -1032,7 +1042,8 @@ final class SemanticCoherenceAdjuster {
         }
         boolean reserved =
                 usesReservedNetworkNames() || (usesReservedEmailDomains() && hasEmailField(slotsBySemanticKey));
-        return slug + (reserved ? ".test" : ".com");
+        String label = slug.substring(0, Math.min(slug.length(), MAX_DOMAIN_LABEL_LENGTH));
+        return label + (reserved ? ".test" : ".com");
     }
 
     private static @Nullable String normalizedHumanName(@Nullable String value) {

@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.object;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -24,9 +25,14 @@ import io.github.frikit.krandom.generator.location.AddressInfo;
 import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.network.NetworkSafetyPolicy;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 import java.lang.reflect.RecordComponent;
 import java.math.BigDecimal;
+import java.net.IDN;
+import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -47,6 +53,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.hibernate.validator.HibernateValidator;
+import org.hibernate.validator.messageinterpolation.ParameterMessageInterpolator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -54,6 +62,19 @@ import org.junit.jupiter.api.Test;
 class ObjectGeneratorSemanticCoherenceTest {
 
     private static final Pattern RESERVED_EMAIL = Pattern.compile(".+@(?:example\\.(?:com|net|org)|.+\\.test)");
+
+    /** A company name of 73 ASCII letters, more than the 63 characters a domain label may hold. */
+    private static final String LONG_COMPANY_NAME =
+            "Very Long Company Name Holdings International Incorporated Group Of Seventy Letters";
+
+    /** The first 63 of those letters, lowercased: the label of a domain derived from the name. */
+    private static final String LONG_COMPANY_LABEL = "verylongcompanynameholdingsinternationalincorporatedgroupofseve";
+
+    private static final Validator EMAIL_VALIDATOR = Validation.byProvider(HibernateValidator.class)
+            .configure()
+            .messageInterpolator(new ParameterMessageInterpolator())
+            .buildValidatorFactory()
+            .getValidator();
 
     @Test
     @DisplayName("mutable classes align related semantic fields")
@@ -376,6 +397,120 @@ class ObjectGeneratorSemanticCoherenceTest {
         assertEquals(
                 "hello@acmelabs.test",
                 new ObjectGenerator<>(CompanyNameEmail.class, config).generate().companyEmail());
+    }
+
+    @Test
+    @DisplayName("a domain derived from a company name keeps its first 63 letters and digits, the most a label holds")
+    void aDomainDerivedFromACompanyNameKeepsTheLabelLimit() {
+        String domain = LONG_COMPANY_LABEL + ".test";
+        GeneratorConfig overridden = GeneratorConfig.builder()
+                .seed(42L)
+                .objectOverride(CompanyNameEmail.class, "companyName", () -> LONG_COMPANY_NAME)
+                .objectOverride(CompanyWithoutEmail.class, "companyName", () -> LONG_COMPANY_NAME)
+                .build();
+        assertValidAddress(
+                "hello@" + domain,
+                new ObjectGenerator<>(CompanyNameEmail.class, overridden)
+                        .generate()
+                        .companyEmail());
+        assertValidUrl(
+                "https://www." + domain,
+                new ObjectGenerator<>(CompanyWithoutEmail.class, overridden)
+                        .generate()
+                        .companyUrl());
+
+        // A generated domain beside an email field is no reserved one here, so the name gives the domain too.
+        CompanyDomainEmail withDomain = new ObjectGenerator<>(
+                        CompanyDomainEmail.class,
+                        GeneratorConfig.builder()
+                                .seed(42L)
+                                .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                                .objectOverride(CompanyDomainEmail.class, "companyName", () -> LONG_COMPANY_NAME)
+                                .build())
+                .generate();
+        assertEquals(domain, withDomain.domain());
+        assertDoesNotThrow(() -> IDN.toASCII(withDomain.domain()));
+        assertValidAddress("hello@" + domain, withDomain.companyEmail());
+
+        // A kept name, beside a realistic email whose domain a company URL may not take.
+        KeptLongCompany kept = new ObjectGenerator<>(
+                        KeptLongCompany.class,
+                        GeneratorConfig.builder()
+                                .seed(42L)
+                                .emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED)
+                                .build())
+                .generate();
+        assertValidUrl("https://www." + domain, kept.companyUrl);
+
+        RuledCompany ruled = new ObjectFaker<>(
+                        RuledCompany.class, GeneratorConfig.builder().seed(42L).build())
+                .ruleFor("companyName", (Generator<String>) () -> LONG_COMPANY_NAME)
+                .generate();
+        assertValidAddress("hello@" + domain, ruled.companyEmail);
+    }
+
+    @Test
+    @DisplayName("a generated company name of more than 63 letters gives a company email and URL that hold their label")
+    void aGeneratedCompanyNameOfMoreThan63LettersGivesValidContacts() {
+        ObjectGenerator<LongCompanyContact> generator = new ObjectGenerator<>(
+                LongCompanyContact.class, GeneratorConfig.builder().seed(42L).build());
+
+        for (int i = 0; i < 20; i++) {
+            LongCompanyContact contact = generator.generate();
+            String label = slug(contact.companyName()).substring(0, 63);
+
+            assertTrue(contact.companyName().length() > 63, contact.companyName());
+            assertValidAddress("hello@" + label + ".test", contact.companyEmail());
+            assertValidUrl("https://www." + label + ".test", contact.companyUrl());
+        }
+    }
+
+    @Test
+    @DisplayName("a company name of 63 letters keeps them all, and one of 64 loses the last")
+    void aCompanyNameOf63LettersKeepsThemAll() {
+        String sixtyThree = "b".repeat(62) + "c";
+        GeneratorConfig exact = GeneratorConfig.builder()
+                .seed(42L)
+                .objectOverride(CompanyNameEmail.class, "companyName", () -> sixtyThree)
+                .build();
+        GeneratorConfig over = GeneratorConfig.builder()
+                .seed(42L)
+                .objectOverride(CompanyNameEmail.class, "companyName", () -> sixtyThree + "d")
+                .build();
+
+        assertValidAddress(
+                "hello@" + sixtyThree + ".test",
+                new ObjectGenerator<>(CompanyNameEmail.class, exact).generate().companyEmail());
+        assertValidAddress(
+                "hello@" + sixtyThree + ".test",
+                new ObjectGenerator<>(CompanyNameEmail.class, over).generate().companyEmail());
+    }
+
+    @Test
+    @DisplayName(
+            "in STRICT mode an @Email field beside a company name of more than 63 letters takes its derived address")
+    void anEmailFieldBesideALongCompanyNameTakesItsDerivedAddressInStrictMode() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                .seed(42L)
+                .objectSemanticMode(ObjectGenerationSemanticMode.STRICT)
+                .objectOverride(ConstrainedCompanyEmail.class, "companyName", () -> LONG_COMPANY_NAME)
+                .build();
+
+        assertValidAddress(
+                "hello@" + LONG_COMPANY_LABEL + ".test",
+                new ObjectGenerator<>(ConstrainedCompanyEmail.class, config)
+                        .generate()
+                        .companyEmail());
+    }
+
+    private static void assertValidAddress(String expected, String actual) {
+        assertEquals(expected, actual);
+        assertTrue(EMAIL_VALIDATOR.validate(new CheckedAddress(actual)).isEmpty(), actual);
+    }
+
+    private static void assertValidUrl(String expected, String actual) {
+        assertEquals(expected, actual);
+        assertDoesNotThrow(() -> IDN.toASCII(URI.create(actual).getHost()), actual);
     }
 
     @Test
@@ -1956,6 +2091,29 @@ class ObjectGeneratorSemanticCoherenceTest {
     record DomainCompanyEmail(String domain, String companyEmail) {}
 
     record CompanyWithoutEmail(String companyName, String companyUrl) {}
+
+    record LongCompanyContact(@Size(min = 64, max = 100) String companyName, String companyEmail, String companyUrl) {}
+
+    record ConstrainedCompanyEmail(
+            String companyName, @Email String companyEmail) {}
+
+    /** A consumer's bean, so that Hibernate Validator checks an address as it would in an application. */
+    record CheckedAddress(@Email String value) {}
+
+    static class KeptLongCompany {
+
+        String email;
+        /** Generation keeps this initializer, so coherence derives the company's domain from it. */
+        String companyName = LONG_COMPANY_NAME;
+        /** Stays blank until coherence fills it, as the realistic email's domain is no reserved one. */
+        String companyUrl = "";
+    }
+
+    static class RuledCompany {
+
+        String companyName;
+        String companyEmail;
+    }
 
     record DomainAndUrl(String domain, String url) {}
 
