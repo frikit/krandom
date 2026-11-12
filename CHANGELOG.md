@@ -18,9 +18,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and a `companyUrl`, 2,000 had an email that `@Email` rejects and a URL whose host `IDN.toASCII` rejects,
   and now none has. In `STRICT` mode an `@Email` field beside such a name kept its generated address, as the
   derived one broke `@Email`, and now takes the derived `hello@` address, as it does beside a shorter name:
-  with seed 42, 2,000 of 2,000 such values changed. Generated company names are unaffected, as the longest
-  label of 5,000,000 seeded names in the 50 supported locales has 51 characters, so seeded output changes
-  only for a company name of more than 63 ASCII letters and digits.
+  with seed 42, 2,000 of 2,000 such values changed. Company names that `CompanyNameGenerator` draws are
+  unaffected, as the longest label of 5,000,000 seeded names in the 50 supported locales has 51 characters,
+  so seeded output changes only for a company name of more than 63 ASCII letters and digits.
 - `Schema` and `SchemaProjection` now write an unpaired surrogate, half of a UTF-16 surrogate pair without
   its other half, as U+FFFD in JSON, JSON Lines, CSV, YAML, SQL and TOML, in values and in keys, CSV headers,
   and table and column names, as their XML output already did, so that each document can be encoded as the
