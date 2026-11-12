@@ -12,6 +12,7 @@ import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
 import io.github.frikit.krandom.generator.provider.ProviderFactory;
 import io.github.frikit.krandom.generator.provider.ProviderSafetyMetadata;
 import io.github.frikit.krandom.generator.provider.ProviderSchemaProjection;
+import io.github.frikit.krandom.internal.ConfigAccess;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -40,8 +41,15 @@ public final class FieldLookup {
     private final boolean seedsValues;
 
     /**
+     * Whether this lookup's configuration has modules, whose resolution a value's configuration repeats, so
+     * that it is built and not copied.
+     */
+    private final boolean hasModules;
+
+    /**
      * A builder of this lookup's configuration for each thread, which only ever changes its seed, so that a
-     * value's configuration costs the copy that {@code build()} makes and not a new builder's copy as well.
+     * value's configuration with modules costs the copy that {@code build()} makes and not a new builder's
+     * copy as well.
      */
     private final ThreadLocal<GeneratorConfig.Builder> valueBuilders;
 
@@ -54,6 +62,7 @@ public final class FieldLookup {
         this.config = Objects.requireNonNull(config, "config must not be null");
         this.seedsValues =
                 config.getRandom().isEmpty() && config.getRandomFactory().isEmpty() && !config.isSecureRandom();
+        this.hasModules = !config.getExtensionRegistry().getModuleIds().isEmpty();
         this.valueBuilders = ThreadLocal.withInitial(config::toBuilder);
         registerBuiltIns();
         registerExtensions();
@@ -63,11 +72,14 @@ public final class FieldLookup {
      * The configuration for one value: in a schema with a portable recipe, which gives each value a stream
      * named by its record and column, this lookup's configuration seeded from that stream, so that the value
      * depends on nothing else; otherwise null, and a shared generator gives the value in its own sequence.
+     * Without modules it is the copy that a child stream's configuration is, equal to the build.
      */
     @org.jspecify.annotations.Nullable GeneratorConfig valueConfig(SchemaContext context) {
-        return seedsValues && context.random() instanceof Schema.FieldStream stream
-                ? valueBuilders.get().seed(stream.nextLong()).build()
-                : null;
+        if (!seedsValues || !(context.random() instanceof Schema.FieldStream stream)) {
+            return null;
+        }
+        long seed = stream.nextLong();
+        return hasModules ? valueBuilders.get().seed(seed).build() : ConfigAccess.withSeed(config, seed);
     }
 
     private static String normalize(String reference) {

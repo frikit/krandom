@@ -21,6 +21,7 @@ import io.github.frikit.krandom.generator.object.SemanticFieldRegistry;
 import io.github.frikit.krandom.generator.report.GenerationReportListener;
 import io.github.frikit.krandom.generator.user.IdentityDocumentSafetyPolicy;
 import io.github.frikit.krandom.generator.user.nationalid.NationalIdSafetyPolicy;
+import io.github.frikit.krandom.internal.ConfigAccess;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
@@ -80,6 +81,10 @@ public final class GeneratorConfig {
     private static final long FNV1A_64_OFFSET_BASIS = 0xcbf29ce484222325L;
     private static final long FNV1A_64_PRIME = 0x100000001b3L;
     private static final GenerationFailureListener NO_FAILURE_LISTENER = diagnostic -> {};
+
+    static {
+        ConfigAccess.install(GeneratorConfig::withSeedCopy);
+    }
 
     private final OptionalLong seed;
     private final Optional<String> stringSeed;
@@ -359,12 +364,19 @@ public final class GeneratorConfig {
         if (seed.isEmpty()) {
             return this;
         }
-        long childSeed = GenerationRecipe.deriveChildSeed(seed.getAsLong(), streamName);
-        if (modules.isEmpty()) {
-            return new GeneratorConfig(this, childSeed);
+        return withSeedCopy(this, GenerationRecipe.deriveChildSeed(seed.getAsLong(), streamName));
+    }
+
+    /**
+     * What {@code config.toBuilder().seed(seed).build()} makes: without modules, the field-by-field copy, and
+     * with them, that build, which resolves the modules again and so runs their configure methods, as it
+     * always has. {@link ConfigAccess} gives other krandom packages this copy.
+     */
+    private static GeneratorConfig withSeedCopy(GeneratorConfig config, long seed) {
+        if (config.modules.isEmpty()) {
+            return new GeneratorConfig(config, seed);
         }
-        // Building resolves the modules again, which runs their configure methods, as it always has.
-        return toBuilder().seed(childSeed).build();
+        return config.toBuilder().seed(seed).build();
     }
 
     // ── Accessors ─────────────────────────────────────────────────────────────
