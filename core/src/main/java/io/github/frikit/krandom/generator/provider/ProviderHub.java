@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiPredicate;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Mimesis-style generic provider hub with alias-based lookup and runtime registration.
@@ -273,23 +274,26 @@ public final class ProviderHub {
     }
 
     /**
-     * Wraps a generator so repeated calls return unique values.
+     * Wraps a generator so repeated calls return unique values. A source of nullable values is accepted,
+     * and {@code null} is returned at most once.
      */
-    public <T> UniqueGenerator<T> unique(Generator<T> source) {
+    public <T extends @Nullable Object> UniqueGenerator<T> unique(Generator<T> source) {
         return new UniqueGenerator<>(Objects.requireNonNull(source, "source must not be null"));
     }
 
     /**
-     * Wraps a generator so repeated calls return unique values, with bounded retry attempts.
+     * Wraps a generator so repeated calls return unique values, with bounded retry attempts. A source of
+     * nullable values is accepted, and {@code null} is returned at most once.
      */
-    public <T> UniqueGenerator<T> unique(Generator<T> source, int maxAttempts) {
+    public <T extends @Nullable Object> UniqueGenerator<T> unique(Generator<T> source, int maxAttempts) {
         return new UniqueGenerator<>(Objects.requireNonNull(source, "source must not be null"), maxAttempts);
     }
 
     /**
-     * Wraps a generator so repeated calls return comparator-distinct values.
+     * Wraps a generator so repeated calls return comparator-distinct values. A source of nullable values is
+     * accepted, and the comparator receives {@code null} as it receives any other value.
      */
-    public <T> UniqueGenerator<T> unique(Generator<T> source, BiPredicate<T, T> comparator) {
+    public <T extends @Nullable Object> UniqueGenerator<T> unique(Generator<T> source, BiPredicate<T, T> comparator) {
         return new UniqueGenerator<>(
                 Objects.requireNonNull(source, "source must not be null"),
                 Objects.requireNonNull(comparator, "comparator must not be null"));

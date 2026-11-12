@@ -12,9 +12,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiPredicate;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Decorates another generator and guarantees generated values are unique.
+ *
+ * <p>{@code null} is a value like any other, so the element type may be nullable, as in
+ * {@code UniqueGenerator<@Nullable Boolean>}: with the default equality {@code null} is emitted at most
+ * once, and a custom comparator receives it as it receives any other value.
  *
  * <p><b>Memory:</b> every emitted value is remembered until {@link #reset()} is called, so
  * long-lived instances grow with the number of generated values. With the default
@@ -26,9 +31,9 @@ import java.util.function.BiPredicate;
  * {@code maxAttempts} draws (default {@value #DEFAULT_MAX_ATTEMPTS}), {@link #generate()} throws
  * {@link IllegalStateException} instead of looping forever.
  *
- * @param <T> element type
+ * @param <T> element type, which may be nullable
  */
-public final class UniqueGenerator<T> implements Generator<T> {
+public final class UniqueGenerator<T extends @Nullable Object> implements Generator<T> {
 
     private static final int DEFAULT_MAX_ATTEMPTS = 10_000;
     private static final BiPredicate<Object, Object> DEFAULT_EQUALITY = Objects::equals;

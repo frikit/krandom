@@ -19,6 +19,7 @@ import java.util.OptionalLong;
 import java.util.Random;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import org.jspecify.annotations.Nullable;
 
 /**
  * One source of everyday fake values for tests and fixtures, returned as plain values.
@@ -419,25 +420,25 @@ public final class Krandom {
     /**
      * Returns one of the given values.
      *
-     * @param values the values to choose from; must not be empty
-     * @param <T> the value type
+     * @param values the values to choose from; must not be empty, and may hold {@code null}
+     * @param <T> the value type, which may be nullable
      * @return one of {@code values}
      * @throws IllegalArgumentException if {@code values} is empty
      */
     @SafeVarargs
-    public final <T> T pick(T... values) {
+    public final <T extends @Nullable Object> T pick(T... values) {
         return pick(Arrays.asList(Objects.requireNonNull(values, "values must not be null")));
     }
 
     /**
      * Returns one element of the given list. It shares its stream with {@link #pick(Object...)}.
      *
-     * @param values the values to choose from; must not be empty
-     * @param <T> the value type
+     * @param values the values to choose from; must not be empty, and may hold {@code null}
+     * @param <T> the value type, which may be nullable
      * @return one element of {@code values}
      * @throws IllegalArgumentException if {@code values} is empty
      */
-    public <T> T pick(List<? extends T> values) {
+    public <T extends @Nullable Object> T pick(List<? extends T> values) {
         Objects.requireNonNull(values, "values must not be null");
         if (values.isEmpty()) {
             throw new IllegalArgumentException("values must not be empty");

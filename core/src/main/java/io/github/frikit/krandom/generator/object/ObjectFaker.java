@@ -135,9 +135,10 @@ public final class ObjectFaker<T> implements Generator<T> {
 
     /**
      * Registers a deterministic field rule evaluated during base object generation. It replaces any
-     * earlier rule for the same field path.
+     * earlier rule for the same field path. The generator may return {@code null} for a reference field,
+     * so {@code V} may be nullable.
      */
-    public <V> ObjectFaker<T> ruleFor(String fieldName, Generator<? extends V> generator) {
+    public <V extends @Nullable Object> ObjectFaker<T> ruleFor(String fieldName, Generator<? extends V> generator) {
         RulePath target = requireRulePath(fieldName, "ruleFor");
         ensureNotIgnored(fieldName);
         Objects.requireNonNull(generator, "generator must not be null");
@@ -166,9 +167,11 @@ public final class ObjectFaker<T> implements Generator<T> {
 
     /**
      * Registers a context-aware field rule evaluated during base object generation. It replaces any
-     * earlier rule for the same field path.
+     * earlier rule for the same field path. The generator may return {@code null} for a reference field,
+     * so {@code V} may be nullable.
      */
-    public <V> ObjectFaker<T> ruleForContext(String fieldName, ContextualGenerator<? extends V> generator) {
+    public <V extends @Nullable Object> ObjectFaker<T> ruleForContext(
+            String fieldName, ContextualGenerator<? extends V> generator) {
         RulePath target = requireRulePath(fieldName, "ruleFor");
         ensureNotIgnored(fieldName);
         Objects.requireNonNull(generator, "generator must not be null");
@@ -198,9 +201,11 @@ public final class ObjectFaker<T> implements Generator<T> {
 
     /**
      * Registers a dependent field rule evaluated after the base object is generated. It replaces any
-     * earlier rule for the same field path.
+     * earlier rule for the same field path. The function may return {@code null} for a reference field,
+     * so {@code V} may be nullable.
      */
-    public <V> ObjectFaker<T> ruleFor(String fieldName, Function<? super T, ? extends V> generator) {
+    public <V extends @Nullable Object> ObjectFaker<T> ruleFor(
+            String fieldName, Function<? super T, ? extends V> generator) {
         RulePath target = requireRulePath(fieldName, "dependent ruleFor");
         ensureNotIgnored(fieldName);
         Objects.requireNonNull(generator, "generator must not be null");

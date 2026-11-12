@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- The generators and methods that pass `null` through now say so in their type parameters, so a nullable
+  type argument such as `@Nullable Boolean` is legal for callers that read the JSpecify annotations, such
+  as NullAway and Kotlin. `ConstantGenerator`, `ContextualGenerator`, `RepeatGenerator` and
+  `UniqueGenerator`, the `Generators` factories `ofConstant`, `repeat`, `unique`, `sequence` and
+  `threadLocal`, the three `ProviderHub.unique` methods, the contextual field and predicate overloads of
+  `GeneratorConfig.Builder.objectOverride`, the field-name overloads of `ObjectFaker.ruleFor` and
+  `ruleForContext`, and both `Krandom.pick` methods bound their type parameter by `@Nullable Object`
+  rather than `Object`. So `Generators.repeat(Generators.ofNullableBoolean(), 3)`, which NullAway and
+  Kotlin rejected, compiles as a `RepeatGenerator<@Nullable Boolean>`, or `RepeatGenerator<Boolean?>` in
+  Kotlin. Signatures in bytecode and runtime behavior are unchanged, as each of these already returned the
+  `null` its source or argument gave. A wildcard or star projection of these types, such as
+  `ContextualGenerator<?>` or Kotlin's `ContextualGenerator<*>`, now gives a value that such callers treat
+  as possibly `null`. NullAway checks the new tests in `core/src/nullnessTest/java`, which compile each of
+  these with a nullable type argument.
+
 ### Fixed
 
 - A resumed release (`resumeGithubRelease=true`) now attaches the signed Maven Central bundle, module

@@ -241,6 +241,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiPredicate;
 import java.util.function.Supplier;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Static factory for all built-in base-type generators.
@@ -334,10 +335,10 @@ public final class Generators {
      * Returns a generator that always returns the same value.
      *
      * @param value value returned by every generated call; may be {@code null}
-     * @param <T> generated value type
+     * @param <T> generated value type, which may be nullable
      * @return constant generator
      */
-    public static <T> ConstantGenerator<T> ofConstant(T value) {
+    public static <T extends @Nullable Object> ConstantGenerator<T> ofConstant(T value) {
         return new ConstantGenerator<>(value);
     }
 
@@ -4334,17 +4335,19 @@ public final class Generators {
     }
 
     /**
-     * Returns a variable-length sequence generator with no null elements.
+     * Returns a variable-length sequence generator that adds no null elements of its own; an element is
+     * {@code null} only where a source generates {@code null}, so {@code T} may be nullable.
      */
-    public static <T> SequenceGenerator<T> sequence(
+    public static <T extends @Nullable Object> SequenceGenerator<T> sequence(
             List<? extends Generator<? extends T>> sources, int minLength, int maxLength) {
         return new SequenceGenerator<>(sources, minLength, maxLength);
     }
 
     /**
-     * Returns a variable-length sequence generator with explicit configuration and null probability.
+     * Returns a variable-length sequence generator with explicit configuration and null probability. An
+     * element is also {@code null} where a source generates {@code null}, so {@code T} may be nullable.
      */
-    public static <T> SequenceGenerator<T> sequence(
+    public static <T extends @Nullable Object> SequenceGenerator<T> sequence(
             GeneratorConfig config,
             List<? extends Generator<? extends T>> sources,
             int minLength,
@@ -4393,25 +4396,29 @@ public final class Generators {
     }
 
     /**
-     * Returns a unique-value decorator using {@link Objects#equals(Object, Object)} semantics.
+     * Returns a unique-value decorator using {@link Objects#equals(Object, Object)} semantics. A source of
+     * nullable values is accepted, and {@code null} is emitted at most once.
      */
-    public static <T> UniqueGenerator<T> unique(Generator<T> source) {
+    public static <T extends @Nullable Object> UniqueGenerator<T> unique(Generator<T> source) {
         return new UniqueGenerator<>(source);
     }
 
     /**
-     * Returns a unique-value decorator with bounded attempts for each generated value.
+     * Returns a unique-value decorator with bounded attempts for each generated value. A source of
+     * nullable values is accepted, and {@code null} is emitted at most once.
      */
-    public static <T> UniqueGenerator<T> unique(Generator<T> source, int maxAttempts) {
+    public static <T extends @Nullable Object> UniqueGenerator<T> unique(Generator<T> source, int maxAttempts) {
         return new UniqueGenerator<>(source, maxAttempts);
     }
 
     // ── Generic lookup by type ────────────────────────────────────────────────
 
     /**
-     * Returns a unique-value decorator with a custom equality comparator.
+     * Returns a unique-value decorator with a custom equality comparator. A source of nullable values is
+     * accepted, and the comparator receives {@code null} as it receives any other value.
      */
-    public static <T> UniqueGenerator<T> unique(Generator<T> source, BiPredicate<T, T> comparator) {
+    public static <T extends @Nullable Object> UniqueGenerator<T> unique(
+            Generator<T> source, BiPredicate<T, T> comparator) {
         return new UniqueGenerator<>(source, comparator);
     }
 
@@ -4426,9 +4433,10 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that invokes the given source generator {@code count} times per call.
+     * Returns a generator that invokes the given source generator {@code count} times per call. A source
+     * of nullable values is accepted, and the list keeps each {@code null} it generates.
      */
-    public static <T> RepeatGenerator<T> repeat(Generator<T> source, int count) {
+    public static <T extends @Nullable Object> RepeatGenerator<T> repeat(Generator<T> source, int count) {
         return new RepeatGenerator<>(source, count);
     }
 
@@ -4468,10 +4476,10 @@ public final class Generators {
      * }</pre>
      *
      * @param factory supplier of new generator instances (called once per thread)
-     * @param <T> the generated value type
+     * @param <T> the generated value type, which may be nullable
      * @return a thread-safe generator
      */
-    public static <T> Generator<T> threadLocal(Supplier<? extends Generator<T>> factory) {
+    public static <T extends @Nullable Object> Generator<T> threadLocal(Supplier<? extends Generator<T>> factory) {
         Objects.requireNonNull(factory, "factory must not be null");
         ThreadLocal<Generator<T>> local = ThreadLocal.withInitial(factory::get);
         return () -> local.get().generate();
