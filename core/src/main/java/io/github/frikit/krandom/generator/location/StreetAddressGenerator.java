@@ -94,8 +94,19 @@ public final class StreetAddressGenerator implements Generator<String> {
                 : null;
     }
 
+    /**
+     * The secondary units of each locale key, read once: a generator only reads its array, so generators of a
+     * locale can share it, and a Schema builds one for every value of a seeded street-address column.
+     */
+    private static final java.util.concurrent.ConcurrentMap<String, String[]> SECONDARY_UNITS =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
     private static String[] loadSecondaryUnits(Locale locale) {
-        String key = locale.getLanguage() + "_" + locale.getCountry();
+        return SECONDARY_UNITS.computeIfAbsent(
+                locale.getLanguage() + "_" + locale.getCountry(), StreetAddressGenerator::readSecondaryUnits);
+    }
+
+    private static String[] readSecondaryUnits(String key) {
         String resourcePath = "krandom/streets/secondary_units/" + key + ".txt";
         InputStream is = StreetAddressGenerator.class.getResourceAsStream("/" + resourcePath);
         if (is != null) {
