@@ -25,8 +25,11 @@ Checkouts:
   cache     ff76a422 with only a985c1db's StreetAddressGenerator hunk applied, uncommitted: the secondary
             units of each locale read once into a static map, the smallest patch
 
+  b-fix     7a7cbd2a  b after the review: a lookup with its own DataRegistryContext keeps the build; the
+                      benchmark's configuration uses the built-in context, so its per-value path is b's
+
 Order: the baseline pair base-ce base-main base-main base-ce; the options session base a1 a2 b ceiling ceiling
-b a2 a1 base; then e6 ceiling e6; then main cache cache main. Every checkout passed all of :core:test before it
+b a2 a1 base; then e6 ceiling e6; then main cache cache main; then, after the review, main b-fix. Every checkout passed all of :core:test before it
 was measured, except base-ce, base-main and e6, which are published commits, and the ceiling, which breaks the
 3.0.1 named-stream pins by design.
 
@@ -281,6 +284,30 @@ SchemaOutputBenchmark.streamingCsv                             thrpt   15       
 SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  20748970.072 ±  6097.234    B/op
 SchemaOutputBenchmark.streamingJsonLines                       thrpt   15       236.626 ±     1.846   ops/s
 SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  20701410.271 ± 42932.383    B/op
+
+== fixpair-main-1: checkout ff76a422 0 dirty files, label fixpair-main-1; ran 17:13:18-17:14:59, exit 0
+
+Benchmark                                                       Mode  Cnt         Score        Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15       249.466 ±      1.530   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  20681321.897 ±  32311.255    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15       222.944 ±      2.679   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  21264681.096 ± 158924.464    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15       236.764 ±      1.314   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  20728261.598 ±  10277.511    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15       232.745 ±      1.082   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  20684082.958 ±  29407.141    B/op
+
+== fixpair-b-1: checkout 7a7cbd2a 0 dirty files, label fixpair-b-1; ran 17:14:59-17:16:41, exit 0
+
+Benchmark                                                       Mode  Cnt        Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15      946.766 ±    19.062   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  4004006.451 ± 14694.172    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15      672.243 ±     5.978   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  4440461.860 ± 23571.465    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15      780.865 ±    33.136   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  3941669.129 ± 42134.086    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15      754.589 ±    15.091   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  4013532.649 ±  1780.554    B/op
 
 == JFR splits (the recordings themselves are not kept here)
 
