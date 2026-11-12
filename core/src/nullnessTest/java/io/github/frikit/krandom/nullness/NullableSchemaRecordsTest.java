@@ -9,12 +9,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
 import io.github.frikit.krandom.generator.schema.Schema;
 import io.github.frikit.krandom.generator.schema.SchemaParser;
 import io.github.frikit.krandom.generator.schema.SchemaProjection;
 import io.github.frikit.krandom.generator.schema.SchemaValueProvider;
+import io.github.frikit.krandom.generator.selection.RepeatGenerator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +59,19 @@ class NullableSchemaRecordsTest {
             assertTrue(each.containsKey("nickname"));
             assertNull(each.get("nickname"));
         }
+    }
+
+    @Test
+    @DisplayName("schema::generateRecord is a Generator of nullable records that composes")
+    void generateRecordReferenceIsAGenerator() {
+        Generator<Map<String, @Nullable Object>> records = profiles()::generateRecord;
+        RepeatGenerator<Map<String, @Nullable Object>> pairs = Generators.repeat(records, 2);
+
+        for (Map<String, @Nullable Object> each : pairs.generate()) {
+            assertEquals("Ada", each.get("name"));
+            assertNull(each.get("nickname"));
+        }
+        assertEquals(3, records.generateList(3).size());
     }
 
     @Test
