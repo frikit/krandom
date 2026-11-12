@@ -64,7 +64,7 @@ public final class FinitePoolGenerator<T> implements Generator<T> {
         if (remaining.isEmpty()) {
             throw new NoSuchElementException("Finite pool is exhausted; call reset() to start a new cycle");
         }
-        return remaining.removeLast();
+        return remaining.remove(remaining.size() - 1);
     }
 
     /**
@@ -74,7 +74,8 @@ public final class FinitePoolGenerator<T> implements Generator<T> {
         List<T> shuffled = new ArrayList<>(values);
         Collections.shuffle(shuffled, random);
         // Emitted from the end, each value at its first copy from there; the other copies are dropped.
-        List<T> cycle = new ArrayList<>(new LinkedHashSet<>(shuffled.reversed()));
+        Collections.reverse(shuffled);
+        List<T> cycle = new ArrayList<>(new LinkedHashSet<>(shuffled));
         Collections.reverse(cycle);
         remaining = cycle;
     }

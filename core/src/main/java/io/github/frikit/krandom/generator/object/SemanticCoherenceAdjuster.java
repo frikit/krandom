@@ -581,12 +581,23 @@ final class SemanticCoherenceAdjuster {
         long toStart = Objects.requireNonNull(config.getDateMin()).toEpochDay() * SECONDS_PER_DAY - second;
         long toEnd = (Objects.requireNonNull(config.getDateMax()).toEpochDay() + 1) * SECONDS_PER_DAY - 1 - second;
         long seconds = toStart > 0
-                ? Math.ceilDiv(toStart, OFFSET_STEP_SECONDS) * OFFSET_STEP_SECONDS
+                ? ceilDiv(toStart, OFFSET_STEP_SECONDS) * OFFSET_STEP_SECONDS
                 : Math.floorDiv(toEnd, OFFSET_STEP_SECONDS) * OFFSET_STEP_SECONDS;
         boolean withinContract = rawType == OffsetDateTime.class;
         int min = withinContract ? OFFSET_MIN_SECONDS : ZoneOffset.MIN.getTotalSeconds();
         int max = withinContract ? OFFSET_MAX_SECONDS : ZoneOffset.MAX.getTotalSeconds();
         return seconds >= min && seconds <= max ? ZoneOffset.ofTotalSeconds((int) seconds) : null;
+    }
+
+    /**
+     * The smallest integer at least {@code dividend / divisor}, as Java 18's {@code Math.ceilDiv(long, int)}
+     * computes it: {@code Long.MIN_VALUE} divided by {@code -1} overflows to {@code Long.MIN_VALUE}, and a
+     * zero divisor throws {@link ArithmeticException}.
+     */
+    static long ceilDiv(long dividend, int divisor) {
+        long quotient = dividend / divisor;
+        // Division truncates toward zero: with operands of the same sign and a remainder, round up.
+        return (dividend ^ divisor) >= 0 && quotient * divisor != dividend ? quotient + 1 : quotient;
     }
 
     /**
@@ -1458,7 +1469,7 @@ final class SemanticCoherenceAdjuster {
         }
         matches.sort(
                 Comparator.comparing(value -> FieldGeneratorResolver.normalizeSemanticFieldName(value.toString())));
-        return matches.getFirst();
+        return matches.get(0);
     }
 
     static @Nullable Object fromInstant(Instant instant, Class<?> rawType) {

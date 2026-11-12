@@ -21,7 +21,7 @@ public final class FiFiNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("fi", "FI");
+        return new Locale("fi", "FI");
     }
 
     @Override

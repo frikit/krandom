@@ -19,7 +19,7 @@ public final class BgBgNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("bg", "BG");
+        return new Locale("bg", "BG");
     }
 
     @Override

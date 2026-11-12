@@ -17,7 +17,7 @@ public final class HeIlNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("he", "IL");
+        return new Locale("he", "IL");
     }
 
     @Override

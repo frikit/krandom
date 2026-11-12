@@ -75,7 +75,7 @@ public final class BrNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("pt", "BR");
+        return new Locale("pt", "BR");
     }
 
     @Override

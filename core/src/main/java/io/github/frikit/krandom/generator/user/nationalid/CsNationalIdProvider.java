@@ -18,7 +18,7 @@ public final class CsNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("cs", "CZ");
+        return new Locale("cs", "CZ");
     }
 
     @Override

@@ -839,7 +839,7 @@ final class FixtureRuleAnalysis {
                 arguments.add(argument);
             }
             if (FieldGeneratorResolver.isSortedContainer(rawType)
-                    && !FieldGeneratorResolver.hasDeterministicOrder(arguments.getFirst())) {
+                    && !FieldGeneratorResolver.hasDeterministicOrder(arguments.get(0))) {
                 return;
             }
             if (count == 1) {

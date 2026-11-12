@@ -18,7 +18,7 @@ public final class UkUaNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("uk", "UA");
+        return new Locale("uk", "UA");
     }
 
     @Override

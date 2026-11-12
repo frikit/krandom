@@ -32,7 +32,7 @@ final class AddressCountry {
             return countryGenerator.currentCountry();
         }
         return placeCountryCode != null
-                ? Locale.of("", placeCountryCode).getDisplayCountry(locale)
+                ? new Locale("", placeCountryCode).getDisplayCountry(locale)
                 : countryGenerator.generate();
     }
 

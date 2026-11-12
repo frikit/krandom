@@ -17,7 +17,7 @@ public final class RuNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("ru", "RU");
+        return new Locale("ru", "RU");
     }
 
     @Override

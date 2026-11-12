@@ -22,7 +22,7 @@ public final class NlNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("nl", "NL");
+        return new Locale("nl", "NL");
     }
 
     @Override

@@ -17,7 +17,7 @@ public final class CaEsNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("ca", "ES");
+        return new Locale("ca", "ES");
     }
 
     @Override

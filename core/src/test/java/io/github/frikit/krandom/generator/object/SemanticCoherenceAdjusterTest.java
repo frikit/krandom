@@ -2229,6 +2229,51 @@ class SemanticCoherenceAdjusterTest {
         }
     }
 
+    @Test
+    @DisplayName("ceilDiv rounds the quotient up as Math.ceilDiv does, for every sign and at the extremes")
+    void ceilDivRoundsTheQuotientUp() {
+        long[] dividends = {
+            0,
+            1,
+            -1,
+            7,
+            -7,
+            8,
+            -8,
+            899,
+            900,
+            901,
+            -899,
+            -900,
+            -901,
+            Long.MAX_VALUE,
+            Long.MAX_VALUE - 1,
+            Long.MIN_VALUE,
+            Long.MIN_VALUE + 1
+        };
+        int[] divisors = {1, -1, 2, -2, 3, -3, 900, -900, Integer.MAX_VALUE, Integer.MIN_VALUE};
+        for (long dividend : dividends) {
+            for (int divisor : divisors) {
+                if (dividend == Long.MIN_VALUE && divisor == -1) {
+                    continue;
+                }
+                long expected = BigDecimal.valueOf(dividend)
+                        .divide(BigDecimal.valueOf(divisor), 0, CEILING)
+                        .longValueExact();
+                assertEquals(
+                        expected, SemanticCoherenceAdjuster.ceilDiv(dividend, divisor), dividend + " / " + divisor);
+            }
+        }
+        assertEquals(4, SemanticCoherenceAdjuster.ceilDiv(7, 2));
+        assertEquals(-3, SemanticCoherenceAdjuster.ceilDiv(-7, 2));
+        assertEquals(-3, SemanticCoherenceAdjuster.ceilDiv(7, -2));
+        assertEquals(4, SemanticCoherenceAdjuster.ceilDiv(-7, -2));
+        assertEquals(1, SemanticCoherenceAdjuster.ceilDiv(1, 900));
+        // The one quotient a long cannot hold overflows, as Math.ceilDiv's does.
+        assertEquals(Long.MIN_VALUE, SemanticCoherenceAdjuster.ceilDiv(Long.MIN_VALUE, -1));
+        assertThrows(ArithmeticException.class, () -> SemanticCoherenceAdjuster.ceilDiv(1, 0));
+    }
+
     /**
      * Runs the pass over a two-member record, such as one with a createdAt and an updatedAt, and returns what it
      * leaves in the members.

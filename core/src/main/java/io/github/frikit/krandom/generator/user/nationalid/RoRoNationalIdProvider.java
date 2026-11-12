@@ -21,7 +21,7 @@ public final class RoRoNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("ro", "RO");
+        return new Locale("ro", "RO");
     }
 
     @Override

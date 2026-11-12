@@ -16,7 +16,7 @@ public final class MsMyNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("ms", "MY");
+        return new Locale("ms", "MY");
     }
 
     @Override

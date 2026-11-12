@@ -1046,7 +1046,7 @@ public final class ObjectFaker<T> implements Generator<T> {
                     + "; use GeneratorConfig.Builder.objectOverride(ownerType, fieldName, generator) "
                     + "for owner-specific overrides");
         }
-        Field field = matches.getFirst();
+        Field field = matches.get(0);
         return new RuleTarget(field.getDeclaringClass(), field.getName(), field.getType(), field, null);
     }
 
@@ -1161,7 +1161,7 @@ public final class ObjectFaker<T> implements Generator<T> {
     record RulePath(String path, List<RuleTarget> segments) {
 
         RuleTarget leaf() {
-            return segments.getLast();
+            return segments.get(segments.size() - 1);
         }
 
         String fieldName() {
