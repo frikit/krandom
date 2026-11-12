@@ -28,7 +28,9 @@ case "${tag_status}" in
         ;;
 esac
 
-for marker in "Release rehearsal and recovery" "resumeGithubRelease=true" "Never rerun the Central upload"; do
+# A resumed release that cannot attach the initial run's assets names "Manual GitHub release repair".
+for marker in "Release rehearsal and recovery" "resumeGithubRelease=true" "Never rerun the Central upload" \
+    "Manual GitHub release repair"; do
     if ! grep -Fq "${marker}" "${RUNBOOK}"; then
         echo "Release runbook is missing recovery marker: ${marker}" >&2
         exit 1
