@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- `StreetAddressGenerator` now reads each locale's secondary units, such as `Apt` and `Suite`, from their
+  resource once and shares them between that locale's generators, rather than opening and reading the
+  resource each time a generator is built; a locale without such a resource shares its fallback units the
+  same way. No generated value changes: the units are the same strings in the same order, as a test checks
+  against a fresh read of every locale's resource, and every pinned seeded test passes unchanged. A portable
+  seeded `Schema`, whose `Field` values each build their own generators, gains the most:
+  `SchemaOutputBenchmark.largeSchemaBatch`, 250 records of 12 references, gave 240 operations a second and
+  gives 478, and allocates 12.5 MB an operation rather than 20.7 MB. Before 3.0.1 gave each schema value its
+  own stream, it gave 933 operations a second and allocated 3.7 MB, and the benchmark methodology still
+  records the difference as an accepted breach of its regression budgets, with the raw runs.
+
 ### Fixed
 
 - A resumed release (`resumeGithubRelease=true`) now attaches the signed Maven Central bundle, module

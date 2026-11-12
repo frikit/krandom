@@ -67,8 +67,12 @@ must document the behavioral or safety improvement that justifies it.
   modules instead of rebuilding it, with the same values. In one sitting on the same machine
   ([raw output](results/2026-11-12-schema-output-3.0.2.txt)), that took the four workloads from 197,
   186, 194 and 189 to 264, 245, 259 and 253 operations a second, and `largeSchemaBatch` from 30.8 MB to
-  20.6 MB an operation. Against the runs before the fix, a 72% throughput decrease and a 5.6-fold
+  20.6 MB an operation. In 3.0.3, a street-address generator reads its locale's secondary units once
+  instead of each time it is built, with the same values. In one sitting on the same machine
+  ([raw output](results/2026-11-12-schema-output-3.0.3.txt)), that took the four workloads from 240,
+  218, 229 and 229 to 478, 399, 449 and 428 operations a second, and `largeSchemaBatch` from 20.7 MB to
+  12.5 MB an operation. Against the runs before the fix, a 49% throughput decrease and a 3.4-fold
   allocation increase remain, outside both budgets. They are accepted because the fix restores the
-  documented independence of schema columns. Reaching the budgets with the same values needs the
-  composite generators to reset their streams for each value, which is new public API, so it waits for a
-  minor release.
+  documented independence of schema columns. Reaching the budgets with the same values needs each value
+  to stop building its generators, for example by reseeding a generator built once for its column, which
+  waits for a minor release.
