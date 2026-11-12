@@ -73,6 +73,21 @@ waits for a major release, and deprecates the API it replaces first.
 - Extend native-image evidence beyond core (records, reflection, localized resources, and a custom
   module) before claiming native support for the Spring and Kotlin modules.
 
+### P2 — Valid output for caller-supplied text (3.1 candidates)
+
+Found while preparing 3.0.2. Each needs text that the caller supplies; built-in data triggers none.
+
+- `CharGenerator.pool`, the `StringGenerator` pools, and `PasswordPolicy.require` split a
+  supplementary character in the caller's pool into unpaired surrogates. Drawing whole code points
+  changes the draws for such pools.
+- `TextGenerator`'s trailing-dot overwrite can leave a lone high surrogate.
+- `CompanyUrlGenerator.generateFromCompanyName(String)` keeps every letter and digit of the name, so
+  a name with more than 63 gives a host label that `IDN.toASCII` rejects.
+- The YAML writer writes DEL, C1 controls, and U+FFFE unescaped, and SnakeYAML rejects the document.
+- `Schema.toJsonSchema()` keeps field names as given, without the U+FFFD replacement that the data
+  writers apply to unpaired surrogates.
+- Two field names that differ only by an unpaired surrogate are written as the same key.
+
 ## Release gates
 
 A release candidate requires all of the following:
