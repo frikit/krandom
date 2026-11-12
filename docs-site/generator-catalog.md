@@ -115,8 +115,8 @@ fixtures; see [Finance and Identity]({{ '/guides/finance-and-identity/' | relati
 
 - `pick`, `pickSet`, `shuffle`, `weighted`, `unique`, `repeat`, `sequence`, `pool`
 - `threadLocal` supplies one generator instance per calling thread.
-- `ofConstant`, `unique`, `repeat`, `sequence` and `threadLocal` pass the `null` of a nullable source
-  through, so their type argument may be nullable: `Generators.repeat(Generators.ofNullableBoolean(), 3)`
+- `ofConstant`, `unique`, `repeat`, `sequence` and `threadLocal` return the `null` that their value or
+  source gives, so their type argument may be nullable: `Generators.repeat(Generators.ofNullableBoolean(), 3)`
   is a `RepeatGenerator<@Nullable Boolean>`, which NullAway and Kotlin, as `RepeatGenerator<Boolean?>`,
   accept.
 

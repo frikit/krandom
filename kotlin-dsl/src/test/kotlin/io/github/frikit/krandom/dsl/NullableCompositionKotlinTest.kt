@@ -12,6 +12,7 @@ import io.github.frikit.krandom.generator.Generators
 import io.github.frikit.krandom.generator.Krandom
 import io.github.frikit.krandom.generator.base.ConstantGenerator
 import io.github.frikit.krandom.generator.`object`.ObjectFaker
+import io.github.frikit.krandom.generator.`object`.PropertySelector
 import io.github.frikit.krandom.generator.selection.RepeatGenerator
 import io.github.frikit.krandom.generator.selection.SequenceGenerator
 import io.github.frikit.krandom.generator.selection.UniqueGenerator
@@ -32,6 +33,13 @@ class NullableCompositionKotlinTest {
     }
 
     private val seeded: GeneratorConfig = GeneratorConfig.builder().seed(42L).build()
+
+    @Test
+    fun aPropertySelectorTakesANullableProperty() {
+        val nickname: PropertySelector<Profile, String?> = PropertySelector { profile -> profile.nickname }
+
+        assertNull(nickname.apply(Profile()))
+    }
 
     @Test
     fun repeatKeepsTheNullsOfANullableSource() {

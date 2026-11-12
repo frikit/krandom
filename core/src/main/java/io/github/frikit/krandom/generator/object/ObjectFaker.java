@@ -151,16 +151,20 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     /**
-     * Registers a deterministic root field rule through a type-safe accessor reference.
+     * Registers a deterministic root field rule through a type-safe accessor reference. As with a rule by
+     * field name, the property and the generator's values may be nullable.
      */
-    public <V> ObjectFaker<T> ruleFor(PropertySelector<T, V> property, Generator<? extends V> generator) {
+    public <V extends @Nullable Object> ObjectFaker<T> ruleFor(
+            PropertySelector<T, V> property, Generator<? extends V> generator) {
         return ruleFor(PropertyPath.of(property), generator);
     }
 
     /**
-     * Registers a deterministic field rule through a type-safe root or nested property path.
+     * Registers a deterministic field rule through a type-safe root or nested property path. As with a rule
+     * by field name, the property and the generator's values may be nullable.
      */
-    public <V> ObjectFaker<T> ruleFor(PropertyPath<T, V> property, Generator<? extends V> generator) {
+    public <V extends @Nullable Object> ObjectFaker<T> ruleFor(
+            PropertyPath<T, V> property, Generator<? extends V> generator) {
         return ruleFor(
                 Objects.requireNonNull(property, "property must not be null").path(), generator);
     }
@@ -184,17 +188,20 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     /**
-     * Registers a context-aware root field rule through a type-safe accessor reference.
+     * Registers a context-aware root field rule through a type-safe accessor reference. As with a rule by
+     * field name, the property and the generator's values may be nullable.
      */
-    public <V> ObjectFaker<T> ruleForContext(
+    public <V extends @Nullable Object> ObjectFaker<T> ruleForContext(
             PropertySelector<T, V> property, ContextualGenerator<? extends V> generator) {
         return ruleForContext(PropertyPath.of(property), generator);
     }
 
     /**
-     * Registers a context-aware field rule through a type-safe root or nested property path.
+     * Registers a context-aware field rule through a type-safe root or nested property path. As with a rule
+     * by field name, the property and the generator's values may be nullable.
      */
-    public <V> ObjectFaker<T> ruleForContext(PropertyPath<T, V> property, ContextualGenerator<? extends V> generator) {
+    public <V extends @Nullable Object> ObjectFaker<T> ruleForContext(
+            PropertyPath<T, V> property, ContextualGenerator<? extends V> generator) {
         return ruleForContext(
                 Objects.requireNonNull(property, "property must not be null").path(), generator);
     }
@@ -223,16 +230,20 @@ public final class ObjectFaker<T> implements Generator<T> {
     }
 
     /**
-     * Registers a correlated root assignment through a type-safe accessor reference.
+     * Registers a correlated root assignment through a type-safe accessor reference. As with a rule by
+     * field name, the property and the function's values may be nullable.
      */
-    public <V> ObjectFaker<T> ruleFor(PropertySelector<T, V> property, Function<? super T, ? extends V> generator) {
+    public <V extends @Nullable Object> ObjectFaker<T> ruleFor(
+            PropertySelector<T, V> property, Function<? super T, ? extends V> generator) {
         return ruleFor(PropertyPath.of(property), generator);
     }
 
     /**
-     * Registers a correlated root or nested assignment through a type-safe property path.
+     * Registers a correlated root or nested assignment through a type-safe property path. As with a rule by
+     * field name, the property and the function's values may be nullable.
      */
-    public <V> ObjectFaker<T> ruleFor(PropertyPath<T, V> property, Function<? super T, ? extends V> generator) {
+    public <V extends @Nullable Object> ObjectFaker<T> ruleFor(
+            PropertyPath<T, V> property, Function<? super T, ? extends V> generator) {
         return ruleFor(
                 Objects.requireNonNull(property, "property must not be null").path(), generator);
     }

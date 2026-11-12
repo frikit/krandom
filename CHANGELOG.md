@@ -22,15 +22,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   as NullAway and Kotlin. `ConstantGenerator`, `ContextualGenerator`, `RepeatGenerator` and
   `UniqueGenerator`, the `Generators` factories `ofConstant`, `repeat`, `unique`, `sequence` and
   `threadLocal`, the three `ProviderHub.unique` methods, the contextual field and predicate overloads of
-  `GeneratorConfig.Builder.objectOverride`, the field-name overloads of `ObjectFaker.ruleFor` and
-  `ruleForContext`, and both `Krandom.pick` methods bound their type parameter by `@Nullable Object`
-  rather than `Object`. So `Generators.repeat(Generators.ofNullableBoolean(), 3)`, which NullAway and
-  Kotlin rejected, compiles as a `RepeatGenerator<@Nullable Boolean>`, or `RepeatGenerator<Boolean?>` in
-  Kotlin. Signatures in bytecode and runtime behavior are unchanged, as each of these already returned the
-  `null` its source or argument gave. A wildcard or star projection of these types, such as
-  `ContextualGenerator<?>` or Kotlin's `ContextualGenerator<*>`, now gives a value that such callers treat
-  as possibly `null`. NullAway checks the new tests in `core/src/nullnessTest/java`, which compile each of
-  these with a nullable type argument.
+  `GeneratorConfig.Builder.objectOverride`, every overload of `ObjectFaker.ruleFor` and `ruleForContext`,
+  `PropertySelector` and `PropertyPath` for the property's type, and both `Krandom.pick` methods bound
+  their type parameter by `@Nullable Object` rather than `Object`, and `PropertyPath.then` continues a path
+  past a nullable property with an accessor of its non-null type. So
+  `Generators.repeat(Generators.ofNullableBoolean(), 3)`, which NullAway and Kotlin rejected, compiles as a
+  `RepeatGenerator<@Nullable Boolean>`, or `RepeatGenerator<Boolean?>` in Kotlin, and a rule can name a
+  nullable property through a `PropertySelector<User, @Nullable String>`. Signatures in bytecode and
+  runtime behavior are unchanged, as each of these already returned the `null` its source or argument
+  gave. Kotlin now reads a star projection of `ConstantGenerator`, `ContextualGenerator`,
+  `RepeatGenerator`, `UniqueGenerator` or `PropertySelector` as possibly `null`, so Kotlin code that reads
+  one as non-null, such as `val value: Any = generator.generate(context)` for a
+  `ContextualGenerator<*>`, no longer compiles. In Kotlin, `pick` of a list that holds `null`, such as
+  `krandom.pick(listOf("a", null))`, now calls `pick(List)` and returns one of its elements, where it
+  called the varargs `pick` and returned the list itself; Java calls and compiled code call what they did.
+  NullAway checks the new tests in `core/src/nullnessTest/java`, which compile each of these with a
+  nullable type argument.
 
 ### Deprecated
 

@@ -18,6 +18,8 @@ import io.github.frikit.krandom.generator.Generators;
 import io.github.frikit.krandom.generator.Krandom;
 import io.github.frikit.krandom.generator.base.ConstantGenerator;
 import io.github.frikit.krandom.generator.object.ObjectFaker;
+import io.github.frikit.krandom.generator.object.PropertyPath;
+import io.github.frikit.krandom.generator.object.PropertySelector;
 import io.github.frikit.krandom.generator.provider.ProviderHub;
 import io.github.frikit.krandom.generator.selection.RepeatGenerator;
 import io.github.frikit.krandom.generator.selection.SequenceGenerator;
@@ -29,6 +31,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiPredicate;
+import java.util.function.Function;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.DisplayName;
@@ -45,6 +48,9 @@ class NullableCompositionTest {
 
     /** A record whose nickname object generation fills unless an override or rule leaves it null. */
     record Profile(@Nullable String nickname) {}
+
+    /** A record with a profile and a nullable backup profile, both of which object generation fills. */
+    record Account(Profile main, @Nullable Profile backup) {}
 
     private static GeneratorConfig seeded() {
         return GeneratorConfig.builder().seed(42L).build();
@@ -152,6 +158,54 @@ class NullableCompositionTest {
                 .<@Nullable String>ruleFor("nickname", profile -> null)
                 .generate()
                 .nickname());
+    }
+
+    @Test
+    @DisplayName("a typed faker rule by accessor or path, nested or not, that returns null leaves the field null")
+    void typedFakerRulesLeaveFieldNull() {
+        ContextualGenerator<@Nullable String> nothing = context -> null;
+        Function<Profile, @Nullable String> dependentNothing = profile -> null;
+        PropertySelector<Profile, @Nullable String> nickname = Profile::nickname;
+        PropertyPath<Profile, @Nullable String> nicknamePath = PropertyPath.of(nickname);
+        PropertyPath<Account, @Nullable String> backupNickname =
+                PropertyPath.of(Account::backup).then(Profile::nickname);
+        PropertyPath<Account, @Nullable String> mainNickname =
+                PropertyPath.of(Account::main).then(Profile::nickname);
+
+        assertNull(new ObjectFaker<>(Profile.class, seeded())
+                .ruleFor(nickname, none())
+                .generate()
+                .nickname());
+        assertNull(new ObjectFaker<>(Profile.class, seeded())
+                .ruleFor(nicknamePath, none())
+                .generate()
+                .nickname());
+        assertNull(new ObjectFaker<>(Profile.class, seeded())
+                .ruleForContext(nickname, nothing)
+                .generate()
+                .nickname());
+        assertNull(new ObjectFaker<>(Profile.class, seeded())
+                .ruleForContext(nicknamePath, nothing)
+                .generate()
+                .nickname());
+        assertNull(new ObjectFaker<>(Profile.class, seeded())
+                .ruleFor(nickname, dependentNothing)
+                .generate()
+                .nickname());
+        assertNull(new ObjectFaker<>(Profile.class, seeded())
+                .ruleFor(nicknamePath, dependentNothing)
+                .generate()
+                .nickname());
+
+        Account plain = new ObjectFaker<>(Account.class, seeded()).generate();
+        Account account = new ObjectFaker<>(Account.class, seeded())
+                .ruleFor(backupNickname, none())
+                .ruleFor(mainNickname, none())
+                .generate();
+        assertNotNull(Objects.requireNonNull(plain.backup()).nickname());
+        assertNotNull(plain.main().nickname());
+        assertNull(Objects.requireNonNull(account.backup()).nickname());
+        assertNull(account.main().nickname());
     }
 
     @Test
