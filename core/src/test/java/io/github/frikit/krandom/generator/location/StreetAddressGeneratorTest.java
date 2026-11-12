@@ -15,9 +15,12 @@ import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
 import io.github.frikit.krandom.generator.Vocabulary;
+import io.github.frikit.krandom.generator.locale.SupportedLocale;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -263,5 +266,81 @@ class StreetAddressGeneratorTest {
     @DisplayName("Generators.ofStreetAddress returns working generator")
     void generatorsFactory() {
         assertNotNull(Generators.ofStreetAddress().generate());
+    }
+
+    @Test
+    @DisplayName("each locale's secondary units, read once and shared, give what a fresh read of its file gives")
+    void secondaryUnitsMatchAFreshReadOfEachLocalesFile() {
+        int localesWithAFile = 0;
+        for (SupportedLocale supported : SupportedLocale.values()) {
+            Locale locale = supported.locale();
+            String path =
+                    "krandom/streets/secondary_units/" + locale.getLanguage() + "_" + locale.getCountry() + ".txt";
+            InputStream file = StreetAddressGenerator.class.getResourceAsStream("/" + path);
+            if (file == null) {
+                continue;
+            }
+            assertSecondaryAddressesDrawFrom(
+                    StreetAddressResourceLoader.load(file, path),
+                    GeneratorConfig.builder().locale(locale).seed(17L).build());
+            localesWithAFile++;
+        }
+        assertTrue(localesWithAFile > 0, "no locale ships a secondary-units file");
+    }
+
+    @Test
+    @DisplayName("a locale without a secondary-units file keeps the fallback units, read once and shared")
+    void localeWithoutAFileKeepsTheFallbackUnits() {
+        Locale locale = Locale.of("qq", "QQ");
+        DataRegistryContext context = DataRegistryContext.builder()
+                .isolated()
+                .register(Vocabulary.STREET_ADDRESS, new StreetAddressDataProvider() {
+                    @Override
+                    public Locale getLocale() {
+                        return locale;
+                    }
+
+                    @Override
+                    public String[] getStreetNames() {
+                        return new String[] {"Scoped"};
+                    }
+
+                    @Override
+                    public String[] getStreetTypesShort() {
+                        return new String[] {"St"};
+                    }
+
+                    @Override
+                    public String[] getStreetTypesLong() {
+                        return new String[] {"Street"};
+                    }
+                })
+                .build();
+
+        assertSecondaryAddressesDrawFrom(
+                new String[] {"Apt", "Suite", "Unit", "Floor", "Room"},
+                GeneratorConfig.builder()
+                        .locale(locale)
+                        .seed(17L)
+                        .registryContext(context)
+                        .build());
+    }
+
+    /**
+     * Two generators built one after the other from a seeded configuration, the second from the units the first
+     * left, give the secondary addresses that drawing from {@code units} with the same seed gives.
+     */
+    private static void assertSecondaryAddressesDrawFrom(String[] units, GeneratorConfig config) {
+        for (int build = 0; build < 2; build++) {
+            StreetAddressGenerator generator = new StreetAddressGenerator(config);
+            Random expected = new Random(config.getSeed().orElseThrow());
+            for (int draw = 0; draw < 300; draw++) {
+                String unit = units[expected.nextInt(units.length)];
+                assertEquals(
+                        unit + " " + expected.nextInt(1, 1000),
+                        generator.generateSecondaryAddress(),
+                        config.getLocale() + ", build " + build + ", draw " + draw);
+            }
+        }
     }
 }

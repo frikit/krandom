@@ -11,8 +11,10 @@ import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Vocabulary;
 import java.io.InputStream;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Generates locale-aware street addresses (for example {@code "742 Main Street"}).
@@ -94,8 +96,20 @@ public final class StreetAddressGenerator implements Generator<String> {
                 : null;
     }
 
+    /**
+     * Each locale key's secondary units, read from its resource once. A seeded {@code Schema} builds a
+     * street-address generator for every value of such a column, and reading the resource each time cost most of
+     * that build. Generators only read the array, never change or hand it out, so they share it; a key without a
+     * resource keeps its fallback array too.
+     */
+    private static final Map<String, String[]> SECONDARY_UNITS = new ConcurrentHashMap<>();
+
     private static String[] loadSecondaryUnits(Locale locale) {
-        String key = locale.getLanguage() + "_" + locale.getCountry();
+        return SECONDARY_UNITS.computeIfAbsent(
+                locale.getLanguage() + "_" + locale.getCountry(), StreetAddressGenerator::readSecondaryUnits);
+    }
+
+    private static String[] readSecondaryUnits(String key) {
         String resourcePath = "krandom/streets/secondary_units/" + key + ".txt";
         InputStream is = StreetAddressGenerator.class.getResourceAsStream("/" + resourcePath);
         if (is != null) {
