@@ -128,7 +128,7 @@ import org.jspecify.annotations.Nullable;
  *   );
  *
  *   Schema schema = SchemaParser.fromJsonSchema(jsonSchema);
- *   Map<String, Object> record = schema.generate();
+ *   Map<String, @Nullable Object> record = schema.generateRecord();
  * }</pre>
  */
 public final class SchemaParser {
@@ -325,10 +325,10 @@ public final class SchemaParser {
         }
 
         @Override
-        public Map<String, Object> apply(Map<String, Object> record, Supplier<Random> random) {
+        public Map<String, @Nullable Object> apply(Map<String, @Nullable Object> record, Supplier<Random> random) {
             return allowed.contains(json(record))
                     ? record
-                    : new LinkedHashMap<>(
+                    : new LinkedHashMap<String, @Nullable Object>(
                             records.get(records.size() == 1 ? 0 : random.get().nextInt(records.size())));
         }
 

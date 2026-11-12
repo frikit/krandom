@@ -105,7 +105,7 @@ String csv = orders.toCsv(10);
 Choose this path when:
 
 - you need JSONL / JSON / CSV / XML / SQL / YAML / TOML output
-- you want generated `Map<String, Object>` rows
+- you want generated rows as maps, `Map<String, @Nullable Object>`
 - you want template-driven payloads or token-based schemas
 
 ## Rule of thumb

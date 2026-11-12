@@ -28,9 +28,9 @@ fields.put("email", field.bind("person.email"));
 fields.put("amount", field.bind("finance.money"));
 
 Schema orders = Generators.ofSchema(cfg, fields);
-Map<String, Object> row = orders.generate();
+Map<String, @Nullable Object> row = orders.generateRecord();
 
-assert row.get("email").toString().contains("@");
+assert String.valueOf(row.get("email")).contains("@");
 ```
 
 ## Spring-style fixture factory
@@ -73,7 +73,7 @@ Schema schema = Generators.ofSchema(Locale.US, Map.of(
         "payment", field.bind("finance.payment_info")
 ));
 
-String json = mapper.writeValueAsString(schema.generate());
+String json = mapper.writeValueAsString(schema.generateRecord());
 ```
 
 `KrandomJackson.newJsonMapper()` also serializes `Schema` itself as JSON Schema, which is useful

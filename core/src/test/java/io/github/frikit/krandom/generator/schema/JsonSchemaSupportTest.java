@@ -105,7 +105,7 @@ class JsonSchemaSupportTest {
             property.put("const", value);
             Schema schema =
                     SchemaParser.fromJsonSchema(Map.of("type", "object", "properties", Map.of("value", property)));
-            assertEquals(value, schema.generate().get("value"));
+            assertEquals(value, schema.generateRecord().get("value"));
         }
     }
 

@@ -41,7 +41,7 @@ class SchemaParserReplayTest {
     private static List<Map<String, Object>> records(Map<String, Object> jsonSchema, long seed, int count) {
         return SchemaParser.fromJsonSchema(
                         jsonSchema, GeneratorConfig.builder().seed(seed).build())
-                .generateBatch(count);
+                .generateRecords(count);
     }
 
     private static Map<String, Object> single(String name, Map<String, Object> property) {

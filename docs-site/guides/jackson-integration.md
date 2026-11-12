@@ -105,11 +105,12 @@ advance seeded row generation.
 
 ## Serialize Generated Rows
 
-Generated rows are ordinary `Map<String, Object>` values. Composite provider outputs are Java
-records, so Jackson serializes them as nested objects:
+Generated rows are ordinary maps, `Map<String, @Nullable Object>`, whose value is `null` where its
+provider returns `null`. Composite provider outputs are Java records, so Jackson serializes them as
+nested objects:
 
 ```java
-Map<String, Object> row = schema.generate();
+Map<String, @Nullable Object> row = schema.generateRecord();
 
 JsonNode rowJson = mapper.valueToTree(row);
 String orderNumber = rowJson.path("order").path("orderNumber").asString();

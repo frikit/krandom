@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `Schema.generateRecord()`, `Schema.generateRecords(int)`, and `SchemaProjection.projectRecord(T)` return a
+  schema's records and a projection's rows as `Map<String, @Nullable Object>`, so callers that read the
+  JSpecify annotations, such as NullAway and Kotlin, see that a value is `null` where its provider or
+  extractor returns `null`, as a parsed property of type `null` always does and one with OpenAPI's
+  `nullable` does half of the time. They return the maps that the methods they replace return, and every
+  record method of a schema draws from its one record sequence.
+
 ### Changed
 
 - The generators and methods that pass `null` through now say so in their type parameters, so a nullable
@@ -22,6 +31,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `ContextualGenerator<?>` or Kotlin's `ContextualGenerator<*>`, now gives a value that such callers treat
   as possibly `null`. NullAway checks the new tests in `core/src/nullnessTest/java`, which compile each of
   these with a nullable type argument.
+
+### Deprecated
+
+- `Schema.generate()`, `Schema.generateBatch(int)`, `Schema.loop(int)`, and `SchemaProjection.project(T)`,
+  whose `Map<String, Object>` claims values that are never `null`, although a value is `null` where its
+  provider or extractor returns `null`. Use `generateRecord()`, `generateRecords(int)`, and
+  `projectRecord(T)`, which return the same maps typed `Map<String, @Nullable Object>`; the deprecated
+  methods behave as before. A `Schema` stays a `Generator<Map<String, Object>>`, so the `generateList`,
+  `stream`, `map`, and `filter` it inherits keep that type, and `schema::generateRecord` is a
+  `Generator<Map<String, @Nullable Object>>` of the same records.
 
 ### Fixed
 

@@ -71,7 +71,7 @@ Schema orders = Generators.ofSchema(cfg, Map.of(
         "shipTo", f.bind("address.street_address")
 ));
 
-List<Map<String, Object>> batch = orders.generateBatch(50);
+List<Map<String, @Nullable Object>> batch = orders.generateRecords(50);
 ```
 
 ## Mixed random strategy in tests

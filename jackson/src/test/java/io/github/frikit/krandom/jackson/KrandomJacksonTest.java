@@ -123,7 +123,7 @@ class KrandomJacksonTest {
                 "object",
                 schemaNode.path("properties").path("card").path("type").asString());
 
-        JsonNode rowNode = mapper.valueToTree(schema.generate());
+        JsonNode rowNode = mapper.valueToTree(schema.generateRecord());
         assertTrue(rowNode.path("company").path("name").isString());
         assertTrue(rowNode.path("company").path("address").path("city").isString());
         assertTrue(rowNode.path("card").path("number").isString());
@@ -137,7 +137,7 @@ class KrandomJacksonTest {
         Field field = new Field(config);
         Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
         fields.put("order", field.bind("commerce.order_info"));
-        Map<String, Object> row = new Schema(config, fields).generate();
+        Map<String, Object> row = new Schema(config, fields).generateRecord();
         LocalDate orderedOn = ((OrderInfo) row.get("order")).orderedOn();
 
         JsonNode rowNode = KrandomJackson.newJsonMapper().valueToTree(row);
@@ -228,6 +228,6 @@ class KrandomJacksonTest {
 
         KrandomJackson.newJsonMapper().valueToTree(exported);
 
-        assertEquals(untouched.generate(), exported.generate());
+        assertEquals(untouched.generateRecord(), exported.generateRecord());
     }
 }

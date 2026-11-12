@@ -21,7 +21,7 @@ fields.put("address", f.nested(Map.of(
 )));
 
 Schema schema = Generators.ofSchema(Locale.US, fields);
-List<Map<String, Object>> batch = schema.generateBatch(10);
+List<Map<String, @Nullable Object>> batch = schema.generateRecords(10);
 
 String jsonl = schema.toJsonLines(10);
 String json = schema.toJson(10);
@@ -31,6 +31,16 @@ String sql = schema.toSqlInserts("public.orders", 10);
 String yaml = schema.toYaml(10);
 String toml = schema.toToml(10);
 ```
+
+A record maps each column, in the order of the fields, to its value, and a value is `null` where its
+provider returns `null`: a property of type `null` always does, and one with OpenAPI's `nullable` does
+half of the time. So `generateRecord()` and `generateRecords(count)`, added in 3.1, type a record as
+`Map<String, @Nullable Object>` (JSpecify's `@Nullable`), which NullAway and Kotlin read. `generate()`,
+`generateBatch(count)`, and `loop(count)` return the same records as `Map<String, Object>`, which claims
+values that are never `null`, and are deprecated. A `Schema` is still a `Generator<Map<String, Object>>`,
+so the methods it inherits, such as `stream()`, keep that type; where you need a `Generator` of correctly
+typed records, use `schema::generateRecord`. Every one of these methods draws the schema's next records
+from one sequence.
 
 With a portable seeded configuration, one that has a `GenerationRecipe`, every value draws from its own
 stream, named by its record index and column, so adding a column leaves the values of the others as they
@@ -269,7 +279,9 @@ projection.writeTo(writer, OutputFormat.SQL, orders, "public.orders");
 
 Projection supports the same JSONL, JSON, CSV, XML, SQL, YAML, and TOML formats as generated
 schemas. `Schema` is still the right API when values must be generated from `Field` providers;
-use `SchemaProjection` when the values already exist.
+use `SchemaProjection` when the values already exist. `projection.projectRecord(order)` returns one
+object's row as a `Map<String, @Nullable Object>`, whose value is `null` where its extractor returns
+`null`; the deprecated `project(order)` returns the same row as a `Map<String, Object>`.
 
 `FieldLookup` is now an extensible token registry rather than a fixed table, and `Field` exposes the same registration flow:
 
