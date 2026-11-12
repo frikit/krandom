@@ -207,6 +207,75 @@ public final class GeneratorConfig {
     }
 
     /**
+     * The child stream of a seeded parent without modules, equal field by field to what
+     * {@code parent.toBuilder().seed(childSeed).build()} makes, without its two copies. That build changes
+     * only the seed, which becomes numeric, and the recipe restoration, which it clears. Without modules
+     * it resolves the empty extension registry and leaves the semantic registry as it is, and it cannot
+     * fail for a parent that was built. The parent's collections are unmodifiable copies that nothing else
+     * holds, and its other fields hold values or references that the rebuild shares too, so the child
+     * shares them all.
+     */
+    private GeneratorConfig(GeneratorConfig parent, long childSeed) {
+        this.seed = OptionalLong.of(childSeed);
+        this.stringSeed = Optional.empty();
+        this.charset = parent.charset;
+        this.minStringLength = parent.minStringLength;
+        this.maxStringLength = parent.maxStringLength;
+        this.minCollectionSize = parent.minCollectionSize;
+        this.maxCollectionSize = parent.maxCollectionSize;
+        this.objectMaxDepth = parent.objectMaxDepth;
+        this.objectPoolSize = parent.objectPoolSize;
+        this.objectOverrideDefaultInitialization = parent.objectOverrideDefaultInitialization;
+        this.objectConstructionPolicy = parent.objectConstructionPolicy;
+        this.objectIgnoreErrors = parent.objectIgnoreErrors;
+        this.generationFailureListener = parent.generationFailureListener;
+        this.generationReportListener = parent.generationReportListener;
+        this.restoredFromRecipe = false;
+        this.objectDateMin = parent.objectDateMin;
+        this.objectDateMax = parent.objectDateMax;
+        this.objectSemanticMode = parent.objectSemanticMode;
+        this.objectFieldStreamPolicy = parent.objectFieldStreamPolicy;
+        this.modules = parent.modules;
+        this.extensionRegistry = parent.extensionRegistry;
+        this.objectSemanticRegistry = parent.objectSemanticRegistry;
+        this.objectNullProbability = parent.objectNullProbability;
+        this.objectOptionalEmptyProbability = parent.objectOptionalEmptyProbability;
+        this.objectUniqueFieldNames = parent.objectUniqueFieldNames;
+        this.objectRequestedUniqueFieldNames = parent.objectRequestedUniqueFieldNames;
+        this.objectUniquenessMaxAttempts = parent.objectUniquenessMaxAttempts;
+        this.objectTypeOverrides = parent.objectTypeOverrides;
+        this.objectFieldOverrides = parent.objectFieldOverrides;
+        this.objectContextualTypeOverrides = parent.objectContextualTypeOverrides;
+        this.objectContextualFieldOverrides = parent.objectContextualFieldOverrides;
+        this.objectPredicateFieldOverrides = parent.objectPredicateFieldOverrides;
+        this.objectContextualPredicateFieldOverrides = parent.objectContextualPredicateFieldOverrides;
+        this.objectExclusionPredicates = parent.objectExclusionPredicates;
+        this.objectExcludedFieldNames = parent.objectExcludedFieldNames;
+        this.objectTypeExclusionPredicates = parent.objectTypeExclusionPredicates;
+        this.objectSubtypes = parent.objectSubtypes;
+        this.locale = parent.locale;
+        this.random = parent.random;
+        this.randomFactory = parent.randomFactory;
+        this.registryContext = parent.registryContext;
+        this.clock = parent.clock;
+        this.secureRandom = parent.secureRandom;
+        this.generationProfile = parent.generationProfile;
+        this.safetyPolicy = parent.safetyPolicy;
+        this.paymentCardSafetyPolicy = parent.paymentCardSafetyPolicy;
+        this.bankingSafetyPolicy = parent.bankingSafetyPolicy;
+        this.businessTaxIdentifierSafetyPolicy = parent.businessTaxIdentifierSafetyPolicy;
+        this.cryptoAddressSafetyPolicy = parent.cryptoAddressSafetyPolicy;
+        this.securitiesIdentifierSafetyPolicy = parent.securitiesIdentifierSafetyPolicy;
+        this.phoneNumberSafetyPolicy = parent.phoneNumberSafetyPolicy;
+        this.nationalIdSafetyPolicy = parent.nationalIdSafetyPolicy;
+        this.identityDocumentSafetyPolicy = parent.identityDocumentSafetyPolicy;
+        this.emailDomainPolicy = parent.emailDomainPolicy;
+        this.networkSafetyPolicy = parent.networkSafetyPolicy;
+        this.childStreamPolicy = parent.childStreamPolicy;
+        this.providerDatasetVersion = parent.providerDatasetVersion;
+    }
+
+    /**
      * Config with all defaults applied.
      */
     public static GeneratorConfig defaults() {
@@ -290,9 +359,12 @@ public final class GeneratorConfig {
         if (seed.isEmpty()) {
             return this;
         }
-        return toBuilder()
-                .seed(GenerationRecipe.deriveChildSeed(seed.getAsLong(), streamName))
-                .build();
+        long childSeed = GenerationRecipe.deriveChildSeed(seed.getAsLong(), streamName);
+        if (modules.isEmpty()) {
+            return new GeneratorConfig(this, childSeed);
+        }
+        // Building resolves the modules again, which runs their configure methods, as it always has.
+        return toBuilder().seed(childSeed).build();
     }
 
     // ── Accessors ─────────────────────────────────────────────────────────────

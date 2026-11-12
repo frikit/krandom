@@ -118,6 +118,7 @@ pitest {
             "io.github.frikit.krandom.generator.ClockSnapshotTest",
             "io.github.frikit.krandom.generator.EnvironmentDeterminismTest",
             "io.github.frikit.krandom.generator.GenerationRecipe*",
+            "io.github.frikit.krandom.generator.GeneratorConfigChildStreamTest",
             "io.github.frikit.krandom.generator.GeneratorConfigTest",
             "io.github.frikit.krandom.generator.GeneratorProfileTest",
             "io.github.frikit.krandom.generator.RandomSourceContractTest",
