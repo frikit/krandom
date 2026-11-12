@@ -20,6 +20,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   3.7 MB, and the benchmark methodology still records the difference as an accepted breach of its
   regression budgets, with the raw runs.
 
+### Fixed
+
+- The coherence pass now keeps the first 63 letters and digits of a company name as the label of the domain
+  it derives from that name, the most a label may hold, as the data validity guide says every address a
+  generator builds passes Hibernate Validator's `@Email`, and as `CompanyEmailGenerator` does since 3.0.1. It
+  kept them all, so a `companyName` of more than 63 ASCII letters and digits, whether an override, a rule or
+  a kept initializer set it or `@Size(min = 64)` had it generated, gave its `domain`, `companyEmail`,
+  `companyUrl` and the other email and URL fields that take that domain a label that `IDN.toASCII` rejects.
+  Seeded with 42, of 2,000 objects with an `@Size(min = 64, max = 100)` `companyName` beside a `companyEmail`
+  and a `companyUrl`, 2,000 had an email that `@Email` rejects and a URL whose host `IDN.toASCII` rejects,
+  and now none has. In `STRICT` mode an `@Email` field beside such a name kept its generated address, as the
+  derived one broke `@Email`, and now takes the derived `hello@` address, as it does beside a shorter name:
+  with seed 42, 2,000 of 2,000 such values changed. Company names that `CompanyNameGenerator` draws are
+  unaffected, as the longest label of 5,000,000 seeded names in the 50 supported locales has 51 characters,
+  so seeded output changes only for a company name of more than 63 ASCII letters and digits.
+- `Schema` and `SchemaProjection` now write an unpaired surrogate, half of a UTF-16 surrogate pair without
+  its other half, as U+FFFD in JSON, JSON Lines, CSV, YAML, SQL and TOML, in values and in keys, CSV headers,
+  and table and column names, as their XML output already did, so that each document can be encoded as the
+  UTF-8 that the schema guide says `writeTo(OutputStream, ...)` writes. They wrote it as it was, which no
+  Unicode encoding can hold: a strict UTF-8 encoder rejected the document, and `writeTo(OutputStream, ...)`
+  wrote `?` in its place, so the value `"a\ud800b"` read back as `a?b`. U+FFFD is written rather than an
+  escape such as `\ud800`, which TOML cannot write and strict JSON parsers reject. A surrogate pair, every
+  other character, and XML output are written as before. No built-in generator gives an unpaired surrogate
+  from its own data, so seeded output changes only for text that holds one, such as a value or a column name
+  that the caller supplies.
+
 ## [3.0.1] - 2026-11-11
 
 ### Fixed

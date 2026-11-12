@@ -24,7 +24,8 @@ import java.util.function.Function;
  * Projects existing objects into named fields and writes them using the schema output formats.
  *
  * <p>The source iterable is consumed once and each format is written incrementally. This makes it
- * suitable for transforming large result sets without first materializing them as maps.
+ * suitable for transforming large result sets without first materializing them as maps. Text is written as
+ * {@link Schema} writes it, an unpaired surrogate as U+FFFD.
  *
  * @param <T> source object type
  */
