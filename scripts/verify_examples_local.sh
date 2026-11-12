@@ -48,7 +48,12 @@ require_jdk() {
         echo "Listing the JDKs that Gradle detects failed."
         exit 1
     fi
-    if grep -Eq "Language Version:[[:space:]]+${version}\$" <<< "${toolchains}"; then
+    # Each detected Java is an entry that starts with " + "; the report also lists JREs, which cannot compile.
+    if awk -v version="${version}" '
+        /^ \+ / { if (language == version && jdk == "true") found = 1; language = ""; jdk = "" }
+        /\| Language Version:/ { language = $NF }
+        /\| Is JDK:/ { jdk = $NF }
+        END { if (language == version && jdk == "true") found = 1; exit(found ? 0 : 1) }' <<< "${toolchains}"; then
         return 0
     fi
     if [[ "${REQUIRE_JAVA17}" == "true" ]]; then
