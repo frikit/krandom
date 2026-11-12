@@ -8,8 +8,11 @@ package io.github.frikit.krandom.generator.schema;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.github.frikit.krandom.generator.ChildStreamPolicy;
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
+import io.github.frikit.krandom.generator.location.CityDataProvider;
 import io.github.frikit.krandom.generator.provider.ProviderCatalog;
 import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
 import io.github.frikit.krandom.generator.provider.ProviderSchemaProjection;
@@ -51,6 +54,38 @@ class SchemaFreshBuildOracleTest {
                 }
             }
         }
+    }
+
+    @Test
+    @DisplayName("a lookup with its own registry context reads its data again for each value, as a build for each does")
+    void ownRegistryDataIsReadForEachValue() {
+        String[][] cities = {{"Old Town"}};
+        CityDataProvider provider = new CityDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return Locale.US;
+            }
+
+            @Override
+            public String[] getCities() {
+                return cities[0].clone();
+            }
+        };
+        DataRegistryContext context = DataRegistryContext.builder()
+                .register(Vocabulary.CITY, provider)
+                .build();
+        Field field = new Field(GeneratorConfig.builder()
+                .locale(Locale.US)
+                .seed(5L)
+                .registryContext(context)
+                .build());
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("city", field.bind("address.city"));
+        Schema schema = new Schema(GeneratorConfig.builder().seed(7L).build(), fields);
+
+        assertEquals("Old Town", schema.generate().get("city"));
+        cities[0] = new String[] {"New Town"};
+        assertEquals("New Town", schema.generate().get("city"));
     }
 
     private static <T> void assertDescriptor(GeneratorConfig config, ProviderDescriptor<T> descriptor) {

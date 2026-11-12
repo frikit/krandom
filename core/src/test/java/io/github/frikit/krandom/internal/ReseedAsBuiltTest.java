@@ -139,6 +139,17 @@ class ReseedAsBuiltTest {
                             calls(reused, methods),
                             factory.getKey().getSimpleName() + " " + config.getLocale() + " "
                                     + config.getChildStreamPolicy() + " seed " + seed);
+                    // Reseeded with the same seed after giving those values, it must give them again: what it
+                    // kept from them (issued unique values, say) must not count against the new build.
+                    Object again = factory.getValue()
+                            .apply(config.toBuilder().seed(seed).build());
+                    java.util.Objects.requireNonNull(Reseeding.reseederOf(reused))
+                            .reseed(reused, seed);
+                    assertEquals(
+                            calls(again, methods),
+                            calls(reused, methods),
+                            factory.getKey().getSimpleName() + " " + config.getLocale() + " "
+                                    + config.getChildStreamPolicy() + " seed " + seed + ", reseeded twice");
                     compared++;
                 }
             }
