@@ -16,7 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   declares `org.gradle.jvm.version` 17 rather than 21. `krandom-core`, which both depend on, is still compiled
   for Java 21 and declares 21, so both modules still need a Java 21 runtime: an Android module can use them in
   its local unit tests on Java 21, and not in app code or on-device tests. The public API is unchanged. The
-  `examples/kotlin-android` example, which CI runs, compiles its unit tests for JVM target 17.
+  `examples/kotlin-android` example, which CI runs, compiles its unit tests for JVM target 17, and the Android
+  unit tests guide describes its setup.
 - `StreetAddressGenerator` now reads each locale's secondary units, such as `Apt` and `Suite`, from their
   resource once and shares them between that locale's generators, rather than opening and reading the
   resource each time a generator is built; a locale without such a resource shares its fallback units the

@@ -8,7 +8,8 @@ Two Android library modules use kRandom in their local unit tests (`src/test`), 
 on the build machine, not on a device. They are built with the Android Gradle plugin 9.5.1 and its
 built-in Kotlin, with the Kotlin Gradle plugin 2.4.21, against `compileSdk` 36, and compile Java and
 Kotlin for JVM target 17. The build sets no Java toolchain, so the tests run on the Java that runs Gradle,
-which must be Java 21 or later because `krandom-core` is compiled for Java 21.
+which must be Java 21 or later because `krandom-core` is compiled for Java 21. The
+[Android unit tests guide](../../docs-site/guides/android-unit-tests.md) explains the setup.
 
 ## What it shows
 

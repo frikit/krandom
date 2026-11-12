@@ -60,7 +60,8 @@ Each example's README lists what its tests show.
   properties, and `krandom-jackson` on Jackson 3
 - Kotlin + Android: `examples/kotlin-android` — local unit tests of Android library modules compiled for
   JVM target 17: `Krandom`, the `Generators` factories and the Kotlin DSL under JUnit 4, a rule for
-  `android.net.Uri`, and `krandom-junit` on the JUnit Platform
+  `android.net.Uri`, and `krandom-junit` on the JUnit Platform; the
+  [Android unit tests guide](../docs-site/guides/android-unit-tests.md) explains the setup
 - Scala + sbt: `examples/scala-sbt` — the `Generators` factories from Scala 3
 - Scala + Mill: `examples/scala-mill` — the `Generators` factories from Scala 3
 
