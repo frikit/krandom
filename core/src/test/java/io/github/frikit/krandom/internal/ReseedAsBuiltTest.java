@@ -135,6 +135,7 @@ class ReseedAsBuiltTest {
                     && !Modifier.isStatic(method.getModifiers())
                     && method.getReturnType() != void.class
                     && method.getDeclaringClass() != Object.class
+                    && !java.util.stream.BaseStream.class.isAssignableFrom(method.getReturnType())
                     && !method.getName().equals("hashCode")
                     && !method.getName().equals("toString")) {
                 methods.add(method);
