@@ -24,7 +24,17 @@ import java.util.Random;
  * of built-in ones — can be registered at runtime via
  * {@link io.github.frikit.krandom.generator.DataRegistryContext.Builder}.
  */
-public final class CityGenerator implements Generator<String> {
+public final class CityGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
+
+    /**
+     * Reseeds this generator, which then gives what one built from its configuration with this seed gives.
+     *
+     * @param seed deterministic seed
+     */
+    @Override
+    public void reseed(long seed) {
+        random.setSeed(seed);
+    }
 
     private final GeneratorConfig config;
     private final Random random;

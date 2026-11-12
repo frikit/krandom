@@ -91,12 +91,26 @@ import java.util.Random;
  * @see Currency
  * @see CurrencyInfo
  */
-public final class CurrencyGenerator implements Generator<String> {
+public final class CurrencyGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
 
     private static final Currency[] ALL_CURRENCIES = Currency.values();
 
-    private final GeneratorConfig config;
+    /** Not final: a reseed replaces it with the configuration seeded so, which later child streams derive from. */
+    private GeneratorConfig config;
+
     private final Random random;
+
+    /**
+     * Reseeds this generator, which then gives what one built from its configuration with this seed gives,
+     * the money amounts it draws from a child stream included.
+     *
+     * @param seed deterministic seed
+     */
+    @Override
+    public void reseed(long seed) {
+        config = io.github.frikit.krandom.internal.ConfigAccess.withSeed(config, seed);
+        random.setSeed(seed);
+    }
 
     /**
      * Creates a new CurrencyGenerator with default configuration.

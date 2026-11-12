@@ -81,7 +81,17 @@ import java.util.Set;
  * <p>Custom templates from {@link #generateWithFormat(String)} and synthetic MSISDN output are
  * not covered by {@link PhoneNumberSafetyPolicy}; they remain unclassified.
  */
-public final class PhoneNumberGenerator implements Generator<String> {
+public final class PhoneNumberGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
+
+    /**
+     * Reseeds this generator, which then gives what one built from its configuration with this seed gives.
+     *
+     * @param seed deterministic seed
+     */
+    @Override
+    public void reseed(long seed) {
+        random.setSeed(seed);
+    }
 
     // The countries with a dedicated format method in generate(boolean, boolean); the other format countries
     // are the plans of PhoneNumberLayouts.

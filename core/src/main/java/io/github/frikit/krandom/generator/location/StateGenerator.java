@@ -27,7 +27,17 @@ import java.util.Random;
  * <p>States can be generated as full names (e.g., {@code "California"}) or abbreviations
  * (e.g., {@code "CA"}) where supported, controlled by the {@link #generate(boolean)} method.
  */
-public final class StateGenerator implements Generator<String> {
+public final class StateGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
+
+    /**
+     * Reseeds this generator, which then gives what one built from its configuration with this seed gives.
+     *
+     * @param seed deterministic seed
+     */
+    @Override
+    public void reseed(long seed) {
+        random.setSeed(seed);
+    }
 
     private final GeneratorConfig config;
     private final Random random;

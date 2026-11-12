@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.schema;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Seedable;
 import io.github.frikit.krandom.generator.provider.ConflictPolicy;
 import io.github.frikit.krandom.generator.provider.ProviderCatalog;
 import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
@@ -13,6 +14,7 @@ import io.github.frikit.krandom.generator.provider.ProviderFactory;
 import io.github.frikit.krandom.generator.provider.ProviderSafetyMetadata;
 import io.github.frikit.krandom.generator.provider.ProviderSchemaProjection;
 import io.github.frikit.krandom.internal.ConfigAccess;
+import io.github.frikit.krandom.internal.Reseeding;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -328,19 +330,31 @@ public final class FieldLookup {
     }
 
     private void registerBuiltInDescriptor(ProviderDescriptor<?> descriptor) {
-        registerDescriptorTyped(descriptor, ConflictPolicy.REPLACE);
+        registerDescriptorTyped(descriptor, ConflictPolicy.REPLACE, true);
     }
 
     private void registerExtensionDescriptor(ProviderDescriptor<?> descriptor) {
-        registerDescriptorTyped(descriptor, ConflictPolicy.FAIL);
+        registerDescriptorTyped(descriptor, ConflictPolicy.FAIL, false);
     }
 
-    private <T> void registerDescriptorTyped(ProviderDescriptor<T> descriptor, ConflictPolicy policy) {
+    private <T> void registerDescriptorTyped(ProviderDescriptor<T> descriptor, ConflictPolicy policy, boolean builtIn) {
         T provider = descriptor.create(config);
+        // A built-in whose reseed leaves it as a new build would be: one for each thread, reseeded for each
+        // value, gives what a build for each value gives. Its projections read only the configuration's locale,
+        // which each value's configuration shares with this lookup's. Modules are resolved again by each
+        // value's build, which a reseed would skip, so a configuration with modules keeps building.
+        ThreadLocal<T> reseeded = seedsValues && !hasModules && builtIn && Reseeding.reseedsAsBuilt(provider)
+                ? ThreadLocal.withInitial(() -> descriptor.create(ConfigAccess.withSeed(config, 0L)))
+                : null;
         for (ProviderSchemaProjection<T> projection : descriptor.getSchemaProjections()) {
             register(
                     projection.getReference(),
                     context -> {
+                        if (reseeded != null && context.random() instanceof Schema.FieldStream stream) {
+                            T valueProvider = reseeded.get();
+                            ((Seedable) valueProvider).reseed(stream.nextLong());
+                            return projection.extract(valueProvider, config);
+                        }
                         GeneratorConfig valueConfig = valueConfig(context);
                         return valueConfig == null
                                 ? projection.extract(provider, config)

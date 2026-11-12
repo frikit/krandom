@@ -31,7 +31,17 @@ import java.util.Random;
  * String deName = de.generate(); // "Müller", "Schmidt", ...
  * }</pre>
  */
-public final class LastNameGenerator implements Generator<String> {
+public final class LastNameGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
+
+    /**
+     * Reseeds this generator, which then gives what one built from its configuration with this seed gives.
+     *
+     * @param seed deterministic seed
+     */
+    @Override
+    public void reseed(long seed) {
+        random.setSeed(seed);
+    }
 
     private final GeneratorConfig config;
     private final Random random;

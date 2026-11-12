@@ -93,7 +93,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @see LastNameGenerator
  * @see EmailFormat
  */
-public final class EmailGenerator implements Generator<String> {
+public final class EmailGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
 
     private static final String[] SAFE_DOMAINS = {"example.com", "example.org", "example.net"};
 
@@ -120,11 +120,28 @@ public final class EmailGenerator implements Generator<String> {
     private static final String[] POPULAR_DOMAINS_JA = {"yahoo.co.jp", "gmail.com", "outlook.com"};
     private static final String[] POPULAR_DOMAINS_ZH = {"qq.com", "163.com", "126.com", "gmail.com"};
 
-    private final GeneratorConfig config;
+    /** Not final: a reseed replaces it with the configuration seeded so, which later child streams derive from. */
+    private GeneratorConfig config;
+
     private final Random random;
     private final FirstNameGenerator firstNameGenerator;
     private final LastNameGenerator lastNameGenerator;
     private final Set<String> issuedEmails;
+
+    /**
+     * Reseeds this generator, which then gives what one built from its configuration with this seed gives: its
+     * own and its name streams are reseeded, and the addresses it has issued as unique are forgotten.
+     *
+     * @param seed deterministic seed
+     */
+    @Override
+    public void reseed(long seed) {
+        config = io.github.frikit.krandom.internal.ConfigAccess.withSeed(config, seed);
+        random.setSeed(seed);
+        firstNameGenerator.reseed(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "firstName"));
+        lastNameGenerator.reseed(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "lastName"));
+        issuedEmails.clear();
+    }
 
     /**
      * Creates an email generator with default configuration (US locale).

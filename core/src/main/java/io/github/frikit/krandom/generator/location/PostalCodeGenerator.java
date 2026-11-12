@@ -57,7 +57,17 @@ import java.util.Set;
  *   String plz = deGen.generate();  // Reproducible German postal code
  * }</pre>
  */
-public final class PostalCodeGenerator implements Generator<String> {
+public final class PostalCodeGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
+
+    /**
+     * Reseeds this generator, which then gives what one built from its configuration with this seed gives.
+     *
+     * @param seed deterministic seed
+     */
+    @Override
+    public void reseed(long seed) {
+        random.setSeed(seed);
+    }
 
     private static final String[] UK_AREA_CODES = {
         "SW", "EC", "N", "W", "E", "SE", "NW", "WC", "M", "B", "L", "G", "EH", "AB", "BD", "BS", "CB", "CF", "CR", "CV",

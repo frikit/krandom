@@ -19,7 +19,17 @@ import java.util.Random;
  * <p>Supports default random syllables and Chance.js-style length control via
  * {@link #generate(int)}.
  */
-public final class SyllableGenerator implements Generator<String> {
+public final class SyllableGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
+
+    /**
+     * Reseeds this generator, which then gives what one built from its configuration with this seed gives.
+     *
+     * @param seed deterministic seed
+     */
+    @Override
+    public void reseed(long seed) {
+        random.setSeed(seed);
+    }
 
     private static final String PHONETICS_PATH_PREFIX = "krandom/text/phonetics/";
     private static final WordPhonetics DEFAULT_EN = WordPhoneticsLoader.load(PHONETICS_PATH_PREFIX + "en.txt");

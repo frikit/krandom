@@ -20,7 +20,35 @@ import java.util.Random;
  * <p>The house number is drawn from [1, 9999]. Street names and short/long suffix lists come
  * from {@link StreetAddressDataRegistry} for the configured locale.
  */
-public final class StreetAddressGenerator implements Generator<String> {
+public final class StreetAddressGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
+
+    /**
+     * Reseeds this generator and each of its child streams (city, state, postal code, postal place, country),
+     * which then give what ones built from its configuration with this seed give.
+     *
+     * @param seed deterministic seed
+     */
+    @Override
+    public void reseed(long seed) {
+        random.setSeed(seed);
+        CityGenerator city = cityGenerator;
+        if (city != null) {
+            city.reseed(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "city"));
+        }
+        StateGenerator state = stateGenerator;
+        if (state != null) {
+            state.reseed(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "state"));
+        }
+        postalCodeGenerator.reseed(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "postalCode"));
+        PlaceDraws draws = placeDraws;
+        if (draws != null) {
+            draws.random().setSeed(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "postalPlace"));
+        }
+        AddressCountry addressCountry = country;
+        if (addressCountry != null) {
+            addressCountry.reseed(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "country"));
+        }
+    }
 
     private final GeneratorConfig config;
     private final Random random;

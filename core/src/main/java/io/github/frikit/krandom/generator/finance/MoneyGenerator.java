@@ -56,7 +56,17 @@ import java.util.Random;
  * @see CurrencyGenerator
  * @see CurrencyPairGenerator
  */
-public final class MoneyGenerator implements Generator<String> {
+public final class MoneyGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
+
+    /**
+     * Reseeds this generator, which then gives what one built from its configuration with this seed gives.
+     *
+     * @param seed deterministic seed
+     */
+    @Override
+    public void reseed(long seed) {
+        random.setSeed(seed);
+    }
 
     /**
      * Default maximum amount (exclusive). Matches Chance.js {@code dollar()} default.

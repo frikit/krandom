@@ -56,7 +56,17 @@ import java.util.UUID;
  *
  * @see UUID
  */
-public final class UUIDGenerator implements Generator<UUID> {
+public final class UUIDGenerator implements Generator<UUID>, io.github.frikit.krandom.generator.Seedable {
+
+    /**
+     * Reseeds this generator, which then gives what one built from its configuration with this seed gives.
+     *
+     * @param seed deterministic seed
+     */
+    @Override
+    public void reseed(long seed) {
+        random.setSeed(seed);
+    }
 
     // Standard UUID v5 namespace for DNS (as per RFC 4122)
     private static final UUID NAMESPACE_DNS = UUID.fromString("6ba7b810-9dad-11d1-80b4-00c04fd430c8");

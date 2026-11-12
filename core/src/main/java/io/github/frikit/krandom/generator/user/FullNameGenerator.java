@@ -32,15 +32,33 @@ import java.util.Set;
  * String deName = de.generate(Gender.FEMALE); // "Marie Müller"
  * }</pre>
  */
-public final class FullNameGenerator implements Generator<String> {
+public final class FullNameGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
 
     private static final Map<String, Locale> NATIONALITY_TO_LOCALE = nationalityToLocaleMap();
     private static final Set<String> SUPPORTED_NATIONALITY_KEYS = NATIONALITY_TO_LOCALE.keySet();
 
-    private final GeneratorConfig config;
+    /** Not final: a reseed replaces it with the configuration seeded so, which later child streams derive from. */
+    private GeneratorConfig config;
+
     private final FirstNameGenerator firstNameGenerator;
     private final LastNameGenerator lastNameGenerator;
     private final Map<Locale, NameGenerators> generatorsByLocale;
+
+    /**
+     * Reseeds this generator, which then gives what one built from its configuration with this seed gives: its
+     * first- and last-name streams are reseeded, and the generators it made for other locales and for titles,
+     * suffixes and middle names, whose streams derive from the old seed, are dropped and made again when used.
+     *
+     * @param seed deterministic seed
+     */
+    @Override
+    public void reseed(long seed) {
+        config = io.github.frikit.krandom.internal.ConfigAccess.withSeed(config, seed);
+        firstNameGenerator.reseed(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "firstName"));
+        lastNameGenerator.reseed(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "lastName"));
+        generatorsByLocale.clear();
+        generatorsByLocale.put(config.getLocale(), new NameGenerators(config, firstNameGenerator, lastNameGenerator));
+    }
 
     /**
      * Uses {@link GeneratorConfig#defaults()} — locale defaults to {@link Locale#US}.
