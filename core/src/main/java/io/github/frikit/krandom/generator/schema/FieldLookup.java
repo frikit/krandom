@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.provider.ConflictPolicy;
 import io.github.frikit.krandom.generator.provider.ProviderCatalog;
@@ -341,8 +342,11 @@ public final class FieldLookup {
         // A built-in whose reseed leaves it as a new build would be: one for each thread, reseeded for each
         // value, gives what a build for each value gives. Its projections read only the configuration's locale,
         // which each value's configuration shares with this lookup's. Modules are resolved again by each
-        // value's build, which a reseed would skip, so a configuration with modules keeps building.
-        Reseeding.Reseeder<T> reseeder = seedsValues && !hasModules && builtIn ? Reseeding.reseederOf(provider) : null;
+        // value's build, which a reseed would skip, so a configuration with modules keeps building; so does one
+        // with a registry context of its own, whose providers may give other data to a later build.
+        boolean builtInData = config.getRegistryContext() == DataRegistryContext.globalDefault();
+        Reseeding.Reseeder<T> reseeder =
+                seedsValues && !hasModules && builtIn && builtInData ? Reseeding.reseederOf(provider) : null;
         ThreadLocal<T> reseeded = reseeder == null
                 ? null
                 : ThreadLocal.withInitial(() -> descriptor.create(ConfigAccess.withSeed(config, 0L)));
