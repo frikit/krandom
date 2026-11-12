@@ -5,7 +5,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.frikit/krandom-core?label=maven%20central)](https://central.sonatype.com/artifact/io.github.frikit/krandom-core)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-kRandom is a random and fake-data generation toolkit for Java 17 and later. The repository is centered on the Java core plus focused integration modules for Jackson, Spring Boot, property-based testing, and Kotlin DSL usage.
+kRandom is a random and fake-data generation toolkit for Java 17 and later, from 3.1.0 (3.0.x needs Java 21). The repository is centered on the Java core plus focused integration modules for Jackson, Spring Boot, property-based testing, and Kotlin DSL usage.
 
 ## Modules
 
@@ -31,8 +31,9 @@ kRandom is a random and fake-data generation toolkit for Java 17 and later. The 
 - `bom` aligns the versions of all published modules.
 - `jackson`, `junit`, `spring-boot-starter`, `kotest-extensions`, and `kotlin-dsl` are published integration modules.
 - `benchmarks` stays in-repo for performance profiling but is not a published consumer module.
-- `core`, `jackson`, `junit`, and `spring-boot-starter` run on Java 17 or later; `kotest-extensions` and
-  `kotlin-dsl` need Java 21 or later. Building the repository needs JDK 21 or later.
+- From 3.1.0, `core`, `jackson`, `junit`, and `spring-boot-starter` run on Java 17 or later (3.0.x needs
+  Java 21); `kotest-extensions` and `kotlin-dsl` need Java 21 or later. Building the repository needs JDK 21
+  or later.
 - CI builds on Java 21 and Java 25 and runs the tests of the Java modules on Java 17 as well, with
   separate GraalVM native-image and critical-path mutation jobs.
 - Local quality checks are standardized through `./scripts/pre_commit_check.sh`.

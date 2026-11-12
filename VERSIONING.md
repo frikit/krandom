@@ -57,7 +57,7 @@ A seed fixes kRandom's own draws, not the Java runtime under them:
 
 | Module | Requirement |
 |:---|:---|
-| `krandom-core`, `krandom-jackson`, `krandom-junit`, `krandom-spring-boot-starter` | Java 17 or later |
+| `krandom-core`, `krandom-jackson`, `krandom-junit`, `krandom-spring-boot-starter` | Java 17 or later (from 3.1.0; 3.0.x needs Java 21) |
 | `krandom-kotlin-dsl`, `krandom-kotest-extensions` | Java 21 or later |
 | `krandom-spring-boot-starter` | Spring Boot 4.x |
 | `krandom-kotlin-dsl`, `krandom-kotest-extensions` | built with the Kotlin version pinned in `gradle/libs.versions.toml` |

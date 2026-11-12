@@ -8,8 +8,8 @@ permalink: /getting-started/
 
 ## Requirements
 
-- Java 17+ for `krandom-core`, `krandom-jackson`, `krandom-junit`, and `krandom-spring-boot-starter`;
-  Java 21+ for `krandom-kotest-extensions` and `krandom-kotlin-dsl`
+- Java 17+ for `krandom-core`, `krandom-jackson`, `krandom-junit`, and `krandom-spring-boot-starter`
+  from `3.1.0` (Java 21+ for `3.0.x`); Java 21+ for `krandom-kotest-extensions` and `krandom-kotlin-dsl`
 - Gradle or Maven
 - JUnit 6 for the optional `krandom-junit` extension
 

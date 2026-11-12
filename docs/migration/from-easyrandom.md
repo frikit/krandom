@@ -1,7 +1,7 @@
 # Migrating From EasyRandom To krandom
 
 Easy Random (`org.jeasy.random`) generates structural random object graphs and describes itself as
-maintenance-only. kRandom requires Java 17 or later and adds semantic, locale-aware fixture values. Treat migration as a
+maintenance-only. kRandom requires Java 17 or later from 3.1.0, and Java 21 before it, and adds semantic, locale-aware fixture values. Treat migration as a
 behavior change rather than expecting identical seeded objects.
 
 > EasyRandom's `EasyRandomParameters` / `FieldPredicates` / `Randomizer` API is

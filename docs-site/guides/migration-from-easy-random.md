@@ -7,7 +7,7 @@ permalink: /guides/migration-from-easy-random/
 # Migration from easy-random
 
 Use this mapping to move Easy Random (`org.jeasy.random`) code to kRandom. Easy Random describes
-itself as maintenance-only; kRandom requires Java 17 or later. kRandom covers the common structural
+itself as maintenance-only; kRandom requires Java 17 or later from 3.1.0, and Java 21 before it. kRandom covers the common structural
 object-generation surface and adds native Bean Validation and semantic fixture generation, but it
 does not promise the same seeded object values.
 
