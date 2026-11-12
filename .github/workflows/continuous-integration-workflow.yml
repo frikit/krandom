@@ -192,10 +192,18 @@ jobs:
           sbt --version
           mill --version
 
+      # The runner image ships an Android SDK and sets ANDROID_HOME; the Android example compiles against
+      # platform 36.
+      - name: Show the Android SDK
+        run: |
+          echo "ANDROID_HOME=${ANDROID_HOME}"
+          ls "${ANDROID_HOME}/platforms"
+
       - name: Make gradle wrappers executable
-        run: chmod +x gradlew examples/java-gradle/gradlew examples/kotlin-gradle/gradlew
+        run: chmod +x gradlew examples/java-gradle/gradlew examples/kotlin-gradle/gradlew examples/kotlin-android/gradlew
 
       - name: Verify examples against the locally published snapshot
         env:
           KRANDOM_REQUIRE_SCALA_TOOLS: "true"
+          KRANDOM_REQUIRE_ANDROID_SDK: "true"
         run: ./scripts/verify_examples_local.sh

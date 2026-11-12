@@ -5,6 +5,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="${KRANDOM_VERSION:-}"
+REQUIRE_ANDROID_SDK="${KRANDOM_REQUIRE_ANDROID_SDK:-false}"
 MAVEN_REPOSITORY="$(mktemp -d "${TMPDIR:-/tmp}/krandom-central-m2.XXXXXX")"
 
 cleanup() {
@@ -25,6 +26,22 @@ fi
 
 step() { echo; echo "==> $*"; }
 
+# Succeeds when ANDROID_HOME or ANDROID_SDK_ROOT names a directory, which is then exported as ANDROID_HOME
+# for the Android Gradle plugin. Without one, the Android consumer is skipped unless KRANDOM_REQUIRE_ANDROID_SDK
+# is true, which makes a missing SDK an error.
+require_android_sdk() {
+    local sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+    if [[ -n "${sdk}" && -d "${sdk}" ]]; then
+        export ANDROID_HOME="${sdk}"
+        return 0
+    fi
+    if [[ "${REQUIRE_ANDROID_SDK}" == "true" ]]; then
+        echo "An Android SDK is required: set ANDROID_HOME or ANDROID_SDK_ROOT to its directory."
+        exit 1
+    fi
+    return 1
+}
+
 step "Verify plain Java Maven consumer from Maven Central"
 (
     cd "${REPO_ROOT}/examples/java-maven"
@@ -42,5 +59,16 @@ step "Verify plain Java Gradle consumer from Maven Central"
     cd "${REPO_ROOT}/examples/java-gradle"
     ./gradlew -PkrandomVersion="${VERSION}" -PkrandomRepository=central test --no-daemon --console=plain
 )
+
+if require_android_sdk; then
+    step "Verify Kotlin Android unit-test consumer from Maven Central (Android SDK at ${ANDROID_HOME})"
+    (
+        cd "${REPO_ROOT}/examples/kotlin-android"
+        ./gradlew -PkrandomVersion="${VERSION}" -PkrandomRepository=central test --no-daemon --console=plain
+    )
+else
+    step "Skip Kotlin Android unit-test consumer"
+    echo "No Android SDK: set ANDROID_HOME or ANDROID_SDK_ROOT to run it."
+fi
 
 echo "Maven Central consumer verification passed for krandom ${VERSION}."
