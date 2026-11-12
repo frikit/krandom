@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [3.0.3] - 2026-11-12
+
 ### Changed
 
 - `StreetAddressGenerator` now reads each locale's secondary units, such as `Apt` and `Suite`, from their
@@ -2022,7 +2024,8 @@ Condensed summary of all pre-1.0.0 development (≈Feb–Apr 2026), originally t
 ### Removed
 - Kotlin and Scala API modules (implementation surface kept focused); deprecated APIs and deprecated Java locale usage.
 
-[Unreleased]: https://github.com/frikit/krandom/compare/v3.0.2...HEAD
+[Unreleased]: https://github.com/frikit/krandom/compare/v3.0.3...HEAD
+[3.0.3]: https://github.com/frikit/krandom/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/frikit/krandom/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/frikit/krandom/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/frikit/krandom/compare/v2.12.0...v3.0.0
