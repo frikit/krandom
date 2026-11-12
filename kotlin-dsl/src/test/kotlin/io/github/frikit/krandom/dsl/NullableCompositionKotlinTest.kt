@@ -85,12 +85,21 @@ class NullableCompositionKotlinTest {
     }
 
     @Test
-    fun pickReturnsANullAmongItsValues() {
-        val krandom = Krandom.seeded("nullable pick")
-        val fromArray: String? = krandom.pick<String?>(null, null)
-        val fromList: String? = krandom.pick(listOf<String?>(null))
+    fun theVarargsPickReturnsANullAmongItsValues() {
+        val fromArray: String? = Krandom.seeded("nullable pick").pick<String?>(null, null)
 
         assertNull(fromArray)
-        assertNull(fromList)
+    }
+
+    @Test
+    fun pickOfAListBindsAsIn30() {
+        val krandom = Krandom.seeded("list pick")
+        // A list that holds null is one value of the varargs pick, which returns the list itself.
+        val withNull: List<String?> = krandom.pick(listOf("a", null))
+        // A list without null binds to pick(List), which returns one of its elements.
+        val element: String = krandom.pick(listOf("a", "b"))
+
+        assertEquals(listOf("a", null), withNull)
+        assertTrue(element == "a" || element == "b", element)
     }
 }

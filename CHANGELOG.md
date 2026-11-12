@@ -23,7 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `UniqueGenerator`, the `Generators` factories `ofConstant`, `repeat`, `unique`, `sequence` and
   `threadLocal`, the three `ProviderHub.unique` methods, the contextual field and predicate overloads of
   `GeneratorConfig.Builder.objectOverride`, every overload of `ObjectFaker.ruleFor` and `ruleForContext`,
-  `PropertySelector` and `PropertyPath` for the property's type, and both `Krandom.pick` methods bound
+  `PropertySelector` and `PropertyPath` for the property's type, and the varargs `Krandom.pick` bound
   their type parameter by `@Nullable Object` rather than `Object`, and `PropertyPath.then` continues a path
   past a nullable property with an accessor of its non-null type. So
   `Generators.repeat(Generators.ofNullableBoolean(), 3)`, which NullAway and Kotlin rejected, compiles as a
@@ -33,11 +33,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   gave. Kotlin now reads a star projection of `ConstantGenerator`, `ContextualGenerator`,
   `RepeatGenerator`, `UniqueGenerator` or `PropertySelector` as possibly `null`, so Kotlin code that reads
   one as non-null, such as `val value: Any = generator.generate(context)` for a
-  `ContextualGenerator<*>`, no longer compiles. In Kotlin, `pick` of a list that holds `null`, such as
-  `krandom.pick(listOf("a", null))`, now calls `pick(List)` and returns one of its elements, where it
-  called the varargs `pick` and returned the list itself; Java calls and compiled code call what they did.
-  NullAway checks the new tests in `core/src/nullnessTest/java`, which compile each of these with a
-  nullable type argument.
+  `ContextualGenerator<*>`, no longer compiles. NullAway checks the new tests in
+  `core/src/nullnessTest/java`, which compile each of these with a nullable type argument.
 
 ### Deprecated
 

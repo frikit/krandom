@@ -209,13 +209,11 @@ class NullableCompositionTest {
     }
 
     @Test
-    @DisplayName("Krandom.pick returns a null among its values")
-    void pickReturnsNull() {
+    @DisplayName("the varargs Krandom.pick returns a null among its values")
+    void varargsPickReturnsNull() {
         Krandom krandom = Krandom.seeded("nullable pick");
-        List<@Nullable String> onlyNull = Arrays.asList((String) null);
 
         assertNull(krandom.<@Nullable String>pick(null, null));
-        assertNull(krandom.pick(onlyNull));
     }
 
     private static ConstantGenerator<@Nullable String> none() {
