@@ -102,7 +102,8 @@ class ReseedAsBuiltTest {
     }
 
     @Test
-    @DisplayName("each public method without arguments gives after a reseed what a new build gives")
+    @DisplayName("each public method without arguments, and calls that reach the caches, give after a reseed what a"
+            + " new build gives")
     void reseededGivesWhatANewBuildGives() throws ReflectiveOperationException {
         List<GeneratorConfig> configs = new ArrayList<>();
         for (Locale locale : List.of(Locale.US, Locale.GERMANY, Locale.JAPAN, Locale.forLanguageTag("pt-BR"))) {
@@ -162,15 +163,39 @@ class ReseedAsBuiltTest {
         return methods;
     }
 
-    /** Each method's result, twice over, as text, or the class and message of what it threw. */
+    /**
+     * Each method's result, twice over, as text, or the class and message of what it threw; then the calls with
+     * arguments that reach state no method without them reaches: the per-locale name generators and their lazy
+     * title, suffix and middle-name generators, and unique addresses from a given domain.
+     */
     private static List<String> calls(Object generator, List<Method> methods) throws IllegalAccessException {
         List<String> results = new ArrayList<>();
         for (int round = 0; round < 2; round++) {
             for (Method method : methods) {
                 results.add(method.getName() + "=" + call(generator, method));
             }
+            if (generator instanceof FullNameGenerator names) {
+                for (String nationality : java.util.Arrays.asList(null, "de", "it")) {
+                    results.add(attempt(() -> names.generate(
+                            new FullNameGenerator.NameOptions(true, false, true, true, false, null, nationality))));
+                    results.add(attempt(() -> names.generate(
+                            new FullNameGenerator.NameOptions(false, true, false, false, true, null, nationality))));
+                }
+            }
+            if (generator instanceof EmailGenerator emails) {
+                results.add(attempt(() -> emails.generateUnique("example.org")));
+                results.add(attempt(() -> emails.generateUniqueFromDomains("example.com", "example.net")));
+            }
         }
         return results;
+    }
+
+    private static String attempt(java.util.function.Supplier<String> call) {
+        try {
+            return call.get();
+        } catch (RuntimeException thrown) {
+            return "threw " + thrown.getClass().getName() + ": " + thrown.getMessage();
+        }
     }
 
     private static String call(Object generator, Method method) throws IllegalAccessException {
