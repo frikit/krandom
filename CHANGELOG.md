@@ -30,10 +30,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `RepeatGenerator<@Nullable Boolean>`, or `RepeatGenerator<Boolean?>` in Kotlin, and a rule can name a
   nullable property through a `PropertySelector<User, @Nullable String>`. Signatures in bytecode and
   runtime behavior are unchanged, as each of these already returned the `null` its source or argument
-  gave. Kotlin now reads a star projection of `ConstantGenerator`, `ContextualGenerator`,
-  `RepeatGenerator`, `UniqueGenerator` or `PropertySelector` as possibly `null`, so Kotlin code that reads
-  one as non-null, such as `val value: Any = generator.generate(context)` for a
-  `ContextualGenerator<*>`, no longer compiles. NullAway checks the new tests in
+  gave. This brings the one source change for Kotlin that 3.1.0 makes, an exception to the rule in
+  VERSIONING.md that a minor release keeps the public API compatible. Kotlin reads a star projection of
+  `ConstantGenerator`, `ContextualGenerator`, `RepeatGenerator`, `UniqueGenerator` or `PropertySelector`
+  through the new bound, so code that reads a value from one now reads it as `Any?`, and code that reads it
+  as `Any`, such as `val value: Any = generator.generate(context)` for a `ContextualGenerator<*>`, no
+  longer compiles. The exception is deliberate: the class bound is what lets nullable values compose, as
+  `RepeatGenerator<Boolean?>` cannot be written without it. It fails only at compile time: compiled code
+  calls the same methods and gets the same values. NullAway checks the new tests in
   `core/src/nullnessTest/java`, which compile each of these with a nullable type argument.
 
 ### Deprecated
