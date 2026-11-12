@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- `krandom-kotlin-dsl` and `krandom-kotest-extensions` are now compiled for JVM target 17, against the Java 17
+  API, rather than for 21, so that Kotlin code compiled for JVM target 17, as Android modules usually are, can
+  call their inline functions: `krandom`, `krandomList`, `krandomGenerator`, `KrandomBuilder.ruleForType` and
+  `krandomReplayObjectArb`. Such code failed to compile with "Cannot inline bytecode built with JVM target 21
+  into bytecode that is being built with JVM target 17". The Gradle module metadata of both modules now
+  declares `org.gradle.jvm.version` 17 rather than 21. `krandom-core`, which both depend on, is still compiled
+  for Java 21 and declares 21, so both modules still need a Java 21 runtime: an Android module can use them in
+  its local unit tests on Java 21, and not in app code or on-device tests. The public API is unchanged. The
+  `examples/kotlin-android` example, which CI runs, compiles its unit tests for JVM target 17.
 - `StreetAddressGenerator` now reads each locale's secondary units, such as `Apt` and `Suite`, from their
   resource once and shares them between that locale's generators, rather than opening and reading the
   resource each time a generator is built; a locale without such a resource shares its fallback units the
