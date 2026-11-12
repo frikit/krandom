@@ -177,7 +177,7 @@ class FullNameGeneratorTest {
         @Test
         @DisplayName("generateWithMiddleName throws UnsupportedOperationException for unsupported locale")
         void generateWithMiddleNameUnsupportedLocale() {
-            FullNameGenerator gen = new FullNameGenerator(Locale.of("es", "ES"));
+            FullNameGenerator gen = new FullNameGenerator(new Locale("es", "ES"));
             assertThrows(UnsupportedOperationException.class, gen::generateWithMiddleName);
         }
 
@@ -319,7 +319,7 @@ class FullNameGeneratorTest {
         @Test
         @DisplayName("nationality-specific generation preserves scoped registry context")
         void nationalityPreservesScopedRegistryContext() {
-            Locale scopedLocale = Locale.of("nl", "NL");
+            Locale scopedLocale = new Locale("nl", "NL");
             DataRegistryContext registryContext = DataRegistryContext.builder()
                     .isolated()
                     .register(Vocabulary.FIRST_NAME, new StaticFirstNameProvider(Locale.US, "RootFirst"))

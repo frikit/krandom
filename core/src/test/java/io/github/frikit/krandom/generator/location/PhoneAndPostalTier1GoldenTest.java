@@ -537,7 +537,7 @@ class PhoneAndPostalTier1GoldenTest {
 
     private static GeneratorConfig.Builder builder(String localeKey, long seed) {
         String[] parts = localeKey.split("_");
-        Locale locale = parts.length == 1 ? Locale.of(parts[0]) : Locale.of(parts[0], parts[1]);
+        Locale locale = parts.length == 1 ? new Locale(parts[0]) : new Locale(parts[0], parts[1]);
         return GeneratorConfig.builder().locale(locale).seed(seed);
     }
 

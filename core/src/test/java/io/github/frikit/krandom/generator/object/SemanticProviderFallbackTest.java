@@ -33,8 +33,10 @@ class SemanticProviderFallbackTest {
     @Test
     @DisplayName("a semantic provider without data for the locale falls back to generic text")
     void unsupportedLocaleFallsBackToGenericText() {
-        GeneratorConfig icelandic =
-                GeneratorConfig.builder().seed(4L).locale(Locale.of("is", "IS")).build();
+        GeneratorConfig icelandic = GeneratorConfig.builder()
+                .seed(4L)
+                .locale(new Locale("is", "IS"))
+                .build();
         Address address = new ObjectGenerator<>(Address.class, icelandic).generate();
         assertNotNull(address.state);
         assertFalse(address.state.isBlank());

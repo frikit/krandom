@@ -394,7 +394,7 @@ class PhoneNumberLocaleFormatsTest {
     @DisplayName("language-only locales use the primary catalog country's format")
     void languageOnlyLocalesUsePrimaryCatalogCountry(String language) {
         String country = PRIMARY_COUNTRY_BY_LANGUAGE.get(language);
-        PhoneNumberGenerator languageOnly = new PhoneNumberGenerator(seeded(Locale.of(language), 23L));
+        PhoneNumberGenerator languageOnly = new PhoneNumberGenerator(seeded(new Locale(language), 23L));
 
         assertGeneratesFormat(FORMATS.get(country), languageOnly, language);
         assertEquals(FORMATS.get(country).callingCode(), languageOnly.generateCountryCallingCode(), language);
@@ -408,7 +408,7 @@ class PhoneNumberLocaleFormatsTest {
 
         assertEquals(
                 new PhoneNumberGenerator(seeded(primary, 29L)).generateList(30),
-                new PhoneNumberGenerator(seeded(Locale.of(language), 29L)).generateList(30),
+                new PhoneNumberGenerator(seeded(new Locale(language), 29L)).generateList(30),
                 language + " should resolve to " + primary);
     }
 
@@ -430,16 +430,16 @@ class PhoneNumberLocaleFormatsTest {
     void languageDoesNotChangeTheCountryFormat() {
         assertEquals(
                 new PhoneNumberGenerator(seeded(Locale.GERMANY, 41L)).generateList(30),
-                new PhoneNumberGenerator(seeded(Locale.of("en", "DE"), 41L)).generateList(30));
+                new PhoneNumberGenerator(seeded(new Locale("en", "DE"), 41L)).generateList(30));
         assertEquals(
-                new PhoneNumberGenerator(seeded(Locale.of("es", "ES"), 41L)).generateList(30),
-                new PhoneNumberGenerator(seeded(Locale.of("ca", "ES"), 41L)).generateList(30));
+                new PhoneNumberGenerator(seeded(new Locale("es", "ES"), 41L)).generateList(30),
+                new PhoneNumberGenerator(seeded(new Locale("ca", "ES"), 41L)).generateList(30));
         assertEquals(
-                new PhoneNumberGenerator(seeded(Locale.of("hi", "IN"), 41L)).generateList(30),
-                new PhoneNumberGenerator(seeded(Locale.of("en", "IN"), 41L)).generateList(30));
+                new PhoneNumberGenerator(seeded(new Locale("hi", "IN"), 41L)).generateList(30),
+                new PhoneNumberGenerator(seeded(new Locale("en", "IN"), 41L)).generateList(30));
         assertEquals(
-                new PhoneNumberGenerator(seeded(Locale.of("fr", "CH"), 41L)).generateList(30),
-                new PhoneNumberGenerator(seeded(Locale.of("de", "CH"), 41L)).generateList(30));
+                new PhoneNumberGenerator(seeded(new Locale("fr", "CH"), 41L)).generateList(30),
+                new PhoneNumberGenerator(seeded(new Locale("de", "CH"), 41L)).generateList(30));
     }
 
     @ParameterizedTest(name = "{0} -> {1}")
@@ -469,7 +469,7 @@ class PhoneNumberLocaleFormatsTest {
     static Stream<Locale> rootAndUnknownLanguages() {
         return Stream.of(
                 Locale.ROOT,
-                Locale.of("zz"),
+                new Locale("zz"),
                 new Locale.Builder().setScript("Latn").build());
     }
 
@@ -503,7 +503,7 @@ class PhoneNumberLocaleFormatsTest {
 
     private static Locale locale(String key) {
         String[] parts = key.split("_");
-        return parts.length == 1 ? Locale.of(parts[0]) : Locale.of(parts[0], parts[1]);
+        return parts.length == 1 ? new Locale(parts[0]) : new Locale(parts[0], parts[1]);
     }
 
     private static Map.Entry<String, PhoneFormat> nanp(String country, String areaCodes) {

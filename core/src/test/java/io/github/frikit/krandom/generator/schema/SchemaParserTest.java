@@ -1520,7 +1520,7 @@ class SchemaParserTest {
                 assertEquals(36, ((String) value).length());
             }
             // Numeric bounds say nothing about a string.
-            assertInstanceOf(String.class, values(Map.of("minimum", 5)).getFirst());
+            assertInstanceOf(String.class, values(Map.of("minimum", 5)).get(0));
         }
 
         @Test
@@ -1824,10 +1824,10 @@ class SchemaParserTest {
             // Without the inclusive keyword the flag has nothing to apply to.
             assertInstanceOf(
                     Number.class,
-                    values(Map.of("type", "integer", "exclusiveMinimum", true)).getFirst());
+                    values(Map.of("type", "integer", "exclusiveMinimum", true)).get(0));
             assertInstanceOf(
                     Number.class,
-                    values(Map.of("type", "number", "exclusiveMaximum", true)).getFirst());
+                    values(Map.of("type", "number", "exclusiveMaximum", true)).get(0));
         }
 
         @Test
@@ -1986,7 +1986,7 @@ class SchemaParserTest {
             assertInstanceOf(
                     int[].class,
                     values(Map.of("type", "array", "const", new int[] {1, 2}, "items", Map.of("type", "integer")))
-                            .getFirst());
+                            .get(0));
 
             record Point(int x) {}
             Point point = new Point(1);
@@ -2743,7 +2743,7 @@ class SchemaParserTest {
                     "maxItems",
                     3))) {
                 List<?> items = assertInstanceOf(List.class, value);
-                assertEquals(1, items.getFirst(), items::toString);
+                assertEquals(1, items.get(0), items::toString);
                 assertEquals(Set.of(2, 3), new HashSet<>(items.subList(1, 3)), items::toString);
             }
         }
@@ -3766,7 +3766,7 @@ class SchemaParserTest {
                             .size());
             // Items without a schema, and the regex format, draw text of the configured length.
             List<?> items = (List<?>) generatedWith(Map.of("type", "array", "minItems", 1, "maxItems", 1), longStrings);
-            assertEquals(1_000_000, ((String) items.getFirst()).length());
+            assertEquals(1_000_000, ((String) items.get(0)).length());
             assertEquals(
                     1_000_000,
                     ((String) generatedWith(Map.of("type", "string", "format", "regex"), longStrings)).length());

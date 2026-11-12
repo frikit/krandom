@@ -223,9 +223,9 @@ class IbanRegistryConformanceTest {
                 Locale.CHINA,
                 Locale.KOREA,
                 Locale.CANADA,
-                Locale.of("en", "AU"),
-                Locale.of("hi", "IN"),
-                Locale.of("es", "MX"),
+                new Locale("en", "AU"),
+                new Locale("hi", "IN"),
+                new Locale("es", "MX"),
                 Locale.ENGLISH,
                 Locale.ROOT);
     }
@@ -246,14 +246,14 @@ class IbanRegistryConformanceTest {
     @Test
     @DisplayName("regional locales use their own IBAN country")
     void regionalLocalesUseTheirOwnCountry() {
-        assertEquals("BE", ibanCountry(Locale.of("fr", "BE")));
-        assertEquals("BE", ibanCountry(Locale.of("nl", "BE")));
-        assertEquals("CH", ibanCountry(Locale.of("de", "CH")));
-        assertEquals("AT", ibanCountry(Locale.of("de", "AT")));
-        assertEquals("ES", ibanCountry(Locale.of("ca", "ES")));
-        assertEquals("PT", ibanCountry(Locale.of("pt", "PT")));
-        assertEquals("IE", ibanCountry(Locale.of("en", "IE")));
-        assertEquals("RU", ibanCountry(Locale.of("ru", "RU")));
+        assertEquals("BE", ibanCountry(new Locale("fr", "BE")));
+        assertEquals("BE", ibanCountry(new Locale("nl", "BE")));
+        assertEquals("CH", ibanCountry(new Locale("de", "CH")));
+        assertEquals("AT", ibanCountry(new Locale("de", "AT")));
+        assertEquals("ES", ibanCountry(new Locale("ca", "ES")));
+        assertEquals("PT", ibanCountry(new Locale("pt", "PT")));
+        assertEquals("IE", ibanCountry(new Locale("en", "IE")));
+        assertEquals("RU", ibanCountry(new Locale("ru", "RU")));
     }
 
     @Test
@@ -274,7 +274,7 @@ class IbanRegistryConformanceTest {
     @DisplayName("bank-country generator output is unchanged by the IBAN country rules")
     void bankCountryGeneratorOutputUnchanged() {
         assertEquals(List.of("BR", "ES", "IT", "ES", "US", "ES", "CN", "AU"), bankCountries(Locale.CANADA));
-        assertEquals(List.of("BR", "ES", "IT", "ES", "US", "ES", "CN", "AU"), bankCountries(Locale.of("nl", "NL")));
+        assertEquals(List.of("BR", "ES", "IT", "ES", "US", "ES", "CN", "AU"), bankCountries(new Locale("nl", "NL")));
         assertEquals(List.of("US", "US", "US", "US", "US", "US", "US", "US"), bankCountries(Locale.US));
         assertEquals(List.of("JP", "JP", "JP", "JP", "JP", "JP", "JP", "JP"), bankCountries(Locale.JAPAN));
     }

@@ -162,7 +162,7 @@ class PostalCodeGeneratorTest {
     @Test
     @DisplayName("Australian locale generates 4-digit postcode")
     void australianFormat() {
-        PostalCodeGenerator gen = new PostalCodeGenerator(Locale.of("en", "AU"));
+        PostalCodeGenerator gen = new PostalCodeGenerator(new Locale("en", "AU"));
         String postcode = gen.generate();
 
         assertNotNull(postcode);
@@ -172,7 +172,7 @@ class PostalCodeGeneratorTest {
     @Test
     @DisplayName("Australian postcode is in valid range")
     void australianValidRange() {
-        PostalCodeGenerator gen = new PostalCodeGenerator(Locale.of("en", "AU"));
+        PostalCodeGenerator gen = new PostalCodeGenerator(new Locale("en", "AU"));
 
         for (int i = 0; i < 100; i++) {
             String postcode = gen.generate();
@@ -234,7 +234,7 @@ class PostalCodeGeneratorTest {
     @Test
     @DisplayName("Spanish locale generates 5-digit postcode")
     void spanishFormat() {
-        PostalCodeGenerator gen = new PostalCodeGenerator(Locale.of("es", "ES"));
+        PostalCodeGenerator gen = new PostalCodeGenerator(new Locale("es", "ES"));
         String codigoPostal = gen.generate();
 
         assertNotNull(codigoPostal);
@@ -244,7 +244,7 @@ class PostalCodeGeneratorTest {
     @Test
     @DisplayName("Spanish postcode starts with valid province number")
     void spanishValidProvince() {
-        PostalCodeGenerator gen = new PostalCodeGenerator(Locale.of("es", "ES"));
+        PostalCodeGenerator gen = new PostalCodeGenerator(new Locale("es", "ES"));
 
         for (int i = 0; i < 100; i++) {
             String codigoPostal = gen.generate();
@@ -282,7 +282,7 @@ class PostalCodeGeneratorTest {
     @Test
     @DisplayName("Brazilian locale generates CEP without hyphen by default")
     void brazilianBasicFormat() {
-        PostalCodeGenerator gen = new PostalCodeGenerator(Locale.of("pt", "BR"));
+        PostalCodeGenerator gen = new PostalCodeGenerator(new Locale("pt", "BR"));
         String cep = gen.generate();
 
         assertNotNull(cep);
@@ -292,7 +292,7 @@ class PostalCodeGeneratorTest {
     @Test
     @DisplayName("Brazilian locale with extended=true generates CEP with hyphen")
     void brazilianExtendedFormat() {
-        PostalCodeGenerator gen = new PostalCodeGenerator(Locale.of("pt", "BR"));
+        PostalCodeGenerator gen = new PostalCodeGenerator(new Locale("pt", "BR"));
         String cep = gen.generate(true);
 
         assertNotNull(cep);
@@ -486,7 +486,7 @@ class PostalCodeGeneratorTest {
                                 .build())
                         .generateList(20),
                 new PostalCodeGenerator(GeneratorConfig.builder()
-                                .locale(Locale.of("xx", "YY"))
+                                .locale(new Locale("xx", "YY"))
                                 .seed(3L)
                                 .build())
                         .generateList(20));
@@ -495,14 +495,14 @@ class PostalCodeGeneratorTest {
     @Test
     @DisplayName("language-only locale uses country-specific logic where applicable")
     void languageOnlyLocale() {
-        PostalCodeGenerator genEN = new PostalCodeGenerator(Locale.of("en"));
-        PostalCodeGenerator genDE = new PostalCodeGenerator(Locale.of("de"));
-        PostalCodeGenerator genFR = new PostalCodeGenerator(Locale.of("fr"));
-        PostalCodeGenerator genES = new PostalCodeGenerator(Locale.of("es"));
-        PostalCodeGenerator genIT = new PostalCodeGenerator(Locale.of("it"));
-        PostalCodeGenerator genPT = new PostalCodeGenerator(Locale.of("pt"));
-        PostalCodeGenerator genJA = new PostalCodeGenerator(Locale.of("ja"));
-        PostalCodeGenerator genZH = new PostalCodeGenerator(Locale.of("zh"));
+        PostalCodeGenerator genEN = new PostalCodeGenerator(new Locale("en"));
+        PostalCodeGenerator genDE = new PostalCodeGenerator(new Locale("de"));
+        PostalCodeGenerator genFR = new PostalCodeGenerator(new Locale("fr"));
+        PostalCodeGenerator genES = new PostalCodeGenerator(new Locale("es"));
+        PostalCodeGenerator genIT = new PostalCodeGenerator(new Locale("it"));
+        PostalCodeGenerator genPT = new PostalCodeGenerator(new Locale("pt"));
+        PostalCodeGenerator genJA = new PostalCodeGenerator(new Locale("ja"));
+        PostalCodeGenerator genZH = new PostalCodeGenerator(new Locale("zh"));
 
         // Language-only should fall back to default behavior (US for en, or default)
         assertNotNull(genEN.generate());
@@ -531,16 +531,16 @@ class PostalCodeGeneratorTest {
     @Test
     @DisplayName("expanded built-in locales generate locale-specific postal formats")
     void expandedBuiltInLocalesGenerateSpecificFormats() {
-        assertTrue(new PostalCodeGenerator(Locale.of("nl", "NL")).generate().matches("\\d{4} [A-Z]{2}"));
-        assertTrue(new PostalCodeGenerator(Locale.of("pl", "PL")).generate().matches("\\d{2}-\\d{3}"));
-        assertTrue(new PostalCodeGenerator(Locale.of("ru", "RU")).generate().matches("\\d{6}"));
-        assertTrue(new PostalCodeGenerator(Locale.of("ko", "KR")).generate().matches("\\d{5}"));
-        assertTrue(new PostalCodeGenerator(Locale.of("tr", "TR")).generate().matches("\\d{5}"));
-        assertTrue(new PostalCodeGenerator(Locale.of("sv", "SE")).generate().matches("\\d{3} \\d{2}"));
-        assertTrue(new PostalCodeGenerator(Locale.of("nb", "NO")).generate().matches("\\d{4}"));
-        assertTrue(new PostalCodeGenerator(Locale.of("cs", "CZ")).generate().matches("\\d{3} \\d{2}"));
-        assertTrue(new PostalCodeGenerator(Locale.of("ar", "SA")).generate().matches("\\d{5}"));
-        assertTrue(new PostalCodeGenerator(Locale.of("hi", "IN")).generate().matches("[1-9]\\d{5}"));
+        assertTrue(new PostalCodeGenerator(new Locale("nl", "NL")).generate().matches("\\d{4} [A-Z]{2}"));
+        assertTrue(new PostalCodeGenerator(new Locale("pl", "PL")).generate().matches("\\d{2}-\\d{3}"));
+        assertTrue(new PostalCodeGenerator(new Locale("ru", "RU")).generate().matches("\\d{6}"));
+        assertTrue(new PostalCodeGenerator(new Locale("ko", "KR")).generate().matches("\\d{5}"));
+        assertTrue(new PostalCodeGenerator(new Locale("tr", "TR")).generate().matches("\\d{5}"));
+        assertTrue(new PostalCodeGenerator(new Locale("sv", "SE")).generate().matches("\\d{3} \\d{2}"));
+        assertTrue(new PostalCodeGenerator(new Locale("nb", "NO")).generate().matches("\\d{4}"));
+        assertTrue(new PostalCodeGenerator(new Locale("cs", "CZ")).generate().matches("\\d{3} \\d{2}"));
+        assertTrue(new PostalCodeGenerator(new Locale("ar", "SA")).generate().matches("\\d{5}"));
+        assertTrue(new PostalCodeGenerator(new Locale("hi", "IN")).generate().matches("[1-9]\\d{5}"));
     }
 
     @Test
@@ -548,7 +548,7 @@ class PostalCodeGeneratorTest {
     void extendedFormatNoEffectOnOtherLocales() {
         PostalCodeGenerator genDE = new PostalCodeGenerator(Locale.GERMANY);
         PostalCodeGenerator genFR = new PostalCodeGenerator(Locale.FRANCE);
-        PostalCodeGenerator genAU = new PostalCodeGenerator(Locale.of("en", "AU"));
+        PostalCodeGenerator genAU = new PostalCodeGenerator(new Locale("en", "AU"));
 
         // Extended parameter should have no effect on these locales
         String deBasic = genDE.generate(false);

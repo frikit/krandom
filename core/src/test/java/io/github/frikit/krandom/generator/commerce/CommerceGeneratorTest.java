@@ -76,7 +76,7 @@ class CommerceGeneratorTest {
     @Test
     @DisplayName("covers locale switch branches for vocabulary providers")
     void localeSwitchCoverage() {
-        Locale[] locales = {Locale.US, Locale.GERMANY, Locale.FRANCE, Locale.of("es", "ES"), Locale.ITALY};
+        Locale[] locales = {Locale.US, Locale.GERMANY, Locale.FRANCE, new Locale("es", "ES"), Locale.ITALY};
         for (Locale locale : locales) {
             CommerceGenerator generator = new CommerceGenerator(
                     GeneratorConfig.builder().seed(10L).locale(locale).build());

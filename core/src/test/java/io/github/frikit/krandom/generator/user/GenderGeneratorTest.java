@@ -128,7 +128,7 @@ class GenderGeneratorTest {
     @Test
     @DisplayName("Spanish locale returns Spanish labels")
     void spanishLocale() {
-        GenderGenerator gen = new GenderGenerator(Locale.of("es", "ES"));
+        GenderGenerator gen = new GenderGenerator(new Locale("es", "ES"));
         assertEquals("Hombre", gen.getMaleLabel());
         assertEquals("Mujer", gen.getFemaleLabel());
     }
@@ -136,7 +136,7 @@ class GenderGeneratorTest {
     @Test
     @DisplayName("Italian locale returns Italian labels")
     void italianLocale() {
-        GenderGenerator gen = new GenderGenerator(Locale.of("it", "IT"));
+        GenderGenerator gen = new GenderGenerator(new Locale("it", "IT"));
         assertEquals("Maschio", gen.getMaleLabel());
         assertEquals("Femmina", gen.getFemaleLabel());
     }
@@ -144,7 +144,7 @@ class GenderGeneratorTest {
     @Test
     @DisplayName("Portuguese (Brazil) locale returns Portuguese labels")
     void portugueseLocale() {
-        GenderGenerator gen = new GenderGenerator(Locale.of("pt", "BR"));
+        GenderGenerator gen = new GenderGenerator(new Locale("pt", "BR"));
         assertEquals("Masculino", gen.getMaleLabel());
         assertEquals("Feminino", gen.getFemaleLabel());
     }
@@ -152,7 +152,7 @@ class GenderGeneratorTest {
     @Test
     @DisplayName("Chinese locale returns Chinese labels")
     void chineseLocale() {
-        GenderGenerator gen = new GenderGenerator(Locale.of("zh", "CN"));
+        GenderGenerator gen = new GenderGenerator(new Locale("zh", "CN"));
         assertEquals("男", gen.getMaleLabel());
         assertEquals("女", gen.getFemaleLabel());
     }
@@ -160,7 +160,7 @@ class GenderGeneratorTest {
     @Test
     @DisplayName("language-only locale falls back to language-level entry")
     void languageOnlyLocaleFallback() {
-        GenderGenerator gen = new GenderGenerator(Locale.of("en"));
+        GenderGenerator gen = new GenderGenerator(new Locale("en"));
         assertEquals("Male", gen.getMaleLabel());
         assertEquals("Female", gen.getFemaleLabel());
     }
@@ -169,7 +169,7 @@ class GenderGeneratorTest {
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
         UnsupportedOperationException ex =
-                assertThrows(UnsupportedOperationException.class, () -> new GenderGenerator(Locale.of("xx", "YY")));
+                assertThrows(UnsupportedOperationException.class, () -> new GenderGenerator(new Locale("xx", "YY")));
         assertTrue(ex.getMessage().contains("not supported"));
     }
 
@@ -267,19 +267,19 @@ class GenderGeneratorTest {
     @Test
     @DisplayName("isRegistered returns false for unregistered locale")
     void isRegisteredUnknownLocale() {
-        assertFalse(GenderDataRegistry.isRegistered(Locale.of("xx", "YY")));
+        assertFalse(GenderDataRegistry.isRegistered(new Locale("xx", "YY")));
     }
 
     @Test
     @DisplayName("forLocale returns null for completely unknown locale")
     void forLocaleUnknownReturnsNull() {
-        assertNull(GenderDataRegistry.forLocale(Locale.of("xx", "ZZ")));
+        assertNull(GenderDataRegistry.forLocale(new Locale("xx", "ZZ")));
     }
 
     @Test
     @DisplayName("forLocale returns language-level entry when no exact country match")
     void forLocaleLanguageFallback() {
-        GenderDataProvider provider = GenderDataRegistry.forLocale(Locale.of("en", "ZZ"));
+        GenderDataProvider provider = GenderDataRegistry.forLocale(new Locale("en", "ZZ"));
         assertNotNull(provider);
         assertEquals("Male", provider.getMaleLabel());
     }
@@ -287,13 +287,13 @@ class GenderGeneratorTest {
     @Test
     @DisplayName("isRegistered returns true for language-only locale")
     void isRegisteredLanguageOnly() {
-        assertTrue(GenderDataRegistry.isRegistered(Locale.of("fr")));
+        assertTrue(GenderDataRegistry.isRegistered(new Locale("fr")));
     }
 
     @Test
     @DisplayName("forLocale returns provider for language-only locale")
     void forLocaleLanguageOnly() {
-        GenderDataProvider provider = GenderDataRegistry.forLocale(Locale.of("de"));
+        GenderDataProvider provider = GenderDataRegistry.forLocale(new Locale("de"));
         assertNotNull(provider);
         assertEquals("Männlich", provider.getMaleLabel());
     }

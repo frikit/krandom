@@ -90,7 +90,7 @@ class TextGeneratorTest {
     void unknownLocaleFallback() {
         GeneratorConfig cfg = GeneratorConfig.builder()
                 .seed(321L)
-                .locale(Locale.of("is", "IS"))
+                .locale(new Locale("is", "IS"))
                 .build();
         String text = new TextGenerator(cfg).generate(80);
         assertTrue(text.contains("alpha") || text.contains("beta") || text.contains("gamma") || text.contains("delta"));
@@ -101,7 +101,7 @@ class TextGeneratorTest {
     void russianVocabulary() {
         GeneratorConfig cfg = GeneratorConfig.builder()
                 .seed(321L)
-                .locale(Locale.of("ru", "RU"))
+                .locale(new Locale("ru", "RU"))
                 .build();
         String text = new TextGenerator(cfg).generate(80);
         assertTrue(

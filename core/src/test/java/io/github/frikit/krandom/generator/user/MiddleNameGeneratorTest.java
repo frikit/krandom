@@ -47,7 +47,7 @@ class MiddleNameGeneratorTest {
         @Test
         @DisplayName("unsupported locale throws UnsupportedOperationException")
         void unsupportedLocaleThrows() {
-            assertThrows(UnsupportedOperationException.class, () -> new MiddleNameGenerator(Locale.of("es", "ES")));
+            assertThrows(UnsupportedOperationException.class, () -> new MiddleNameGenerator(new Locale("es", "ES")));
             assertThrows(UnsupportedOperationException.class, () -> new MiddleNameGenerator(Locale.JAPAN));
             assertThrows(UnsupportedOperationException.class, () -> new MiddleNameGenerator(Locale.CHINA));
         }
@@ -114,7 +114,7 @@ class MiddleNameGeneratorTest {
         void supportsMiddleNamePolicy() {
             assertTrue(MiddleNameGenerator.supportsMiddleName(Locale.US));
             assertTrue(MiddleNameGenerator.supportsMiddleName(Locale.GERMANY));
-            assertFalse(MiddleNameGenerator.supportsMiddleName(Locale.of("es", "ES")));
+            assertFalse(MiddleNameGenerator.supportsMiddleName(new Locale("es", "ES")));
             assertFalse(MiddleNameGenerator.supportsMiddleName(Locale.JAPAN));
             assertFalse(MiddleNameGenerator.supportsMiddleName(Locale.CHINA));
         }

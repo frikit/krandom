@@ -82,7 +82,7 @@ class ObjectGeneratorConfigurationMappingTest {
         assertNotNull(holder.tags[0]);
         assertNotNull(holder.values);
         assertEquals(1, holder.values.size());
-        assertNotNull(holder.values.getFirst());
+        assertNotNull(holder.values.get(0));
         assertNotNull(holder.attributes);
         assertEquals(1, holder.attributes.size());
     }

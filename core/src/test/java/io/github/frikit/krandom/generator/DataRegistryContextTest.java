@@ -55,6 +55,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -214,12 +215,12 @@ class DataRegistryContextTest {
     void languageOnlyRegistration() {
         DataRegistryContext context = DataRegistryContext.builder()
                 .isolated()
-                .register(Vocabulary.COUNTRY, countryProvider(Locale.of("en")))
+                .register(Vocabulary.COUNTRY, countryProvider(new Locale("en")))
                 .build();
         assertTrue(context.registeredKeys(Vocabulary.COUNTRY).contains("en"));
         assertEquals(
                 "CountryOne",
-                context.provider(Vocabulary.COUNTRY, Locale.of("en", "GB")).getCountries()[0]);
+                context.provider(Vocabulary.COUNTRY, new Locale("en", "GB")).getCountries()[0]);
     }
 
     @Test
@@ -250,7 +251,7 @@ class DataRegistryContextTest {
         DataRegistryContext empty = DataRegistryContext.builder().isolated().build();
         assertNull(empty.provider(Vocabulary.WEATHER, Locale.US));
         assertFalse(empty.isRegistered(Vocabulary.WEATHER, Locale.US));
-        assertTrue(DataRegistryContext.globalDefault().isRegistered(Vocabulary.WEATHER, Locale.of("ru", "RU")));
+        assertTrue(DataRegistryContext.globalDefault().isRegistered(Vocabulary.WEATHER, new Locale("ru", "RU")));
         assertFalse(DataRegistryContext.globalDefault()
                 .registeredKeys(Vocabulary.WEATHER)
                 .isEmpty());
@@ -657,25 +658,25 @@ class DataRegistryContextTest {
     @Test
     @DisplayName("lookups prefer scoped exact, then global exact, then scoped language, then global language")
     void scopedRegionalDataNeverOverridesGlobalExactMatches() {
-        FirstNameDataProvider indianEnglish = firstNameProvider(Locale.of("en", "IN"));
+        FirstNameDataProvider indianEnglish = firstNameProvider(new Locale("en", "IN"));
         FirstNameDataProvider germanOnly = firstNameProvider(Locale.GERMAN);
         DataRegistryContext context = DataRegistryContext.builder()
                 .register(Vocabulary.FIRST_NAME, indianEnglish)
                 .register(Vocabulary.FIRST_NAME, germanOnly)
                 .build();
 
-        assertSame(indianEnglish, context.provider(Vocabulary.FIRST_NAME, Locale.of("en", "IN")));
+        assertSame(indianEnglish, context.provider(Vocabulary.FIRST_NAME, new Locale("en", "IN")));
         assertSame(FirstNameDataRegistry.forLocale(Locale.US), context.provider(Vocabulary.FIRST_NAME, Locale.US));
         assertSame(FirstNameDataRegistry.forLocale(Locale.UK), context.provider(Vocabulary.FIRST_NAME, Locale.UK));
         assertSame(
                 FirstNameDataRegistry.forLocale(Locale.GERMANY),
                 context.provider(Vocabulary.FIRST_NAME, Locale.GERMANY));
-        assertSame(indianEnglish, context.provider(Vocabulary.FIRST_NAME, Locale.of("en", "SG")));
-        assertSame(germanOnly, context.provider(Vocabulary.FIRST_NAME, Locale.of("de", "LI")));
+        assertSame(indianEnglish, context.provider(Vocabulary.FIRST_NAME, new Locale("en", "SG")));
+        assertSame(germanOnly, context.provider(Vocabulary.FIRST_NAME, new Locale("de", "LI")));
         assertSame(indianEnglish, context.provider(Vocabulary.FIRST_NAME, Locale.ENGLISH));
         assertSame(
-                FirstNameDataRegistry.forLocale(Locale.of("fr", "LU")),
-                context.provider(Vocabulary.FIRST_NAME, Locale.of("fr", "LU")));
+                FirstNameDataRegistry.forLocale(new Locale("fr", "LU")),
+                context.provider(Vocabulary.FIRST_NAME, new Locale("fr", "LU")));
         assertNull(context.provider(Vocabulary.FIRST_NAME, null));
     }
 
@@ -684,7 +685,7 @@ class DataRegistryContextTest {
     void scopedRegionalBundleDoesNotReplaceDefaultLocaleNames() {
         DataRegistryContext context = DataRegistryContext.builder()
                 .registerLocaleData(
-                        io.github.frikit.krandom.generator.locale.LocaleDataBundle.builder(Locale.of("en", "IN"))
+                        io.github.frikit.krandom.generator.locale.LocaleDataBundle.builder(new Locale("en", "IN"))
                                 .firstNames(new String[] {"Arjun"}, new String[] {"Priya"})
                                 .lastNames("Sharma")
                                 .build())
@@ -693,7 +694,7 @@ class DataRegistryContextTest {
                 GeneratorConfig.builder().seed(7L).registryContext(context).build();
         GeneratorConfig indiaConfig = GeneratorConfig.builder()
                 .seed(7L)
-                .locale(Locale.of("en", "IN"))
+                .locale(new Locale("en", "IN"))
                 .registryContext(context)
                 .build();
 
@@ -717,12 +718,16 @@ class DataRegistryContextTest {
         DataRegistryContext first = scopedVocabularyContext("first");
         DataRegistryContext second = scopedVocabularyContext("second");
 
-        try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
             Future<List<String>> firstOutput = executor.submit(() -> generateScopedVocabulary(first));
             Future<List<String>> secondOutput = executor.submit(() -> generateScopedVocabulary(second));
 
             assertEquals(Collections.nCopies(200, expectedScopedVocabulary("first")), firstOutput.get());
             assertEquals(Collections.nCopies(200, expectedScopedVocabulary("second")), secondOutput.get());
+        } finally {
+            executor.shutdown();
+            executor.awaitTermination(1, TimeUnit.MINUTES);
         }
     }
 

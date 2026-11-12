@@ -126,7 +126,7 @@ class CurrencyPairGeneratorTest {
     void generateUnknownLocaleFallback() {
         CurrencyPairGenerator gen = new CurrencyPairGenerator();
         for (int i = 0; i < 30; i++) {
-            String pair = gen.generate(Locale.of("xx", "XX"));
+            String pair = gen.generate(new Locale("xx", "XX"));
             assertTrue(pair.matches("[A-Z]{3}/[A-Z]{3}"), "Should still be valid pair");
             String[] parts = pair.split("/");
             assertNotEquals(parts[0], parts[1]);
@@ -347,14 +347,14 @@ class CurrencyPairGeneratorTest {
         List<LocalePair> cases = List.of(
                 new LocalePair(Locale.US, "USD"),
                 new LocalePair(Locale.UK, "GBP"),
-                new LocalePair(Locale.of("en", "AU"), "AUD"),
+                new LocalePair(new Locale("en", "AU"), "AUD"),
                 new LocalePair(Locale.GERMANY, "EUR"),
                 new LocalePair(Locale.FRANCE, "EUR"),
-                new LocalePair(Locale.of("es", "ES"), "EUR"),
+                new LocalePair(new Locale("es", "ES"), "EUR"),
                 new LocalePair(Locale.ITALY, "EUR"),
-                new LocalePair(Locale.of("pt", "BR"), "BRL"),
+                new LocalePair(new Locale("pt", "BR"), "BRL"),
                 new LocalePair(Locale.JAPAN, "JPY"),
-                new LocalePair(Locale.of("zh", "CN"), "CNY"));
+                new LocalePair(new Locale("zh", "CN"), "CNY"));
 
         CurrencyPairGenerator gen = new CurrencyPairGenerator();
         for (LocalePair lp : cases) {

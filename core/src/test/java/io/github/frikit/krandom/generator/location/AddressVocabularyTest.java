@@ -57,16 +57,16 @@ class AddressVocabularyTest {
     void englishWordingFollowsTheLocale() {
         List<String> british = AddressPurposeDataRegistry.forLocale(Locale.UK).getAddressPurposes();
         List<String> australian =
-                AddressPurposeDataRegistry.forLocale(Locale.of("en", "AU")).getAddressPurposes();
+                AddressPurposeDataRegistry.forLocale(new Locale("en", "AU")).getAddressPurposes();
 
         assertEquals(List.of("Delivery address", "Correspondence address"), british.subList(3, 5));
         assertEquals(List.of("Delivery address", "Postal address"), australian.subList(3, 5));
         assertEquals(
                 british,
-                AddressPurposeDataRegistry.forLocale(Locale.of("en", "IE")).getAddressPurposes());
+                AddressPurposeDataRegistry.forLocale(new Locale("en", "IE")).getAddressPurposes());
         assertEquals(
                 australian,
-                AddressPurposeDataRegistry.forLocale(Locale.of("en", "NZ")).getAddressPurposes());
+                AddressPurposeDataRegistry.forLocale(new Locale("en", "NZ")).getAddressPurposes());
         assertEquals(
                 PURPOSES, AddressPurposeDataRegistry.forLocale(Locale.CANADA).getAddressPurposes());
         assertEquals(TYPES, AddressTypeDataRegistry.forLocale(Locale.UK).getAddressTypes());
@@ -92,7 +92,7 @@ class AddressVocabularyTest {
     @Test
     @DisplayName("lookups fall back from language_COUNTRY to the language, and miss unknown or null locales")
     void registryLookups() {
-        Locale japaneseInBrazil = Locale.of("ja", "BR");
+        Locale japaneseInBrazil = new Locale("ja", "BR");
 
         assertTrue(AddressTypeDataRegistry.isRegistered(Locale.GERMANY));
         assertTrue(AddressPurposeDataRegistry.isRegistered(Locale.GERMANY));
@@ -117,7 +117,7 @@ class AddressVocabularyTest {
         assertEquals(
                 Locale.JAPAN,
                 AddressPurposeDataRegistry.forLocale(Locale.JAPANESE).getLocale());
-        for (Locale missing : new Locale[] {null, Locale.of("is"), Locale.of("is", "IS")}) {
+        for (Locale missing : new Locale[] {null, new Locale("is"), new Locale("is", "IS")}) {
             assertFalse(AddressTypeDataRegistry.isRegistered(missing));
             assertFalse(AddressPurposeDataRegistry.isRegistered(missing));
             assertNull(AddressTypeDataRegistry.forLocale(missing));
@@ -130,7 +130,7 @@ class AddressVocabularyTest {
     @Test
     @DisplayName("an unsupported locale falls back to the English lists")
     void unsupportedLocaleFallsBackToEnglish() {
-        Locale icelandic = Locale.of("is", "IS");
+        Locale icelandic = new Locale("is", "IS");
 
         assertEquals(TYPES, new BuiltInAddressTypeDataProvider(Locale.ROOT, "default").getAddressTypes());
         assertEquals(PURPOSES, new BuiltInAddressPurposeDataProvider(Locale.ROOT, "default").getAddressPurposes());

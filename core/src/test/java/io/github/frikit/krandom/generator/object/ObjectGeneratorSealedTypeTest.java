@@ -538,7 +538,7 @@ class ObjectGeneratorSealedTypeTest {
         Checkout checkout = new ObjectGenerator<>(Checkout.class, config).generate();
 
         assertNull(checkout.payment);
-        assertEquals("Checkout.payment", diagnostics.getFirst().context().path());
+        assertEquals("Checkout.payment", diagnostics.get(0).context().path());
     }
 
     @Test

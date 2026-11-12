@@ -23,7 +23,7 @@ class LocationRegistryFallbackTest {
     @MethodSource("fallbackRegistries")
     @DisplayName("all location registries resolve locale by language fallback")
     void allRegistriesUseLanguageFallback(String name, Function<Locale, ?> resolver, Predicate<Locale> isRegistered) {
-        Locale locale = Locale.of("en", "ZZ");
+        Locale locale = new Locale("en", "ZZ");
         assertTrue(isRegistered.test(locale), name + " should report fallback locale as registered");
         assertNotNull(resolver.apply(locale), name + " should return fallback provider");
     }

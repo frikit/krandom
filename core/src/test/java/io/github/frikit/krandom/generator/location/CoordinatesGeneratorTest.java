@@ -159,7 +159,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("Australia locale has correct bounds")
     void australiaBounds() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("en", "AU"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("en", "AU"));
 
         assertEquals(-44.0, gen.getMinLatitude(), EPSILON);
         assertEquals(-10.0, gen.getMaxLatitude(), EPSILON);
@@ -170,7 +170,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("Australia locale generates latitude within bounds")
     void australiaLatitudeWithinBounds() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("en", "AU"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("en", "AU"));
 
         for (int i = 0; i < 100; i++) {
             double lat = gen.generateLatitude();
@@ -181,7 +181,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("Australia locale generates longitude within bounds")
     void australiaLongitudeWithinBounds() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("en", "AU"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("en", "AU"));
 
         for (int i = 0; i < 100; i++) {
             double lon = gen.generateLongitude();
@@ -264,7 +264,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("Spain locale has correct bounds")
     void spainBounds() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("es", "ES"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("es", "ES"));
 
         assertEquals(36.0, gen.getMinLatitude(), EPSILON);
         assertEquals(43.8, gen.getMaxLatitude(), EPSILON);
@@ -275,7 +275,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("Spain locale generates latitude within bounds")
     void spainLatitudeWithinBounds() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("es", "ES"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("es", "ES"));
 
         for (int i = 0; i < 100; i++) {
             double lat = gen.generateLatitude();
@@ -286,7 +286,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("Spain locale generates longitude within bounds")
     void spainLongitudeWithinBounds() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("es", "ES"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("es", "ES"));
 
         for (int i = 0; i < 100; i++) {
             double lon = gen.generateLongitude();
@@ -334,7 +334,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("Brazil locale has correct bounds")
     void brazilBounds() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("pt", "BR"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("pt", "BR"));
 
         assertEquals(-33.7, gen.getMinLatitude(), EPSILON);
         assertEquals(5.3, gen.getMaxLatitude(), EPSILON);
@@ -345,7 +345,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("Brazil locale generates latitude within bounds")
     void brazilLatitudeWithinBounds() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("pt", "BR"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("pt", "BR"));
 
         for (int i = 0; i < 100; i++) {
             double lat = gen.generateLatitude();
@@ -356,7 +356,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("Brazil locale generates longitude within bounds")
     void brazilLongitudeWithinBounds() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("pt", "BR"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("pt", "BR"));
 
         for (int i = 0; i < 100; i++) {
             double lon = gen.generateLongitude();
@@ -639,43 +639,43 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("expanded built-in locales use their own bounding boxes")
     void expandedBuiltInLocalesUseOwnBounds() {
-        CoordinatesGenerator nl = new CoordinatesGenerator(Locale.of("nl", "NL"));
+        CoordinatesGenerator nl = new CoordinatesGenerator(new Locale("nl", "NL"));
         assertEquals(50.7, nl.getMinLatitude(), EPSILON);
         assertEquals(53.7, nl.getMaxLatitude(), EPSILON);
 
-        CoordinatesGenerator pl = new CoordinatesGenerator(Locale.of("pl", "PL"));
+        CoordinatesGenerator pl = new CoordinatesGenerator(new Locale("pl", "PL"));
         assertEquals(14.1, pl.getMinLongitude(), EPSILON);
         assertEquals(24.2, pl.getMaxLongitude(), EPSILON);
 
-        CoordinatesGenerator ru = new CoordinatesGenerator(Locale.of("ru", "RU"));
+        CoordinatesGenerator ru = new CoordinatesGenerator(new Locale("ru", "RU"));
         assertEquals(41.2, ru.getMinLatitude(), EPSILON);
         assertEquals(179.9, ru.getMaxLongitude(), EPSILON);
 
-        CoordinatesGenerator kr = new CoordinatesGenerator(Locale.of("ko", "KR"));
+        CoordinatesGenerator kr = new CoordinatesGenerator(new Locale("ko", "KR"));
         assertEquals(33.1, kr.getMinLatitude(), EPSILON);
         assertEquals(131.9, kr.getMaxLongitude(), EPSILON);
 
-        CoordinatesGenerator tr = new CoordinatesGenerator(Locale.of("tr", "TR"));
+        CoordinatesGenerator tr = new CoordinatesGenerator(new Locale("tr", "TR"));
         assertEquals(26.0, tr.getMinLongitude(), EPSILON);
         assertEquals(45.0, tr.getMaxLongitude(), EPSILON);
 
-        CoordinatesGenerator se = new CoordinatesGenerator(Locale.of("sv", "SE"));
+        CoordinatesGenerator se = new CoordinatesGenerator(new Locale("sv", "SE"));
         assertEquals(55.3, se.getMinLatitude(), EPSILON);
         assertEquals(69.1, se.getMaxLatitude(), EPSILON);
 
-        CoordinatesGenerator no = new CoordinatesGenerator(Locale.of("nb", "NO"));
+        CoordinatesGenerator no = new CoordinatesGenerator(new Locale("nb", "NO"));
         assertEquals(4.5, no.getMinLongitude(), EPSILON);
         assertEquals(31.3, no.getMaxLongitude(), EPSILON);
 
-        CoordinatesGenerator cz = new CoordinatesGenerator(Locale.of("cs", "CZ"));
+        CoordinatesGenerator cz = new CoordinatesGenerator(new Locale("cs", "CZ"));
         assertEquals(48.5, cz.getMinLatitude(), EPSILON);
         assertEquals(18.9, cz.getMaxLongitude(), EPSILON);
 
-        CoordinatesGenerator sa = new CoordinatesGenerator(Locale.of("ar", "SA"));
+        CoordinatesGenerator sa = new CoordinatesGenerator(new Locale("ar", "SA"));
         assertEquals(16.3, sa.getMinLatitude(), EPSILON);
         assertEquals(55.7, sa.getMaxLongitude(), EPSILON);
 
-        CoordinatesGenerator in = new CoordinatesGenerator(Locale.of("hi", "IN"));
+        CoordinatesGenerator in = new CoordinatesGenerator(new Locale("hi", "IN"));
         assertEquals(6.5, in.getMinLatitude(), EPSILON);
         assertEquals(97.4, in.getMaxLongitude(), EPSILON);
     }
@@ -683,13 +683,13 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("language-only locales resolve to their matching geographic bounds")
     void languageOnlyLocalesUseGeographicBounds() {
-        assertEquals(47.3, new CoordinatesGenerator(Locale.of("de")).getMinLatitude(), EPSILON);
-        assertEquals(41.3, new CoordinatesGenerator(Locale.of("fr")).getMinLatitude(), EPSILON);
-        assertEquals(-9.3, new CoordinatesGenerator(Locale.of("es")).getMinLongitude(), EPSILON);
-        assertEquals(6.6, new CoordinatesGenerator(Locale.of("it")).getMinLongitude(), EPSILON);
-        assertEquals(-74.0, new CoordinatesGenerator(Locale.of("pt")).getMinLongitude(), EPSILON);
-        assertEquals(24.0, new CoordinatesGenerator(Locale.of("ja")).getMinLatitude(), EPSILON);
-        assertEquals(73.5, new CoordinatesGenerator(Locale.of("zh")).getMinLongitude(), EPSILON);
+        assertEquals(47.3, new CoordinatesGenerator(new Locale("de")).getMinLatitude(), EPSILON);
+        assertEquals(41.3, new CoordinatesGenerator(new Locale("fr")).getMinLatitude(), EPSILON);
+        assertEquals(-9.3, new CoordinatesGenerator(new Locale("es")).getMinLongitude(), EPSILON);
+        assertEquals(6.6, new CoordinatesGenerator(new Locale("it")).getMinLongitude(), EPSILON);
+        assertEquals(-74.0, new CoordinatesGenerator(new Locale("pt")).getMinLongitude(), EPSILON);
+        assertEquals(24.0, new CoordinatesGenerator(new Locale("ja")).getMinLatitude(), EPSILON);
+        assertEquals(73.5, new CoordinatesGenerator(new Locale("zh")).getMinLongitude(), EPSILON);
     }
 
     @Test
@@ -730,7 +730,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("unknown locale defaults to US bounds")
     void unknownLocaleDefaultsToUS() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("xx", "XX"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("xx", "XX"));
 
         // Should use US bounds
         assertEquals(24.5, gen.getMinLatitude(), EPSILON);
@@ -750,7 +750,7 @@ class CoordinatesGeneratorTest {
     @Test
     @DisplayName("locale with language only defaults to US bounds")
     void localeLanguageOnlyDefaultsToUS() {
-        CoordinatesGenerator gen = new CoordinatesGenerator(Locale.of("en"));
+        CoordinatesGenerator gen = new CoordinatesGenerator(new Locale("en"));
 
         // Should use US bounds
         assertEquals(24.5, gen.getMinLatitude(), EPSILON);

@@ -70,7 +70,7 @@ class SchemaParserReplayTest {
     @DisplayName("a number range with equal bounds yields that value")
     void equalNumberBoundsYieldTheValue() {
         Map<String, Object> schema = single("x", Map.of("type", "number", "minimum", 5, "maximum", 5));
-        assertEquals(5.0, ((Number) records(schema, 1L, 1).getFirst().get("x")).doubleValue());
+        assertEquals(5.0, ((Number) records(schema, 1L, 1).get(0).get("x")).doubleValue());
     }
 
     @Test

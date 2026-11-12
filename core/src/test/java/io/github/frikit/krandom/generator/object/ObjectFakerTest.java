@@ -556,7 +556,7 @@ class ObjectFakerTest {
         assertEquals(1, diagnostics.size(), diagnostics.toString());
         assertEquals(
                 "FixtureUserWithAddress.address.city",
-                diagnostics.getFirst().context().path());
+                diagnostics.get(0).context().path());
     }
 
     @Test

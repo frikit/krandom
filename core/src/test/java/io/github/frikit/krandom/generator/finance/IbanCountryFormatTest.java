@@ -112,7 +112,7 @@ class IbanCountryFormatTest {
     @DisplayName("locale countries without an IBAN format resolve to the German default")
     void forLocale() {
         assertSame(IbanCountryFormat.DE, IbanCountryFormat.DEFAULT);
-        assertSame(IbanCountryFormat.BE, IbanCountryFormat.forLocale(Locale.of("nl", "BE")));
+        assertSame(IbanCountryFormat.BE, IbanCountryFormat.forLocale(new Locale("nl", "BE")));
         assertSame(IbanCountryFormat.GB, IbanCountryFormat.forLocale(Locale.UK));
         assertSame(IbanCountryFormat.DEFAULT, IbanCountryFormat.forLocale(Locale.US));
         assertSame(IbanCountryFormat.DEFAULT, IbanCountryFormat.forLocale(Locale.JAPAN));

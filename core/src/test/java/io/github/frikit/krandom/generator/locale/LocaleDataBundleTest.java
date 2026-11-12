@@ -46,7 +46,7 @@ class LocaleDataBundleTest {
     @Test
     @DisplayName("bundle applies to isolated registry contexts in one step")
     void appliesToIsolatedContext() {
-        Locale locale = Locale.of("es", "MX");
+        Locale locale = new Locale("es", "MX");
         LocaleDataBundle bundle = LocaleDataBundle.builder(locale)
                 .firstNames(new String[] {"Mateo"}, new String[] {"Sofía"})
                 .lastNames("Hernández")
@@ -95,7 +95,7 @@ class LocaleDataBundleTest {
     @Test
     @DisplayName("bundle validation rejects malformed datasets and null bundle registration")
     void validatesBundleInputs() {
-        Locale locale = Locale.of("fr", "CA");
+        Locale locale = new Locale("fr", "CA");
 
         assertThrows(NullPointerException.class, () -> LocaleDataBundle.builder(null));
         assertThrows(
@@ -148,7 +148,7 @@ class LocaleDataBundleTest {
     @Test
     @DisplayName("partial bundles only register the provider families they define")
     void partialBundlesOnlyRegisterDefinedFamilies() {
-        Locale locale = Locale.of("mi", "NZ");
+        Locale locale = new Locale("mi", "NZ");
         LocaleDataBundle bundle = LocaleDataBundle.builder(locale)
                 .firstNames(new String[] {"Aroha"}, new String[] {"Moana"})
                 .lastNames("Ngata")
@@ -169,7 +169,7 @@ class LocaleDataBundleTest {
     @Test
     @DisplayName("bundled postal places give the bundle's addresses their city, region and postal code")
     void postalPlacesDriveBundleAddresses() {
-        Locale locale = Locale.of("es", "MX");
+        Locale locale = new Locale("es", "MX");
         PostalPlace guadalajara = new PostalPlace("Guadalajara", "Jalisco", "JAL", List.of("44100", "44160"));
         LocaleDataBundle bundle =
                 LocaleDataBundle.builder(locale).postalPlaces(guadalajara).build();
@@ -213,7 +213,7 @@ class LocaleDataBundleTest {
     @Test
     @DisplayName("states without abbreviations and uniform profession weights still work")
     void supportsStateFallbackAndUniformProfessionWeights() {
-        Locale locale = Locale.of("fr", "CA");
+        Locale locale = new Locale("fr", "CA");
         LocaleDataBundle bundle = LocaleDataBundle.builder(locale)
                 .states("Québec")
                 .professions("Architecte")

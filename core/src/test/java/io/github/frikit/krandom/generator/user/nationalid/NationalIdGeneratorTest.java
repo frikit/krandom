@@ -80,16 +80,16 @@ class NationalIdGeneratorTest {
     @DisplayName("additional SupportedLocale national IDs use documented fake formats")
     void additionalSupportedLocaleNationalIdFormats() {
         Map<Locale, Pattern> patterns = Map.ofEntries(
-                Map.entry(Locale.of("nl", "NL"), Pattern.compile("^\\d{9}$")),
-                Map.entry(Locale.of("pl", "PL"), Pattern.compile("^\\d{11}$")),
-                Map.entry(Locale.of("ru", "RU"), Pattern.compile("^\\d{3}-\\d{3}-\\d{3} \\d{2}$")),
-                Map.entry(Locale.of("ko", "KR"), Pattern.compile("^\\d{6}-\\d{7}$")),
-                Map.entry(Locale.of("tr", "TR"), Pattern.compile("^[1-9]\\d{10}$")),
-                Map.entry(Locale.of("sv", "SE"), Pattern.compile("^\\d{8}-\\d{4}$")),
-                Map.entry(Locale.of("nb", "NO"), Pattern.compile("^\\d{11}$")),
-                Map.entry(Locale.of("cs", "CZ"), Pattern.compile("^\\d{6}/\\d{4}$")),
-                Map.entry(Locale.of("ar", "SA"), Pattern.compile("^1\\d{9}$")),
-                Map.entry(Locale.of("hi", "IN"), Pattern.compile("^[2-9]\\d{11}$")));
+                Map.entry(new Locale("nl", "NL"), Pattern.compile("^\\d{9}$")),
+                Map.entry(new Locale("pl", "PL"), Pattern.compile("^\\d{11}$")),
+                Map.entry(new Locale("ru", "RU"), Pattern.compile("^\\d{3}-\\d{3}-\\d{3} \\d{2}$")),
+                Map.entry(new Locale("ko", "KR"), Pattern.compile("^\\d{6}-\\d{7}$")),
+                Map.entry(new Locale("tr", "TR"), Pattern.compile("^[1-9]\\d{10}$")),
+                Map.entry(new Locale("sv", "SE"), Pattern.compile("^\\d{8}-\\d{4}$")),
+                Map.entry(new Locale("nb", "NO"), Pattern.compile("^\\d{11}$")),
+                Map.entry(new Locale("cs", "CZ"), Pattern.compile("^\\d{6}/\\d{4}$")),
+                Map.entry(new Locale("ar", "SA"), Pattern.compile("^1\\d{9}$")),
+                Map.entry(new Locale("hi", "IN"), Pattern.compile("^[2-9]\\d{11}$")));
 
         for (Map.Entry<Locale, Pattern> entry : patterns.entrySet()) {
             String nationalId = new NationalIdGenerator(GeneratorConfig.builder()
@@ -297,7 +297,7 @@ class NationalIdGeneratorTest {
         @DisplayName("format: NNN NNN NNN")
         void format() {
             NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
-                    .locale(Locale.of("en", "AU"))
+                    .locale(new Locale("en", "AU"))
                     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                     .build());
             for (int i = 0; i < 200; i++) {
@@ -309,7 +309,7 @@ class NationalIdGeneratorTest {
         @DisplayName("first digit is never 0")
         void firstDigitNonZero() {
             NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
-                    .locale(Locale.of("en", "AU"))
+                    .locale(new Locale("en", "AU"))
                     .seed(3L)
                     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                     .build());
@@ -330,7 +330,7 @@ class NationalIdGeneratorTest {
         @DisplayName("generated TFNs have a weighted sum divisible by 11")
         void checksumValid() {
             NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
-                    .locale(Locale.of("en", "AU"))
+                    .locale(new Locale("en", "AU"))
                     .seed(5L)
                     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                     .build());
@@ -346,12 +346,12 @@ class NationalIdGeneratorTest {
         @DisplayName("seeded generator produces reproducible output")
         void seededReproducibility() {
             NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder()
-                    .locale(Locale.of("en", "AU"))
+                    .locale(new Locale("en", "AU"))
                     .seed(7L)
                     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                     .build());
             NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder()
-                    .locale(Locale.of("en", "AU"))
+                    .locale(new Locale("en", "AU"))
                     .seed(7L)
                     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                     .build());
@@ -580,7 +580,7 @@ class NationalIdGeneratorTest {
         @DisplayName("default format NNNNNNNNA")
         void defaultFormat() {
             NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
-                    .locale(Locale.of("es", "ES"))
+                    .locale(new Locale("es", "ES"))
                     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                     .build());
             for (int i = 0; i < 200; i++) {
@@ -602,7 +602,7 @@ class NationalIdGeneratorTest {
         @DisplayName("check letter is correct modulo 23")
         void checkLetterValid() {
             NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
-                    .locale(Locale.of("es", "ES"))
+                    .locale(new Locale("es", "ES"))
                     .seed(60L)
                     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                     .build());
@@ -618,12 +618,12 @@ class NationalIdGeneratorTest {
         @DisplayName("seeded generator produces reproducible output")
         void seededReproducibility() {
             NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder()
-                    .locale(Locale.of("es", "ES"))
+                    .locale(new Locale("es", "ES"))
                     .seed(70L)
                     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                     .build());
             NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder()
-                    .locale(Locale.of("es", "ES"))
+                    .locale(new Locale("es", "ES"))
                     .seed(70L)
                     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                     .build());
@@ -718,7 +718,7 @@ class NationalIdGeneratorTest {
         @DisplayName("default format NNN.NNN.NNN-NN")
         void defaultFormat() {
             NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
-                    .locale(Locale.of("pt", "BR"))
+                    .locale(new Locale("pt", "BR"))
                     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                     .build());
             for (int i = 0; i < 200; i++) {
@@ -740,7 +740,7 @@ class NationalIdGeneratorTest {
         @DisplayName("verifier digits are correct")
         void verifierDigitsValid() {
             NationalIdGenerator gen = new NationalIdGenerator(GeneratorConfig.builder()
-                    .locale(Locale.of("pt", "BR"))
+                    .locale(new Locale("pt", "BR"))
                     .seed(90L)
                     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                     .build());
@@ -769,12 +769,12 @@ class NationalIdGeneratorTest {
         @DisplayName("seeded generator produces reproducible output")
         void seededReproducibility() {
             NationalIdGenerator g1 = new NationalIdGenerator(GeneratorConfig.builder()
-                    .locale(Locale.of("pt", "BR"))
+                    .locale(new Locale("pt", "BR"))
                     .seed(95L)
                     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                     .build());
             NationalIdGenerator g2 = new NationalIdGenerator(GeneratorConfig.builder()
-                    .locale(Locale.of("pt", "BR"))
+                    .locale(new Locale("pt", "BR"))
                     .seed(95L)
                     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                     .build());
@@ -879,7 +879,7 @@ class NationalIdGeneratorTest {
                     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                     .build());
             assertNotNull(gen.generate());
-            assertFalse(NationalIdRegistry.isRegistered(Locale.of("en", "ZZ")));
+            assertFalse(NationalIdRegistry.isRegistered(new Locale("en", "ZZ")));
         }
 
         @Test
@@ -888,7 +888,7 @@ class NationalIdGeneratorTest {
             UnsupportedOperationException ex = assertThrows(
                     UnsupportedOperationException.class,
                     () -> new NationalIdGenerator(GeneratorConfig.builder()
-                            .locale(Locale.of("xx", "YY"))
+                            .locale(new Locale("xx", "YY"))
                             .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                             .build()));
             assertTrue(ex.getMessage().contains("not supported"));
@@ -909,14 +909,14 @@ class NationalIdGeneratorTest {
         @Test
         @DisplayName("forLocale returns null for completely unknown locale")
         void forLocaleUnknownReturnsNull() {
-            assertNull(NationalIdRegistry.forLocale(Locale.of("xx", "YY")));
+            assertNull(NationalIdRegistry.forLocale(new Locale("xx", "YY")));
         }
 
         @Test
         @DisplayName("isRegistered with language-only locale checks language key")
         void isRegisteredLanguageOnlyLocale() {
             // "en" is registered as language fallback from UsNationalIdProvider
-            assertTrue(NationalIdRegistry.isRegistered(Locale.of("en")));
+            assertTrue(NationalIdRegistry.isRegistered(new Locale("en")));
         }
 
         @Test
@@ -929,7 +929,7 @@ class NationalIdGeneratorTest {
         @DisplayName("forLocale with language-only locale returns language-level entry")
         void forLocaleLanguageOnlyLocale() {
             // "en" is registered as language fallback from UsNationalIdProvider
-            NationalIdProvider provider = NationalIdRegistry.forLocale(Locale.of("en"));
+            NationalIdProvider provider = NationalIdRegistry.forLocale(new Locale("en"));
             assertNotNull(provider);
         }
 

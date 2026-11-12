@@ -104,7 +104,7 @@ class CityGeneratorTest {
     @Test
     @DisplayName("Australian locale returns Australian city names")
     void australianLocale() {
-        CityGenerator gen = seeded(Locale.of("en", "AU"));
+        CityGenerator gen = seeded(new Locale("en", "AU"));
 
         Set<String> cities = new HashSet<>();
         for (int i = 0; i < 200; i++) {
@@ -189,7 +189,7 @@ class CityGeneratorTest {
     @Test
     @DisplayName("Chinese locale returns Chinese city names")
     void chineseLocale() {
-        CityGenerator gen = seeded(Locale.of("zh", "CN"));
+        CityGenerator gen = seeded(new Locale("zh", "CN"));
 
         Set<String> cities = new HashSet<>();
         for (int i = 0; i < 500; i++) {
@@ -215,7 +215,7 @@ class CityGeneratorTest {
     @Test
     @DisplayName("Spanish locale returns Spanish city names")
     void spanishLocale() {
-        CityGenerator gen = seeded(Locale.of("es", "ES"));
+        CityGenerator gen = seeded(new Locale("es", "ES"));
 
         Set<String> cities = new HashSet<>();
         for (int i = 0; i < 300; i++) {
@@ -235,7 +235,7 @@ class CityGeneratorTest {
     @Test
     @DisplayName("Italian locale returns Italian city names")
     void italianLocale() {
-        CityGenerator gen = seeded(Locale.of("it", "IT"));
+        CityGenerator gen = seeded(new Locale("it", "IT"));
 
         Set<String> cities = new HashSet<>();
         for (int i = 0; i < 300; i++) {
@@ -255,7 +255,7 @@ class CityGeneratorTest {
     @Test
     @DisplayName("Brazilian Portuguese locale returns Brazilian city names")
     void brazilianPortugueseLocale() {
-        CityGenerator gen = seeded(Locale.of("pt", "BR"));
+        CityGenerator gen = seeded(new Locale("pt", "BR"));
 
         Set<String> cities = new HashSet<>();
         for (int i = 0; i < 300; i++) {
@@ -362,7 +362,7 @@ class CityGeneratorTest {
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
         UnsupportedOperationException ex =
-                assertThrows(UnsupportedOperationException.class, () -> new CityGenerator(Locale.of("xx", "YY")));
+                assertThrows(UnsupportedOperationException.class, () -> new CityGenerator(new Locale("xx", "YY")));
 
         assertTrue(ex.getMessage().contains("not supported"));
         assertTrue(ex.getMessage().contains("xx_YY"));
@@ -398,13 +398,13 @@ class CityGeneratorTest {
     @Test
     @DisplayName("isRegistered returns false for unregistered locale")
     void isRegisteredUnknownLocale() {
-        assertFalse(CityDataRegistry.isRegistered(Locale.of("xx", "YY")));
+        assertFalse(CityDataRegistry.isRegistered(new Locale("xx", "YY")));
     }
 
     @Test
     @DisplayName("forLocale returns null for completely unknown locale")
     void forLocaleUnknownReturnsNull() {
-        assertNull(CityDataRegistry.forLocale(Locale.of("xx", "YY")));
+        assertNull(CityDataRegistry.forLocale(new Locale("xx", "YY")));
     }
 
     @Test

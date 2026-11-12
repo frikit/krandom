@@ -35,7 +35,7 @@ class CountryDataTablesTest {
             CountryGenerator.parseIsoCodes(CountryResourceLoader.load("krandom/country_codes/iso_3166_1.txt"));
 
     private static CountryGenerator forCountry(String alpha2) {
-        return new CountryGenerator(Locale.of("en", alpha2));
+        return new CountryGenerator(new Locale("en", alpha2));
     }
 
     @Test
@@ -244,7 +244,7 @@ class CountryDataTablesTest {
         assertCountry("NG", "+234", "Africa", "Africa/Lagos");
         assertCountry("LI", "+423", "Europe", "Europe/Vaduz");
         assertCountry("SG", "+65", "Asia", "Asia/Singapore");
-        assertEquals("+423", new CountryGenerator(Locale.of("de", "LI")).currentCallingCode());
+        assertEquals("+423", new CountryGenerator(new Locale("de", "LI")).currentCallingCode());
     }
 
     private static void assertCountry(String alpha2, String callingCode, String continent, String zone) {

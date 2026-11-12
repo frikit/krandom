@@ -79,8 +79,8 @@ class ObjectFakerStrictDiagnosticsTest {
         for (ObjectFaker<Account> faker : List.of(refined.faker(), profiled)) {
             List<FixtureRuleProblem> problems = problemsOf(faker);
             assertEquals(1, problems.size(), problems.toString());
-            assertProblem(problems.getFirst(), Category.SHADOWED, FixtureRuleKind.RULE, "name", 1);
-            assertTrue(problems.getFirst().reason().startsWith("replaced by rule #2 'name'"));
+            assertProblem(problems.get(0), Category.SHADOWED, FixtureRuleKind.RULE, "name", 1);
+            assertTrue(problems.get(0).reason().startsWith("replaced by rule #2 'name'"));
         }
     }
 
@@ -96,7 +96,7 @@ class ObjectFakerStrictDiagnosticsTest {
         List<FixtureRuleProblem> problems = problemsOf(faker);
 
         assertEquals(1, problems.size(), problems.toString());
-        assertProblem(problems.getFirst(), Category.SHADOWED, FixtureRuleKind.RULE, "name", 3);
+        assertProblem(problems.get(0), Category.SHADOWED, FixtureRuleKind.RULE, "name", 3);
     }
 
     @Test
@@ -239,7 +239,7 @@ class ObjectFakerStrictDiagnosticsTest {
                 nested.get(0).reason());
         assertProblem(nested.get(1), Category.SHADOWED, FixtureRuleKind.FIELD_OVERRIDE, "client.name", -1);
         assertEquals(1, dependent.size(), dependent.toString());
-        assertProblem(dependent.getFirst(), Category.SHADOWED, FixtureRuleKind.FIELD_OVERRIDE, "name", -1);
+        assertProblem(dependent.get(0), Category.SHADOWED, FixtureRuleKind.FIELD_OVERRIDE, "name", -1);
     }
 
     @Test
@@ -881,7 +881,7 @@ class ObjectFakerStrictDiagnosticsTest {
         assertEquals(
                 "a GeneratorConfig context predicate override that matches NamedByConstructor.name comes first when"
                         + " populate(existing) fills the field",
-                populating.getProblems().getFirst().reason());
+                populating.getProblems().get(0).reason());
         assertEquals(
                 "config",
                 new ObjectFaker<>(NamedByConstructor.class, config)
@@ -947,8 +947,8 @@ class ObjectFakerStrictDiagnosticsTest {
                 .strict();
 
         FixtureRuleException generating = assertThrows(FixtureRuleException.class, faker::generate);
-        assertProblem(generating.getProblems().getFirst(), Category.AMBIGUOUS, FixtureRuleKind.RULE, "id", 1);
-        assertTrue(generating.getProblems().getFirst().reason().endsWith("applies at 'purchase.id'"));
+        assertProblem(generating.getProblems().get(0), Category.AMBIGUOUS, FixtureRuleKind.RULE, "id", 1);
+        assertTrue(generating.getProblems().get(0).reason().endsWith("applies at 'purchase.id'"));
         assertEquals("x", faker.populate(new ConstructedRoot(null)).id);
     }
 
@@ -1111,7 +1111,7 @@ class ObjectFakerStrictDiagnosticsTest {
     private static FixtureRuleProblem onlyProblem(ObjectFaker<?> faker) {
         List<FixtureRuleProblem> problems = problemsOf(faker);
         assertEquals(1, problems.size(), problems.toString());
-        return problems.getFirst();
+        return problems.get(0);
     }
 
     private static void assertProblem(

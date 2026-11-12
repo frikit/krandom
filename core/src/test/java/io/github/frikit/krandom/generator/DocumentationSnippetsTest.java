@@ -137,7 +137,7 @@ class DocumentationSnippetsTest {
         String email = new EmailGenerator(userDataConfig).generate();
 
         GeneratorConfig locationConfig = GeneratorConfig.builder()
-                .locale(Locale.of("de", "DE"))
+                .locale(new Locale("de", "DE"))
                 .seed(42L)
                 .build();
 
@@ -210,7 +210,7 @@ class DocumentationSnippetsTest {
         assertTrue(user.get("id").toString().contains("-"));
         assertTrue(user.get("email").toString().contains("@"));
         assertEquals(5, batch.size());
-        assertEquals(6, batch.getFirst().size());
+        assertEquals(6, batch.get(0).size());
         assertNotNull(person.contact());
         assertNotNull(person.address());
         assertTrue(person.contact().email().contains("@"));
@@ -254,7 +254,7 @@ class DocumentationSnippetsTest {
     @Test
     @DisplayName("locale aware custom bundle snippets stay runnable")
     void localeAwareCustomBundleSnippetsStayRunnable() {
-        Locale locale = Locale.of("es", "MX");
+        Locale locale = new Locale("es", "MX");
 
         LocaleDataBundle bundle = LocaleDataBundle.builder(locale)
                 .firstNames(new String[] {"Mateo"}, new String[] {"Sofía"})

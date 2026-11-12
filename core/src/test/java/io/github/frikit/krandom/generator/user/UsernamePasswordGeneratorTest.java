@@ -123,8 +123,8 @@ class UsernamePasswordGeneratorTest {
 
         PasswordPolicy custom =
                 PasswordPolicy.builder().length(4).require("ab", 0).build();
-        assertEquals("ab", custom.requirements().getFirst().symbols());
-        assertEquals(0, custom.requirements().getFirst().minimumCount());
+        assertEquals("ab", custom.requirements().get(0).symbols());
+        assertEquals(0, custom.requirements().get(0).minimumCount());
         assertEquals("ab", custom.alphabet());
         assertThrows(
                 IllegalArgumentException.class, () -> PasswordPolicy.builder().length(0));

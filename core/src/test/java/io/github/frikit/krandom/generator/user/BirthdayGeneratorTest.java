@@ -412,7 +412,7 @@ class BirthdayGeneratorTest {
     @DisplayName("unknown locale falls back to M/d/yyyy (both-null branch)")
     void unknownLocaleFallback() {
         // "xx_XX" not in map, "xx" not in map → falls back to STRING_FORMAT
-        BirthdayGenerator gen = new BirthdayGenerator(Locale.of("xx", "XX"));
+        BirthdayGenerator gen = new BirthdayGenerator(new Locale("xx", "XX"));
         String s = gen.generateAsString();
         assertTrue(M_D_YYYY.matcher(s).matches(), "Expected M/d/yyyy fallback but got: " + s);
     }
@@ -420,9 +420,9 @@ class BirthdayGeneratorTest {
     @Test
     @DisplayName("language-only locale hits language-level fallback (first-key-miss branch)")
     void languageOnlyLocaleFallback() {
-        // Locale.of("de") has no country; key "de_" misses, key "de" hits → d.M.yyyy
+        // new Locale("de") has no country; key "de_" misses, key "de" hits → d.M.yyyy
         Pattern dotSeparated = Pattern.compile("^\\d{1,2}\\.\\d{1,2}\\.\\d{4}$");
-        BirthdayGenerator gen = new BirthdayGenerator(Locale.of("de"));
+        BirthdayGenerator gen = new BirthdayGenerator(new Locale("de"));
         for (int i = 0; i < 50; i++) {
             assertTrue(dotSeparated.matcher(gen.generateAsString()).matches());
         }

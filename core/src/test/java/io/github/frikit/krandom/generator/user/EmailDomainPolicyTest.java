@@ -137,43 +137,43 @@ class EmailDomainPolicyTest {
     @DisplayName("Latin-script names drop diacritics and German umlauts expand")
     void latinScriptNamesAreTransliterated() {
         assertEquals("juergen.mueller@example.com", dotEmail(Locale.GERMANY, "Jürgen", "Müller"));
-        assertEquals("aenne.strasse@example.com", dotEmail(Locale.of("de", "AT"), "Änne", "Straße"));
-        assertEquals("jose.garcia@example.com", dotEmail(Locale.of("es", "ES"), "José", "García"));
+        assertEquals("aenne.strasse@example.com", dotEmail(new Locale("de", "AT"), "Änne", "Straße"));
+        assertEquals("jose.garcia@example.com", dotEmail(new Locale("es", "ES"), "José", "García"));
         assertEquals("francois.lefevre@example.com", dotEmail(Locale.FRANCE, "François", "Lefèvre"));
-        assertEquals("lukasz.wojcik@example.com", dotEmail(Locale.of("pl", "PL"), "Łukasz", "Wójcik"));
-        assertEquals("soren.aeroe@example.com", dotEmail(Locale.of("da", "DK"), "Søren", "Ærøe"));
-        assertEquals("ilkay.gundogan@example.com", dotEmail(Locale.of("tr", "TR"), "İlkay", "Gündoğan"));
+        assertEquals("lukasz.wojcik@example.com", dotEmail(new Locale("pl", "PL"), "Łukasz", "Wójcik"));
+        assertEquals("soren.aeroe@example.com", dotEmail(new Locale("da", "DK"), "Søren", "Ærøe"));
+        assertEquals("ilkay.gundogan@example.com", dotEmail(new Locale("tr", "TR"), "İlkay", "Gündoğan"));
         assertEquals("zoe.oconnor@example.com", dotEmail(Locale.UK, "Zoë", "O'Connor"));
-        assertEquals("dorde.dzeko@example.com", dotEmail(Locale.of("hr", "HR"), "Đorđe", "Džeko"));
+        assertEquals("dorde.dzeko@example.com", dotEmail(new Locale("hr", "HR"), "Đorđe", "Džeko"));
     }
 
     @Test
     @DisplayName("Cyrillic and Greek names are transliterated to ASCII")
     void cyrillicAndGreekNamesAreTransliterated() {
-        assertEquals("aleksandr.ivanov@example.com", dotEmail(Locale.of("ru", "RU"), "Александр", "Иванов"));
-        assertEquals("yuliya.zhukova@example.com", dotEmail(Locale.of("ru", "RU"), "Юлия", "Жукова"));
-        assertEquals("oleksandr.shevchenko@example.com", dotEmail(Locale.of("uk", "UA"), "Олександр", "Шевченко"));
-        assertEquals("hryhorii.yizhakevych@example.com", dotEmail(Locale.of("uk", "UA"), "Григорій", "Їжакевич"));
-        assertEquals("yevhen.kovalenko@example.com", dotEmail(Locale.of("uk", "UA"), "Євген", "Коваленко"));
-        assertEquals("shtilyan.atanasov@example.com", dotEmail(Locale.of("bg", "BG"), "Щилян", "Атанасов"));
-        assertEquals("aleksandar.bozhkov@example.com", dotEmail(Locale.of("bg", "BG"), "Александър", "Божков"));
-        assertEquals("georgios.papadopoulos@example.com", dotEmail(Locale.of("el", "GR"), "Γεώργιος", "Παπαδόπουλος"));
-        assertEquals("theodoros.christou@example.com", dotEmail(Locale.of("el", "GR"), "Θεόδωρος", "Χρήστου"));
-        assertEquals("psychi.xanthi@example.com", dotEmail(Locale.of("el", "GR"), "Ψυχή", "Ξάνθη"));
-        assertEquals("evangelos.avgi@example.com", dotEmail(Locale.of("el", "GR"), "Ευάγγελος", "Αυγή"));
-        assertEquals("nataliia.yakovenko@example.com", dotEmail(Locale.of("uk", "UA"), "Наталія", "Яковенко"));
-        assertEquals("yurii.yosypenko@example.com", dotEmail(Locale.of("uk", "UA"), "Юрій", "Йосипенко"));
-        assertEquals("olha.kuziv@example.com", dotEmail(Locale.of("uk", "UA"), "Ольга", "Кузьів"));
-        assertEquals("mariana.ivanenko@example.com", dotEmail(Locale.of("uk", "UA"), "Мар’яна", "Іваненко"));
-        assertEquals("fedor.shchukin@example.com", dotEmail(Locale.of("ru", "RU"), "Фёдор", "Щукин"));
-        assertEquals("hristo.hristov@example.com", dotEmail(Locale.of("bg", "BG"), "Христо", "Христов"));
-        assertEquals("iurii.kuzmin@example.com", dotEmail(Locale.of("ru", "RU"), "Iurii", "Кузьмин"));
+        assertEquals("aleksandr.ivanov@example.com", dotEmail(new Locale("ru", "RU"), "Александр", "Иванов"));
+        assertEquals("yuliya.zhukova@example.com", dotEmail(new Locale("ru", "RU"), "Юлия", "Жукова"));
+        assertEquals("oleksandr.shevchenko@example.com", dotEmail(new Locale("uk", "UA"), "Олександр", "Шевченко"));
+        assertEquals("hryhorii.yizhakevych@example.com", dotEmail(new Locale("uk", "UA"), "Григорій", "Їжакевич"));
+        assertEquals("yevhen.kovalenko@example.com", dotEmail(new Locale("uk", "UA"), "Євген", "Коваленко"));
+        assertEquals("shtilyan.atanasov@example.com", dotEmail(new Locale("bg", "BG"), "Щилян", "Атанасов"));
+        assertEquals("aleksandar.bozhkov@example.com", dotEmail(new Locale("bg", "BG"), "Александър", "Божков"));
+        assertEquals("georgios.papadopoulos@example.com", dotEmail(new Locale("el", "GR"), "Γεώργιος", "Παπαδόπουλος"));
+        assertEquals("theodoros.christou@example.com", dotEmail(new Locale("el", "GR"), "Θεόδωρος", "Χρήστου"));
+        assertEquals("psychi.xanthi@example.com", dotEmail(new Locale("el", "GR"), "Ψυχή", "Ξάνθη"));
+        assertEquals("evangelos.avgi@example.com", dotEmail(new Locale("el", "GR"), "Ευάγγελος", "Αυγή"));
+        assertEquals("nataliia.yakovenko@example.com", dotEmail(new Locale("uk", "UA"), "Наталія", "Яковенко"));
+        assertEquals("yurii.yosypenko@example.com", dotEmail(new Locale("uk", "UA"), "Юрій", "Йосипенко"));
+        assertEquals("olha.kuziv@example.com", dotEmail(new Locale("uk", "UA"), "Ольга", "Кузьів"));
+        assertEquals("mariana.ivanenko@example.com", dotEmail(new Locale("uk", "UA"), "Мар’яна", "Іваненко"));
+        assertEquals("fedor.shchukin@example.com", dotEmail(new Locale("ru", "RU"), "Фёдор", "Щукин"));
+        assertEquals("hristo.hristov@example.com", dotEmail(new Locale("bg", "BG"), "Христо", "Христов"));
+        assertEquals("iurii.kuzmin@example.com", dotEmail(new Locale("ru", "RU"), "Iurii", "Кузьмин"));
     }
 
     @Test
     @DisplayName("names with letters outside the supported transliterations are replaced, not truncated")
     void partiallyRomanizableNamesAreReplaced() {
-        String serbian = dotEmail(Locale.of("sr", "RS"), "Ђорђе", "Jovanović");
+        String serbian = dotEmail(new Locale("sr", "RS"), "Ђорђе", "Jovanović");
 
         assertTrue(serbian.matches("^[a-z]+\\.jovanovic@example\\.com$"), serbian);
         assertFalse(serbian.startsWith("orde."), serbian);
@@ -186,10 +186,10 @@ class EmailDomainPolicyTest {
                 Locale.JAPAN,
                 Locale.CHINA,
                 Locale.KOREA,
-                Locale.of("ar", "SA"),
-                Locale.of("he", "IL"),
-                Locale.of("hi", "IN"),
-                Locale.of("th", "TH"),
+                new Locale("ar", "SA"),
+                new Locale("he", "IL"),
+                new Locale("hi", "IN"),
+                new Locale("th", "TH"),
                 Locale.TAIWAN)) {
             EmailGenerator generator = new EmailGenerator(
                     GeneratorConfig.builder().locale(locale).seed(5L).build());
@@ -209,7 +209,7 @@ class EmailDomainPolicyTest {
     @Test
     @DisplayName("names that cannot be romanized for an unknown language fall back to English names")
     void unknownScriptFallsBackToEnglishNames() {
-        Locale amharic = Locale.of("am", "ET");
+        Locale amharic = new Locale("am", "ET");
         DataRegistryContext context = DataRegistryContext.builder()
                 .registerLocaleData(LocaleDataBundle.builder(amharic)
                         .firstNames(new String[] {"አበበ"}, new String[] {"ሄለን"})
@@ -249,7 +249,7 @@ class EmailDomainPolicyTest {
     @Test
     @DisplayName("contact, person and profile emails follow the configured policy")
     void compositeEmailsFollowThePolicy() {
-        for (Locale locale : List.of(Locale.US, Locale.JAPAN, Locale.of("ru", "RU"))) {
+        for (Locale locale : List.of(Locale.US, Locale.JAPAN, new Locale("ru", "RU"))) {
             GeneratorConfig config =
                     GeneratorConfig.builder().locale(locale).seed(12L).build();
             ContactInfoGenerator contacts = new ContactInfoGenerator(config);

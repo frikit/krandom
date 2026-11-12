@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 @DisplayName("WeatherGenerator")
 class WeatherGeneratorTest {
 
-    private static final Locale RU = Locale.of("ru", "RU");
+    private static final Locale RU = new Locale("ru", "RU");
 
     private static final Set<String> EN = Set.of(
             "Sunny",
@@ -83,7 +83,7 @@ class WeatherGeneratorTest {
     @Test
     @DisplayName("unmapped locale falls back to English conditions")
     void unmappedFallsBackToEnglish() {
-        assertTrue(EN.contains(new WeatherGenerator(Locale.of("is", "IS")).generate()));
+        assertTrue(EN.contains(new WeatherGenerator(new Locale("is", "IS")).generate()));
     }
 
     @Test

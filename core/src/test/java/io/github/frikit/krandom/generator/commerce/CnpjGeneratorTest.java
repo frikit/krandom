@@ -167,7 +167,7 @@ class CnpjGeneratorTest {
                 IllegalStateException.class, () -> Generators.ofCpf(seeded(5L)).generate());
 
         GeneratorConfig config = GeneratorConfig.builder()
-                .locale(java.util.Locale.of("pt", "BR"))
+                .locale(new java.util.Locale("pt", "BR"))
                 .seed(5L)
                 .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
                 .build();

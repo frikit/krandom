@@ -93,7 +93,7 @@ class CountryGeneratorTest {
         for (CountryCodes codes : table) {
             assertTrue(codes.alpha2().matches("[A-Z]{2}"), codes.toString());
             assertTrue(codes.numeric().matches("\\d{3}"), codes.toString());
-            assertEquals(Locale.of("", codes.alpha2()).getISO3Country(), codes.alpha3(), codes.toString());
+            assertEquals(new Locale("", codes.alpha2()).getISO3Country(), codes.alpha3(), codes.toString());
         }
     }
 
@@ -156,7 +156,7 @@ class CountryGeneratorTest {
         Set<String> numericCodes = new HashSet<>();
         for (int i = 0; i < 500; i++) {
             CountryCodes codes = gen.generateCodes();
-            assertEquals(Locale.of("", codes.alpha2()).getISO3Country(), codes.alpha3(), codes.toString());
+            assertEquals(new Locale("", codes.alpha2()).getISO3Country(), codes.alpha3(), codes.toString());
             numericCodes.add(codes.numeric());
         }
         assertTrue(numericCodes.size() > 45, "numeric codes come from every country, not a short list");
@@ -176,7 +176,7 @@ class CountryGeneratorTest {
         assertFalse(us.currentCountry().isBlank());
         assertEquals(
                 new CountryCodes("NG", "NGA", "566"),
-                new CountryGenerator(Locale.of("en", "NG")).currentCountryCodes());
+                new CountryGenerator(new Locale("en", "NG")).currentCountryCodes());
     }
 
     @Test
@@ -328,7 +328,7 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("Dutch locale returns Dutch country names")
     void dutchLocale() {
-        CountryGenerator gen = new CountryGenerator(Locale.of("nl", "NL"));
+        CountryGenerator gen = new CountryGenerator(new Locale("nl", "NL"));
         assertEquals("Nederland", gen.currentCountry());
         assertFalse(gen.generate().isBlank());
         assertTrue(gen.getCountryCount() > 150);
@@ -337,7 +337,7 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("Polish locale returns Polish country names")
     void polishLocale() {
-        CountryGenerator gen = new CountryGenerator(Locale.of("pl", "PL"));
+        CountryGenerator gen = new CountryGenerator(new Locale("pl", "PL"));
         assertEquals("Polska", gen.currentCountry());
         assertFalse(gen.generate().isBlank());
         assertTrue(gen.getCountryCount() > 150);
@@ -346,9 +346,9 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("Czech locale returns Czech country names")
     void czechLocale() {
-        Locale locale = Locale.of("cs", "CZ");
+        Locale locale = new Locale("cs", "CZ");
         CountryGenerator gen = new CountryGenerator(locale);
-        assertEquals(Locale.of("", "CZ").getDisplayCountry(locale), gen.currentCountry());
+        assertEquals(new Locale("", "CZ").getDisplayCountry(locale), gen.currentCountry());
         assertFalse(gen.generate().isBlank());
         assertTrue(gen.getCountryCount() > 150);
     }
@@ -356,9 +356,9 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("Korean locale returns Korean country names")
     void koreanLocale() {
-        Locale locale = Locale.of("ko", "KR");
+        Locale locale = new Locale("ko", "KR");
         CountryGenerator gen = new CountryGenerator(locale);
-        assertEquals(Locale.of("", "KR").getDisplayCountry(locale), gen.currentCountry());
+        assertEquals(new Locale("", "KR").getDisplayCountry(locale), gen.currentCountry());
         assertFalse(gen.generate().isBlank());
         assertTrue(gen.getCountryCount() > 150);
     }
@@ -366,9 +366,9 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("Russian locale returns Russian country names")
     void russianLocale() {
-        Locale locale = Locale.of("ru", "RU");
+        Locale locale = new Locale("ru", "RU");
         CountryGenerator gen = new CountryGenerator(locale);
-        assertEquals(Locale.of("", "RU").getDisplayCountry(locale), gen.currentCountry());
+        assertEquals(new Locale("", "RU").getDisplayCountry(locale), gen.currentCountry());
         assertFalse(gen.generate().isBlank());
         assertTrue(gen.getCountryCount() > 150);
     }
@@ -376,9 +376,9 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("Turkish locale returns Turkish country names")
     void turkishLocale() {
-        Locale locale = Locale.of("tr", "TR");
+        Locale locale = new Locale("tr", "TR");
         CountryGenerator gen = new CountryGenerator(locale);
-        assertEquals(Locale.of("", "TR").getDisplayCountry(locale), gen.currentCountry());
+        assertEquals(new Locale("", "TR").getDisplayCountry(locale), gen.currentCountry());
         assertFalse(gen.generate().isBlank());
         assertTrue(gen.getCountryCount() > 150);
     }
@@ -386,9 +386,9 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("Hindi locale returns Hindi country names")
     void hindiLocale() {
-        Locale locale = Locale.of("hi", "IN");
+        Locale locale = new Locale("hi", "IN");
         CountryGenerator gen = new CountryGenerator(locale);
-        assertEquals(Locale.of("", "IN").getDisplayCountry(locale), gen.currentCountry());
+        assertEquals(new Locale("", "IN").getDisplayCountry(locale), gen.currentCountry());
         assertFalse(gen.generate().isBlank());
         assertTrue(gen.getCountryCount() > 150);
     }
@@ -396,9 +396,9 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("Arabic locale returns Arabic country names")
     void arabicLocale() {
-        Locale locale = Locale.of("ar", "SA");
+        Locale locale = new Locale("ar", "SA");
         CountryGenerator gen = new CountryGenerator(locale);
-        assertEquals(Locale.of("", "SA").getDisplayCountry(locale), gen.currentCountry());
+        assertEquals(new Locale("", "SA").getDisplayCountry(locale), gen.currentCountry());
         assertFalse(gen.generate().isBlank());
         assertTrue(gen.getCountryCount() > 150);
     }
@@ -422,7 +422,7 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("Chinese locale returns Chinese country names")
     void chineseLocale() {
-        CountryGenerator gen = new CountryGenerator(Locale.of("zh", "CN"));
+        CountryGenerator gen = new CountryGenerator(new Locale("zh", "CN"));
         assertEquals("中国", gen.currentCountry());
         assertFalse(gen.generate().isBlank());
     }
@@ -430,7 +430,7 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("Spanish locale returns Spanish country names")
     void spanishLocale() {
-        CountryGenerator gen = new CountryGenerator(Locale.of("es", "ES"));
+        CountryGenerator gen = new CountryGenerator(new Locale("es", "ES"));
         assertEquals("España", gen.currentCountry());
         assertFalse(gen.generate().isBlank());
     }
@@ -438,7 +438,7 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("Italian locale returns Italian country names")
     void italianLocale() {
-        CountryGenerator gen = new CountryGenerator(Locale.of("it", "IT"));
+        CountryGenerator gen = new CountryGenerator(new Locale("it", "IT"));
         assertEquals("Italia", gen.currentCountry());
         assertFalse(gen.generate().isBlank());
     }
@@ -446,7 +446,7 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("Brazilian Portuguese locale returns Portuguese country names")
     void brazilianPortugueseLocale() {
-        CountryGenerator gen = new CountryGenerator(Locale.of("pt", "BR"));
+        CountryGenerator gen = new CountryGenerator(new Locale("pt", "BR"));
         assertEquals("Brasil", gen.currentCountry());
         assertFalse(gen.generate().isBlank());
     }
@@ -463,7 +463,7 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("en_AU locale has its own country data")
     void australianLocale() {
-        CountryGenerator gen = new CountryGenerator(Locale.of("en", "AU"));
+        CountryGenerator gen = new CountryGenerator(new Locale("en", "AU"));
 
         assertNotNull(gen.generate());
         assertTrue(gen.getCountryCount() > 50);
@@ -559,7 +559,7 @@ class CountryGeneratorTest {
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
         UnsupportedOperationException ex =
-                assertThrows(UnsupportedOperationException.class, () -> new CountryGenerator(Locale.of("xx", "YY")));
+                assertThrows(UnsupportedOperationException.class, () -> new CountryGenerator(new Locale("xx", "YY")));
 
         assertTrue(ex.getMessage().contains("not supported"));
         assertTrue(ex.getMessage().contains("xx_YY"));
@@ -580,7 +580,7 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("language-only locale falls back to language entry (en -> en_US data)")
     void languageOnlyLocaleFallback() {
-        CountryGenerator gen = new CountryGenerator(Locale.of("en"));
+        CountryGenerator gen = new CountryGenerator(new Locale("en"));
 
         String country = gen.generate();
         assertNotNull(country);
@@ -617,13 +617,13 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("isRegistered returns false for unregistered locale")
     void isRegisteredUnknownLocale() {
-        assertFalse(CountryDataRegistry.isRegistered(Locale.of("xx", "YY")));
+        assertFalse(CountryDataRegistry.isRegistered(new Locale("xx", "YY")));
     }
 
     @Test
     @DisplayName("forLocale returns null for completely unknown locale")
     void forLocaleUnknownReturnsNull() {
-        assertNull(CountryDataRegistry.forLocale(Locale.of("xx", "YY")));
+        assertNull(CountryDataRegistry.forLocale(new Locale("xx", "YY")));
     }
 
     @Test
@@ -631,7 +631,7 @@ class CountryGeneratorTest {
     void forLocaleLanguageFallbackInRegistry() {
         // "en" is registered (language-level entry seeded from EN_US).
         // "en_ZZ" has no exact entry but shares the "en" language key.
-        CountryDataProvider provider = CountryDataRegistry.forLocale(Locale.of("en", "ZZ"));
+        CountryDataProvider provider = CountryDataRegistry.forLocale(new Locale("en", "ZZ"));
         assertNotNull(provider);
         assertTrue(provider.getCountries().length > 0);
     }
@@ -639,14 +639,14 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("isRegistered returns true for language-only locale when language is registered")
     void isRegisteredLanguageOnlyLocale() {
-        Locale langOnly = Locale.of("de");
+        Locale langOnly = new Locale("de");
         assertTrue(CountryDataRegistry.isRegistered(langOnly));
     }
 
     @Test
     @DisplayName("forLocale returns provider for language-only locale")
     void forLocaleLanguageOnlyLocale() {
-        CountryDataProvider provider = CountryDataRegistry.forLocale(Locale.of("de"));
+        CountryDataProvider provider = CountryDataRegistry.forLocale(new Locale("de"));
         assertNotNull(provider);
         assertTrue(provider.getCountries().length > 0);
     }
@@ -680,7 +680,7 @@ class CountryGeneratorTest {
     @Test
     @DisplayName("current country code lookups fail clearly for a context-scoped unknown country")
     void currentCountryCodesUnsupportedForContextScopedCountry() {
-        Locale locale = Locale.of("en", "ZZ");
+        Locale locale = new Locale("en", "ZZ");
         io.github.frikit.krandom.generator.DataRegistryContext context =
                 io.github.frikit.krandom.generator.DataRegistryContext.builder()
                         .register(Vocabulary.COUNTRY, new CountryDataProvider() {

@@ -729,7 +729,7 @@ class SemanticCoherenceAdjusterTest {
         SemanticCoherenceAdjuster unregisteredLocaleAdjuster = new SemanticCoherenceAdjuster(
                 ObjectGeneratorConfig.builder()
                         .generatorConfig(GeneratorConfig.builder()
-                                .locale(Locale.of("zz", "US"))
+                                .locale(new Locale("zz", "US"))
                                 .build())
                         .build(),
                 new UniqueFieldTracker());
@@ -817,7 +817,7 @@ class SemanticCoherenceAdjusterTest {
     @Test
     @DisplayName("address coherence caches one snapshot and skips blank generated components")
     void addressCoherenceCachesOneSnapshotAndSkipsBlankGeneratedComponents() throws Exception {
-        Locale locale = Locale.of("qa", "US");
+        Locale locale = new Locale("qa", "US");
         DataRegistryContext context = DataRegistryContext.builder()
                 .isolated()
                 .registerLocaleData(LocaleDataBundle.builder(locale)

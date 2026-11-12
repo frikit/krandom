@@ -133,7 +133,7 @@ class ObjectGeneratorNullRejectingContainerTest {
                 diagnostics.stream().map(d -> d.context().path()).toList());
         assertEquals(
                 GenerationFailureCategory.COLLECTION_INSERTION,
-                diagnostics.getFirst().context().category());
+                diagnostics.get(0).context().category());
     }
 
     @Test

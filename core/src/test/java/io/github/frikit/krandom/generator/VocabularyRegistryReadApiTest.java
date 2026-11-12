@@ -180,8 +180,8 @@ class VocabularyRegistryReadApiTest {
 
         assertTrue(api.isRegistered().apply(Locale.GERMAN), api.name());
         assertSame(provider, api.forLocale().apply(Locale.GERMAN), api.name());
-        assertTrue(api.isRegistered().apply(Locale.of("de", "LU")), api.name());
-        assertSame(provider, api.forLocale().apply(Locale.of("de", "LU")), api.name());
+        assertTrue(api.isRegistered().apply(new Locale("de", "LU")), api.name());
+        assertSame(provider, api.forLocale().apply(new Locale("de", "LU")), api.name());
 
         Object swiss = api.forLocale().apply(SupportedLocale.DE_CH.locale());
         assertNotNull(swiss, api.name());
@@ -193,7 +193,7 @@ class VocabularyRegistryReadApiTest {
     @MethodSource("readApis")
     @DisplayName("English, null and unknown locales resolve to nothing")
     void unregisteredLocalesResolveToNothing(ReadApi api) {
-        for (Locale locale : new Locale[] {Locale.US, Locale.ENGLISH, Locale.of("xx", "YY"), Locale.of("is")}) {
+        for (Locale locale : new Locale[] {Locale.US, Locale.ENGLISH, new Locale("xx", "YY"), new Locale("is")}) {
             assertFalse(api.isRegistered().apply(locale), api.name() + " " + locale);
             assertNull(api.forLocale().apply(locale), api.name() + " " + locale);
         }

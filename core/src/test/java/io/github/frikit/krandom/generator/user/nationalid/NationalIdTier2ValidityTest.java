@@ -143,7 +143,7 @@ class NationalIdTier2ValidityTest {
         @Test
         @DisplayName("seeded CPR numbers encode a plausible birth date")
         void seededIdsAreValid() {
-            assertSeededIds(Locale.of("da", "DK"), 101L, FORMAT, DaDkCpr::isValid);
+            assertSeededIds(new Locale("da", "DK"), 101L, FORMAT, DaDkCpr::isValid);
         }
 
         @Test
@@ -205,7 +205,7 @@ class NationalIdTier2ValidityTest {
             // The provider documents DDMMYY-XXX without the control character, so only the birth date
             // that its century sign presents is asserted.
             assertSeededIds(
-                    Locale.of("fi", "FI"), 102L, Pattern.compile("\\d{6}-\\d{3}"), FiFiHetu::hasPlausibleBirthDate);
+                    new Locale("fi", "FI"), 102L, Pattern.compile("\\d{6}-\\d{3}"), FiFiHetu::hasPlausibleBirthDate);
         }
 
         @Test
@@ -283,7 +283,7 @@ class NationalIdTier2ValidityTest {
         void seededIdsHaveDocumentedStructure() {
             // The provider documents a format only: the trailing digits are random, so the check
             // digit is deliberately not asserted.
-            assertSeededIds(Locale.of("hu", "HU"), 103L, FORMAT, HuHuSzemelyiAzonosito::hasValidStructure);
+            assertSeededIds(new Locale("hu", "HU"), 103L, FORMAT, HuHuSzemelyiAzonosito::hasValidStructure);
         }
     }
 
@@ -345,7 +345,7 @@ class NationalIdTier2ValidityTest {
         void seededIdsHaveDocumentedStructure() {
             // The provider documents its serial and final digit as random, so the serial range and the
             // control digit are deliberately not asserted.
-            assertSeededIds(Locale.of("ro", "RO"), 104L, FORMAT, RoRoCnp::hasValidStructure);
+            assertSeededIds(new Locale("ro", "RO"), 104L, FORMAT, RoRoCnp::hasValidStructure);
         }
     }
 
@@ -399,7 +399,7 @@ class NationalIdTier2ValidityTest {
         void seededIdsHaveDocumentedStructure() {
             // The provider documents its suffix as random, so the modulo-11 rule is deliberately not
             // asserted.
-            assertSeededIds(Locale.of("sk", "SK"), 105L, DOCUMENTED_FORMAT, SkSkRodneCislo::hasValidStructure);
+            assertSeededIds(new Locale("sk", "SK"), 105L, DOCUMENTED_FORMAT, SkSkRodneCislo::hasValidStructure);
         }
 
         @Test
@@ -453,7 +453,7 @@ class NationalIdTier2ValidityTest {
         void seededIdsHaveDocumentedFormat() {
             // The provider documents all ten digits as random, so the birth-date encoding and the check
             // digit are deliberately not asserted.
-            assertSeededIds(Locale.of("uk", "UA"), 106L, FORMAT, code -> true);
+            assertSeededIds(new Locale("uk", "UA"), 106L, FORMAT, code -> true);
         }
     }
 
@@ -500,7 +500,7 @@ class NationalIdTier2ValidityTest {
         void seededIdsHaveDocumentedStructure() {
             // The provider documents a format only: the four trailing digits are random, so the check
             // digit is deliberately not asserted.
-            assertSeededIds(Locale.of("bg", "BG"), 107L, FORMAT, BgBgEgn::hasValidStructure);
+            assertSeededIds(new Locale("bg", "BG"), 107L, FORMAT, BgBgEgn::hasValidStructure);
         }
     }
 
@@ -541,7 +541,7 @@ class NationalIdTier2ValidityTest {
         void seededIdsHaveDocumentedFormat() {
             // The provider documents a format only: all digits are random, so the ISO 7064 check digit
             // is deliberately not asserted.
-            assertSeededIds(Locale.of("hr", "HR"), 108L, FORMAT, oib -> true);
+            assertSeededIds(new Locale("hr", "HR"), 108L, FORMAT, oib -> true);
         }
     }
 
@@ -577,7 +577,7 @@ class NationalIdTier2ValidityTest {
         void seededIdsHaveDocumentedFormat() {
             // The provider documents a format only: all digits are random, so the AFM check digit is
             // deliberately not asserted.
-            assertSeededIds(Locale.of("el", "GR"), 109L, FORMAT, afm -> true);
+            assertSeededIds(new Locale("el", "GR"), 109L, FORMAT, afm -> true);
         }
     }
 
@@ -630,7 +630,7 @@ class NationalIdTier2ValidityTest {
         void seededIdsHaveDocumentedFormat() {
             // The provider documents a non-zero first digit followed by random digits, so the registrar
             // office and the check digit are deliberately not asserted.
-            assertSeededIds(Locale.of("th", "TH"), 110L, FORMAT, pin -> pin.charAt(0) != '0');
+            assertSeededIds(new Locale("th", "TH"), 110L, FORMAT, pin -> pin.charAt(0) != '0');
         }
     }
 
@@ -678,7 +678,7 @@ class NationalIdTier2ValidityTest {
         void seededIdsHaveDocumentedFormat() {
             // The provider documents all twelve digits as random, so the province, century and birth-year
             // fields are deliberately not asserted.
-            assertSeededIds(Locale.of("vi", "VN"), 111L, FORMAT, id -> true);
+            assertSeededIds(new Locale("vi", "VN"), 111L, FORMAT, id -> true);
         }
     }
 
@@ -732,7 +732,7 @@ class NationalIdTier2ValidityTest {
         void seededIdsHaveDocumentedFormat() {
             // The provider documents all sixteen digits as random, so the region, birth-date and serial
             // fields are deliberately not asserted.
-            assertSeededIds(Locale.of("id", "ID"), 112L, FORMAT, nik -> true);
+            assertSeededIds(new Locale("id", "ID"), 112L, FORMAT, nik -> true);
         }
     }
 
@@ -776,7 +776,7 @@ class NationalIdTier2ValidityTest {
         @DisplayName("seeded MyKad numbers use a real birth date and a state birth place")
         void seededIdsAreValid() {
             assertSeededIds(
-                    Locale.of("ms", "MY"),
+                    new Locale("ms", "MY"),
                     113L,
                     FORMAT,
                     nric -> isValid(nric) && number(nric, 7, 9) >= 1 && number(nric, 7, 9) <= 16);
@@ -816,7 +816,7 @@ class NationalIdTier2ValidityTest {
         void seededIdsHaveDocumentedFormat() {
             // The provider documents a format only: all digits are random, so the check digit is
             // deliberately not asserted.
-            assertSeededIds(Locale.of("he", "IL"), 114L, FORMAT, id -> true);
+            assertSeededIds(new Locale("he", "IL"), 114L, FORMAT, id -> true);
         }
     }
 
@@ -846,7 +846,7 @@ class NationalIdTier2ValidityTest {
         @Test
         @DisplayName("seeded DNIs carry the correct check letter")
         void seededIdsAreValid() {
-            assertSeededIds(Locale.of("ca", "ES"), 115L, FORMAT, CaEsDni::isValid);
+            assertSeededIds(new Locale("ca", "ES"), 115L, FORMAT, CaEsDni::isValid);
         }
     }
 }

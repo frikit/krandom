@@ -149,7 +149,7 @@ class PostalCodeLocaleFormatsTest {
         String country = PRIMARY_COUNTRY_BY_LANGUAGE.get(language);
 
         assertGeneratesFormat(
-                FORMATS.get(country), new PostalCodeGenerator(seeded(Locale.of(language), 19L)), language);
+                FORMATS.get(country), new PostalCodeGenerator(seeded(new Locale(language), 19L)), language);
     }
 
     @ParameterizedTest(name = "{0}")
@@ -160,7 +160,7 @@ class PostalCodeLocaleFormatsTest {
 
         assertEquals(
                 new PostalCodeGenerator(seeded(primary, 29L)).generateList(30),
-                new PostalCodeGenerator(seeded(Locale.of(language), 29L)).generateList(30),
+                new PostalCodeGenerator(seeded(new Locale(language), 29L)).generateList(30),
                 language + " should resolve to " + primary);
     }
 
@@ -179,13 +179,13 @@ class PostalCodeLocaleFormatsTest {
     void languageDoesNotChangeTheCountryFormat() {
         assertEquals(
                 new PostalCodeGenerator(seeded(Locale.GERMANY, 41L)).generateList(30),
-                new PostalCodeGenerator(seeded(Locale.of("en", "DE"), 41L)).generateList(30));
+                new PostalCodeGenerator(seeded(new Locale("en", "DE"), 41L)).generateList(30));
         assertEquals(
-                new PostalCodeGenerator(seeded(Locale.of("es", "ES"), 41L)).generateList(30),
-                new PostalCodeGenerator(seeded(Locale.of("ca", "ES"), 41L)).generateList(30));
+                new PostalCodeGenerator(seeded(new Locale("es", "ES"), 41L)).generateList(30),
+                new PostalCodeGenerator(seeded(new Locale("ca", "ES"), 41L)).generateList(30));
         assertEquals(
-                new PostalCodeGenerator(seeded(Locale.of("en", "CA"), 41L)).generateList(30),
-                new PostalCodeGenerator(seeded(Locale.of("fr", "CA"), 41L)).generateList(30));
+                new PostalCodeGenerator(seeded(new Locale("en", "CA"), 41L)).generateList(30),
+                new PostalCodeGenerator(seeded(new Locale("fr", "CA"), 41L)).generateList(30));
     }
 
     @ParameterizedTest(name = "{0} -> {1}")
@@ -193,9 +193,9 @@ class PostalCodeLocaleFormatsTest {
     @DisplayName("a country without a built-in postal format falls back to its language's catalog country, then en_US")
     void unsupportedCountriesUseTheLanguageFallback(String localeKey, String expectedKey) {
         String[] parts = localeKey.split("_");
-        Locale locale = Locale.of(parts[0], parts[1]);
+        Locale locale = new Locale(parts[0], parts[1]);
         String[] expectedParts = expectedKey.split("_");
-        Locale expected = Locale.of(expectedParts[0], expectedParts[1]);
+        Locale expected = new Locale(expectedParts[0], expectedParts[1]);
 
         assertEquals(
                 new PostalCodeGenerator(seeded(expected, 43L)).generateList(30),
@@ -213,7 +213,7 @@ class PostalCodeLocaleFormatsTest {
     static Stream<Locale> rootAndUnknownLanguages() {
         return Stream.of(
                 Locale.ROOT,
-                Locale.of("zz"),
+                new Locale("zz"),
                 new Locale.Builder().setScript("Latn").build());
     }
 

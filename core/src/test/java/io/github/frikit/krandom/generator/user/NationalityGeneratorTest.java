@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 @DisplayName("NationalityGenerator")
 class NationalityGeneratorTest {
 
-    private static final Locale RU = Locale.of("ru", "RU");
+    private static final Locale RU = new Locale("ru", "RU");
 
     private static final Set<String> EN = Set.of(
             "American",
@@ -83,7 +83,7 @@ class NationalityGeneratorTest {
     @Test
     @DisplayName("unmapped locale falls back to English demonyms")
     void unmappedFallsBackToEnglish() {
-        assertTrue(EN.contains(new NationalityGenerator(Locale.of("is", "IS")).generate()));
+        assertTrue(EN.contains(new NationalityGenerator(new Locale("is", "IS")).generate()));
     }
 
     @Test

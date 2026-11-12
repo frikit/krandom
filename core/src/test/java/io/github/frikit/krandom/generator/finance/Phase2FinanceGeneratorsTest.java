@@ -56,7 +56,7 @@ class Phase2FinanceGeneratorsTest {
                 .generate()
                 .matches("[A-Z]{4}\\d{14}"));
         assertTrue(new BbanGenerator(GeneratorConfig.builder()
-                        .locale(Locale.of("pt", "BR"))
+                        .locale(new Locale("pt", "BR"))
                         .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
                         .build())
                 .generate()
