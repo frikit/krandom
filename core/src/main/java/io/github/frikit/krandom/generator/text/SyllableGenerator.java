@@ -19,15 +19,10 @@ import java.util.Random;
  * <p>Supports default random syllables and Chance.js-style length control via
  * {@link #generate(int)}.
  */
-public final class SyllableGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
+public final class SyllableGenerator implements Generator<String> {
 
-    /**
-     * Reseeds this generator, which then gives what one built from its configuration with this seed gives.
-     *
-     * @param seed deterministic seed
-     */
-    @Override
-    public void reseed(long seed) {
+    /** Reseeds this generator, which then gives what one built from its configuration with this seed gives. */
+    void reseedTo(long seed) {
         random.setSeed(seed);
     }
 

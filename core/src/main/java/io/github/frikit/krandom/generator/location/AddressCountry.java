@@ -27,8 +27,8 @@ final class AddressCountry {
     }
 
     /** Reseeds the country stream, as a new build from a configuration with this seed would seed it. */
-    void reseed(long seed) {
-        countryGenerator.reseed(seed);
+    void reseedTo(long seed) {
+        countryGenerator.reseedTo(seed);
     }
 
     /** The country's name in the locale's language. */

@@ -56,15 +56,14 @@ import java.util.Random;
  * @see CurrencyGenerator
  * @see CurrencyPairGenerator
  */
-public final class MoneyGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
+public final class MoneyGenerator implements Generator<String> {
 
-    /**
-     * Reseeds this generator, which then gives what one built from its configuration with this seed gives.
-     *
-     * @param seed deterministic seed
-     */
-    @Override
-    public void reseed(long seed) {
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(MoneyGenerator.class, MoneyGenerator::reseedTo);
+    }
+
+    /** Reseeds this generator, which then gives what one built from its configuration with this seed gives. */
+    void reseedTo(long seed) {
         random.setSeed(seed);
     }
 

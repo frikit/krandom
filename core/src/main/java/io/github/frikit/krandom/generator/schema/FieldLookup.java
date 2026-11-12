@@ -6,7 +6,6 @@
 package io.github.frikit.krandom.generator.schema;
 
 import io.github.frikit.krandom.generator.GeneratorConfig;
-import io.github.frikit.krandom.generator.Seedable;
 import io.github.frikit.krandom.generator.provider.ConflictPolicy;
 import io.github.frikit.krandom.generator.provider.ProviderCatalog;
 import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
@@ -343,16 +342,19 @@ public final class FieldLookup {
         // value, gives what a build for each value gives. Its projections read only the configuration's locale,
         // which each value's configuration shares with this lookup's. Modules are resolved again by each
         // value's build, which a reseed would skip, so a configuration with modules keeps building.
-        ThreadLocal<T> reseeded = seedsValues && !hasModules && builtIn && Reseeding.reseedsAsBuilt(provider)
-                ? ThreadLocal.withInitial(() -> descriptor.create(ConfigAccess.withSeed(config, 0L)))
-                : null;
+        Reseeding.Reseeder<T> reseeder = seedsValues && !hasModules && builtIn ? Reseeding.reseederOf(provider) : null;
+        ThreadLocal<T> reseeded = reseeder == null
+                ? null
+                : ThreadLocal.withInitial(() -> descriptor.create(ConfigAccess.withSeed(config, 0L)));
         for (ProviderSchemaProjection<T> projection : descriptor.getSchemaProjections()) {
             register(
                     projection.getReference(),
                     context -> {
-                        if (reseeded != null && context.random() instanceof Schema.FieldStream stream) {
+                        if (reseeder != null
+                                && reseeded != null
+                                && context.random() instanceof Schema.FieldStream stream) {
                             T valueProvider = reseeded.get();
-                            ((Seedable) valueProvider).reseed(stream.nextLong());
+                            reseeder.reseed(valueProvider, stream.nextLong());
                             return projection.extract(valueProvider, config);
                         }
                         GeneratorConfig valueConfig = valueConfig(context);

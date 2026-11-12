@@ -93,7 +93,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @see LastNameGenerator
  * @see EmailFormat
  */
-public final class EmailGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
+public final class EmailGenerator implements Generator<String> {
 
     private static final String[] SAFE_DOMAINS = {"example.com", "example.org", "example.net"};
 
@@ -128,18 +128,19 @@ public final class EmailGenerator implements Generator<String>, io.github.frikit
     private final LastNameGenerator lastNameGenerator;
     private final Set<String> issuedEmails;
 
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(EmailGenerator.class, EmailGenerator::reseedTo);
+    }
+
     /**
      * Reseeds this generator, which then gives what one built from its configuration with this seed gives: its
      * own and its name streams are reseeded, and the addresses it has issued as unique are forgotten.
-     *
-     * @param seed deterministic seed
      */
-    @Override
-    public void reseed(long seed) {
+    void reseedTo(long seed) {
         config = io.github.frikit.krandom.internal.ConfigAccess.withSeed(config, seed);
         random.setSeed(seed);
-        firstNameGenerator.reseed(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "firstName"));
-        lastNameGenerator.reseed(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "lastName"));
+        firstNameGenerator.reseedTo(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "firstName"));
+        lastNameGenerator.reseedTo(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "lastName"));
         issuedEmails.clear();
     }
 

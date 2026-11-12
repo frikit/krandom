@@ -16,7 +16,11 @@ import java.util.Random;
  *
  * <p>Default sentence length is 12-18 words to mirror Chance.js defaults.
  */
-public final class SentenceGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
+public final class SentenceGenerator implements Generator<String> {
+
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(SentenceGenerator.class, SentenceGenerator::reseedTo);
+    }
 
     /** The configuration this generator was built from, whose child-stream policy a reseed follows. */
     private final GeneratorConfig config;
@@ -47,13 +51,10 @@ public final class SentenceGenerator implements Generator<String>, io.github.fri
     /**
      * Reseeds this generator and its word stream, which then give what ones built from its configuration with
      * this seed give.
-     *
-     * @param seed deterministic seed
      */
-    @Override
-    public void reseed(long seed) {
+    void reseedTo(long seed) {
         random.setSeed(seed);
-        wordGenerator.reseed(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "word"));
+        wordGenerator.reseedTo(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "word"));
     }
 
     /**

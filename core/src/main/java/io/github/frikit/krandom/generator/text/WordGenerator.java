@@ -16,7 +16,11 @@ import java.util.Random;
 /**
  * Generates natural-looking pseudo-words with Chance.js-style syllable and length controls.
  */
-public final class WordGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
+public final class WordGenerator implements Generator<String> {
+
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(WordGenerator.class, WordGenerator::reseedTo);
+    }
 
     /** The configuration this generator was built from, whose child-stream policy a reseed follows. */
     private final GeneratorConfig config;
@@ -24,13 +28,10 @@ public final class WordGenerator implements Generator<String>, io.github.frikit.
     /**
      * Reseeds this generator and its syllable stream, which then give what ones built from its configuration
      * with this seed give.
-     *
-     * @param seed deterministic seed
      */
-    @Override
-    public void reseed(long seed) {
+    void reseedTo(long seed) {
         random.setSeed(seed);
-        syllableGenerator.reseed(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "syllable"));
+        syllableGenerator.reseedTo(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "syllable"));
     }
 
     private final Random random;

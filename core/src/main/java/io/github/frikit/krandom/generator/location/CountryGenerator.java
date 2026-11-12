@@ -49,15 +49,14 @@ import java.util.stream.Collectors;
  *       States, {@code Europe/Moscow} for Russia).</li>
  * </ul>
  */
-public final class CountryGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
+public final class CountryGenerator implements Generator<String> {
 
-    /**
-     * Reseeds this generator, which then gives what one built from its configuration with this seed gives.
-     *
-     * @param seed deterministic seed
-     */
-    @Override
-    public void reseed(long seed) {
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(CountryGenerator.class, CountryGenerator::reseedTo);
+    }
+
+    /** Reseeds this generator, which then gives what one built from its configuration with this seed gives. */
+    void reseedTo(long seed) {
         random.setSeed(seed);
     }
 

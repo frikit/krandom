@@ -21,8 +21,9 @@ import io.github.frikit.krandom.generator.location.PhoneNumberGenerator;
 import io.github.frikit.krandom.generator.location.PostalCodeGenerator;
 import io.github.frikit.krandom.generator.location.StateGenerator;
 import io.github.frikit.krandom.generator.location.StreetAddressGenerator;
+import io.github.frikit.krandom.generator.provider.ProviderCatalog;
+import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
 import io.github.frikit.krandom.generator.text.SentenceGenerator;
-import io.github.frikit.krandom.generator.text.SyllableGenerator;
 import io.github.frikit.krandom.generator.text.WordGenerator;
 import io.github.frikit.krandom.generator.user.EmailGenerator;
 import io.github.frikit.krandom.generator.user.FirstNameGenerator;
@@ -55,10 +56,10 @@ class ReseedAsBuiltTest {
 
     private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-07-10T12:00:00Z"), ZoneOffset.UTC);
 
-    private static final Map<Class<?>, Function<GeneratorConfig, Seedable>> FACTORIES = factories();
+    private static final Map<Class<?>, Function<GeneratorConfig, Object>> FACTORIES = factories();
 
-    private static Map<Class<?>, Function<GeneratorConfig, Seedable>> factories() {
-        Map<Class<?>, Function<GeneratorConfig, Seedable>> factories = new LinkedHashMap<>();
+    private static Map<Class<?>, Function<GeneratorConfig, Object>> factories() {
+        Map<Class<?>, Function<GeneratorConfig, Object>> factories = new LinkedHashMap<>();
         factories.put(UUIDGenerator.class, UUIDGenerator::new);
         factories.put(FullNameGenerator.class, FullNameGenerator::new);
         factories.put(FirstNameGenerator.class, FirstNameGenerator::new);
@@ -75,14 +76,29 @@ class ReseedAsBuiltTest {
         factories.put(DateGenerator.class, DateGenerator::new);
         factories.put(SentenceGenerator.class, SentenceGenerator::new);
         factories.put(WordGenerator.class, WordGenerator::new);
-        factories.put(SyllableGenerator.class, SyllableGenerator::new);
         return factories;
     }
 
     @Test
-    @DisplayName("every class that a Schema reseeds is checked here")
+    @DisplayName("every class that a Schema reseeds is checked here, and none of them became Seedable")
     void everyReseededClassIsChecked() {
-        assertTrue(FACTORIES.keySet().containsAll(Reseeding.classes()), "unchecked: " + Reseeding.classes());
+        GeneratorConfig config = GeneratorConfig.builder().seed(1L).clock(CLOCK).build();
+        // Building every schema built-in initializes its class, which registers any reseed it has.
+        for (ProviderDescriptor<?> descriptor : ProviderCatalog.schemaBuiltIns()) {
+            descriptor.create(config);
+        }
+        assertTrue(FACTORIES.keySet().containsAll(Reseeding.registered()), "unchecked: " + Reseeding.registered());
+        for (Map.Entry<Class<?>, Function<GeneratorConfig, Object>> factory : FACTORIES.entrySet()) {
+            assertTrue(
+                    Reseeding.reseederOf(factory.getValue().apply(config)) != null,
+                    factory.getKey().getName());
+            // Object generation reseeds a Seedable @Randomizer, so a class must not become Seedable to be here;
+            // DateGenerator was Seedable before.
+            assertEquals(
+                    factory.getKey() == DateGenerator.class,
+                    Seedable.class.isAssignableFrom(factory.getKey()),
+                    factory.getKey().getName());
+        }
     }
 
     @Test
@@ -100,22 +116,23 @@ class ReseedAsBuiltTest {
             }
         }
         int compared = 0;
-        for (Map.Entry<Class<?>, Function<GeneratorConfig, Seedable>> factory : FACTORIES.entrySet()) {
+        for (Map.Entry<Class<?>, Function<GeneratorConfig, Object>> factory : FACTORIES.entrySet()) {
             List<Method> methods = noArgumentMethods(factory.getKey());
             for (GeneratorConfig config : configs) {
                 for (long seed : new long[] {0L, 7L, -3L, Long.MAX_VALUE}) {
-                    Seedable fresh;
+                    Object fresh;
                     try {
                         fresh = factory.getValue()
                                 .apply(config.toBuilder().seed(seed).build());
                     } catch (UnsupportedOperationException unsupportedLocale) {
                         continue;
                     }
-                    Seedable reused = factory.getValue()
+                    Object reused = factory.getValue()
                             .apply(config.toBuilder().seed(seed + 101).build());
                     // Use it first, so that whatever it keeps (caches, lazy children, issued values) is filled.
                     calls(reused, methods);
-                    reused.reseed(seed);
+                    java.util.Objects.requireNonNull(Reseeding.reseederOf(reused))
+                            .reseed(reused, seed);
                     assertEquals(
                             calls(fresh, methods),
                             calls(reused, methods),

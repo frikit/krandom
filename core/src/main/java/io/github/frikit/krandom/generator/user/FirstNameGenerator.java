@@ -35,15 +35,14 @@ import java.util.Random;
  * String deName = de.generate(Gender.FEMALE); // "Marie", "Sophie", ...
  * }</pre>
  */
-public final class FirstNameGenerator implements Generator<String>, io.github.frikit.krandom.generator.Seedable {
+public final class FirstNameGenerator implements Generator<String> {
 
-    /**
-     * Reseeds this generator, which then gives what one built from its configuration with this seed gives.
-     *
-     * @param seed deterministic seed
-     */
-    @Override
-    public void reseed(long seed) {
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(FirstNameGenerator.class, FirstNameGenerator::reseedTo);
+    }
+
+    /** Reseeds this generator, which then gives what one built from its configuration with this seed gives. */
+    void reseedTo(long seed) {
         random.setSeed(seed);
     }
 

@@ -56,15 +56,14 @@ import java.util.UUID;
  *
  * @see UUID
  */
-public final class UUIDGenerator implements Generator<UUID>, io.github.frikit.krandom.generator.Seedable {
+public final class UUIDGenerator implements Generator<UUID> {
 
-    /**
-     * Reseeds this generator, which then gives what one built from its configuration with this seed gives.
-     *
-     * @param seed deterministic seed
-     */
-    @Override
-    public void reseed(long seed) {
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(UUIDGenerator.class, UUIDGenerator::reseedTo);
+    }
+
+    /** Reseeds this generator, which then gives what one built from its configuration with this seed gives. */
+    void reseedTo(long seed) {
         random.setSeed(seed);
     }
 
