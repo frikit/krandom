@@ -1,0 +1,307 @@
+SchemaOutputBenchmark for the 3.1 schema-speed spike (branch spike/3.1-schema-speed), 2026-11-12.
+
+Not a dashboard run: only SchemaOutputBenchmark, with the publication protocol of METHODOLOGY.md, each run its
+own clean JMH run in a detached checkout, through the shared lock that keeps every other heavy job off the
+machine. Each operation generates or writes 250 records of twelve Field references, seeded with 7.
+
+Environment: Temurin 21.0.13+9, Darwin 27.2.0 arm64, Apple M5 Pro, JMH 1.37
+Command: ./gradlew :benchmarks:jmh -PjmhArgs="SchemaOutputBenchmark -foe true -wi 3 -i 5 -f 3 -t 1 -prof gc"
+
+Checkouts:
+  base-ce   ce1b8774  3.0.2's child-stream copy (#168) alone
+  base/main ff76a422  origin/main, 3.1.0-SNAPSHOT, with #169's U+FFFD scan in the writers
+  a1        62a25a0c  each value's configuration copied through io.github.frikit.krandom.internal.ConfigAccess
+  a2        a985c1db  a1, plus secondary units read once per locale, cached language_COUNTRY keys, and the
+                      named-stream identity hashed from a prefix folded once
+  b         576bbcef  a2, plus one generator per column and thread, reseeded for each value (all twelve
+                      columns of the benchmark are covered), through the unexported Reseeding registry
+  ceiling   ff76a422 with one uncommitted change, a reference and not an option: FieldLookup.valueConfig
+            returns null, so every value draws from one shared generator per reference, as before 3.0.1,
+            on today's generators and writers. It breaks the 3.0.1 named-stream pins:
+              -        return seedsValues && context.random() instanceof Schema.FieldStream stream
+              +        boolean perValue = Boolean.getBoolean("krandom.spike.never");
+              +        return perValue && seedsValues && context.random() instanceof Schema.FieldStream stream
+  e6        e6ba573d  the commit measured at 933 ops/s on 2026-11-11, before 3.0.1's named streams
+  cache     ff76a422 with only a985c1db's StreetAddressGenerator hunk applied, uncommitted: the secondary
+            units of each locale read once into a static map, the smallest patch
+
+Order: the baseline pair base-ce base-main base-main base-ce; the options session base a1 a2 b ceiling ceiling
+b a2 a1 base; then e6 ceiling e6; then main cache cache main. Every checkout passed all of :core:test before it
+was measured, except base-ce, base-main and e6, which are published commits, and the ceiling, which breaks the
+3.0.1 named-stream pins by design.
+
+== base-ce-1: checkout ce1b8774 0 dirty files, label base-ce-1; ran 15:09:36-15:11:25, exit 0
+
+Benchmark                                                       Mode  Cnt         Score        Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15       265.696 ±      3.284   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  20897941.726 ± 209732.986    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15       246.606 ±      3.357   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  21102425.371 ±  34476.093    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15       258.707 ±      2.826   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  20722989.099 ±  45488.408    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15       250.147 ±      5.813   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  20653701.556 ±   6195.217    B/op
+
+== base-main-1: checkout ff76a422 0 dirty files, label base-main-1; ran 15:11:25-15:13:11, exit 0
+
+Benchmark                                                       Mode  Cnt         Score        Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15       263.481 ±      2.650   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  20777257.824 ± 193677.193    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15       238.346 ±      2.242   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  21142381.089 ±  24546.828    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15       251.659 ±      6.310   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  20736687.327 ±  21906.462    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15       239.667 ±     24.992   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  20734810.523 ±  11324.103    B/op
+
+== base-main-2: checkout ff76a422 0 dirty files, label base-main-2; ran 15:13:11-15:14:52, exit 0
+
+Benchmark                                                       Mode  Cnt         Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15       262.005 ±     2.069   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  20698927.127 ± 17940.295    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15       238.772 ±     2.285   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  21112447.694 ±  3223.073    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15       253.439 ±     4.204   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  20663805.650 ± 32662.895    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15       246.580 ±     2.821   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  20689582.586 ± 60397.209    B/op
+
+== base-ce-2: checkout ce1b8774 0 dirty files, label base-ce-2; ran 15:14:52-15:16:33, exit 0
+
+Benchmark                                                       Mode  Cnt         Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15       262.852 ±     1.608   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  20696259.819 ± 13093.580    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15       245.557 ±     2.473   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  21127273.969 ± 11321.995    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15       256.286 ±     1.711   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  20721866.665 ±  3622.706    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15       248.095 ±     5.173   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  20715006.711 ± 14808.289    B/op
+
+== session-base-1: checkout ff76a422 0 dirty files, label session-base-1; ran 15:57:53-15:59:34, exit 0
+
+Benchmark                                                       Mode  Cnt         Score        Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15       248.139 ±     15.417   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  20801425.465 ± 176479.482    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15       232.241 ±      2.053   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  21118359.618 ±  35193.600    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15       251.106 ±      3.746   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  20700933.148 ±  28182.284    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15       245.699 ±      4.324   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  20813464.263 ± 185872.423    B/op
+
+== session-a1-1: checkout 62a25a0c 0 dirty files, label session-a1-1; ran 15:59:34-16:01:15, exit 0
+
+Benchmark                                                       Mode  Cnt         Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15       296.109 ±     6.106   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  16756401.311 ± 23368.976    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15       257.149 ±    11.819   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  17180957.731 ± 40989.748    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15       270.816 ±    12.834   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  16818245.935 ± 38850.797    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15       271.249 ±     6.674   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  16763907.556 ± 35072.423    B/op
+
+== session-a2-1: checkout a985c1db 0 dirty files, label session-a2-1; ran 16:01:15-16:02:56, exit 0
+
+Benchmark                                                       Mode  Cnt        Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15      732.814 ±    12.311   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  7907909.070 ± 26263.790    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15      572.171 ±     8.979   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  8362452.315 ± 14727.140    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15      680.458 ±    37.600   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  7946943.040 ± 14721.470    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15      636.332 ±     8.717   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  7946081.372 ± 14723.713    B/op
+
+== session-b-1: checkout 576bbcef 0 dirty files, label session-b-1; ran 16:02:56-16:04:37, exit 0
+
+Benchmark                                                       Mode  Cnt        Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15      989.581 ±    15.554   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  3994563.788 ±  1577.684    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15      710.167 ±    14.030   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  4448464.602 ± 14705.550    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15      882.565 ±    52.951   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  3929651.306 ±  3533.635    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15      808.658 ±    10.617   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  4022773.016 ± 14712.180    B/op
+
+== session-ceiling-1: checkout ff76a422 1 dirty files, label session-ceiling-1; ran 16:04:37-16:06:19, exit 0
+
+Benchmark                                                       Mode  Cnt        Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15      944.640 ±    16.041   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  4106805.249 ± 20237.963    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15      684.223 ±     9.855   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  4539214.783 ± 33547.546    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15      777.363 ±    12.859   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  4128359.381 ± 10711.943    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15      767.374 ±    12.496   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  4127874.822 ± 16251.819    B/op
+
+== session-ceiling-2: checkout ff76a422 1 dirty files, label session-ceiling-2; ran 16:06:19-16:08:02, exit 0
+
+Benchmark                                                       Mode  Cnt        Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15      924.380 ±    22.297   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  4082035.843 ± 27989.582    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15      674.528 ±     9.571   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  4547419.432 ±  8724.940    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15      836.098 ±    56.162   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  4137448.046 ± 19102.456    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15      764.912 ±    16.729   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  4120640.543 ± 11615.421    B/op
+
+== session-b-2: checkout 576bbcef 0 dirty files, label session-b-2; ran 16:08:02-16:09:42, exit 0
+
+Benchmark                                                       Mode  Cnt        Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15      981.432 ±    13.209   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  3994605.073 ±  1611.449    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15      701.936 ±     7.700   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  4460471.621 ± 10586.603    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15      861.672 ±    58.303   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  3929652.463 ±  3527.799    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15      791.564 ±     8.970   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  4024819.375 ± 13473.208    B/op
+
+== session-a2-2: checkout a985c1db 0 dirty files, label session-a2-2; ran 16:09:42-16:11:23, exit 0
+
+Benchmark                                                       Mode  Cnt        Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15      725.261 ±    10.470   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  7908529.255 ±  1768.737    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15      570.656 ±     3.586   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  8362479.500 ± 14740.436    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15      645.332 ±    30.259   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  7937596.229 ±  1865.986    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15      623.552 ±    13.666   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  7927451.983 ±  1876.261    B/op
+
+== session-a1-2: checkout 62a25a0c 0 dirty files, label session-a1-2; ran 16:11:23-16:13:04, exit 0
+
+Benchmark                                                       Mode  Cnt         Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15       288.730 ±     5.900   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  16757003.789 ± 10829.712    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15       237.657 ±    15.862   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  17220559.858 ±  9805.703    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15       264.205 ±    11.184   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  16795825.227 ±  5343.250    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15       249.234 ±    23.514   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  16766216.609 ± 58892.652    B/op
+
+== session-base-2: checkout ff76a422 0 dirty files, label session-base-2; ran 16:13:05-16:14:46, exit 0
+
+Benchmark                                                       Mode  Cnt         Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15       253.535 ±     1.926   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  20696754.779 ±  4988.322    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15       231.625 ±     2.296   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  21101695.096 ± 53066.894    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15       243.768 ±     2.851   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  20733779.333 ± 14029.195    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15       244.502 ±     0.960   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  20707598.529 ±  4700.869    B/op
+
+== mini-e6-1: checkout e6ba573d 0 dirty files, label mini-e6-1; ran 16:14:53-16:16:36, exit 0
+
+Benchmark                                                       Mode  Cnt        Score        Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15      940.218 ±     24.784   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  3677478.856 ± 115226.479    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15      761.921 ±     24.460   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  4062657.082 ±  37533.309    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15      877.086 ±      9.062   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  3653080.691 ±  14911.834    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15      824.702 ±     28.557   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  3642720.383 ±  15068.046    B/op
+
+== mini-ceiling-1: checkout ff76a422 1 dirty files, label mini-ceiling-1; ran 16:16:36-16:18:17, exit 0
+
+Benchmark                                                       Mode  Cnt        Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15      932.306 ±    20.250   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  4105769.861 ± 19574.649    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15      684.205 ±    11.027   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  4556188.097 ± 19368.420    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15      878.657 ±    16.828   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  4145964.230 ± 18073.279    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15      770.119 ±    16.368   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  4118388.035 ± 10362.024    B/op
+
+== mini-e6-2: checkout e6ba573d 0 dirty files, label mini-e6-2; ran 16:18:17-16:19:57, exit 0
+
+Benchmark                                                       Mode  Cnt        Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15      939.805 ±    12.919   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  3633514.275 ± 14865.721    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15      757.640 ±     9.134   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  4077260.857 ± 14882.917    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15      883.682 ±    15.237   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  3653064.491 ± 14879.943    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15      814.366 ±    10.289   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  3642687.038 ± 14920.351    B/op
+
+== cachepair-main-1: checkout ff76a422 0 dirty files, label cachepair-main-1; ran 16:39:42-16:41:23, exit 0
+
+Benchmark                                                       Mode  Cnt         Score        Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15       248.640 ±      4.885   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  20815912.746 ± 241300.242    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15       223.885 ±      1.813   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  21122839.066 ±  43345.834    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15       239.057 ±      3.740   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  20694931.824 ±  46948.220    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15       236.757 ±      2.531   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  20700805.632 ±  41037.050    B/op
+
+== cachepair-cache-1: checkout ff76a422 1 dirty files, label cachepair-cache-1; ran 16:41:23-16:43:04, exit 0
+
+Benchmark                                                       Mode  Cnt         Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15       501.308 ±     4.862   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  12459052.163 ± 53739.166    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15       411.839 ±     8.623   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  12918199.177 ±  9372.453    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15       455.967 ±     4.091   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  12508743.149 ±  9386.117    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15       445.417 ±     2.806   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  12507886.150 ± 20945.731    B/op
+
+== cachepair-cache-2: checkout ff76a422 1 dirty files, label cachepair-cache-2; ran 16:43:04-16:44:45, exit 0
+
+Benchmark                                                       Mode  Cnt         Score        Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15       502.514 ±      7.486   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  12479707.192 ±   9383.293    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15       417.821 ±      6.414   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  12933486.291 ±   5192.379    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15       477.215 ±      8.826   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  12515336.844 ±  14611.699    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15       452.722 ±     21.595   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  12697221.554 ± 164823.796    B/op
+
+== cachepair-main-2: checkout ff76a422 0 dirty files, label cachepair-main-2; ran 16:44:46-16:46:27, exit 0
+
+Benchmark                                                       Mode  Cnt         Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15       249.181 ±     2.968   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  20675906.896 ± 43465.794    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15       224.536 ±     2.957   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  21150302.781 ± 15619.688    B/op
+SchemaOutputBenchmark.streamingCsv                             thrpt   15       237.990 ±     3.045   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  20748970.072 ±  6097.234    B/op
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15       236.626 ±     1.846   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  20701410.271 ± 42932.383    B/op
+
+== JFR splits (the recordings themselves are not kept here)
+
+Each workload profiled once with -wi 3 -i 5 -r 4 -f 1 and -prof jfr, Java samples every 1 ms and native samples
+every 20 ms, split by 2026-11-12-schema-speed-spike-jfr-split.py (beside this file), which counts a native
+sample 20 times a Java sample.
+
+origin/main ff76a422 (share of the time)
+  largeSchemaBatch      resource read 50.2%, generation 25.4%, config build 14.2%, rest of provider graph 6.4%,
+                        named stream 2.8%, record 0.9%, writing 0.0%
+  largeSchemaJsonLines  resource read 60.0%, generation 18.2%, config build 9.7%, writing 5.3%,
+                        rest of provider graph 4.5%, named stream 1.4%, record 0.8%
+  streamingCsv          resource read 52.1%, generation 22.0%, config build 11.7%, rest of provider graph 5.7%,
+                        writing 4.1%, named stream 3.0%, record 1.4%
+  streamingJsonLines    resource read 46.6%, generation 22.2%, config build 14.2%, writing 7.6%,
+                        rest of provider graph 6.3%, named stream 2.6%, record 0.6%
+  The resource read is StreetAddressGenerator.loadSecondaryUnits, inside the provider graph; 196 of the 197 native
+  samples of largeSchemaBatch are in it.
+
+b 576bbcef (share of the time)
+  largeSchemaBatch      generation 81.5%, reseed 8.3%, named stream 5.2%, record 4.8%, writing 0.1%
+  largeSchemaJsonLines  generation 57.2%, writing 30.3%, reseed 5.6%, named stream 3.8%, record 3.0%
+  streamingCsv          generation 68.6%, writing 15.4%, reseed 7.3%, record 4.4%, named stream 4.2%
+  streamingJsonLines    generation 71.6%, writing 12.3%, reseed 7.4%, named stream 4.7%, record 3.9%
