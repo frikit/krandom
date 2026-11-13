@@ -35,6 +35,7 @@ import io.github.frikit.krandom.generator.user.EmailGenerator;
 import io.github.frikit.krandom.generator.user.FirstNameGenerator;
 import io.github.frikit.krandom.generator.user.FullNameGenerator;
 import io.github.frikit.krandom.generator.user.LastNameGenerator;
+import io.github.frikit.krandom.generator.user.UsernameGenerator;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -82,6 +83,7 @@ class ReseedAsBuiltTest {
         factories.put(DateGenerator.class, DateGenerator::new);
         factories.put(SentenceGenerator.class, SentenceGenerator::new);
         factories.put(WordGenerator.class, WordGenerator::new);
+        factories.put(UsernameGenerator.class, UsernameGenerator::new);
         return factories;
     }
 

@@ -16,6 +16,20 @@ import java.util.Random;
  */
 public final class UsernameGenerator implements Generator<String> {
 
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(UsernameGenerator.class, UsernameGenerator::reseedTo);
+    }
+
+    /**
+     * Reseeds this generator and its first- and last-name streams, which then give what ones built from its
+     * configuration with this seed give.
+     */
+    void reseedTo(long seed) {
+        random.setSeed(seed);
+        firstNameGenerator.reseedTo(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "firstName"));
+        lastNameGenerator.reseedTo(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "lastName"));
+    }
+
     private final GeneratorConfig config;
     private final Random random;
     private final FirstNameGenerator firstNameGenerator;
