@@ -31,6 +31,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   in a supplementary character, as no built-in vocabulary holds one, so seeded output changes only for a text
   of such words whose cut at `maxChars` ends in a whole pair: the word list `["a😀"]` with a `maxChars` of 3
   gave `"a\ud83d."` with any seed, and now gives `"a."`.
+- `CompanyUrlGenerator.generateFromCompanyName(String)` now keeps the first 63 letters and digits of the
+  company name as the host label, the most a label may hold, as `CompanyEmailGenerator` and the coherence pass
+  do since 3.0.1 and 3.0.2. It kept them all, so a name of more than 63 ASCII letters and digits gave a URL
+  whose host `IDN.toASCII` rejects. Output changes only for such a name, which a caller supplies, and the cut
+  draws nothing, so no other value changes. The names that `CompanyNameGenerator` draws, which
+  `generateFromCompanyName()` uses, are shorter: as 3.0.2 records, the longest label of 5,000,000 seeded names
+  in the 50 supported locales has 51 characters.
 
 ## [3.1.0] - 2026-11-13
 
