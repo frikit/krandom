@@ -1568,9 +1568,12 @@ public final class GeneratorConfig {
         }
 
         /**
-         * Register a contextual field-level override for object generation.
+         * Register a contextual field-level override for object generation. As with a plain field
+         * override, the generator may return {@code null} for a reference field, so {@code T} may be
+         * nullable.
          */
-        public <T> Builder objectOverride(Class<?> ownerType, String fieldName, ContextualGenerator<T> generator) {
+        public <T extends @Nullable Object> Builder objectOverride(
+                Class<?> ownerType, String fieldName, ContextualGenerator<T> generator) {
             Objects.requireNonNull(ownerType, "ownerType must not be null");
             Objects.requireNonNull(fieldName, "fieldName must not be null");
             Objects.requireNonNull(generator, "generator must not be null");
@@ -1589,9 +1592,12 @@ public final class GeneratorConfig {
         }
 
         /**
-         * Register a context-aware predicate field override for object generation.
+         * Register a context-aware predicate field override for object generation. As with a plain
+         * predicate override, the generator may return {@code null} for a reference field, so {@code T}
+         * may be nullable.
          */
-        public <T> Builder objectOverride(Predicate<Field> predicate, ContextualGenerator<T> generator) {
+        public <T extends @Nullable Object> Builder objectOverride(
+                Predicate<Field> predicate, ContextualGenerator<T> generator) {
             Objects.requireNonNull(predicate, "predicate must not be null");
             Objects.requireNonNull(generator, "generator must not be null");
             objectContextualPredicateFieldOverrides.add(new ContextualFieldGeneratorOverride(predicate, generator));

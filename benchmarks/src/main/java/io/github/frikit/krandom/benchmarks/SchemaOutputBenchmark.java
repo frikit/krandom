@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import org.jspecify.annotations.Nullable;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
@@ -62,8 +63,8 @@ public class SchemaOutputBenchmark {
     }
 
     @Benchmark
-    public List<Map<String, Object>> largeSchemaBatch(SchemaState state) {
-        return state.schema.generateBatch(RECORD_COUNT);
+    public List<Map<String, @Nullable Object>> largeSchemaBatch(SchemaState state) {
+        return state.schema.nextRecords(RECORD_COUNT);
     }
 
     @Benchmark

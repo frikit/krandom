@@ -139,7 +139,7 @@ class RandomSourceContractTest {
                 Arguments.of("schema", (Consumer<GeneratorConfig>) config -> new Schema(
                                 config,
                                 Map.of("value", context -> context.random().nextInt()))
-                        .generate()),
+                        .nextRecord()),
                 Arguments.of(
                         "provider", (Consumer<GeneratorConfig>) config -> new TextFormatProvider(config).hexify("^")));
     }

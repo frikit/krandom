@@ -52,7 +52,11 @@ initialized instances, and it preserves field initializers unless
 `objectOverrideDefaultInitialization(true)` is selected. An override that targets the field itself
 (`objectOverride` by owner type and field name or by field predicate, or an `ObjectFaker` rule)
 replaces its initializer either way; type-level overrides keep it. Field-level overrides take
-precedence over type-level overrides, contextual or not.
+precedence over type-level overrides, contextual or not. A field-level override, contextual or not, and
+an `ObjectFaker` rule, by field name, accessor, or path, may return `null` to leave a reference field
+`null`, so the type argument of its generator may be nullable, such as
+`ContextualGenerator<@Nullable String>`, or `ContextualGenerator<String?>` in Kotlin, and so may the
+property type of a `PropertySelector` or `PropertyPath`.
 
 | Target | Safe construction path | If unavailable |
 |:---|:---|:---|

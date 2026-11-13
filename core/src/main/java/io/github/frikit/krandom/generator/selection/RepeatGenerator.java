@@ -8,13 +8,18 @@ package io.github.frikit.krandom.generator.selection;
 import io.github.frikit.krandom.generator.Generator;
 import java.util.List;
 import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Generates a fixed-size list by repeatedly invoking a source generator.
  *
- * @param <T> element type
+ * <p>The list keeps every value the source generates, {@code null} included, so the element type may
+ * be nullable, as in {@code RepeatGenerator<@Nullable Boolean>} over
+ * {@link io.github.frikit.krandom.generator.Generators#ofNullableBoolean()}.
+ *
+ * @param <T> element type, which may be nullable
  */
-public final class RepeatGenerator<T> implements Generator<List<T>> {
+public final class RepeatGenerator<T extends @Nullable Object> implements Generator<List<T>> {
 
     private final Generator<T> source;
     private final int count;

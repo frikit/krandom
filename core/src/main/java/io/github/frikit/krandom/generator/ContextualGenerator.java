@@ -5,12 +5,17 @@
  */
 package io.github.frikit.krandom.generator;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * A generator that receives a {@link GenerationContext} describing the field
  * currently being populated.
  *
  * <p>Use this interface (instead of the zero-arg {@link Generator}) when the
  * generated value should depend on the field name, declaring class, or nesting depth.
+ *
+ * <p>{@code T} may be a nullable type, such as {@code ContextualGenerator<@Nullable String>}, for a
+ * generator that leaves a field {@code null}.
  *
  * <pre>{@code
  *   // Append the field name to every String
@@ -22,10 +27,10 @@ package io.github.frikit.krandom.generator;
  *       ctx -> ctx.getOwnerType().getSimpleName().toLowerCase() + "@example.com");
  * }</pre>
  *
- * @param <T> the type of value produced
+ * @param <T> the type of value produced, which may be nullable
  */
 @FunctionalInterface
-public interface ContextualGenerator<T> {
+public interface ContextualGenerator<T extends @Nullable Object> {
 
     /**
      * Generate a value using the supplied context.
