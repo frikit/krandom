@@ -28,6 +28,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.DisplayName;
@@ -556,7 +557,7 @@ class ObjectFakerTest {
         assertEquals(1, diagnostics.size(), diagnostics.toString());
         assertEquals(
                 "FixtureUserWithAddress.address.city",
-                diagnostics.getFirst().context().path());
+                diagnostics.get(0).context().path());
     }
 
     @Test
@@ -1093,6 +1094,17 @@ class ObjectFakerTest {
                 () -> new ObjectFaker<>(FixtureUserWithAddress.class).ruleFor("address..city", () -> "Rome"));
 
         assertTrue(ex.getMessage().contains("Invalid field path"));
+    }
+
+    @Test
+    @DisplayName("a field path of dots only fails with NoSuchElementException, as in 3.0.3")
+    void dotOnlyFieldPathFailsWithNoSuchElement() {
+        for (String path : List.of(".", "..")) {
+            assertThrows(
+                    NoSuchElementException.class,
+                    () -> new ObjectFaker<>(FixtureUserWithAddress.class).ruleFor(path, () -> "Rome"),
+                    path);
+        }
     }
 
     @Test

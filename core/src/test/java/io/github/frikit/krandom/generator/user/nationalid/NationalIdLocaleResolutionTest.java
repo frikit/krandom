@@ -37,19 +37,19 @@ class NationalIdLocaleResolutionTest {
         List<Locale> locales = List.of(
                 Locale.CANADA,
                 Locale.CANADA_FRENCH,
-                Locale.of("pt", "PT"),
+                new Locale("pt", "PT"),
                 Locale.TAIWAN,
-                Locale.of("de", "AT"),
-                Locale.of("fr", "BE"),
-                Locale.of("nl", "BE"),
-                Locale.of("de", "CH"),
-                Locale.of("fr", "CH"),
-                Locale.of("en", "NZ"),
-                Locale.of("en", "IE"),
-                Locale.of("en", "ZA"),
-                Locale.of("es", "MX"),
-                Locale.of("es", "AR"),
-                Locale.of("de", "LI"));
+                new Locale("de", "AT"),
+                new Locale("fr", "BE"),
+                new Locale("nl", "BE"),
+                new Locale("de", "CH"),
+                new Locale("fr", "CH"),
+                new Locale("en", "NZ"),
+                new Locale("en", "IE"),
+                new Locale("en", "ZA"),
+                new Locale("es", "MX"),
+                new Locale("es", "AR"),
+                new Locale("de", "LI"));
         for (Locale locale : locales) {
             assertFalse(NationalIdRegistry.isRegistered(locale), locale.toString());
             assertNull(NationalIdRegistry.forLocale(locale), locale.toString());
@@ -62,15 +62,16 @@ class NationalIdLocaleResolutionTest {
     @Test
     @DisplayName("another language of a supported country uses that country's provider")
     void sameCountryVariantsUseTheirCountrysProvider() {
-        NationalIdProvider india = NationalIdRegistry.forLocale(Locale.of("hi", "IN"));
-        NationalIdProvider spain = NationalIdRegistry.forLocale(Locale.of("es", "ES"));
+        NationalIdProvider india = NationalIdRegistry.forLocale(new Locale("hi", "IN"));
+        NationalIdProvider spain = NationalIdRegistry.forLocale(new Locale("es", "ES"));
 
-        assertSame(india, NationalIdRegistry.forLocale(Locale.of("en", "IN")));
-        assertTrue(NationalIdRegistry.isRegistered(Locale.of("en", "IN")));
-        assertSame(spain, NationalIdRegistry.forLocale(Locale.of("gl", "ES")));
-        assertNotSame(spain, NationalIdRegistry.forLocale(Locale.of("ca", "ES")));
-        String indianId = new NationalIdGenerator(config(Locale.of("en", "IN"))).generate();
-        assertEquals(india.generate(new Random(5L)), new NationalIdGenerator(config(Locale.of("hi", "IN"))).generate());
+        assertSame(india, NationalIdRegistry.forLocale(new Locale("en", "IN")));
+        assertTrue(NationalIdRegistry.isRegistered(new Locale("en", "IN")));
+        assertSame(spain, NationalIdRegistry.forLocale(new Locale("gl", "ES")));
+        assertNotSame(spain, NationalIdRegistry.forLocale(new Locale("ca", "ES")));
+        String indianId = new NationalIdGenerator(config(new Locale("en", "IN"))).generate();
+        assertEquals(
+                india.generate(new Random(5L)), new NationalIdGenerator(config(new Locale("hi", "IN"))).generate());
         assertTrue(indianId.matches("^[2-9]\\d{11}$"), indianId);
     }
 
@@ -78,7 +79,8 @@ class NationalIdLocaleResolutionTest {
     @DisplayName("language-only locales use the language default and unknown locales fail fast")
     void languageOnlyLocalesUseTheLanguageDefault() {
         assertSame(NationalIdRegistry.forLocale(Locale.US), NationalIdRegistry.forLocale(Locale.ENGLISH));
-        assertSame(NationalIdRegistry.forLocale(Locale.of("pt", "BR")), NationalIdRegistry.forLocale(Locale.of("pt")));
+        assertSame(
+                NationalIdRegistry.forLocale(new Locale("pt", "BR")), NationalIdRegistry.forLocale(new Locale("pt")));
         assertTrue(NationalIdRegistry.isRegistered(Locale.ENGLISH));
         assertNull(NationalIdRegistry.forLocale(Locale.ROOT));
         assertFalse(NationalIdRegistry.isRegistered(Locale.ROOT));
@@ -122,13 +124,14 @@ class NationalIdLocaleResolutionTest {
                 isolated.provider(Vocabulary.NATIONAL_ID, Locale.ENGLISH).generate(new Random(1L)));
         assertEquals(
                 "US-ID",
-                isolated.provider(Vocabulary.NATIONAL_ID, Locale.of("es", "US")).generate(new Random(1L)));
+                isolated.provider(Vocabulary.NATIONAL_ID, new Locale("es", "US"))
+                        .generate(new Random(1L)));
         assertNull(isolated.provider(Vocabulary.NATIONAL_ID, Locale.GERMAN));
         assertNull(isolated.provider(Vocabulary.NATIONAL_ID, null));
 
         DataRegistryContext scoped = DataRegistryContext.builder()
                 .register(Vocabulary.NATIONAL_ID, fixed(Locale.CANADA_FRENCH, "CA-ID"))
-                .register(Vocabulary.NATIONAL_ID, fixed(Locale.of("es", "US"), "US-ES-ID"))
+                .register(Vocabulary.NATIONAL_ID, fixed(new Locale("es", "US"), "US-ES-ID"))
                 .build();
         assertEquals(
                 "CA-ID",
@@ -138,11 +141,11 @@ class NationalIdLocaleResolutionTest {
         assertSame(NationalIdRegistry.forLocale(Locale.US), scoped.provider(Vocabulary.NATIONAL_ID, Locale.US));
         assertEquals(
                 "US-ES-ID",
-                scoped.provider(Vocabulary.NATIONAL_ID, Locale.of("es", "US")).generate(new Random(1L)));
+                scoped.provider(Vocabulary.NATIONAL_ID, new Locale("es", "US")).generate(new Random(1L)));
         assertSame(
-                NationalIdRegistry.forLocale(Locale.of("hi", "IN")),
-                scoped.provider(Vocabulary.NATIONAL_ID, Locale.of("en", "IN")));
-        assertNull(scoped.provider(Vocabulary.NATIONAL_ID, Locale.of("de", "AT")));
+                NationalIdRegistry.forLocale(new Locale("hi", "IN")),
+                scoped.provider(Vocabulary.NATIONAL_ID, new Locale("en", "IN")));
+        assertNull(scoped.provider(Vocabulary.NATIONAL_ID, new Locale("de", "AT")));
         assertEquals(
                 "CA-ID", scoped.provider(Vocabulary.NATIONAL_ID, Locale.FRENCH).generate(new Random(1L)));
         assertSame(

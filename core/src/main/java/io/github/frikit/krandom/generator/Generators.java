@@ -2737,7 +2737,7 @@ public final class Generators {
      */
     public static NationalIdGenerator ofCpf() {
         return ofNationalId(
-                GeneratorConfig.builder().locale(Locale.of("pt", "BR")).build());
+                GeneratorConfig.builder().locale(new Locale("pt", "BR")).build());
     }
 
     /**
@@ -2749,7 +2749,7 @@ public final class Generators {
      */
     public static NationalIdGenerator ofCpf(GeneratorConfig config) {
         return ofNationalId(Objects.requireNonNull(config, "config must not be null").toBuilder()
-                .locale(Locale.of("pt", "BR"))
+                .locale(new Locale("pt", "BR"))
                 .build());
     }
 

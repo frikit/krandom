@@ -50,9 +50,9 @@ class FileSupportGeneratorsTest {
     void dirPathLocaleBranches() {
         assertPathLooksValid(new DirPathGenerator(Locale.GERMANY).generate()); // de
         assertPathLooksValid(new DirPathGenerator(Locale.FRANCE).generate()); // fr
-        assertPathLooksValid(new DirPathGenerator(Locale.of("es", "ES")).generate()); // es
+        assertPathLooksValid(new DirPathGenerator(new Locale("es", "ES")).generate()); // es
         assertPathLooksValid(new DirPathGenerator(Locale.ITALY).generate()); // it
-        assertPathLooksValid(new DirPathGenerator(Locale.of("pt", "BR")).generate()); // pt
+        assertPathLooksValid(new DirPathGenerator(new Locale("pt", "BR")).generate()); // pt
         assertPathLooksValid(new DirPathGenerator(Locale.JAPAN).generate()); // ja
         assertPathLooksValid(new DirPathGenerator(Locale.CHINA).generate()); // zh
         assertPathLooksValid(new DirPathGenerator(Locale.US).generate()); // default

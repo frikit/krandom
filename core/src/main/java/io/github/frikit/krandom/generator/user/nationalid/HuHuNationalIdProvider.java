@@ -21,7 +21,7 @@ public final class HuHuNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("hu", "HU");
+        return new Locale("hu", "HU");
     }
 
     @Override

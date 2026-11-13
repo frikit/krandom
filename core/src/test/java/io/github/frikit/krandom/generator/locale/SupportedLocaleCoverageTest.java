@@ -41,7 +41,7 @@ class SupportedLocaleCoverageTest {
                         .map(SupportedLocale::locale)
                         .toList(),
                 SupportedLocale.locales());
-        assertTrue(SupportedLocale.fromLocale(Locale.of("xx", "YY")).isEmpty());
+        assertTrue(SupportedLocale.fromLocale(new Locale("xx", "YY")).isEmpty());
     }
 
     @Test

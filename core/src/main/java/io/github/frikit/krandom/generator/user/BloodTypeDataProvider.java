@@ -25,13 +25,13 @@ import java.util.Locale;
  * <pre>{@code
  * DataRegistryContext context = DataRegistryContext.builder()
  *     .register(Vocabulary.BLOOD_TYPE, new BloodTypeDataProvider() {
- *         public Locale getLocale()        { return Locale.of("ko", "KR"); }
+ *         public Locale getLocale()        { return Locale.forLanguageTag("ko-KR"); }
  *         public List<String> getTypes()   { return List.of("O+", "A+", "B+", "AB+"); }
  *         public List<Integer> getWeights(){ return List.of(27, 34, 27, 12); }
  *     })
  *     .build();
  * GeneratorConfig config = GeneratorConfig.builder()
- *     .locale(Locale.of("ko", "KR"))
+ *     .locale(Locale.forLanguageTag("ko-KR"))
  *     .registryContext(context)
  *     .build();
  * BloodTypeGenerator gen = new BloodTypeGenerator(config);

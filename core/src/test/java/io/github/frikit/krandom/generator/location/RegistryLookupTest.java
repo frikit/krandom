@@ -28,7 +28,7 @@ class RegistryLookupTest {
     void putWithFallbackStoresLanguageEntry() {
         Map<String, String> registry = new HashMap<>();
 
-        RegistryLookup.putWithLanguageFallback(registry, Locale.of("en", "US"), "us");
+        RegistryLookup.putWithLanguageFallback(registry, new Locale("en", "US"), "us");
 
         assertEquals("us", registry.get("en_US"));
         assertEquals("us", registry.get("en"));
@@ -38,9 +38,9 @@ class RegistryLookupTest {
     @DisplayName("putWithLanguageFallback replaces language entry for language-only locale")
     void putWithFallbackReplacesLanguageEntryForLanguageOnlyLocale() {
         Map<String, String> registry = new HashMap<>();
-        RegistryLookup.putWithLanguageFallback(registry, Locale.of("en", "US"), "us");
+        RegistryLookup.putWithLanguageFallback(registry, new Locale("en", "US"), "us");
 
-        RegistryLookup.putWithLanguageFallback(registry, Locale.of("en"), "en");
+        RegistryLookup.putWithLanguageFallback(registry, new Locale("en"), "en");
 
         assertEquals("us", registry.get("en_US"));
         assertEquals("en", registry.get("en"));
@@ -50,11 +50,11 @@ class RegistryLookupTest {
     @DisplayName("findWithFallback resolves exact, fallback and null cases")
     void findWithFallback() {
         Map<String, String> registry = new HashMap<>();
-        RegistryLookup.putWithLanguageFallback(registry, Locale.of("en", "US"), "us");
+        RegistryLookup.putWithLanguageFallback(registry, new Locale("en", "US"), "us");
 
-        assertSame("us", RegistryLookup.findWithFallback(registry, Locale.of("en", "US")));
-        assertSame("us", RegistryLookup.findWithFallback(registry, Locale.of("en", "CA")));
-        assertNull(RegistryLookup.findWithFallback(registry, Locale.of("fr", "FR")));
+        assertSame("us", RegistryLookup.findWithFallback(registry, new Locale("en", "US")));
+        assertSame("us", RegistryLookup.findWithFallback(registry, new Locale("en", "CA")));
+        assertNull(RegistryLookup.findWithFallback(registry, new Locale("fr", "FR")));
         assertNull(RegistryLookup.findWithFallback(registry, null));
     }
 
@@ -62,11 +62,11 @@ class RegistryLookupTest {
     @DisplayName("containsWithFallback resolves exact, fallback, unknown and null cases")
     void containsWithFallback() {
         Map<String, String> registry = new HashMap<>();
-        RegistryLookup.putWithLanguageFallback(registry, Locale.of("en", "US"), "us");
+        RegistryLookup.putWithLanguageFallback(registry, new Locale("en", "US"), "us");
 
-        assertTrue(RegistryLookup.containsWithFallback(registry, Locale.of("en", "US")));
-        assertTrue(RegistryLookup.containsWithFallback(registry, Locale.of("en", "CA")));
-        assertFalse(RegistryLookup.containsWithFallback(registry, Locale.of("fr", "FR")));
+        assertTrue(RegistryLookup.containsWithFallback(registry, new Locale("en", "US")));
+        assertTrue(RegistryLookup.containsWithFallback(registry, new Locale("en", "CA")));
+        assertFalse(RegistryLookup.containsWithFallback(registry, new Locale("fr", "FR")));
         assertFalse(RegistryLookup.containsWithFallback(registry, null));
     }
 

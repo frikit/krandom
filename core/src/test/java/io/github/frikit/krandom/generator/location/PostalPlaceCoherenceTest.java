@@ -72,8 +72,8 @@ class PostalPlaceCoherenceTest {
     /** A locale that resolves another locale's table, and the country its addresses name. */
     static Stream<Arguments> borrowingLocales() {
         return Stream.of(
-                Arguments.of(Locale.of("es", "US"), "en_US", "Estados Unidos", "US"),
-                Arguments.of(Locale.of("en", "DE"), "de_DE", "Germany", "DE"),
+                Arguments.of(new Locale("es", "US"), "en_US", "Estados Unidos", "US"),
+                Arguments.of(new Locale("en", "DE"), "de_DE", "Germany", "DE"),
                 Arguments.of(Locale.ENGLISH, "en_US", "United States", "US"),
                 Arguments.of(Locale.GERMAN, "de_DE", "Deutschland", "DE"),
                 Arguments.of(Locale.FRENCH, "fr_FR", "France", "FR"));

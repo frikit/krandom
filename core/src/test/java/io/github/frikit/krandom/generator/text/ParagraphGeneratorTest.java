@@ -103,7 +103,7 @@ class ParagraphGeneratorTest {
     void seededReproducibility() {
         GeneratorConfig cfg = GeneratorConfig.builder()
                 .seed(33L)
-                .locale(Locale.of("es", "ES"))
+                .locale(new Locale("es", "ES"))
                 .build();
         ParagraphGenerator a = new ParagraphGenerator(cfg);
         ParagraphGenerator b = new ParagraphGenerator(cfg);

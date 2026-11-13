@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 @DisplayName("RestaurantTypeGenerator")
 class RestaurantTypeGeneratorTest {
 
-    private static final Locale RU = Locale.of("ru", "RU");
+    private static final Locale RU = new Locale("ru", "RU");
 
     private static final Set<String> EN = Set.of(
             "Italian",
@@ -83,7 +83,7 @@ class RestaurantTypeGeneratorTest {
     @Test
     @DisplayName("unmapped locale falls back to English types")
     void unmappedFallsBackToEnglish() {
-        assertTrue(EN.contains(new RestaurantTypeGenerator(Locale.of("is", "IS")).generate()));
+        assertTrue(EN.contains(new RestaurantTypeGenerator(new Locale("is", "IS")).generate()));
     }
 
     @Test

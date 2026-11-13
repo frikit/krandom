@@ -111,7 +111,7 @@ class MoneyGeneratorTest {
     @Test
     @DisplayName("generate() for pt_BR contains BRL symbol")
     void generateBrazilBrl() {
-        MoneyGenerator gen = new MoneyGenerator(Locale.of("pt", "BR"));
+        MoneyGenerator gen = new MoneyGenerator(new Locale("pt", "BR"));
         for (int i = 0; i < 20; i++) {
             assertTrue(gen.generate().contains("R$"), "Expected R$ for pt_BR");
         }
@@ -120,7 +120,7 @@ class MoneyGeneratorTest {
     @Test
     @DisplayName("generate() for zh_CN contains yuan symbol")
     void generateChinaYuan() {
-        MoneyGenerator gen = new MoneyGenerator(Locale.of("zh", "CN"));
+        MoneyGenerator gen = new MoneyGenerator(new Locale("zh", "CN"));
         for (int i = 0; i < 20; i++) {
             assertTrue(gen.generate().contains("¥"), "Expected ¥ for zh_CN");
         }
@@ -248,7 +248,7 @@ class MoneyGeneratorTest {
     @DisplayName("generate(unknown locale) falls back to dollar formatting")
     void generateUnknownLocaleFallsBackToDollar() {
         MoneyGenerator gen = new MoneyGenerator();
-        String result = gen.generate(Locale.of("xx", "XX"));
+        String result = gen.generate(new Locale("xx", "XX"));
         assertTrue(result.startsWith("$"), "Unknown locale should fall back to USD");
     }
 
@@ -442,14 +442,14 @@ class MoneyGeneratorTest {
         Locale[] locales = {
             Locale.US,
             Locale.UK,
-            Locale.of("en", "AU"),
+            new Locale("en", "AU"),
             Locale.GERMANY,
             Locale.FRANCE,
-            Locale.of("es", "ES"),
+            new Locale("es", "ES"),
             Locale.ITALY,
-            Locale.of("pt", "BR"),
+            new Locale("pt", "BR"),
             Locale.JAPAN,
-            Locale.of("zh", "CN")
+            new Locale("zh", "CN")
         };
         for (Locale locale : locales) {
             MoneyGenerator gen = new MoneyGenerator(locale);

@@ -18,13 +18,13 @@ import java.util.Locale;
  * <pre>{@code
  * DataRegistryContext context = DataRegistryContext.builder()
  *     .register(Vocabulary.FIRST_NAME, new FirstNameDataProvider() {
- *         public Locale getLocale() { return Locale.of("ko", "KR"); }
+ *         public Locale getLocale() { return Locale.forLanguageTag("ko-KR"); }
  *         public String[] getMaleFirstNames()   { return new String[]{"민준", "서준", "예준"}; }
  *         public String[] getFemaleFirstNames() { return new String[]{"서연", "서윤", "지우"}; }
  *     })
  *     .build();
  * GeneratorConfig config = GeneratorConfig.builder()
- *     .locale(Locale.of("ko", "KR"))
+ *     .locale(Locale.forLanguageTag("ko-KR"))
  *     .registryContext(context)
  *     .build();
  * FirstNameGenerator gen = new FirstNameGenerator(config);

@@ -386,7 +386,7 @@ class LocalizedVocabularyTest {
         @Test
         @DisplayName("English locales other than en_US also keep the English lists")
         void otherEnglishLocales() {
-            for (Locale locale : List.of(Locale.UK, Locale.of("en", "AU"), Locale.CANADA, Locale.ENGLISH)) {
+            for (Locale locale : List.of(Locale.UK, new Locale("en", "AU"), Locale.CANADA, Locale.ENGLISH)) {
                 assertEquals(legacyDraws(INDUSTRIES, 30), new IndustryGenerator(seeded(locale)).generateList(30));
                 assertEquals(legacyDraws(MARITAL, 30), new MaritalStatusGenerator(seeded(locale)).generateList(30));
             }
@@ -507,7 +507,7 @@ class LocalizedVocabularyTest {
             assertEquals(legacyDraws(JOB_TYPES_DE, 40), new JobTypeGenerator(seeded(Locale.GERMANY)).generateList(40));
             assertEquals(
                     legacyDraws(JOB_TYPES_DE, 40),
-                    new JobTypeGenerator(seeded(Locale.of("de", "AT"))).generateList(40));
+                    new JobTypeGenerator(seeded(new Locale("de", "AT"))).generateList(40));
         }
     }
 
@@ -821,7 +821,7 @@ class LocalizedVocabularyTest {
         @Test
         @DisplayName("unsupported locales fall back to English vocabulary")
         void unsupportedLocaleFallsBack() {
-            Locale icelandic = Locale.of("is", "IS");
+            Locale icelandic = new Locale("is", "IS");
             assertNull(IndustryDataRegistry.forLocale(icelandic));
             assertEquals(legacyDraws(INDUSTRIES, 20), new IndustryGenerator(seeded(icelandic)).generateList(20));
             assertTrue(COMPANY_SUFFIXES.contains(new CompanyNameGenerator(seeded(icelandic)).generateSuffix()));
@@ -832,11 +832,11 @@ class LocalizedVocabularyTest {
         void fallbackTierLocalesResolve() {
             assertEquals(
                     IndustryDataRegistry.forLocale(Locale.GERMANY).getIndustries(),
-                    IndustryDataRegistry.forLocale(Locale.of("de", "CH")).getIndustries());
+                    IndustryDataRegistry.forLocale(new Locale("de", "CH")).getIndustries());
             assertEquals(
                     CommerceDataRegistry.forLocale(Locale.FRANCE).getProducts(),
                     CommerceDataRegistry.forLocale(Locale.CANADA_FRENCH).getProducts());
-            assertTrue(IndustryDataRegistry.isRegistered(Locale.of("pt", "PT")));
+            assertTrue(IndustryDataRegistry.isRegistered(new Locale("pt", "PT")));
         }
 
         @Test

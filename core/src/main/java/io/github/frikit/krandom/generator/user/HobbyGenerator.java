@@ -24,7 +24,7 @@ import java.util.Random;
  *
  * <pre>{@code
  *   String en = new HobbyGenerator().generate();                    // e.g. "Gardening"
- *   String ru = new HobbyGenerator(Locale.of("ru","RU")).generate(); // e.g. "Садоводство"
+ *   String ru = new HobbyGenerator(Locale.forLanguageTag("ru-RU")).generate(); // e.g. "Садоводство"
  * }</pre>
  */
 public final class HobbyGenerator implements Generator<String> {

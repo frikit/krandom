@@ -57,10 +57,15 @@ A seed fixes kRandom's own draws, not the Java runtime under them:
 
 | Module | Requirement |
 |:---|:---|
-| All modules | Java 21 or later (toolchain-enforced at build time) |
+| All modules | Java 17 or later (from 3.1.0; 3.0.x needs Java 21) |
 | `krandom-spring-boot-starter` | Spring Boot 4.x |
-| `krandom-kotlin-dsl`, `krandom-kotest-extensions` | built with the Kotlin version pinned in `gradle/libs.versions.toml`; from 3.1.0 for JVM target 17 and for Kotlin 2.2 (language and API version 2.2, `kotlin-stdlib` 2.2.21), so Kotlin 2.1.0 or later can read them; they run on Java 21 or later, as `krandom-core` does |
+| `krandom-kotlin-dsl`, `krandom-kotest-extensions` | built with the Kotlin version pinned in `gradle/libs.versions.toml`; from 3.1.0 for JVM target 17 and for Kotlin 2.2 (language and API version 2.2, `kotlin-stdlib` 2.2.21), so Kotlin 2.1.0 or later can read them |
 | `krandom-kotest-extensions` | the Kotest version pinned in `gradle/libs.versions.toml` |
+
+From 3.1.0 every module runs on Java 17, and every later 3.x release keeps them there: the build compiles the
+Java modules with `--release 17` and the Kotlin modules for JVM target 17, both against the Java 17 API, their
+Gradle module metadata declares Java 17 (`org.gradle.jvm.version`), and CI runs the Java modules' tests and
+the Android example's unit tests on Java 17. Building kRandom itself needs JDK 21 or later.
 
 ## Where to look
 

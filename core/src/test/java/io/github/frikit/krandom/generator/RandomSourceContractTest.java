@@ -104,7 +104,9 @@ class RandomSourceContractTest {
         }
 
         List<String> observed = new ArrayList<>(Collections.nCopies(callCount, null));
-        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+        // A thread for each caller, as every caller waits until all of them are ready.
+        ExecutorService executor = Executors.newCachedThreadPool();
+        try {
             List<Future<String>> calls = new ArrayList<>(callCount);
             for (int i = 0; i < callCount; i++) {
                 int logicalIndex = i;
@@ -124,6 +126,9 @@ class RandomSourceContractTest {
             } finally {
                 permits.forEach(CountDownLatch::countDown);
             }
+        } finally {
+            executor.shutdown();
+            executor.awaitTermination(1, TimeUnit.MINUTES);
         }
 
         List<String> expectedInReverseCallOrder = new ArrayList<>(expected);

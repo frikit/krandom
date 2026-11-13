@@ -164,11 +164,11 @@ class WordGeneratorTest {
     void languageFallback() {
         GeneratorConfig esEs = GeneratorConfig.builder()
                 .seed(11L)
-                .locale(Locale.of("es", "ES"))
+                .locale(new Locale("es", "ES"))
                 .build();
         GeneratorConfig esMx = GeneratorConfig.builder()
                 .seed(11L)
-                .locale(Locale.of("es", "MX"))
+                .locale(new Locale("es", "MX"))
                 .build();
         WordGenerator a = new WordGenerator(esEs);
         WordGenerator b = new WordGenerator(esMx);
@@ -183,7 +183,7 @@ class WordGeneratorTest {
     void unknownLanguageFallback() {
         GeneratorConfig unknown = GeneratorConfig.builder()
                 .seed(19L)
-                .locale(Locale.of("xx", "YY"))
+                .locale(new Locale("xx", "YY"))
                 .build();
         GeneratorConfig english =
                 GeneratorConfig.builder().seed(19L).locale(Locale.US).build();
@@ -199,7 +199,7 @@ class WordGeneratorTest {
     @DisplayName("language-only locale resolves without country branch")
     void languageOnlyLocale() {
         GeneratorConfig deLangOnly =
-                GeneratorConfig.builder().seed(23L).locale(Locale.of("de")).build();
+                GeneratorConfig.builder().seed(23L).locale(new Locale("de")).build();
         GeneratorConfig deExact =
                 GeneratorConfig.builder().seed(23L).locale(Locale.GERMANY).build();
         WordGenerator a = new WordGenerator(deLangOnly);

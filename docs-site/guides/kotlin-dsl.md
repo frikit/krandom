@@ -22,8 +22,8 @@ dependencies {
 
 From 3.1.0 the module is compiled for JVM target 17 and for Kotlin 2.2, so a Kotlin 2.1.0 or later compiler
 can read it, and Kotlin code compiled for JVM target 17, such as the unit tests of an Android module, can call
-`krandom<T>()` and its other inline functions. It still runs only on Java 21 or later, as `krandom-core`
-does: see [Android Unit Tests]({{ '/guides/android-unit-tests/' | relative_url }}).
+`krandom<T>()` and its other inline functions. It runs on Java 17 or later, as `krandom-core` does from 3.1.0:
+see [Android Unit Tests]({{ '/guides/android-unit-tests/' | relative_url }}).
 
 ## Generate One Object
 

@@ -251,7 +251,7 @@ class CardExpirationGeneratorTest {
 
     @Test
     void testGenerateWithLocaleUS() {
-        Locale locale = Locale.of("en", "US");
+        Locale locale = new Locale("en", "US");
         String expiry = generator.generate(locale);
         assertNotNull(expiry);
         assertTrue(expiry.matches("\\d{2}/\\d{2}"), "US should use MM/YY format");
@@ -259,7 +259,7 @@ class CardExpirationGeneratorTest {
 
     @Test
     void testGenerateWithLocaleGB() {
-        Locale locale = Locale.of("en", "GB");
+        Locale locale = new Locale("en", "GB");
         String expiry = generator.generate(locale);
         assertNotNull(expiry);
         assertTrue(expiry.matches("\\d{2}/\\d{2}"), "GB should use MM/YY format");
@@ -267,7 +267,7 @@ class CardExpirationGeneratorTest {
 
     @Test
     void testGenerateWithLocaleDE() {
-        Locale locale = Locale.of("de", "DE");
+        Locale locale = new Locale("de", "DE");
         String expiry = generator.generate(locale);
         assertNotNull(expiry);
         assertTrue(expiry.matches("\\d{2}/\\d{2}"), "DE should use MM/YY format");
@@ -275,7 +275,7 @@ class CardExpirationGeneratorTest {
 
     @Test
     void testGenerateWithLocaleJP() {
-        Locale locale = Locale.of("ja", "JP");
+        Locale locale = new Locale("ja", "JP");
         String expiry = generator.generate(locale);
         assertNotNull(expiry);
         assertTrue(expiry.matches("\\d{2}/\\d{2}"), "JP should use YY/MM format");
@@ -292,7 +292,7 @@ class CardExpirationGeneratorTest {
 
     @Test
     void testGenerateWithLocaleCN() {
-        Locale locale = Locale.of("zh", "CN");
+        Locale locale = new Locale("zh", "CN");
         String expiry = generator.generate(locale);
         assertNotNull(expiry);
         assertTrue(expiry.matches("\\d{2}/\\d{2}"), "CN should use YY/MM format");
@@ -307,8 +307,8 @@ class CardExpirationGeneratorTest {
 
     @Test
     void testGenerateWithLocaleDateRangeParameters() {
-        Locale usLocale = Locale.of("en", "US");
-        Locale jpLocale = Locale.of("ja", "JP");
+        Locale usLocale = new Locale("en", "US");
+        Locale jpLocale = new Locale("ja", "JP");
 
         String usFuture = generator.generate(usLocale, DateRange.FUTURE);
         String usAny = generator.generate(usLocale, DateRange.ANY);
@@ -551,8 +551,8 @@ class CardExpirationGeneratorTest {
 
     @Test
     void testLocaleFormatDifference() {
-        Locale usLocale = Locale.of("en", "US");
-        Locale jpLocale = Locale.of("ja", "JP");
+        Locale usLocale = new Locale("en", "US");
+        Locale jpLocale = new Locale("ja", "JP");
 
         // Generate with same seed to get same date
         GeneratorConfig config = GeneratorConfig.builder().seed(99999L).build();

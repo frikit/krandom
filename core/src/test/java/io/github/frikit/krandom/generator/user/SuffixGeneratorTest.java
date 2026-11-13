@@ -104,7 +104,7 @@ class SuffixGeneratorTest {
     @DisplayName("getLocale() returns the configured locale")
     void getLocale() {
         SuffixGenerator gen = new SuffixGenerator(Locale.UK);
-        assertEquals(Locale.of("en", "GB"), gen.getLocale());
+        assertEquals(new Locale("en", "GB"), gen.getLocale());
     }
 
     @Test
@@ -125,7 +125,7 @@ class SuffixGeneratorTest {
     @Test
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
-        assertThrows(UnsupportedOperationException.class, () -> new SuffixGenerator(Locale.of("xx", "YY")));
+        assertThrows(UnsupportedOperationException.class, () -> new SuffixGenerator(new Locale("xx", "YY")));
     }
 
     // ── generateList / stream ─────────────────────────────────────────────────
@@ -190,32 +190,32 @@ class SuffixGeneratorTest {
         @Test
         @DisplayName("isRegistered returns false for unknown locale")
         void isRegisteredUnknownLocale() {
-            assertFalse(SuffixDataRegistry.isRegistered(Locale.of("qq", "QQ")));
+            assertFalse(SuffixDataRegistry.isRegistered(new Locale("qq", "QQ")));
         }
 
         @Test
         @DisplayName("forLocale returns null for unknown locale")
         void forLocaleUnknownReturnsNull() {
-            assertNull(SuffixDataRegistry.forLocale(Locale.of("qq", "QQ")));
+            assertNull(SuffixDataRegistry.forLocale(new Locale("qq", "QQ")));
         }
 
         @Test
         @DisplayName("forLocale falls back to language-level entry for unknown country")
         void forLocaleLanguageFallback() {
-            SuffixDataProvider provider = SuffixDataRegistry.forLocale(Locale.of("en", "ZZ"));
+            SuffixDataProvider provider = SuffixDataRegistry.forLocale(new Locale("en", "ZZ"));
             assertNotNull(provider);
         }
 
         @Test
         @DisplayName("isRegistered with language-only locale checks language-level entry")
         void isRegisteredWithLanguageOnlyLocale() {
-            assertTrue(SuffixDataRegistry.isRegistered(Locale.of("en")));
+            assertTrue(SuffixDataRegistry.isRegistered(new Locale("en")));
         }
 
         @Test
         @DisplayName("forLocale with language-only locale returns language-level provider")
         void forLocaleWithLanguageOnlyLocale() {
-            assertNotNull(SuffixDataRegistry.forLocale(Locale.of("en")));
+            assertNotNull(SuffixDataRegistry.forLocale(new Locale("en")));
         }
     }
 }

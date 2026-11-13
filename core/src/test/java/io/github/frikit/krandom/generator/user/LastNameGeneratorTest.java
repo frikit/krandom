@@ -104,7 +104,7 @@ class LastNameGeneratorTest {
     @DisplayName("getLocale() returns the configured locale")
     void getLocale() {
         LastNameGenerator gen = new LastNameGenerator(Locale.UK);
-        assertEquals(Locale.of("en", "GB"), gen.getLocale());
+        assertEquals(new Locale("en", "GB"), gen.getLocale());
     }
 
     @Test
@@ -126,7 +126,7 @@ class LastNameGeneratorTest {
     @Test
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
-        assertThrows(UnsupportedOperationException.class, () -> new LastNameGenerator(Locale.of("xx", "YY")));
+        assertThrows(UnsupportedOperationException.class, () -> new LastNameGenerator(new Locale("xx", "YY")));
     }
 
     // ── generateList / stream ─────────────────────────────────────────────────
@@ -191,32 +191,32 @@ class LastNameGeneratorTest {
         @Test
         @DisplayName("isRegistered returns false for unknown locale")
         void isRegisteredUnknownLocale() {
-            assertFalse(LastNameDataRegistry.isRegistered(Locale.of("qq", "QQ")));
+            assertFalse(LastNameDataRegistry.isRegistered(new Locale("qq", "QQ")));
         }
 
         @Test
         @DisplayName("forLocale returns null for unknown locale")
         void forLocaleUnknownReturnsNull() {
-            assertNull(LastNameDataRegistry.forLocale(Locale.of("qq", "QQ")));
+            assertNull(LastNameDataRegistry.forLocale(new Locale("qq", "QQ")));
         }
 
         @Test
         @DisplayName("forLocale falls back to language-level entry for unknown country")
         void forLocaleLanguageFallback() {
-            LastNameDataProvider provider = LastNameDataRegistry.forLocale(Locale.of("en", "ZZ"));
+            LastNameDataProvider provider = LastNameDataRegistry.forLocale(new Locale("en", "ZZ"));
             assertNotNull(provider);
         }
 
         @Test
         @DisplayName("isRegistered with language-only locale checks language-level entry")
         void isRegisteredWithLanguageOnlyLocale() {
-            assertTrue(LastNameDataRegistry.isRegistered(Locale.of("en")));
+            assertTrue(LastNameDataRegistry.isRegistered(new Locale("en")));
         }
 
         @Test
         @DisplayName("forLocale with language-only locale returns language-level provider")
         void forLocaleWithLanguageOnlyLocale() {
-            assertNotNull(LastNameDataRegistry.forLocale(Locale.of("en")));
+            assertNotNull(LastNameDataRegistry.forLocale(new Locale("en")));
         }
     }
 }

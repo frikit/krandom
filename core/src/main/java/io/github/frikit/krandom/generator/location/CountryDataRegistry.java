@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * The first provider registered for a given language becomes the language-level fallback for that
  * language. Subsequent registrations for the same language update the exact key only, leaving the
  * language fallback untouched — unless the new provider's locale has no country component (e.g.
- * {@code Locale.of("en")}), in which case it explicitly replaces the language-level entry.
+ * {@code Locale.forLanguageTag("en")}), in which case it explicitly replaces the language-level entry.
  */
 public final class CountryDataRegistry {
 

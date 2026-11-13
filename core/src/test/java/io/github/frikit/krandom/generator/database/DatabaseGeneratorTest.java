@@ -46,7 +46,7 @@ class DatabaseGeneratorTest {
     @Test
     @DisplayName("covers all locale branches for columns")
     void localeBranchCoverage() {
-        Locale[] locales = {Locale.US, Locale.GERMANY, Locale.FRANCE, Locale.of("es", "ES"), Locale.ITALY};
+        Locale[] locales = {Locale.US, Locale.GERMANY, Locale.FRANCE, new Locale("es", "ES"), Locale.ITALY};
         for (Locale locale : locales) {
             DatabaseGenerator generator = new DatabaseGenerator(
                     GeneratorConfig.builder().seed(2L).locale(locale).build());

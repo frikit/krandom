@@ -26,18 +26,19 @@ class ThreadLocalGeneratorTest {
         CountDownLatch latch = new CountDownLatch(threadCount);
 
         for (int i = 0; i < threadCount; i++) {
-            Thread.startVirtualThread(() -> {
-                try {
-                    for (int j = 0; j < valuesPerThread; j++) {
-                        String value = gen.generate();
-                        assertNotNull(value);
-                        assertFalse(value.isBlank());
-                        allValues.add(value);
-                    }
-                } finally {
-                    latch.countDown();
-                }
-            });
+            new Thread(() -> {
+                        try {
+                            for (int j = 0; j < valuesPerThread; j++) {
+                                String value = gen.generate();
+                                assertNotNull(value);
+                                assertFalse(value.isBlank());
+                                allValues.add(value);
+                            }
+                        } finally {
+                            latch.countDown();
+                        }
+                    })
+                    .start();
         }
 
         latch.await();
@@ -59,14 +60,15 @@ class ThreadLocalGeneratorTest {
         CountDownLatch latch = new CountDownLatch(threadCount);
 
         for (int i = 0; i < threadCount; i++) {
-            Thread.startVirtualThread(() -> {
-                try {
-                    gen.generate();
-                    gen.generate();
-                } finally {
-                    latch.countDown();
-                }
-            });
+            new Thread(() -> {
+                        try {
+                            gen.generate();
+                            gen.generate();
+                        } finally {
+                            latch.countDown();
+                        }
+                    })
+                    .start();
         }
 
         latch.await();

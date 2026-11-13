@@ -136,7 +136,7 @@ class ProviderCatalogTest {
             assertEquals(ProviderTestSafety.CONFIGURATION_DEPENDENT, metadata.testSafety(), key);
             assertEquals(
                     ProviderSafetyPolicy.EMAIL_DOMAIN, metadata.safetyPolicy().orElseThrow(), key);
-            assertEquals(metadata, descriptor.getSchemaProjections().getFirst().getSafetyMetadata(), key);
+            assertEquals(metadata, descriptor.getSchemaProjections().get(0).getSafetyMetadata(), key);
         }
         assertEquals("email.domain-policy", ProviderSafetyPolicy.EMAIL_DOMAIN.getSetting());
         assertEquals(
@@ -161,7 +161,7 @@ class ProviderCatalogTest {
             assertEquals(ProviderValidity.CONFIGURATION_DEPENDENT, metadata.semanticPlausibility(), key);
             assertEquals(ProviderTestSafety.CONFIGURATION_DEPENDENT, metadata.testSafety(), key);
             assertEquals(ProviderSafetyPolicy.NETWORK, metadata.safetyPolicy().orElseThrow(), key);
-            assertEquals(metadata, descriptor.getSchemaProjections().getFirst().getSafetyMetadata(), key);
+            assertEquals(metadata, descriptor.getSchemaProjections().get(0).getSafetyMetadata(), key);
         }
         assertEquals("network.safety-policy", ProviderSafetyPolicy.NETWORK.getSetting());
         assertEquals(
@@ -207,7 +207,7 @@ class ProviderCatalogTest {
         assertEquals(List.of("custom.provider"), descriptor.getAliases());
         assertEquals(Set.of("customvalue"), descriptor.getSemanticKeys());
         assertEquals(safety, descriptor.getSafetyMetadata());
-        assertEquals(safety, descriptor.getSchemaProjections().getFirst().getSafetyMetadata());
+        assertEquals(safety, descriptor.getSchemaProjections().get(0).getSafetyMetadata());
         assertFalse(safety.isUnclassified());
     }
 
@@ -276,8 +276,7 @@ class ProviderCatalogTest {
                 .safetyMetadata(safety)
                 .schemaProjection(classifiedProjection)
                 .build();
-        assertEquals(
-                safety, classifiedDescriptor.getSchemaProjections().getFirst().getSafetyMetadata());
+        assertEquals(safety, classifiedDescriptor.getSchemaProjections().get(0).getSafetyMetadata());
     }
 
     @Test

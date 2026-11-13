@@ -71,11 +71,11 @@ class ObjectGenerationFailurePolicyTest {
             Object result = new ObjectGenerationFailurePolicy(true, diagnostics::add).handle(failure(), fallback);
 
             assertSame(fallback, result);
-            GenerationFailureDiagnostic diagnostic = diagnostics.getFirst();
+            GenerationFailureDiagnostic diagnostic = diagnostics.get(0);
             assertSame(CONTEXT, diagnostic.context());
             assertEquals(IllegalStateException.class.getName(), diagnostic.causeType());
             assertTrue(diagnostic.replayIdentity().isEmpty());
-            String diagnosticMessage = appender.list.getFirst().getFormattedMessage();
+            String diagnosticMessage = appender.list.get(0).getFormattedMessage();
             assertTrue(diagnosticMessage.contains("ASSIGN/ASSIGNMENT"));
             assertTrue(diagnosticMessage.contains("Order.customer"));
             assertTrue(diagnosticMessage.contains("java.lang.IllegalStateException"));
@@ -102,7 +102,7 @@ class ObjectGenerationFailurePolicyTest {
         new ObjectGenerationFailurePolicy(true, diagnostics::add, Optional.of("safe-recipe"))
                 .handle(failure(), "fallback");
 
-        assertEquals(Optional.of("safe-recipe"), diagnostics.getFirst().replayIdentity());
+        assertEquals(Optional.of("safe-recipe"), diagnostics.get(0).replayIdentity());
     }
 
     @Test
@@ -156,7 +156,7 @@ class ObjectGenerationFailurePolicyTest {
                 ObjectGenerationException.class,
                 () -> new ObjectGenerator<>(UnsupportedHolder.class, config).generate());
 
-        GenerationFailureDiagnostic diagnostic = diagnostics.getFirst();
+        GenerationFailureDiagnostic diagnostic = diagnostics.get(0);
         assertEquals(
                 GenerationFailureCategory.UNSUPPORTED_TYPE, diagnostic.context().category());
         assertEquals("UnsupportedHolder.task", diagnostic.context().path());
@@ -176,7 +176,7 @@ class ObjectGenerationFailurePolicyTest {
                 ObjectGenerationException.class,
                 () -> new ObjectGenerator<>(UnsupportedHolder.class, config).generate());
 
-        String recipe = diagnostics.getFirst().replayIdentity().orElseThrow();
+        String recipe = diagnostics.get(0).replayIdentity().orElseThrow();
         assertTrue(recipe.contains("format=krandom-recipe"));
         assertFalse(recipe.contains("do-not-log-this-text"));
     }
@@ -194,7 +194,7 @@ class ObjectGenerationFailurePolicyTest {
         AssignmentHolder holder = new ObjectGenerator<>(AssignmentHolder.class, config).generate();
 
         assertEquals(0, holder.value);
-        GenerationFailureDiagnostic diagnostic = diagnostics.getFirst();
+        GenerationFailureDiagnostic diagnostic = diagnostics.get(0);
         assertEquals(GenerationFailureCategory.ASSIGNMENT, diagnostic.context().category());
         assertEquals("AssignmentHolder.value", diagnostic.context().path());
         assertEquals(IllegalArgumentException.class.getName(), diagnostic.causeType());

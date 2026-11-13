@@ -63,7 +63,7 @@ class LocaleUsageExample {
     @Test
     @DisplayName("Create config with custom locale (Spanish Mexico)")
     void customLocale() {
-        Locale mexicanSpanish = Locale.of("es", "MX");
+        Locale mexicanSpanish = new Locale("es", "MX");
 
         GeneratorConfig config =
                 GeneratorConfig.builder().locale(mexicanSpanish).build();

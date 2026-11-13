@@ -20,7 +20,7 @@ public final class SkSkNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("sk", "SK");
+        return new Locale("sk", "SK");
     }
 
     @Override

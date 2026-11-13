@@ -54,10 +54,10 @@ import java.util.Random;
  * <p><strong>Locale-Aware Generation:</strong>
  * <pre>{@code
  * // Generate currency for specific locale
- * Locale usLocale = Locale.of("en", "US");
+ * Locale usLocale = Locale.forLanguageTag("en-US");
  * String usCurrency = gen.generate(usLocale);  // "USD"
  *
- * Locale jpLocale = Locale.of("ja", "JP");
+ * Locale jpLocale = Locale.forLanguageTag("ja-JP");
  * CurrencyInfo jpInfo = gen.generateWithInfo(jpLocale);
  * System.out.println(jpInfo.code());           // "JPY"
  * System.out.println(jpInfo.symbol());         // "¥"

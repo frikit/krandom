@@ -79,7 +79,7 @@ class Phase3FinanceGeneratorsTest {
         assertEquals(
                 10,
                 new BankAccountGenerator(GeneratorConfig.builder()
-                                .locale(Locale.of("es", "ES"))
+                                .locale(new Locale("es", "ES"))
                                 .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
                                 .build())
                         .generate()
@@ -103,7 +103,7 @@ class Phase3FinanceGeneratorsTest {
         assertEquals(
                 9,
                 new BankAccountGenerator(GeneratorConfig.builder()
-                                .locale(Locale.of("pt", "BR"))
+                                .locale(new Locale("pt", "BR"))
                                 .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
                                 .build())
                         .generate()
@@ -111,7 +111,7 @@ class Phase3FinanceGeneratorsTest {
         assertEquals(
                 9,
                 new BankAccountGenerator(GeneratorConfig.builder()
-                                .locale(Locale.of("en", "AU"))
+                                .locale(new Locale("en", "AU"))
                                 .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
                                 .build())
                         .generate()
@@ -129,7 +129,7 @@ class Phase3FinanceGeneratorsTest {
     @Test
     @DisplayName("bank account locale language branches for names and transaction types")
     void bankAccountLocaleBranches() {
-        Locale[] locales = {Locale.US, Locale.GERMANY, Locale.FRANCE, Locale.of("es", "ES"), Locale.ITALY};
+        Locale[] locales = {Locale.US, Locale.GERMANY, Locale.FRANCE, new Locale("es", "ES"), Locale.ITALY};
         for (Locale locale : locales) {
             BankAccountGenerator generator = new BankAccountGenerator(
                     GeneratorConfig.builder().seed(3L).locale(locale).build());

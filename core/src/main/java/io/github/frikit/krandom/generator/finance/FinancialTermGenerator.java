@@ -25,7 +25,7 @@ import java.util.Random;
  *
  * <pre>{@code
  *   String en = new FinancialTermGenerator().generate();                     // e.g. "Asset"
- *   String ru = new FinancialTermGenerator(Locale.of("ru","RU")).generate(); // e.g. "Актив"
+ *   String ru = new FinancialTermGenerator(Locale.forLanguageTag("ru-RU")).generate(); // e.g. "Актив"
  * }</pre>
  */
 public final class FinancialTermGenerator implements Generator<String> {

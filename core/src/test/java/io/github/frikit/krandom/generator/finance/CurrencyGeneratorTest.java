@@ -84,70 +84,70 @@ class CurrencyGeneratorTest {
 
     @Test
     void testGenerateForLocaleUS() {
-        Locale locale = Locale.of("en", "US");
+        Locale locale = new Locale("en", "US");
         String code = generator.generate(locale);
         assertEquals("USD", code);
     }
 
     @Test
     void testGenerateForLocaleGB() {
-        Locale locale = Locale.of("en", "GB");
+        Locale locale = new Locale("en", "GB");
         String code = generator.generate(locale);
         assertEquals("GBP", code);
     }
 
     @Test
     void testGenerateForLocaleAU() {
-        Locale locale = Locale.of("en", "AU");
+        Locale locale = new Locale("en", "AU");
         String code = generator.generate(locale);
         assertEquals("AUD", code);
     }
 
     @Test
     void testGenerateForLocaleDE() {
-        Locale locale = Locale.of("de", "DE");
+        Locale locale = new Locale("de", "DE");
         String code = generator.generate(locale);
         assertEquals("EUR", code);
     }
 
     @Test
     void testGenerateForLocaleFR() {
-        Locale locale = Locale.of("fr", "FR");
+        Locale locale = new Locale("fr", "FR");
         String code = generator.generate(locale);
         assertEquals("EUR", code);
     }
 
     @Test
     void testGenerateForLocaleES() {
-        Locale locale = Locale.of("es", "ES");
+        Locale locale = new Locale("es", "ES");
         String code = generator.generate(locale);
         assertEquals("EUR", code);
     }
 
     @Test
     void testGenerateForLocaleIT() {
-        Locale locale = Locale.of("it", "IT");
+        Locale locale = new Locale("it", "IT");
         String code = generator.generate(locale);
         assertEquals("EUR", code);
     }
 
     @Test
     void testGenerateForLocaleBR() {
-        Locale locale = Locale.of("pt", "BR");
+        Locale locale = new Locale("pt", "BR");
         String code = generator.generate(locale);
         assertEquals("BRL", code);
     }
 
     @Test
     void testGenerateForLocaleJP() {
-        Locale locale = Locale.of("ja", "JP");
+        Locale locale = new Locale("ja", "JP");
         String code = generator.generate(locale);
         assertEquals("JPY", code);
     }
 
     @Test
     void testGenerateForLocaleCN() {
-        Locale locale = Locale.of("zh", "CN");
+        Locale locale = new Locale("zh", "CN");
         String code = generator.generate(locale);
         assertEquals("CNY", code);
     }
@@ -161,7 +161,7 @@ class CurrencyGeneratorTest {
 
     @Test
     void testGenerateForUnknownLocale() {
-        Locale locale = Locale.of("xx", "XX");
+        Locale locale = new Locale("xx", "XX");
         String code = generator.generate(locale);
         assertNotNull(code);
         assertEquals(3, code.length());
@@ -183,7 +183,7 @@ class CurrencyGeneratorTest {
 
     @Test
     void testGenerateWithInfoForLocaleUS() {
-        Locale locale = Locale.of("en", "US");
+        Locale locale = new Locale("en", "US");
         CurrencyInfo info = generator.generateWithInfo(locale);
         assertEquals("USD", info.code());
         assertEquals("United States Dollar", info.name());
@@ -193,7 +193,7 @@ class CurrencyGeneratorTest {
 
     @Test
     void testGenerateWithInfoForLocaleGB() {
-        Locale locale = Locale.of("en", "GB");
+        Locale locale = new Locale("en", "GB");
         CurrencyInfo info = generator.generateWithInfo(locale);
         assertEquals("GBP", info.code());
         assertEquals("British Pound Sterling", info.name());
@@ -203,7 +203,7 @@ class CurrencyGeneratorTest {
 
     @Test
     void testGenerateWithInfoForLocaleJP() {
-        Locale locale = Locale.of("ja", "JP");
+        Locale locale = new Locale("ja", "JP");
         CurrencyInfo info = generator.generateWithInfo(locale);
         assertEquals("JPY", info.code());
         assertEquals("Japanese Yen", info.name());
@@ -250,14 +250,14 @@ class CurrencyGeneratorTest {
 
     @Test
     void testGetNameForLocaleUS() {
-        Locale locale = Locale.of("en", "US");
+        Locale locale = new Locale("en", "US");
         String name = generator.getName(locale);
         assertEquals("United States Dollar", name);
     }
 
     @Test
     void testGetNameForLocaleEUR() {
-        Locale locale = Locale.of("de", "DE");
+        Locale locale = new Locale("de", "DE");
         String name = generator.getName(locale);
         assertEquals("Euro", name);
     }
@@ -280,21 +280,21 @@ class CurrencyGeneratorTest {
 
     @Test
     void testGetSymbolForLocaleUS() {
-        Locale locale = Locale.of("en", "US");
+        Locale locale = new Locale("en", "US");
         String symbol = generator.getSymbol(locale);
         assertEquals("$", symbol);
     }
 
     @Test
     void testGetSymbolForLocaleGB() {
-        Locale locale = Locale.of("en", "GB");
+        Locale locale = new Locale("en", "GB");
         String symbol = generator.getSymbol(locale);
         assertEquals("£", symbol);
     }
 
     @Test
     void testGetSymbolForLocaleEUR() {
-        Locale locale = Locale.of("fr", "FR");
+        Locale locale = new Locale("fr", "FR");
         String symbol = generator.getSymbol(locale);
         assertEquals("€", symbol);
     }
@@ -318,14 +318,14 @@ class CurrencyGeneratorTest {
 
     @Test
     void testGetNumericCodeForLocaleUS() {
-        Locale locale = Locale.of("en", "US");
+        Locale locale = new Locale("en", "US");
         String numericCode = generator.getNumericCode(locale);
         assertEquals("840", numericCode);
     }
 
     @Test
     void testGetNumericCodeForLocaleEUR() {
-        Locale locale = Locale.of("es", "ES");
+        Locale locale = new Locale("es", "ES");
         String numericCode = generator.getNumericCode(locale);
         assertEquals("978", numericCode);
     }
@@ -456,21 +456,21 @@ class CurrencyGeneratorTest {
 
     @Test
     void testCurrencyForLocaleUS() {
-        Locale locale = Locale.of("en", "US");
+        Locale locale = new Locale("en", "US");
         Currency currency = Currency.forLocale(locale);
         assertEquals(Currency.USD, currency);
     }
 
     @Test
     void testCurrencyForLocaleGB() {
-        Locale locale = Locale.of("en", "GB");
+        Locale locale = new Locale("en", "GB");
         Currency currency = Currency.forLocale(locale);
         assertEquals(Currency.GBP, currency);
     }
 
     @Test
     void testCurrencyForLocaleEUR() {
-        Locale locale = Locale.of("de", "DE");
+        Locale locale = new Locale("de", "DE");
         Currency currency = Currency.forLocale(locale);
         assertEquals(Currency.EUR, currency);
     }
@@ -583,16 +583,16 @@ class CurrencyGeneratorTest {
     @Test
     void testAllLocalesHaveCurrency() {
         Locale[] locales = {
-            Locale.of("en", "US"),
-            Locale.of("en", "GB"),
-            Locale.of("en", "AU"),
-            Locale.of("de", "DE"),
-            Locale.of("fr", "FR"),
-            Locale.of("es", "ES"),
-            Locale.of("it", "IT"),
-            Locale.of("pt", "BR"),
-            Locale.of("ja", "JP"),
-            Locale.of("zh", "CN")
+            new Locale("en", "US"),
+            new Locale("en", "GB"),
+            new Locale("en", "AU"),
+            new Locale("de", "DE"),
+            new Locale("fr", "FR"),
+            new Locale("es", "ES"),
+            new Locale("it", "IT"),
+            new Locale("pt", "BR"),
+            new Locale("ja", "JP"),
+            new Locale("zh", "CN")
         };
 
         for (Locale locale : locales) {
@@ -603,15 +603,15 @@ class CurrencyGeneratorTest {
 
     @Test
     void testExpandedLocaleCurrencyMappings() {
-        assertEquals(Currency.EUR, Currency.forLocale(Locale.of("nl", "NL")));
-        assertEquals(Currency.PLN, Currency.forLocale(Locale.of("pl", "PL")));
-        assertEquals(Currency.RUB, Currency.forLocale(Locale.of("ru", "RU")));
-        assertEquals(Currency.KRW, Currency.forLocale(Locale.of("ko", "KR")));
-        assertEquals(Currency.TRY, Currency.forLocale(Locale.of("tr", "TR")));
-        assertEquals(Currency.SEK, Currency.forLocale(Locale.of("sv", "SE")));
-        assertEquals(Currency.NOK, Currency.forLocale(Locale.of("nb", "NO")));
-        assertEquals(Currency.CZK, Currency.forLocale(Locale.of("cs", "CZ")));
-        assertEquals(Currency.SAR, Currency.forLocale(Locale.of("ar", "SA")));
-        assertEquals(Currency.INR, Currency.forLocale(Locale.of("hi", "IN")));
+        assertEquals(Currency.EUR, Currency.forLocale(new Locale("nl", "NL")));
+        assertEquals(Currency.PLN, Currency.forLocale(new Locale("pl", "PL")));
+        assertEquals(Currency.RUB, Currency.forLocale(new Locale("ru", "RU")));
+        assertEquals(Currency.KRW, Currency.forLocale(new Locale("ko", "KR")));
+        assertEquals(Currency.TRY, Currency.forLocale(new Locale("tr", "TR")));
+        assertEquals(Currency.SEK, Currency.forLocale(new Locale("sv", "SE")));
+        assertEquals(Currency.NOK, Currency.forLocale(new Locale("nb", "NO")));
+        assertEquals(Currency.CZK, Currency.forLocale(new Locale("cs", "CZ")));
+        assertEquals(Currency.SAR, Currency.forLocale(new Locale("ar", "SA")));
+        assertEquals(Currency.INR, Currency.forLocale(new Locale("hi", "IN")));
     }
 }

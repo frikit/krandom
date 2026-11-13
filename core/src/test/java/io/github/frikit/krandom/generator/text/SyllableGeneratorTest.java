@@ -114,11 +114,11 @@ class SyllableGeneratorTest {
     void languageFallback() {
         SyllableGenerator esEs = new SyllableGenerator(GeneratorConfig.builder()
                 .seed(11L)
-                .locale(Locale.of("es", "ES"))
+                .locale(new Locale("es", "ES"))
                 .build());
         SyllableGenerator esMx = new SyllableGenerator(GeneratorConfig.builder()
                 .seed(11L)
-                .locale(Locale.of("es", "MX"))
+                .locale(new Locale("es", "MX"))
                 .build());
 
         for (int i = 0; i < 20; i++) {
@@ -131,7 +131,7 @@ class SyllableGeneratorTest {
     void unknownLanguageFallback() {
         SyllableGenerator unknown = new SyllableGenerator(GeneratorConfig.builder()
                 .seed(19L)
-                .locale(Locale.of("xx", "YY"))
+                .locale(new Locale("xx", "YY"))
                 .build());
         SyllableGenerator english = new SyllableGenerator(
                 GeneratorConfig.builder().seed(19L).locale(Locale.US).build());
@@ -145,7 +145,7 @@ class SyllableGeneratorTest {
     @DisplayName("language-only locale resolves without country branch")
     void languageOnlyLocale() {
         SyllableGenerator deLangOnly = new SyllableGenerator(
-                GeneratorConfig.builder().seed(23L).locale(Locale.of("de")).build());
+                GeneratorConfig.builder().seed(23L).locale(new Locale("de")).build());
         SyllableGenerator deExact = new SyllableGenerator(
                 GeneratorConfig.builder().seed(23L).locale(Locale.GERMANY).build());
 

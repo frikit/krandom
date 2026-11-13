@@ -94,7 +94,7 @@ class JobTypeGeneratorTest {
                         "Bénévole",
                         "À distance"));
         assertOneOf(
-                new JobTypeGenerator(Locale.of("es", "ES")),
+                new JobTypeGenerator(new Locale("es", "ES")),
                 List.of(
                         "Tiempo completo",
                         "Medio tiempo",
@@ -120,7 +120,7 @@ class JobTypeGeneratorTest {
                         "Volontario",
                         "Remoto"));
         assertOneOf(
-                new JobTypeGenerator(Locale.of("pt", "BR")),
+                new JobTypeGenerator(new Locale("pt", "BR")),
                 List.of(
                         "Tempo integral",
                         "Meio período",
@@ -139,7 +139,7 @@ class JobTypeGeneratorTest {
                 new JobTypeGenerator(Locale.CHINA),
                 List.of("全职", "兼职", "合同制", "临时", "实习", "自由职业", "学徒制", "季节性", "志愿者", "远程"));
         assertOneOf(
-                new JobTypeGenerator(Locale.of("xx", "YY")),
+                new JobTypeGenerator(new Locale("xx", "YY")),
                 List.of(
                         "Full-time",
                         "Part-time",

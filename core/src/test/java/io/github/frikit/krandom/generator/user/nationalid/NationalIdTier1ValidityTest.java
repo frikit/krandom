@@ -245,7 +245,7 @@ class NationalIdTier1ValidityTest {
         @DisplayName("1000 seeded TFNs validate")
         void generatedValidate() {
             assertAllSatisfy(
-                    generated(Locale.of("en", "AU")), id -> id.matches("[1-9]\\d{2} \\d{3} \\d{3}") && isValid(id));
+                    generated(new Locale("en", "AU")), id -> id.matches("[1-9]\\d{2} \\d{3} \\d{3}") && isValid(id));
         }
     }
 
@@ -472,7 +472,7 @@ class NationalIdTier1ValidityTest {
         @Test
         @DisplayName("1000 seeded DNIs validate with and without the dash")
         void generatedValidate() {
-            assertAllSatisfy(generated(Locale.of("es", "ES")), id -> id.matches("\\d{8}[A-Z]") && isValid(id));
+            assertAllSatisfy(generated(new Locale("es", "ES")), id -> id.matches("\\d{8}[A-Z]") && isValid(id));
             assertAllSatisfy(
                     generated(new EsNationalIdProvider().withDash()), id -> id.matches("\\d{8}-[A-Z]") && isValid(id));
         }
@@ -593,7 +593,7 @@ class NationalIdTier1ValidityTest {
         @DisplayName("1000 seeded CPFs validate with and without formatting")
         void generatedValidate() {
             assertAllSatisfy(
-                    generated(Locale.of("pt", "BR")),
+                    generated(new Locale("pt", "BR")),
                     id -> id.matches("\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}") && isValid(id));
             assertAllSatisfy(
                     generated(new BrNationalIdProvider().withoutFormatting()),
@@ -704,7 +704,7 @@ class NationalIdTier1ValidityTest {
         @Test
         @DisplayName("1000 seeded BSNs validate")
         void generatedValidate() {
-            assertAllSatisfy(generated(Locale.of("nl", "NL")), NlBsn::isValid);
+            assertAllSatisfy(generated(new Locale("nl", "NL")), NlBsn::isValid);
         }
     }
 
@@ -769,7 +769,7 @@ class NationalIdTier1ValidityTest {
         void generatedValidate() {
             // PlNationalIdProvider documents its first ten digits as synthetic, so birth dates are not
             // guaranteed; only the documented check digit is.
-            assertAllSatisfy(generated(Locale.of("pl", "PL")), PlPesel::hasValidChecksum);
+            assertAllSatisfy(generated(new Locale("pl", "PL")), PlPesel::hasValidChecksum);
         }
     }
 
@@ -822,7 +822,7 @@ class NationalIdTier1ValidityTest {
         @Test
         @DisplayName("1000 seeded SNILS validate")
         void generatedValidate() {
-            assertAllSatisfy(generated(Locale.of("ru", "RU")), RuSnils::isValid);
+            assertAllSatisfy(generated(new Locale("ru", "RU")), RuSnils::isValid);
         }
     }
 
@@ -882,7 +882,7 @@ class NationalIdTier1ValidityTest {
         @DisplayName("1000 seeded RRNs validate with documented 1980-1999 dates")
         void generatedValidate() {
             assertAllSatisfy(
-                    generated(Locale.of("ko", "KR")), id -> isValid(id) && id.matches("[89]\\d{5}-[12]\\d{6}"));
+                    generated(new Locale("ko", "KR")), id -> isValid(id) && id.matches("[89]\\d{5}-[12]\\d{6}"));
         }
     }
 
@@ -924,7 +924,7 @@ class NationalIdTier1ValidityTest {
         @Test
         @DisplayName("1000 seeded numbers validate")
         void generatedValidate() {
-            assertAllSatisfy(generated(Locale.of("tr", "TR")), TrKimlikNo::isValid);
+            assertAllSatisfy(generated(new Locale("tr", "TR")), TrKimlikNo::isValid);
         }
     }
 
@@ -972,7 +972,8 @@ class NationalIdTier1ValidityTest {
         @Test
         @DisplayName("1000 seeded personnummer validate with documented 1950-1999 dates")
         void generatedValidate() {
-            assertAllSatisfy(generated(Locale.of("sv", "SE")), id -> id.matches("19[5-9]\\d{5}-\\d{4}") && isValid(id));
+            assertAllSatisfy(
+                    generated(new Locale("sv", "SE")), id -> id.matches("19[5-9]\\d{5}-\\d{4}") && isValid(id));
         }
     }
 
@@ -1008,7 +1009,7 @@ class NationalIdTier1ValidityTest {
         @DisplayName("1000 seeded values keep the documented shape with 1950-1999 dates")
         void generatedValidate() {
             assertAllSatisfy(
-                    generated(Locale.of("nb", "NO")),
+                    generated(new Locale("nb", "NO")),
                     id -> isValid(id)
                             && number(id, 4, 6) >= 50
                             && isCalendarDate(1900 + number(id, 4, 6), number(id, 2, 4), number(id, 0, 2)));
@@ -1058,7 +1059,7 @@ class NationalIdTier1ValidityTest {
         @DisplayName("1000 seeded values keep the documented shape with 1950-1999 dates")
         void generatedValidate() {
             assertAllSatisfy(
-                    generated(Locale.of("cs", "CZ")),
+                    generated(new Locale("cs", "CZ")),
                     id -> isValid(id)
                             && number(id, 0, 2) >= 50
                             && isCalendarDate(1900 + number(id, 0, 2), number(id, 2, 4), number(id, 4, 6)));
@@ -1092,7 +1093,7 @@ class NationalIdTier1ValidityTest {
         @Test
         @DisplayName("1000 seeded values keep the documented shape")
         void generatedValidate() {
-            assertAllSatisfy(generated(Locale.of("ar", "SA")), SaNationalId::isValid);
+            assertAllSatisfy(generated(new Locale("ar", "SA")), SaNationalId::isValid);
         }
     }
 
@@ -1127,7 +1128,7 @@ class NationalIdTier1ValidityTest {
         @Test
         @DisplayName("1000 seeded values validate")
         void generatedValidate() {
-            assertAllSatisfy(generated(Locale.of("hi", "IN")), InAadhaar::isValid);
+            assertAllSatisfy(generated(new Locale("hi", "IN")), InAadhaar::isValid);
         }
     }
 }

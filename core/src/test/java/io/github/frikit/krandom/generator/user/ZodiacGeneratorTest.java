@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 @DisplayName("Zodiac generators")
 class ZodiacGeneratorTest {
 
-    private static final Locale RU = Locale.of("ru", "RU");
+    private static final Locale RU = new Locale("ru", "RU");
 
     private static final Set<String> WESTERN_EN = Set.of(
             "Aries",
@@ -134,7 +134,7 @@ class ZodiacGeneratorTest {
         @Test
         @DisplayName("unmapped locale falls back to English names")
         void unmappedLocaleFallsBackToEnglish() {
-            ZodiacGenerator gen = new ZodiacGenerator(Locale.of("is", "IS")); // Icelandic: no built-in file
+            ZodiacGenerator gen = new ZodiacGenerator(new Locale("is", "IS")); // Icelandic: no built-in file
             assertTrue(WESTERN_EN.contains(gen.generate()));
             assertEquals("Scorpio", gen.signFor(LocalDate.of(1990, 11, 5)));
         }
@@ -164,13 +164,13 @@ class ZodiacGeneratorTest {
         @DisplayName("isRegistered / forLocale honor built-ins and reject null/unknown")
         void registryLookups() {
             assertTrue(ZodiacDataRegistry.isRegistered(RU));
-            assertTrue(ZodiacDataRegistry.isRegistered(Locale.of("ru")));
-            assertFalse(ZodiacDataRegistry.isRegistered(Locale.of("is", "IS"))); // Icelandic: no file
+            assertTrue(ZodiacDataRegistry.isRegistered(new Locale("ru")));
+            assertFalse(ZodiacDataRegistry.isRegistered(new Locale("is", "IS"))); // Icelandic: no file
             assertFalse(ZodiacDataRegistry.isRegistered(null));
 
             assertNotNull(ZodiacDataRegistry.forLocale(RU));
-            assertNotNull(ZodiacDataRegistry.forLocale(Locale.of("ru", "XX"))); // language fallback
-            assertNull(ZodiacDataRegistry.forLocale(Locale.of("is"))); // Icelandic: no file
+            assertNotNull(ZodiacDataRegistry.forLocale(new Locale("ru", "XX"))); // language fallback
+            assertNull(ZodiacDataRegistry.forLocale(new Locale("is"))); // Icelandic: no file
             assertNull(ZodiacDataRegistry.forLocale(null));
 
             assertTrue(ZodiacDataRegistry.registeredKeys().contains("ru_RU"));
@@ -249,7 +249,7 @@ class ZodiacGeneratorTest {
         @Test
         @DisplayName("unmapped locale falls back to English animals")
         void unmappedFallsBackToEnglish() {
-            assertEquals("Dragon", new ChineseZodiacGenerator(Locale.of("is", "IS")).animalFor(2024));
+            assertEquals("Dragon", new ChineseZodiacGenerator(new Locale("is", "IS")).animalFor(2024));
         }
 
         @Test

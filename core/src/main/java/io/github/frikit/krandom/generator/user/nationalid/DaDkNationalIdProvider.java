@@ -22,7 +22,7 @@ public final class DaDkNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("da", "DK");
+        return new Locale("da", "DK");
     }
 
     @Override

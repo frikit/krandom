@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -1062,7 +1063,7 @@ public final class ObjectFaker<T> implements Generator<T> {
                     + "; use GeneratorConfig.Builder.objectOverride(ownerType, fieldName, generator) "
                     + "for owner-specific overrides");
         }
-        Field field = matches.getFirst();
+        Field field = matches.get(0);
         return new RuleTarget(field.getDeclaringClass(), field.getName(), field.getType(), field, null);
     }
 
@@ -1177,7 +1178,11 @@ public final class ObjectFaker<T> implements Generator<T> {
     record RulePath(String path, List<RuleTarget> segments) {
 
         RuleTarget leaf() {
-            return segments.getLast();
+            // A path of dots only, such as ".", has no segment, and fails as List.getLast() does.
+            if (segments.isEmpty()) {
+                throw new NoSuchElementException();
+            }
+            return segments.get(segments.size() - 1);
         }
 
         String fieldName() {

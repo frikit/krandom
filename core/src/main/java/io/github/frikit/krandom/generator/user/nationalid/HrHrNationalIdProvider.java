@@ -17,7 +17,7 @@ public final class HrHrNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("hr", "HR");
+        return new Locale("hr", "HR");
     }
 
     @Override

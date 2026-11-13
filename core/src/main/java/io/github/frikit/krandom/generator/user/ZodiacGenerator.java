@@ -28,7 +28,7 @@ import java.util.Random;
  *
  * <pre>{@code
  *   String en = new ZodiacGenerator().signFor(LocalDate.of(1990, 11, 5));            // "Scorpio"
- *   String ru = new ZodiacGenerator(Locale.of("ru", "RU")).signFor(LocalDate.of(1990, 11, 5)); // "Скорпион"
+ *   String ru = new ZodiacGenerator(Locale.forLanguageTag("ru-RU")).signFor(LocalDate.of(1990, 11, 5)); // "Скорпион"
  * }</pre>
  */
 public final class ZodiacGenerator implements Generator<String> {

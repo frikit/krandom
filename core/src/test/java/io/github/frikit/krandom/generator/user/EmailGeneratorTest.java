@@ -189,11 +189,11 @@ class EmailGeneratorTest {
         assertTrue(List.of("orange.fr", "laposte.net", "gmail.com", "outlook.com")
                 .contains(realistic(Locale.FRANCE).getFreeEmailProvider()));
         assertTrue(List.of("hotmail.es", "gmail.com", "outlook.com", "yahoo.com")
-                .contains(realistic(Locale.of("es", "ES")).getFreeEmailProvider()));
+                .contains(realistic(new Locale("es", "ES")).getFreeEmailProvider()));
         assertTrue(List.of("libero.it", "gmail.com", "outlook.com", "yahoo.com")
                 .contains(realistic(Locale.ITALY).getFreeEmailProvider()));
         assertTrue(List.of("uol.com.br", "bol.com.br", "gmail.com", "outlook.com")
-                .contains(realistic(Locale.of("pt", "BR")).getFreeEmailProvider()));
+                .contains(realistic(new Locale("pt", "BR")).getFreeEmailProvider()));
         assertTrue(List.of("yahoo.co.jp", "gmail.com", "outlook.com")
                 .contains(realistic(Locale.JAPAN).getFreeEmailProvider()));
         assertTrue(List.of("qq.com", "163.com", "126.com", "gmail.com")
@@ -382,16 +382,16 @@ class EmailGeneratorTest {
     @Test
     void testAll10Locales() {
         Locale[] locales = {
-            Locale.of("en", "US"),
-            Locale.of("en", "GB"),
-            Locale.of("en", "AU"),
-            Locale.of("de", "DE"),
-            Locale.of("fr", "FR"),
-            Locale.of("es", "ES"),
-            Locale.of("it", "IT"),
-            Locale.of("pt", "BR"),
-            Locale.of("ja", "JP"),
-            Locale.of("zh", "CN")
+            new Locale("en", "US"),
+            new Locale("en", "GB"),
+            new Locale("en", "AU"),
+            new Locale("de", "DE"),
+            new Locale("fr", "FR"),
+            new Locale("es", "ES"),
+            new Locale("it", "IT"),
+            new Locale("pt", "BR"),
+            new Locale("ja", "JP"),
+            new Locale("zh", "CN")
         };
 
         for (Locale locale : locales) {

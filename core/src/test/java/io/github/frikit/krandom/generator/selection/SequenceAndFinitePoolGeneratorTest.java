@@ -114,7 +114,8 @@ class SequenceAndFinitePoolGeneratorTest {
             while (pool.remaining() > 0) {
                 emitted.add(pool.generate());
             }
-            assertEquals(shuffled.reversed(), emitted);
+            java.util.Collections.reverse(shuffled);
+            assertEquals(shuffled, emitted);
             pool.reset();
         }
     }
@@ -123,7 +124,8 @@ class SequenceAndFinitePoolGeneratorTest {
     private static <T> List<T> emissionOrder(List<T> values, java.util.Random random) {
         List<T> shuffled = new ArrayList<>(values);
         java.util.Collections.shuffle(shuffled, random);
-        return shuffled.reversed().stream().distinct().toList();
+        java.util.Collections.reverse(shuffled);
+        return shuffled.stream().distinct().toList();
     }
 
     private static GeneratorConfig seeded(long seed) {

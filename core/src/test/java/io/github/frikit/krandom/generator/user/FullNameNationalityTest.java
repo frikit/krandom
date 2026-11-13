@@ -37,7 +37,7 @@ class FullNameNationalityTest {
         FullNameGenerator generator =
                 new FullNameGenerator(GeneratorConfig.builder().seed(12L).build());
         Set<String> british = firstNames(Locale.UK);
-        Set<String> ukrainian = firstNames(Locale.of("uk", "UA"));
+        Set<String> ukrainian = firstNames(new Locale("uk", "UA"));
         for (String token : List.of("uk", "UK", "gb", "en_GB")) {
             for (int i = 0; i < 25; i++) {
                 String first = generator.generate(nationality(token)).split(" ")[0];
@@ -52,7 +52,7 @@ class FullNameNationalityTest {
     void ukrainianStillReachable() {
         FullNameGenerator generator =
                 new FullNameGenerator(GeneratorConfig.builder().seed(13L).build());
-        Set<String> ukrainian = firstNames(Locale.of("uk", "UA"));
+        Set<String> ukrainian = firstNames(new Locale("uk", "UA"));
         for (String token : List.of("uk_UA", "uk-UA", "UA", "UK_UA")) {
             for (int i = 0; i < 10; i++) {
                 String first = generator.generate(nationality(token)).split(" ")[0];

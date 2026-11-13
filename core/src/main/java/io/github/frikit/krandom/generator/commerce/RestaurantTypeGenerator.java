@@ -25,7 +25,7 @@ import java.util.Random;
  *
  * <pre>{@code
  *   String en = new RestaurantTypeGenerator().generate();                     // e.g. "Italian"
- *   String ru = new RestaurantTypeGenerator(Locale.of("ru","RU")).generate(); // e.g. "Итальянский"
+ *   String ru = new RestaurantTypeGenerator(Locale.forLanguageTag("ru-RU")).generate(); // e.g. "Итальянский"
  * }</pre>
  */
 public final class RestaurantTypeGenerator implements Generator<String> {

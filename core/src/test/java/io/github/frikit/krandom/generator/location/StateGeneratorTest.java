@@ -95,7 +95,7 @@ class StateGeneratorTest {
     @Test
     @DisplayName("Australian locale returns Australian state names")
     void australianLocale() {
-        StateGenerator gen = new StateGenerator(Locale.of("en", "AU"));
+        StateGenerator gen = new StateGenerator(new Locale("en", "AU"));
 
         Set<String> states = new HashSet<>();
         for (int i = 0; i < 200; i++) {
@@ -117,7 +117,7 @@ class StateGeneratorTest {
     @Test
     @DisplayName("Australian locale with abbreviation returns state abbreviations")
     void australianLocaleAbbreviations() {
-        StateGenerator gen = new StateGenerator(Locale.of("en", "AU"));
+        StateGenerator gen = new StateGenerator(new Locale("en", "AU"));
 
         Set<String> abbreviations = new HashSet<>();
         for (int i = 0; i < 200; i++) {
@@ -173,7 +173,7 @@ class StateGeneratorTest {
     @Test
     @DisplayName("Italian locale returns Italian region names")
     void italianLocale() {
-        StateGenerator gen = new StateGenerator(Locale.of("it", "IT"));
+        StateGenerator gen = new StateGenerator(new Locale("it", "IT"));
 
         Set<String> regions = new HashSet<>();
         for (int i = 0; i < 300; i++) {
@@ -195,7 +195,7 @@ class StateGeneratorTest {
     @Test
     @DisplayName("Italian locale with abbreviation returns full names (no abbreviations)")
     void italianLocaleNoAbbreviations() {
-        StateGenerator gen = new StateGenerator(Locale.of("it", "IT"));
+        StateGenerator gen = new StateGenerator(new Locale("it", "IT"));
 
         Set<String> results = new HashSet<>();
         for (int i = 0; i < 200; i++) {
@@ -289,7 +289,7 @@ class StateGeneratorTest {
     @Test
     @DisplayName("Spanish (Spain) locale returns Spanish autonomous community names")
     void spanishSpainLocale() {
-        StateGenerator gen = new StateGenerator(Locale.of("es", "ES"));
+        StateGenerator gen = new StateGenerator(new Locale("es", "ES"));
 
         Set<String> communities = new HashSet<>();
         for (int i = 0; i < 300; i++) {
@@ -311,7 +311,7 @@ class StateGeneratorTest {
     @Test
     @DisplayName("Spanish (Spain) locale with abbreviation returns full names (no abbreviations)")
     void spanishSpainLocaleNoAbbreviations() {
-        StateGenerator gen = new StateGenerator(Locale.of("es", "ES"));
+        StateGenerator gen = new StateGenerator(new Locale("es", "ES"));
 
         Set<String> results = new HashSet<>();
         for (int i = 0; i < 200; i++) {
@@ -328,7 +328,7 @@ class StateGeneratorTest {
     @Test
     @DisplayName("Brazilian locale returns Brazilian state names")
     void brazilianLocale() {
-        StateGenerator gen = new StateGenerator(Locale.of("pt", "BR"));
+        StateGenerator gen = new StateGenerator(new Locale("pt", "BR"));
 
         Set<String> states = new HashSet<>();
         for (int i = 0; i < 500; i++) {
@@ -350,7 +350,7 @@ class StateGeneratorTest {
     @Test
     @DisplayName("Brazilian locale with abbreviation returns state abbreviations")
     void brazilianLocaleAbbreviations() {
-        StateGenerator gen = new StateGenerator(Locale.of("pt", "BR"));
+        StateGenerator gen = new StateGenerator(new Locale("pt", "BR"));
 
         Set<String> abbreviations = new HashSet<>();
         for (int i = 0; i < 500; i++) {
@@ -539,12 +539,12 @@ class StateGeneratorTest {
     void localeSupported() {
         assertTrue(new StateGenerator(Locale.US).isLocaleExplicitlySupported());
         assertTrue(new StateGenerator(Locale.UK).isLocaleExplicitlySupported());
-        assertTrue(new StateGenerator(Locale.of("en", "AU")).isLocaleExplicitlySupported());
+        assertTrue(new StateGenerator(new Locale("en", "AU")).isLocaleExplicitlySupported());
         assertTrue(new StateGenerator(Locale.GERMANY).isLocaleExplicitlySupported());
         assertTrue(new StateGenerator(Locale.FRANCE).isLocaleExplicitlySupported());
-        assertTrue(new StateGenerator(Locale.of("es", "ES")).isLocaleExplicitlySupported());
-        assertTrue(new StateGenerator(Locale.of("it", "IT")).isLocaleExplicitlySupported());
-        assertTrue(new StateGenerator(Locale.of("pt", "BR")).isLocaleExplicitlySupported());
+        assertTrue(new StateGenerator(new Locale("es", "ES")).isLocaleExplicitlySupported());
+        assertTrue(new StateGenerator(new Locale("it", "IT")).isLocaleExplicitlySupported());
+        assertTrue(new StateGenerator(new Locale("pt", "BR")).isLocaleExplicitlySupported());
         assertTrue(new StateGenerator(Locale.JAPAN).isLocaleExplicitlySupported());
         assertTrue(new StateGenerator(Locale.CHINA).isLocaleExplicitlySupported());
     }
@@ -553,7 +553,7 @@ class StateGeneratorTest {
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
         UnsupportedOperationException ex =
-                assertThrows(UnsupportedOperationException.class, () -> new StateGenerator(Locale.of("xx", "YY")));
+                assertThrows(UnsupportedOperationException.class, () -> new StateGenerator(new Locale("xx", "YY")));
 
         assertTrue(ex.getMessage().contains("not supported"));
         assertTrue(ex.getMessage().contains("xx_YY"));
@@ -605,13 +605,13 @@ class StateGeneratorTest {
     @Test
     @DisplayName("isRegistered returns false for unregistered locale")
     void isRegisteredUnknownLocale() {
-        assertFalse(StateDataRegistry.isRegistered(Locale.of("xx", "YY")));
+        assertFalse(StateDataRegistry.isRegistered(new Locale("xx", "YY")));
     }
 
     @Test
     @DisplayName("forLocale returns null for completely unknown locale")
     void forLocaleUnknownReturnsNull() {
-        assertNull(StateDataRegistry.forLocale(Locale.of("xx", "YY")));
+        assertNull(StateDataRegistry.forLocale(new Locale("xx", "YY")));
     }
 
     @Test
@@ -699,7 +699,7 @@ class StateGeneratorTest {
     @Test
     @DisplayName("abbreviation mode falls back to the full state name when no abbreviation exists")
     void abbreviationFallbackForContextScopedProvider() {
-        Locale locale = Locale.of("zz", "ZZ");
+        Locale locale = new Locale("zz", "ZZ");
         io.github.frikit.krandom.generator.DataRegistryContext context =
                 io.github.frikit.krandom.generator.DataRegistryContext.builder()
                         .register(Vocabulary.STATE, new StateDataProvider() {

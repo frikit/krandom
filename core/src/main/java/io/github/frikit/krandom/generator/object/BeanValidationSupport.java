@@ -466,7 +466,7 @@ final class BeanValidationSupport {
     // Each regex source replays from its own seed, drawn from the engine's replayable stream. The minimum
     // length lets its open-ended repetitions reach what @Size asks for.
     private static RegexGenerator regexGenerator(String expression, int minLength, long seed) {
-        int length = Math.clamp(minLength, 1, Integer.MAX_VALUE - 1);
+        int length = Math.min(Integer.MAX_VALUE - 1, Math.max(minLength, 1));
         return new RegexGenerator(
                 expression,
                 GeneratorConfig.builder()
@@ -563,7 +563,8 @@ final class BeanValidationSupport {
          * range allows, so a configured range outside this one gives its nearest bound.
          */
         SizeRange within(int configuredMin, int configuredMax) {
-            return new SizeRange(Math.clamp(configuredMin, min, max), Math.clamp(configuredMax, min, max));
+            return new SizeRange(
+                    Math.min(max, Math.max(configuredMin, min)), Math.min(max, Math.max(configuredMax, min)));
         }
 
         int next(Random random) {

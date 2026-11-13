@@ -1138,8 +1138,8 @@ class ObjectGeneratorSemanticCoherenceTest {
                 error.getMessage());
         assertTrue(error.getCause().getMessage().contains("FixedNamePerson.email' after 3 attempts"));
         assertEquals(1, diagnostics.size());
-        assertEquals(context, diagnostics.getFirst().context());
-        assertTrue(diagnostics.getFirst().causeType().endsWith("UniqueFieldTracker$ExhaustedException"));
+        assertEquals(context, diagnostics.get(0).context());
+        assertTrue(diagnostics.get(0).causeType().endsWith("UniqueFieldTracker$ExhaustedException"));
     }
 
     @Test
@@ -1410,7 +1410,7 @@ class ObjectGeneratorSemanticCoherenceTest {
         assertEquals(
                 GenerationOperation.ALIGN_SEMANTICS,
                 error.getContext().orElseThrow().operation());
-        assertTrue(diagnostics.getFirst().replayIdentity().orElseThrow().contains("format=krandom-recipe"));
+        assertTrue(diagnostics.get(0).replayIdentity().orElseThrow().contains("format=krandom-recipe"));
     }
 
     @Test

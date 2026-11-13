@@ -19,7 +19,7 @@ public final class PlNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("pl", "PL");
+        return new Locale("pl", "PL");
     }
 
     @Override

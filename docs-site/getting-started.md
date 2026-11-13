@@ -8,7 +8,7 @@ permalink: /getting-started/
 
 ## Requirements
 
-- Java 21+
+- Java 17+ for every module from `3.1.0` (Java 21+ for `3.0.x`)
 - Gradle or Maven
 - JUnit 6 for the optional `krandom-junit` extension
 

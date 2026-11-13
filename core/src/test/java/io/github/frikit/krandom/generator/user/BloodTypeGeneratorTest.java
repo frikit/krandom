@@ -118,9 +118,9 @@ class BloodTypeGeneratorTest {
         void isRegistered() {
             assertTrue(BloodTypeDataRegistry.isRegistered(Locale.US));
             assertTrue(BloodTypeDataRegistry.isRegistered(Locale.JAPAN));
-            assertTrue(BloodTypeDataRegistry.isRegistered(Locale.of("en", "CA")), "language fallback");
+            assertTrue(BloodTypeDataRegistry.isRegistered(new Locale("en", "CA")), "language fallback");
             assertFalse(BloodTypeDataRegistry.isRegistered(Locale.GERMANY));
-            assertFalse(BloodTypeDataRegistry.isRegistered(Locale.of("xx", "YY")));
+            assertFalse(BloodTypeDataRegistry.isRegistered(new Locale("xx", "YY")));
             assertFalse(BloodTypeDataRegistry.isRegistered(null));
         }
 
@@ -128,7 +128,7 @@ class BloodTypeGeneratorTest {
         @DisplayName("forLocale: exact, language-fallback, and null")
         void forLocale() {
             assertNotNull(BloodTypeDataRegistry.forLocale(Locale.US));
-            assertNotNull(BloodTypeDataRegistry.forLocale(Locale.of("ja", "XX")));
+            assertNotNull(BloodTypeDataRegistry.forLocale(new Locale("ja", "XX")));
             assertNotNull(BloodTypeDataRegistry.forLocale(Locale.JAPANESE));
             assertNull(BloodTypeDataRegistry.forLocale(Locale.GERMAN));
             assertNull(BloodTypeDataRegistry.forLocale(null));

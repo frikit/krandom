@@ -48,7 +48,7 @@ public final class EsNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("es", "ES");
+        return new Locale("es", "ES");
     }
 
     @Override

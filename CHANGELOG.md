@@ -53,11 +53,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Gradle selects over 2.2.21; it gets `kotlin-reflect` 2.2.21 unless it names a version of its own, and with
   Kotlin 2.4.21 the Kotlin DSL still reads its data classes' parameter names through it. The Gradle module
   metadata of both modules now declares `org.gradle.jvm.version` 17 rather than 21. `krandom-core`, which both
-  depend on, is still compiled for Java 21 and declares 21, so both modules still need a Java 21 runtime: an
-  Android module can use them in its local unit tests on Java 21, and not in app code or on-device tests. The
+  depend on, runs on Java 17 too from 3.1.0 (see below), so both modules run on Java 17: an Android module
+  can use them in its local unit tests, on Java 17 or later, and not in app code or on-device tests. The
   public API is unchanged. The `examples/kotlin-android` example, which CI runs, compiles its unit tests for
   JVM target 17 with the Kotlin that the Android Gradle plugin 9.5.1 brings, and the Android unit tests guide
   describes its setup.
+- `krandom-core`, `krandom-jackson`, `krandom-junit` and `krandom-spring-boot-starter` now run on Java 17 or
+  later, rather than 21: the build compiles them against the Java 17 API (`--release 17`), their Gradle module
+  metadata declares Java 17 (`org.gradle.jvm.version`), so a Gradle build on Java 17 resolves them, and CI runs
+  their tests on Java 17. Seeded output on Java 21 and later does not change: the code that used the API or
+  language of Java 18 to 21, such as `Locale.of`, `Math.clamp`, `Math.ceilDiv`, `List.getFirst` and
+  pattern-matching `switch`, now computes the same values with Java 17's, and every pinned seeded test passes
+  unchanged on Java 21. Values drawn from the JDK's own data follow the JDK that runs them, on Java 17 as on
+  any other: locale display names and date formats from its CLDR version, time zones from its TZDB, and its
+  ISO country list. With the Kotlin modules' JVM 17 target above, every kRandom module runs on Java 17 in
+  3.1.0; building kRandom still needs JDK 21 or later.
 
 ### Deprecated
 

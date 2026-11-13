@@ -1202,7 +1202,8 @@ class ObjectGeneratorTest {
                             "TwinBranchRoot.right.label",
                             "TwinBranchRoot.right.task"),
                     lenient.stream().map(d -> d.context().path()).toList());
-            assertEquals(TwinBranch.class, lenient.getLast().context().ownerType());
+            assertEquals(
+                    TwinBranch.class, lenient.get(lenient.size() - 1).context().ownerType());
             assertEquals(
                     "TwinBranchRoot.left.code", error.getContext().orElseThrow().path());
             assertEquals(
@@ -1878,7 +1879,7 @@ class ObjectGeneratorTest {
 
             assertNull(top.mid().leaf());
             assertEquals(1, diagnostics.size());
-            GenerationFailureDiagnostic diagnostic = diagnostics.getFirst();
+            GenerationFailureDiagnostic diagnostic = diagnostics.get(0);
             assertEquals("Top.mid.leaf", diagnostic.context().path());
             assertEquals(
                     GenerationFailureCategory.UNSUPPORTED_TYPE,
@@ -1902,11 +1903,10 @@ class ObjectGeneratorTest {
             assertNull(top.mid().shape());
             assertEquals(1, diagnostics.size());
             assertEquals(
-                    "RequiredShapeTop.mid.shape",
-                    diagnostics.getFirst().context().path());
+                    "RequiredShapeTop.mid.shape", diagnostics.get(0).context().path());
             assertEquals(
                     UnsupportedOperationException.class.getName(),
-                    diagnostics.getFirst().causeType());
+                    diagnostics.get(0).causeType());
         }
 
         @Test
@@ -3115,11 +3115,10 @@ class ObjectGeneratorTest {
             assertTrue(error.getCause().getMessage().contains("objectUniquenessMaxAttempts"));
             assertTrue(error.getCause().getMessage().contains("objectUniqueFields"));
             assertEquals(1, diagnostics.size());
-            assertEquals(context, diagnostics.getFirst().context());
+            assertEquals(context, diagnostics.get(0).context());
             assertEquals(
-                    error.getCause().getClass().getName(),
-                    diagnostics.getFirst().causeType());
-            assertTrue(diagnostics.getFirst().causeType().endsWith("UniqueFieldTracker$ExhaustedException"));
+                    error.getCause().getClass().getName(), diagnostics.get(0).causeType());
+            assertTrue(diagnostics.get(0).causeType().endsWith("UniqueFieldTracker$ExhaustedException"));
         }
 
         @Test
@@ -3199,7 +3198,7 @@ class ObjectGeneratorTest {
             assertEquals(
                     List.of("BoundedId.id", "BoundedId.id"),
                     diagnostics.stream().map(d -> d.context().path()).toList());
-            assertTrue(diagnostics.getFirst().causeType().endsWith("UniqueFieldTracker$ExhaustedException"));
+            assertTrue(diagnostics.get(0).causeType().endsWith("UniqueFieldTracker$ExhaustedException"));
 
             ObjectGenerator<Code> overridden = new ObjectGenerator<>(
                     Code.class,

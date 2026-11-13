@@ -26,7 +26,7 @@ import java.util.Random;
  *
  * <pre>{@code
  *   String en = new PronounGenerator().generate();                   // e.g. "she/her"
- *   String ru = new PronounGenerator(Locale.of("ru","RU")).generate(); // e.g. "они/их"
+ *   String ru = new PronounGenerator(Locale.forLanguageTag("ru-RU")).generate(); // e.g. "они/их"
  * }</pre>
  */
 public final class PronounGenerator implements Generator<String> {

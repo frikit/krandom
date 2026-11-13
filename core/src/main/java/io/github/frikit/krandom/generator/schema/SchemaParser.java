@@ -1329,7 +1329,7 @@ public final class SchemaParser {
             // nextDouble(origin, bound) cannot take a range wider than a double holds.
             return ctx -> {
                 double share = ctx.random().nextDouble();
-                return Math.clamp(origin * (1 - share) + limit * share, origin, limit);
+                return Math.min(limit, Math.max(origin * (1 - share) + limit * share, origin));
             };
         }
         return ctx -> ctx.random().nextDouble(origin, bound);

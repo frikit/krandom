@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 @DisplayName("FinancialTermGenerator")
 class FinancialTermGeneratorTest {
 
-    private static final Locale RU = Locale.of("ru", "RU");
+    private static final Locale RU = new Locale("ru", "RU");
 
     private static final Set<String> EN = Set.of(
             "Asset",
@@ -82,7 +82,7 @@ class FinancialTermGeneratorTest {
     @Test
     @DisplayName("unmapped locale falls back to English terms")
     void unmappedFallsBackToEnglish() {
-        assertTrue(EN.contains(new FinancialTermGenerator(Locale.of("is", "IS")).generate()));
+        assertTrue(EN.contains(new FinancialTermGenerator(new Locale("is", "IS")).generate()));
     }
 
     @Test

@@ -17,7 +17,7 @@ public final class ArSaNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("ar", "SA");
+        return new Locale("ar", "SA");
     }
 
     @Override

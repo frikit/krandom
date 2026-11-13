@@ -100,7 +100,7 @@ class SchemaRecordsTest {
         drawn.addAll(mixed.generateBatch(1));
         drawn.addAll(mixed.nextRecords(1));
         drawn.addAll(mixed.loop(1));
-        drawn.add(mixed.generateList(1).getFirst());
+        drawn.add(mixed.generateList(1).get(0));
 
         assertEquals(indexed(9L).nextRecords(6), drawn);
     }

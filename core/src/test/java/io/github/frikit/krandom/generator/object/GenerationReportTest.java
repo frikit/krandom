@@ -625,7 +625,7 @@ class GenerationReportTest {
 
             assertEquals(new ObjectGenerator<>(Order.class, listening(29L).build()).generate(), order);
             assertFalse(appender.list.isEmpty());
-            String message = appender.list.getFirst().getFormattedMessage();
+            String message = appender.list.get(0).getFormattedMessage();
             assertTrue(message.contains("java.lang.IllegalStateException"), message);
             assertFalse(message.contains("SECRET"), message);
         } finally {

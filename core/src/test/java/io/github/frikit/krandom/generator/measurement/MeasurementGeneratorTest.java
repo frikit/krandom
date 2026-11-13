@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 @DisplayName("MeasurementGenerator")
 class MeasurementGeneratorTest {
 
-    private static final Locale RU = Locale.of("ru", "RU");
+    private static final Locale RU = new Locale("ru", "RU");
 
     private static final Set<String> EN = Set.of(
             "Meter",
@@ -83,7 +83,7 @@ class MeasurementGeneratorTest {
     @Test
     @DisplayName("unmapped locale falls back to English units")
     void unmappedFallsBackToEnglish() {
-        assertTrue(EN.contains(new MeasurementGenerator(Locale.of("is", "IS")).generate()));
+        assertTrue(EN.contains(new MeasurementGenerator(new Locale("is", "IS")).generate()));
     }
 
     @Test

@@ -126,7 +126,7 @@ class GlobalRegistryReadApiTest {
                 .findFirst()
                 .orElseThrow(() -> new AssertionError(api.name() + " seeded no country-level key"));
         String[] parts = key.split("_", 2);
-        return Locale.of(parts[0], parts[1]);
+        return new Locale(parts[0], parts[1]);
     }
 
     @Test
@@ -138,11 +138,11 @@ class GlobalRegistryReadApiTest {
             assertTrue(api.isRegistered().apply(seeded), api.name());
             assertNotNull(api.forLocale().apply(seeded), api.name());
 
-            Locale unknownRegion = Locale.of(seeded.getLanguage(), "ZZ");
+            Locale unknownRegion = new Locale(seeded.getLanguage(), "ZZ");
             assertTrue(api.isRegistered().apply(unknownRegion), api.name());
             assertNotNull(api.forLocale().apply(unknownRegion), api.name());
 
-            Locale languageOnly = Locale.of(seeded.getLanguage());
+            Locale languageOnly = new Locale(seeded.getLanguage());
             assertTrue(api.isRegistered().apply(languageOnly), api.name());
             assertNotNull(api.forLocale().apply(languageOnly), api.name());
         }
@@ -155,7 +155,7 @@ class GlobalRegistryReadApiTest {
             assertFalse(api.isRegistered().apply(null), api.name());
             assertNull(api.forLocale().apply(null), api.name());
 
-            Locale unknown = Locale.of("xx", "YY");
+            Locale unknown = new Locale("xx", "YY");
             assertFalse(api.isRegistered().apply(unknown), api.name());
             assertNull(api.forLocale().apply(unknown), api.name());
         }

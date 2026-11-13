@@ -29,6 +29,13 @@ tasks.test {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        // Java 21 unless -PjavaVersion names another: scripts/verify_examples_local.sh also runs these tests
+        // with -PjavaVersion=17, the oldest Java that kRandom's Java modules run on.
+        languageVersion.set(
+            providers
+                .gradleProperty("javaVersion")
+                .map { version -> JavaLanguageVersion.of(version) }
+                .orElse(JavaLanguageVersion.of(21)),
+        )
     }
 }

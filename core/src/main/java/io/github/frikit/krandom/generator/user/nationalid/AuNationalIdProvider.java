@@ -44,7 +44,7 @@ public final class AuNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("en", "AU");
+        return new Locale("en", "AU");
     }
 
     @Override

@@ -302,7 +302,7 @@ public final class RegexGenerator implements Generator<String> {
         this(
                 Objects.requireNonNull(pattern, "pattern must not be null"),
                 Objects.requireNonNull(config, "config must not be null").createRandom(),
-                Math.clamp(2L * config.getMinStringLength(), OPEN_ENDED_REPETITIONS, MAX_REPETITIONS));
+                (int) Math.min(MAX_REPETITIONS, Math.max(2L * config.getMinStringLength(), OPEN_ENDED_REPETITIONS)));
     }
 
     private RegexGenerator(String pattern, Random random, int openEndedLimit) {
@@ -377,20 +377,21 @@ public final class RegexGenerator implements Generator<String> {
 
     // Every node appends to the one buffer, so nothing larger than the value is built along the way.
     private void append(Node node, StringBuilder value) {
-        switch (node) {
-            case LiteralNode literal -> value.appendCodePoint(literal.codePoint());
-            case CharClassNode charClass -> value.append(charClass.pool()[random.nextInt(charClass.pool().length)]);
-            case AssertionNode assertion -> {}
-            case SequenceNode sequence -> {
-                for (Node n : sequence.nodes()) append(n, value);
-            }
-            case AlternationNode alternation ->
-                append(alternation.alts().get(random.nextInt(alternation.alts().size())), value);
-            case QuantifierNode q -> {
-                int max = maxCount(q, openEndedLimit);
-                int count = q.min() == max ? q.min() : q.min() + random.nextInt(max - q.min() + 1);
-                for (int i = 0; i < count; i++) append(q.child(), value);
-            }
+        if (node instanceof LiteralNode literal) {
+            value.appendCodePoint(literal.codePoint());
+        } else if (node instanceof CharClassNode charClass) {
+            value.append(charClass.pool()[random.nextInt(charClass.pool().length)]);
+        } else if (node instanceof AssertionNode) {
+            // An assertion matches a position and adds no text.
+        } else if (node instanceof SequenceNode sequence) {
+            for (Node n : sequence.nodes()) append(n, value);
+        } else if (node instanceof AlternationNode alternation) {
+            append(alternation.alts().get(random.nextInt(alternation.alts().size())), value);
+        } else {
+            QuantifierNode q = (QuantifierNode) node;
+            int max = maxCount(q, openEndedLimit);
+            int count = q.min() == max ? q.min() : q.min() + random.nextInt(max - q.min() + 1);
+            for (int i = 0; i < count; i++) append(q.child(), value);
         }
     }
 
@@ -407,36 +408,39 @@ public final class RegexGenerator implements Generator<String> {
     private record Cost(long length, long steps) {}
 
     private static Cost cost(Node node, int openEndedLimit) {
-        return switch (node) {
-            case LiteralNode literal -> new Cost(Character.charCount(literal.codePoint()), 1);
-            case CharClassNode charClass -> new Cost(1, 1);
-            case AssertionNode assertion -> new Cost(0, 1);
-            case SequenceNode sequence -> {
-                long length = 0;
-                long steps = 1;
-                for (Node n : sequence.nodes()) {
-                    Cost part = cost(n, openEndedLimit);
-                    length = capped(length + part.length(), MAX_LENGTH);
-                    steps = capped(steps + part.steps(), MAX_STEPS);
-                }
-                yield new Cost(length, steps);
+        if (node instanceof LiteralNode literal) {
+            return new Cost(Character.charCount(literal.codePoint()), 1);
+        }
+        if (node instanceof CharClassNode) {
+            return new Cost(1, 1);
+        }
+        if (node instanceof AssertionNode) {
+            return new Cost(0, 1);
+        }
+        if (node instanceof SequenceNode sequence) {
+            long length = 0;
+            long steps = 1;
+            for (Node n : sequence.nodes()) {
+                Cost part = cost(n, openEndedLimit);
+                length = capped(length + part.length(), MAX_LENGTH);
+                steps = capped(steps + part.steps(), MAX_STEPS);
             }
-            case AlternationNode alternation -> {
-                long length = 0;
-                long steps = 0;
-                for (SequenceNode alt : alternation.alts()) {
-                    Cost choice = cost(alt, openEndedLimit);
-                    length = Math.max(length, choice.length());
-                    steps = Math.max(steps, choice.steps());
-                }
-                yield new Cost(length, capped(1 + steps, MAX_STEPS));
+            return new Cost(length, steps);
+        }
+        if (node instanceof AlternationNode alternation) {
+            long length = 0;
+            long steps = 0;
+            for (SequenceNode alt : alternation.alts()) {
+                Cost choice = cost(alt, openEndedLimit);
+                length = Math.max(length, choice.length());
+                steps = Math.max(steps, choice.steps());
             }
-            case QuantifierNode q -> {
-                long count = maxCount(q, openEndedLimit);
-                Cost each = cost(q.child(), openEndedLimit);
-                yield new Cost(capped(count * each.length(), MAX_LENGTH), capped(1 + count * each.steps(), MAX_STEPS));
-            }
-        };
+            return new Cost(length, capped(1 + steps, MAX_STEPS));
+        }
+        QuantifierNode q = (QuantifierNode) node;
+        long count = maxCount(q, openEndedLimit);
+        Cost each = cost(q.child(), openEndedLimit);
+        return new Cost(capped(count * each.length(), MAX_LENGTH), capped(1 + count * each.steps(), MAX_STEPS));
     }
 
     private static long capped(long value, long limit) {
@@ -483,6 +487,10 @@ public final class RegexGenerator implements Generator<String> {
     /** A parsed pattern, and the largest open-ended repetition its values stay within the size limits at. */
     private record ParsedPattern(Node root, int largestOpenEndedLimit) {}
 
+    /**
+     * A node of a parsed pattern. Code that handles each kind tests for them in the order of this
+     * {@code permits} clause and treats a node that is none of the first five as a {@link QuantifierNode}.
+     */
     private sealed interface Node
             permits LiteralNode, CharClassNode, AssertionNode, SequenceNode, AlternationNode, QuantifierNode {}
 
@@ -628,7 +636,7 @@ public final class RegexGenerator implements Generator<String> {
                 pos++;
                 alts.add(parseSequence());
             }
-            return alts.size() == 1 ? alts.getFirst() : new AlternationNode(List.copyOf(alts));
+            return alts.size() == 1 ? alts.get(0) : new AlternationNode(List.copyOf(alts));
         }
 
         /**
@@ -1081,39 +1089,35 @@ public final class RegexGenerator implements Generator<String> {
          * all match, but it never accepts one with a value that would not.
          */
         private void checkAssertions(Node node, int before, int after) {
-            switch (node) {
-                case LiteralNode literal -> {}
-                case CharClassNode charClass -> {}
-                case AssertionNode assertion -> {
-                    if (!holds(assertion.text(), before, after)) {
-                        throw unsupported(assertion.text() + " that cannot hold on every value", assertion.position());
-                    }
+            if (node instanceof LiteralNode || node instanceof CharClassNode) {
+                // Neither holds an assertion.
+            } else if (node instanceof AssertionNode assertion) {
+                if (!holds(assertion.text(), before, after)) {
+                    throw unsupported(assertion.text() + " that cannot hold on every value", assertion.position());
                 }
-                case SequenceNode sequence -> {
-                    List<Node> nodes = sequence.nodes();
-                    int[] following = new int[nodes.size()];
-                    int seen = after;
-                    for (int i = nodes.size() - 1; i >= 0; i--) {
-                        following[i] = seen;
-                        seen = kinds(nodes.get(i), false, seen);
-                    }
-                    seen = before;
-                    for (int i = 0; i < nodes.size(); i++) {
-                        checkAssertions(nodes.get(i), seen, following[i]);
-                        seen = kinds(nodes.get(i), true, seen);
-                    }
+            } else if (node instanceof SequenceNode sequence) {
+                List<Node> nodes = sequence.nodes();
+                int[] following = new int[nodes.size()];
+                int seen = after;
+                for (int i = nodes.size() - 1; i >= 0; i--) {
+                    following[i] = seen;
+                    seen = kinds(nodes.get(i), false, seen);
                 }
-                case AlternationNode alternation -> {
-                    for (SequenceNode alt : alternation.alts()) checkAssertions(alt, before, after);
+                seen = before;
+                for (int i = 0; i < nodes.size(); i++) {
+                    checkAssertions(nodes.get(i), seen, following[i]);
+                    seen = kinds(nodes.get(i), true, seen);
                 }
-                case QuantifierNode q -> {
-                    // A repeated body also sits beside its own text.
-                    boolean repeats = q.max() > 1;
-                    checkAssertions(
-                            q.child(),
-                            repeats ? before | kinds(q.child(), true, before) : before,
-                            repeats ? after | kinds(q.child(), false, after) : after);
-                }
+            } else if (node instanceof AlternationNode alternation) {
+                for (SequenceNode alt : alternation.alts()) checkAssertions(alt, before, after);
+            } else {
+                QuantifierNode q = (QuantifierNode) node;
+                // A repeated body also sits beside its own text.
+                boolean repeats = q.max() > 1;
+                checkAssertions(
+                        q.child(),
+                        repeats ? before | kinds(q.child(), true, before) : before,
+                        repeats ? after | kinds(q.child(), false, after) : after);
             }
         }
 
@@ -1130,29 +1134,33 @@ public final class RegexGenerator implements Generator<String> {
          * false. Text that can be empty lets {@code beyond}, what lies past the node, show through.
          */
         private static int kinds(Node node, boolean last, int beyond) {
-            return switch (node) {
-                case LiteralNode literal -> kindOf(literal.codePoint());
-                case CharClassNode charClass -> {
-                    int seen = 0;
-                    for (char c : charClass.pool()) seen |= kindOf(c);
-                    yield seen;
+            if (node instanceof LiteralNode literal) {
+                return kindOf(literal.codePoint());
+            }
+            if (node instanceof CharClassNode charClass) {
+                int seen = 0;
+                for (char c : charClass.pool()) seen |= kindOf(c);
+                return seen;
+            }
+            if (node instanceof AssertionNode) {
+                return beyond;
+            }
+            if (node instanceof SequenceNode sequence) {
+                List<Node> nodes = sequence.nodes();
+                int seen = beyond;
+                // In order for the last character, and from the end for the first.
+                for (int i = 0; i < nodes.size(); i++) {
+                    seen = kinds(nodes.get(last ? i : nodes.size() - 1 - i), last, seen);
                 }
-                case AssertionNode assertion -> beyond;
-                case SequenceNode sequence -> {
-                    int seen = beyond;
-                    for (Node n : last ? sequence.nodes() : sequence.nodes().reversed()) {
-                        seen = kinds(n, last, seen);
-                    }
-                    yield seen;
-                }
-                case AlternationNode alternation -> {
-                    int seen = 0;
-                    for (SequenceNode alt : alternation.alts()) seen |= kinds(alt, last, beyond);
-                    yield seen;
-                }
-                case QuantifierNode q ->
-                    q.min() == 0 ? kinds(q.child(), last, beyond) | beyond : kinds(q.child(), last, beyond);
-            };
+                return seen;
+            }
+            if (node instanceof AlternationNode alternation) {
+                int seen = 0;
+                for (SequenceNode alt : alternation.alts()) seen |= kinds(alt, last, beyond);
+                return seen;
+            }
+            QuantifierNode q = (QuantifierNode) node;
+            return q.min() == 0 ? kinds(q.child(), last, beyond) | beyond : kinds(q.child(), last, beyond);
         }
 
         /**

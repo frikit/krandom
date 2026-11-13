@@ -25,7 +25,7 @@ import java.util.Random;
  *
  * <pre>{@code
  *   String en = new NationalityGenerator().generate();                     // e.g. "American"
- *   String ru = new NationalityGenerator(Locale.of("ru","RU")).generate(); // e.g. "Американец"
+ *   String ru = new NationalityGenerator(Locale.forLanguageTag("ru-RU")).generate(); // e.g. "Американец"
  * }</pre>
  */
 public final class NationalityGenerator implements Generator<String> {

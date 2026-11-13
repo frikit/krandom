@@ -21,7 +21,7 @@ public final class KoNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("ko", "KR");
+        return new Locale("ko", "KR");
     }
 
     @Override

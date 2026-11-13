@@ -17,7 +17,7 @@ public final class IdIdNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("id", "ID");
+        return new Locale("id", "ID");
     }
 
     @Override

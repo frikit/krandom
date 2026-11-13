@@ -51,7 +51,7 @@ class LocalDataPackTest {
         assertEquals(2, pack.universities().size());
         assertEquals(
                 new UniversityData("Northbridge University", "BSc", "School of", "University", "Northbridge"),
-                pack.universities().getFirst());
+                pack.universities().get(0));
         assertArrayEquals(
                 pack.universities().toArray(UniversityData[]::new),
                 pack.universityProvider().getUniversities());
@@ -131,8 +131,8 @@ class LocalDataPackTest {
                 "name,degree,prefix,suffix,place\n"
                         + "\"Northbridge, University\",BSc,\"School of \"\"Arts\"\"\",University,\"Northbridge\"\n");
 
-        assertEquals("Northbridge, University", pack.universities().getFirst().name());
-        assertEquals("School of \"Arts\"", pack.universities().getFirst().prefix());
+        assertEquals("Northbridge, University", pack.universities().get(0).name());
+        assertEquals("School of \"Arts\"", pack.universities().get(0).prefix());
 
         assertInvalidData("wrong,header\nNorthbridge,BSc,School,University,Northbridge\n");
         assertInvalidData("name,degree,prefix,suffix,place\n");

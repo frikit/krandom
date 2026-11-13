@@ -25,7 +25,7 @@ import java.util.Random;
  *
  * <pre>{@code
  *   String en = new MeasurementGenerator().generate();                     // e.g. "Liter"
- *   String ru = new MeasurementGenerator(Locale.of("ru","RU")).generate(); // e.g. "Литр"
+ *   String ru = new MeasurementGenerator(Locale.forLanguageTag("ru-RU")).generate(); // e.g. "Литр"
  * }</pre>
  */
 public final class MeasurementGenerator implements Generator<String> {

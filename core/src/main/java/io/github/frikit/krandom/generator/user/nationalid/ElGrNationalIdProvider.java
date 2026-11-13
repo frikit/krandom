@@ -17,7 +17,7 @@ public final class ElGrNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("el", "GR");
+        return new Locale("el", "GR");
     }
 
     @Override

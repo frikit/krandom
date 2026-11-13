@@ -42,7 +42,7 @@ public final class HiInNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("hi", "IN");
+        return new Locale("hi", "IN");
     }
 
     @Override

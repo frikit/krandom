@@ -30,7 +30,7 @@ class CompanyLanguageGeneratorsTest {
     @DisplayName("company catch phrase generator returns non-empty text")
     void catchPhrase() {
         assertFalse(new CompanyCatchPhraseGenerator(Locale.US).generate().isBlank());
-        assertFalse(new CompanyCatchPhraseGenerator(Locale.of("es", "ES"))
+        assertFalse(new CompanyCatchPhraseGenerator(new Locale("es", "ES"))
                 .generate()
                 .isBlank());
     }
@@ -42,7 +42,7 @@ class CompanyLanguageGeneratorsTest {
                 GeneratorConfig.builder().seed(19L).locale(Locale.US).build();
         GeneratorConfig esCfg = GeneratorConfig.builder()
                 .seed(19L)
-                .locale(Locale.of("es", "ES"))
+                .locale(new Locale("es", "ES"))
                 .build();
         String usBuzz = new CompanyBuzzwordGenerator(usCfg).generate();
         String esBuzz = new CompanyBuzzwordGenerator(esCfg).generate();

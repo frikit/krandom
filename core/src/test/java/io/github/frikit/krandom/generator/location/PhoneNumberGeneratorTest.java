@@ -160,7 +160,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("language-only locale is accepted")
     void languageOnlyLocaleAccepted() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("en"));
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(new Locale("en"));
         String phone = gen.generate(false, false);
         assertNotNull(phone);
         assertFalse(phone.isBlank());
@@ -170,21 +170,21 @@ class PhoneNumberGeneratorTest {
     @DisplayName("language-only locales still use locale-specific phone logic")
     void languageOnlyLocalesUseSpecificPhoneLogic() {
         assertTrue(
-                new PhoneNumberGenerator(Locale.of("de")).generate(true, true).matches("01[5-7]\\d \\d{8}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("fr"))
+                new PhoneNumberGenerator(new Locale("de")).generate(true, true).matches("01[5-7]\\d \\d{8}"));
+        assertTrue(new PhoneNumberGenerator(new Locale("fr"))
                 .generate(true, true)
                 .matches("0[67] \\d{2} \\d{2} \\d{2} \\d{2}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("es"))
+        assertTrue(new PhoneNumberGenerator(new Locale("es"))
                 .generate(true, true)
                 .matches("[67]\\d{2} \\d{2} \\d{2} \\d{2}"));
         assertTrue(
-                new PhoneNumberGenerator(Locale.of("it")).generate(true, true).matches("3\\d{2} \\d{3} \\d{4}"));
+                new PhoneNumberGenerator(new Locale("it")).generate(true, true).matches("3\\d{2} \\d{3} \\d{4}"));
         assertTrue(
-                new PhoneNumberGenerator(Locale.of("pt")).generate(true, true).matches("\\(\\d{2}\\) 9\\d{4}-\\d{4}"));
+                new PhoneNumberGenerator(new Locale("pt")).generate(true, true).matches("\\(\\d{2}\\) 9\\d{4}-\\d{4}"));
         assertTrue(
-                new PhoneNumberGenerator(Locale.of("ja")).generate(true, true).matches("0[789]0-\\d{4}-\\d{4}"));
+                new PhoneNumberGenerator(new Locale("ja")).generate(true, true).matches("0[789]0-\\d{4}-\\d{4}"));
         assertTrue(
-                new PhoneNumberGenerator(Locale.of("zh")).generate(true, true).matches("1\\d{2} \\d{4} \\d{4}"));
+                new PhoneNumberGenerator(new Locale("zh")).generate(true, true).matches("1\\d{2} \\d{4} \\d{4}"));
     }
 
     @Test
@@ -198,16 +198,16 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("country calling code supports every built-in locale")
     void countryCallingCodeSupportsEveryBuiltInLocale() {
-        assertEquals("+31", new PhoneNumberGenerator(Locale.of("nl", "NL")).generateCountryCallingCode());
-        assertEquals("+48", new PhoneNumberGenerator(Locale.of("pl", "PL")).generateCountryCallingCode());
-        assertEquals("+7", new PhoneNumberGenerator(Locale.of("ru", "RU")).generateCountryCallingCode());
-        assertEquals("+82", new PhoneNumberGenerator(Locale.of("ko", "KR")).generateCountryCallingCode());
-        assertEquals("+90", new PhoneNumberGenerator(Locale.of("tr", "TR")).generateCountryCallingCode());
-        assertEquals("+46", new PhoneNumberGenerator(Locale.of("sv", "SE")).generateCountryCallingCode());
-        assertEquals("+47", new PhoneNumberGenerator(Locale.of("nb", "NO")).generateCountryCallingCode());
-        assertEquals("+420", new PhoneNumberGenerator(Locale.of("cs", "CZ")).generateCountryCallingCode());
-        assertEquals("+966", new PhoneNumberGenerator(Locale.of("ar", "SA")).generateCountryCallingCode());
-        assertEquals("+91", new PhoneNumberGenerator(Locale.of("hi", "IN")).generateCountryCallingCode());
+        assertEquals("+31", new PhoneNumberGenerator(new Locale("nl", "NL")).generateCountryCallingCode());
+        assertEquals("+48", new PhoneNumberGenerator(new Locale("pl", "PL")).generateCountryCallingCode());
+        assertEquals("+7", new PhoneNumberGenerator(new Locale("ru", "RU")).generateCountryCallingCode());
+        assertEquals("+82", new PhoneNumberGenerator(new Locale("ko", "KR")).generateCountryCallingCode());
+        assertEquals("+90", new PhoneNumberGenerator(new Locale("tr", "TR")).generateCountryCallingCode());
+        assertEquals("+46", new PhoneNumberGenerator(new Locale("sv", "SE")).generateCountryCallingCode());
+        assertEquals("+47", new PhoneNumberGenerator(new Locale("nb", "NO")).generateCountryCallingCode());
+        assertEquals("+420", new PhoneNumberGenerator(new Locale("cs", "CZ")).generateCountryCallingCode());
+        assertEquals("+966", new PhoneNumberGenerator(new Locale("ar", "SA")).generateCountryCallingCode());
+        assertEquals("+91", new PhoneNumberGenerator(new Locale("hi", "IN")).generateCountryCallingCode());
     }
 
     @Test
@@ -229,7 +229,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("a locale whose country has no phone format keeps the calling code of the format it uses")
     void countryCallingCodeFollowsTheFormatCountry() {
-        Locale liechtenstein = Locale.of("de", "LI");
+        Locale liechtenstein = new Locale("de", "LI");
 
         assertEquals("+49", new PhoneNumberGenerator(liechtenstein).generateCountryCallingCode());
         assertEquals("+423", new CountryGenerator(liechtenstein).currentCallingCode());
@@ -299,7 +299,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("US locale-style output uses NANPA's fictional 555-01xx range by default")
     void usOutputUsesFictionalNANPARangeByDefault() {
-        Locale[] locales = {Locale.US, Locale.of("en")};
+        Locale[] locales = {Locale.US, new Locale("en")};
 
         for (Locale locale : locales) {
             String phone = new PhoneNumberGenerator(
@@ -338,7 +338,7 @@ class PhoneNumberGeneratorTest {
             }
         };
         GeneratorConfig config = GeneratorConfig.builder()
-                .locale(Locale.of("zz"))
+                .locale(new Locale("zz"))
                 .random(zeroRandom)
                 .build();
 
@@ -542,7 +542,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("Australian locale generates formatted landline")
     void australianFormattedLandline() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("en", "AU"));
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(new Locale("en", "AU"));
         String phone = gen.generate(true, false);
 
         assertNotNull(phone);
@@ -552,7 +552,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("Australian locale generates formatted mobile")
     void australianFormattedMobile() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("en", "AU"));
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(new Locale("en", "AU"));
         String phone = gen.generate(true, true);
 
         assertNotNull(phone);
@@ -564,7 +564,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("Australian mobile starts with 04")
     void australianMobilePrefix() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("en", "AU"));
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(new Locale("en", "AU"));
 
         for (int i = 0; i < 20; i++) {
             String phone = gen.generate(false, true);
@@ -575,7 +575,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("Australian landline starts with valid area code")
     void australianLandlineAreaCode() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("en", "AU"));
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(new Locale("en", "AU"));
 
         Set<String> validPrefixes = Set.of("02", "03", "07", "08");
         for (int i = 0; i < 20; i++) {
@@ -693,7 +693,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("Spanish locale generates formatted landline")
     void spanishFormattedLandline() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("es", "ES"));
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(new Locale("es", "ES"));
         String phone = gen.generate(true, false);
 
         assertNotNull(phone);
@@ -703,7 +703,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("Spanish locale generates formatted mobile")
     void spanishFormattedMobile() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("es", "ES"));
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(new Locale("es", "ES"));
         String phone = gen.generate(true, true);
 
         assertNotNull(phone);
@@ -715,7 +715,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("Spanish mobile starts with 6 or 7")
     void spanishMobilePrefix() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("es", "ES"));
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(new Locale("es", "ES"));
 
         for (int i = 0; i < 20; i++) {
             String phone = gen.generate(false, true);
@@ -727,7 +727,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("Spanish phone has 9 digits")
     void spanishPhoneLength() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("es", "ES"));
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(new Locale("es", "ES"));
         String phone = gen.generate(false);
 
         assertEquals(9, phone.length(), "Spanish phone should have 9 digits: " + phone);
@@ -792,7 +792,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("Brazilian locale generates formatted landline")
     void brazilianFormattedLandline() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("pt", "BR"));
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(new Locale("pt", "BR"));
         String phone = gen.generate(true, false);
 
         assertNotNull(phone);
@@ -803,7 +803,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("Brazilian locale generates formatted mobile")
     void brazilianFormattedMobile() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("pt", "BR"));
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(new Locale("pt", "BR"));
         String phone = gen.generate(true, true);
 
         assertNotNull(phone);
@@ -815,7 +815,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("Brazilian mobile has 9 digits after area code")
     void brazilianMobileDigits() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("pt", "BR"));
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(new Locale("pt", "BR"));
 
         for (int i = 0; i < 20; i++) {
             String phone = gen.generate(false, true);
@@ -829,7 +829,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("Brazilian landline has 8 digits after area code")
     void brazilianLandlineDigits() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("pt", "BR"));
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(new Locale("pt", "BR"));
 
         for (int i = 0; i < 20; i++) {
             String phone = gen.generate(false, false);
@@ -841,7 +841,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("Brazilian unformatted has no special characters")
     void brazilianUnformattedPlain() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("pt", "BR"));
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(new Locale("pt", "BR"));
         String phone = gen.generate(false);
 
         assertTrue(phone.matches("\\d+"), "Unformatted should be all digits: " + phone);
@@ -1124,7 +1124,7 @@ class PhoneNumberGeneratorTest {
                                 .build())
                         .generateList(20),
                 new PhoneNumberGenerator(GeneratorConfig.builder()
-                                .locale(Locale.of("xx", "YY"))
+                                .locale(new Locale("xx", "YY"))
                                 .seed(3L)
                                 .build())
                         .generateList(20));
@@ -1146,37 +1146,37 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("expanded built-in locales no longer fall back to US phone formats")
     void expandedBuiltInLocalesUseLocaleSpecificFormats() {
-        assertTrue(new PhoneNumberGenerator(Locale.of("nl", "NL"))
+        assertTrue(new PhoneNumberGenerator(new Locale("nl", "NL"))
                 .generate(true, true)
                 .matches("06\\d \\d{7}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("nl", "NL"))
+        assertTrue(new PhoneNumberGenerator(new Locale("nl", "NL"))
                 .generate(true, false)
                 .matches("0\\d{2} \\d{7}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("pl", "PL"))
+        assertTrue(new PhoneNumberGenerator(new Locale("pl", "PL"))
                 .generate(true, false)
                 .matches("\\d{2} \\d{3} \\d{2} \\d{2}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("ru", "RU"))
+        assertTrue(new PhoneNumberGenerator(new Locale("ru", "RU"))
                 .generate(true, true)
                 .matches("9\\d{2} \\d{3}-\\d{2}-\\d{2}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("ko", "KR"))
+        assertTrue(new PhoneNumberGenerator(new Locale("ko", "KR"))
                 .generate(true, true)
                 .matches("01\\d-\\d{4}-\\d{4}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("tr", "TR"))
+        assertTrue(new PhoneNumberGenerator(new Locale("tr", "TR"))
                 .generate(true, true)
                 .matches("05\\d{2} \\d{3} \\d{2} \\d{2}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("sv", "SE"))
+        assertTrue(new PhoneNumberGenerator(new Locale("sv", "SE"))
                 .generate(true, true)
                 .matches("07\\d-\\d{3} \\d{2} \\d{2}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("nb", "NO"))
+        assertTrue(new PhoneNumberGenerator(new Locale("nb", "NO"))
                 .generate(true, false)
                 .matches("\\d{2} \\d{2} \\d{2} \\d{2}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("cs", "CZ"))
+        assertTrue(new PhoneNumberGenerator(new Locale("cs", "CZ"))
                 .generate(true, true)
                 .matches("\\d{3} \\d{3} \\d{3}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("ar", "SA"))
+        assertTrue(new PhoneNumberGenerator(new Locale("ar", "SA"))
                 .generate(true, true)
                 .matches("05\\d \\d{3} \\d{4}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("hi", "IN"))
+        assertTrue(new PhoneNumberGenerator(new Locale("hi", "IN"))
                 .generate(true, true)
                 .matches("[6-9]\\d{4} \\d{5}"));
     }
@@ -1184,52 +1184,52 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("expanded built-in locales cover remaining mobile and landline branches")
     void expandedBuiltInLocalesCoverRemainingBranches() {
-        assertTrue(new PhoneNumberGenerator(Locale.of("nl", "NL"))
+        assertTrue(new PhoneNumberGenerator(new Locale("nl", "NL"))
                 .generate(false, true)
                 .matches("06\\d{8}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("nl", "NL"))
+        assertTrue(new PhoneNumberGenerator(new Locale("nl", "NL"))
                 .generate(false, false)
                 .matches("0\\d{9}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("pl", "PL"))
+        assertTrue(new PhoneNumberGenerator(new Locale("pl", "PL"))
                 .generate(true, true)
                 .matches("\\d{3} \\d{3} \\d{3}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("pl", "PL"))
+        assertTrue(new PhoneNumberGenerator(new Locale("pl", "PL"))
                 .generate(false, true)
                 .matches("\\d{9}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("pl", "PL"))
+        assertTrue(new PhoneNumberGenerator(new Locale("pl", "PL"))
                 .generate(false, false)
                 .matches("\\d{9}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("ru", "RU"))
+        assertTrue(new PhoneNumberGenerator(new Locale("ru", "RU"))
                 .generate(false, false)
                 .matches("\\d{10}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("ko", "KR"))
+        assertTrue(new PhoneNumberGenerator(new Locale("ko", "KR"))
                 .generate(false, false)
                 .matches("0\\d{9,10}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("tr", "TR"))
+        assertTrue(new PhoneNumberGenerator(new Locale("tr", "TR"))
                 .generate(false, false)
                 .matches("0\\d{10}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("sv", "SE"))
+        assertTrue(new PhoneNumberGenerator(new Locale("sv", "SE"))
                 .generate(false, false)
                 .matches("0\\d{8,9}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("nb", "NO"))
+        assertTrue(new PhoneNumberGenerator(new Locale("nb", "NO"))
                 .generate(true, true)
                 .matches("\\d{3} \\d{2} \\d{3}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("nb", "NO"))
+        assertTrue(new PhoneNumberGenerator(new Locale("nb", "NO"))
                 .generate(false, true)
                 .matches("\\d{8}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("cs", "CZ"))
+        assertTrue(new PhoneNumberGenerator(new Locale("cs", "CZ"))
                 .generate(false, false)
                 .matches("[2-5]\\d{8}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("ar", "SA"))
+        assertTrue(new PhoneNumberGenerator(new Locale("ar", "SA"))
                 .generate(false, false)
                 .matches("0\\d{9}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("hi", "IN"))
+        assertTrue(new PhoneNumberGenerator(new Locale("hi", "IN"))
                 .generate(false, true)
                 .matches("[6-9]\\d{9}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("hi", "IN"))
+        assertTrue(new PhoneNumberGenerator(new Locale("hi", "IN"))
                 .generate(true, false)
                 .matches("0\\d{2,3} \\d{8}"));
-        assertTrue(new PhoneNumberGenerator(Locale.of("hi", "IN"))
+        assertTrue(new PhoneNumberGenerator(new Locale("hi", "IN"))
                 .generate(false, false)
                 .matches("0\\d{10,11}"));
     }
@@ -1276,9 +1276,9 @@ class PhoneNumberGeneratorTest {
             Locale.US,
             Locale.GERMANY,
             Locale.FRANCE,
-            Locale.of("es", "ES"),
+            new Locale("es", "ES"),
             Locale.ITALY,
-            Locale.of("pt", "BR"),
+            new Locale("pt", "BR"),
             Locale.CHINA
         };
 
@@ -1330,7 +1330,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("Brazilian mobile always has 9 as first digit of number")
     void brazilianMobileFirstDigitIs9() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("pt", "BR"));
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(new Locale("pt", "BR"));
 
         for (int i = 0; i < 30; i++) {
             String phone = gen.generate(true, true);
@@ -1342,7 +1342,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("Brazilian landline has 2 or 3 as first digit of number")
     void brazilianLandlineFirstDigit() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("pt", "BR"));
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(new Locale("pt", "BR"));
 
         for (int i = 0; i < 30; i++) {
             String phone = gen.generate(true, false);
@@ -1396,7 +1396,7 @@ class PhoneNumberGeneratorTest {
     @Test
     @DisplayName("Brazilian both mobile and landline work with formatted parameter")
     void brazilianFormattedBothTypes() {
-        PhoneNumberGenerator gen = new PhoneNumberGenerator(Locale.of("pt", "BR"));
+        PhoneNumberGenerator gen = new PhoneNumberGenerator(new Locale("pt", "BR"));
 
         // Test mobile formatted
         String mobileFormatted = gen.generate(true, true);
@@ -1421,8 +1421,8 @@ class PhoneNumberGeneratorTest {
     @DisplayName("all locales mobile/landline distinction works")
     void allLocalesMobileLandlineDistinction() {
         Locale[] localesWithDistinction = {
-            Locale.UK, Locale.of("en", "AU"), Locale.GERMANY,
-            Locale.FRANCE, Locale.of("es", "ES"), Locale.ITALY,
+            Locale.UK, new Locale("en", "AU"), Locale.GERMANY,
+            Locale.FRANCE, new Locale("es", "ES"), Locale.ITALY,
             Locale.JAPAN, Locale.CHINA
         };
 

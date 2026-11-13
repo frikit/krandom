@@ -189,7 +189,7 @@ public enum SupportedLocale {
             LocaleDataQualityTier resourceDataTier,
             String professionDatasetPrefix,
             LocaleDataQualityTier professionDataTier) {
-        this.locale = Locale.of(language, country);
+        this.locale = new Locale(language, country);
         this.canonicalResourcePrefix = language + "_" + country;
         this.resourcePrefix = resourcePrefix;
         this.resourceDataTier = resourceDataTier;

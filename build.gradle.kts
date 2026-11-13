@@ -818,6 +818,39 @@ tasks.register("checkApiCompatibility") {
     dependsOn(javaApiCompatibilityTasks, kotlinApiCompatibilityTasks)
 }
 
+// The Java modules run on javaMinimumVersion (gradle.properties) or later. The JDK 21 toolchain that runs
+// Error Prone, NullAway and PIT compiles their main and test sources with --release, against that version's
+// API, which also sets the Java version that their published Gradle metadata requires; only core's
+// java21Test sources raise it. Their tests run on that toolchain too, unless -PtestJavaVersion=<version>
+// names another Java, as CI's test jobs do.
+val javaMinimumVersion = providers.gradleProperty("javaMinimumVersion").get().toInt()
+val testJavaVersion = providers.gradleProperty("testJavaVersion")
+subprojects {
+    if (name in javaApiModules) {
+        tasks.withType<JavaCompile>().configureEach {
+            options.release.convention(javaMinimumVersion)
+        }
+        pluginManager.withPlugin("java") {
+            val toolchains = the<JavaToolchainService>()
+            tasks.withType<Test>().configureEach {
+                if (testJavaVersion.isPresent) {
+                    javaLauncher.set(
+                        toolchains.launcherFor {
+                            languageVersion.set(JavaLanguageVersion.of(testJavaVersion.get()))
+                        },
+                    )
+                    // A test that fails only on that Java shows its expected and actual values in the log.
+                    testLogging.exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+                }
+                doFirst {
+                    val runtime = javaLauncher.get().metadata
+                    logger.lifecycle("$path runs on Java ${runtime.javaRuntimeVersion} at ${runtime.installationPath}")
+                }
+            }
+        }
+    }
+}
+
 tasks.named("check") {
     dependsOn("checkApiCompatibility")
 }

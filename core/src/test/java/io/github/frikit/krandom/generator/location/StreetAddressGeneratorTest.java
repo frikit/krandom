@@ -191,7 +191,7 @@ class StreetAddressGeneratorTest {
     @DisplayName("unsupported locale throws UnsupportedOperationException")
     void unsupportedLocaleThrows() {
         UnsupportedOperationException ex = assertThrows(
-                UnsupportedOperationException.class, () -> new StreetAddressGenerator(Locale.of("xx", "YY")));
+                UnsupportedOperationException.class, () -> new StreetAddressGenerator(new Locale("xx", "YY")));
         assertTrue(ex.getMessage().contains("not supported"));
     }
 
@@ -225,7 +225,7 @@ class StreetAddressGeneratorTest {
     @Test
     @DisplayName("full address omits state segment when scoped context has no state provider")
     void fullAddressWithoutStateProviderInScopedContext() {
-        Locale locale = Locale.of("qq", "QQ");
+        Locale locale = new Locale("qq", "QQ");
         DataRegistryContext context = DataRegistryContext.builder()
                 .isolated()
                 .register(Vocabulary.STREET_ADDRESS, new StreetAddressDataProvider() {
@@ -291,7 +291,7 @@ class StreetAddressGeneratorTest {
     @Test
     @DisplayName("a locale without a secondary-units file keeps the fallback units, read once and shared")
     void localeWithoutAFileKeepsTheFallbackUnits() {
-        Locale locale = Locale.of("qq", "QQ");
+        Locale locale = new Locale("qq", "QQ");
         DataRegistryContext context = DataRegistryContext.builder()
                 .isolated()
                 .register(Vocabulary.STREET_ADDRESS, new StreetAddressDataProvider() {

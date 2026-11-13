@@ -235,7 +235,7 @@ public final class CountryGenerator implements Generator<String> {
      */
     public String currentCountry() {
         String countryCode = requireLocaleCountry();
-        Locale countryLocale = Locale.of("", countryCode);
+        Locale countryLocale = new Locale("", countryCode);
         return countryLocale.getDisplayCountry(config.getLocale());
     }
 

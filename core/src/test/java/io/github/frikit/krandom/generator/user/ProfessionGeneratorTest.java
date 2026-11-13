@@ -130,21 +130,21 @@ class ProfessionGeneratorTest {
         @Test
         @DisplayName("language fallback maps to expected locale datasets")
         void languageFallbackMappings() {
-            assertLanguageFallbackMatches(Locale.of("en", "CA"), Locale.US);
-            assertLanguageFallbackMatches(Locale.of("fr", "CA"), Locale.FRANCE);
-            assertLanguageFallbackMatches(Locale.of("de", "AT"), Locale.GERMANY);
-            assertLanguageFallbackMatches(Locale.of("ja", "US"), Locale.JAPAN);
-            assertLanguageFallbackMatches(Locale.of("es", "MX"), Locale.of("es", "ES"));
-            assertLanguageFallbackMatches(Locale.of("it", "CH"), Locale.ITALY);
-            assertLanguageFallbackMatches(Locale.of("pt", "PT"), Locale.of("pt", "BR"));
-            assertLanguageFallbackMatches(Locale.of("zh", "TW"), Locale.CHINA);
+            assertLanguageFallbackMatches(new Locale("en", "CA"), Locale.US);
+            assertLanguageFallbackMatches(new Locale("fr", "CA"), Locale.FRANCE);
+            assertLanguageFallbackMatches(new Locale("de", "AT"), Locale.GERMANY);
+            assertLanguageFallbackMatches(new Locale("ja", "US"), Locale.JAPAN);
+            assertLanguageFallbackMatches(new Locale("es", "MX"), new Locale("es", "ES"));
+            assertLanguageFallbackMatches(new Locale("it", "CH"), Locale.ITALY);
+            assertLanguageFallbackMatches(new Locale("pt", "PT"), new Locale("pt", "BR"));
+            assertLanguageFallbackMatches(new Locale("zh", "TW"), Locale.CHINA);
         }
 
         @Test
         @DisplayName("unsupported locale without language fallback throws")
         void unsupportedLocaleThrows() {
             UnsupportedOperationException ex = assertThrows(
-                    UnsupportedOperationException.class, () -> new ProfessionGenerator(Locale.of("am", "ET")));
+                    UnsupportedOperationException.class, () -> new ProfessionGenerator(new Locale("am", "ET")));
             assertTrue(ex.getMessage().contains("am_ET"));
         }
 
@@ -283,20 +283,20 @@ class ProfessionGeneratorTest {
         @DisplayName("isRegistered returns true and false for known and unknown locales")
         void isRegisteredKnownAndUnknown() {
             assertTrue(ProfessionDataRegistry.isRegistered(Locale.US));
-            assertTrue(ProfessionDataRegistry.isRegistered(Locale.of("en")));
-            assertFalse(ProfessionDataRegistry.isRegistered(Locale.of("qq", "QQ")));
+            assertTrue(ProfessionDataRegistry.isRegistered(new Locale("en")));
+            assertFalse(ProfessionDataRegistry.isRegistered(new Locale("qq", "QQ")));
         }
 
         @Test
         @DisplayName("forLocale supports language-only lookup")
         void languageOnlyLookup() {
-            assertNotNull(ProfessionDataRegistry.forLocale(Locale.of("en")));
+            assertNotNull(ProfessionDataRegistry.forLocale(new Locale("en")));
         }
 
         @Test
         @DisplayName("isLocaleExplicitlySupported distinguishes fallback")
         void explicitSupportCheck() {
-            ProfessionGenerator fallbackGenerator = new ProfessionGenerator(Locale.of("en", "SG"));
+            ProfessionGenerator fallbackGenerator = new ProfessionGenerator(new Locale("en", "SG"));
             assertFalse(fallbackGenerator.isLocaleExplicitlySupported());
 
             ProfessionGenerator exactGenerator = new ProfessionGenerator(Locale.US);
@@ -307,7 +307,7 @@ class ProfessionGeneratorTest {
         @DisplayName("isLocaleExplicitlySupported is false when using per-instance custom data")
         void explicitSupportWithInstanceCustomData() {
             ProfessionGenerator generator =
-                    new ProfessionGenerator(Locale.of("xx", "YY"), new String[] {"Custom"}, new int[] {1});
+                    new ProfessionGenerator(new Locale("xx", "YY"), new String[] {"Custom"}, new int[] {1});
             assertFalse(generator.isLocaleExplicitlySupported());
         }
     }

@@ -32,7 +32,7 @@ import org.jspecify.annotations.Nullable;
  * <p>Use this when you want to add or override a locale without hand-registering every provider:
  *
  * <pre>{@code
- * LocaleDataBundle bundle = LocaleDataBundle.builder(Locale.of("es", "MX"))
+ * LocaleDataBundle bundle = LocaleDataBundle.builder(Locale.forLanguageTag("es-MX"))
  *     .firstNames(new String[]{"Mateo"}, new String[]{"Sofía"})
  *     .lastNames("Hernández", "Ramírez")
  *     .cities("Ciudad de México", "Guadalajara")

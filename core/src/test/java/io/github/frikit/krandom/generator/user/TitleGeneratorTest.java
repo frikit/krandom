@@ -173,7 +173,7 @@ class TitleGeneratorTest {
     @Test
     @DisplayName("unsupported locale throws exception")
     void unsupportedLocaleThrowsException() {
-        Locale unsupported = Locale.of("xx", "YY");
+        Locale unsupported = new Locale("xx", "YY");
 
         UnsupportedOperationException exception =
                 assertThrows(UnsupportedOperationException.class, () -> new TitleGenerator(unsupported));
@@ -185,7 +185,7 @@ class TitleGeneratorTest {
     @Test
     @DisplayName("language-only locale works (en -> matches en_US)")
     void languageOnlyLocale() {
-        Locale english = Locale.of("en");
+        Locale english = new Locale("en");
         TitleGenerator gen = new TitleGenerator(english);
 
         String title = gen.generate();
@@ -280,13 +280,13 @@ class TitleGeneratorTest {
     @Test
     @DisplayName("isRegistered returns false for unregistered locale with country")
     void isRegisteredUnknownLocale() {
-        assertFalse(TitleDataRegistry.isRegistered(Locale.of("xx", "YY")));
+        assertFalse(TitleDataRegistry.isRegistered(new Locale("xx", "YY")));
     }
 
     @Test
     @DisplayName("forLocale returns null for completely unknown locale")
     void forLocaleUnknownReturnsNull() {
-        assertNull(TitleDataRegistry.forLocale(Locale.of("xx", "YY")));
+        assertNull(TitleDataRegistry.forLocale(new Locale("xx", "YY")));
     }
 
     @Test
@@ -294,7 +294,7 @@ class TitleGeneratorTest {
     void forLocaleLanguageFallbackInRegistry() {
         // "en" is registered (language-level entry seeded from EN_US).
         // "en_ZZ" has no exact entry but shares the "en" language key.
-        TitleDataProvider provider = TitleDataRegistry.forLocale(Locale.of("en", "ZZ"));
+        TitleDataProvider provider = TitleDataRegistry.forLocale(new Locale("en", "ZZ"));
         assertNotNull(provider);
         assertTrue(provider.getTitles().length > 0);
     }

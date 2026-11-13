@@ -69,10 +69,10 @@ class PostalPlaceDataTest {
         PostalPlaceDataProvider us = PostalPlaceDataRegistry.forLocale(Locale.US);
 
         assertEquals(Locale.US, us.getLocale());
-        assertSame(us, PostalPlaceDataRegistry.forLocale(Locale.of("es", "US")), "same country, other language");
+        assertSame(us, PostalPlaceDataRegistry.forLocale(new Locale("es", "US")), "same country, other language");
         assertSame(us, PostalPlaceDataRegistry.forLocale(Locale.ENGLISH), "a language-only locale uses its language");
         assertNull(PostalPlaceDataRegistry.forLocale(Locale.CANADA), "same language, country without places");
-        assertNull(PostalPlaceDataRegistry.forLocale(Locale.of("en", "IN")));
+        assertNull(PostalPlaceDataRegistry.forLocale(new Locale("en", "IN")));
         assertNull(PostalPlaceDataRegistry.forLocale(Locale.ROOT));
         assertNull(PostalPlaceDataRegistry.forLocale(null));
         assertTrue(PostalPlaceDataRegistry.isRegistered(Locale.US));
@@ -88,15 +88,15 @@ class PostalPlaceDataTest {
     @DisplayName("the vocabulary validates registered places and falls back by country")
     void vocabularyValidatesAndFallsBackByCountry() {
         PostalPlaceDataProvider mexican = provider(
-                Locale.of("es", "MX"), List.of(new PostalPlace("Guadalajara", "Jalisco", "JAL", List.of("44100"))));
+                new Locale("es", "MX"), List.of(new PostalPlace("Guadalajara", "Jalisco", "JAL", List.of("44100"))));
         DataRegistryContext context = DataRegistryContext.builder()
                 .isolated()
                 .register(Vocabulary.POSTAL_PLACE, mexican)
                 .build();
 
-        assertSame(mexican, context.provider(Vocabulary.POSTAL_PLACE, Locale.of("en", "MX")));
-        assertSame(mexican, context.provider(Vocabulary.POSTAL_PLACE, Locale.of("es")));
-        assertNull(context.provider(Vocabulary.POSTAL_PLACE, Locale.of("es", "ES")), "same language, other country");
+        assertSame(mexican, context.provider(Vocabulary.POSTAL_PLACE, new Locale("en", "MX")));
+        assertSame(mexican, context.provider(Vocabulary.POSTAL_PLACE, new Locale("es")));
+        assertNull(context.provider(Vocabulary.POSTAL_PLACE, new Locale("es", "ES")), "same language, other country");
 
         DataRegistryContext.Builder builder = DataRegistryContext.builder();
         assertEquals(
@@ -126,10 +126,10 @@ class PostalPlaceDataTest {
     void registeredPlacesDriveTheAddress() {
         PostalPlace guadalajara = new PostalPlace("Guadalajara", "Jalisco", "JAL", List.of("44100", "44160"));
         DataRegistryContext context = DataRegistryContext.builder()
-                .register(Vocabulary.POSTAL_PLACE, provider(Locale.of("es", "MX"), List.of(guadalajara)))
+                .register(Vocabulary.POSTAL_PLACE, provider(new Locale("es", "MX"), List.of(guadalajara)))
                 .build();
         AddressInfo info = new AddressInfoGenerator(GeneratorConfig.builder()
-                        .locale(Locale.of("es", "MX"))
+                        .locale(new Locale("es", "MX"))
                         .registryContext(context)
                         .seed(3L)
                         .build())
@@ -142,13 +142,13 @@ class PostalPlaceDataTest {
         assertEquals("MX", info.countryAbbr());
 
         List<PostalPlace> shrinking = new ArrayList<>(List.of(guadalajara));
-        PostalPlaceDataProvider emptied = provider(Locale.of("es", "MX"), shrinking);
+        PostalPlaceDataProvider emptied = provider(new Locale("es", "MX"), shrinking);
         DataRegistryContext emptiedContext = DataRegistryContext.builder()
                 .register(Vocabulary.POSTAL_PLACE, emptied)
                 .build();
         shrinking.clear();
         GeneratorConfig emptiedConfig = GeneratorConfig.builder()
-                .locale(Locale.of("es", "MX"))
+                .locale(new Locale("es", "MX"))
                 .registryContext(emptiedContext)
                 .build();
         assertEquals(
@@ -162,12 +162,12 @@ class PostalPlaceDataTest {
     void languageOnlyProviderKeepsRandomCountry() {
         PostalPlace place = new PostalPlace("Ciudad", "Región", "", List.of("10000"));
         DataRegistryContext context = DataRegistryContext.builder()
-                .register(Vocabulary.POSTAL_PLACE, provider(Locale.of("es"), List.of(place)))
+                .register(Vocabulary.POSTAL_PLACE, provider(new Locale("es"), List.of(place)))
                 .build();
         Set<String> countries = new HashSet<>();
         for (long seed = 0; seed < 50; seed++) {
             AddressInfo info = new AddressInfoGenerator(GeneratorConfig.builder()
-                            .locale(Locale.of("es"))
+                            .locale(new Locale("es"))
                             .registryContext(context)
                             .seed(seed)
                             .build())
@@ -186,10 +186,10 @@ class PostalPlaceDataTest {
     void fullAddressNamesRegionWithoutCode() {
         PostalPlace place = new PostalPlace("Guadalajara", "Jalisco", "", List.of("44100"));
         DataRegistryContext context = DataRegistryContext.builder()
-                .register(Vocabulary.POSTAL_PLACE, provider(Locale.of("es", "MX"), List.of(place)))
+                .register(Vocabulary.POSTAL_PLACE, provider(new Locale("es", "MX"), List.of(place)))
                 .build();
         StreetAddressGenerator generator = new StreetAddressGenerator(GeneratorConfig.builder()
-                .locale(Locale.of("es", "MX"))
+                .locale(new Locale("es", "MX"))
                 .registryContext(context)
                 .seed(5L)
                 .build());

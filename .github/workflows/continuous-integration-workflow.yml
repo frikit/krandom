@@ -25,7 +25,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java: [ '21', '25' ]
+        java: [ '17', '21', '25' ]
+        include:
+          # Each entry runs the tests of the Java modules on its Java (-PtestJavaVersion; the build's
+          # toolchain is Java 21). Gradle needs Java 21 or later, so the Java 17 entry, the oldest Java
+          # those modules run on (javaMinimumVersion in gradle.properties), builds on Java 21.
+          - java: '17'
+            build-java: '21'
+            gradle-args: '-PtestJavaVersion=17'
+          - java: '21'
+            build-java: '21'
+          - java: '25'
+            build-java: '25'
+            gradle-args: '-PtestJavaVersion=25'
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -33,10 +45,18 @@ jobs:
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
 
-      - name: Set up Java ${{ matrix.java }} (Temurin)
+      # Set up before the build JDK, which stays JAVA_HOME; Gradle finds both as toolchains.
+      - name: Set up Java 17 (Temurin) for the tests
+        if: matrix.java == '17'
         uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
-          java-version: ${{ matrix.java }}
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Java ${{ matrix.build-java }} (Temurin)
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          java-version: ${{ matrix.build-java }}
           distribution: 'temurin'
           cache: 'gradle'
 
@@ -53,7 +73,7 @@ jobs:
         run: ./scripts/verify_build_input_pins.sh
 
       - name: Build and verify
-        run: ./gradlew clean build check --stacktrace --console=plain --max-workers=1 --no-daemon -x :benchmarks:test -x :benchmarks:check
+        run: ./gradlew clean build check ${{ matrix.gradle-args }} --stacktrace --console=plain --max-workers=1 --no-daemon -x :benchmarks:test -x :benchmarks:check
 
       - name: Verify module boundaries
         run: ./scripts/verify_module_boundaries.sh
@@ -167,6 +187,14 @@ jobs:
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
 
+      # For the Java 17 runs of the Java + Gradle and Android examples; set up before Java 21, which stays
+      # JAVA_HOME.
+      - name: Set up Java 17 (Temurin)
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
       - name: Set up Java 21 (Temurin)
         uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
@@ -205,5 +233,6 @@ jobs:
       - name: Verify examples against the locally published snapshot
         env:
           KRANDOM_REQUIRE_SCALA_TOOLS: "true"
+          KRANDOM_REQUIRE_JAVA17: "true"
           KRANDOM_REQUIRE_ANDROID_SDK: "true"
         run: ./scripts/verify_examples_local.sh

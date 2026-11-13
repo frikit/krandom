@@ -95,7 +95,7 @@ class DiceGeneratorTest {
             for (int i = 0; i < 100; i++) {
                 List<Integer> result = gen.roll(1);
                 assertEquals(1, result.size());
-                int v = result.getFirst();
+                int v = result.get(0);
                 assertTrue(v >= 1 && v <= type.sides());
             }
         }

@@ -18,7 +18,7 @@ public final class ViVnNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("vi", "VN");
+        return new Locale("vi", "VN");
     }
 
     @Override

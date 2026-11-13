@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 @DisplayName("HobbyGenerator")
 class HobbyGeneratorTest {
 
-    private static final Locale RU = Locale.of("ru", "RU");
+    private static final Locale RU = new Locale("ru", "RU");
 
     private static final Set<String> RU_HOBBIES = Set.of(
             "Фотография",
@@ -72,7 +72,7 @@ class HobbyGeneratorTest {
     @Test
     @DisplayName("unmapped locale falls back to English hobbies")
     void unmappedFallsBackToEnglish() {
-        assertFalse(new HobbyGenerator(Locale.of("is", "IS")).generate().isEmpty());
+        assertFalse(new HobbyGenerator(new Locale("is", "IS")).generate().isEmpty());
     }
 
     @Test

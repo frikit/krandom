@@ -19,7 +19,7 @@ public final class SvNationalIdProvider implements NationalIdProvider {
 
     @Override
     public Locale getLocale() {
-        return Locale.of("sv", "SE");
+        return new Locale("sv", "SE");
     }
 
     @Override

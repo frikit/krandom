@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 @DisplayName("PronounGenerator")
 class PronounGeneratorTest {
 
-    private static final Locale RU = Locale.of("ru", "RU");
+    private static final Locale RU = new Locale("ru", "RU");
 
     private static final Set<String> EN_SETS = Set.of("he/him", "she/her", "they/them", "ze/zir", "xe/xem", "ey/em");
     private static final Set<String> EN_SUBJECTS = Set.of("he", "she", "they", "ze", "xe", "ey");
@@ -59,7 +59,7 @@ class PronounGeneratorTest {
     @Test
     @DisplayName("unmapped locale falls back to English sets")
     void unmappedFallsBackToEnglish() {
-        assertTrue(EN_SETS.contains(new PronounGenerator(Locale.of("is", "IS")).generate()));
+        assertTrue(EN_SETS.contains(new PronounGenerator(new Locale("is", "IS")).generate()));
     }
 
     @Test
