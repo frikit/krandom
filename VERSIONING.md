@@ -29,7 +29,7 @@ and fixes are not backported to earlier ones. Releases before 3.0.0 made no comp
 read the changelog when upgrading from 2.x.
 
 The latest stable release is `3.1.0`.
-The repository development line is `3.1.0-SNAPSHOT`.
+The repository development line is `3.2.0-SNAPSHOT`.
 
 ## Determinism
 
