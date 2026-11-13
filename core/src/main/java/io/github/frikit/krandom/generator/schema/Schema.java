@@ -10,6 +10,7 @@ import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.failure.GenerationFailureCategory;
 import io.github.frikit.krandom.generator.failure.GenerationOperation;
+import io.github.frikit.krandom.internal.StreamSeeds;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -106,6 +108,21 @@ public final class Schema implements Generator<Map<String, Object>> {
     private final Random random;
     private final Optional<GenerationRecipe> generationRecipe;
     private final @org.jspecify.annotations.Nullable RecordRule recordRule;
+
+    /**
+     * With a portable recipe, the hash of each value's stream identity up to its record index: the recipe's
+     * seed and {@code "schema|record="}, folded once. A value's stream is the one that
+     * {@code GenerationRecipe.deriveChildSeed(recipeSeed, "schema|record=" + index + "|field=" + name.length()
+     * + ':' + name)} seeds, folded in steps by {@link StreamSeeds}.
+     */
+    private final long fieldStreamPrefix;
+
+    /**
+     * With a portable recipe, the UTF-8 bytes of each column's identity after the record index, which every
+     * value of the column folds, kept for each name that a stream identity may hold.
+     */
+    private final Map<String, byte[]> fieldStreamSuffixes;
+
     private int nextRecordIndex;
 
     @FunctionalInterface
@@ -174,7 +191,26 @@ public final class Schema implements Generator<Map<String, Object>> {
         this.random = config.createRandom();
         this.generationRecipe = config.getGenerationRecipe();
         this.recordRule = recordRule;
+        this.fieldStreamPrefix = generationRecipe
+                .map(recipe -> StreamSeeds.fold(
+                        StreamSeeds.start(recipe.getSeed()), "schema|record=".getBytes(StandardCharsets.UTF_8)))
+                .orElse(0L);
+        Map<String, byte[]> suffixes = new HashMap<>();
+        if (generationRecipe.isPresent()) {
+            for (String name : this.fields.keySet()) {
+                putFieldStreamSuffix(suffixes, name);
+            }
+            putFieldStreamSuffix(suffixes, "");
+        }
+        this.fieldStreamSuffixes = Collections.unmodifiableMap(suffixes);
         this.nextRecordIndex = 0;
+    }
+
+    /** A name with a line break, which a stream identity may not hold, keeps no suffix and so takes the slow path. */
+    private static void putFieldStreamSuffix(Map<String, byte[]> suffixes, String name) {
+        if (name.indexOf('\n') < 0 && name.indexOf('\r') < 0) {
+            suffixes.put(name, ("|field=" + name.length() + ':' + name).getBytes(StandardCharsets.UTF_8));
+        }
     }
 
     private static Map<String, SchemaValueProvider> validateAndCopy(Map<String, SchemaValueProvider> fields) {
@@ -698,8 +734,13 @@ public final class Schema implements Generator<Map<String, Object>> {
             return random;
         }
         // The source that the recipe's childRandom gives for this identity, marked as a named stream.
-        return new FieldStream(GenerationRecipe.deriveChildSeed(
-                generationRecipe.orElseThrow().getSeed(), schemaFieldStreamIdentity(recordIndex, fieldName)));
+        byte[] suffix = fieldStreamSuffixes.get(fieldName);
+        if (suffix == null) {
+            // Only a name with a line break keeps no suffix; GenerationRecipe.deriveChildSeed rejects its
+            // identity with this exception, as it did before the identity was folded in steps.
+            throw new IllegalArgumentException("streamIdentity must be a non-blank single-line value");
+        }
+        return new FieldStream(StreamSeeds.fold(StreamSeeds.foldDecimal(fieldStreamPrefix, recordIndex), suffix));
     }
 
     /**
@@ -713,10 +754,6 @@ public final class Schema implements Generator<Map<String, Object>> {
         FieldStream(long seed) {
             super(seed);
         }
-    }
-
-    private static String schemaFieldStreamIdentity(int recordIndex, String fieldName) {
-        return "schema|record=" + recordIndex + "|field=" + fieldName.length() + ':' + fieldName;
     }
 
     private static void validateCount(int count) {

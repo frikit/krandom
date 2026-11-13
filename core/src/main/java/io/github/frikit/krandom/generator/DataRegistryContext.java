@@ -44,6 +44,16 @@ public final class DataRegistryContext {
 
     private static final DataRegistryContext GLOBAL_DEFAULT = new Builder().build();
 
+    /** At most this many locales keep their {@code language_COUNTRY} key, so that odd callers cannot grow it. */
+    private static final int MAX_CACHED_KEYS = 256;
+
+    /**
+     * The {@code language_COUNTRY} key of each locale seen, kept so that a lookup neither concatenates it nor
+     * hashes a new string: every generator a Schema builds for a value looks its data up again.
+     */
+    private static final java.util.concurrent.ConcurrentMap<Locale, String> EXACT_KEYS =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
     private final boolean useGlobalFallback;
     private final Map<Vocabulary<?>, Map<String, LocaleDataProvider>> providers;
     private final Map<Vocabulary<?>, Map<String, LocaleDataProvider>> providersByCountry;
@@ -86,7 +96,7 @@ public final class DataRegistryContext {
         String language = locale.getLanguage();
         String country = locale.getCountry();
         if (!country.isEmpty()) {
-            String exactKey = language + "_" + country;
+            String exactKey = exactKey(locale, language, country);
             LocaleDataProvider scopedExact = scoped.get(exactKey);
             if (scopedExact != null) {
                 return vocabulary.providerType().cast(scopedExact);
@@ -102,6 +112,18 @@ public final class DataRegistryContext {
             return vocabulary.providerType().cast(fallback);
         }
         return useGlobalFallback ? vocabulary.globalProvider(locale) : null;
+    }
+
+    private static String exactKey(Locale locale, String language, String country) {
+        String cached = EXACT_KEYS.get(locale);
+        if (cached != null) {
+            return cached;
+        }
+        String key = language + "_" + country;
+        if (EXACT_KEYS.size() < MAX_CACHED_KEYS) {
+            EXACT_KEYS.putIfAbsent(locale, key);
+        }
+        return key;
     }
 
     /**

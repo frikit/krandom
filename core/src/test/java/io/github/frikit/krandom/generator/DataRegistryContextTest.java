@@ -63,6 +63,20 @@ import org.junit.jupiter.api.Test;
 class DataRegistryContextTest {
 
     @Test
+    @DisplayName("hundreds of distinct locales of one language and country all find its exact provider")
+    void manyDistinctLocalesFindTheExactProvider() {
+        DataRegistryContext context = DataRegistryContext.globalDefault();
+        FirstNameDataProvider expected = context.provider(Vocabulary.FIRST_NAME, Locale.GERMANY);
+
+        assertNotNull(expected);
+        for (int i = 0; i < 600; i++) {
+            Locale locale = new Locale("de", "DE", "variant" + i);
+            assertSame(expected, context.provider(Vocabulary.FIRST_NAME, locale), locale.toString());
+            assertSame(expected, context.provider(Vocabulary.FIRST_NAME, locale), locale.toString());
+        }
+    }
+
+    @Test
     @DisplayName("globalDefault delegates to static registries")
     void globalDefaultDelegatesToStaticRegistries() {
         DataRegistryContext context = DataRegistryContext.globalDefault();
