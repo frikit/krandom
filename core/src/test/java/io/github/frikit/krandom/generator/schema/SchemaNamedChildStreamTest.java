@@ -13,6 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.extension.KRandomModule;
+import io.github.frikit.krandom.generator.extension.KRandomModuleContext;
 import io.github.frikit.krandom.generator.text.ProviderTemplateGenerator;
 import io.github.frikit.krandom.generator.text.WordGenerator;
 import java.time.Clock;
@@ -275,6 +277,53 @@ class SchemaNamedChildStreamTest {
                                         + " swooldpeangfrotriend heertbotploor craerpes sleentoaldfroonork"
                                         + " brirkruird.")),
                 new Schema(config, fields).nextRecords(2));
+    }
+
+    @Test
+    @DisplayName("a lookup with a module builds each value's configuration, running the module again, for equal values")
+    void lookupWithModuleBuildsEachValueConfiguration() {
+        int[] configured = {0};
+        KRandomModule module = new KRandomModule() {
+            @Override
+            public String id() {
+                return "test.counting";
+            }
+
+            @Override
+            public void configure(KRandomModuleContext context) {
+                configured[0]++;
+                context.registerSemanticAliases("countingkey", "countingField");
+            }
+        };
+        GeneratorConfig withModule =
+                GeneratorConfig.builder().seed(11L).install(module).build();
+        GeneratorConfig withoutModule = GeneratorConfig.builder().seed(11L).build();
+        Map<String, SchemaValueProvider> moduleFields = new LinkedHashMap<>();
+        moduleFields.put("name", new Field(withModule).bind("person.first_name"));
+        Map<String, SchemaValueProvider> plainFields = new LinkedHashMap<>();
+        plainFields.put("name", new Field(withoutModule).bind("person.first_name"));
+
+        int before = configured[0];
+        List<Map<String, Object>> records = new Schema(CONFIG, moduleFields).nextRecords(3);
+
+        assertEquals(3, configured[0] - before);
+        assertEquals(new Schema(CONFIG, plainFields).nextRecords(3), records);
+    }
+
+    @Test
+    @DisplayName("a seeded column whose name holds a line break is rejected as a stream identity, as before")
+    void seededColumnNameWithLineBreakIsRejected() {
+        for (String name : List.of("line\nbreak", "carriage\rreturn")) {
+            Schema schema = new Schema(CONFIG, orderedFields("first", name));
+
+            SchemaGenerationException error = assertThrows(SchemaGenerationException.class, schema::nextRecord);
+
+            assertTrue(error.getCause() instanceof IllegalArgumentException, name);
+            assertEquals(
+                    "streamIdentity must be a non-blank single-line value",
+                    error.getCause().getMessage(),
+                    name);
+        }
     }
 
     /** A record of the benchmark's columns, in their order. */
