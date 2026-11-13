@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `CharGenerator.pool`, the `StringGenerator` built from such a pool, including through the three
+  `StringGenerator.pool` factories, and `PasswordPolicy.Builder.require` and `requireSymbols` now draw a
+  supplementary character of the caller's pool, one outside the Basic Multilingual Plane, such as the emoji
+  U+1F600 that UTF-16 writes as a surrogate pair, as one whole character. They drew each half of the pair as a
+  character of its own, so a string or password drawn from the pool `"a😀"` held unpaired surrogates, which no
+  Unicode encoding can hold, and `CharGenerator.pool(char...)` split a pair given as its two halves side by side
+  the same way. A length, and the count of a requirement, is of characters as code points, so such a character
+  counts once and takes two `char`s of the string, and a string or password that holds one is longer in
+  `String.length()` than its length. `CharGenerator.generate()` returns a `Character`, which cannot hold such a
+  character, so for a pool that holds one it now throws `IllegalStateException`, naming the character, rather
+  than return half of it, and `StringGenerator` draws strings from that pool. Seeded output changes only for a
+  pool that holds a supplementary character, whose characters are now fewer and whole: seeded with 42, a
+  `StringGenerator` of length 4 from `"a😀b🎉"` gave `"\ude00ba\ude00"`, `"a🞉\ude00"` and
+  `"🞉\ude00\ude00"`, and now gives `"baba"`, `"😀🎉😀b"` and `"ba🎉😀"`. A pool of characters from the Basic
+  Multilingual Plane only, including one that holds an unpaired surrogate, keeps every draw, as tests pinned
+  before the change show, and no built-in pool holds a supplementary character.
+
 ## [3.1.0] - 2026-11-13
 
 ### Added

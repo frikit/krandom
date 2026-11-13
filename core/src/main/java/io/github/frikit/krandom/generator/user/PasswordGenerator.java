@@ -66,7 +66,8 @@ public final class PasswordGenerator implements Generator<String> {
     }
 
     /**
-     * Generates a password that satisfies the supplied immutable policy.
+     * Generates a password that satisfies the supplied immutable policy. Its length and the counts of its
+     * requirements are of characters as code points, as the policy describes.
      *
      * @param policy password character and length requirements
      * @return policy-compliant password
@@ -75,18 +76,18 @@ public final class PasswordGenerator implements Generator<String> {
         PasswordPolicy effectivePolicy = Objects.requireNonNull(policy, "policy must not be null");
         int length = effectivePolicy.minLength()
                 + random.nextInt(effectivePolicy.maxLength() - effectivePolicy.minLength() + 1);
-        List<Character> characters = new ArrayList<>(length);
+        List<Integer> characters = new ArrayList<>(length);
         for (PasswordPolicy.Requirement requirement : effectivePolicy.requirements()) {
             for (int i = 0; i < requirement.minimumCount(); i++) {
-                characters.add(randomCharacter(requirement.symbols()));
+                characters.add(randomCodePoint(requirement.codePoints()));
             }
         }
         while (characters.size() < length) {
-            characters.add(randomCharacter(effectivePolicy.alphabet()));
+            characters.add(randomCodePoint(effectivePolicy.alphabetCodePoints()));
         }
         Collections.shuffle(characters, random);
         StringBuilder result = new StringBuilder(length);
-        characters.forEach(result::append);
+        characters.forEach(result::appendCodePoint);
         return result.toString();
     }
 
@@ -100,5 +101,9 @@ public final class PasswordGenerator implements Generator<String> {
 
     private char randomCharacter(String alphabet) {
         return alphabet.charAt(random.nextInt(alphabet.length()));
+    }
+
+    private int randomCodePoint(int[] codePoints) {
+        return codePoints[random.nextInt(codePoints.length)];
     }
 }

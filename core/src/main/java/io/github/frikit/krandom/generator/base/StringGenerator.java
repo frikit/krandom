@@ -43,6 +43,11 @@ import java.util.random.RandomGenerator;
  *       .charGenerator(CharGenerator.digits())
  *       .build();
  * }</pre>
+ *
+ * <p>A length counts characters as the pool holds them, as code points: a supplementary character, such as
+ * an emoji that UTF-16 writes as a surrogate pair, is one character of the length and two {@code char}s of
+ * the string, so a string from a pool that holds one may be longer than its length in {@link String#length()}.
+ * A pool of characters from the Basic Multilingual Plane gives strings whose {@code length()} is the length.
  */
 public final class StringGenerator implements Generator<String> {
 
@@ -196,7 +201,7 @@ public final class StringGenerator implements Generator<String> {
 
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            sb.append(charGenerator.generate());
+            sb.appendCodePoint(charGenerator.generateCodePoint());
         }
         return sb.toString();
     }

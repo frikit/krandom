@@ -16,6 +16,11 @@ import java.util.Set;
  *
  * <p>Requirements state the minimum number of characters to take from each character set.
  * All requirement sets participate in the password alphabet.
+ *
+ * <p>Lengths and counts are of characters as code points: a supplementary character in a set, such as an
+ * emoji that UTF-16 writes as a surrogate pair, is drawn whole and counts as one character, so a password
+ * that holds one is longer in {@link String#length()} than its length. A password drawn from characters of the
+ * Basic Multilingual Plane only, as the built-in sets are, has a {@code length()} equal to its length.
  */
 public final class PasswordPolicy {
 
@@ -32,12 +37,14 @@ public final class PasswordPolicy {
     private final int maxLength;
     private final List<Requirement> requirements;
     private final String alphabet;
+    private final int[] alphabetCodePoints;
 
     private PasswordPolicy(Builder builder) {
         this.minLength = builder.minLength;
         this.maxLength = builder.maxLength;
         this.requirements = List.copyOf(builder.requirements);
         this.alphabet = alphabetFor(requirements);
+        this.alphabetCodePoints = alphabet.codePoints().toArray();
         int requiredCharacters =
                 requirements.stream().mapToInt(Requirement::minimumCount).sum();
         if (requiredCharacters > minLength) {
@@ -81,32 +88,44 @@ public final class PasswordPolicy {
         return alphabet;
     }
 
+    /** The characters of the alphabet, as code points, each once, in the order of the requirements. */
+    int[] alphabetCodePoints() {
+        return alphabetCodePoints;
+    }
+
     private static String alphabetFor(List<Requirement> requirements) {
-        Set<Character> characters = new LinkedHashSet<>();
-        requirements.forEach(requirement -> requirement.symbols().chars().forEach(c -> characters.add((char) c)));
+        Set<Integer> characters = new LinkedHashSet<>();
+        requirements.forEach(requirement -> requirement.symbols().codePoints().forEach(characters::add));
         if (characters.isEmpty()) {
-            LOWERCASE.chars().forEach(c -> characters.add((char) c));
-            UPPERCASE.chars().forEach(c -> characters.add((char) c));
-            DIGITS.chars().forEach(c -> characters.add((char) c));
-            SYMBOLS.chars().forEach(c -> characters.add((char) c));
+            LOWERCASE.codePoints().forEach(characters::add);
+            UPPERCASE.codePoints().forEach(characters::add);
+            DIGITS.codePoints().forEach(characters::add);
+            SYMBOLS.codePoints().forEach(characters::add);
         }
         StringBuilder result = new StringBuilder(characters.size());
-        characters.forEach(result::append);
+        characters.forEach(result::appendCodePoint);
         return result.toString();
     }
 
     static final class Requirement {
 
         private final String symbols;
+        private final int[] codePoints;
         private final int minimumCount;
 
         Requirement(String symbols, int minimumCount) {
             this.symbols = symbols;
+            this.codePoints = symbols.codePoints().toArray();
             this.minimumCount = minimumCount;
         }
 
         String symbols() {
             return symbols;
+        }
+
+        /** The characters of the set, as code points, in the order given and with repeats kept. */
+        int[] codePoints() {
+            return codePoints;
         }
 
         int minimumCount() {
@@ -126,7 +145,7 @@ public final class PasswordPolicy {
         private Builder() {}
 
         /**
-         * Sets a fixed password length.
+         * Sets a fixed password length, in characters as code points.
          *
          * @param length required length
          * @return this builder
@@ -136,7 +155,7 @@ public final class PasswordPolicy {
         }
 
         /**
-         * Sets an inclusive password length range.
+         * Sets an inclusive password length range, in characters as code points.
          *
          * @param min inclusive minimum length
          * @param max inclusive maximum length
@@ -196,7 +215,8 @@ public final class PasswordPolicy {
         }
 
         /**
-         * Requires characters from a custom character set.
+         * Requires characters from a custom character set. A supplementary character in the set is one
+         * character of it, drawn whole.
          *
          * @param symbols character set
          * @param minimumCount required count
