@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Three `GeneratorConfig.Builder` settings that change seeded output, each off by default in 3.x, so every
+  existing seed and recipe gives the values it gave before, and each the default from 4.0. The Kotlin DSL's
+  `config { ... }` has the same three, and a portable recipe records each one only when it is on, so a 3.1
+  recipe replays with them off, and a release before 3.2 rejects a recipe that records one.
+  - `advancingConvenienceStreams(boolean)` (recipe setting `advancing-convenience-streams`):
+    `EmailGenerator.generateCompanyEmail()`, the `FullNameGenerator` methods with a middle name or initial,
+    and `CurrencyGenerator.generatePriceTag` keep their child generator and give the next value on each
+    call, rather than build it again from the same child stream and repeat one seeded value.
+  - `strictMathGaussian(boolean)` (recipe setting `gaussian.strict-math`): `NormalDistributionGenerator`
+    draws with `StrictMath.log`, `sin` and `cos`, so a seed gives the same bits on every platform rather than
+    values that `Math` lets differ in the last bit.
+  - `objectReseedBuiltInRandomizers(boolean)` (recipe setting `object.reseed-built-in-randomizers`): object
+    generation reseeds a built-in `@Randomizer` that is not `Seedable` from the object's seeded stream, as it
+    does a `Seedable` one, so `@Randomizer(FirstNameGenerator.class)` and the other built-ins that a seeded
+    `Schema` reseeds replay from the seed rather than draw from their own unseeded source.
+
+  The matching getters are `isAdvancingConvenienceStreams()`, `isStrictMathGaussian()` and
+  `isObjectReseedBuiltInRandomizers()`.
+
 ### Changed
 
 - A seeded `Schema` takes each value of a common built-in `Field` reference from one generator kept for its

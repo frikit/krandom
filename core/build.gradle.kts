@@ -161,6 +161,8 @@ pitest {
             "io.github.frikit.krandom.generator.GeneratorConfigTest",
             "io.github.frikit.krandom.generator.GeneratorProfileTest",
             "io.github.frikit.krandom.generator.RandomSourceContractTest",
+            "io.github.frikit.krandom.generator.SeedingDefaultsPinTest",
+            "io.github.frikit.krandom.generator.SeedingOptInsTest*",
             "io.github.frikit.krandom.generator.color.ColorGeneratorTest",
             "io.github.frikit.krandom.generator.finance.Phase3FinanceGeneratorsTest",
             "io.github.frikit.krandom.generator.identifier.UUIDGeneratorTest",

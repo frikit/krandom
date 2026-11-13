@@ -422,6 +422,30 @@ public class ConfigScope internal constructor(
     public fun seed(seedText: String) {
         builder.seed(seedText)
     }
+
+    /**
+     * Makes convenience methods such as `generateCompanyEmail()` advance their child stream rather than repeat one
+     * seeded value. Off by default in 3.x; the default from 4.0. See `GeneratorConfig.Builder.advancingConvenienceStreams`.
+     */
+    public fun advancingConvenienceStreams(advancing: Boolean) {
+        builder.advancingConvenienceStreams(advancing)
+    }
+
+    /**
+     * Makes Gaussian draws use `StrictMath`, so a seed gives the same bits on every platform. Off by default in
+     * 3.x; the default from 4.0. See `GeneratorConfig.Builder.strictMathGaussian`.
+     */
+    public fun strictMathGaussian(strict: Boolean) {
+        builder.strictMathGaussian(strict)
+    }
+
+    /**
+     * Makes object generation reseed a built-in `@Randomizer` that is not `Seedable` from the object's seeded
+     * stream. Off by default in 3.x; the default from 4.0. See `GeneratorConfig.Builder.objectReseedBuiltInRandomizers`.
+     */
+    public fun objectReseedBuiltInRandomizers(reseed: Boolean) {
+        builder.objectReseedBuiltInRandomizers(reseed)
+    }
 }
 
 /**

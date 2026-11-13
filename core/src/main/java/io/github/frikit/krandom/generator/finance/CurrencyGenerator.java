@@ -103,14 +103,17 @@ public final class CurrencyGenerator implements Generator<String> {
     private GeneratorConfig config;
 
     private final Random random;
+    /** The money child that the advancing opt-in keeps for price tags, made when first used. */
+    private @org.jspecify.annotations.Nullable MoneyGenerator priceTags;
 
     /**
      * Reseeds this generator, which then gives what one built from its configuration with this seed gives,
-     * the money amounts it draws from a child stream included.
+     * the money amounts it draws from a child stream included, so the money child it kept is dropped.
      */
     void reseedTo(long seed) {
         config = io.github.frikit.krandom.internal.ConfigAccess.withSeed(config, seed);
         random.setSeed(seed);
+        priceTags = null;
     }
 
     /**
@@ -409,20 +412,39 @@ public final class CurrencyGenerator implements Generator<String> {
      * Generates a locale-aware price tag string.
      * Faker-style alias: {@code pricetag()}.
      *
+     * <p>Each call builds a {@link MoneyGenerator} from the same child stream, so a seeded generator repeats one
+     * amount. With {@link GeneratorConfig.Builder#advancingConvenienceStreams(boolean)} on, which is the default
+     * from 4.0, it keeps that generator for both price-tag methods and each call gives the next amount.
+     *
      * @return formatted amount with locale currency
      */
     public String generatePriceTag() {
-        return new MoneyGenerator(config.forChildStream("money")).generate();
+        return priceTagMoney().generate();
     }
 
     /**
      * Generates a locale-aware price tag string for the provided locale.
      *
+     * <p>Like {@link #generatePriceTag()}, it repeats one amount under a seed unless
+     * {@link GeneratorConfig.Builder#advancingConvenienceStreams(boolean)} is on.
+     *
      * @param locale locale override used for formatting and currency selection
      * @return formatted amount with locale currency
      */
     public String generatePriceTag(Locale locale) {
-        return new MoneyGenerator(config.forChildStream("money")).generate(locale);
+        return priceTagMoney().generate(locale);
+    }
+
+    private MoneyGenerator priceTagMoney() {
+        if (!config.isAdvancingConvenienceStreams()) {
+            return new MoneyGenerator(config.forChildStream("money"));
+        }
+        MoneyGenerator kept = priceTags;
+        if (kept == null) {
+            kept = new MoneyGenerator(config.forChildStream("money"));
+            priceTags = kept;
+        }
+        return kept;
     }
 
     /**

@@ -42,6 +42,33 @@ class IndependentStreamsDslTest :
                 .objectFieldStreamPolicy shouldBe
                 ObjectFieldStreamPolicy.INDEPENDENT
         }
+        it("Kotlin configurations set the 3.2 seeding opt-ins, which their recipes keep") {
+            val config =
+                krandomConfig {
+                    seed(42L)
+                    advancingConvenienceStreams(true)
+                    strictMathGaussian(true)
+                    objectReseedBuiltInRandomizers(true)
+                }.snapshotClock()
+            val replay = config.generationRecipe.orElseThrow().toGeneratorConfig()
+            listOf(
+                replay.isAdvancingConvenienceStreams,
+                replay.isStrictMathGaussian,
+                replay.isObjectReseedBuiltInRandomizers,
+            ) shouldBe listOf(true, true, true)
+            val off =
+                krandomConfig {
+                    seed(42L)
+                    advancingConvenienceStreams(false)
+                    strictMathGaussian(false)
+                    objectReseedBuiltInRandomizers(false)
+                }
+            listOf(
+                off.isAdvancingConvenienceStreams,
+                off.isStrictMathGaussian,
+                off.isObjectReseedBuiltInRandomizers,
+            ) shouldBe listOf(false, false, false)
+        }
     })
 
 data class StreamFixture(

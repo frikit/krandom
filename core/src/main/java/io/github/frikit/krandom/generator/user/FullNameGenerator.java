@@ -23,6 +23,11 @@ import java.util.Set;
  * <p>Built-in locale coverage follows the underlying name generators and the catalog in
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}.
  *
+ * <p>The methods with a middle name or initial build a middle-name generator from the same child stream on each
+ * call, so a seeded generator repeats one middle name. With
+ * {@link GeneratorConfig.Builder#advancingConvenienceStreams(boolean)} on, which is the default from 4.0, they keep
+ * one, shared with {@link #generate(NameOptions)}, and each call gives the next middle name.
+ *
  * <pre>{@code
  * FullNameGenerator gen = new FullNameGenerator();
  * String name = gen.generate();               // "James Smith"
@@ -179,7 +184,7 @@ public final class FullNameGenerator implements Generator<String> {
      * @throws UnsupportedOperationException if middle names are not supported for this locale
      */
     public String generateWithMiddleName() {
-        MiddleNameGenerator middleNameGenerator = new MiddleNameGenerator(config.forChildStream("middleName"));
+        MiddleNameGenerator middleNameGenerator = middleNames();
         return firstNameGenerator.generate()
                 + " " + middleNameGenerator.generate()
                 + " " + lastNameGenerator.generate();
@@ -199,7 +204,7 @@ public final class FullNameGenerator implements Generator<String> {
      */
     public String generateWithMiddleName(Gender gender) {
         Objects.requireNonNull(gender, "gender must not be null");
-        MiddleNameGenerator middleNameGenerator = new MiddleNameGenerator(config.forChildStream("middleName"));
+        MiddleNameGenerator middleNameGenerator = middleNames();
         return firstNameGenerator.generate(gender)
                 + " " + middleNameGenerator.generate(gender)
                 + " " + lastNameGenerator.generate();
@@ -217,7 +222,7 @@ public final class FullNameGenerator implements Generator<String> {
      */
     public String generateWithMiddleInitial() {
         return firstNameGenerator.generate()
-                + " " + new MiddleNameGenerator(config.forChildStream("middleName")).generateInitial()
+                + " " + middleNames().generateInitial()
                 + " " + lastNameGenerator.generate();
     }
 
@@ -232,7 +237,7 @@ public final class FullNameGenerator implements Generator<String> {
     public String generateWithMiddleInitial(Gender gender) {
         Objects.requireNonNull(gender, "gender must not be null");
         return firstNameGenerator.generate(gender)
-                + " " + new MiddleNameGenerator(config.forChildStream("middleName")).generateInitial(gender)
+                + " " + middleNames().generateInitial(gender)
                 + " " + lastNameGenerator.generate();
     }
 
@@ -314,6 +319,18 @@ public final class FullNameGenerator implements Generator<String> {
      */
     public boolean isLocaleExplicitlySupported() {
         return firstNameGenerator.isLocaleExplicitlySupported();
+    }
+
+    /**
+     * The middle-name generator of the methods with a middle name or initial: a new one from the same child stream
+     * on each call, so a seeded generator repeats one middle name, or, with
+     * {@link GeneratorConfig.Builder#advancingConvenienceStreams(boolean)} on, the one this generator keeps for its
+     * own locale, which {@link #generate(NameOptions)} also draws from, so each call gives the next.
+     */
+    private MiddleNameGenerator middleNames() {
+        return config.isAdvancingConvenienceStreams()
+                ? generatorsFor(config.getLocale()).middleNameGenerator()
+                : new MiddleNameGenerator(config.forChildStream("middleName"));
     }
 
     private NameGenerators generatorsFor(Locale locale) {
