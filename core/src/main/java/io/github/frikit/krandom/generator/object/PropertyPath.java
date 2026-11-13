@@ -12,6 +12,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Immutable, type-safe property path used by {@link ObjectFaker}.
@@ -23,10 +25,13 @@ import java.util.Objects;
  *     PropertyPath.of(User::getAddress).then(Address::getCity);
  * }</pre>
  *
+ * <p>A selected value may be nullable, as in {@code PropertyPath<User, @Nullable Address>}, and a path
+ * continues past a nullable value with an accessor of its non-null type.
+ *
  * @param <T> root object type
- * @param <V> selected value type
+ * @param <V> selected value type, which may be nullable
  */
-public final class PropertyPath<T, V> {
+public final class PropertyPath<T, V extends @Nullable Object> {
 
     private final List<String> segments;
     private final String path;
@@ -41,21 +46,21 @@ public final class PropertyPath<T, V> {
      *
      * @param selector unbound accessor method reference
      * @param <T> root type
-     * @param <V> property type
+     * @param <V> property type, which may be nullable
      * @return immutable root path
      */
-    public static <T, V> PropertyPath<T, V> of(PropertySelector<T, V> selector) {
+    public static <T, V extends @Nullable Object> PropertyPath<T, V> of(PropertySelector<T, V> selector) {
         return new PropertyPath<>(List.of(propertyName(selector)));
     }
 
     /**
      * Appends a nested getter or record accessor to this path.
      *
-     * @param selector accessor on the current value type
-     * @param <N> nested value type
+     * @param selector accessor on the current value type, or on its non-null type where it is nullable
+     * @param <N> nested value type, which may be nullable
      * @return a new composed path
      */
-    public <N> PropertyPath<T, N> then(PropertySelector<V, N> selector) {
+    public <N extends @Nullable Object> PropertyPath<T, N> then(PropertySelector<@NonNull V, N> selector) {
         List<String> composed = new ArrayList<>(segments.size() + 1);
         composed.addAll(segments);
         composed.add(propertyName(selector));

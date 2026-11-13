@@ -25,7 +25,7 @@ kRandom is a random and fake-data generation toolkit for Java 17 and later, from
 
 ## Current status
 
-- Latest stable release: `3.0.3`; current repository development line: `3.0.3-SNAPSHOT`.
+- Latest stable release: `3.0.3`; current repository development line: `3.1.0-SNAPSHOT`.
 - Java-first architecture.
 - `core` is the only behavior source of truth.
 - `bom` aligns the versions of all published modules.
@@ -236,6 +236,7 @@ Consumer examples live in [`examples/`](examples/). They are test-based examples
 - Java + Maven
 - Kotlin + Gradle
 - Kotlin + Maven
+- Kotlin + Android (local unit tests)
 - Scala + sbt
 - Scala + Mill
 

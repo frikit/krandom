@@ -6,11 +6,11 @@ Core examples verify direct `io.github.frikit:krandom-core` consumption, includi
 encapsulation from Java 21 named modules. Integration examples verify the published Jackson, JUnit,
 Spring Boot, Kotest, and Kotlin DSL artifacts from clean consumer builds.
 
-Default example version: `3.0.3-SNAPSHOT`
+Default example version: `3.1.0-SNAPSHOT`
 
 Version strategy:
 
-- `3.0.3-SNAPSHOT` is the repo-local default for Maven-local verification.
+- `3.1.0-SNAPSHOT` is the repo-local default for Maven-local verification.
 - CI injects the version under test instead of editing example build files.
 - published-release checks should pass an explicit version with the existing property knobs rather than changing the embedded defaults.
 
@@ -28,6 +28,9 @@ That script:
 - runs the Java + Gradle example again on Java 17, the oldest Java that the Java modules run on, when
   Gradle detects a JDK 17; it skips that run otherwise, unless `KRANDOM_REQUIRE_JAVA17=true`, as CI sets
 - verifies both successful qualified `opens` and actionable missing-`opens` behavior from named modules
+- runs the Android example only when `ANDROID_HOME` or `ANDROID_SDK_ROOT` names an Android SDK, and
+  otherwise skips it with a message; `KRANDOM_REQUIRE_ANDROID_SDK=true`, which CI sets, makes a missing
+  SDK an error
 
 To point the examples at a different artifact version, set `KRANDOM_VERSION` or the build-tool-specific property:
 
@@ -57,6 +60,11 @@ Each example's README lists what its tests show.
 - Kotlin + Maven integration modules: `examples/kotlin-maven-integrations` — a Kotest arbitrary, the
   Kotlin DSL with sealed classes and value classes, the Spring Boot starter and its `krandom.*`
   properties, and `krandom-jackson` on Jackson 3
+- Kotlin + Android: `examples/kotlin-android` — local unit tests of Android library modules compiled for
+  JVM target 17 with the Kotlin 2.2.10 that the Android Gradle plugin 9.5.1 brings: `Krandom`, the
+  `Generators` factories and the Kotlin DSL under JUnit 4, a rule for
+  `android.net.Uri`, and `krandom-junit` on the JUnit Platform; the
+  [Android unit tests guide](../docs-site/guides/android-unit-tests.md) explains the setup
 - Scala + sbt: `examples/scala-sbt` — the `Generators` factories from Scala 3
 - Scala + Mill: `examples/scala-mill` — the `Generators` factories from Scala 3
 

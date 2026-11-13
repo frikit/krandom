@@ -380,7 +380,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                 new SemanticCoherenceAdjuster(config, uniqueFieldTracker, generationSeed, depth, objectPath);
         try {
             return type.isRecord()
-                    ? generateRecord(resolver, coherenceAdjuster)
+                    ? generateRecordInstance(resolver, coherenceAdjuster)
                     : generateClass(resolver, coherenceAdjuster);
         } catch (InvocationTargetException e) {
             throw constructionFailure(e.getTargetException());
@@ -600,7 +600,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private T generateRecord(FieldGeneratorResolver resolver, SemanticCoherenceAdjuster coherenceAdjuster)
+    private T generateRecordInstance(FieldGeneratorResolver resolver, SemanticCoherenceAdjuster coherenceAdjuster)
             throws ReflectiveOperationException {
         RecordMeta meta = RECORD_META.get(type);
         RecordComponent[] components = meta.components();

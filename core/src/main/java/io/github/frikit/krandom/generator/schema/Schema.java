@@ -42,9 +42,20 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Declarative schema-based record generator.
+ *
+ * <p>A record maps each column, in the order of the fields, to its value, which is {@code null} where the
+ * column's provider returns {@code null}, as a parsed property of type {@code null} always does and one
+ * with OpenAPI's {@code nullable} does half of the time. {@link #nextRecord()} and
+ * {@link #nextRecords(int)} type a record as {@code Map<String, @Nullable Object>}, which says so.
+ * {@link #generate()}, {@link #generateBatch(int)}, and {@link #loop(int)} return the same records as
+ * {@code Map<String, Object>}, which claims values that are never {@code null}, and are deprecated. As a
+ * {@code Generator<Map<String, Object>>}, a schema keeps that type in the methods it inherits, such as
+ * {@code stream()}; {@code schema::nextRecord} is a {@code Generator<Map<String, @Nullable Object>>}
+ * of the same records. Every one of these methods draws the schema's next records from one sequence.
  *
  * <p>When supplied a portable seeded {@link GeneratorConfig}, every value receives a named child
  * stream derived from its record index and field name. Adding an unrelated schema column therefore
@@ -114,7 +125,7 @@ public final class Schema implements Generator<Map<String, Object>> {
          * The record to keep: the generated one where it meets the rule, and otherwise one that does, drawing
          * from the random source given where it needs a draw.
          */
-        Map<String, Object> apply(Map<String, Object> record, Supplier<Random> random);
+        Map<String, @Nullable Object> apply(Map<String, @Nullable Object> record, Supplier<Random> random);
 
         /** The JSON Schema of a column's values in the records that the rule keeps. */
         Map<String, ?> columnSchema(String column);
@@ -182,8 +193,27 @@ public final class Schema implements Generator<Map<String, Object>> {
         return Collections.unmodifiableMap(copy);
     }
 
+    /**
+     * Generates the next record.
+     *
+     * @return the next record
+     * @deprecated The record's type claims values that are never {@code null}, but a value is {@code null}
+     *     where its provider returns {@code null}. Use {@link #nextRecord()}, which returns the same record
+     *     typed {@code Map<String, @Nullable Object>}.
+     */
+    @Deprecated
     @Override
     public Map<String, Object> generate() {
+        return legacyRecord(nextRecord());
+    }
+
+    /**
+     * Generates the next record: each column, in the order of the fields, mapped to its value, which is
+     * {@code null} where the column's provider returns {@code null}.
+     *
+     * @return the next record
+     */
+    public Map<String, @Nullable Object> nextRecord() {
         return generateAtIndex(nextRecordIndex++);
     }
 
@@ -192,14 +222,13 @@ public final class Schema implements Generator<Map<String, Object>> {
      *
      * @param count record count
      * @return generated record list
+     * @deprecated The records' type claims values that are never {@code null}, but a value is {@code null}
+     *     where its provider returns {@code null}. Use {@link #nextRecords(int)}, which returns the same
+     *     records typed {@code Map<String, @Nullable Object>}.
      */
+    @Deprecated
     public List<Map<String, Object>> generateBatch(int count) {
-        validateCount(count);
-        List<Map<String, Object>> records = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
-            records.add(generate());
-        }
-        return records;
+        return legacyRecords(nextRecords(count));
     }
 
     /**
@@ -207,9 +236,41 @@ public final class Schema implements Generator<Map<String, Object>> {
      *
      * @param iterations number of records
      * @return generated record list
+     * @deprecated The records' type claims values that are never {@code null}, but a value is {@code null}
+     *     where its provider returns {@code null}. Use {@link #nextRecords(int)}, which returns the same
+     *     records typed {@code Map<String, @Nullable Object>}.
      */
+    @Deprecated
     public List<Map<String, Object>> loop(int iterations) {
-        return generateBatch(iterations);
+        return legacyRecords(nextRecords(iterations));
+    }
+
+    /**
+     * Generates the next {@code count} records, each as {@link #nextRecord()} generates it.
+     *
+     * @param count record count
+     * @return the records in the order generated, in a new list
+     * @throws IllegalArgumentException if {@code count} is negative
+     */
+    public List<Map<String, @Nullable Object>> nextRecords(int count) {
+        validateCount(count);
+        List<Map<String, @Nullable Object>> records = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            records.add(nextRecord());
+        }
+        return records;
+    }
+
+    // The deprecated methods keep their 3.0 type, which claims values that are never null. The records they
+    // return are the ones the methods replacing them return, null values included, as they always were.
+    @SuppressWarnings("NullAway")
+    static Map<String, Object> legacyRecord(Map<String, @Nullable Object> record) {
+        return record;
+    }
+
+    @SuppressWarnings("NullAway")
+    private static List<Map<String, Object>> legacyRecords(List<Map<String, @Nullable Object>> records) {
+        return records;
     }
 
     /**
@@ -233,7 +294,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         Objects.requireNonNull(out, "out must not be null");
         validateCount(count);
         for (int i = 0; i < count; i++) {
-            appendJsonObject(out, generate());
+            appendJsonObject(out, nextRecord());
             out.append(NEWLINE);
         }
     }
@@ -263,7 +324,7 @@ public final class Schema implements Generator<Map<String, Object>> {
             if (i > 0) {
                 out.append(',');
             }
-            appendJsonObject(out, generate());
+            appendJsonObject(out, nextRecord());
         }
         out.append(']').append(NEWLINE);
     }
@@ -293,7 +354,7 @@ public final class Schema implements Generator<Map<String, Object>> {
             return;
         }
         for (int i = 0; i < count; i++) {
-            appendYamlListItem(out, generate(), 0);
+            appendYamlListItem(out, nextRecord(), 0);
         }
     }
 
@@ -319,7 +380,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         Objects.requireNonNull(out, "out must not be null");
         validateCount(count);
         for (int i = 0; i < count; i++) {
-            appendTomlRecord(out, generate());
+            appendTomlRecord(out, nextRecord());
         }
     }
 
@@ -382,7 +443,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         out.append(NEWLINE);
 
         for (int i = 0; i < count; i++) {
-            Map<String, Object> record = generate();
+            Map<String, @Nullable Object> record = nextRecord();
             List<String> row = new ArrayList<>(columns.size());
             for (String column : columns) {
                 row.add(toCsvCell(record.get(column)));
@@ -426,10 +487,10 @@ public final class Schema implements Generator<Map<String, Object>> {
 
         out.append('<').append(DEFAULT_XML_ROOT_ELEMENT).append('>').append(NEWLINE);
         for (int i = 0; i < count; i++) {
-            Map<String, Object> record = generate();
+            Map<String, @Nullable Object> record = nextRecord();
             appendIndent(out, 2);
             out.append('<').append(DEFAULT_XML_RECORD_ELEMENT).append('>').append(NEWLINE);
-            for (Map.Entry<String, Object> field : record.entrySet()) {
+            for (Map.Entry<String, @Nullable Object> field : record.entrySet()) {
                 appendXmlField(out, field.getKey(), field.getValue(), 4);
             }
             appendIndent(out, 2);
@@ -468,7 +529,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         List<String> columns = new ArrayList<>(fields.keySet());
         String normalizedTableName = requireSqlIdentifier(tableName, "tableName");
         for (int i = 0; i < count; i++) {
-            Map<String, Object> record = generate();
+            Map<String, @Nullable Object> record = nextRecord();
             out.append("INSERT INTO ");
             appendSqlIdentifier(out, normalizedTableName);
             out.append(" (");
@@ -609,8 +670,8 @@ public final class Schema implements Generator<Map<String, Object>> {
         return Collections.unmodifiableMap(root);
     }
 
-    private Map<String, Object> generateAtIndex(int recordIndex) {
-        Map<String, Object> record = new LinkedHashMap<>(fields.size());
+    private Map<String, @Nullable Object> generateAtIndex(int recordIndex) {
+        Map<String, @Nullable Object> record = new LinkedHashMap<>(fields.size());
         for (Map.Entry<String, SchemaValueProvider> entry : fields.entrySet()) {
             String name = entry.getKey();
             SchemaValueProvider provider = entry.getValue();
@@ -670,7 +731,8 @@ public final class Schema implements Generator<Map<String, Object>> {
         }
     }
 
-    static void appendXmlField(Appendable out, String fieldName, Object value, int indent) throws IOException {
+    static void appendXmlField(Appendable out, String fieldName, @Nullable Object value, int indent)
+            throws IOException {
         appendIndent(out, indent);
         String elementName = isValidXmlElementName(fieldName) ? fieldName : "field";
         boolean useNameAttribute = !elementName.equals(fieldName);
@@ -1115,9 +1177,9 @@ public final class Schema implements Generator<Map<String, Object>> {
         out.append(NEWLINE);
     }
 
-    static void appendTomlRecord(Appendable out, Map<String, Object> record) throws IOException {
+    static void appendTomlRecord(Appendable out, Map<String, @Nullable Object> record) throws IOException {
         out.append("[[records]]").append(NEWLINE);
-        for (Map.Entry<String, Object> entry : record.entrySet()) {
+        for (Map.Entry<String, @Nullable Object> entry : record.entrySet()) {
             appendTomlKey(out, entry.getKey());
             out.append(" = ");
             appendTomlValue(out, entry.getValue());
@@ -1125,7 +1187,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         }
     }
 
-    private static void appendTomlValue(Appendable out, Object value) throws IOException {
+    private static void appendTomlValue(Appendable out, @Nullable Object value) throws IOException {
         Object normalized = normalizeStructuredValue(value);
         if (normalized == null) {
             throw new IllegalArgumentException("TOML does not support null values");

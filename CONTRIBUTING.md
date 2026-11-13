@@ -60,7 +60,10 @@ and skips itself on an older test Java.
   equivalent or implementation-only mutations remain.
 - **Nullness**: every `krandom-core` package is `@NullMarked` (JSpecify), and `compileJava` runs
   NullAway in JSpecify mode through Error Prone, so a missing `@Nullable` or a possible `null`
-  dereference fails compilation. Test sources are not checked.
+  dereference fails compilation. NullAway also checks the tests in `core/src/nullnessTest/java`, which
+  call the public API as null-marked consumer code does, so a test there fails to compile when the API
+  stops accepting what such code passes it, such as a nullable type argument. The other test sources
+  are not checked.
 - **Public API compatibility**: a minor or patch release keeps the public API that
   [VERSIONING.md](VERSIONING.md) defines. `./gradlew checkApiCompatibility` compares the Java jars
   with the `apiBaselineVersion` release on Maven Central using japicmp, and the ABI dumps of the

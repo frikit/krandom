@@ -47,7 +47,7 @@ class GenerationRecipeGoldenStreamTest {
         fields.put("active", context -> context.random().nextBoolean());
         assertEquals(
                 List.of(Map.of("id", 515, "active", true), Map.of("id", 978, "active", false)),
-                new Schema(CONFIG, fields).generateBatch(2));
+                new Schema(CONFIG, fields).nextRecords(2));
     }
 
     record GoldenPerson(String code, int score) {}

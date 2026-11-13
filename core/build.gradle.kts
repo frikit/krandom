@@ -49,8 +49,15 @@ dependencies {
     errorprone(libs.nullaway)
 }
 
+// The tests in src/nullnessTest/java call the public API as null-marked consumer code does, so they
+// compile only while the API accepts what such code passes it, such as a nullable type argument.
+sourceSets.test {
+    java.srcDir("src/nullnessTest/java")
+}
+
 // Every core package is @NullMarked (JSpecify). NullAway verifies those contracts in JSpecify mode
-// for the main sources; the test fixtures are deliberately unannotated and stay unchecked.
+// for the main sources and the tests in src/nullnessTest/java; the test fixtures in src/test/java are
+// deliberately unannotated and stay unchecked.
 tasks.withType<JavaCompile>().configureEach {
     // Report every finding instead of javac's first 100.
     options.compilerArgs.addAll(listOf("-Xmaxerrs", "1000"))
@@ -63,7 +70,7 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 tasks.compileTestJava {
-    options.errorprone.enabled.set(false)
+    options.errorprone.excludedPaths.set(".*/src/test/java/.*")
 }
 
 // Test fixtures keep their constructor parameter names so the object engine resolves constructor

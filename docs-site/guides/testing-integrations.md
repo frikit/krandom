@@ -28,10 +28,12 @@ fields.put("email", field.bind("person.email"));
 fields.put("amount", field.bind("finance.money"));
 
 Schema orders = Generators.ofSchema(cfg, fields);
-Map<String, Object> row = orders.generate();
+Map<String, @Nullable Object> row = orders.nextRecord();
 
-assert row.get("email").toString().contains("@");
+assert String.valueOf(row.get("email")).contains("@");
 ```
+
+`nextRecord()` is new in 3.1.0; on 3.0.x, call `generate()`, which returns the same record.
 
 ## Spring-style fixture factory
 
@@ -73,8 +75,10 @@ Schema schema = Generators.ofSchema(Locale.US, Map.of(
         "payment", field.bind("finance.payment_info")
 ));
 
-String json = mapper.writeValueAsString(schema.generate());
+String json = mapper.writeValueAsString(schema.nextRecord());
 ```
+
+As above, on 3.0.x call `generate()`, which returns the same record as `nextRecord()`.
 
 `KrandomJackson.newJsonMapper()` also serializes `Schema` itself as JSON Schema, which is useful
 when tests need both data rows and a contract document.

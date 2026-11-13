@@ -49,20 +49,20 @@ class SchemaTest {
         Schema b = new Schema(
                 GeneratorConfig.builder().locale(Locale.US).seed(500L).build(), fieldsB);
 
-        assertEquals(a.generate(), b.generate());
-        assertEquals(a.generateBatch(5), b.generateBatch(5));
+        assertEquals(a.nextRecord(), b.nextRecord());
+        assertEquals(a.nextRecords(5), b.nextRecords(5));
     }
 
     @Test
-    @DisplayName("record index increments across generate and loop")
+    @DisplayName("record index increments across nextRecord and nextRecords")
     void recordIndex() {
         Map<String, SchemaValueProvider> fields = Map.of("index", ctx -> ctx.recordIndex());
         Schema schema = new Schema(fields);
-        assertEquals(0, schema.generate().get("index"));
-        assertEquals(1, schema.generate().get("index"));
-        List<Map<String, Object>> loop = schema.loop(2);
-        assertEquals(2, loop.get(0).get("index"));
-        assertEquals(3, loop.get(1).get("index"));
+        assertEquals(0, schema.nextRecord().get("index"));
+        assertEquals(1, schema.nextRecord().get("index"));
+        List<Map<String, Object>> records = schema.nextRecords(2);
+        assertEquals(2, records.get(0).get("index"));
+        assertEquals(3, records.get(1).get("index"));
     }
 
     @Test
@@ -78,7 +78,7 @@ class SchemaTest {
         root.put("address", field.nested(address));
         root.put("codes", field.list("code.ean13", 1, 2));
 
-        Map<String, Object> record = new Schema(Locale.GERMANY, root).generate();
+        Map<String, Object> record = new Schema(Locale.GERMANY, root).nextRecord();
         assertTrue(record.get("address") instanceof Map<?, ?>);
         assertTrue(record.get("codes") instanceof List<?>);
     }
@@ -92,7 +92,7 @@ class SchemaTest {
             throw new IllegalStateException("boom");
         });
         Schema schema = new Schema(fields);
-        SchemaGenerationException ex = assertThrows(SchemaGenerationException.class, schema::generate);
+        SchemaGenerationException ex = assertThrows(SchemaGenerationException.class, schema::nextRecord);
         assertTrue(ex.getMessage().contains("bad"));
         assertFalse(ex.getMessage().contains("boom"));
         assertTrue(ex.getCause() instanceof IllegalStateException);
@@ -123,8 +123,8 @@ class SchemaTest {
         assertEquals(1, schema.getFields().size());
         assertThrows(
                 UnsupportedOperationException.class, () -> schema.getFields().put("y", ctx -> 2));
-        assertThrows(IllegalArgumentException.class, () -> schema.generateBatch(-1));
-        assertEquals(List.of(), schema.generateBatch(0));
+        assertThrows(IllegalArgumentException.class, () -> schema.nextRecords(-1));
+        assertEquals(List.of(), schema.nextRecords(0));
     }
 
     @Test
@@ -311,7 +311,7 @@ class SchemaTest {
 
         withSchemaExport.toJsonSchema();
 
-        assertEquals(withoutSchemaExport.generate(), withSchemaExport.generate());
+        assertEquals(withoutSchemaExport.nextRecord(), withSchemaExport.nextRecord());
     }
 
     @Test

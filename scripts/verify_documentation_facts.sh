@@ -178,6 +178,7 @@ EXAMPLE_VERSION_FILES=(
     "examples/java-jpms/jackson-consumer/build.gradle.kts"
     "examples/java-jpms/junit-consumer/build.gradle.kts"
     "examples/kotlin-gradle/build.gradle.kts"
+    "examples/kotlin-android/build.gradle.kts"
     "examples/java-maven/pom.xml"
     "examples/java-maven-integrations/pom.xml"
     "examples/kotlin-maven/pom.xml"

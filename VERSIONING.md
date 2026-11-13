@@ -29,7 +29,7 @@ and fixes are not backported to earlier ones. Releases before 3.0.0 made no comp
 read the changelog when upgrading from 2.x.
 
 The latest stable release is `3.0.3`.
-The repository development line is `3.0.3-SNAPSHOT`.
+The repository development line is `3.1.0-SNAPSHOT`.
 
 ## Determinism
 
@@ -60,7 +60,7 @@ A seed fixes kRandom's own draws, not the Java runtime under them:
 | `krandom-core`, `krandom-jackson`, `krandom-junit`, `krandom-spring-boot-starter` | Java 17 or later (from 3.1.0; 3.0.x needs Java 21) |
 | `krandom-kotlin-dsl`, `krandom-kotest-extensions` | Java 21 or later |
 | `krandom-spring-boot-starter` | Spring Boot 4.x |
-| `krandom-kotlin-dsl`, `krandom-kotest-extensions` | built with the Kotlin version pinned in `gradle/libs.versions.toml` |
+| `krandom-kotlin-dsl`, `krandom-kotest-extensions` | built with the Kotlin version pinned in `gradle/libs.versions.toml`; from 3.1.0 for JVM target 17 and for Kotlin 2.2 (language and API version 2.2, `kotlin-stdlib` 2.2.21), so Kotlin 2.1.0 or later can read them; they run on Java 21 or later, as `krandom-core` does |
 | `krandom-kotest-extensions` | the Kotest version pinned in `gradle/libs.versions.toml` |
 
 From 3.1.0 the Java modules run on Java 17, and every later 3.x release keeps them there: the build compiles
