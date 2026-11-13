@@ -120,8 +120,11 @@ public final class DataRegistryContext {
             return cached;
         }
         String key = language + "_" + country;
-        if (EXACT_KEYS.size() < MAX_CACHED_KEYS) {
-            EXACT_KEYS.putIfAbsent(locale, key);
+        // Checked and filled together, so that concurrent misses cannot take the cache past its limit.
+        synchronized (EXACT_KEYS) {
+            if (EXACT_KEYS.size() < MAX_CACHED_KEYS) {
+                EXACT_KEYS.putIfAbsent(locale, key);
+            }
         }
         return key;
     }
