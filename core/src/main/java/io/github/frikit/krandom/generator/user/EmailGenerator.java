@@ -120,11 +120,29 @@ public final class EmailGenerator implements Generator<String> {
     private static final String[] POPULAR_DOMAINS_JA = {"yahoo.co.jp", "gmail.com", "outlook.com"};
     private static final String[] POPULAR_DOMAINS_ZH = {"qq.com", "163.com", "126.com", "gmail.com"};
 
-    private final GeneratorConfig config;
+    /** Not final: a reseed replaces it with the configuration seeded so, which later child streams derive from. */
+    private GeneratorConfig config;
+
     private final Random random;
     private final FirstNameGenerator firstNameGenerator;
     private final LastNameGenerator lastNameGenerator;
     private final Set<String> issuedEmails;
+
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(EmailGenerator.class, EmailGenerator::reseedTo);
+    }
+
+    /**
+     * Reseeds this generator, which then gives what one built from its configuration with this seed gives: its
+     * own and its name streams are reseeded, and the addresses it has issued as unique are forgotten.
+     */
+    void reseedTo(long seed) {
+        config = io.github.frikit.krandom.internal.ConfigAccess.withSeed(config, seed);
+        random.setSeed(seed);
+        firstNameGenerator.reseedTo(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "firstName"));
+        lastNameGenerator.reseedTo(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "lastName"));
+        issuedEmails.clear();
+    }
 
     /**
      * Creates an email generator with default configuration (US locale).

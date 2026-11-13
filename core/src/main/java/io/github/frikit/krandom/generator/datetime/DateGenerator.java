@@ -77,6 +77,11 @@ import java.util.Random;
  */
 public final class DateGenerator implements Generator<LocalDate>, Seedable {
 
+    static {
+        // Its reseed already leaves it as a new build with that seed would be: a seeded source is its only state.
+        io.github.frikit.krandom.internal.Reseeding.register(DateGenerator.class, DateGenerator::reseed);
+    }
+
     private static final int MIN_YEAR = 1970;
     private static final int MAX_YEAR = 2100;
     private final GeneratorConfig config;

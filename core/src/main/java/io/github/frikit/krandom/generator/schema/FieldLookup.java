@@ -5,6 +5,7 @@
  */
 package io.github.frikit.krandom.generator.schema;
 
+import io.github.frikit.krandom.generator.DataRegistryContext;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.provider.ConflictPolicy;
 import io.github.frikit.krandom.generator.provider.ProviderCatalog;
@@ -13,6 +14,7 @@ import io.github.frikit.krandom.generator.provider.ProviderFactory;
 import io.github.frikit.krandom.generator.provider.ProviderSafetyMetadata;
 import io.github.frikit.krandom.generator.provider.ProviderSchemaProjection;
 import io.github.frikit.krandom.internal.ConfigAccess;
+import io.github.frikit.krandom.internal.Reseeding;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -328,29 +330,74 @@ public final class FieldLookup {
     }
 
     private void registerBuiltInDescriptor(ProviderDescriptor<?> descriptor) {
-        registerDescriptorTyped(descriptor, ConflictPolicy.REPLACE);
+        registerDescriptorTyped(descriptor, ConflictPolicy.REPLACE, true);
     }
 
     private void registerExtensionDescriptor(ProviderDescriptor<?> descriptor) {
-        registerDescriptorTyped(descriptor, ConflictPolicy.FAIL);
+        registerDescriptorTyped(descriptor, ConflictPolicy.FAIL, false);
     }
 
-    private <T> void registerDescriptorTyped(ProviderDescriptor<T> descriptor, ConflictPolicy policy) {
+    private <T> void registerDescriptorTyped(ProviderDescriptor<T> descriptor, ConflictPolicy policy, boolean builtIn) {
         T provider = descriptor.create(config);
+        ReseededProviders<T> reseeded = reseededProviders(descriptor, provider, builtIn);
         for (ProviderSchemaProjection<T> projection : descriptor.getSchemaProjections()) {
             register(
                     projection.getReference(),
-                    context -> {
-                        GeneratorConfig valueConfig = valueConfig(context);
-                        return valueConfig == null
-                                ? projection.extract(provider, config)
-                                : projection.extract(descriptor.create(valueConfig), valueConfig);
-                    },
+                    reseeded == null
+                            ? context -> {
+                                GeneratorConfig valueConfig = valueConfig(context);
+                                return valueConfig == null
+                                        ? projection.extract(provider, config)
+                                        : projection.extract(descriptor.create(valueConfig), valueConfig);
+                            }
+                            : context -> context.random() instanceof Schema.FieldStream stream
+                                    ? projection.extract(reseeded.reseededTo(stream.nextLong()), config)
+                                    : projection.extract(provider, config),
                     jsonSchemaFor(projection),
                     policy);
             for (String alias : projection.getAliases()) {
                 registerAlias(alias, projection.getReference(), policy);
             }
+        }
+    }
+
+    /**
+     * The generators of a built-in descriptor for each thread, reseeded for each value, when its class's reseed
+     * leaves it as a new build with that seed would be and this lookup may use it; otherwise null, and each
+     * value builds its generator. A reseeded generator gives what a build for each value gives, and its
+     * projections read only the configuration's locale, which each value's configuration shares with this
+     * lookup's. A value takes no seed of its own from a caller-owned, factory-made or secure source. Each
+     * value's build resolves modules again, which a reseed would skip, so a configuration with modules keeps
+     * building; so does one with a registry context of its own, whose providers may give a later build other
+     * data. A provider that {@code registerProvider} adds, or a module's descriptor, is not a built-in.
+     */
+    private <T> @org.jspecify.annotations.Nullable ReseededProviders<T> reseededProviders(
+            ProviderDescriptor<T> descriptor, T provider, boolean builtIn) {
+        if (!builtIn
+                || !seedsValues
+                || hasModules
+                || config.getRegistryContext() != DataRegistryContext.globalDefault()) {
+            return null;
+        }
+        Reseeding.Reseeder<T> reseeder = Reseeding.reseederOf(provider);
+        return reseeder == null ? null : new ReseededProviders<>(descriptor, config, reseeder);
+    }
+
+    /** One generator of a descriptor for each thread, which each value reseeds. */
+    private static final class ReseededProviders<T> {
+
+        private final Reseeding.Reseeder<T> reseeder;
+        private final ThreadLocal<T> providers;
+
+        ReseededProviders(ProviderDescriptor<T> descriptor, GeneratorConfig config, Reseeding.Reseeder<T> reseeder) {
+            this.reseeder = reseeder;
+            this.providers = ThreadLocal.withInitial(() -> descriptor.create(ConfigAccess.withSeed(config, 0L)));
+        }
+
+        T reseededTo(long seed) {
+            T provider = providers.get();
+            reseeder.reseed(provider, seed);
+            return provider;
         }
     }
 

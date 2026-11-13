@@ -21,6 +21,11 @@ import java.util.Random;
  */
 public final class SyllableGenerator implements Generator<String> {
 
+    /** Reseeds this generator, which then gives what one built from its configuration with this seed gives. */
+    void reseedTo(long seed) {
+        random.setSeed(seed);
+    }
+
     private static final String PHONETICS_PATH_PREFIX = "krandom/text/phonetics/";
     private static final WordPhonetics DEFAULT_EN = WordPhoneticsLoader.load(PHONETICS_PATH_PREFIX + "en.txt");
     private static final Map<String, WordPhonetics> LOCALE_PROFILES = localeProfiles();

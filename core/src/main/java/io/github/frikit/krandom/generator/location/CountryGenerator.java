@@ -51,6 +51,15 @@ import java.util.stream.Collectors;
  */
 public final class CountryGenerator implements Generator<String> {
 
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(CountryGenerator.class, CountryGenerator::reseedTo);
+    }
+
+    /** Reseeds this generator, which then gives what one built from its configuration with this seed gives. */
+    void reseedTo(long seed) {
+        random.setSeed(seed);
+    }
+
     private static final String ISO_CODES_RESOURCE = "krandom/country_codes/iso_3166_1.txt";
     private static final String CALLING_CODES_RESOURCE = "krandom/country_codes/calling_codes.txt";
     private static final String CONTINENTS_RESOURCE = "krandom/country_codes/continents.txt";

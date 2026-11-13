@@ -24,6 +24,36 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class StreetAddressGenerator implements Generator<String> {
 
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(
+                StreetAddressGenerator.class, StreetAddressGenerator::reseedTo);
+    }
+
+    /**
+     * Reseeds this generator and each of its child streams (city, state, postal code, postal place, country),
+     * which then give what ones built from its configuration with this seed give.
+     */
+    void reseedTo(long seed) {
+        random.setSeed(seed);
+        CityGenerator city = cityGenerator;
+        if (city != null) {
+            city.reseedTo(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "city"));
+        }
+        StateGenerator state = stateGenerator;
+        if (state != null) {
+            state.reseedTo(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "state"));
+        }
+        postalCodeGenerator.reseedTo(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "postalCode"));
+        PlaceDraws draws = placeDraws;
+        if (draws != null) {
+            draws.random().setSeed(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "postalPlace"));
+        }
+        AddressCountry addressCountry = country;
+        if (addressCountry != null) {
+            addressCountry.reseedTo(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "country"));
+        }
+    }
+
     private final GeneratorConfig config;
     private final Random random;
     private final String[] streetNames;

@@ -83,6 +83,16 @@ import java.util.Set;
  */
 public final class PhoneNumberGenerator implements Generator<String> {
 
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(
+                PhoneNumberGenerator.class, PhoneNumberGenerator::reseedTo);
+    }
+
+    /** Reseeds this generator, which then gives what one built from its configuration with this seed gives. */
+    void reseedTo(long seed) {
+        random.setSeed(seed);
+    }
+
     // The countries with a dedicated format method in generate(boolean, boolean); the other format countries
     // are the plans of PhoneNumberLayouts.
     private static final Set<String> DEDICATED_FORMAT_COUNTRIES = Set.of(

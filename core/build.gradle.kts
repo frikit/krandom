@@ -169,6 +169,9 @@ pitest {
             "io.github.frikit.krandom.generator.object.*",
             "io.github.frikit.krandom.generator.text.NextWordGeneratorTest",
             "io.github.frikit.krandom.generator.user.EmailGeneratorTest",
+            // The oracles of the per-column reseed in a seeded Schema (the second is also under schema.*).
+            "io.github.frikit.krandom.internal.ReseedAsBuiltTest",
+            "io.github.frikit.krandom.generator.schema.SchemaFreshBuildOracleTest",
         ),
     )
     pitestVersion.set(libs.versions.pitest.core)
