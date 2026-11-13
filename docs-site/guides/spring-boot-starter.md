@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.frikit:krandom-spring-boot-starter:3.0.2")
+    implementation("io.github.frikit:krandom-spring-boot-starter:3.0.3")
 }
 ```
 

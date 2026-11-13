@@ -18,6 +18,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   its local unit tests on Java 21, and not in app code or on-device tests. The public API is unchanged. The
   `examples/kotlin-android` example, which CI runs, compiles its unit tests for JVM target 17, and the Android
   unit tests guide describes its setup.
+
+## [3.0.3] - 2026-11-12
+
+### Changed
+
 - `StreetAddressGenerator` now reads each locale's secondary units, such as `Apt` and `Suite`, from their
   resource once and shares them between that locale's generators, rather than opening and reading the
   resource each time a generator is built; a locale without such a resource shares its fallback units the
@@ -2032,7 +2037,8 @@ Condensed summary of all pre-1.0.0 development (≈Feb–Apr 2026), originally t
 ### Removed
 - Kotlin and Scala API modules (implementation surface kept focused); deprecated APIs and deprecated Java locale usage.
 
-[Unreleased]: https://github.com/frikit/krandom/compare/v3.0.2...HEAD
+[Unreleased]: https://github.com/frikit/krandom/compare/v3.0.3...HEAD
+[3.0.3]: https://github.com/frikit/krandom/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/frikit/krandom/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/frikit/krandom/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/frikit/krandom/compare/v2.12.0...v3.0.0
