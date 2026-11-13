@@ -36,7 +36,7 @@ String second = new FullNameGenerator(seeded).generate();
 
 ```java
 GeneratorConfig fr = GeneratorConfig.builder()
-        .locale(java.util.Locale.of("fr", "FR"))
+        .locale(java.util.Locale.forLanguageTag("fr-FR"))
         .build();
 
 String city = new CityGenerator(fr).generate();

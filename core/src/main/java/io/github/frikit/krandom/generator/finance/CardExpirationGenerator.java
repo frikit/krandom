@@ -58,11 +58,11 @@ import java.util.Random;
  * <p><strong>Locale-Aware Formatting:</strong>
  * <pre>{@code
  * // US format (MM/YY)
- * Locale usLocale = Locale.of("en", "US");
+ * Locale usLocale = Locale.forLanguageTag("en-US");
  * String usExpiry = gen.generate(usLocale);    // "03/26"
  *
  * // Japanese format (YY/MM)
- * Locale jpLocale = Locale.of("ja", "JP");
+ * Locale jpLocale = Locale.forLanguageTag("ja-JP");
  * String jpExpiry = gen.generate(jpLocale);    // "26/03"
  * }</pre>
  *

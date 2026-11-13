@@ -25,7 +25,7 @@ import java.util.Random;
  *
  * <pre>{@code
  *   String en = new WeatherGenerator().generate();                    // e.g. "Rainy"
- *   String ru = new WeatherGenerator(Locale.of("ru","RU")).generate(); // e.g. "Дождливо"
+ *   String ru = new WeatherGenerator(Locale.forLanguageTag("ru-RU")).generate(); // e.g. "Дождливо"
  * }</pre>
  */
 public final class WeatherGenerator implements Generator<String> {

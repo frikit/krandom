@@ -22,7 +22,7 @@ import java.util.Locale;
  * <pre>{@code
  * DataRegistryContext context = DataRegistryContext.builder()
  *     .register(Vocabulary.POSTAL_PLACE, new PostalPlaceDataProvider() {
- *         public Locale getLocale() { return Locale.of("es", "MX"); }
+ *         public Locale getLocale() { return Locale.forLanguageTag("es-MX"); }
  *         public List<PostalPlace> getPlaces() {
  *             return List.of(new PostalPlace("Guadalajara", "Jalisco", "JAL", List.of("44100", "44160")));
  *         }

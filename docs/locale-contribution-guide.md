@@ -7,7 +7,7 @@ This guide defines the minimum bar for adding or upgrading a built-in locale in 
 Not every locale addition should become a built-in dataset. For test-only or application-specific locales, prefer `LocaleDataBundle` with a config-scoped `DataRegistryContext`:
 
 ```java
-Locale locale = Locale.of("es", "MX");
+Locale locale = Locale.forLanguageTag("es-MX");
 
 LocaleDataBundle bundle = LocaleDataBundle.builder(locale)
         .firstNames(new String[]{"Mateo"}, new String[]{"Sofía"})

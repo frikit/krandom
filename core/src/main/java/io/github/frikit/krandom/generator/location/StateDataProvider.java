@@ -18,13 +18,13 @@ import java.util.Locale;
  * <pre>{@code
  * DataRegistryContext context = DataRegistryContext.builder()
  *     .register(Vocabulary.STATE, new StateDataProvider() {
- *         public Locale getLocale() { return Locale.of("en", "IN"); }
+ *         public Locale getLocale() { return Locale.forLanguageTag("en-IN"); }
  *         public String[] getStates() { return new String[]{"Maharashtra", "Karnataka", "Tamil Nadu"}; }
  *         public String[] getAbbreviations() { return new String[]{"MH", "KA", "TN"}; }
  *     })
  *     .build();
  * GeneratorConfig config = GeneratorConfig.builder()
- *     .locale(Locale.of("en", "IN"))
+ *     .locale(Locale.forLanguageTag("en-IN"))
  *     .registryContext(context)
  *     .build();
  * StateGenerator gen = new StateGenerator(config);

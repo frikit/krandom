@@ -20,12 +20,12 @@ import java.util.Random;
  * <pre>{@code
  * DataRegistryContext context = DataRegistryContext.builder()
  *     .register(Vocabulary.NATIONAL_ID, new NationalIdProvider() {
- *         public Locale getLocale() { return Locale.of("ko", "KR"); }
+ *         public Locale getLocale() { return Locale.forLanguageTag("ko-KR"); }
  *         public String generate(Random random) { return "..."; }
  *     })
  *     .build();
  * GeneratorConfig config = GeneratorConfig.builder()
- *     .locale(Locale.of("ko", "KR"))
+ *     .locale(Locale.forLanguageTag("ko-KR"))
  *     .nationalIdSafetyPolicy(NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED)
  *     .registryContext(context)
  *     .build();

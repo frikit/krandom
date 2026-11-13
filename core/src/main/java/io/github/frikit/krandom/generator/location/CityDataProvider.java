@@ -18,12 +18,12 @@ import java.util.Locale;
  * <pre>{@code
  * DataRegistryContext context = DataRegistryContext.builder()
  *     .register(Vocabulary.CITY, new CityDataProvider() {
- *         public Locale getLocale() { return Locale.of("ko", "KR"); }
+ *         public Locale getLocale() { return Locale.forLanguageTag("ko-KR"); }
  *         public String[] getCities() { return new String[]{"서울", "부산", "인천"}; }
  *     })
  *     .build();
  * GeneratorConfig config = GeneratorConfig.builder()
- *     .locale(Locale.of("ko", "KR"))
+ *     .locale(Locale.forLanguageTag("ko-KR"))
  *     .registryContext(context)
  *     .build();
  * CityGenerator gen = new CityGenerator(config);

@@ -51,7 +51,7 @@ import io.github.frikit.krandom.generator.location.CityGenerator;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
 
 GeneratorConfig config = GeneratorConfig.builder()
-        .locale(java.util.Locale.of("de", "DE"))
+        .locale(java.util.Locale.forLanguageTag("de-DE"))
         .seed(42L)
         .build();
 

@@ -18,12 +18,12 @@ import java.util.Locale;
  * <pre>{@code
  * DataRegistryContext context = DataRegistryContext.builder()
  *     .register(Vocabulary.SUFFIX, new SuffixDataProvider() {
- *         public Locale getLocale() { return Locale.of("ko", "KR"); }
+ *         public Locale getLocale() { return Locale.forLanguageTag("ko-KR"); }
  *         public String[] getSuffixes() { return new String[]{"박사", "학사"}; }
  *     })
  *     .build();
  * GeneratorConfig config = GeneratorConfig.builder()
- *     .locale(Locale.of("ko", "KR"))
+ *     .locale(Locale.forLanguageTag("ko-KR"))
  *     .registryContext(context)
  *     .build();
  * SuffixGenerator gen = new SuffixGenerator(config);

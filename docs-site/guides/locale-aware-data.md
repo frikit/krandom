@@ -33,7 +33,7 @@ String sentence = new SentenceGenerator(de).generate();
 For application-level locales or test-only overrides, you can register one locale pack instead of wiring every provider registry by hand.
 
 ```java
-Locale locale = Locale.of("es", "MX");
+Locale locale = Locale.forLanguageTag("es-MX");
 
 LocaleDataBundle bundle = LocaleDataBundle.builder(locale)
         .firstNames(new String[]{"Mateo"}, new String[]{"Sofía"})
@@ -140,7 +140,7 @@ DataRegistryContext context = DataRegistryContext.builder()
         .register(Vocabulary.POSTAL_PLACE, new PostalPlaceDataProvider() {
             @Override
             public Locale getLocale() {
-                return Locale.of("es", "MX");
+                return Locale.forLanguageTag("es-MX");
             }
 
             @Override
@@ -167,7 +167,7 @@ your cities. Register places for the locale as well to use your own.
 Example:
 
 ```java
-SupportedLocale locale = SupportedLocale.fromLocale(Locale.of("nl", "NL")).orElseThrow();
+SupportedLocale locale = SupportedLocale.fromLocale(Locale.forLanguageTag("nl-NL")).orElseThrow();
 
 LocaleDataQualityTier overall = locale.qualityTier();
 LocaleDataQualityTier resourceTier = locale.resourceDataTier();

@@ -18,12 +18,12 @@ import java.util.Locale;
  * <pre>{@code
  * DataRegistryContext context = DataRegistryContext.builder()
  *     .register(Vocabulary.TITLE, new TitleDataProvider() {
- *         public Locale getLocale() { return Locale.of("ko", "KR"); }
+ *         public Locale getLocale() { return Locale.forLanguageTag("ko-KR"); }
  *         public String[] getTitles() { return new String[]{"씨", "님", "박사", "교수"}; }
  *     })
  *     .build();
  * GeneratorConfig config = GeneratorConfig.builder()
- *     .locale(Locale.of("ko", "KR"))
+ *     .locale(Locale.forLanguageTag("ko-KR"))
  *     .registryContext(context)
  *     .build();
  * TitleGenerator gen = new TitleGenerator(config);
