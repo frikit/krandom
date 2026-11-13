@@ -170,10 +170,15 @@ else
 fi
 
 step "Run tests with coverage report"
-TEST_ARGS=(test --quiet)
-if [ "${FAST}" = false ]; then
-    TEST_ARGS+=(--rerun)
-fi
+# java21Test is core's tests that need Java 21 or later (core/src/java21Test); --rerun applies to the task before it.
+TEST_ARGS=()
+for test_task in test java21Test; do
+    TEST_ARGS+=("${test_task}")
+    if [ "${FAST}" = false ]; then
+        TEST_ARGS+=(--rerun)
+    fi
+done
+TEST_ARGS+=(--quiet)
 TEST_START=$(date +%s)
 if "${GRADLEW}" "${TEST_ARGS[@]}"; then
     TEST_END=$(date +%s)

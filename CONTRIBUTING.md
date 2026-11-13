@@ -16,7 +16,10 @@ java -version   # must report 21+
 
 The Java modules (`core`, `jackson`, `junit`, `spring-boot-starter`) run on Java 17 or later, so their
 main and test code keeps to the Java 17 API and language: the JDK 21 build compiles them with
-`--release 17`, which rejects anything newer, and CI runs their tests on Java 17.
+`--release 17`, which rejects anything newer, and CI runs their tests on Java 17. A core test that needs
+Java 21, such as one on virtual threads, goes in `core/src/java21Test/java`, which compiles with
+`--release 21`; its `java21Test` task runs in the pre-commit gate and in CI's Java 21 and Java 25 jobs,
+and skips itself on an older test Java.
 
 ## Development workflow
 

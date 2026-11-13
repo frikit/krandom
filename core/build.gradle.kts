@@ -79,6 +79,38 @@ tasks.test {
     finalizedBy(tasks.jacocoTestReport)
 }
 
+// Tests that need the API of Java 21, such as virtual threads. They compile with --release 21, while main
+// and test keep to Java 17, and run only where the test Java is 21 or later: not in CI's Java 17 job
+// (-PtestJavaVersion=17). They are left out of the coverage gate and of PIT, which read the test source set.
+val java21Test: SourceSet by sourceSets.creating {
+    compileClasspath += sourceSets.main.get().output
+    runtimeClasspath += sourceSets.main.get().output
+}
+
+// The dependencies of the test source set, so both resolve the same verified artifacts.
+configurations[java21Test.implementationConfigurationName].extendsFrom(configurations.testImplementation.get())
+configurations[java21Test.runtimeOnlyConfigurationName].extendsFrom(configurations.testRuntimeOnly.get())
+
+tasks.named<JavaCompile>(java21Test.compileJavaTaskName) {
+    options.release.set(21)
+    options.errorprone.enabled.set(false)
+}
+
+val java21TestTask =
+    tasks.register<Test>("java21Test") {
+        group = "verification"
+        description = "Runs the tests that need Java 21 or later, when the test Java is 21 or later."
+        testClassesDirs = java21Test.output.classesDirs
+        classpath = java21Test.runtimeClasspath
+        useJUnitPlatform()
+        onlyIf("the test Java is 21 or later") {
+            javaLauncher
+                .get()
+                .metadata.languageVersion
+                .asInt() >= 21
+        }
+    }
+
 pitest {
     targetClasses.set(
         setOf(
@@ -206,6 +238,7 @@ tasks.javadoc {
 tasks.check {
     dependsOn(tasks.jacocoTestCoverageVerification)
     dependsOn(tasks.javadoc)
+    dependsOn(java21TestTask)
 }
 
 tasks.clean {
