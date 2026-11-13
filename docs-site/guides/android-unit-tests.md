@@ -10,8 +10,8 @@ An Android module can use kRandom in its local unit tests, the tests under `src/
 a JVM on the build machine. The
 [`examples/kotlin-android`](https://github.com/frikit/krandom/tree/main/examples/kotlin-android) example,
 which CI runs, has two Android library modules built with the Android Gradle plugin 9.5.1 and its built-in
-Kotlin. They compile Java and Kotlin for JVM target 17 against `compileSdk` 36, and their unit tests use
-`krandom-core`, `krandom-kotlin-dsl` and `krandom-junit`.
+Kotlin, the Kotlin Gradle plugin 2.2.10 that it brings. They compile Java and Kotlin for JVM target 17 against
+`compileSdk` 36, and their unit tests use `krandom-core`, `krandom-kotlin-dsl` and `krandom-junit`.
 
 ## Run the tests on Java 21
 
@@ -58,7 +58,7 @@ kotlin {
 }
 
 dependencies {
-    // 3.1.0 or later: earlier versions compile krandom-kotlin-dsl for JVM target 21.
+    // 3.1.0 or later: earlier versions compile krandom-kotlin-dsl for JVM target 21 and Kotlin 2.4.
     testImplementation(platform("io.github.frikit:krandom-bom:3.1.0"))
     testImplementation("io.github.frikit:krandom-core")
     testImplementation("io.github.frikit:krandom-kotlin-dsl")
@@ -67,26 +67,15 @@ dependencies {
 }
 ```
 
-The Android Gradle plugin compiles Kotlin with the Kotlin Gradle plugin on the build classpath. The Android
-Gradle plugin 9.5.1 brings version 2.2.10, whose compiler cannot read the Kotlin 2.4 metadata of
-`krandom-kotlin-dsl`: it stops with "Module was compiled with an incompatible version of Kotlin. The binary
-version of its metadata is 2.4.0, expected version is 2.2.0". The example puts the Kotlin Gradle plugin
-2.4.21, the version that builds kRandom, on the classpath in the build file of its root project:
+## Kotlin 2.1.0 or later
 
-```kotlin
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.4.21")
-    }
-}
-
-plugins {
-    id("com.android.library") version "9.5.1" apply false
-}
-```
+From 3.1.0, `krandom-kotlin-dsl` is compiled for Kotlin 2.2, with Kotlin language and API version 2.2, and
+depends on `kotlin-stdlib` 2.2.21, so a Kotlin 2.1.0 or later compiler can read it. That includes the Kotlin
+2.2.10 that the Android Gradle plugin 9.5.1 brings: the example builds with it and names no Kotlin version of
+its own. Kotlin 2.0 cannot read it. A build on a newer Kotlin keeps its own newer `kotlin-stdlib`. Up to 3.0.x
+`krandom-kotlin-dsl` is compiled for Kotlin 2.4 and depends on `kotlin-stdlib` 2.4.21, and Kotlin 2.2 stops
+with "Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 2.4.0,
+expected version is 2.2.0".
 
 ## Give Android types a rule
 

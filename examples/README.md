@@ -59,7 +59,8 @@ Each example's README lists what its tests show.
   Kotlin DSL with sealed classes and value classes, the Spring Boot starter and its `krandom.*`
   properties, and `krandom-jackson` on Jackson 3
 - Kotlin + Android: `examples/kotlin-android` — local unit tests of Android library modules compiled for
-  JVM target 17: `Krandom`, the `Generators` factories and the Kotlin DSL under JUnit 4, a rule for
+  JVM target 17 with the Kotlin 2.2.10 that the Android Gradle plugin 9.5.1 brings: `Krandom`, the
+  `Generators` factories and the Kotlin DSL under JUnit 4, a rule for
   `android.net.Uri`, and `krandom-junit` on the JUnit Platform; the
   [Android unit tests guide](../docs-site/guides/android-unit-tests.md) explains the setup
 - Scala + sbt: `examples/scala-sbt` — the `Generators` factories from Scala 3
