@@ -4,6 +4,9 @@ out/
 .idea/
 *.iml
 
+# Android SDK location that Android Studio writes
+local.properties
+
 # Maven
 **/target/
 

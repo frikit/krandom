@@ -233,6 +233,7 @@ Consumer examples live in [`examples/`](examples/). They are test-based examples
 - Java + Maven
 - Kotlin + Gradle
 - Kotlin + Maven
+- Kotlin + Android (local unit tests)
 - Scala + sbt
 - Scala + Mill
 

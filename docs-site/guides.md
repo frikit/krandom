@@ -23,6 +23,7 @@ permalink: /guides/
 - [JUnit Extension]({{ '/guides/junit-extension/' | relative_url }})
 - [Property Testing Integrations]({{ '/guides/property-testing-integrations/' | relative_url }})
 - [Kotlin DSL]({{ '/guides/kotlin-dsl/' | relative_url }})
+- [Android Unit Tests]({{ '/guides/android-unit-tests/' | relative_url }})
 - [Testing Integrations]({{ '/guides/testing-integrations/' | relative_url }})
 - [Runnable Snippets]({{ '/guides/runnable-snippets/' | relative_url }})
 - [Migration from Faker and Chance]({{ '/guides/migration-from-faker-chance/' | relative_url }})

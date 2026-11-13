@@ -26,6 +26,9 @@ That script:
 - publishes all current `krandom-*` consumer artifacts to Maven local
 - runs the example test suites against the local artifact
 - verifies both successful qualified `opens` and actionable missing-`opens` behavior from named modules
+- runs the Android example only when `ANDROID_HOME` or `ANDROID_SDK_ROOT` names an Android SDK, and
+  otherwise skips it with a message; `KRANDOM_REQUIRE_ANDROID_SDK=true`, which CI sets, makes a missing
+  SDK an error
 
 To point the examples at a different artifact version, set `KRANDOM_VERSION` or the build-tool-specific property:
 
@@ -55,6 +58,11 @@ Each example's README lists what its tests show.
 - Kotlin + Maven integration modules: `examples/kotlin-maven-integrations` — a Kotest arbitrary, the
   Kotlin DSL with sealed classes and value classes, the Spring Boot starter and its `krandom.*`
   properties, and `krandom-jackson` on Jackson 3
+- Kotlin + Android: `examples/kotlin-android` — local unit tests of Android library modules compiled for
+  JVM target 17 with the Kotlin 2.2.10 that the Android Gradle plugin 9.5.1 brings: `Krandom`, the
+  `Generators` factories and the Kotlin DSL under JUnit 4, a rule for
+  `android.net.Uri`, and `krandom-junit` on the JUnit Platform; the
+  [Android unit tests guide](../docs-site/guides/android-unit-tests.md) explains the setup
 - Scala + sbt: `examples/scala-sbt` — the `Generators` factories from Scala 3
 - Scala + Mill: `examples/scala-mill` — the `Generators` factories from Scala 3
 

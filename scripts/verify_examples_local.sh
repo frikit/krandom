@@ -9,6 +9,7 @@ DEFAULT_VERSION="$(awk -F= '$1 == "developmentVersion" { print substr($0, index(
 PUBLISHED_MODULES="$(awk -F= '$1 == "publishedModules" { print substr($0, index($0, "=") + 1) }' "${REPO_ROOT}/gradle.properties")"
 VERSION="${KRANDOM_VERSION:-${DEFAULT_VERSION}}"
 REQUIRE_SCALA_TOOLS="${KRANDOM_REQUIRE_SCALA_TOOLS:-false}"
+REQUIRE_ANDROID_SDK="${KRANDOM_REQUIRE_ANDROID_SDK:-false}"
 
 if [[ -z "${PUBLISHED_MODULES}" ]]; then
     echo "gradle.properties must define publishedModules." >&2
@@ -29,6 +30,24 @@ require_tool() {
     fi
     if [[ "${REQUIRE_SCALA_TOOLS}" == "true" ]]; then
         echo "${tool} is required on PATH."
+        exit 1
+    fi
+    return 1
+}
+
+# Succeeds when ANDROID_HOME, or else ANDROID_SDK_ROOT, names a directory, which is then exported as
+# ANDROID_HOME for the Android Gradle plugin. Without one, the Android example is skipped unless
+# KRANDOM_REQUIRE_ANDROID_SDK is true, which makes a missing SDK an error.
+require_android_sdk() {
+    local sdk
+    for sdk in "${ANDROID_HOME:-}" "${ANDROID_SDK_ROOT:-}"; do
+        if [[ -n "${sdk}" && -d "${sdk}" ]]; then
+            export ANDROID_HOME="${sdk}"
+            return 0
+        fi
+    done
+    if [[ "${REQUIRE_ANDROID_SDK}" == "true" ]]; then
+        echo "An Android SDK is required: set ANDROID_HOME or ANDROID_SDK_ROOT to its directory."
         exit 1
     fi
     return 1
@@ -86,6 +105,17 @@ step "Verify Kotlin + Maven integration modules example"
     cd "${REPO_ROOT}/examples/kotlin-maven-integrations"
     mvn -q -Dkrandom.version="${VERSION}" test
 )
+
+if require_android_sdk; then
+    step "Verify Kotlin + Android unit-test example (Android SDK at ${ANDROID_HOME})"
+    (
+        cd "${REPO_ROOT}/examples/kotlin-android"
+        ./gradlew -PkrandomVersion="${VERSION}" test --no-daemon --console=plain
+    )
+else
+    step "Skip Kotlin + Android unit-test example"
+    echo "No Android SDK: set ANDROID_HOME or ANDROID_SDK_ROOT to run it."
+fi
 
 if require_tool sbt; then
     step "Verify Scala + sbt example"
