@@ -30,6 +30,7 @@ import io.github.frikit.krandom.generator.location.StreetAddressDataProvider;
 import io.github.frikit.krandom.generator.location.StreetAddressGenerator;
 import io.github.frikit.krandom.generator.provider.ProviderCatalog;
 import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
+import io.github.frikit.krandom.generator.text.ParagraphGenerator;
 import io.github.frikit.krandom.generator.text.SentenceGenerator;
 import io.github.frikit.krandom.generator.text.WordGenerator;
 import io.github.frikit.krandom.generator.user.EmailGenerator;
@@ -86,6 +87,7 @@ class ReseedAsBuiltTest {
         factories.put(WordGenerator.class, WordGenerator::new);
         factories.put(UsernameGenerator.class, UsernameGenerator::new);
         factories.put(AddressInfoGenerator.class, AddressInfoGenerator::new);
+        factories.put(ParagraphGenerator.class, ParagraphGenerator::new);
         return factories;
     }
 
