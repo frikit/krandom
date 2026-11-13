@@ -139,6 +139,5 @@ describes the injected parameters and `@KrandomSeed`.
 
 kRandom is not supported in on-device (instrumented) tests under `src/androidTest` or in app code. It is
 built and tested only on JVMs, on Java 17, 21 and 25 in CI, and `krandom-core` calls Java 17 library APIs
-that Android does not provide, such as `java.util.random.RandomGenerator`. Add kRandom with
-`testImplementation`, not with `implementation` or
-`androidTestImplementation`.
+that older Android versions lack, such as `java.util.random.RandomGenerator`, which Android added in API
+level 35. Add kRandom with `testImplementation`, not with `implementation` or `androidTestImplementation`.
