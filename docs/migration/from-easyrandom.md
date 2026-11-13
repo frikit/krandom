@@ -20,7 +20,7 @@ schema export; Spring Boot / JUnit Jupiter / kotest.
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.frikit:krandom-core:3.0.3")
+    testImplementation("io.github.frikit:krandom-core:3.1.0")
 }
 ```
 

@@ -16,7 +16,7 @@ Gradle Kotlin:
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:3.0.3")
+    implementation("io.github.frikit:krandom-core:3.1.0")
 }
 ```
 
@@ -24,7 +24,7 @@ Gradle Groovy:
 
 ```groovy
 dependencies {
-    implementation 'io.github.frikit:krandom-core:3.0.3'
+    implementation 'io.github.frikit:krandom-core:3.1.0'
 }
 ```
 
@@ -34,7 +34,7 @@ Maven:
 <dependency>
   <groupId>io.github.frikit</groupId>
   <artifactId>krandom-core</artifactId>
-  <version>3.0.3</version>
+  <version>3.1.0</version>
 </dependency>
 ```
 

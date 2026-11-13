@@ -16,7 +16,7 @@ directly; the honest-gaps section lists what does not (yet).
 
 ```kotlin
 dependencies {
-    implementation("io.github.frikit:krandom-core:3.0.3")
+    implementation("io.github.frikit:krandom-core:3.1.0")
 }
 ```
 

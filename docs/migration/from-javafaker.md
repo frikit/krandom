@@ -23,7 +23,7 @@ or a local, provenance-declared data pack when those datasets are required.
 
 ```kotlin
 dependencies {
-    testImplementation("io.github.frikit:krandom-core:3.0.3")
+    testImplementation("io.github.frikit:krandom-core:3.1.0")
 }
 ```
 
