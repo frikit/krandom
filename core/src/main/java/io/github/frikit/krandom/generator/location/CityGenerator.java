@@ -26,6 +26,15 @@ import java.util.Random;
  */
 public final class CityGenerator implements Generator<String> {
 
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(CityGenerator.class, CityGenerator::reseedTo);
+    }
+
+    /** Reseeds this generator, which then gives what one built from its configuration with this seed gives. */
+    void reseedTo(long seed) {
+        random.setSeed(seed);
+    }
+
     private final GeneratorConfig config;
     private final Random random;
     private final String[] cities;

@@ -59,6 +59,15 @@ import java.util.Set;
  */
 public final class PostalCodeGenerator implements Generator<String> {
 
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(PostalCodeGenerator.class, PostalCodeGenerator::reseedTo);
+    }
+
+    /** Reseeds this generator, which then gives what one built from its configuration with this seed gives. */
+    void reseedTo(long seed) {
+        random.setSeed(seed);
+    }
+
     private static final String[] UK_AREA_CODES = {
         "SW", "EC", "N", "W", "E", "SE", "NW", "WC", "M", "B", "L", "G", "EH", "AB", "BD", "BS", "CB", "CF", "CR", "CV",
         "LE", "LS", "OX", "RG", "S", "SO", "TN", "YO"

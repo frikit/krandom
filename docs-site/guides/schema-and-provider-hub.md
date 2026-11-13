@@ -46,8 +46,12 @@ from one sequence.
 With a portable seeded configuration, one that has a `GenerationRecipe`, every value draws from its own
 stream, named by its record index and column, so adding a column leaves the values of the others as they
 were, and a recipe replays each column. A `Field` reference, a reference that `registerProvider(...)`
-adds, and the `#` and `?` of a template then make a generator for each value, from a seed drawn from that
-stream, which takes longer than drawing from one shared generator. A `Field` whose configuration uses a
+adds, and the `#` and `?` of a template then take each value from a generator seeded from that stream.
+Since 3.2.0, the common built-in references, such as names, email addresses, street addresses, cities,
+dates, money and sentences, reuse one generator for each column and thread and reseed it for each value,
+with the same values as a new generator, so they cost little more than one shared generator. Other
+references make a generator for each value, which takes longer, as does every reference of a `Field` whose
+configuration installs modules or has its own `DataRegistryContext`. A `Field` whose configuration uses a
 caller-owned, factory-made, or secure random source keeps that source, and other schemas draw from one
 generator for each reference, in sequence.
 

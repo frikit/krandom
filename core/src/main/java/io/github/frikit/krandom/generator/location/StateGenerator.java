@@ -29,6 +29,15 @@ import java.util.Random;
  */
 public final class StateGenerator implements Generator<String> {
 
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(StateGenerator.class, StateGenerator::reseedTo);
+    }
+
+    /** Reseeds this generator, which then gives what one built from its configuration with this seed gives. */
+    void reseedTo(long seed) {
+        random.setSeed(seed);
+    }
+
     private final GeneratorConfig config;
     private final Random random;
     private final String[] states;

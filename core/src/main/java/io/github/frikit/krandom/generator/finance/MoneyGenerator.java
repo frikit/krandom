@@ -58,6 +58,15 @@ import java.util.Random;
  */
 public final class MoneyGenerator implements Generator<String> {
 
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(MoneyGenerator.class, MoneyGenerator::reseedTo);
+    }
+
+    /** Reseeds this generator, which then gives what one built from its configuration with this seed gives. */
+    void reseedTo(long seed) {
+        random.setSeed(seed);
+    }
+
     /**
      * Default maximum amount (exclusive). Matches Chance.js {@code dollar()} default.
      */

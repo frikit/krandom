@@ -145,6 +145,19 @@ class GeneratorConfigChildStreamTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("seededParents")
+    @DisplayName("the internal seed copy equals in every field the configuration rebuilt with that seed")
+    void internalSeedCopyEqualsTheRebuild(GeneratorConfig parent) throws IllegalAccessException {
+        for (long seed : new long[] {0L, -1L, 7L, Long.MIN_VALUE}) {
+            GeneratorConfig copy = io.github.frikit.krandom.internal.ConfigAccess.withSeed(parent, seed);
+
+            assertNotSame(parent, copy);
+            assertEquals(seed, copy.getSeed().getAsLong());
+            assertSameFields(parent.toBuilder().seed(seed).build(), copy);
+        }
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("seededParents")
     @DisplayName("a child of a child equals in every field the configuration rebuilt twice")
     void grandchildEqualsTheTwiceRebuiltGrandchild(GeneratorConfig parent) throws IllegalAccessException {
         GeneratorConfig grandchild = parent.forChildStream("order").forChildStream("line");

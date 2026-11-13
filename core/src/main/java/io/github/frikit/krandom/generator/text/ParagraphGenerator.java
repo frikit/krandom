@@ -18,6 +18,13 @@ import java.util.Random;
  */
 public final class ParagraphGenerator implements Generator<String> {
 
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(ParagraphGenerator.class, ParagraphGenerator::reseedTo);
+    }
+
+    /** The configuration this generator was built from, whose child-stream policy a reseed follows. */
+    private final GeneratorConfig config;
+
     private final Locale locale;
     private final Random random;
     private final SentenceGenerator sentenceGenerator;
@@ -35,10 +42,19 @@ public final class ParagraphGenerator implements Generator<String> {
      * @param config generator configuration; must not be null
      */
     public ParagraphGenerator(GeneratorConfig config) {
-        Objects.requireNonNull(config, "config must not be null");
+        this.config = Objects.requireNonNull(config, "config must not be null");
         this.locale = config.getLocale();
         this.random = config.createRandom();
         this.sentenceGenerator = new SentenceGenerator(config.forChildStream("sentence"));
+    }
+
+    /**
+     * Reseeds this generator and its sentence stream, which then give what ones built from its configuration
+     * with this seed give.
+     */
+    void reseedTo(long seed) {
+        random.setSeed(seed);
+        sentenceGenerator.reseedTo(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "sentence"));
     }
 
     /**

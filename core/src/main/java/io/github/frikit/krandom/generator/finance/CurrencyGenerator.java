@@ -95,8 +95,23 @@ public final class CurrencyGenerator implements Generator<String> {
 
     private static final Currency[] ALL_CURRENCIES = Currency.values();
 
-    private final GeneratorConfig config;
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(CurrencyGenerator.class, CurrencyGenerator::reseedTo);
+    }
+
+    /** Not final: a reseed replaces it with the configuration seeded so, which later child streams derive from. */
+    private GeneratorConfig config;
+
     private final Random random;
+
+    /**
+     * Reseeds this generator, which then gives what one built from its configuration with this seed gives,
+     * the money amounts it draws from a child stream included.
+     */
+    void reseedTo(long seed) {
+        config = io.github.frikit.krandom.internal.ConfigAccess.withSeed(config, seed);
+        random.setSeed(seed);
+    }
 
     /**
      * Creates a new CurrencyGenerator with default configuration.

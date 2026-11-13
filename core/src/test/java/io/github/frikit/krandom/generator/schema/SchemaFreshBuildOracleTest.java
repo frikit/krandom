@@ -1,0 +1,232 @@
+/*
+ * Copyright (c) 2026 krandom contributors
+ *
+ * Licensed under the MIT License. See LICENSE in the project root for license information.
+ */
+package io.github.frikit.krandom.generator.schema;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import io.github.frikit.krandom.generator.ChildStreamPolicy;
+import io.github.frikit.krandom.generator.DataRegistryContext;
+import io.github.frikit.krandom.generator.GenerationRecipe;
+import io.github.frikit.krandom.generator.GeneratorConfig;
+import io.github.frikit.krandom.generator.Vocabulary;
+import io.github.frikit.krandom.generator.extension.KRandomModule;
+import io.github.frikit.krandom.generator.extension.KRandomModuleContext;
+import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
+import io.github.frikit.krandom.generator.location.CityDataProvider;
+import io.github.frikit.krandom.generator.provider.ProviderCatalog;
+import io.github.frikit.krandom.generator.provider.ProviderDescriptor;
+import io.github.frikit.krandom.generator.provider.ProviderSchemaProjection;
+import io.github.frikit.krandom.generator.text.WordGenerator;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+/**
+ * Each built-in reference in a seeded Schema gives, for each value, what a generator built for that value
+ * gives: the definition of the named streams since 3.0.1, whichever way FieldLookup gets there.
+ */
+@DisplayName("built-in references in a seeded Schema give what a build for each value gives")
+class SchemaFreshBuildOracleTest {
+
+    private static final int RECORDS = 40;
+
+    @Test
+    @DisplayName("every built-in schema reference, in several locales and both child-stream policies")
+    void everyBuiltInReferenceMatchesAFreshBuildForEachValue() {
+        Clock clock = Clock.fixed(Instant.parse("2026-07-10T12:00:00Z"), ZoneOffset.UTC);
+        for (Locale locale : List.of(Locale.US, Locale.GERMANY, Locale.forLanguageTag("pt-BR"))) {
+            for (ChildStreamPolicy policy : ChildStreamPolicy.values()) {
+                GeneratorConfig config = GeneratorConfig.builder()
+                        .locale(locale)
+                        .clock(clock)
+                        .childStreamPolicy(policy)
+                        .seed(73L)
+                        .build();
+                for (ProviderDescriptor<?> descriptor : ProviderCatalog.schemaBuiltIns()) {
+                    assertDescriptor(config, descriptor);
+                }
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("in a Schema without a recipe, every built-in reference draws from one generator of the lookup")
+    void withoutRecipeEveryBuiltInReferenceDrawsFromOneGenerator() {
+        GeneratorConfig config = GeneratorConfig.builder()
+                .clock(Clock.fixed(Instant.parse("2026-07-10T12:00:00Z"), ZoneOffset.UTC))
+                .seed(73L)
+                .build();
+        GeneratorConfig unseeded = GeneratorConfig.builder().build();
+        for (ProviderDescriptor<?> descriptor : ProviderCatalog.schemaBuiltIns()) {
+            assertSharedGenerator(config, unseeded, descriptor);
+        }
+    }
+
+    @Test
+    @DisplayName("a registerProvider reference builds its generator for each value, even of a class that reseeds")
+    void registerProviderReferenceBuildsForEachValue() {
+        int[] built = {0};
+        Field field = new Field(GeneratorConfig.builder().seed(5L).build())
+                .registerProvider(
+                        "custom.word",
+                        config -> {
+                            built[0]++;
+                            return new WordGenerator(config);
+                        },
+                        WordGenerator.class,
+                        WordGenerator::generateWord);
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("word", field.bind("custom.word"));
+        Schema schema = new Schema(GeneratorConfig.builder().seed(7L).build(), fields);
+
+        int before = built[0];
+        schema.nextRecords(4);
+
+        assertEquals(4, built[0] - before);
+    }
+
+    @Test
+    @DisplayName("a module's provider builds its generator for each value, even of a class that reseeds")
+    void moduleProviderBuildsForEachValue() {
+        int[] built = {0};
+        KRandomModule module = new KRandomModule() {
+            @Override
+            public String id() {
+                return "test.uuid";
+            }
+
+            @Override
+            public void configure(KRandomModuleContext context) {
+                context.registerProvider(ProviderDescriptor.builder("custom.uuid", UUIDGenerator.class, config -> {
+                            built[0]++;
+                            return new UUIDGenerator(config);
+                        })
+                        .schemaProjection(ProviderSchemaProjection.builder(
+                                        "custom.uuid_text",
+                                        (UUIDGenerator provider, GeneratorConfig config) ->
+                                                provider.generate().toString())
+                                .build())
+                        .build());
+            }
+        };
+        Field field =
+                new Field(GeneratorConfig.builder().seed(5L).install(module).build());
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("id", field.bind("custom.uuid_text"));
+        Schema schema = new Schema(GeneratorConfig.builder().seed(7L).build(), fields);
+
+        int before = built[0];
+        schema.nextRecords(4);
+
+        assertEquals(4, built[0] - before);
+    }
+
+    @Test
+    @DisplayName("a lookup with its own registry context reads its data again for each value, as a build for each does")
+    void ownRegistryDataIsReadForEachValue() {
+        String[][] cities = {{"Old Town"}};
+        CityDataProvider provider = new CityDataProvider() {
+            @Override
+            public Locale getLocale() {
+                return Locale.US;
+            }
+
+            @Override
+            public String[] getCities() {
+                return cities[0].clone();
+            }
+        };
+        DataRegistryContext context = DataRegistryContext.builder()
+                .register(Vocabulary.CITY, provider)
+                .build();
+        Field field = new Field(GeneratorConfig.builder()
+                .locale(Locale.US)
+                .seed(5L)
+                .registryContext(context)
+                .build());
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("city", field.bind("address.city"));
+        Schema schema = new Schema(GeneratorConfig.builder().seed(7L).build(), fields);
+
+        assertEquals("Old Town", schema.nextRecord().get("city"));
+        cities[0] = new String[] {"New Town"};
+        assertEquals("New Town", schema.nextRecord().get("city"));
+    }
+
+    private static <T> void assertSharedGenerator(
+            GeneratorConfig config, GeneratorConfig schemaConfig, ProviderDescriptor<T> descriptor) {
+        for (ProviderSchemaProjection<T> projection : descriptor.getSchemaProjections()) {
+            String reference = projection.getReference();
+            T shared = descriptor.create(config);
+            List<Object> expected = new ArrayList<>();
+            for (int record = 0; record < RECORDS; record++) {
+                try {
+                    expected.add(projection.extract(shared, config));
+                } catch (RuntimeException failure) {
+                    expected.add("threw " + failure.getClass().getName());
+                }
+            }
+            Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+            fields.put("v", new Field(config).bind(reference));
+            Schema schema = new Schema(schemaConfig, fields);
+            List<Object> actual = new ArrayList<>();
+            for (int record = 0; record < RECORDS; record++) {
+                try {
+                    actual.add(schema.nextRecord().get("v"));
+                } catch (SchemaGenerationException failure) {
+                    actual.add("threw " + failure.getCause().getClass().getName());
+                }
+            }
+            assertEquals(expected, actual, reference);
+        }
+    }
+
+    private static <T> void assertDescriptor(GeneratorConfig config, ProviderDescriptor<T> descriptor) {
+        long recipeSeed = config.getGenerationRecipe().orElseThrow().getSeed();
+        for (ProviderSchemaProjection<T> projection : descriptor.getSchemaProjections()) {
+            String reference = projection.getReference();
+            // A value whose generation fails, such as banking data under the default safety policy, is compared
+            // by the class of what it throws.
+            List<Object> expected = new ArrayList<>();
+            try {
+                for (int record = 0; record < RECORDS; record++) {
+                    long seed = new Random(GenerationRecipe.deriveChildSeed(
+                                    recipeSeed, "schema|record=" + record + "|field=1:v"))
+                            .nextLong();
+                    GeneratorConfig valueConfig = config.toBuilder().seed(seed).build();
+                    T valueProvider = descriptor.create(valueConfig);
+                    try {
+                        expected.add(projection.extract(valueProvider, valueConfig));
+                    } catch (RuntimeException failure) {
+                        expected.add("threw " + failure.getClass().getName());
+                    }
+                }
+            } catch (UnsupportedOperationException unsupportedLocale) {
+                continue;
+            }
+            Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+            fields.put("v", new Field(config).bind(reference));
+            Schema schema = new Schema(config, fields);
+            List<Object> actual = new ArrayList<>();
+            for (int record = 0; record < RECORDS; record++) {
+                try {
+                    actual.add(schema.nextRecord().get("v"));
+                } catch (SchemaGenerationException failure) {
+                    actual.add("threw " + failure.getCause().getClass().getName());
+                }
+            }
+            assertEquals(expected, actual, reference + " " + config.getLocale() + " " + config.getChildStreamPolicy());
+        }
+    }
+}

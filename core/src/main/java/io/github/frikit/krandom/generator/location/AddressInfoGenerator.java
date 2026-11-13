@@ -28,6 +28,24 @@ import org.jspecify.annotations.Nullable;
  */
 public final class AddressInfoGenerator implements Generator<AddressInfo> {
 
+    static {
+        io.github.frikit.krandom.internal.Reseeding.register(
+                AddressInfoGenerator.class, AddressInfoGenerator::reseedTo);
+    }
+
+    /**
+     * Reseeds this generator and its street-address, postal-code and country streams, which then give what
+     * ones built from its configuration with this seed give. Its postal places and its city and state data
+     * are read only.
+     */
+    void reseedTo(long seed) {
+        random.setSeed(seed);
+        streetAddressGenerator.reseedTo(
+                io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "streetAddress"));
+        postalCodeGenerator.reseedTo(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "postalCode"));
+        country.reseedTo(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "country"));
+    }
+
     private final GeneratorConfig config;
     private final Random random;
     private final StreetAddressGenerator streetAddressGenerator;
