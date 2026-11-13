@@ -162,7 +162,7 @@ Ensure `java -version` reports Java 21+ before running the local checks.
 
 `pre_commit_check.sh` runs formatting, Markdown, link, and documentation-fact checks, compilation, module boundaries, release SBOM validation, Javadoc, tests, critical-path mutation testing, and the exact core coverage gate, and fails fast when Java 21+ is not active. `--fast` reuses up-to-date test results and skips mutation testing and SBOM validation while iterating.
 
-`verify_examples_local.sh` publishes all current `krandom-*` consumer artifacts to Maven local and runs the consumer examples against that local snapshot. CI installs `sbt` and `mill` and runs the full matrix; locally the Scala examples are skipped unless those tools are installed or `KRANDOM_REQUIRE_SCALA_TOOLS=true` is set. The Java + Gradle example also runs on Java 17 when Gradle detects a JDK 17 (`./gradlew javaToolchains`); CI sets `KRANDOM_REQUIRE_JAVA17=true`, which fails the run without one.
+`verify_examples_local.sh` publishes all current `krandom-*` consumer artifacts to Maven local and runs the consumer examples against that local snapshot. CI installs `sbt` and `mill` and runs the full matrix; locally the Scala examples are skipped unless those tools are installed or `KRANDOM_REQUIRE_SCALA_TOOLS=true` is set. The Java + Gradle example, and the Android example with Gradle, also run on Java 17 when Gradle detects a JDK 17 (`./gradlew javaToolchains`); CI sets `KRANDOM_REQUIRE_JAVA17=true`, which fails the run without one.
 
 ## Install
 

@@ -25,8 +25,9 @@ That script:
 - verifies Java 21+
 - publishes all current `krandom-*` consumer artifacts to Maven local
 - runs the example test suites against the local artifact
-- runs the Java + Gradle example again on Java 17, the oldest Java that the Java modules run on, when
-  Gradle detects a JDK 17; it skips that run otherwise, unless `KRANDOM_REQUIRE_JAVA17=true`, as CI sets
+- runs the Java + Gradle example, and the Android example with Gradle, again on Java 17, the oldest
+  Java that kRandom runs on, when Gradle detects a JDK 17; it skips those runs otherwise, unless
+  `KRANDOM_REQUIRE_JAVA17=true`, as CI sets
 - verifies both successful qualified `opens` and actionable missing-`opens` behavior from named modules
 - runs the Android example only when `ANDROID_HOME` or `ANDROID_SDK_ROOT` names an Android SDK, and
   otherwise skips it with a message; `KRANDOM_REQUIRE_ANDROID_SDK=true`, which CI sets, makes a missing

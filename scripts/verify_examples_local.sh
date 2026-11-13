@@ -41,8 +41,10 @@ require_tool() {
     return 1
 }
 
-# Whether Gradle's toolchain detection, which the example builds use, finds a JDK of the given version.
-# Without one the run fails when KRANDOM_REQUIRE_JAVA17=true, as CI sets, and skips that example otherwise.
+# Whether Gradle's toolchain detection, which the example builds use, finds a JDK of the given version, whose
+# directory it then sets in FOUND_JDK_HOME. Without one the run fails when KRANDOM_REQUIRE_JAVA17=true, as CI
+# sets, and skips the examples on that Java otherwise.
+FOUND_JDK_HOME=""
 require_jdk() {
     local version="$1" toolchains
     if ! toolchains="$("${GRADLEW}" -p "${REPO_ROOT}/examples/java-gradle" -q javaToolchains --no-daemon --console=plain)"; then
@@ -50,11 +52,15 @@ require_jdk() {
         exit 1
     fi
     # Each detected Java is an entry that starts with " + "; the report also lists JREs, which cannot compile.
-    if awk -v version="${version}" '
-        /^ \+ / { if (language == version && jdk == "true") found = 1; language = ""; jdk = "" }
+    # Prints the location of the first JDK of that version.
+    FOUND_JDK_HOME="$(awk -v version="${version}" '
+        function check() { if (found == "" && language == version && jdk == "true") found = home }
+        /^ \+ / { check(); language = ""; jdk = ""; home = "" }
+        /\| Location:/ { home = $0; sub(/^.*\| Location:[[:space:]]*/, "", home) }
         /\| Language Version:/ { language = $NF }
         /\| Is JDK:/ { jdk = $NF }
-        END { if (language == version && jdk == "true") found = 1; exit(found ? 0 : 1) }' <<< "${toolchains}"; then
+        END { check(); if (found != "") print found }' <<< "${toolchains}")"
+    if [[ -n "${FOUND_JDK_HOME}" ]]; then
         return 0
     fi
     if [[ "${REQUIRE_JAVA17}" == "true" ]]; then
@@ -99,8 +105,10 @@ step "Verify Java + Gradle example"
     ./gradlew -PkrandomVersion="${VERSION}" test --no-daemon --console=plain
 )
 
-# The oldest Java that the Java modules run on: a consumer on it resolves their Gradle metadata and runs them.
+# The oldest Java that kRandom runs on: a consumer on it resolves the Gradle metadata and runs the modules.
+MINIMUM_JDK_HOME=""
 if require_jdk "${JAVA_MINIMUM_VERSION}"; then
+    MINIMUM_JDK_HOME="${FOUND_JDK_HOME}"
     step "Verify Java + Gradle example on Java ${JAVA_MINIMUM_VERSION}"
     (
         cd "${REPO_ROOT}/examples/java-gradle"
@@ -153,6 +161,19 @@ if require_android_sdk; then
         cd "${REPO_ROOT}/examples/kotlin-android"
         ./gradlew -PkrandomVersion="${VERSION}" test --no-daemon --console=plain
     )
+    # The example sets no toolchain, so its unit tests run on the Java that runs Gradle.
+    if [[ -n "${MINIMUM_JDK_HOME}" ]]; then
+        step "Verify Kotlin + Android unit-test example with Gradle on Java ${JAVA_MINIMUM_VERSION}"
+        (
+            cd "${REPO_ROOT}/examples/kotlin-android"
+            export JAVA_HOME="${MINIMUM_JDK_HOME}"
+            ./gradlew --version --no-daemon | grep -E '^(Launcher|Daemon) JVM'
+            ./gradlew -PkrandomVersion="${VERSION}" test --rerun-tasks --no-daemon --console=plain
+        )
+    else
+        step "Skip Kotlin + Android unit-test example on Java ${JAVA_MINIMUM_VERSION}"
+        echo "Gradle detects no JDK ${JAVA_MINIMUM_VERSION}; install one, or set KRANDOM_REQUIRE_JAVA17=true to fail instead."
+    fi
 else
     step "Skip Kotlin + Android unit-test example"
     echo "No Android SDK: set ANDROID_HOME or ANDROID_SDK_ROOT to run it."
