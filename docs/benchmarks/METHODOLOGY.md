@@ -83,9 +83,10 @@ None is open.
   696, 786 and 794 operations a second, and their allocation from 12.5, 12.9, 12.5 and 12.5 MB to 4.0, 4.5,
   3.9 and 4.0 MB an operation. The second sitting ran the change beside `e6ba573d`, the commit before the
   3.0.1 fix, in the order `e6ba573d`, the change, the change, `e6ba573d`: 988, 702, 806 and 796 operations
-  a second against 928, 749, 870 and 802, that is +6.4%, −6.4%, −7.4% and −0.8%, with 10.6%, 9.1%, 7.8%
-  and 10.4% more allocation (4.0, 4.4, 3.9 and 4.0 MB against 3.6, 4.1, 3.7 and 3.6 MB an operation).
-  Every workload is within both budgets, and inside the lines that call for an investigation, so the
-  breach is closed. References that 3.2.0 does not reseed, and every reference of a configuration with
+  a second against 928, 749, 870 and 802, with 4.0, 4.4, 3.9 and 4.0 MB against 3.6, 4.1, 3.7 and 3.6 MB
+  an operation (means of two runs). Compared as the budgets ask, by the median of each commit's six fork
+  scores, the change is +6.7%, −6.6%, −8.6% and −0.6% against `e6ba573d`, with 10.5%, 9.4%, 8.1% and 10.5%
+  more allocation. Every workload is within both budgets, and inside the lines that call for an
+  investigation, so the breach is closed. References that 3.2.0 does not reseed, and every reference of a configuration with
   modules or its own `DataRegistryContext`, still build a generator for each value; this benchmark does
   not measure them.
