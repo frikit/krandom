@@ -9,15 +9,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - `krandom-kotlin-dsl` and `krandom-kotest-extensions` are now compiled for JVM target 17, against the Java 17
-  API, rather than for 21, so that Kotlin code compiled for JVM target 17, as Android modules usually are, can
-  call their inline functions: `krandom`, `krandomList`, `krandomGenerator`, `KrandomBuilder.ruleForType` and
-  `krandomReplayObjectArb`. Such code failed to compile with "Cannot inline bytecode built with JVM target 21
-  into bytecode that is being built with JVM target 17". The Gradle module metadata of both modules now
-  declares `org.gradle.jvm.version` 17 rather than 21. `krandom-core`, which both depend on, is still compiled
-  for Java 21 and declares 21, so both modules still need a Java 21 runtime: an Android module can use them in
-  its local unit tests on Java 21, and not in app code or on-device tests. The public API is unchanged. The
-  `examples/kotlin-android` example, which CI runs, compiles its unit tests for JVM target 17, and the Android
-  unit tests guide describes its setup.
+  API, rather than for 21, and for Kotlin 2.2 rather than 2.4: with Kotlin language and API version 2.2, and
+  with `kotlin-stdlib` 2.2.21 rather than 2.4.21 as their published dependency, as `krandom-kotlin-dsl` has for
+  `kotlin-reflect`. So Kotlin code compiled for JVM target 17, as Android modules usually are, can call their
+  inline functions: `krandom`, `krandomList`, `krandomGenerator`, `KrandomBuilder.ruleForType` and
+  `krandomReplayObjectArb`; and a Kotlin 2.1.0 or later compiler can read them, such as the Kotlin 2.2.10 that
+  the Android Gradle plugin 9.5.1 brings. Such code failed to compile with "Cannot inline bytecode built with
+  JVM target 21 into bytecode that is being built with JVM target 17", and a Kotlin 2.2 compiler with "Module
+  was compiled with an incompatible version of Kotlin. The binary version of its metadata is 2.4.0, expected
+  version is 2.2.0", for these modules and for the `kotlin-stdlib` 2.4.21 that they brought. A Kotlin 2.0
+  compiler still cannot read them. A consumer on a newer Kotlin keeps its own newer `kotlin-stdlib`, which
+  Gradle selects over 2.2.21; it gets `kotlin-reflect` 2.2.21 unless it names a version of its own, and with
+  Kotlin 2.4.21 the Kotlin DSL still reads its data classes' parameter names through it. The Gradle module
+  metadata of both modules now declares `org.gradle.jvm.version` 17 rather than 21. `krandom-core`, which both
+  depend on, is still compiled for Java 21 and declares 21, so both modules still need a Java 21 runtime: an
+  Android module can use them in its local unit tests on Java 21, and not in app code or on-device tests. The
+  public API is unchanged. The `examples/kotlin-android` example, which CI runs, compiles its unit tests for
+  JVM target 17 with the Kotlin that the Android Gradle plugin 9.5.1 brings, and the Android unit tests guide
+  describes its setup.
 
 ## [3.0.3] - 2026-11-12
 
