@@ -47,6 +47,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   them from its own data, so seeded YAML output changes only for text that holds one, such as a value or a
   field name that the caller supplies: the value `"a\u0085b"` was written as `"a` U+0085 `b"` and is now
   written as `"a\u0085b"`.
+- `Schema.toJsonSchema()` now writes each field name in `properties` and `required` as the data writers write
+  it, with each unpaired surrogate, half of a UTF-16 surrogate pair without its other half, as U+FFFD, as every
+  writer does since 3.0.2. It kept the name as given, so the JSON Schema of a field named `"a\ud800"` named a
+  property `"a\ud800"` that no written record holds, as each holds `"a\uFFFD"`, and could not be encoded as
+  UTF-8 itself. The `KrandomJacksonModule` serializer, which writes `toJsonSchema()`, writes the same names.
+  Only a field name with an unpaired surrogate, which the caller supplies, is written differently; no
+  generated value changes.
+- `Schema`, its `SchemaParser.fromJsonSchema` and `fromOpenApi` forms, and `SchemaProjection` now reject two
+  field names that differ only in unpaired surrogates, such as `"a\ud800"` and `"a\udc00"`, or `"a\uFFFD"` and
+  `"a\ud800"`, with an `IllegalArgumentException` that names both, as every writer writes them as one name,
+  `"a\uFFFD"`. Such a schema wrote each record with that key twice, which JSON parsers read as one key or
+  reject, and a CSV or SQL header with the same column twice, and its JSON Schema would hold one property for
+  both. This follows the rejection of a blank field name at the same point. A schema whose names stay distinct
+  as written, including names that differ in a surrogate pair, is built and writes as before, so no seeded
+  value changes.
 
 ## [3.1.0] - 2026-11-13
 

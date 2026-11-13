@@ -31,8 +31,10 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -74,7 +76,9 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Every writer writes text that UTF-8 can encode. An unpaired surrogate, half of a UTF-16 surrogate pair
  * without its other half, is written as U+FFFD wherever it is, in a value, a key, a CSV header, or a table or
- * column name, and a pair as the character it encodes. YAML writes DEL, the C1 controls, U+2028, U+2029, U+FFFE
+ * column name, and a pair as the character it encodes. {@link #toJsonSchema()} writes the field names so too, and
+ * two field names that would be written as one, as they differ only in unpaired surrogates, are rejected with
+ * an {@link IllegalArgumentException}. YAML writes DEL, the C1 controls, U+2028, U+2029, U+FFFE
  * and U+FFFF, which a YAML parser rejects raw or reads as a line break, as escapes, in names and values.
  */
 public final class Schema implements Generator<Map<String, Object>> {
@@ -191,7 +195,42 @@ public final class Schema implements Generator<Map<String, Object>> {
             }
             copy.put(name, provider);
         }
+        requireDistinctWrittenNames(copy.keySet());
         return Collections.unmodifiableMap(copy);
+    }
+
+    /**
+     * Rejects two field names that every writer would write as one name, as they differ only in unpaired
+     * surrogates, which are written as U+FFFD, so that no document holds a name twice.
+     */
+    static void requireDistinctWrittenNames(Collection<String> names) {
+        Map<String, String> byWrittenName = new HashMap<>();
+        for (String name : names) {
+            String written = encodable(name);
+            String other = byWrittenName.putIfAbsent(written, name);
+            if (other != null) {
+                throw new IllegalArgumentException("field names \"" + escapedSurrogates(other) + "\" and \""
+                        + escapedSurrogates(name) + "\" are both written as \"" + written
+                        + "\", as every writer writes an unpaired surrogate as U+FFFD");
+            }
+        }
+    }
+
+    /**
+     * The name with each unpaired surrogate as a backslash-u escape of four hex digits, which a message can hold.
+     */
+    private static String escapedSurrogates(String name) {
+        String written = encodable(name);
+        StringBuilder escaped = new StringBuilder(name.length());
+        for (int i = 0; i < name.length(); i++) {
+            char ch = name.charAt(i);
+            if (written.charAt(i) == '\uFFFD' && ch != '\uFFFD') {
+                escaped.append(String.format("\\u%04x", (int) ch));
+            } else {
+                escaped.append(ch);
+            }
+        }
+        return escaped.toString();
     }
 
     /**
@@ -639,6 +678,7 @@ public final class Schema implements Generator<Map<String, Object>> {
      *
      * <p>Types are read from provider metadata so exporting the schema does not consume
      * generator state. Providers without metadata export as unconstrained JSON Schema fragments.
+     * A field name is written as the data writers write it, with each unpaired surrogate as U+FFFD.
      *
      * @return JSON Schema document as a nested map
      */
@@ -653,11 +693,13 @@ public final class Schema implements Generator<Map<String, Object>> {
 
         for (Map.Entry<String, SchemaValueProvider> entry : fields.entrySet()) {
             String field = entry.getKey();
-            required.add(field);
+            // The name as the data writers write it, which no other field's name is.
+            String written = encodable(field);
+            required.add(written);
             try {
                 // A rule over whole records can give a column values that its provider does not.
                 properties.put(
-                        field,
+                        written,
                         JsonSchemaSupport.copyJsonSchema(
                                 recordRule == null ? entry.getValue().jsonSchema() : recordRule.columnSchema(field)));
             } catch (RuntimeException ex) {
