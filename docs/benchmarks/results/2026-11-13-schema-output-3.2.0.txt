@@ -211,30 +211,46 @@ runs of three). main and change-1 (79ccfd49) are the first sitting; e6ba573d and
 second.
 
 largeSchemaBatch
-  main     forks 508.6, 505.8, 522.8, 525.2, 511.9, 533.0; median 517.4 ops/s, 12.486 MB/op
-  change-1 forks 980.1, 971.5, 978.1, 978.9, 980.9, 975.5; median 978.5 ops/s, 3.995 MB/op
-  e6ba573d forks 927.6, 926.0, 930.2, 925.9, 927.7, 932.5; median 927.6 ops/s, 3.615 MB/op
-  change-2 forks 971.9, 989.7, 998.9, 979.2, 999.9, 989.3; median 989.5 ops/s, 3.995 MB/op
+  main     ops/s 508.6, 505.8, 522.8, 525.2, 511.9, 533.0; median 517.4
+           MB/op 12.486, 12.486, 12.486, 12.486, 12.486, 12.402; median 12.486
+  change-1 ops/s 980.1, 971.5, 978.1, 978.9, 980.9, 975.5; median 978.5
+           MB/op 3.995, 3.995, 3.995, 3.995, 3.995, 3.995; median 3.995
+  e6ba573d ops/s 927.6, 926.0, 930.2, 925.9, 927.7, 932.5; median 927.6
+           MB/op 3.621, 3.615, 3.615, 3.615, 3.615, 3.621; median 3.615
+  change-2 ops/s 971.9, 989.7, 998.9, 979.2, 999.9, 989.3; median 989.5
+           MB/op 3.995, 3.995, 3.995, 4.023, 3.995, 3.995; median 3.995
   change-1 vs main: throughput +89.1%, allocation -68.0%
   change-2 vs e6ba573d: throughput +6.7%, allocation +10.5%
 largeSchemaJsonLines
-  main     forks 420.3, 413.8, 425.0, 431.1, 427.9, 417.7; median 422.6 ops/s, 12.930 MB/op
-  change-1 forks 695.4, 696.5, 693.9, 697.3, 693.8, 699.5; median 695.9 ops/s, 4.442 MB/op
-  e6ba573d forks 754.9, 755.2, 740.3, 743.0, 752.4, 751.0; median 751.7 ops/s, 4.059 MB/op
-  change-2 forks 697.2, 702.5, 708.4, 703.1, 702.2, 695.7; median 702.3 ops/s, 4.439 MB/op
+  main     ops/s 420.3, 413.8, 425.0, 431.1, 427.9, 417.7; median 422.6
+           MB/op 12.930, 12.958, 12.930, 12.912, 12.912, 12.930; median 12.930
+  change-1 ops/s 695.4, 696.5, 693.9, 697.3, 693.8, 699.5; median 695.9
+           MB/op 4.445, 4.467, 4.439, 4.473, 4.439, 4.439; median 4.442
+  e6ba573d ops/s 754.9, 755.2, 740.3, 743.0, 752.4, 751.0; median 751.7
+           MB/op 4.059, 4.059, 4.087, 4.087, 4.059, 4.059; median 4.059
+  change-2 ops/s 697.2, 702.5, 708.4, 703.1, 702.2, 695.7; median 702.3
+           MB/op 4.439, 4.439, 4.439, 4.467, 4.439, 4.409; median 4.439
   change-1 vs main: throughput +64.7%, allocation -65.6%
   change-2 vs e6ba573d: throughput -6.6%, allocation +9.4%
 streamingCsv
-  main     forks 458.3, 460.5, 476.5, 471.7, 480.5, 469.4; median 470.5 ops/s, 12.506 MB/op
-  change-1 forks 787.1, 784.2, 769.6, 791.7, 792.8, 787.7; median 787.4 ops/s, 3.928 MB/op
-  e6ba573d forks 870.2, 871.6, 871.5, 876.8, 873.0, 856.8; median 871.5 ops/s, 3.658 MB/op
-  change-2 forks 856.0, 798.4, 793.8, 798.2, 791.3, 795.3; median 796.8 ops/s, 3.956 MB/op
+  main     ops/s 458.3, 460.5, 476.5, 471.7, 480.5, 469.4; median 470.5
+           MB/op 12.485, 12.543, 12.543, 12.485, 12.515, 12.497; median 12.506
+  change-1 ops/s 787.1, 784.2, 769.6, 791.7, 792.8, 787.7; median 787.4
+           MB/op 3.928, 3.928, 3.956, 3.928, 3.926, 3.928; median 3.928
+  e6ba573d ops/s 870.2, 871.6, 871.5, 876.8, 873.0, 856.8; median 871.5
+           MB/op 3.672, 3.672, 3.644, 3.644, 3.644, 3.678; median 3.658
+  change-2 ops/s 856.0, 798.4, 793.8, 798.2, 791.3, 795.3; median 796.8
+           MB/op 3.994, 3.898, 3.956, 3.898, 3.956, 3.962; median 3.956
   change-1 vs main: throughput +67.3%, allocation -68.6%
   change-2 vs e6ba573d: throughput -8.6%, allocation +8.1%
 streamingJsonLines
-  main     forks 458.8, 453.9, 460.6, 467.2, 465.7, 464.7; median 462.6 ops/s, 12.505 MB/op
-  change-1 forks 794.1, 790.8, 795.9, 796.3, 795.3, 792.2; median 794.7 ops/s, 4.013 MB/op
-  e6ba573d forks 805.5, 802.2, 796.3, 797.8, 808.4, 803.3; median 802.8 ops/s, 3.633 MB/op
-  change-2 forks 799.8, 802.7, 797.9, 797.3, 789.5, 788.4; median 797.6 ops/s, 4.014 MB/op
+  main     ops/s 458.8, 453.9, 460.6, 467.2, 465.7, 464.7; median 462.6
+           MB/op 12.511, 12.505, 12.493, 12.505, 12.505, 12.505; median 12.505
+  change-1 ops/s 794.1, 790.8, 795.9, 796.3, 795.3, 792.2; median 794.7
+           MB/op 4.014, 4.014, 4.014, 4.013, 4.013, 4.013; median 4.013
+  e6ba573d ops/s 805.5, 802.2, 796.3, 797.8, 808.4, 803.3; median 802.8
+           MB/op 3.633, 3.633, 3.661, 3.661, 3.633, 3.633; median 3.633
+  change-2 ops/s 799.8, 802.7, 797.9, 797.3, 789.5, 788.4; median 797.6
+           MB/op 4.013, 4.041, 4.041, 4.013, 4.014, 4.013; median 4.014
   change-1 vs main: throughput +71.8%, allocation -67.9%
   change-2 vs e6ba573d: throughput -0.6%, allocation +10.5%
