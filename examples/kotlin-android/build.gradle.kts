@@ -9,5 +9,5 @@ extra["krandomVersion"] =
     providers
         .gradleProperty("krandomVersion")
         .orElse(providers.environmentVariable("KRANDOM_VERSION"))
-        .orElse("3.1.0-SNAPSHOT")
+        .orElse("3.2.0-SNAPSHOT")
         .get()
