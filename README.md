@@ -34,8 +34,8 @@ kRandom is a random and fake-data generation toolkit for Java 17 and later, from
 - From 3.1.0, `core`, `jackson`, `junit`, and `spring-boot-starter` run on Java 17 or later (3.0.x needs
   Java 21); `kotest-extensions` and `kotlin-dsl` need Java 21 or later. Building the repository needs JDK 21
   or later.
-- CI builds on Java 21 and Java 25 and runs the tests of the Java modules on Java 17 as well, with
-  separate GraalVM native-image and critical-path mutation jobs.
+- CI runs the tests of the Java modules on Java 17, Java 21, and Java 25, with separate GraalVM
+  native-image and critical-path mutation jobs.
 - Local quality checks are standardized through `./scripts/pre_commit_check.sh`.
 - Published to Maven Central under `io.github.frikit`. See [`docs/release-runbook.md`](docs/release-runbook.md) for the release process.
 

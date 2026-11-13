@@ -87,9 +87,9 @@ and skips itself on an older test Java.
   local `git blame` skips it (GitHub's blame view reads the file automatically).
 - **Tests**: all tests must pass. Java modules use JUnit Jupiter; Kotlin modules use Kotest.
 
-CI additionally builds on Java 21 and 25, runs the tests of the Java modules on Java 17, reports the
-public API check in a job of its own, requires the GraalVM native-image smoke test, and runs every
-consumer example against the locally published snapshot.
+CI additionally runs the tests of the Java modules on Java 17, 21 and 25, reports the public API check
+in a job of its own, requires the GraalVM native-image smoke test, and runs every consumer example
+against the locally published snapshot.
 
 ## Maintenance tools
 

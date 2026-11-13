@@ -27,8 +27,9 @@ jobs:
       matrix:
         java: [ '17', '21', '25' ]
         include:
-          # Gradle needs Java 21 or later, so the Java 17 entry builds on Java 21 and runs the tests of the
-          # Java modules on Java 17, the oldest Java they run on (javaMinimumVersion in gradle.properties).
+          # Each entry runs the tests of the Java modules on its Java (-PtestJavaVersion; the build's
+          # toolchain is Java 21). Gradle needs Java 21 or later, so the Java 17 entry, the oldest Java
+          # those modules run on (javaMinimumVersion in gradle.properties), builds on Java 21.
           - java: '17'
             build-java: '21'
             gradle-args: '-PtestJavaVersion=17'
@@ -36,6 +37,7 @@ jobs:
             build-java: '21'
           - java: '25'
             build-java: '25'
+            gradle-args: '-PtestJavaVersion=25'
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
