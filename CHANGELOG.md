@@ -24,6 +24,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `"🞉\ude00\ude00"`, and now gives `"baba"`, `"😀🎉😀b"` and `"ba🎉😀"`. A pool of characters from the Basic
   Multilingual Plane only, including one that holds an unpaired surrogate, keeps every draw, as tests pinned
   before the change show, and no built-in pool holds a supplementary character.
+- `TextGenerator.generate(TextOptions)` now ends a text that fills `maxChars` and whose last character is a
+  surrogate pair by replacing the whole pair with its closing dot, rather than only the pair's low half, which
+  left the high half on its own, so that every text can be encoded. Such a text is now one `char` shorter than
+  `maxChars`, which it holds at most. Only words that the caller supplies through `TextOptions` can end a text
+  in a supplementary character, as no built-in vocabulary holds one, so seeded output changes only for a text
+  of such words whose cut at `maxChars` ends in a whole pair: the word list `["a😀"]` with a `maxChars` of 3
+  gave `"a\ud83d."` with any seed, and now gives `"a."`.
 
 ## [3.1.0] - 2026-11-13
 

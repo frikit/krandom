@@ -193,6 +193,26 @@ class TextGeneratorTest {
     }
 
     @Test
+    @DisplayName("the closing dot replaces a whole surrogate pair rather than its low half")
+    void closingDotKeepsSurrogatePairsWhole() {
+        TextGenerator generator =
+                new TextGenerator(GeneratorConfig.builder().seed(9L).build());
+        List<String> words = List.of("a\uD83D\uDE00");
+
+        // The text fills maxChars and ends in a pair, which the dot replaces whole.
+        assertEquals("a.", generator.generate(new TextGenerator.TextOptions(3, words, false, false)));
+        // maxChars cuts the pair, and the dot replaces its high half.
+        assertEquals("a.", generator.generate(new TextGenerator.TextOptions(2, words, false, false)));
+        // The text ends in a pair with room to spare, and the dot follows it.
+        assertEquals(
+                String.join(" ", java.util.Collections.nCopies(8, "a\uD83D\uDE00")) + ".",
+                generator.generate(new TextGenerator.TextOptions(40, words, false, false)));
+        // A low surrogate on its own is replaced alone, as is any other last character.
+        assertEquals("a.", generator.generate(new TextGenerator.TextOptions(2, List.of("a\uDE00"), false, false)));
+        assertEquals(".", generator.generate(new TextGenerator.TextOptions(1, words, false, false)));
+    }
+
+    @Test
     @DisplayName("generateText alias delegates to generate")
     void generateTextAlias() {
         GeneratorConfig cfg =
