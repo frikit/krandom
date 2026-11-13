@@ -50,6 +50,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `stream`, `map`, and `filter` it inherits keep that type, and `schema::nextRecord` is a
   `Generator<Map<String, @Nullable Object>>` of the same records.
 
+## [3.0.3] - 2026-11-12
+
+### Changed
+
+- `StreetAddressGenerator` now reads each locale's secondary units, such as `Apt` and `Suite`, from their
+  resource once and shares them between that locale's generators, rather than opening and reading the
+  resource each time a generator is built; a locale without such a resource shares its fallback units the
+  same way. No generated value changes: the units are the same strings in the same order, as a test checks
+  against a fresh read of every locale's resource, and every pinned seeded test passes unchanged. A portable
+  seeded `Schema`, whose `Field` values each build their own generators, gains the most:
+  `SchemaOutputBenchmark.largeSchemaBatch`, 250 records of 12 references, gave 240 operations a second and
+  gives 478, and allocates 12.5 MB an operation rather than 20.7 MB. Before 3.0.1 gave each schema value its
+  own stream, it gave 933 operations a second and allocated 3.7 MB, and the benchmark methodology still
+  records the difference as an accepted breach of its regression budgets, with the raw runs.
+
 ### Fixed
 
 - A resumed release (`resumeGithubRelease=true`) now attaches the signed Maven Central bundle, module
@@ -2053,7 +2068,8 @@ Condensed summary of all pre-1.0.0 development (≈Feb–Apr 2026), originally t
 ### Removed
 - Kotlin and Scala API modules (implementation surface kept focused); deprecated APIs and deprecated Java locale usage.
 
-[Unreleased]: https://github.com/frikit/krandom/compare/v3.0.2...HEAD
+[Unreleased]: https://github.com/frikit/krandom/compare/v3.0.3...HEAD
+[3.0.3]: https://github.com/frikit/krandom/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/frikit/krandom/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/frikit/krandom/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/frikit/krandom/compare/v2.12.0...v3.0.0
