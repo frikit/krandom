@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -1161,6 +1162,10 @@ public final class ObjectFaker<T> implements Generator<T> {
     record RulePath(String path, List<RuleTarget> segments) {
 
         RuleTarget leaf() {
+            // A path of dots only, such as ".", has no segment, and fails as List.getLast() does.
+            if (segments.isEmpty()) {
+                throw new NoSuchElementException();
+            }
             return segments.get(segments.size() - 1);
         }
 
