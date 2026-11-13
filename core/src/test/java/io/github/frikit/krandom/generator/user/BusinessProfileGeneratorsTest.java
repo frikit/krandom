@@ -55,6 +55,30 @@ class BusinessProfileGeneratorsTest {
     }
 
     @Test
+    @DisplayName("a company URL keeps the first 63 letters and digits of the name, the most a host label holds")
+    void companyUrlFromLongNameKeepsAValidLabel() {
+        CompanyUrlGenerator gen = new CompanyUrlGenerator(Locale.US);
+        String sixtyThree = "a".repeat(30) + "1".repeat(33);
+        String sixtyFour = sixtyThree + "Z";
+
+        String exact = gen.generateFromCompanyName(sixtyThree);
+        String cut = gen.generateFromCompanyName("  " + sixtyFour + " & Sons, Ltd.");
+
+        assertEquals("https://www." + sixtyThree + ".test", exact);
+        assertEquals("https://www." + sixtyThree + ".test", cut);
+        for (String url : java.util.List.of(exact, cut)) {
+            String host = java.net.URI.create(url).getHost();
+            assertEquals(host, java.net.IDN.toASCII(host, java.net.IDN.USE_STD3_ASCII_RULES));
+        }
+        CompanyUrlGenerator realistic = new CompanyUrlGenerator(GeneratorConfig.builder()
+                .seed(4L)
+                .networkSafetyPolicy(
+                        io.github.frikit.krandom.generator.network.NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .build());
+        assertTrue(realistic.generateFromCompanyName(sixtyFour).startsWith("https://www." + sixtyThree + "."));
+    }
+
+    @Test
     @DisplayName("Job and profile generators return non-empty values")
     void jobAndProfileGenerators() {
         assertNotNull(new JobFieldGenerator().generate());

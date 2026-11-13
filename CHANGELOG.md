@@ -27,6 +27,63 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - Each value still builds its generator for other built-in references, `registerProvider` references,
     module providers, and every reference of a configuration with modules or its own `DataRegistryContext`.
 
+### Fixed
+
+- `CharGenerator.pool`, the `StringGenerator` built from such a pool, including through the three
+  `StringGenerator.pool` factories, and `PasswordPolicy.Builder.require` and `requireSymbols` now draw a
+  supplementary character of the caller's pool, one outside the Basic Multilingual Plane, such as the emoji
+  U+1F600 that UTF-16 writes as a surrogate pair, as one whole character. They drew each half of the pair as a
+  character of its own, so a string or password drawn from the pool `"a😀"` held unpaired surrogates, which no
+  Unicode encoding can hold, and `CharGenerator.pool(char...)` split a pair given as its two halves side by side
+  the same way. A length, and the count of a requirement, is of characters as code points, so such a character
+  counts once and takes two `char`s of the string, and a string or password that holds one is longer in
+  `String.length()` than its length. `CharGenerator.generate()` returns a `Character`, which cannot hold such a
+  character, so for a pool that holds one it now throws `IllegalStateException`, naming the character, rather
+  than return half of it, and `StringGenerator` draws strings from that pool. Seeded output changes only for a
+  pool that holds a supplementary character, whose characters are now fewer and whole: seeded with 42, a
+  `StringGenerator` of length 4 from `"a😀b🎉"` gave `"\ude00ba\ude00"`, `"a🞉\ude00"` and
+  `"🞉\ude00\ude00"`, and now gives `"baba"`, `"😀🎉😀b"` and `"ba🎉😀"`. A pool of characters from the Basic
+  Multilingual Plane only, including one that holds an unpaired surrogate, keeps every draw, as tests pinned
+  before the change show, and no built-in pool holds a supplementary character.
+- `TextGenerator.generate(TextOptions)` now ends a text that fills `maxChars` and whose last character is a
+  surrogate pair by replacing the whole pair with its closing dot, rather than only the pair's low half, which
+  left the high half on its own, so that every text can be encoded. Such a text is now one `char` shorter than
+  `maxChars`, which it holds at most. Only words that the caller supplies through `TextOptions` can end a text
+  in a supplementary character, as no built-in vocabulary holds one, so seeded output changes only for a text
+  of such words whose cut at `maxChars` ends in a whole pair: the word list `["a😀"]` with a `maxChars` of 3
+  gave `"a\ud83d."` with any seed, and now gives `"a."`.
+- `CompanyUrlGenerator.generateFromCompanyName(String)` now keeps the first 63 letters and digits of the
+  company name as the host label, the most a label may hold, as `CompanyEmailGenerator` and the coherence pass
+  do since 3.0.1 and 3.0.2. It kept them all, so a name of more than 63 ASCII letters and digits gave a URL
+  whose host `IDN.toASCII` rejects. Output changes only for such a name, which a caller supplies, and the cut
+  draws nothing, so no other value changes. The names that `CompanyNameGenerator` draws, which
+  `generateFromCompanyName()` uses, are shorter: as 3.0.2 records, the longest label of 5,000,000 seeded names
+  in the 50 supported locales has 51 characters.
+- `Schema` and `SchemaProjection` now write DEL (U+007F), the C1 controls U+0080 to U+009F, U+2028, U+2029,
+  U+FFFE and U+FFFF in YAML as escapes such as `\u0085`, in names and values, as YAML double-quoted strings
+  allow, so that a YAML parser reads every document and every string back as written. They wrote them raw, as
+  JSON may: SnakeYAML rejected a document with any of them in a name, and with any of them but U+0085, U+2028
+  and U+2029 in a value, and read U+0085 in a value back as another character. JSON, JSON Lines, CSV, XML, SQL
+  and TOML output is unchanged, as is YAML output of text without these characters. No built-in generator gives
+  them from its own data, so seeded YAML output changes only for text that holds one, such as a value or a
+  field name that the caller supplies: the value `"a\u0085b"` was written as `"a` U+0085 `b"` and is now
+  written as `"a\u0085b"`.
+- `Schema.toJsonSchema()` now writes each field name in `properties` and `required` as the data writers write
+  it, with each unpaired surrogate, half of a UTF-16 surrogate pair without its other half, as U+FFFD, as every
+  writer does since 3.0.2. It kept the name as given, so the JSON Schema of a field named `"a\ud800"` named a
+  property `"a\ud800"` that no written record holds, as each holds `"a\uFFFD"`, and could not be encoded as
+  UTF-8 itself. The `KrandomJacksonModule` serializer, which writes `toJsonSchema()`, writes the same names.
+  Only a field name with an unpaired surrogate, which the caller supplies, is written differently; no
+  generated value changes.
+- `Schema`, its `SchemaParser.fromJsonSchema` and `fromOpenApi` forms, and `SchemaProjection` now reject two
+  field names that differ only in unpaired surrogates, such as `"a\ud800"` and `"a\udc00"`, or `"a\uFFFD"` and
+  `"a\ud800"`, with an `IllegalArgumentException` that names both, as every writer writes them as one name,
+  `"a\uFFFD"`. Such a schema wrote each record with that key twice, which JSON parsers read as one key or
+  reject, and a CSV or SQL header with the same column twice, and its JSON Schema would hold one property for
+  both. This follows the rejection of a blank field name at the same point. A schema whose names stay distinct
+  as written, including names that differ in a surrogate pair, is built and writes as before, so no seeded
+  value changes.
+
 ## [3.1.0] - 2026-11-13
 
 ### Added

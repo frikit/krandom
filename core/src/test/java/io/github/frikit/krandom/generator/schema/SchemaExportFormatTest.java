@@ -59,6 +59,59 @@ class SchemaExportFormatTest {
         assertEquals("a�b�c��d�e�f😀g\r\n\t\"'&<>h�", field.getTextContent());
     }
 
+    /**
+     * Text with each character that YAML cannot hold raw in a double-quoted scalar, beside its neighbours that
+     * it can: DEL and the C1 controls, among them U+0085, which YAML 1.1 reads as a line break; U+2028 and
+     * U+2029, the line and paragraph separators of YAML 1.1; and the noncharacters U+FFFE and U+FFFF.
+     */
+    private static final String YAML_UNPRINTABLE =
+            "~\u007f\u0080\u0085\u009f\u00a0\u2027\u2028\u2029\u202a\ufffd\ufffe\uffff";
+
+    /** What YAML writes for that text: an escape for each character it cannot hold raw. */
+    private static final String YAML_UNPRINTABLE_ESCAPED =
+            "~\\u007f\\u0080\\u0085\\u009f\u00a0\u2027\\u2028\\u2029\u202a\ufffd\\ufffe\\uffff";
+
+    @Test
+    @DisplayName("YAML escapes DEL, C1 controls, U+2028, U+2029, U+FFFE and U+FFFF, in names and values")
+    void yamlEscapesCharactersItCannotHoldRaw() throws Exception {
+        Map<String, Object> record = new LinkedHashMap<>();
+        record.put("k" + YAML_UNPRINTABLE, YAML_UNPRINTABLE);
+        record.put("char", '\u0085');
+        record.put("nested", Map.of("n" + YAML_UNPRINTABLE, List.of(YAML_UNPRINTABLE)));
+        record.put("other", new StringBuilder("\u2028"));
+        record.put("number", 1);
+        record.put("none", null);
+        record.put("object", new Object() {
+            @Override
+            public String toString() {
+                return "\u0085";
+            }
+        });
+        String expectedYaml = "- \"k" + YAML_UNPRINTABLE_ESCAPED + "\": \"" + YAML_UNPRINTABLE_ESCAPED + "\"\n"
+                + "  char: \"\\u0085\"\n"
+                + "  nested:\n"
+                + "    \"n" + YAML_UNPRINTABLE_ESCAPED + "\":\n"
+                + "      - \"" + YAML_UNPRINTABLE_ESCAPED + "\"\n"
+                + "  other: \"\\u2028\"\n"
+                + "  number: 1\n"
+                + "  none: null\n"
+                + "  object: \"\\u0085\"\n";
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        record.forEach((name, value) -> fields.put(name, ctx -> value));
+        Map<String, Function<Integer, ?>> projected = new LinkedHashMap<>();
+        record.forEach((name, value) -> projected.put(name, ignored -> value));
+
+        assertEquals(expectedYaml, new Schema(fields).toYaml(1));
+        assertEquals(expectedYaml, SchemaProjection.of(projected).toYaml(List.of(1)));
+        // JSON and TOML hold these characters raw, and keep writing them so.
+        assertEquals(
+                "{\"k\":\"" + YAML_UNPRINTABLE + "\"}\n",
+                schemaOf("k", YAML_UNPRINTABLE).toJsonLines(1));
+        assertEquals(
+                "[[records]]\nk = \"~\\u007f" + YAML_UNPRINTABLE.substring(2) + "\"\n",
+                schemaOf("k", YAML_UNPRINTABLE).toToml(1));
+    }
+
     @Test
     @DisplayName("SQL quotes a column name with dots as one identifier and keeps qualified table names")
     void sqlQuotesColumnNamesAsSingleIdentifiers() {

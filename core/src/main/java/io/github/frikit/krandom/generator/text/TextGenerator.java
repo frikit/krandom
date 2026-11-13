@@ -94,8 +94,17 @@ public final class TextGenerator implements Generator<String> {
             out.append(locale.getLanguage().equals("de") ? "text" : "lorem");
         }
         if (!out.toString().endsWith(".")) {
+            int last = out.length() - 1;
             if (out.length() == targetChars) {
-                out.setCharAt(out.length() - 1, '.');
+                if (last > 0
+                        && Character.isLowSurrogate(out.charAt(last))
+                        && Character.isHighSurrogate(out.charAt(last - 1))) {
+                    // The dot replaces the whole pair, as its high half alone is no character.
+                    out.setLength(last - 1);
+                    out.append('.');
+                } else {
+                    out.setCharAt(last, '.');
+                }
             } else {
                 out.append('.');
             }
