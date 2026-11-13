@@ -145,7 +145,9 @@ too.
 An explicit argument is used verbatim: `generate("com")` ends in `.com`, and `generateWithDomain` and
 the `domain` of `URLOptions` name the destination. A supplied username, subdomain, scheme, path, company
 name, or size does not, and a URL built from one stays under `.test`: a scheme or subdomain that would
-end the host, such as `real.com/`, fails with `IllegalArgumentException`. Values from your own overrides,
+end the host, such as `real.com/`, fails with `IllegalArgumentException`. A company URL built from a supplied
+name, as `CompanyUrlGenerator.generateFromCompanyName(String)` builds it, keeps the name's ASCII letters and
+digits as its label, cut to the 63 characters a label may hold. Values from your own overrides,
 rules, and randomizers are used as written. A top-level domain or a label alone is vocabulary rather than
 a destination, so `getTLD()`, `generateTld()`, `getPopularTLD()`, and `generateName()` draw as usual.
 `generatePublic()` and `generatePrivate()` return addresses that can identify real hosts and internal

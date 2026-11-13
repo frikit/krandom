@@ -26,7 +26,8 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>The source iterable is consumed once and each format is written incrementally. This makes it
  * suitable for transforming large result sets without first materializing them as maps. Text is written as
- * {@link Schema} writes it, an unpaired surrogate as U+FFFD.
+ * {@link Schema} writes it, an unpaired surrogate as U+FFFD, and as there, two field names that would be written
+ * as one, as they differ only in unpaired surrogates, are rejected with an {@link IllegalArgumentException}.
  *
  * <p>A projected row maps each field to the value its extractor returns, which may be {@code null}, so
  * {@link #projectRow(Object)} types the row as {@code Map<String, @Nullable Object>}. The deprecated
@@ -56,6 +57,7 @@ public final class SchemaProjection<T> {
             }
             copy.put(name, extractor::apply);
         }
+        Schema.requireDistinctWrittenNames(copy.keySet());
         this.fields = Collections.unmodifiableMap(copy);
     }
 

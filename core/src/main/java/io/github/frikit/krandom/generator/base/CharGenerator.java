@@ -39,15 +39,34 @@ import java.util.random.RandomGenerator;
  *
  * <p>At least one character group must be enabled when using the builder;
  * the builder enforces this at {@link Builder#build()}.
+ *
+ * <p>A pool is a list of whole characters, as code points: a supplementary character, one outside the Basic
+ * Multilingual Plane that UTF-16 writes as a surrogate pair, is one character of the pool, also when
+ * {@link #pool(char...)} is given its two halves side by side. A {@link Character} cannot hold such a
+ * character, so {@link #generate()} refuses a pool that holds one, and {@link StringGenerator} draws strings
+ * from it. A surrogate without its other half stays a character of its own.
  */
 public final class CharGenerator implements Generator<Character> {
 
-    private final char[] pool;
+    /** The characters of the pool, as code points, in the order given and with repeats kept. */
+    private final int[] pool;
+
+    /** The first supplementary character of the pool, or {@code -1} where it holds none. */
+    private final int firstSupplementary;
+
     private final RandomGenerator random;
 
-    private CharGenerator(char[] pool, RandomGenerator random) {
+    private CharGenerator(int[] pool, RandomGenerator random) {
         this.pool = pool;
         this.random = random;
+        int supplementary = -1;
+        for (int codePoint : pool) {
+            if (Character.isSupplementaryCodePoint(codePoint)) {
+                supplementary = codePoint;
+                break;
+            }
+        }
+        this.firstSupplementary = supplementary;
     }
 
     /**
@@ -112,7 +131,7 @@ public final class CharGenerator implements Generator<Character> {
         if (characters == null || characters.isEmpty()) {
             throw new IllegalArgumentException("Character pool must not be null or empty");
         }
-        return new CharGenerator(characters.toCharArray(), new Random());
+        return new CharGenerator(characters.codePoints().toArray(), new Random());
     }
 
     /**
@@ -132,7 +151,7 @@ public final class CharGenerator implements Generator<Character> {
         if (characters == null || characters.length == 0) {
             throw new IllegalArgumentException("Character pool must not be null or empty");
         }
-        return new CharGenerator(characters.clone(), new Random());
+        return new CharGenerator(new String(characters).codePoints().toArray(), new Random());
     }
 
     /**
@@ -149,7 +168,7 @@ public final class CharGenerator implements Generator<Character> {
         if (characters == null || characters.isEmpty()) {
             throw new IllegalArgumentException("Character pool must not be null or empty");
         }
-        return new CharGenerator(characters.toCharArray(), new Random(seed));
+        return new CharGenerator(characters.codePoints().toArray(), new Random(seed));
     }
 
     /**
@@ -164,15 +183,32 @@ public final class CharGenerator implements Generator<Character> {
         if (characters == null || characters.length == 0) {
             throw new IllegalArgumentException("Character pool must not be null or empty");
         }
-        return new CharGenerator(characters.clone(), new Random(seed));
+        return new CharGenerator(new String(characters).codePoints().toArray(), new Random(seed));
     }
 
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Draws one character of the pool.
+     *
+     * @return a character of the pool
+     * @throws IllegalStateException if the pool holds a supplementary character, which a {@link Character}
+     *     cannot hold; {@link StringGenerator} draws strings from such a pool
+     */
     @Override
     public Character generate() {
+        if (firstSupplementary >= 0) {
+            throw new IllegalStateException(String.format(
+                    "the pool holds U+%X, which a Character cannot hold; draw strings from it with StringGenerator",
+                    firstSupplementary));
+        }
+        return (char) generateCodePoint();
+    }
+
+    /** Draws one character of the pool as a code point, a supplementary character whole. */
+    int generateCodePoint() {
         return pool[random.nextInt(pool.length)];
     }
 
@@ -261,7 +297,7 @@ public final class CharGenerator implements Generator<Character> {
                 throw new IllegalArgumentException(
                         "At least one character group must be enabled (uppercase, lowercase, digits, special)");
             }
-            char[] pool = new char[chars.size()];
+            int[] pool = new int[chars.size()];
             for (int i = 0; i < chars.size(); i++) pool[i] = chars.get(i);
 
             RandomGenerator rng = seed != null ? new Random(seed) : new Random();

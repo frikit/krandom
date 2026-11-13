@@ -31,8 +31,10 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -74,7 +76,10 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>Every writer writes text that UTF-8 can encode. An unpaired surrogate, half of a UTF-16 surrogate pair
  * without its other half, is written as U+FFFD wherever it is, in a value, a key, a CSV header, or a table or
- * column name, and a pair as the character it encodes.
+ * column name, and a pair as the character it encodes. {@link #toJsonSchema()} writes the field names so too, and
+ * two field names that would be written as one, as they differ only in unpaired surrogates, are rejected with
+ * an {@link IllegalArgumentException}. YAML writes DEL, the C1 controls, U+2028, U+2029, U+FFFE
+ * and U+FFFF, which a YAML parser rejects raw or reads as a line break, as escapes, in names and values.
  */
 public final class Schema implements Generator<Map<String, Object>> {
 
@@ -190,7 +195,42 @@ public final class Schema implements Generator<Map<String, Object>> {
             }
             copy.put(name, provider);
         }
+        requireDistinctWrittenNames(copy.keySet());
         return Collections.unmodifiableMap(copy);
+    }
+
+    /**
+     * Rejects two field names that every writer would write as one name, as they differ only in unpaired
+     * surrogates, which are written as U+FFFD, so that no document holds a name twice.
+     */
+    static void requireDistinctWrittenNames(Collection<String> names) {
+        Map<String, String> byWrittenName = new HashMap<>();
+        for (String name : names) {
+            String written = encodable(name);
+            String other = byWrittenName.putIfAbsent(written, name);
+            if (other != null) {
+                throw new IllegalArgumentException("field names \"" + escapedSurrogates(other) + "\" and \""
+                        + escapedSurrogates(name) + "\" are both written as \"" + written
+                        + "\", as every writer writes an unpaired surrogate as U+FFFD");
+            }
+        }
+    }
+
+    /**
+     * The name with each unpaired surrogate as a backslash-u escape of four hex digits, which a message can hold.
+     */
+    private static String escapedSurrogates(String name) {
+        String written = encodable(name);
+        StringBuilder escaped = new StringBuilder(name.length());
+        for (int i = 0; i < name.length(); i++) {
+            char ch = name.charAt(i);
+            if (written.charAt(i) == '\uFFFD' && ch != '\uFFFD') {
+                escaped.append(String.format("\\u%04x", (int) ch));
+            } else {
+                escaped.append(ch);
+            }
+        }
+        return escaped.toString();
     }
 
     /**
@@ -638,6 +678,7 @@ public final class Schema implements Generator<Map<String, Object>> {
      *
      * <p>Types are read from provider metadata so exporting the schema does not consume
      * generator state. Providers without metadata export as unconstrained JSON Schema fragments.
+     * A field name is written as the data writers write it, with each unpaired surrogate as U+FFFD.
      *
      * @return JSON Schema document as a nested map
      */
@@ -652,11 +693,13 @@ public final class Schema implements Generator<Map<String, Object>> {
 
         for (Map.Entry<String, SchemaValueProvider> entry : fields.entrySet()) {
             String field = entry.getKey();
-            required.add(field);
+            // The name as the data writers write it, which no other field's name is.
+            String written = encodable(field);
+            required.add(written);
             try {
                 // A rule over whole records can give a column values that its provider does not.
                 properties.put(
-                        field,
+                        written,
                         JsonSchemaSupport.copyJsonSchema(
                                 recordRule == null ? entry.getValue().jsonSchema() : recordRule.columnSchema(field)));
             } catch (RuntimeException ex) {
@@ -1005,7 +1048,7 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     static void appendJsonString(Appendable out, String value) throws IOException {
-        appendQuoted(out, value, false);
+        appendQuoted(out, value, Quoting.JSON);
     }
 
     /**
@@ -1013,10 +1056,39 @@ public final class Schema implements Generator<Map<String, Object>> {
      * JSON allows, so that one is escaped too.
      */
     private static void appendTomlString(Appendable out, String value) throws IOException {
-        appendQuoted(out, value, true);
+        appendQuoted(out, value, Quoting.TOML);
     }
 
-    private static void appendQuoted(Appendable out, String value, boolean escapeDelete) throws IOException {
+    /**
+     * Writes a YAML double-quoted scalar. YAML reads the same escapes as JSON, but a YAML parser rejects
+     * characters that YAML cannot hold raw, which JSON allows: U+007F, the C1 controls U+0080 to U+009F,
+     * U+FFFE and U+FFFF. YAML 1.1 also reads U+0085, U+2028 and U+2029 as line breaks, which a double-quoted
+     * scalar folds, so these are escaped too.
+     */
+    private static void appendYamlString(Appendable out, String value) throws IOException {
+        appendQuoted(out, value, Quoting.YAML);
+    }
+
+    /** The double-quoted strings that the writers write, which differ in the characters they escape. */
+    private enum Quoting {
+        JSON,
+        TOML,
+        YAML;
+
+        /** Whether this format writes the character as a JSON-style Unicode escape rather than raw. */
+        boolean escapes(char ch) {
+            if (ch < 0x20) {
+                return true;
+            }
+            return switch (this) {
+                case JSON -> false;
+                case TOML -> ch == 0x7F;
+                case YAML -> (ch >= 0x7F && ch <= 0x9F) || ch == 0x2028 || ch == 0x2029 || ch >= 0xFFFE;
+            };
+        }
+    }
+
+    private static void appendQuoted(Appendable out, String value, Quoting quoting) throws IOException {
         value = encodable(value);
         out.append('"');
         for (int i = 0; i < value.length(); i++) {
@@ -1030,7 +1102,7 @@ public final class Schema implements Generator<Map<String, Object>> {
                 case '\r' -> out.append("\\r");
                 case '\t' -> out.append("\\t");
                 default -> {
-                    if (ch < 0x20 || (escapeDelete && ch == 0x7F)) {
+                    if (quoting.escapes(ch)) {
                         appendJsonUnicodeEscape(out, ch);
                     } else {
                         out.append(ch);
@@ -1092,8 +1164,17 @@ public final class Schema implements Generator<Map<String, Object>> {
             }
             return;
         }
-        appendJsonValue(out, normalized);
+        appendYamlScalar(out, normalized);
         out.append(NEWLINE);
+    }
+
+    /** Writes a value that is not a map or a list, after {@link #normalizeStructuredValue(Object)}. */
+    private static void appendYamlScalar(Appendable out, @Nullable Object value) throws IOException {
+        if (value == null || value instanceof Number || value instanceof Boolean) {
+            appendJsonValue(out, value);
+        } else {
+            appendYamlString(out, String.valueOf(value));
+        }
     }
 
     private static void appendYamlMapAfterListMarker(Appendable out, Map<?, ?> map, int listIndent) throws IOException {
@@ -1128,7 +1209,7 @@ public final class Schema implements Generator<Map<String, Object>> {
         if (isPlainYamlKey(value)) {
             out.append(value);
         } else {
-            appendJsonString(out, value);
+            appendYamlString(out, value);
         }
         out.append(':');
     }
@@ -1173,7 +1254,7 @@ public final class Schema implements Generator<Map<String, Object>> {
             return;
         }
         out.append(' ');
-        appendJsonValue(out, normalized);
+        appendYamlScalar(out, normalized);
         out.append(NEWLINE);
     }
 
