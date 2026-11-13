@@ -20,6 +20,7 @@ import io.github.frikit.krandom.generator.datetime.DateGenerator;
 import io.github.frikit.krandom.generator.finance.CurrencyGenerator;
 import io.github.frikit.krandom.generator.finance.MoneyGenerator;
 import io.github.frikit.krandom.generator.identifier.UUIDGenerator;
+import io.github.frikit.krandom.generator.location.AddressInfoGenerator;
 import io.github.frikit.krandom.generator.location.CityGenerator;
 import io.github.frikit.krandom.generator.location.CountryGenerator;
 import io.github.frikit.krandom.generator.location.PhoneNumberGenerator;
@@ -84,6 +85,7 @@ class ReseedAsBuiltTest {
         factories.put(SentenceGenerator.class, SentenceGenerator::new);
         factories.put(WordGenerator.class, WordGenerator::new);
         factories.put(UsernameGenerator.class, UsernameGenerator::new);
+        factories.put(AddressInfoGenerator.class, AddressInfoGenerator::new);
         return factories;
     }
 
@@ -128,7 +130,10 @@ class ReseedAsBuiltTest {
             + " new build gives")
     void reseededGivesWhatANewBuildGives() throws ReflectiveOperationException {
         List<GeneratorConfig> configs = new ArrayList<>();
-        for (Locale locale : List.of(Locale.US, Locale.GERMANY, Locale.JAPAN, Locale.forLanguageTag("pt-BR"))) {
+        // Spanish without a country, and so without postal places, reaches the country streams, which draw a
+        // random country only there.
+        for (Locale locale : List.of(
+                Locale.US, Locale.GERMANY, Locale.JAPAN, Locale.forLanguageTag("pt-BR"), Locale.forLanguageTag("es"))) {
             for (ChildStreamPolicy policy : ChildStreamPolicy.values()) {
                 configs.add(GeneratorConfig.builder()
                         .locale(locale)
