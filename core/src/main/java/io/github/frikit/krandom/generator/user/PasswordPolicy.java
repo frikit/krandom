@@ -43,8 +43,15 @@ public final class PasswordPolicy {
         this.minLength = builder.minLength;
         this.maxLength = builder.maxLength;
         this.requirements = List.copyOf(builder.requirements);
-        this.alphabet = alphabetFor(requirements);
-        this.alphabetCodePoints = alphabet.codePoints().toArray();
+        // The code points come from the set itself: a string of them would join a lone high surrogate of one
+        // set and a lone low surrogate of the next into one character.
+        this.alphabetCodePoints =
+                alphabetFor(requirements).stream().mapToInt(Integer::intValue).toArray();
+        StringBuilder text = new StringBuilder(alphabetCodePoints.length);
+        for (int codePoint : alphabetCodePoints) {
+            text.appendCodePoint(codePoint);
+        }
+        this.alphabet = text.toString();
         int requiredCharacters =
                 requirements.stream().mapToInt(Requirement::minimumCount).sum();
         if (requiredCharacters > minLength) {
@@ -93,7 +100,7 @@ public final class PasswordPolicy {
         return alphabetCodePoints;
     }
 
-    private static String alphabetFor(List<Requirement> requirements) {
+    private static Set<Integer> alphabetFor(List<Requirement> requirements) {
         Set<Integer> characters = new LinkedHashSet<>();
         requirements.forEach(requirement -> requirement.symbols().codePoints().forEach(characters::add));
         if (characters.isEmpty()) {
@@ -102,9 +109,7 @@ public final class PasswordPolicy {
             DIGITS.codePoints().forEach(characters::add);
             SYMBOLS.codePoints().forEach(characters::add);
         }
-        StringBuilder result = new StringBuilder(characters.size());
-        characters.forEach(result::appendCodePoint);
-        return result.toString();
+        return characters;
     }
 
     static final class Requirement {

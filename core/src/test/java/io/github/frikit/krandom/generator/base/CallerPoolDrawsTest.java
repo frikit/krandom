@@ -138,5 +138,14 @@ class CallerPoolDrawsTest {
                                 .require("\uDC00\uD800", 2)
                                 .require("q", 1)
                                 .build()));
+        // Two sets that each hold one half of a pair stay two characters of the alphabet.
+        PasswordGenerator halves =
+                new PasswordGenerator(GeneratorConfig.builder().seed(5L).build());
+        PasswordPolicy split = PasswordPolicy.builder()
+                .length(6)
+                .require("\uD800", 0)
+                .require("\uDC00", 0)
+                .build();
+        assertEquals(List.of("\ud800𐀀𐀀\ud800", "𐀀𐀀\udc00\ud800", "𐀀\ud800𐀀\ud800"), passwords(halves, split, 3));
     }
 }
