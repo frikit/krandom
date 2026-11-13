@@ -13,11 +13,12 @@ which CI runs, has two Android library modules built with the Android Gradle plu
 Kotlin, the Kotlin Gradle plugin 2.2.10 that it brings. They compile Java and Kotlin for JVM target 17 against
 `compileSdk` 36, and their unit tests use `krandom-core`, `krandom-kotlin-dsl` and `krandom-junit`.
 
-## Run the tests on Java 21
+## Run the tests on Java 17 or later
 
-`krandom-core` is compiled for Java 21, so the unit tests need Java 21 or later. The example sets no Java
-toolchain, so Gradle runs its unit tests on the Java that runs Gradle, the Gradle JDK, which must therefore
-be Java 21 or later. CI runs the example with Gradle on Java 21.
+From 3.1.0 every kRandom module runs on Java 17, so the unit tests need Java 17 or later; up to 3.0.x,
+`krandom-core` needs Java 21. The example sets no Java toolchain, so Gradle runs its unit tests on the Java
+that runs Gradle, the Gradle JDK, which must therefore be Java 17 or later. CI runs the example with Gradle on
+Java 21 and on Java 17.
 
 ## Compile for JVM target 17
 
@@ -25,8 +26,8 @@ From 3.1.0, `krandom-kotlin-dsl` is compiled for JVM target 17, so Kotlin code c
 as Android modules usually are, can call its inline functions, such as `krandom<T>()`. Up to 3.0.x it is
 compiled for JVM target 21, and the Kotlin compiler stops with "Cannot inline bytecode built with JVM target
 21 into bytecode that is being built with JVM target 17".
-`krandom-core` is still compiled for Java 21: the example's Kotlin code, compiled for JVM target 17, calls it,
-and its unit tests run it on Java 21.
+From 3.1.0 `krandom-core` is compiled for Java 17 too, so the example's Kotlin code, compiled for JVM target
+17, calls it, and its unit tests can run it on Java 17.
 
 The build file of the example's `contacts` module, whose tests use JUnit 4, the Android default:
 
@@ -137,7 +138,7 @@ describes the injected parameters and `@KrandomSeed`.
 ## Not supported: device tests and app code
 
 kRandom is not supported in on-device (instrumented) tests under `src/androidTest` or in app code. It is
-built and tested only on JVMs, on Java 21 and 25 in CI, and `krandom-core` is compiled for Java 21 and calls
-Java 17 and Java 21 library APIs, such as `java.util.random.RandomGenerator`, `List.getFirst()` and
-`Math.clamp`. Add kRandom with `testImplementation`, not with `implementation` or
+built and tested only on JVMs, on Java 17, 21 and 25 in CI, and `krandom-core` calls Java 17 library APIs
+that Android does not provide, such as `java.util.random.RandomGenerator`. Add kRandom with
+`testImplementation`, not with `implementation` or
 `androidTestImplementation`.

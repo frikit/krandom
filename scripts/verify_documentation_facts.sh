@@ -145,8 +145,8 @@ grep -Fq "The repository development line is \`${DEVELOPMENT_VERSION}\`" "${REPO
 grep -Fq "The current version is \`${LATEST_GA_VERSION}\`" "${REPO_ROOT}/docs-site/getting-started.md" || fail "getting-started latest GA version is stale"
 # javaMinimumVersion is also the --release of the Java modules (build.gradle.kts).
 grep -Fq "toolkit for Java ${JAVA_MINIMUM_VERSION} and later" "${REPO_ROOT}/README.md" || fail "README Java minimum is stale"
-grep -Fq -- "- Java ${JAVA_MINIMUM_VERSION}+ for \`krandom-core\`" "${REPO_ROOT}/docs-site/getting-started.md" || fail "getting-started Java minimum is stale"
-grep -Fq "\`krandom-spring-boot-starter\` | Java ${JAVA_MINIMUM_VERSION} or later" "${REPO_ROOT}/VERSIONING.md" || fail "version policy Java minimum is stale"
+grep -Fq -- "- Java ${JAVA_MINIMUM_VERSION}+ for every module" "${REPO_ROOT}/docs-site/getting-started.md" || fail "getting-started Java minimum is stale"
+grep -Fq "| All modules | Java ${JAVA_MINIMUM_VERSION} or later" "${REPO_ROOT}/VERSIONING.md" || fail "version policy Java minimum is stale"
 grep -Fq "io.github.frikit:krandom-core:${LATEST_GA_VERSION}" "${REPO_ROOT}/README.md" || fail "README core coordinate is stale"
 grep -Fq "io.github.frikit:krandom-bom:${LATEST_GA_VERSION}" "${REPO_ROOT}/README.md" || fail "README BOM coordinate is stale"
 grep -Fq "io.github.frikit:krandom-bom:${LATEST_GA_VERSION}" "${REPO_ROOT}/docs-site/getting-started.md" || fail "getting-started BOM coordinate is stale"
