@@ -6,8 +6,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `Schema.nextRecord()`, `Schema.nextRecords(int)`, and `SchemaProjection.projectRow(T)` return a
+  schema's records and a projection's rows as `Map<String, @Nullable Object>`, so callers that read the
+  JSpecify annotations, such as NullAway and Kotlin, see that a value is `null` where its provider or
+  extractor returns `null`, as a parsed property of type `null` always does and one with OpenAPI's
+  `nullable` does half of the time. They return the maps that the methods they replace return, and every
+  record method of a schema draws from its one record sequence.
+
 ### Changed
 
+- The generators and methods that pass `null` through now say so in their type parameters, so a nullable
+  type argument such as `@Nullable Boolean` is legal for callers that read the JSpecify annotations, such
+  as NullAway and Kotlin. `ConstantGenerator`, `ContextualGenerator`, `RepeatGenerator` and
+  `UniqueGenerator`, the `Generators` factories `ofConstant`, `repeat`, `unique`, `sequence` and
+  `threadLocal`, the three `ProviderHub.unique` methods, the contextual field and predicate overloads of
+  `GeneratorConfig.Builder.objectOverride`, every overload of `ObjectFaker.ruleFor` and `ruleForContext`,
+  `PropertySelector` and `PropertyPath` for the property's type, and the varargs `Krandom.pick` bound
+  their type parameter by `@Nullable Object` rather than `Object`, and `PropertyPath.then` continues a path
+  past a nullable property with an accessor of its non-null type. So
+  `Generators.repeat(Generators.ofNullableBoolean(), 3)`, which NullAway and Kotlin rejected, compiles as a
+  `RepeatGenerator<@Nullable Boolean>`, or `RepeatGenerator<Boolean?>` in Kotlin, and a rule can name a
+  nullable property through a `PropertySelector<User, @Nullable String>`. Signatures in bytecode and
+  runtime behavior are unchanged, as each of these already returned the `null` its source or argument
+  gave. This brings the one source change for Kotlin that 3.1.0 makes, an exception to the rule in
+  VERSIONING.md that a minor release keeps the public API compatible. Kotlin reads a star projection of
+  `ConstantGenerator`, `ContextualGenerator`, `RepeatGenerator`, `UniqueGenerator` or `PropertySelector`
+  through the new bound, so code that reads a value from one now reads it as `Any?`, and code that reads it
+  as `Any`, such as `val value: Any = generator.generate(context)` for a `ContextualGenerator<*>`, no
+  longer compiles. The exception is deliberate: the class bound is what lets nullable values compose, as
+  `RepeatGenerator<Boolean?>` cannot be written without it. It fails only at compile time: compiled code
+  calls the same methods and gets the same values. NullAway checks the new tests in
+  `core/src/nullnessTest/java`, which compile each of these with a nullable type argument.
 - `krandom-kotlin-dsl` and `krandom-kotest-extensions` are now compiled for JVM target 17, against the Java 17
   API, rather than for 21, and for Kotlin 2.2 rather than 2.4: with Kotlin language and API version 2.2, and
   with `kotlin-stdlib` 2.2.21 rather than 2.4.21 as their published dependency, as `krandom-kotlin-dsl` has for
@@ -27,6 +58,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   public API is unchanged. The `examples/kotlin-android` example, which CI runs, compiles its unit tests for
   JVM target 17 with the Kotlin that the Android Gradle plugin 9.5.1 brings, and the Android unit tests guide
   describes its setup.
+
+### Deprecated
+
+- `Schema.generate()`, `Schema.generateBatch(int)`, `Schema.loop(int)`, and `SchemaProjection.project(T)`,
+  whose `Map<String, Object>` claims values that are never `null`, although a value is `null` where its
+  provider or extractor returns `null`. Use `nextRecord()`, `nextRecords(int)`, and
+  `projectRow(T)`, which return the same maps typed `Map<String, @Nullable Object>`; the deprecated
+  methods behave as before. A `Schema` stays a `Generator<Map<String, Object>>`, so the `generateList`,
+  `stream`, `map`, and `filter` it inherits keep that type, and `schema::nextRecord` is a
+  `Generator<Map<String, @Nullable Object>>` of the same records.
 
 ## [3.0.3] - 2026-11-12
 

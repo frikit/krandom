@@ -325,7 +325,7 @@ class GeneratedEmailValidityTest {
         for (String name : List.of("email", "emailAddress", "email_address", "companyEmail", "company_email")) {
             properties.put(name, Map.of("type", "string"));
         }
-        return SchemaParser.fromJsonSchema(Map.of("type", "object", "properties", properties), config)::generate;
+        return SchemaParser.fromJsonSchema(Map.of("type", "object", "properties", properties), config)::nextRecord;
     }
 
     private static Supplier<@Nullable Object> objects(Class<?> type, GeneratorConfig config) {

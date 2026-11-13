@@ -99,7 +99,7 @@ class EnvironmentDeterminismTest {
         Schema schema = SchemaParser.fromJsonSchema(
                 Map.of("type", "object", "properties", Map.of("ID", Map.of("type", "string"))));
 
-        String id = (String) schema.generate().get("ID");
+        String id = (String) schema.nextRecord().get("ID");
 
         assertTrue(id.matches("[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"));
     }

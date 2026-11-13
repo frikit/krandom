@@ -69,7 +69,7 @@ class JavaMavenIntegrationUsageTest {
         // Jackson 3 mappers are immutable, so the module is added to the builder.
         JsonMapper mapper = KrandomJackson.configure(JsonMapper.builder()).build();
 
-        Map<String, Object> row = schema.generate();
+        Map<String, Object> row = schema.nextRecord();
         JsonNode json = mapper.valueToTree(row);
 
         // Jackson 3 writes java.time values as ISO-8601 text without an extra module.
