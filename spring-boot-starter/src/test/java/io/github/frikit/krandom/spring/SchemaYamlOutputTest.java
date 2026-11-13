@@ -60,4 +60,29 @@ class SchemaYamlOutputTest {
             assertEquals(Map.of("k\uFFFD", List.of("\uFFFD", "\uFFFD")), row.get("nested"));
         }
     }
+
+    @Test
+    @DisplayName("schema YAML with DEL, C1 controls, U+2028, U+2029, U+FFFE and U+FFFF reads back as written")
+    void schemaYamlWithUnprintableCharactersReadsBack() throws Exception {
+        StringBuilder text = new StringBuilder("a ");
+        for (char ch = 0x7F; ch <= 0xA0; ch++) {
+            text.append(ch);
+        }
+        text.append(" \u2028 \u2029 \ufeff \ufffd \ufffe \uffff z");
+        String value = text.toString();
+        Map<String, SchemaValueProvider> fields = new LinkedHashMap<>();
+        fields.put("key " + value, ctx -> value);
+        fields.put("nested", ctx -> Map.of("n" + value, List.of(value, value.charAt(8))));
+        Schema schema = new Schema(fields);
+
+        ByteArrayOutputStream streamed = new ByteArrayOutputStream();
+        schema.writeTo(streamed, OutputFormat.YAML, 1);
+        for (byte[] document : List.of(schema.toYaml(1).getBytes(StandardCharsets.UTF_8), streamed.toByteArray())) {
+            List<?> records = new Yaml().load(new ByteArrayInputStream(document));
+            Map<?, ?> row = (Map<?, ?>) records.get(0);
+
+            assertEquals(value, row.get("key " + value));
+            assertEquals(Map.of("n" + value, List.of(value, String.valueOf(value.charAt(8)))), row.get("nested"));
+        }
+    }
 }

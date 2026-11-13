@@ -38,6 +38,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   draws nothing, so no other value changes. The names that `CompanyNameGenerator` draws, which
   `generateFromCompanyName()` uses, are shorter: as 3.0.2 records, the longest label of 5,000,000 seeded names
   in the 50 supported locales has 51 characters.
+- `Schema` and `SchemaProjection` now write DEL (U+007F), the C1 controls U+0080 to U+009F, U+2028, U+2029,
+  U+FFFE and U+FFFF in YAML as escapes such as `\u0085`, in names and values, as YAML double-quoted strings
+  allow, so that a YAML parser reads every document and every string back as written. They wrote them raw, as
+  JSON may: SnakeYAML rejected a document with any of them in a name, and with any of them but U+0085, U+2028
+  and U+2029 in a value, and read U+0085 in a value back as another character. JSON, JSON Lines, CSV, XML, SQL
+  and TOML output is unchanged, as is YAML output of text without these characters. No built-in generator gives
+  them from its own data, so seeded YAML output changes only for text that holds one, such as a value or a
+  field name that the caller supplies: the value `"a\u0085b"` was written as `"a` U+0085 `b"` and is now
+  written as `"a\u0085b"`.
 
 ## [3.1.0] - 2026-11-13
 

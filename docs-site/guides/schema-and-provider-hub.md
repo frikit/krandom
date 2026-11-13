@@ -257,7 +257,9 @@ Every format writes text that UTF-8 can encode. An unpaired surrogate, half of a
 without its other half, is written as U+FFFD wherever it is, in a value, a key, a CSV header, or a table
 or column name, and a pair as the character it encodes. An escape such as `\ud800` would not keep it:
 TOML has no escape for a surrogate, and strict JSON parsers reject a lone one. XML also writes U+FFFD
-for any other character that XML 1.0 cannot represent.
+for any other character that XML 1.0 cannot represent. YAML writes DEL, the C1 controls U+0080 to U+009F,
+U+2028, U+2029, U+FFFE, and U+FFFF as escapes such as `\u0085`, in names and values, as a YAML parser
+rejects them raw, or reads U+0085, U+2028, and U+2029 as line breaks, so every string reads back as written.
 
 ### Projecting existing objects
 
