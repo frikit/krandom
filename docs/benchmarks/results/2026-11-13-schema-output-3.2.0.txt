@@ -1,0 +1,204 @@
+SchemaOutputBenchmark for 3.2.0: one generator for each column and thread, reseeded for each value.
+
+This is not a full dashboard run: only SchemaOutputBenchmark ran, on one machine, with the publication
+protocol of METHODOLOGY.md, in two sittings one after the other. The first compares origin/main with the
+change, in the order main, change, change, main; the second compares the change with e6ba573d, the last
+commit before 3.0.1, in the order e6ba573d, change, change, e6ba573d. Each run had the machine to itself
+through a lock that kept every other heavy job off it, and each ran in its own exported source tree. Each
+operation generates or writes 250 records of twelve Field references, seeded with 7. The benchmark's
+largeSchemaBatch calls generateBatch at e6ba573d and nextRecords, which returns the same records, later.
+
+Environment: Temurin 21.0.13+9, Darwin 27.2.0 arm64, Apple M5 Pro, JMH 1.37
+Command: ./gradlew :benchmarks:jmh -PjmhArgs="SchemaOutputBenchmark -foe true -wi 3 -i 5 -f 3 -t 1 -prof gc"
+
+== First sitting, run 1: origin/main 2b87d3da, where each value of a Field reference builds its generator
+
+Benchmark                                                       Mode  Cnt         Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15       512.420 ±     8.417   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate           thrpt   15      6100.811 ±   100.227  MB/sec
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  12485737.993 ±   305.681    B/op
+SchemaOutputBenchmark.largeSchemaBatch:gc.count                thrpt   15       154.000              counts
+SchemaOutputBenchmark.largeSchemaBatch:gc.time                 thrpt   15        71.000                  ms
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15       419.702 ±     5.383   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate       thrpt   15      5178.510 ±    61.525  MB/sec
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  12939487.829 ± 14622.560    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.count            thrpt   15       130.000              counts
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.time             thrpt   15        56.000                  ms
+SchemaOutputBenchmark.streamingCsv                             thrpt   15       465.112 ±    10.142   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate               thrpt   15      5554.343 ±   128.662  MB/sec
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  12523373.015 ± 30257.161    B/op
+SchemaOutputBenchmark.streamingCsv:gc.count                    thrpt   15       141.000              counts
+SchemaOutputBenchmark.streamingCsv:gc.time                     thrpt   15        62.000                  ms
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15       457.770 ±     3.540   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate         thrpt   15      5457.529 ±    40.948  MB/sec
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  12502603.701 ±  8285.661    B/op
+SchemaOutputBenchmark.streamingJsonLines:gc.count              thrpt   15       137.000              counts
+SchemaOutputBenchmark.streamingJsonLines:gc.time               thrpt   15        59.000                  ms
+
+== First sitting, run 2: 79ccfd49, where one generator for each column and thread is reseeded for each value
+
+Benchmark                                                       Mode  Cnt        Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15      976.571 ±    13.147   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate           thrpt   15     3719.895 ±    50.252  MB/sec
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  3994617.839 ±  1614.327    B/op
+SchemaOutputBenchmark.largeSchemaBatch:gc.count                thrpt   15       94.000              counts
+SchemaOutputBenchmark.largeSchemaBatch:gc.time                 thrpt   15       45.000                  ms
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15      695.264 ±     7.188   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate       thrpt   15     2950.575 ±    32.493  MB/sec
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  4450488.432 ± 13426.819    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.count            thrpt   15       75.000              counts
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.time             thrpt   15       36.000                  ms
+SchemaOutputBenchmark.streamingCsv                             thrpt   15      780.319 ±    12.234   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate               thrpt   15     2929.338 ±    39.119  MB/sec
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  3936959.750 ± 14718.766    B/op
+SchemaOutputBenchmark.streamingCsv:gc.count                    thrpt   15       75.000              counts
+SchemaOutputBenchmark.streamingCsv:gc.time                     thrpt   15       36.000                  ms
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15      793.598 ±     8.026   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate         thrpt   15     3037.218 ±    30.546  MB/sec
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  4013509.623 ±  1705.601    B/op
+SchemaOutputBenchmark.streamingJsonLines:gc.count              thrpt   15       76.000              counts
+SchemaOutputBenchmark.streamingJsonLines:gc.time               thrpt   15       35.000                  ms
+
+== First sitting, run 3: 79ccfd49
+
+Benchmark                                                       Mode  Cnt        Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15      978.427 ±    11.870   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate           thrpt   15     3726.936 ±    45.388  MB/sec
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  3994612.740 ±  1634.673    B/op
+SchemaOutputBenchmark.largeSchemaBatch:gc.count                thrpt   15       95.000              counts
+SchemaOutputBenchmark.largeSchemaBatch:gc.time                 thrpt   15       45.000                  ms
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15      696.861 ±     6.046   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate       thrpt   15     2957.354 ±    28.329  MB/sec
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  4450468.618 ± 17824.657    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.count            thrpt   15       75.000              counts
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.time             thrpt   15       36.000                  ms
+SchemaOutputBenchmark.streamingCsv                             thrpt   15      790.723 ±     8.628   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate               thrpt   15     2960.944 ±    31.884  MB/sec
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  3926946.666 ±  1941.730    B/op
+SchemaOutputBenchmark.streamingCsv:gc.count                    thrpt   15       72.000              counts
+SchemaOutputBenchmark.streamingCsv:gc.time                     thrpt   15       32.000                  ms
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15      794.629 ±     8.841   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate         thrpt   15     3041.157 ±    33.764  MB/sec
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  4013485.930 ±  1678.855    B/op
+SchemaOutputBenchmark.streamingJsonLines:gc.count              thrpt   15       75.000              counts
+SchemaOutputBenchmark.streamingJsonLines:gc.time               thrpt   15       35.000                  ms
+
+== First sitting, run 4: origin/main 2b87d3da
+
+Benchmark                                                       Mode  Cnt         Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15       523.389 ±     9.704   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate           thrpt   15      6217.260 ±    99.296  MB/sec
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  12457838.207 ± 43711.160    B/op
+SchemaOutputBenchmark.largeSchemaBatch:gc.count                thrpt   15       156.000              counts
+SchemaOutputBenchmark.largeSchemaBatch:gc.time                 thrpt   15        72.000                  ms
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15       425.551 ±     6.403   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate       thrpt   15      5242.030 ±    75.266  MB/sec
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  12918185.207 ±  9367.032    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.count            thrpt   15       133.000              counts
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.time             thrpt   15        57.000                  ms
+SchemaOutputBenchmark.streamingCsv                             thrpt   15       473.841 ±     5.443   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate               thrpt   15      5647.409 ±    69.887  MB/sec
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  12498682.623 ± 13639.353    B/op
+SchemaOutputBenchmark.streamingCsv:gc.count                    thrpt   15       142.000              counts
+SchemaOutputBenchmark.streamingCsv:gc.time                     thrpt   15        60.000                  ms
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15       465.858 ±     1.295   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate         thrpt   15      5554.822 ±    15.443  MB/sec
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  12504564.439 ±   170.419    B/op
+SchemaOutputBenchmark.streamingJsonLines:gc.count              thrpt   15       140.000              counts
+SchemaOutputBenchmark.streamingJsonLines:gc.time               thrpt   15        60.000                  ms
+
+== Second sitting, run 1: e6ba573d, before 3.0.1, where Field references share one generator for each reference
+
+Benchmark                                                       Mode  Cnt        Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15      927.941 ±    12.287   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate           thrpt   15     3200.367 ±    40.752  MB/sec
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  3616856.866 ±  4180.953    B/op
+SchemaOutputBenchmark.largeSchemaBatch:gc.count                thrpt   15       80.000              counts
+SchemaOutputBenchmark.largeSchemaBatch:gc.time                 thrpt   15       38.000                  ms
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15      750.153 ±    11.264   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate       thrpt   15     2909.777 ±    35.839  MB/sec
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  4067938.771 ± 14917.327    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.count            thrpt   15       74.000              counts
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.time             thrpt   15       33.000                  ms
+SchemaOutputBenchmark.streamingCsv                             thrpt   15      871.079 ±     6.973   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate               thrpt   15     3042.099 ±    25.122  MB/sec
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  3662403.448 ± 14904.793    B/op
+SchemaOutputBenchmark.streamingCsv:gc.count                    thrpt   15       76.000              counts
+SchemaOutputBenchmark.streamingCsv:gc.time                     thrpt   15       35.000                  ms
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15      801.325 ±     9.073   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate         thrpt   15     2783.322 ±    26.916  MB/sec
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  3642612.560 ± 14933.252    B/op
+SchemaOutputBenchmark.streamingJsonLines:gc.count              thrpt   15       71.000              counts
+SchemaOutputBenchmark.streamingJsonLines:gc.time               thrpt   15       32.000                  ms
+
+== Second sitting, run 2: 79ccfd49
+
+Benchmark                                                       Mode  Cnt        Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15      986.809 ±    15.975   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate           thrpt   15     3758.884 ±    60.861  MB/sec
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  3994609.310 ±  1557.943    B/op
+SchemaOutputBenchmark.largeSchemaBatch:gc.count                thrpt   15       95.000              counts
+SchemaOutputBenchmark.largeSchemaBatch:gc.time                 thrpt   15       45.000                  ms
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15      702.696 ±    10.593   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate       thrpt   15     2974.502 ±    44.213  MB/sec
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  4439126.376 ±  1719.358    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.count            thrpt   15       74.000              counts
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.time             thrpt   15       35.000                  ms
+SchemaOutputBenchmark.streamingCsv                             thrpt   15      816.096 ±    32.404   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate               thrpt   15     3073.916 ±   149.378  MB/sec
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  3948971.885 ± 43728.584    B/op
+SchemaOutputBenchmark.streamingCsv:gc.count                    thrpt   15       77.000              counts
+SchemaOutputBenchmark.streamingCsv:gc.time                     thrpt   15       35.000                  ms
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15      800.128 ±     6.942   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate         thrpt   15     3076.442 ±    29.176  MB/sec
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  4032141.897 ± 14692.721    B/op
+SchemaOutputBenchmark.streamingJsonLines:gc.count              thrpt   15       78.000              counts
+SchemaOutputBenchmark.streamingJsonLines:gc.time               thrpt   15       36.000                  ms
+
+== Second sitting, run 3: 79ccfd49
+
+Benchmark                                                       Mode  Cnt        Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15      989.475 ±    15.180   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate           thrpt   15     3777.730 ±    52.045  MB/sec
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  4003908.106 ± 14728.185    B/op
+SchemaOutputBenchmark.largeSchemaBatch:gc.count                thrpt   15       95.000              counts
+SchemaOutputBenchmark.largeSchemaBatch:gc.time                 thrpt   15       44.000                  ms
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15      700.309 ±     7.431   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate       thrpt   15     2963.960 ±    42.073  MB/sec
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  4438363.964 ± 26428.901    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.count            thrpt   15       75.000              counts
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.time             thrpt   15       35.000                  ms
+SchemaOutputBenchmark.streamingCsv                             thrpt   15      794.940 ±     8.094   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate               thrpt   15     2985.282 ±    32.799  MB/sec
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  3938283.097 ± 31983.697    B/op
+SchemaOutputBenchmark.streamingCsv:gc.count                    thrpt   15       75.000              counts
+SchemaOutputBenchmark.streamingCsv:gc.time                     thrpt   15       33.000                  ms
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15      791.725 ±     9.099   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate         thrpt   15     3030.035 ±    34.731  MB/sec
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  4013491.166 ±  1732.267    B/op
+SchemaOutputBenchmark.streamingJsonLines:gc.count              thrpt   15       75.000              counts
+SchemaOutputBenchmark.streamingJsonLines:gc.time               thrpt   15       34.000                  ms
+
+== Second sitting, run 4: e6ba573d
+
+Benchmark                                                       Mode  Cnt        Score       Error   Units
+SchemaOutputBenchmark.largeSchemaBatch                         thrpt   15      928.689 ±    10.387   ops/s
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate           thrpt   15     3202.946 ±    35.133  MB/sec
+SchemaOutputBenchmark.largeSchemaBatch:gc.alloc.rate.norm      thrpt   15  3616851.040 ±  4193.401    B/op
+SchemaOutputBenchmark.largeSchemaBatch:gc.count                thrpt   15       80.000              counts
+SchemaOutputBenchmark.largeSchemaBatch:gc.time                 thrpt   15       38.000                  ms
+SchemaOutputBenchmark.largeSchemaJsonLines                     thrpt   15      748.824 ±     7.382   ops/s
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate       thrpt   15     2904.642 ±    21.993  MB/sec
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.alloc.rate.norm  thrpt   15  4067904.840 ± 14950.808    B/op
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.count            thrpt   15       72.000              counts
+SchemaOutputBenchmark.largeSchemaJsonLines:gc.time             thrpt   15       33.000                  ms
+SchemaOutputBenchmark.streamingCsv                             thrpt   15      868.878 ±    15.630   ops/s
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate               thrpt   15     3028.152 ±    46.288  MB/sec
+SchemaOutputBenchmark.streamingCsv:gc.alloc.rate.norm          thrpt   15  3655004.532 ± 17900.958    B/op
+SchemaOutputBenchmark.streamingCsv:gc.count                    thrpt   15       76.000              counts
+SchemaOutputBenchmark.streamingCsv:gc.time                     thrpt   15       35.000                  ms
+SchemaOutputBenchmark.streamingJsonLines                       thrpt   15      803.187 ±    10.660   ops/s
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate         thrpt   15     2789.792 ±    32.560  MB/sec
+SchemaOutputBenchmark.streamingJsonLines:gc.alloc.rate.norm    thrpt   15  3642613.495 ± 14907.243    B/op
+SchemaOutputBenchmark.streamingJsonLines:gc.count              thrpt   15       71.000              counts
+SchemaOutputBenchmark.streamingJsonLines:gc.time               thrpt   15       33.000                  ms

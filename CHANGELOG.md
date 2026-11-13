@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- A seeded `Schema` takes each value of a common built-in `Field` reference from one generator kept for its
+  column and thread, reseeded with the seed from the value's named stream, instead of building a generator
+  for each value. These references are names, email addresses, phone numbers, street addresses, cities,
+  states, postal codes, countries, currencies, money, UUIDs, dates, timestamps, words and sentences.
+  Every value's stream seed is now folded in steps. A value that still builds its generator copies its
+  configuration instead of rebuilding it, unless the configuration has modules.
+  This makes no output changes: every value is the one that a generator built for it gives, and the 3.0.1
+  pins hold.
+  - In `SchemaOutputBenchmark` (two runs each, in the order before, after, after, before), the four
+    workloads went from 518, 423, 469 and 462 to 978, 696, 786 and 794 operations a second.
+    Allocation went from 12.5, 12.9, 12.5 and 12.5 MB to 4.0, 4.5, 3.9 and 4.0 MB an operation.
+  - Against `e6ba573d`, the last commit before 3.0.1 gave each value its own stream, the workloads are
+    +6.4%, −6.4%, −7.4% and −0.8%, with 8% to 11% more allocation. All of them are within the regression
+    budgets, so the benchmark methodology no longer lists an accepted breach.
+  - Each value still builds its generator for other built-in references, `registerProvider` references,
+    module providers, and every reference of a configuration with modules or its own `DataRegistryContext`.
+
 ## [3.1.0] - 2026-11-13
 
 ### Added

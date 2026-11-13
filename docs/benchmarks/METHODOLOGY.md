@@ -53,7 +53,9 @@ must document the behavioral or safety improvement that justifies it.
 
 ## Accepted breaches
 
-- **3.0.1, `SchemaOutputBenchmark`.** In a `Schema` with a portable seeded configuration, a `Field`
+None is open.
+
+- **3.0.1, `SchemaOutputBenchmark`; closed in 3.2.0.** In a `Schema` with a portable seeded configuration, a `Field`
   reference, a reference that `registerProvider(...)` adds, a template's `#` and `?`, and a column that
   `SchemaParser` resolves by its name now draw from each value's own named stream, as the `Schema`
   documentation promises, so that adding a column no longer changes the values of the others. Each such
@@ -72,7 +74,18 @@ must document the behavioral or safety improvement that justifies it.
   ([raw output](results/2026-11-12-schema-output-3.0.3.txt)), that took the four workloads from 240,
   218, 229 and 229 to 478, 399, 449 and 428 operations a second, and `largeSchemaBatch` from 20.7 MB to
   12.5 MB an operation. Against the runs before the fix, a 49% throughput decrease and a 3.4-fold
-  allocation increase remain, outside both budgets. They are accepted because the fix restores the
-  documented independence of schema columns. Reaching the budgets with the same values needs each value
-  to stop building its generators, for example by reseeding a generator built once for its column, which
-  waits for a minor release.
+  allocation increase remained, outside both budgets, accepted because the fix restores the documented
+  independence of schema columns. In 3.2.0, each value of a common built-in `Field` reference reseeds one
+  generator kept for its column and thread instead of building one, and gets the values a build gives; the
+  benchmark's twelve columns are all such references. In two sittings on the same machine ([raw
+  output](results/2026-11-13-schema-output-3.2.0.txt)), the first in the order `main` before the change,
+  the change, the change, `main`, that took the four workloads from 518, 423, 469 and 462 to 978,
+  696, 786 and 794 operations a second, and their allocation from 12.5, 12.9, 12.5 and 12.5 MB to 4.0, 4.5,
+  3.9 and 4.0 MB an operation. The second sitting ran the change beside `e6ba573d`, the commit before the
+  3.0.1 fix, in the order `e6ba573d`, the change, the change, `e6ba573d`: 988, 702, 806 and 796 operations
+  a second against 928, 749, 870 and 802, that is +6.4%, −6.4%, −7.4% and −0.8%, with 10.6%, 9.1%, 7.8%
+  and 10.4% more allocation (4.0, 4.4, 3.9 and 4.0 MB against 3.6, 4.1, 3.7 and 3.6 MB an operation).
+  Every workload is within both budgets, and inside the lines that call for an investigation, so the
+  breach is closed. References that 3.2.0 does not reseed, and every reference of a configuration with
+  modules or its own `DataRegistryContext`, still build a generator for each value; this benchmark does
+  not measure them.
