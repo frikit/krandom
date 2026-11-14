@@ -81,22 +81,30 @@ format=krandom-recipe
 ...
 ```
 
-### Naming invocations without their arguments (3.2+)
+### How the failure line names an invocation (3.2+)
 
-The failure line quotes the test's JUnit display name. JUnit formats the display name of a
-`@ParameterizedTest` invocation from its arguments, by default as `[1] "alice@example.com"`, so a
-generated argument reaches the log through that line. Set `krandom.junit.redact-invocation-names=true`
-(`KRANDOM_JUNIT_REDACT_INVOCATION_NAMES=true`) to name every invocation of a test template, whether a
-`@ParameterizedTest`, a `@RepeatedTest` or another `@TestTemplate`, by its template's display name
-and its invocation index instead:
+The failure line quotes the test's JUnit display name, except for an invocation of a test template:
+a `@ParameterizedTest` invocation, a `@RepeatedTest` repetition, or an invocation of another
+`@TestTemplate`. JUnit formats the display name of a parameterized invocation from its arguments, by
+default as `[2] "alice@example.com"`, so a generated argument would reach the log through that line.
+The failure line therefore names each invocation by its template's display name and its invocation
+index:
 
 ```text
-krandom: test 'rejects(String) [2]' failed with seed 8155926046530546882. Annotate it with @KrandomSeed(8155926046530546882L) to reproduce this run.
+krandom: test 'rejects(String) [2]' failed with pinned seed 8155926046530546882.
 ```
 
-Other tests keep their display name. The report entries and the replay commands contain no display
-name, so the setting does not change them, and it changes no generated value. The default `false`
-keeps the display name of every test; other values are rejected.
+where 3.1 printed:
+
+```text
+krandom: test '[2] "alice@example.com"' failed with pinned seed 8155926046530546882.
+```
+
+A repetition is named the same way, `'retries(Krandom) [2]'` rather than `'repetition 2 of 5'`. Other
+tests keep their display name. The report entries and the replay commands contain no display name,
+so they do not change, and no generated value changes. To print the display name as 3.1 did, set
+`krandom.junit.redact-invocation-names=false` (`KRANDOM_JUNIT_REDACT_INVOCATION_NAMES=false`); `true` is
+the default, and other values are rejected.
 
 ## Replay without editing the test source
 

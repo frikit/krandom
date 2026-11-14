@@ -29,31 +29,18 @@ import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.testkit.engine.Event;
 
 /**
- * Verifies how the failure line names a test, and that {@code krandom.junit.redact-invocation-names}
- * names an invocation of a test template by its template and index rather than by a display name
- * that JUnit formats from the generated arguments.
+ * Verifies how the failure line names a test: an invocation of a test template by its template and
+ * index rather than by a display name that JUnit formats from the generated arguments, unless
+ * {@code krandom.junit.redact-invocation-names=false} restores the display name of 3.1.
  */
 class KrandomExtensionInvocationNameEngineTest {
 
-    private static final Map<String, String> REDACTED = Map.of("krandom.junit.redact-invocation-names", "true");
+    private static final Map<String, String> DISPLAY_NAMES = Map.of("krandom.junit.redact-invocation-names", "false");
 
     @Test
-    void byDefaultTheFailureLineQuotesTheDisplayNameOfEachTest() {
+    void byDefaultTheFailureLineNamesAnInvocationByItsTemplateAndIndexWithoutTheArguments() {
         ParameterizedFixture.EMAILS.clear();
         EngineTestSupport.Captured run = EngineTestSupport.runCapturingStderr(ParameterizedFixture.class);
-
-        run.results().testEvents().assertStatistics(stats -> stats.failed(2));
-        assertEquals(2, ParameterizedFixture.EMAILS.size());
-        for (int i = 0; i < 2; i++) {
-            String line = "krandom: test '[" + (i + 1) + "] \"" + ParameterizedFixture.EMAILS.get(i) + "\"' failed";
-            assertTrue(run.stderr().contains(line), run.stderr());
-        }
-    }
-
-    @Test
-    void redactedInvocationNamesNameTheTemplateAndTheInvocationIndexWithoutTheArguments() {
-        ParameterizedFixture.EMAILS.clear();
-        EngineTestSupport.Captured run = EngineTestSupport.runCapturingStderr(ParameterizedFixture.class, REDACTED);
 
         run.results().testEvents().assertStatistics(stats -> stats.failed(2));
         assertTrue(run.stderr().contains("krandom: test 'rejects(String) [1]' failed with seed "), run.stderr());
@@ -65,17 +52,32 @@ class KrandomExtensionInvocationNameEngineTest {
     }
 
     @Test
-    void redactedInvocationNamesNameARepetitionByItsTemplateAndIndex() {
-        EngineTestSupport.Captured run = EngineTestSupport.runCapturingStderr(RepeatedFixture.class, REDACTED);
+    void trueNamesAnInvocationAsTheDefaultDoes() {
+        EngineTestSupport.Captured run = EngineTestSupport.runCapturingStderr(
+                RepeatedFixture.class, Map.of("krandom.junit.redact-invocation-names", "true"));
 
-        run.results().testEvents().assertStatistics(stats -> stats.failed(2));
-        assertTrue(run.stderr().contains("krandom: test 'repeats(Krandom) [2]' failed with pinned seed 5."));
-        assertFalse(run.stderr().contains("repetition"), run.stderr());
+        assertEquals(
+                List.of(
+                        "krandom: test 'repeats(Krandom) [1]' failed with pinned seed 5.",
+                        "krandom: test 'repeats(Krandom) [2]' failed with pinned seed 5."),
+                failureLines(run.stderr()));
     }
 
     @Test
-    void redactedInvocationNamesKeepTheDisplayNameOfATestThatIsNotAnInvocation() {
-        EngineTestSupport.Captured run = EngineTestSupport.runCapturingStderr(MethodFixture.class, REDACTED);
+    void byDefaultARepetitionIsNamedByItsTemplateAndIndex() {
+        EngineTestSupport.Captured run = EngineTestSupport.runCapturingStderr(RepeatedFixture.class);
+
+        run.results().testEvents().assertStatistics(stats -> stats.failed(2));
+        assertEquals(
+                List.of(
+                        "krandom: test 'repeats(Krandom) [1]' failed with pinned seed 5.",
+                        "krandom: test 'repeats(Krandom) [2]' failed with pinned seed 5."),
+                failureLines(run.stderr()));
+    }
+
+    @Test
+    void byDefaultATestThatIsNotAnInvocationKeepsItsDisplayName() {
+        EngineTestSupport.Captured run = EngineTestSupport.runCapturingStderr(MethodFixture.class);
 
         run.results().testEvents().assertStatistics(stats -> stats.failed(2));
         assertTrue(run.stderr().contains("krandom: test 'plain(Krandom)' failed with pinned seed 5."), run.stderr());
@@ -83,18 +85,43 @@ class KrandomExtensionInvocationNameEngineTest {
     }
 
     @Test
-    void falseKeepsTheDisplayNameOfAnInvocation() {
-        EngineTestSupport.Captured run = EngineTestSupport.runCapturingStderr(
-                RepeatedFixture.class, Map.of("krandom.junit.redact-invocation-names", "false"));
+    void falseRestoresTheFailureLinesOf31ByteForByte() {
+        EngineTestSupport.Captured repeated =
+                EngineTestSupport.runCapturingStderr(RepeatedFixture.class, DISPLAY_NAMES);
+        assertEquals(
+                List.of(
+                        "krandom: test 'repetition 1 of 2' failed with pinned seed 5.",
+                        "krandom: test 'repetition 2 of 2' failed with pinned seed 5."),
+                failureLines(repeated.stderr()));
 
-        assertTrue(run.stderr().contains("krandom: test 'repetition 2 of 2' failed"), run.stderr());
+        PinnedParameterizedFixture.EMAILS.clear();
+        EngineTestSupport.Captured pinned =
+                EngineTestSupport.runCapturingStderr(PinnedParameterizedFixture.class, DISPLAY_NAMES);
+        assertEquals(
+                List.of("krandom: test '[1] \"" + PinnedParameterizedFixture.EMAILS.get(0)
+                        + "\"' failed with pinned seed 5."),
+                failureLines(pinned.stderr()));
+
+        EngineTestSupport.Captured unpinned =
+                EngineTestSupport.runCapturingStderr(ConstantParameterizedFixture.class, DISPLAY_NAMES);
+        String seed = EngineTestSupport.singleReportEntry(unpinned.results(), KrandomExtension.REPORT_ENTRY_KEY);
+        assertEquals(
+                List.of("krandom: test '[1] \"alice@example.com\"' failed with seed " + seed
+                        + ". Annotate it with @KrandomSeed(" + seed + "L) to reproduce this run."),
+                failureLines(unpinned.stderr()));
     }
 
     @Test
-    void theEnvironmentVariableRedactsInvocationNames() {
+    void theEnvironmentVariableFalseRestoresTheDisplayName() {
         EngineTestSupport.Captured run = EngineTestSupport.runCapturingStderr(EnvironmentFixture.class);
 
-        assertTrue(run.stderr().contains("krandom: test 'repeats() [1]' failed"), run.stderr());
+        assertEquals(
+                List.of("krandom: test 'repetition 1 of 1' failed with pinned seed 5."), failureLines(run.stderr()));
+    }
+
+    /** The first line of each failure report, which names the test. */
+    private static List<String> failureLines(String stderr) {
+        return stderr.lines().filter(line -> line.startsWith("krandom: test '")).toList();
     }
 
     @Test
@@ -139,6 +166,40 @@ class KrandomExtensionInvocationNameEngineTest {
 
     @Disabled("fixture for KrandomExtensionInvocationNameEngineTest")
     @KrandomSeed(5)
+    static class PinnedParameterizedFixture {
+
+        static final List<String> EMAILS = new CopyOnWriteArrayList<>();
+
+        static Stream<String> emails(Krandom fake) {
+            String email = fake.email();
+            EMAILS.add(email);
+            return Stream.of(email);
+        }
+
+        @ParameterizedTest
+        @MethodSource("emails")
+        void rejects(String email) {
+            throw new AssertionError("intentional fixture failure");
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionInvocationNameEngineTest")
+    @ExtendWith(KrandomExtension.class)
+    static class ConstantParameterizedFixture {
+
+        static Stream<String> emails() {
+            return Stream.of("alice@example.com");
+        }
+
+        @ParameterizedTest
+        @MethodSource("emails")
+        void rejects(String email, Krandom fake) {
+            throw new AssertionError("intentional fixture failure");
+        }
+    }
+
+    @Disabled("fixture for KrandomExtensionInvocationNameEngineTest")
+    @KrandomSeed(5)
     static class RepeatedFixture {
 
         @RepeatedTest(2)
@@ -167,8 +228,11 @@ class KrandomExtensionInvocationNameEngineTest {
     static class EnvironmentFixture {
 
         @RegisterExtension
-        static final KrandomExtension EXTENSION =
-                new KrandomExtension(name -> "KRANDOM_JUNIT_REDACT_INVOCATION_NAMES".equals(name) ? "true" : null);
+        static final KrandomExtension EXTENSION = new KrandomExtension(name -> switch (name) {
+            case "KRANDOM_JUNIT_REDACT_INVOCATION_NAMES" -> "false";
+            case "KRANDOM_JUNIT_SEED" -> "5";
+            default -> null;
+        });
 
         @RepeatedTest(1)
         void repeats() {

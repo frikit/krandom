@@ -49,11 +49,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `Krandom.seeded("pins", Locale.US).postalLocality()` gives Pasadena, Texas, `TX`, `77505`. The session
   draws it from a stream of its own, so no other value changes. A locale without postal places, such
   as `de_AT` or `ja_JP`, throws `UnsupportedOperationException` unless places are registered for its country.
-- `krandom-junit` reads `krandom.junit.redact-invocation-names` (`KRANDOM_JUNIT_REDACT_INVOCATION_NAMES`).
-  Set to `true`, the failure line names an invocation of a test template by its template's display name and
-  invocation index, `krandom: test 'rejects(String) [2]' failed ...`, rather than by the display name that JUnit
-  formats from its arguments, `krandom: test '[2] "alice@example.com"' failed ...`, so generated arguments
-  stay out of the log. The default `false` prints what 3.1 printed, and other tests keep their display name.
 - `krandom-junit` warns on `System.err` when a replay cannot reproduce what a `@MethodSource` factory
   generated, and says what to set instead. A `krandom.junit.recipe` override seeds every class-scoped
   configuration too, so without the `krandom.junit.class-recipe` value that the failure output printed beside
@@ -82,6 +77,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     breach.
   - Each value still builds its generator for other built-in references, `registerProvider` references,
     module providers, and every reference of a configuration with modules or its own `DataRegistryContext`.
+- The `krandom-junit` failure line names an invocation of a test template, that is a `@ParameterizedTest`
+  invocation, a `@RepeatedTest` repetition or an invocation of another `@TestTemplate`, by its template's display
+  name and invocation index rather than by its own display name, which JUnit formats from the generated arguments.
+  `krandom: test '[2] "alice@example.com"' failed with pinned seed 42.` is now
+  `krandom: test 'rejects(String) [2]' failed with pinned seed 42.`, and
+  `krandom: test 'repetition 2 of 5' failed ...` is now `krandom: test 'retries(Krandom) [2]' failed ...`.
+  Other tests keep their display name, and no report entry, replay command or generated value changes.
+  `krandom.junit.redact-invocation-names=false` (`KRANDOM_JUNIT_REDACT_INVOCATION_NAMES=false`) prints the 3.1
+  line; other values than `true` and `false` are a configuration error.
 
 ### Fixed
 

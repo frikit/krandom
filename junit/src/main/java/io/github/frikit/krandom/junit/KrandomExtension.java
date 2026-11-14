@@ -88,12 +88,12 @@ import org.junit.platform.commons.support.AnnotationSupport;
  *       test class by its canonical name and gives the recipe of that class's class-scoped
  *       configuration. A listed class ignores the other overrides and {@link KrandomSeed} for its
  *       class-scoped configuration; test methods and unlisted classes are unaffected.</li>
- *   <li>{@code krandom.junit.redact-invocation-names=true}
- *       ({@code KRANDOM_JUNIT_REDACT_INVOCATION_NAMES}) names an invocation of a test template, such
- *       as a {@code @ParameterizedTest} or {@code @RepeatedTest}, in the failure line by its
- *       template's display name and invocation index, as in {@code 'rejects(String) [2]'}, rather
- *       than by its own display name, which JUnit formats from the arguments. The default
- *       {@code false} keeps the display name; other values are rejected.</li>
+ *   <li>{@code krandom.junit.redact-invocation-names} ({@code KRANDOM_JUNIT_REDACT_INVOCATION_NAMES}):
+ *       by default, or when {@code true}, the failure line names an invocation of a test template,
+ *       such as a {@code @ParameterizedTest} or {@code @RepeatedTest}, by its template's display
+ *       name and invocation index, as in {@code 'rejects(String) [2]'}, rather than by its own
+ *       display name, which JUnit formats from the arguments. {@code false} quotes the display name,
+ *       as 3.1 did; other values are rejected.</li>
  * </ul>
  *
  * <p>A replay that cannot reproduce the arguments of a {@code @MethodSource} factory says so on
@@ -517,9 +517,9 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     }
 
     private SeedInfo computeSeedInfo(ExtensionContext context) {
-        boolean snapshotClock = booleanSetting(context, SNAPSHOT_CLOCK_PROPERTY, SNAPSHOT_CLOCK_ENVIRONMENT);
+        boolean snapshotClock = booleanSetting(context, SNAPSHOT_CLOCK_PROPERTY, SNAPSHOT_CLOCK_ENVIRONMENT, false);
         boolean redactInvocationNames =
-                booleanSetting(context, REDACT_INVOCATION_NAMES_PROPERTY, REDACT_INVOCATION_NAMES_ENVIRONMENT);
+                booleanSetting(context, REDACT_INVOCATION_NAMES_PROPERTY, REDACT_INVOCATION_NAMES_ENVIRONMENT, true);
         SeedInfo info = computeConfiguredSeedInfo(context);
         GeneratorConfig config = info.config();
         ClockSource clockSource = info.clockSource();
@@ -530,10 +530,10 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
         return new SeedInfo(config, info.pinned(), clockSource, redactInvocationNames);
     }
 
-    private boolean booleanSetting(ExtensionContext context, String property, String variable) {
+    private boolean booleanSetting(ExtensionContext context, String property, String variable, boolean defaultValue) {
         Optional<ConfiguredValue> configured = configuredValue(context, property, variable);
         if (configured.isEmpty()) {
-            return false;
+            return defaultValue;
         }
         return switch (configured.get().value()) {
             case "true" -> true;
