@@ -63,6 +63,8 @@ class GeneratorCatalogEnvironmentTest {
     private static final String REFUSED = "refused: ";
     private static final List<Locale> LOCALES_WITHOUT_MIDDLE_NAMES =
             Stream.of("tr-TR", "ar-SA", "hi-IN").map(Locale::forLanguageTag).toList();
+    private static final List<Locale> LOCALES_WITHOUT_POSTAL_PLACES =
+            Stream.of("tr-TR", "ar-SA", "hi-IN").map(Locale::forLanguageTag).toList();
 
     private static final List<Method> FACTORIES = Arrays.stream(Generators.class.getMethods())
             .filter(method -> Modifier.isStatic(method.getModifiers()))
@@ -138,6 +140,9 @@ class GeneratorCatalogEnvironmentTest {
             refusals.add(locale + "/ofFullName.generateWithMiddleInitial UnsupportedOperationException");
             refusals.add(locale + "/ofFullName.generateWithMiddleName UnsupportedOperationException");
             refusals.add(locale + "/ofMiddleName.factory UnsupportedOperationException");
+        }
+        for (Locale locale : LOCALES_WITHOUT_POSTAL_PLACES) {
+            refusals.add(locale + "/ofPostalLocality.factory UnsupportedOperationException");
         }
         return refusals;
     }

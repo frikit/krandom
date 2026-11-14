@@ -168,6 +168,8 @@ pitest {
             "io.github.frikit.krandom.generator.identifier.UUIDGeneratorTest",
             "io.github.frikit.krandom.generator.schema.*",
             "io.github.frikit.krandom.generator.location.RegistryLookupTest",
+            // The German street layout's setting and its recipe entry.
+            "io.github.frikit.krandom.generator.location.GermanStreetLayoutTest",
             "io.github.frikit.krandom.generator.object.*",
             "io.github.frikit.krandom.generator.text.NextWordGeneratorTest",
             "io.github.frikit.krandom.generator.user.EmailGeneratorTest",

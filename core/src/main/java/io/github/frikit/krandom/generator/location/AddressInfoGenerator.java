@@ -25,6 +25,10 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>The country is the locale's country. A locale without one takes the country of its postal
  * places, and without those a random country.
+ *
+ * <p>With {@link GeneratorConfig.Builder#germanStreetLayout(boolean)} on, a German locale's
+ * {@link AddressInfo#street()}, and so its address, puts the street before the house number, such as
+ * {@code "Hauptstr. 12"}; the street's parts stay as they are.
  */
 public final class AddressInfoGenerator implements Generator<AddressInfo> {
 
@@ -114,7 +118,9 @@ public final class AddressInfoGenerator implements Generator<AddressInfo> {
         String streetSuffix = streetAddressGenerator.generateStreetSuffix();
         String streetPrefix = "";
         String streetUnit = random.nextInt(3) == 0 ? streetAddressGenerator.generateSecondaryAddress() : "";
-        String street = joinNonBlank(" ", streetNumber, streetPrefix, streetName, streetSuffix);
+        String street = streetAddressGenerator.streetFirst()
+                ? StreetAddressGenerator.streetFirstLine(streetNumber, streetName, streetSuffix)
+                : joinNonBlank(" ", streetNumber, streetPrefix, streetName, streetSuffix);
 
         String city;
         String state;

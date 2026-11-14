@@ -98,6 +98,14 @@ public final class LocationGenerators {
         return new AddressInfoGenerator(withLocale(locale));
     }
 
+    public PostalLocalityGenerator postalLocality() {
+        return new PostalLocalityGenerator(config);
+    }
+
+    public PostalLocalityGenerator postalLocality(Locale locale) {
+        return new PostalLocalityGenerator(withLocale(locale));
+    }
+
     public CoordinatesGenerator coordinates() {
         return new CoordinatesGenerator(config);
     }

@@ -127,6 +127,7 @@ public final class GeneratorConfig {
     private final DataRegistryContext registryContext;
     private final Clock clock;
     private final boolean secureRandom;
+    private final boolean germanStreetLayout;
     private final String generationProfile;
     private final String safetyPolicy;
     private final PaymentCardSafetyPolicy paymentCardSafetyPolicy;
@@ -198,6 +199,7 @@ public final class GeneratorConfig {
         this.registryContext = b.registryContext;
         this.clock = b.clock;
         this.secureRandom = b.secureRandom;
+        this.germanStreetLayout = b.germanStreetLayout;
         this.generationProfile = b.generationProfile;
         this.safetyPolicy = b.safetyPolicy;
         this.paymentCardSafetyPolicy = b.paymentCardSafetyPolicy;
@@ -270,6 +272,7 @@ public final class GeneratorConfig {
         this.registryContext = parent.registryContext;
         this.clock = parent.clock;
         this.secureRandom = parent.secureRandom;
+        this.germanStreetLayout = parent.germanStreetLayout;
         this.generationProfile = parent.generationProfile;
         this.safetyPolicy = parent.safetyPolicy;
         this.paymentCardSafetyPolicy = parent.paymentCardSafetyPolicy;
@@ -894,6 +897,16 @@ public final class GeneratorConfig {
     }
 
     /**
+     * Returns {@code true} when the German locales write a street address as German does, street first: see
+     * {@link Builder#germanStreetLayout(boolean)}. Off by default in 3.x; the default from 4.0.
+     *
+     * @return whether the German street layout is on
+     */
+    public boolean isGermanStreetLayout() {
+        return germanStreetLayout;
+    }
+
+    /**
      * Obtains the configured random source.
      *
      * <p>The builder permits exactly one explicit source specification:
@@ -992,6 +1005,9 @@ public final class GeneratorConfig {
         }
         if (objectReseedBuiltInRandomizers) {
             recipe.setting(GenerationRecipe.OBJECT_RESEED_BUILT_IN_RANDOMIZERS_SETTING, "true");
+        }
+        if (germanStreetLayout) {
+            recipe.setting("address.german-street-layout", "true");
         }
         return Optional.of(recipe.build());
     }
@@ -1123,6 +1139,7 @@ public final class GeneratorConfig {
         private DataRegistryContext registryContext = DataRegistryContext.globalDefault();
         private Clock clock = Clock.systemDefaultZone();
         private boolean secureRandom;
+        private boolean germanStreetLayout;
         private String generationProfile = GenerationRecipe.CUSTOM_PROFILE;
         private String safetyPolicy = GenerationRecipe.LEGACY_UNCLASSIFIED_SAFETY_POLICY;
         private PaymentCardSafetyPolicy paymentCardSafetyPolicy = PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE;
@@ -1188,6 +1205,7 @@ public final class GeneratorConfig {
             this.registryContext = source.registryContext;
             this.clock = source.clock;
             this.secureRandom = source.secureRandom;
+            this.germanStreetLayout = source.germanStreetLayout;
             this.generationProfile = source.generationProfile;
             this.safetyPolicy = source.safetyPolicy;
             this.paymentCardSafetyPolicy = source.paymentCardSafetyPolicy;
@@ -1299,6 +1317,28 @@ public final class GeneratorConfig {
          */
         public Builder secureRandom(boolean secureRandom) {
             this.secureRandom = secureRandom;
+            return this;
+        }
+
+        /**
+         * Writes the street addresses of the German locales as German does: the street, then the house number,
+         * such as {@code "Hauptstrasse 12"}, rather than {@code "12 Haupt Strasse"}. Off by default in 3.x, so
+         * seeded output stays the same; the default from 4.0.
+         *
+         * <p>It applies to every locale whose language is German ({@code de}, {@code de_DE}, {@code de_AT},
+         * {@code de_CH} and any other {@code de_*}), whose street data holds the first part of a name and street
+         * types to join it with. The name and the type become one word, the type starting in lower case, as in
+         * {@code "Rosenweg 5"} or {@code "Hauptstr. 12"}. Every other locale keeps the house number first.
+         * {@code StreetAddressGenerator.generate}, its full address, and the street and address of
+         * {@code AddressInfoGenerator}, and so the session, schema and object-engine values built on them,
+         * follow it. The same draws are made in the same order either way, so it changes only how the parts are
+         * laid out. A recipe records it while it is on, and a recipe without it replays with it off.
+         *
+         * @param germanStreetLayout whether the German locales write the street first
+         * @return this builder
+         */
+        public Builder germanStreetLayout(boolean germanStreetLayout) {
+            this.germanStreetLayout = germanStreetLayout;
             return this;
         }
 

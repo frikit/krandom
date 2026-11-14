@@ -106,6 +106,7 @@ import io.github.frikit.krandom.generator.location.CountryGenerator;
 import io.github.frikit.krandom.generator.location.GeohashGenerator;
 import io.github.frikit.krandom.generator.location.PhoneNumberGenerator;
 import io.github.frikit.krandom.generator.location.PostalCodeGenerator;
+import io.github.frikit.krandom.generator.location.PostalLocalityGenerator;
 import io.github.frikit.krandom.generator.location.StateGenerator;
 import io.github.frikit.krandom.generator.location.StreetAddressGenerator;
 import io.github.frikit.krandom.generator.measurement.MeasurementGenerator;
@@ -2225,6 +2226,34 @@ public final class Generators {
      */
     public static PostalCodeGenerator ofPostalCode(GeneratorConfig config) {
         return new PostalCodeGenerator(config);
+    }
+
+    /**
+     * Returns a generator of a city, its region and one of its postal codes, taken together from one
+     * postal place, so they belong together.
+     *
+     * @throws UnsupportedOperationException if the default locale has no postal places
+     */
+    public static PostalLocalityGenerator ofPostalLocality() {
+        return new PostalLocalityGenerator();
+    }
+
+    /**
+     * Returns a generator of postal localities for a specific locale.
+     *
+     * @throws UnsupportedOperationException if the locale has no postal places
+     */
+    public static PostalLocalityGenerator ofPostalLocality(Locale locale) {
+        return new PostalLocalityGenerator(locale);
+    }
+
+    /**
+     * Returns a generator of postal localities with explicit configuration.
+     *
+     * @throws UnsupportedOperationException if the configured locale has no postal places
+     */
+    public static PostalLocalityGenerator ofPostalLocality(GeneratorConfig config) {
+        return new PostalLocalityGenerator(config);
     }
 
     // ── Company name ──────────────────────────────────────────────────────────

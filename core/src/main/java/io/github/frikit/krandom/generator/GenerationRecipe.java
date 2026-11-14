@@ -444,6 +444,7 @@ public final class GenerationRecipe {
         applyBoolean(builder, ADVANCING_CONVENIENCE_STREAMS_SETTING, builder::advancingConvenienceStreams);
         applyBoolean(builder, STRICT_MATH_GAUSSIAN_SETTING, builder::strictMathGaussian);
         applyBoolean(builder, OBJECT_RESEED_BUILT_IN_RANDOMIZERS_SETTING, builder::objectReseedBuiltInRandomizers);
+        applyBoolean(builder, "address.german-street-layout", builder::germanStreetLayout);
         builder.paymentCardSafetyPolicy(PaymentCardSafetyPolicy.valueOf(requiredSetting("payment.card-safety-policy")));
         builder.bankingSafetyPolicy(BankingSafetyPolicy.valueOf(requiredSetting("banking.safety-policy")));
         builder.businessTaxIdentifierSafetyPolicy(
@@ -535,6 +536,7 @@ public final class GenerationRecipe {
                     "object.pool-size",
                     "object.override-default-initialization",
                     "object.ignore-errors",
+                    "address.german-street-layout",
                     "object.semantic-mode",
                     "object.null-probability",
                     "object.optional-empty-probability",
