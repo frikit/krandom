@@ -108,6 +108,20 @@ KRANDOM_JUNIT_SEED=8155926046530546882 ./gradlew test --tests 'com.example.Order
 mvn test -Dtest='com.example.OrderServiceTest' -Dkrandom.junit.seed=8155926046530546882
 ```
 
+A recipe or seed override also seeds the class-scoped configurations described
+[below](#test-method-and-class-scoped-configurations), which `@BeforeAll` methods and `@MethodSource`
+factories use. On its own it therefore gives a factory the test's seed, not the class-scoped seed of
+the failing run, and the factory may generate other arguments than it did then. When the failure
+output prints a `KRANDOM_JUNIT_CLASS_RECIPE` value, pass it too, as the printed commands do. A recipe
+override that reaches a class-scoped configuration without a class recipe for that class prints a
+warning once for each class:
+
+```text
+krandom: krandom.junit.recipe replays the class-scoped configuration of 'DiscountTest' (@BeforeAll/@AfterAll, PER_CLASS constructor and @MethodSource factory parameters) as well, so @MethodSource arguments and other data created there come from that recipe and may differ from the failing run. To replay them, also set KRANDOM_JUNIT_CLASS_RECIPE (Maven: -Dkrandom.junit.class-recipe) to the value that the failure output printed.
+```
+
+A seed override prints no warning, because a build may keep one set for every run.
+
 ### Where settings are read
 
 `krandom.junit.recipe`, `krandom.junit.seed`, `krandom.junit.class-recipe`, and
@@ -151,7 +165,15 @@ Rules:
   enclosing class's seed.
 - A `@MethodSource` factory takes the class-scoped configuration described below, so a
   method-level annotation pins the invocations of its `@ParameterizedTest` but not the factory
-  that generates their arguments. Pin the class to fix those arguments.
+  that generates their arguments. Pin the class to fix those arguments. The hint
+  `Annotate it with @KrandomSeed(...)` in the failure output names the test's own seed; for the
+  arguments, also annotate the class with the class-scoped seed that the output prints below it.
+  While a method-level annotation pins a parameterized test whose factory takes an unpinned
+  class-scoped configuration, the extension prints this warning once for that test:
+
+  ```text
+  krandom: @KrandomSeed on 'appliesTheWelcomeDiscount(String)' pins its invocations, not the arguments of its @MethodSource factory, which takes the unpinned class-scoped configuration of 'DiscountTest'. To reproduce the arguments of a failing run, also annotate 'DiscountTest' with the class-scoped seed that the failure output printed, or replay with the printed commands.
+  ```
 - String seeds are supported via `@KrandomSeed(text = "checkout-flow")` and derive the numeric
   seed with the same `fnv1a64-v1` algorithm as `GeneratorConfig.builder().seed(String)`.
 - Setting both `value` and `text` (or neither) is a configuration error and fails the test.

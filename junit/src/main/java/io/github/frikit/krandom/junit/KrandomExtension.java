@@ -90,6 +90,11 @@ import org.junit.platform.commons.support.AnnotationSupport;
  *       class-scoped configuration; test methods and unlisted classes are unaffected.</li>
  * </ul>
  *
+ * <p>A replay that cannot reproduce the arguments of a {@code @MethodSource} factory says so on
+ * {@code System.err}: a {@code krandom.junit.recipe} override applied to a class-scoped
+ * configuration that {@code krandom.junit.class-recipe} does not list, and a {@link KrandomSeed}
+ * on a {@code @ParameterizedTest} whose factory takes an unpinned class-scoped configuration.
+ *
  * <p>Customizations to an injected builder are not tracked by the extension; report the actual
  * customized configuration's recipe yourself.
  *
@@ -139,6 +144,8 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     private static final String CLASS_REPLAY_RECIPE_ENVIRONMENT = "KRANDOM_JUNIT_CLASS_RECIPE";
     private static final String SNAPSHOT_CLOCK_PROPERTY = "krandom.junit.snapshot-clock";
     private static final String SNAPSHOT_CLOCK_ENVIRONMENT = "KRANDOM_JUNIT_SNAPSHOT_CLOCK";
+    private static final String CLASS_SCOPED_PARAMETERS =
+            "(@BeforeAll/@AfterAll, PER_CLASS constructor and @MethodSource factory parameters)";
 
     private final Function<String, @Nullable String> environment;
 
@@ -185,6 +192,9 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     /** Store key of the session of exactly one extension context, for the reason given on {@link ContextKey}. */
     private record SessionKey(String uniqueId) {}
 
+    /** Store key marking that the factory of one parameterized test has been warned about. */
+    private record FactoryWarningKey(String uniqueId) {}
+
     private record ConfiguredValue(String value, String source) {}
 
     /** The class-scoped configuration of one enclosing test class. */
@@ -213,7 +223,11 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        GeneratorConfig config = seedInfo(extensionContext).config();
+        SeedInfo info = seedInfo(extensionContext);
+        if (isTestTemplate(extensionContext)) {
+            warnIfOnlyTheTestIsPinned(extensionContext, info);
+        }
+        GeneratorConfig config = info.config();
         Class<?> type = parameterContext.getParameter().getType();
         if (type == Krandom.class) {
             return session(extensionContext, config);
@@ -222,6 +236,38 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
             return config;
         }
         return config.toBuilder();
+    }
+
+    /**
+     * Warns once per parameterized test when a {@link KrandomSeed} on the test method pins its
+     * invocations while its {@code @MethodSource} factory, which JUnit resolves against the context
+     * of the test as a whole, takes an unpinned class-scoped configuration: the arguments then change
+     * from run to run, and the seed that a failure reports for the test does not reproduce them.
+     */
+    private static void warnIfOnlyTheTestIsPinned(ExtensionContext factoryContext, SeedInfo classInfo) {
+        boolean testPinned = factoryContext
+                .getTestMethod()
+                .flatMap(method -> AnnotationSupport.findAnnotation(method, KrandomSeed.class))
+                .isPresent();
+        if (testPinned && !classInfo.pinned()) {
+            factoryContext
+                    .getStore(NAMESPACE)
+                    .computeIfAbsent(
+                            new FactoryWarningKey(factoryContext.getUniqueId()),
+                            key -> {
+                                String testClass = scopeContext(factoryContext)
+                                        .getRequiredTestClass()
+                                        .getSimpleName();
+                                System.err.println("krandom: @KrandomSeed on '" + factoryContext.getDisplayName()
+                                        + "' pins its invocations, not the arguments of its @MethodSource factory,"
+                                        + " which takes the unpinned class-scoped configuration of '" + testClass
+                                        + "'. To reproduce the arguments of a failing run, also annotate '"
+                                        + testClass + "' with the class-scoped seed that the failure output"
+                                        + " printed, or replay with the printed commands.");
+                                return Boolean.TRUE;
+                            },
+                            Boolean.class);
+        }
     }
 
     /**
@@ -347,7 +393,7 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
         SeedInfo classInfo = scope.info();
         String prefix = "krandom: class-scoped configuration of '"
                 + scope.testClass().getSimpleName()
-                + "' (@BeforeAll/@AfterAll, PER_CLASS constructor and @MethodSource factory parameters)";
+                + "' " + CLASS_SCOPED_PARAMETERS;
         return classInfo.pinned()
                 ? prefix + " used pinned seed " + classInfo.seed() + "."
                 : prefix + " used seed " + classInfo.seed() + "; the replay commands restore it. To pin it in source,"
@@ -462,7 +508,9 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     }
 
     private SeedInfo computeConfiguredSeedInfo(ExtensionContext context) {
-        if (context.getTestMethod().isEmpty() && context.getTestClass().isPresent()) {
+        boolean classScoped =
+                context.getTestMethod().isEmpty() && context.getTestClass().isPresent();
+        if (classScoped) {
             Optional<SeedInfo> classReplay = classRecipeInfo(context);
             if (classReplay.isPresent()) {
                 return classReplay.get();
@@ -478,7 +526,11 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
                     + seedOverride.get().source());
         }
         if (recipeOverride.isPresent()) {
-            return recipeInfo(recipeOverride.get());
+            SeedInfo info = recipeInfo(recipeOverride.get());
+            if (classScoped) {
+                warnThatTheRecipeReplaysClassScopedData(context, recipeOverride.get());
+            }
+            return info;
         }
         if (seedOverride.isPresent()) {
             return numericSeedInfo(seedOverride.get());
@@ -505,6 +557,22 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
             throw new ExtensionConfigurationException("@KrandomSeed text seed must not be blank");
         }
         return new SeedInfo(GeneratorConfig.builder().seed(seed.text()).build(), true, ClockSource.LIVE);
+    }
+
+    /**
+     * Warns that a recipe override, which replays one failing test, also seeds a class-scoped
+     * configuration that no class recipe restores. The failure output prints a class recipe for
+     * every class-scoped configuration beside the test's recipe, so this replay leaves out a value
+     * that it printed, and what {@code @MethodSource} factories and {@code @BeforeAll} methods
+     * generate may differ from the failing run. A seed override does not warn, because a build may
+     * set one permanently.
+     */
+    private static void warnThatTheRecipeReplaysClassScopedData(ExtensionContext context, ConfiguredValue recipe) {
+        System.err.println("krandom: " + recipe.source() + " replays the class-scoped configuration of '"
+                + context.getRequiredTestClass().getSimpleName() + "' " + CLASS_SCOPED_PARAMETERS
+                + " as well, so @MethodSource arguments and other data created there come from that recipe and may"
+                + " differ from the failing run. To replay them, also set " + CLASS_REPLAY_RECIPE_ENVIRONMENT
+                + " (Maven: -D" + CLASS_REPLAY_RECIPE_PROPERTY + ") to the value that the failure output printed.");
     }
 
     /**

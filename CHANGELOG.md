@@ -49,6 +49,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `Krandom.seeded("pins", Locale.US).postalLocality()` gives Pasadena, Texas, `TX`, `77505`. The session
   draws it from a stream of its own, so no other value changes. A locale without postal places, such
   as `de_AT` or `ja_JP`, throws `UnsupportedOperationException` unless places are registered for its country.
+- `krandom-junit` warns on `System.err` when a replay cannot reproduce what a `@MethodSource` factory
+  generated, and says what to set instead. A `krandom.junit.recipe` override seeds every class-scoped
+  configuration too, so without the `krandom.junit.class-recipe` value that the failure output printed beside
+  it, a factory takes the test's recipe and may generate other arguments; it now warns once for each such
+  class. A method-level `@KrandomSeed` on a `@ParameterizedTest` whose factory takes an unpinned class-scoped
+  configuration pins the invocations but not their arguments; it now warns once for that test. No seeded
+  value or replay changes.
 
 ### Changed
 
