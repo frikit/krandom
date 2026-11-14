@@ -466,6 +466,8 @@ Supported in the current fixture layer:
 - `afterGenerate(...)` / `postProcess(...)`
 - `populate(existing)` for mutable classes
 - `ObjectFaker.strict()` to check the rules before every generation, as described below
+- `ruleForKeepingRecipe(...)`, a root rule that keeps the recipe and the other seeded values (3.2+)
+- `followConstructorArguments()`, which makes the check follow constructor arguments and record components (3.2+)
 
 Use `ObjectModel<T>` when a fixture definition must be immutable, reusable, and composable:
 
@@ -489,6 +491,37 @@ the model configuration callback rather than captured and shared.
 Nested `include(...)` paths keep the parent object alive and clear sibling fields below that path unless you also include the wider root object.
 
 `ObjectFaker<T>` reuses the same root `GeneratorConfig`, semantic resolver, locale, seed, and override rules as `ObjectGenerator<T>`.
+
+### Root rules that keep the recipe (3.2+)
+
+A root `ruleFor(path, generator)`, a root `ruleForContext(...)`, a root `ignore(...)` and `include(...)` are
+installed in the configuration that generation runs with, as overrides and exclusions that no recipe can
+record. With one of them the faker generates without a portable recipe: its report gives no recipe format,
+its failure diagnostics no replay identity, and under the default `ObjectFieldStreamPolicy.LEGACY` the other
+members draw from one shared sequence instead of their named streams, so every seeded member changes. Nested
+and dependent rules run after generation, so they keep the recipe and the other values already.
+
+`ruleForKeepingRecipe(path, generator)`, with the same accessor and `PropertyPath` forms as `ruleFor`, is a
+root rule that keeps them too:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
+
+UserDto plain = new ObjectFaker<>(UserDto.class, config).generate();
+UserDto pinned = new ObjectFaker<>(UserDto.class, config)
+        .ruleForKeepingRecipe(UserDto::getNickname, () -> "ada")
+        .generate();
+// pinned differs from plain only in its nickname.
+```
+
+It is installed and applied as `ruleFor` is, wherever generation fills its member, so the strict check
+reports it as a root rule. But generation keeps the recipe of the faker's `GeneratorConfig` and its named
+streams, so a seeded object differs only in the members the rule supplies, and in what semantic coherence
+derives from them, such as an email from a name. Replaying the recipe with the same faker gives the same
+values, as it does for nested and dependent rules; the rule's own generator replays only if it is seeded or
+constant. The recipe is kept while every root rule comes from `ruleForKeepingRecipe`: a root `ruleFor`, a
+root `ruleForContext`, a root `ignore` or an `include` drops it as before, and so does a configuration with
+no portable recipe of its own. Existing rules keep their behaviour, so existing seeded values stay the same.
 
 ### Checking fixture rules with `ObjectFaker.strict()`
 
@@ -537,6 +570,30 @@ per test, and `ObjectFaker.strict()` reports the earlier rule as shadowed, so le
 out of fixtures that refine rules that way. To see which members keep an initializer, the check creates one
 object of each class it follows with the class's no-argument constructor, as generation does. Without
 `ObjectFaker.strict()`, generation is unchanged.
+
+The check takes a constructor to be free to replace the arguments that generation passes it, so it does not
+follow a parent behind a constructor argument or a record component: where generation passes `null` for
+such a member, past `objectMaxDepth`, at a `null` draw or as an excluded argument, a nested rule builds the
+parent as a root of its own, and a root rule that reaches its members goes unreported. From 3.2,
+`followConstructorArguments()` makes the check take every constructor to store its arguments as given, as a
+record's canonical constructor does, in the fields of their names, which generation fills again where one
+holds its default, and report those routes too:
+
+```java
+record Node(String label, Node child) {}
+
+new ObjectFaker<>(Node.class, GeneratorConfig.builder().objectNullProbability(1.0).build())
+        .ruleFor("label", () -> "x")
+        .ruleFor("child.child.label", () -> "y")
+        .followConstructorArguments()
+        .assertConfigurationIsValid();
+// FixtureRuleException: - AMBIGUOUS rule #1 'label': ObjectFaker installs it for Node.label wherever
+//   generation reaches that member, so it also applies at 'child.label', 'child.child.label'
+```
+
+It is an opt-in because the check can then find more problems, so `ObjectFaker.strict()` can newly fail, and
+because a constructor that replaces a `null` argument, such as with a new object, gets a report of a route
+that generation never takes. Generation is unchanged either way.
 
 ## When to use
 

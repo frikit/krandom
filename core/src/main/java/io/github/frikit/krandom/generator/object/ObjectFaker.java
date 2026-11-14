@@ -92,6 +92,8 @@ public final class ObjectFaker<T> implements Generator<T> {
     private final Map<String, Consumer<ObjectFaker<T>>> namedProfiles = new LinkedHashMap<>();
     private final Set<String> ignoredFields = new LinkedHashSet<>();
     private final Set<String> includedFields = new LinkedHashSet<>();
+    // The paths whose plain rule ruleForKeepingRecipe registered last; a path counts only while fieldRules has it.
+    private final Set<String> recipeKeepingRules = new LinkedHashSet<>();
     private final List<UnaryOperator<T>> postProcessors = new ArrayList<>();
     private final Set<String> applyingProfiles = new LinkedHashSet<>();
     private final Set<String> appliedProfiles = new LinkedHashSet<>();
@@ -100,6 +102,7 @@ public final class ObjectFaker<T> implements Generator<T> {
     private @Nullable ObjectGenerator<T> objectGenerator;
     private @Nullable FixtureRuleAnalysis analysis;
     private boolean strictValidation;
+    private boolean followConstructorArguments;
 
     /**
      * Creates a fixture authoring API with default object-generation settings.
@@ -140,12 +143,21 @@ public final class ObjectFaker<T> implements Generator<T> {
      * so {@code V} may be nullable.
      */
     public <V extends @Nullable Object> ObjectFaker<T> ruleFor(String fieldName, Generator<? extends V> generator) {
-        RulePath target = requireRulePath(fieldName, "ruleFor");
+        return putRule(fieldName, generator, "ruleFor", false);
+    }
+
+    private ObjectFaker<T> putRule(String fieldName, Generator<?> generator, String operation, boolean keepsRecipe) {
+        RulePath target = requireRulePath(fieldName, operation);
         ensureNotIgnored(fieldName);
         Objects.requireNonNull(generator, "generator must not be null");
         contextualFieldRules.remove(target.path());
         dependentFieldRules.remove(target.path());
         fieldRules.put(target.path(), generator);
+        if (keepsRecipe) {
+            recipeKeepingRules.add(target.path());
+        } else {
+            recipeKeepingRules.remove(target.path());
+        }
         register(FixtureRuleKind.RULE, target.path());
         invalidateGeneratorState();
         return this;
@@ -167,6 +179,68 @@ public final class ObjectFaker<T> implements Generator<T> {
     public <V extends @Nullable Object> ObjectFaker<T> ruleFor(
             PropertyPath<T, V> property, Generator<? extends V> generator) {
         return ruleFor(
+                Objects.requireNonNull(property, "property must not be null").path(), generator);
+    }
+
+    /**
+     * Registers a deterministic field rule, as {@link #ruleFor(String, Generator)} does, that keeps the
+     * configuration's replay recipe and the seeded values of the members it does not supply. It replaces any
+     * earlier rule for the same field path, and a later rule for that path replaces it.
+     *
+     * <p>A root rule from {@link #ruleFor(String, Generator)} is installed in the configuration that generation
+     * runs with, as a field override, which no recipe can record. So the faker then generates with no portable
+     * recipe: its report gives no recipe format and its failure diagnostics no replay identity, and under the
+     * default {@link ObjectFieldStreamPolicy#LEGACY} the other members draw from one shared sequence instead of
+     * their own named streams, so every seeded member of the object changes. A rule from this method is
+     * installed and applied in the same way, wherever generation fills its member, but generation keeps the
+     * recipe of the faker's {@code GeneratorConfig}, and with it the named streams, so a seeded object differs
+     * only in the members the rule supplies and in the values that semantic coherence derives from them, such
+     * as an email from a name. Replaying the recipe with the same faker gives the same values, as it does for
+     * nested and dependent rules, which keep the recipe already. The rule's own generator is replayed only if
+     * it is seeded or constant.
+     *
+     * <p>The recipe is kept while every root rule of the faker comes from this method: a root rule from
+     * {@link #ruleFor(String, Generator)}, a root context rule, a root {@link #ignore(String)} or an
+     * {@link #include(String)} installs state that no recipe records, so it drops the recipe as before. So does
+     * a configuration without a portable recipe, such as an unseeded one. On a nested path the rule is a nested
+     * rule, as with {@link #ruleFor(String, Generator)}.
+     *
+     * @param fieldName the root or nested field path
+     * @param generator the generator of the member's values, which may return {@code null} for a reference field
+     * @param <V> the member's type, which may be nullable
+     * @return this faker
+     */
+    public <V extends @Nullable Object> ObjectFaker<T> ruleForKeepingRecipe(
+            String fieldName, Generator<? extends V> generator) {
+        return putRule(fieldName, generator, "ruleForKeepingRecipe", true);
+    }
+
+    /**
+     * Registers a root rule that keeps the recipe, as {@link #ruleForKeepingRecipe(String, Generator)} does,
+     * through a type-safe accessor reference.
+     *
+     * @param property  the root property
+     * @param generator the generator of the member's values
+     * @param <V>       the property's type, which may be nullable
+     * @return this faker
+     */
+    public <V extends @Nullable Object> ObjectFaker<T> ruleForKeepingRecipe(
+            PropertySelector<T, V> property, Generator<? extends V> generator) {
+        return ruleForKeepingRecipe(PropertyPath.of(property), generator);
+    }
+
+    /**
+     * Registers a rule that keeps the recipe, as {@link #ruleForKeepingRecipe(String, Generator)} does, through a
+     * type-safe root or nested property path.
+     *
+     * @param property  the root or nested property path
+     * @param generator the generator of the member's values
+     * @param <V>       the property's type, which may be nullable
+     * @return this faker
+     */
+    public <V extends @Nullable Object> ObjectFaker<T> ruleForKeepingRecipe(
+            PropertyPath<T, V> property, Generator<? extends V> generator) {
+        return ruleForKeepingRecipe(
                 Objects.requireNonNull(property, "property must not be null").path(), generator);
     }
 
@@ -396,6 +470,8 @@ public final class ObjectFaker<T> implements Generator<T> {
         ignoredFields.addAll(source.ignoredFields);
         includedFields.clear();
         includedFields.addAll(source.includedFields);
+        recipeKeepingRules.clear();
+        recipeKeepingRules.addAll(source.recipeKeepingRules);
         postProcessors.clear();
         postProcessors.addAll(source.postProcessors);
         applyingProfiles.clear();
@@ -403,6 +479,7 @@ public final class ObjectFaker<T> implements Generator<T> {
         appliedProfiles.clear();
         appliedProfiles.addAll(source.appliedProfiles);
         strictValidation = source.strictValidation;
+        followConstructorArguments = source.followConstructorArguments;
         uniqueFieldTracker = source.uniqueFieldTracker;
         objectGenerator = source.objectGenerator;
     }
@@ -471,7 +548,9 @@ public final class ObjectFaker<T> implements Generator<T> {
      *       rule past {@code objectMaxDepth} is not unused: it creates the objects on its path.</li>
      *   <li><b>Ambiguous</b>: a root rule, root ignore or include-mode exclusion that also applies at
      *       another path, because it applies by its member's declaring class and name, as the class
-     *       documentation describes. A dependent rule applies at its own path only.</li>
+     *       documentation describes. A dependent rule applies at its own path only. The check does not follow
+     *       a parent behind a constructor argument or a record component unless
+     *       {@link #followConstructorArguments()} is set.</li>
      * </ul>
      *
      * <p>A string path that matches no member, or more than one, already fails when it is registered.
@@ -499,6 +578,27 @@ public final class ObjectFaker<T> implements Generator<T> {
      */
     public ObjectFaker<T> strict() {
         strictValidation = true;
+        return this;
+    }
+
+    /**
+     * Makes {@link #assertConfigurationIsValid()} and {@link #strict()} also follow the objects that generation
+     * passes to a constructor: a constructor argument or a record component. Without it the check takes a
+     * constructor to be free to replace an argument, so it does not follow a parent that a nested rule builds
+     * where generation passes {@code null} for such a member, past {@code objectMaxDepth}, at a {@code null} draw
+     * or as an excluded argument, and a root rule, root ignore or include-mode exclusion that reaches the members
+     * of that parent goes unreported. With it the check takes every such constructor to store its argument as
+     * given, as a record's canonical constructor does, in the field of the argument's name, which generation
+     * then fills again where it holds the default, and reports those routes as well. So it can find
+     * problems the check did not, and {@link #strict()} can newly fail. A constructor that replaces a
+     * {@code null} argument, such as with a new object, then gets a report of a route that generation never
+     * takes. Generation is unchanged.
+     *
+     * @return this faker
+     */
+    public ObjectFaker<T> followConstructorArguments() {
+        followConstructorArguments = true;
+        analysis = null;
         return this;
     }
 
@@ -546,7 +646,8 @@ public final class ObjectFaker<T> implements Generator<T> {
                     List.copyOf(fieldRules.keySet()),
                     List.copyOf(contextualFieldRules.keySet()),
                     List.copyOf(dependentFieldRules.keySet()),
-                    includedRoots());
+                    includedRoots(),
+                    followConstructorArguments);
             analysis = current;
         }
         current.check(populating);
@@ -605,7 +706,26 @@ public final class ObjectFaker<T> implements Generator<T> {
                     reporting ? tagged(generator, activeRule(target.path(), false)) : generator;
             builder.override(target.leaf().ownerType(), target.leaf().fieldName(), installed);
         }
-        return builder.build();
+        ObjectGeneratorConfig runtime = builder.build();
+        return keepsRecipe() ? runtime.recipeOf(baseConfig) : runtime;
+    }
+
+    /**
+     * Whether the runtime configuration installs only root rules that keep the recipe: no other root rule, no
+     * root context rule, no root ignore and no include-mode exclusion.
+     */
+    private boolean keepsRecipe() {
+        if (!contextualRootFieldRulePaths().isEmpty()
+                || !ignoredRuleTargets().isEmpty()
+                || !excludedByIncludeRuleTargets().isEmpty()) {
+            return false;
+        }
+        for (RulePath target : directRootFieldRulePaths()) {
+            if (!recipeKeepingRules.contains(target.path())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private List<RuleTarget> excludedByIncludeRuleTargets() {

@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator.object;
 
 import io.github.frikit.krandom.generator.ContextualGenerator;
+import io.github.frikit.krandom.generator.GenerationRecipe;
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import java.lang.reflect.Field;
@@ -38,14 +39,20 @@ final class ObjectGeneratorConfig {
 
     private volatile @org.jspecify.annotations.Nullable Boolean portableRecipe;
 
+    // The configuration whose recipe this one replays with, when not its own: see recipeOf.
+    private final GeneratorConfig recipeSource;
+
     private ObjectGeneratorConfig(GeneratorConfig generatorConfig) {
-        this(generatorConfig, null);
+        this(generatorConfig, null, generatorConfig);
     }
 
     private ObjectGeneratorConfig(
-            GeneratorConfig generatorConfig, @org.jspecify.annotations.Nullable ReportedPath reportedPath) {
+            GeneratorConfig generatorConfig,
+            @org.jspecify.annotations.Nullable ReportedPath reportedPath,
+            GeneratorConfig recipeSource) {
         this.generatorConfig = Objects.requireNonNull(generatorConfig, "generatorConfig must not be null");
         this.reportedPath = reportedPath;
+        this.recipeSource = recipeSource;
     }
 
     /**
@@ -55,7 +62,22 @@ final class ObjectGeneratorConfig {
      * report reads it, so what is generated, and from which streams, stays the same.
      */
     ObjectGeneratorConfig reportedAt(String generatedRoot, String reportedRoot) {
-        return new ObjectGeneratorConfig(generatorConfig, new ReportedPath(generatedRoot, reportedRoot));
+        return new ObjectGeneratorConfig(generatorConfig, new ReportedPath(generatedRoot, reportedRoot), recipeSource);
+    }
+
+    /**
+     * This configuration, with the recipe of {@code base}: the configuration that an {@code ObjectFaker} builds
+     * from {@code base} by installing only rules that keep the recipe. Its streams, its report and its failure
+     * diagnostics then follow {@code base}'s recipe, so the members that no such rule supplies draw what they
+     * draw from {@code base}. A {@code base} with no portable recipe leaves it without one.
+     */
+    ObjectGeneratorConfig recipeOf(ObjectGeneratorConfig base) {
+        return new ObjectGeneratorConfig(generatorConfig, reportedPath, base.recipeSource);
+    }
+
+    /** The recipe this configuration replays with, if it has a portable one. */
+    Optional<GenerationRecipe> generationRecipe() {
+        return recipeSource.getGenerationRecipe();
     }
 
     /** Where the generation is reported, or {@code null} when it is reported where it runs. */
@@ -80,7 +102,7 @@ final class ObjectGeneratorConfig {
     boolean hasPortableRecipe() {
         Boolean cached = portableRecipe;
         if (cached == null) {
-            cached = generatorConfig.getGenerationRecipe().isPresent();
+            cached = recipeSource.getGenerationRecipe().isPresent();
             portableRecipe = cached;
         }
         return cached;

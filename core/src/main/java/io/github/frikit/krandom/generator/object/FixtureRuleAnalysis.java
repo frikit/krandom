@@ -51,6 +51,7 @@ final class FixtureRuleAnalysis {
     private final Map<String, RulePath> rulePaths;
     private final List<FixtureRule> registrations;
     private final Set<String> includedRoots;
+    private final boolean followConstructorArguments;
     private final List<String> evaluationOrder = new ArrayList<>();
     private final Map<String, FixtureRule> activeRules = new LinkedHashMap<>();
     private final Map<String, FixtureRule> activeIncludes = new LinkedHashMap<>();
@@ -68,6 +69,8 @@ final class FixtureRuleAnalysis {
      * @param contextRules   the paths of its context rules, in evaluation order
      * @param dependentRules the paths of its dependent rules, in evaluation order
      * @param includedRoots  the root properties that include mode generates, or none outside include mode
+     * @param followConstructorArguments whether a constructor is taken to store each argument as given, so that
+     *     the parents a nested rule builds behind a constructor argument or a record component are followed
      */
     FixtureRuleAnalysis(
             Class<?> rootType,
@@ -77,12 +80,14 @@ final class FixtureRuleAnalysis {
             List<String> plainRules,
             List<String> contextRules,
             List<String> dependentRules,
-            Set<String> includedRoots) {
+            Set<String> includedRoots,
+            boolean followConstructorArguments) {
         this.rootType = rootType;
         this.config = config;
         this.rulePaths = rulePaths;
         this.registrations = registrations;
         this.includedRoots = includedRoots;
+        this.followConstructorArguments = followConstructorArguments;
         for (FixtureRule registration : registrations) {
             switch (registration.kind()) {
                 case INCLUDE -> activeIncludes.putIfAbsent(registration.path(), registration);
@@ -451,12 +456,24 @@ final class FixtureRuleAnalysis {
      * a constructor parameter, with no field, can take only by name.
      */
     private boolean suppliedByOverride(Class<?> owner, String name, @Nullable Field field) {
+        return field == null
+                ? overriddenByName(owner, name)
+                : overridesField(owner, name, field) || field.isAnnotationPresent(Randomizer.class);
+    }
+
+    private boolean overriddenByName(Class<?> owner, String name) {
         return config.getContextualFieldOverride(owner, name).isPresent()
-                || config.getFieldOverride(owner, name).isPresent()
-                || (field != null
-                        && (config.getContextualFieldPredicateOverride(field).isPresent()
-                                || config.getFieldPredicateOverride(field).isPresent()
-                                || field.isAnnotationPresent(Randomizer.class)));
+                || config.getFieldOverride(owner, name).isPresent();
+    }
+
+    /**
+     * Whether a field override or a predicate override supplies this field, which generation then fills even
+     * where the constructor set it; a {@code @Randomizer} leaves what the constructor set.
+     */
+    private boolean overridesField(Class<?> owner, String name, Field field) {
+        return overriddenByName(owner, name)
+                || config.getContextualFieldPredicateOverride(field).isPresent()
+                || config.getFieldPredicateOverride(field).isPresent();
     }
 
     /** Whether a type override, contextual or not, builds every value of this type. */
@@ -682,17 +699,42 @@ final class FixtureRuleAnalysis {
             if (!prefix.isEmpty()) {
                 recordRoutes(type, prefix);
             }
+            // With followConstructorArguments, what each constructor argument left null, by name: the constructor
+            // stores it in the field of that name, which generation may fill again afterwards.
+            Map<String, Set<String>> storedArguments = new HashMap<>();
             for (Member member : members(type, !(populating && prefix.isEmpty()))) {
-                // A constructor argument, a record component's too, may be replaced by the constructor.
+                // A constructor argument, a record component's too, may be replaced by the constructor, unless
+                // followConstructorArguments takes every constructor to store its arguments as given.
                 boolean argument = member.parameter() || type.isRecord();
+                boolean replaceable = argument && !followConstructorArguments;
+                String path = prefix + member.name() + ".";
+                Set<String> stored = argument ? null : storedArguments.get(member.name());
+                if (stored != null) {
+                    // Generation fills the field again where the constructor stored the default, as it fills a
+                    // field that holds its default, and where objectOverrideDefaultInitialization, a field or
+                    // predicate override or a root rule says so; then what the argument left is gone. Otherwise,
+                    // with a @Randomizer too, the field keeps the argument.
+                    Field field = Objects.requireNonNull(member.field(), "a field member");
+                    if (!isGenerated(member)
+                            || !(stored.contains(path)
+                                    || config.isOverrideDefaultInitialization()
+                                    || overridesField(member.owner(), member.name(), field)
+                                    || installedKeys.contains(key(member.owner(), member.name())))) {
+                        continue;
+                    }
+                    leftNull.removeAll(stored);
+                }
+                Set<String> before = argument ? Set.copyOf(leftNull) : Set.of();
                 if (!isGenerated(member)) {
                     // An excluded field keeps its default unless an initializer that generation keeps sets it. An
-                    // excluded argument passes its default, which the constructor may replace, so it is unknown.
-                    if (!argument && startsAtDefault(type, Objects.requireNonNull(member.field(), "a field member"))) {
-                        leftNull.add(prefix + member.name() + ".");
+                    // excluded argument passes its default, which the constructor may replace, so it is unknown,
+                    // or which it stores.
+                    if (argument
+                            ? followConstructorArguments
+                            : startsAtDefault(type, Objects.requireNonNull(member.field(), "a field member"))) {
+                        leftNull.add(path);
                     }
                 } else if (!hasMemberGenerator(member)) {
-                    Set<String> before = argument ? Set.copyOf(leftNull) : Set.of();
                     descend(
                             member.genericType(),
                             member.element(),
@@ -701,12 +743,22 @@ final class FixtureRuleAnalysis {
                             prefix + member.name(),
                             depth,
                             inProgress);
-                    if (argument) {
+                }
+                if (argument) {
+                    // What another class of a sealed hierarchy recorded stays.
+                    Set<String> added = new HashSet<>();
+                    for (String marker : leftNull) {
+                        if (marker.startsWith(path) && !before.contains(marker)) {
+                            added.add(marker);
+                        }
+                    }
+                    if (replaceable) {
                         // The constructor may replace an argument that generation leaves null, or what it left
-                        // null below one, so nothing this argument records is known; what another class of a
-                        // sealed hierarchy, or a field of its name that generation fills afterwards, records stays.
-                        String path = prefix + member.name() + ".";
-                        leftNull.removeIf(marker -> marker.startsWith(path) && !before.contains(marker));
+                        // null below one, so nothing this argument records is known; what a field of its name
+                        // that generation fills afterwards records stays.
+                        leftNull.removeAll(added);
+                    } else {
+                        storedArguments.put(member.name(), added);
                     }
                 }
             }
@@ -964,11 +1016,13 @@ final class FixtureRuleAnalysis {
                 return members;
             }
             Constructor<?> constructor = constructed ? filledConstructor(type) : null;
+            Set<String> argumentNames = new HashSet<>();
             if (constructor != null) {
                 Parameter[] parameters = constructor.getParameters();
                 for (int index = 0; index < parameters.length; index++) {
                     Parameter parameter = parameters[index];
                     if (parameter.isNamePresent()) {
+                        argumentNames.add(parameter.getName());
                         members.add(new Member(
                                 type,
                                 parameter.getName(),
@@ -993,7 +1047,12 @@ final class FixtureRuleAnalysis {
                 Arrays.sort(declared, Comparator.comparing(Field::getName));
                 for (Field field : declared) {
                     int modifiers = field.getModifiers();
-                    if (!Modifier.isStatic(modifiers) && !Modifier.isFinal(modifiers) && generationFills(type, field)) {
+                    // With followConstructorArguments, a field holds what the constructor stored for the argument of
+                    // its name, which generation fills again if it is the default.
+                    if (!Modifier.isStatic(modifiers)
+                            && !Modifier.isFinal(modifiers)
+                            && (generationFills(type, field)
+                                    || (followConstructorArguments && argumentNames.contains(field.getName())))) {
                         members.add(new Member(
                                 field.getDeclaringClass(),
                                 field.getName(),

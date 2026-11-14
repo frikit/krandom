@@ -100,6 +100,7 @@ public final class GeneratorConfig {
     private final boolean objectIgnoreErrors;
     private final GenerationFailureListener generationFailureListener;
     private final @Nullable GenerationReportListener generationReportListener;
+    private final boolean generationReportParentsFirst;
     private final boolean restoredFromRecipe;
     private final @Nullable LocalDate objectDateMin;
     private final @Nullable LocalDate objectDateMax;
@@ -163,6 +164,7 @@ public final class GeneratorConfig {
         this.objectIgnoreErrors = b.objectIgnoreErrors;
         this.generationFailureListener = b.generationFailureListener;
         this.generationReportListener = b.generationReportListener;
+        this.generationReportParentsFirst = b.generationReportParentsFirst;
         this.restoredFromRecipe = b.restoredFromRecipe;
         this.objectDateMin = b.objectDateMin;
         this.objectDateMax = b.objectDateMax;
@@ -243,6 +245,7 @@ public final class GeneratorConfig {
         this.objectIgnoreErrors = parent.objectIgnoreErrors;
         this.generationFailureListener = parent.generationFailureListener;
         this.generationReportListener = parent.generationReportListener;
+        this.generationReportParentsFirst = parent.generationReportParentsFirst;
         this.restoredFromRecipe = false;
         this.objectDateMin = parent.objectDateMin;
         this.objectDateMax = parent.objectDateMax;
@@ -669,6 +672,16 @@ public final class GeneratorConfig {
      */
     public Optional<GenerationReportListener> getGenerationReportListener() {
         return Optional.ofNullable(generationReportListener);
+    }
+
+    /**
+     * Whether the generation report lists each object before its members, as set with
+     * {@link Builder#generationReportParentsFirst(boolean)}. Off by default.
+     *
+     * @return {@code true} when the report lists parents first
+     */
+    public boolean isGenerationReportParentsFirst() {
+        return generationReportParentsFirst;
     }
 
     /**
@@ -1108,6 +1121,7 @@ public final class GeneratorConfig {
         private boolean objectIgnoreErrors;
         private GenerationFailureListener generationFailureListener = NO_FAILURE_LISTENER;
         private @Nullable GenerationReportListener generationReportListener;
+        private boolean generationReportParentsFirst;
         private boolean restoredFromRecipe;
         private @Nullable LocalDate objectDateMin;
         private @Nullable LocalDate objectDateMax;
@@ -1178,6 +1192,7 @@ public final class GeneratorConfig {
             this.objectIgnoreErrors = source.objectIgnoreErrors;
             this.generationFailureListener = source.generationFailureListener;
             this.generationReportListener = source.generationReportListener;
+            this.generationReportParentsFirst = source.generationReportParentsFirst;
             this.restoredFromRecipe = source.restoredFromRecipe;
             this.objectDateMin = source.objectDateMin;
             this.objectDateMax = source.objectDateMax;
@@ -1447,6 +1462,23 @@ public final class GeneratorConfig {
         public Builder generationReportListener(GenerationReportListener generationReportListener) {
             this.generationReportListener =
                     Objects.requireNonNull(generationReportListener, "generationReportListener must not be null");
+            return this;
+        }
+
+        /**
+         * Controls the order of the generation report. Off by default, which keeps the order of earlier
+         * releases: each entry is delivered as its value is decided, so a nested object, a collection or an
+         * element comes after the entries of its members, such as {@code Order.customer.name} before
+         * {@code Order.customer}. When on, the report lists each of them before its members, so it reads from
+         * the root down, and a generation delivers its entries to the listener once it ends, or once it fails,
+         * rather than one at a time. The entries themselves are the same, and so are the generated values and
+         * the recipe, which does not record this setting.
+         *
+         * @param parentsFirst {@code true} to list each parent before its members
+         * @return this builder
+         */
+        public Builder generationReportParentsFirst(boolean parentsFirst) {
+            this.generationReportParentsFirst = parentsFirst;
             return this;
         }
 

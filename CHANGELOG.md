@@ -49,6 +49,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `Krandom.seeded("pins", Locale.US).postalLocality()` gives Pasadena, Texas, `TX`, `77505`. The session
   draws it from a stream of its own, so no other value changes. A locale without postal places, such
   as `de_AT` or `ja_JP`, throws `UnsupportedOperationException` unless places are registered for its country.
+- `ObjectFaker.ruleForKeepingRecipe(String, Generator)`, with `PropertySelector` and `PropertyPath` forms,
+  is a root rule that keeps the configuration's recipe and named streams. A root `ruleFor` installs a field
+  override that no recipe records, so the faker generates with no recipe and, under the default
+  `ObjectFieldStreamPolicy.LEGACY`, every seeded member changes. With the new form only the members it
+  supplies, and what semantic coherence derives from them, change, and the report and failure diagnostics
+  keep the recipe. A root `ruleFor`, `ruleForContext`, `ignore` or an `include` on the same faker still
+  drops the recipe. The existing rule methods are unchanged, and so are their seeded values.
+- `GeneratorConfig.Builder.generationReportParentsFirst(boolean)` and
+  `GeneratorConfig.isGenerationReportParentsFirst()`, with `generationReportParentsFirst(Boolean)` in the
+  Kotlin DSL's `config { }`, make the generation report list each nested object, collection and element
+  before its members, such as `Order.customer` before `Order.customer.name`, and deliver a generation's
+  entries when it ends or fails. It is off by default, so the report keeps its order, and the entries, the
+  values and the recipe are the same either way.
+- `ObjectFaker.followConstructorArguments()` makes `assertConfigurationIsValid()` and `strict()` follow the
+  parents that a nested rule builds behind a constructor argument or a record component, where generation
+  passes `null` past `objectMaxDepth`, at a `null` draw or as an excluded argument. The check then takes every
+  constructor to store its arguments as given, and reports a root rule, root ignore or include-mode exclusion
+  that reaches the members of such a parent. Without it the check is unchanged; with it `strict()` can newly
+  fail. Generation is unchanged either way.
 - `krandom-junit` warns on `System.err` when a replay cannot reproduce what a `@MethodSource` factory
   generated, and says what to set instead. A `krandom.junit.recipe` override seeds every class-scoped
   configuration too, so without the `krandom.junit.class-recipe` value that the failure output printed beside

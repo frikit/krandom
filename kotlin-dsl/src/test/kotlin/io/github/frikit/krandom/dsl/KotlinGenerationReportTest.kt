@@ -51,5 +51,25 @@ class KotlinGenerationReportTest :
                     }
                 }
             }
+
+            it("lists a collection before its elements with generationReportParentsFirst") {
+                fun paths(parentsFirst: Boolean): List<String> {
+                    val entries = mutableListOf<GenerationReportEntry>()
+                    krandom<ReportedCustomer> {
+                        config {
+                            seed(42L)
+                            generationReportParentsFirst(parentsFirst)
+                            generationReportListener { entry -> entries += entry }
+                        }
+                    }
+                    return entries.map { entry -> entry.path() }
+                }
+
+                val on = paths(true)
+                val off = paths(false)
+                on.sorted() shouldBe off.sorted()
+                (on.indexOf("ReportedCustomer.tags") < on.indexOf("ReportedCustomer.tags[]")) shouldBe true
+                (off.indexOf("ReportedCustomer.tags") > off.indexOf("ReportedCustomer.tags[]")) shouldBe true
+            }
         }
     })
