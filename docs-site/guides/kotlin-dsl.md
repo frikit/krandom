@@ -295,3 +295,17 @@ val users = krandomList<User>(5) {
 
 The Kotlin option uses the same core policy as Java. Object-field streams stay LEGACY unless you select INDEPENDENT. For direct configuration
 consumers, `krandomConfig { seed(42L) }.snapshotClock()` captures an explicit replay clock.
+
+## German street layout (3.2+)
+
+`germanStreetLayout(true)` writes the street addresses of the German locales street first, such as
+`Schlossanger 7389`, as `GeneratorConfig.Builder.germanStreetLayout` does. It is off by default in 3.x and
+the default from 4.0; see [Locale-Aware Data]({{ '/guides/locale-aware-data/' | relative_url }}#german-street-layout).
+
+```kotlin
+val config = krandomConfig {
+    seed(42L)
+    locale(Locale.GERMANY)
+    germanStreetLayout(true)
+}
+```

@@ -42,6 +42,20 @@ class IndependentStreamsDslTest :
                 .objectFieldStreamPolicy shouldBe
                 ObjectFieldStreamPolicy.INDEPENDENT
         }
+        it("Kotlin configurations opt in to the German street layout, which recipes keep") {
+            val config =
+                krandomConfig {
+                    seed(42L)
+                    locale(java.util.Locale.GERMANY)
+                    germanStreetLayout(true)
+                }
+            config.isGermanStreetLayout shouldBe true
+            config.generationRecipe
+                .orElseThrow()
+                .toGeneratorConfig()
+                .isGermanStreetLayout shouldBe true
+            krandomConfig { seed(42L) }.isGermanStreetLayout shouldBe false
+        }
     })
 
 data class StreamFixture(

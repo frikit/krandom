@@ -405,6 +405,14 @@ public class ConfigScope internal constructor(
     }
 
     /**
+     * Writes the street addresses of the German locales street first, such as `Hauptstrasse 12`, as
+     * `GeneratorConfig.Builder.germanStreetLayout` does. Off by default in 3.x; the default from 4.0.
+     */
+    public fun germanStreetLayout(enabled: Boolean) {
+        builder.germanStreetLayout(enabled)
+    }
+
+    /**
      * Receives a value-free report entry for each value that object generation produces: its path, seed
      * source, recipe settings, generator, matched rule, constraints, safety policies and fallback decisions,
      * never the value. Reporting draws nothing, so seeded values are the same with or without a listener.

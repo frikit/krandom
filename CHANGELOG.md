@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `GeneratorConfig.Builder.germanStreetLayout(boolean)` and `GeneratorConfig.isGermanStreetLayout()`, with
+  `germanStreetLayout(Boolean)` in the Kotlin DSL's `config { }`, write the street addresses of the locales
+  whose language is German (`de`, `de_DE`, `de_AT`, `de_CH` and any other `de_*`) as German does: the street
+  name and its type as one word, then the house number. Seeded with 42, `de_DE` gives `"Schlossanger 7389"`
+  rather than `"7389 Schloss Anger"`. It is off by default, so seeded output stays the same, and it becomes
+  the default in 4.0. `StreetAddressGenerator.generate`, the street of `generateFullAddress()`, and
+  `AddressInfo.street()` and `address()` follow it, and so do `Krandom.streetAddress()`, the
+  `address.street_address` and `address.address_info` schema columns and the object engine's street fields.
+  The same draws are made either way. A recipe records `setting.address.german-street-layout=true` while it
+  is on, and a recipe without it replays with it off. Other locales that write the street first, such as
+  `nl_NL`, keep the house number first: their street data is shaped differently.
+
 ### Changed
 
 - A seeded `Schema` takes each value of a common built-in `Field` reference from one generator kept for its

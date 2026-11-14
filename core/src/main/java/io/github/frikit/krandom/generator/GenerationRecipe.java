@@ -434,6 +434,7 @@ public final class GenerationRecipe {
         applyInteger(builder, "object.pool-size", builder::objectPoolSize);
         applyBoolean(builder, "object.override-default-initialization", builder::objectOverrideDefaultInitialization);
         applyBoolean(builder, "object.ignore-errors", builder::objectIgnoreErrors);
+        applyBoolean(builder, "address.german-street-layout", builder::germanStreetLayout);
         builder.paymentCardSafetyPolicy(PaymentCardSafetyPolicy.valueOf(requiredSetting("payment.card-safety-policy")));
         builder.bankingSafetyPolicy(BankingSafetyPolicy.valueOf(requiredSetting("banking.safety-policy")));
         builder.businessTaxIdentifierSafetyPolicy(
@@ -525,6 +526,7 @@ public final class GenerationRecipe {
                     "object.pool-size",
                     "object.override-default-initialization",
                     "object.ignore-errors",
+                    "address.german-street-layout",
                     "object.semantic-mode",
                     "object.null-probability",
                     "object.optional-empty-probability",

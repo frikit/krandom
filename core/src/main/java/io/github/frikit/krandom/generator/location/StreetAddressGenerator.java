@@ -21,6 +21,10 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>The house number is drawn from [1, 9999]. Street names and short/long suffix lists come
  * from {@link StreetAddressDataRegistry} for the configured locale.
+ *
+ * <p>With {@link GeneratorConfig.Builder#germanStreetLayout(boolean)} on, the locales whose language is
+ * German write the street first, as German does ({@code "Hauptstr. 12"}). It is off by default in 3.x and the
+ * default from 4.0.
  */
 public final class StreetAddressGenerator implements Generator<String> {
 
@@ -54,8 +58,12 @@ public final class StreetAddressGenerator implements Generator<String> {
         }
     }
 
+    /** The language whose locales the German street layout covers. */
+    private static final String GERMAN = "de";
+
     private final GeneratorConfig config;
     private final Random random;
+    private final boolean streetFirst;
     private final String[] streetNames;
     private final String[] streetTypesShort;
     private final String[] streetTypesLong;
@@ -102,6 +110,7 @@ public final class StreetAddressGenerator implements Generator<String> {
         }
 
         this.random = config.createRandom();
+        this.streetFirst = config.isGermanStreetLayout() && GERMAN.equals(locale.getLanguage());
 
         StreetAddressDataProvider provider =
                 java.util.Objects.requireNonNull(registryContext.provider(Vocabulary.STREET_ADDRESS, locale));
@@ -159,14 +168,36 @@ public final class StreetAddressGenerator implements Generator<String> {
     }
 
     /**
-     * Generates a random street address of the form {@code "<number> <streetName> <streetType>"}.
+     * Generates a random street address of the form {@code "<number> <streetName> <streetType>"}. With the
+     * {@linkplain GeneratorConfig#isGermanStreetLayout() German street layout} on, a German locale writes it
+     * {@code "<streetName><streetType> <number>"}, the type as part of the name and starting in lower case, from
+     * the same draws.
      *
      * @param shortSuffix {@code true} for abbreviated suffixes ({@code "St"}, {@code "Ave"}),
      *                    {@code false} for full suffixes ({@code "Street"}, {@code "Avenue"})
      * @return a street-address string; never {@code null}
      */
     public String generate(boolean shortSuffix) {
-        return generateStreetAddressNumber() + " " + generateStreetName() + " " + generateStreetSuffix(shortSuffix);
+        String number = generateStreetAddressNumber();
+        String name = generateStreetName();
+        String suffix = generateStreetSuffix(shortSuffix);
+        return streetFirst ? streetFirstLine(number, name, suffix) : number + " " + name + " " + suffix;
+    }
+
+    /**
+     * Whether this generator writes the street before the house number: the configuration's German street layout
+     * is on and the locale's language is German.
+     */
+    boolean streetFirst() {
+        return streetFirst;
+    }
+
+    /**
+     * A street line as German writes it: the name and the street type as one word, the type starting in lower
+     * case, then the house number, such as {@code "Hauptstr. 12"}.
+     */
+    static String streetFirstLine(String number, String name, String suffix) {
+        return name + suffix.substring(0, 1).toLowerCase(Locale.ROOT) + suffix.substring(1) + " " + number;
     }
 
     /**

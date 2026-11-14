@@ -145,6 +145,16 @@ class ReseedAsBuiltTest {
                         .build());
             }
         }
+        // The German street layout is configuration only, which a reseed keeps.
+        for (ChildStreamPolicy policy : ChildStreamPolicy.values()) {
+            configs.add(GeneratorConfig.builder()
+                    .locale(Locale.GERMANY)
+                    .clock(CLOCK)
+                    .childStreamPolicy(policy)
+                    .germanStreetLayout(true)
+                    .seed(1L)
+                    .build());
+        }
         int compared = 0;
         for (Map.Entry<Class<?>, Function<GeneratorConfig, Object>> factory : FACTORIES.entrySet()) {
             List<Method> methods = noArgumentMethods(factory.getKey());
