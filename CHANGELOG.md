@@ -86,6 +86,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Other tests keep their display name, and no report entry, replay command or generated value changes.
   `krandom.junit.redact-invocation-names=false` (`KRANDOM_JUNIT_REDACT_INVOCATION_NAMES=false`) prints the 3.1
   line; other values than `true` and `false` are a configuration error.
+- When the `@MethodSource` factory of a failing `@ParameterizedTest` invocation took an unpinned class-scoped
+  configuration, the `krandom-junit` reproduction hint names the class-scoped seed beside the test's, so that
+  following it reproduces the factory's arguments: `Annotate it with @KrandomSeed(8155926046530546882L) to
+  reproduce this run.` is now `Annotate it with @KrandomSeed(8155926046530546882L) and its class with
+  @KrandomSeed(-4291135988941929283L) to reproduce this run.` The hint of every other failure, and every seeded
+  value, stays as it was.
 
 ### Fixed
 

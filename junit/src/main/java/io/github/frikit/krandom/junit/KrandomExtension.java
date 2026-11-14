@@ -109,7 +109,9 @@ import org.junit.platform.commons.support.AnnotationSupport;
  * Both are printed to {@code System.err} with a reproduction hint, the source of the recorded
  * clock instant, and copyable Gradle and Maven replay commands, so a failing unpinned run can be
  * replayed either by one of those commands or by annotating the test with
- * {@code @KrandomSeed(<reported seed>L)}.
+ * {@code @KrandomSeed(<reported seed>L)}. When the {@code @MethodSource} factory of a failing
+ * invocation took an unpinned class-scoped configuration, the hint also names that class's seed,
+ * so that annotating the class as well reproduces the factory's arguments.
  *
  * <p><b>Usage</b>
  * <pre>{@code
@@ -211,6 +213,9 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     /** Store key marking that the factory of one parameterized test has been warned about. */
     private record FactoryWarningKey(String uniqueId) {}
 
+    /** Store key marking that the factory of one parameterized test resolved a parameter of this extension. */
+    private record FactoryKey(String uniqueId) {}
+
     private record ConfiguredValue(String value, String source) {}
 
     /** The class-scoped configuration of one enclosing test class. */
@@ -241,6 +246,7 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
         SeedInfo info = seedInfo(extensionContext);
         if (isTestTemplate(extensionContext)) {
+            extensionContext.getStore(NAMESPACE).put(new FactoryKey(extensionContext.getUniqueId()), Boolean.TRUE);
             warnIfOnlyTheTestIsPinned(extensionContext, info);
         }
         GeneratorConfig config = info.config();
@@ -312,6 +318,20 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
         System.err.println(failureMessage(context, info, recipe, serialized));
     }
 
+    /**
+     * Returns the unpinned class-scoped configuration that the {@code @MethodSource} factory of this
+     * invocation's parameterized test took, if it took one: annotating that class with its seed, as
+     * well as the test with its own, then reproduces the factory's arguments. Its class is the one
+     * that {@link #scopeContext} gives the test template, which holds the configuration.
+     */
+    private static Optional<SeedInfo> unpinnedFactoryClass(ExtensionContext context) {
+        return context.getParent()
+                .filter(KrandomExtension::isTestTemplate)
+                .filter(template -> template.getStore(NAMESPACE).get(new FactoryKey(template.getUniqueId())) != null)
+                .map(template -> ownSeedInfo(scopeContext(template)))
+                .filter(classInfo -> !classInfo.pinned());
+    }
+
     private static String failureMessage(
             ExtensionContext context, SeedInfo info, GenerationRecipe recipe, String serialized) {
         StringBuilder message = new StringBuilder();
@@ -319,9 +339,13 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
         if (info.pinned()) {
             message.append("krandom: test '%s' failed with pinned seed %d.".formatted(testName, info.seed()));
         } else {
-            message.append(
-                    "krandom: test '%s' failed with seed %d. Annotate it with @KrandomSeed(%dL) to reproduce this run."
-                            .formatted(testName, info.seed(), info.seed()));
+            message.append(unpinnedFactoryClass(context)
+                    .map(classInfo -> ("krandom: test '%s' failed with seed %d. Annotate it with @KrandomSeed(%dL)"
+                                    + " and its class with @KrandomSeed(%dL) to reproduce this run.")
+                            .formatted(testName, info.seed(), info.seed(), classInfo.seed()))
+                    .orElseGet(() ->
+                            "krandom: test '%s' failed with seed %d. Annotate it with @KrandomSeed(%dL) to reproduce this run."
+                                    .formatted(testName, info.seed(), info.seed())));
         }
         message.append(System.lineSeparator()).append(clockLine(info.clockSource(), recipe));
         StringJoiner classRecipes = new StringJoiner(",");

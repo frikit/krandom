@@ -191,10 +191,15 @@ Rules:
   enclosing class's seed.
 - A `@MethodSource` factory takes the class-scoped configuration described below, so a
   method-level annotation pins the invocations of its `@ParameterizedTest` but not the factory
-  that generates their arguments. Pin the class to fix those arguments. The hint
-  `Annotate it with @KrandomSeed(...)` in the failure output names the test's own seed; for the
-  arguments, also annotate the class with the class-scoped seed that the output prints below it.
-  While a method-level annotation pins a parameterized test whose factory takes an unpinned
+  that generates their arguments. Pin the class to fix those arguments. When the factory of a
+  failing invocation took an unpinned class-scoped configuration, the failure hint therefore names
+  both seeds, and following it reproduces the arguments as well as the invocation's own data:
+
+  ```text
+  krandom: test 'appliesTheWelcomeDiscount(String) [1]' failed with seed 8155926046530546882. Annotate it with @KrandomSeed(8155926046530546882L) and its class with @KrandomSeed(-4291135988941929283L) to reproduce this run.
+  ```
+
+  Before 3.2 the hint named only the test's seed. While a method-level annotation pins a parameterized test whose factory takes an unpinned
   class-scoped configuration, the extension prints this warning once for that test:
 
   ```text
