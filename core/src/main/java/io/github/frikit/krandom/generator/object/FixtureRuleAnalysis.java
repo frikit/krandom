@@ -456,12 +456,24 @@ final class FixtureRuleAnalysis {
      * a constructor parameter, with no field, can take only by name.
      */
     private boolean suppliedByOverride(Class<?> owner, String name, @Nullable Field field) {
+        return field == null
+                ? overriddenByName(owner, name)
+                : overridesField(owner, name, field) || field.isAnnotationPresent(Randomizer.class);
+    }
+
+    private boolean overriddenByName(Class<?> owner, String name) {
         return config.getContextualFieldOverride(owner, name).isPresent()
-                || config.getFieldOverride(owner, name).isPresent()
-                || (field != null
-                        && (config.getContextualFieldPredicateOverride(field).isPresent()
-                                || config.getFieldPredicateOverride(field).isPresent()
-                                || field.isAnnotationPresent(Randomizer.class)));
+                || config.getFieldOverride(owner, name).isPresent();
+    }
+
+    /**
+     * Whether a field override or a predicate override supplies this field, which generation then fills even
+     * where the constructor set it; a {@code @Randomizer} leaves what the constructor set.
+     */
+    private boolean overridesField(Class<?> owner, String name, Field field) {
+        return overriddenByName(owner, name)
+                || config.getContextualFieldPredicateOverride(field).isPresent()
+                || config.getFieldPredicateOverride(field).isPresent();
     }
 
     /** Whether a type override, contextual or not, builds every value of this type. */
@@ -699,12 +711,15 @@ final class FixtureRuleAnalysis {
                 Set<String> stored = argument ? null : storedArguments.get(member.name());
                 if (stored != null) {
                     // Generation fills the field again where the constructor stored the default, as it fills a
-                    // field that holds its default, and where objectOverrideDefaultInitialization or an override
-                    // says so; then what the argument left is gone. Otherwise the field keeps the argument.
+                    // field that holds its default, and where objectOverrideDefaultInitialization, a field or
+                    // predicate override or a root rule says so; then what the argument left is gone. Otherwise,
+                    // with a @Randomizer too, the field keeps the argument.
+                    Field field = Objects.requireNonNull(member.field(), "a field member");
                     if (!isGenerated(member)
                             || !(stored.contains(path)
                                     || config.isOverrideDefaultInitialization()
-                                    || hasMemberGenerator(member))) {
+                                    || overridesField(member.owner(), member.name(), field)
+                                    || installedKeys.contains(key(member.owner(), member.name())))) {
                         continue;
                     }
                     leftNull.removeAll(stored);

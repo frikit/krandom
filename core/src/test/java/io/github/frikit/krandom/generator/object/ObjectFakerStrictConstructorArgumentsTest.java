@@ -9,10 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.object.FixtureRuleProblem.Category;
 import io.github.frikit.krandom.generator.object.ObjectFakerStrictDiagnosticsTest.ConstructedEnvelope;
 import io.github.frikit.krandom.generator.object.ObjectFakerStrictDiagnosticsTest.ConstructedPurchaseAccount;
+import io.github.frikit.krandom.generator.object.ObjectFakerStrictDiagnosticsTest.Middle;
 import io.github.frikit.krandom.generator.object.ObjectFakerStrictDiagnosticsTest.NodeRecord;
 import io.github.frikit.krandom.generator.object.exception.FixtureRuleException;
 import jakarta.validation.constraints.Null;
@@ -203,5 +205,52 @@ class ObjectFakerStrictConstructorArgumentsTest {
                 .ruleFor("id", () -> "x")
                 .ruleFor("middle.purchase.note", () -> "n");
         assertEquals(List.of(), problemsOf(supplied.followConstructorArguments()));
+    }
+
+    static final class NewMiddle implements Generator<Middle> {
+        @Override
+        public Middle generate() {
+            return new Middle();
+        }
+    }
+
+    static final class RandomizedEnvelope extends ObjectFakerStrictDiagnosticsTest.BaseEntity {
+        @Randomizer(NewMiddle.class)
+        Middle middle;
+
+        RandomizedEnvelope(Middle middle) {
+            this.middle = middle;
+        }
+    }
+
+    static class EnvelopeBase extends ObjectFakerStrictDiagnosticsTest.BaseEntity {
+        Middle middle;
+    }
+
+    static final class SubEnvelope extends EnvelopeBase {
+        SubEnvelope(Middle middle) {
+            this.middle = middle;
+        }
+    }
+
+    @Test
+    @DisplayName("a field with a @Randomizer keeps its argument, and one a root rule supplies does not")
+    void randomizerKeepsTheArgumentAndARootRuleReplacesIt() {
+        GeneratorConfig shallow = GeneratorConfig.builder().objectMaxDepth(1).build();
+        ObjectFaker<RandomizedEnvelope> randomized = new ObjectFaker<>(RandomizedEnvelope.class, shallow)
+                .ruleFor("id", () -> "x")
+                .ruleFor("middle.purchase.note", () -> "n");
+
+        // Generation keeps the middle the constructor stored, and the nested rule builds its purchase.
+        assertEquals("x", randomized.generate().middle.purchase.id);
+        assertAmbiguousAt(randomized.followConstructorArguments(), "id", "middle.purchase.id");
+
+        // A root rule on the inherited field replaces the middle the constructor stored with a value that nothing
+        // is known of, so nothing below it is followed, as below any member that a rule supplies.
+        ObjectFaker<SubEnvelope> ruled = new ObjectFaker<>(SubEnvelope.class, shallow)
+                .ruleFor("id", () -> "x")
+                .ruleFor("middle", Middle::new)
+                .ruleFor("middle.purchase.note", () -> "n");
+        assertEquals(List.of(), problemsOf(ruled.followConstructorArguments()));
     }
 }
