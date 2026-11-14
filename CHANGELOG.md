@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-11-14
+
 ### Added
 
 - Three `GeneratorConfig.Builder` settings that change seeded output, each off by default in 3.x, so every
@@ -2262,7 +2264,8 @@ Condensed summary of all pre-1.0.0 development (≈Feb–Apr 2026), originally t
 ### Removed
 - Kotlin and Scala API modules (implementation surface kept focused); deprecated APIs and deprecated Java locale usage.
 
-[Unreleased]: https://github.com/frikit/krandom/compare/v3.1.0...HEAD
+[Unreleased]: https://github.com/frikit/krandom/compare/v3.2.0...HEAD
+[3.2.0]: https://github.com/frikit/krandom/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/frikit/krandom/compare/v3.0.3...v3.1.0
 [3.0.3]: https://github.com/frikit/krandom/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/frikit/krandom/compare/v3.0.1...v3.0.2
