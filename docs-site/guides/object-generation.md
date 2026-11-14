@@ -466,6 +466,8 @@ Supported in the current fixture layer:
 - `afterGenerate(...)` / `postProcess(...)`
 - `populate(existing)` for mutable classes
 - `ObjectFaker.strict()` to check the rules before every generation, as described below
+- `ruleForKeepingRecipe(...)`, a root rule that keeps the recipe and the other seeded values (3.2+)
+- `followConstructorArguments()`, which makes the check follow constructor arguments and record components (3.2+)
 
 Use `ObjectModel<T>` when a fixture definition must be immutable, reusable, and composable:
 
