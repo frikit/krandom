@@ -81,6 +81,31 @@ format=krandom-recipe
 ...
 ```
 
+### How the failure line names an invocation (3.2+)
+
+The failure line quotes the test's JUnit display name, except for an invocation of a test template:
+a `@ParameterizedTest` invocation, a `@RepeatedTest` repetition, or an invocation of another
+`@TestTemplate`. JUnit formats the display name of a parameterized invocation from its arguments, by
+default as `[2] "alice@example.com"`, so a generated argument would reach the log through that line.
+The failure line therefore names each invocation by its template's display name and its invocation
+index:
+
+```text
+krandom: test 'rejects(String) [2]' failed with pinned seed 8155926046530546882.
+```
+
+where 3.1 printed:
+
+```text
+krandom: test '[2] "alice@example.com"' failed with pinned seed 8155926046530546882.
+```
+
+A repetition is named the same way, `'retries(Krandom) [2]'` rather than `'repetition 2 of 5'`. Other
+tests keep their display name. The report entries and the replay commands contain no display name,
+so they do not change, and no generated value changes. To print the display name as 3.1 did, set
+`krandom.junit.redact-invocation-names=false` (`KRANDOM_JUNIT_REDACT_INVOCATION_NAMES=false`); `true` is
+the default, and other values are rejected.
+
 ## Replay without editing the test source
 
 Copy the printed command when rerunning a CI failure. Both commands carry the complete, redacted
@@ -108,11 +133,25 @@ KRANDOM_JUNIT_SEED=8155926046530546882 ./gradlew test --tests 'com.example.Order
 mvn test -Dtest='com.example.OrderServiceTest' -Dkrandom.junit.seed=8155926046530546882
 ```
 
+A recipe or seed override also seeds the class-scoped configurations described
+[below](#test-method-and-class-scoped-configurations), which `@BeforeAll` methods and `@MethodSource`
+factories use. On its own it therefore gives a factory the test's seed, not the class-scoped seed of
+the failing run, and the factory may generate other arguments than it did then. When the failure
+output prints a `KRANDOM_JUNIT_CLASS_RECIPE` value, pass it too, as the printed commands do. A recipe
+override that reaches a class-scoped configuration without a class recipe for that class prints a
+warning once for each class:
+
+```text
+krandom: krandom.junit.recipe replays the class-scoped configuration of 'DiscountTest' (@BeforeAll/@AfterAll, PER_CLASS constructor and @MethodSource factory parameters) as well, so @MethodSource arguments and other data created there come from that recipe and may differ from the failing run. To replay them, also set KRANDOM_JUNIT_CLASS_RECIPE (Maven: -Dkrandom.junit.class-recipe) to the value that the failure output printed.
+```
+
+A seed override prints no warning, because a build may keep one set for every run.
+
 ### Where settings are read
 
-`krandom.junit.recipe`, `krandom.junit.seed`, `krandom.junit.class-recipe`, and
-`krandom.junit.snapshot-clock` are read as JUnit Platform configuration parameters, so any of these
-sources works:
+`krandom.junit.recipe`, `krandom.junit.seed`, `krandom.junit.class-recipe`,
+`krandom.junit.snapshot-clock`, and `krandom.junit.redact-invocation-names` are read as JUnit
+Platform configuration parameters, so any of these sources works:
 
 - a JVM system property of the **test** JVM (Maven `-D`, Surefire `systemPropertyVariables`, or
   Gradle `tasks.test { systemProperty("krandom.junit.seed", "42") }`),
@@ -120,7 +159,8 @@ sources works:
 - an entry in `src/test/resources/junit-platform.properties`.
 
 When none of them is set, the matching environment variable is used: `KRANDOM_JUNIT_RECIPE`,
-`KRANDOM_JUNIT_SEED`, `KRANDOM_JUNIT_CLASS_RECIPE`, or `KRANDOM_JUNIT_SNAPSHOT_CLOCK`. Configure
+`KRANDOM_JUNIT_SEED`, `KRANDOM_JUNIT_CLASS_RECIPE`, `KRANDOM_JUNIT_SNAPSHOT_CLOCK`, or
+`KRANDOM_JUNIT_REDACT_INVOCATION_NAMES`. Configure
 only one effective replay value: a recipe and a seed together, from any sources, are a configuration
 error; a class recipe combines with either. Replay values override `@KrandomSeed`, so a CI runner
 can reproduce a failure without changing the test source.
@@ -151,7 +191,20 @@ Rules:
   enclosing class's seed.
 - A `@MethodSource` factory takes the class-scoped configuration described below, so a
   method-level annotation pins the invocations of its `@ParameterizedTest` but not the factory
-  that generates their arguments. Pin the class to fix those arguments.
+  that generates their arguments. Pin the class to fix those arguments. When the factory of a
+  failing invocation took an unpinned class-scoped configuration, the failure hint therefore names
+  both seeds, and following it reproduces the arguments as well as the invocation's own data:
+
+  ```text
+  krandom: test 'appliesTheWelcomeDiscount(String) [1]' failed with seed 8155926046530546882. Annotate it with @KrandomSeed(8155926046530546882L) and its class with @KrandomSeed(-4291135988941929283L) to reproduce this run.
+  ```
+
+  Before 3.2 the hint named only the test's seed. While a method-level annotation pins a parameterized test whose factory takes an unpinned
+  class-scoped configuration, the extension prints this warning once for that test:
+
+  ```text
+  krandom: @KrandomSeed on 'appliesTheWelcomeDiscount(String)' pins its invocations, not the arguments of its @MethodSource factory, which takes the unpinned class-scoped configuration of 'DiscountTest'. To reproduce the arguments of a failing run, also annotate 'DiscountTest' with the class-scoped seed that the failure output printed, or replay with the printed commands.
+  ```
 - String seeds are supported via `@KrandomSeed(text = "checkout-flow")` and derive the numeric
   seed with the same `fnv1a64-v1` algorithm as `GeneratorConfig.builder().seed(String)`.
 - Setting both `value` and `text` (or neither) is a configuration error and fails the test.

@@ -68,6 +68,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   constructor to store its arguments as given, and reports a root rule, root ignore or include-mode exclusion
   that reaches the members of such a parent. Without it the check is unchanged; with it `strict()` can newly
   fail. Generation is unchanged either way.
+- `krandom-junit` warns on `System.err` when a replay cannot reproduce what a `@MethodSource` factory
+  generated, and says what to set instead. A `krandom.junit.recipe` override seeds every class-scoped
+  configuration too, so without the `krandom.junit.class-recipe` value that the failure output printed beside
+  it, a factory takes the test's recipe and may generate other arguments; it now warns once for each such
+  class. A method-level `@KrandomSeed` on a `@ParameterizedTest` whose factory takes an unpinned class-scoped
+  configuration pins the invocations but not their arguments; it now warns once for that test. No seeded
+  value or replay changes.
 
 ### Changed
 
@@ -89,6 +96,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     breach.
   - Each value still builds its generator for other built-in references, `registerProvider` references,
     module providers, and every reference of a configuration with modules or its own `DataRegistryContext`.
+- The `krandom-junit` failure line names an invocation of a test template, that is a `@ParameterizedTest`
+  invocation, a `@RepeatedTest` repetition or an invocation of another `@TestTemplate`, by its template's display
+  name and invocation index rather than by its own display name, which JUnit formats from the generated arguments.
+  `krandom: test '[2] "alice@example.com"' failed with pinned seed 42.` is now
+  `krandom: test 'rejects(String) [2]' failed with pinned seed 42.`, and
+  `krandom: test 'repetition 2 of 5' failed ...` is now `krandom: test 'retries(Krandom) [2]' failed ...`.
+  Other tests keep their display name, and no report entry, replay command or generated value changes.
+  `krandom.junit.redact-invocation-names=false` (`KRANDOM_JUNIT_REDACT_INVOCATION_NAMES=false`) prints the 3.1
+  line; other values than `true` and `false` are a configuration error.
+- When the `@MethodSource` factory of a failing `@ParameterizedTest` invocation took an unpinned class-scoped
+  configuration, the `krandom-junit` reproduction hint names the class-scoped seed beside the test's, so that
+  following it reproduces the factory's arguments: `Annotate it with @KrandomSeed(8155926046530546882L) to
+  reproduce this run.` is now `Annotate it with @KrandomSeed(8155926046530546882L) and its class with
+  @KrandomSeed(-4291135988941929283L) to reproduce this run.` The hint of every other failure, and every seeded
+  value, stays as it was.
 
 ### Fixed
 

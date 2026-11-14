@@ -88,7 +88,18 @@ import org.junit.platform.commons.support.AnnotationSupport;
  *       test class by its canonical name and gives the recipe of that class's class-scoped
  *       configuration. A listed class ignores the other overrides and {@link KrandomSeed} for its
  *       class-scoped configuration; test methods and unlisted classes are unaffected.</li>
+ *   <li>{@code krandom.junit.redact-invocation-names} ({@code KRANDOM_JUNIT_REDACT_INVOCATION_NAMES}):
+ *       by default, or when {@code true}, the failure line names an invocation of a test template,
+ *       such as a {@code @ParameterizedTest} or {@code @RepeatedTest}, by its template's display
+ *       name and invocation index, as in {@code 'rejects(String) [2]'}, rather than by its own
+ *       display name, which JUnit formats from the arguments. {@code false} quotes the display name,
+ *       as 3.1 did; other values are rejected.</li>
  * </ul>
+ *
+ * <p>A replay that cannot reproduce the arguments of a {@code @MethodSource} factory says so on
+ * {@code System.err}: a {@code krandom.junit.recipe} override applied to a class-scoped
+ * configuration that {@code krandom.junit.class-recipe} does not list, and a {@link KrandomSeed}
+ * on a {@code @ParameterizedTest} whose factory takes an unpinned class-scoped configuration.
  *
  * <p>Customizations to an injected builder are not tracked by the extension; report the actual
  * customized configuration's recipe yourself.
@@ -98,7 +109,9 @@ import org.junit.platform.commons.support.AnnotationSupport;
  * Both are printed to {@code System.err} with a reproduction hint, the source of the recorded
  * clock instant, and copyable Gradle and Maven replay commands, so a failing unpinned run can be
  * replayed either by one of those commands or by annotating the test with
- * {@code @KrandomSeed(<reported seed>L)}.
+ * {@code @KrandomSeed(<reported seed>L)}. When the {@code @MethodSource} factory of a failing
+ * invocation took an unpinned class-scoped configuration, the hint also names that class's seed,
+ * so that annotating the class as well reproduces the factory's arguments.
  *
  * <p><b>Usage</b>
  * <pre>{@code
@@ -139,6 +152,10 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     private static final String CLASS_REPLAY_RECIPE_ENVIRONMENT = "KRANDOM_JUNIT_CLASS_RECIPE";
     private static final String SNAPSHOT_CLOCK_PROPERTY = "krandom.junit.snapshot-clock";
     private static final String SNAPSHOT_CLOCK_ENVIRONMENT = "KRANDOM_JUNIT_SNAPSHOT_CLOCK";
+    private static final String REDACT_INVOCATION_NAMES_PROPERTY = "krandom.junit.redact-invocation-names";
+    private static final String REDACT_INVOCATION_NAMES_ENVIRONMENT = "KRANDOM_JUNIT_REDACT_INVOCATION_NAMES";
+    private static final String CLASS_SCOPED_PARAMETERS =
+            "(@BeforeAll/@AfterAll, PER_CLASS constructor and @MethodSource factory parameters)";
 
     private final Function<String, @Nullable String> environment;
 
@@ -162,8 +179,16 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
         RECIPE
     }
 
-    /** Resolved configuration for one extension context and whether its source is explicit. */
-    private record SeedInfo(GeneratorConfig config, boolean pinned, ClockSource clockSource) {
+    /**
+     * Resolved configuration for one extension context, whether its source is explicit, and whether
+     * its failure line names an invocation of a test template without its display name.
+     */
+    private record SeedInfo(
+            GeneratorConfig config, boolean pinned, ClockSource clockSource, boolean redactInvocationNames) {
+
+        private SeedInfo(GeneratorConfig config, boolean pinned, ClockSource clockSource) {
+            this(config, pinned, clockSource, false);
+        }
 
         private long seed() {
             return config.getSeed().orElseThrow();
@@ -184,6 +209,12 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
 
     /** Store key of the session of exactly one extension context, for the reason given on {@link ContextKey}. */
     private record SessionKey(String uniqueId) {}
+
+    /** Store key marking that the factory of one parameterized test has been warned about. */
+    private record FactoryWarningKey(String uniqueId) {}
+
+    /** Store key marking that the factory of one parameterized test resolved a parameter of this extension. */
+    private record FactoryKey(String uniqueId) {}
 
     private record ConfiguredValue(String value, String source) {}
 
@@ -213,7 +244,12 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        GeneratorConfig config = seedInfo(extensionContext).config();
+        SeedInfo info = seedInfo(extensionContext);
+        if (isTestTemplate(extensionContext)) {
+            extensionContext.getStore(NAMESPACE).put(new FactoryKey(extensionContext.getUniqueId()), Boolean.TRUE);
+            warnIfOnlyTheTestIsPinned(extensionContext, info);
+        }
+        GeneratorConfig config = info.config();
         Class<?> type = parameterContext.getParameter().getType();
         if (type == Krandom.class) {
             return session(extensionContext, config);
@@ -222,6 +258,38 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
             return config;
         }
         return config.toBuilder();
+    }
+
+    /**
+     * Warns once per parameterized test when a {@link KrandomSeed} on the test method pins its
+     * invocations while its {@code @MethodSource} factory, which JUnit resolves against the context
+     * of the test as a whole, takes an unpinned class-scoped configuration: the arguments then change
+     * from run to run, and the seed that a failure reports for the test does not reproduce them.
+     */
+    private static void warnIfOnlyTheTestIsPinned(ExtensionContext factoryContext, SeedInfo classInfo) {
+        boolean testPinned = factoryContext
+                .getTestMethod()
+                .flatMap(method -> AnnotationSupport.findAnnotation(method, KrandomSeed.class))
+                .isPresent();
+        if (testPinned && !classInfo.pinned()) {
+            factoryContext
+                    .getStore(NAMESPACE)
+                    .computeIfAbsent(
+                            new FactoryWarningKey(factoryContext.getUniqueId()),
+                            key -> {
+                                String testClass = scopeContext(factoryContext)
+                                        .getRequiredTestClass()
+                                        .getSimpleName();
+                                System.err.println("krandom: @KrandomSeed on '" + factoryContext.getDisplayName()
+                                        + "' pins its invocations, not the arguments of its @MethodSource factory,"
+                                        + " which takes the unpinned class-scoped configuration of '" + testClass
+                                        + "'. To reproduce the arguments of a failing run, also annotate '"
+                                        + testClass + "' with the class-scoped seed that the failure output"
+                                        + " printed, or replay with the printed commands.");
+                                return Boolean.TRUE;
+                            },
+                            Boolean.class);
+        }
     }
 
     /**
@@ -250,16 +318,34 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
         System.err.println(failureMessage(context, info, recipe, serialized));
     }
 
+    /**
+     * Returns the unpinned class-scoped configuration that the {@code @MethodSource} factory of this
+     * invocation's parameterized test took, if it took one: annotating that class with its seed, as
+     * well as the test with its own, then reproduces the factory's arguments. Its class is the one
+     * that {@link #scopeContext} gives the test template, which holds the configuration.
+     */
+    private static Optional<SeedInfo> unpinnedFactoryClass(ExtensionContext context) {
+        return context.getParent()
+                .filter(KrandomExtension::isTestTemplate)
+                .filter(template -> template.getStore(NAMESPACE).get(new FactoryKey(template.getUniqueId())) != null)
+                .map(template -> ownSeedInfo(scopeContext(template)))
+                .filter(classInfo -> !classInfo.pinned());
+    }
+
     private static String failureMessage(
             ExtensionContext context, SeedInfo info, GenerationRecipe recipe, String serialized) {
         StringBuilder message = new StringBuilder();
+        String testName = info.redactInvocationNames() ? redactedTestName(context) : context.getDisplayName();
         if (info.pinned()) {
-            message.append(
-                    "krandom: test '%s' failed with pinned seed %d.".formatted(context.getDisplayName(), info.seed()));
+            message.append("krandom: test '%s' failed with pinned seed %d.".formatted(testName, info.seed()));
         } else {
-            message.append(
-                    "krandom: test '%s' failed with seed %d. Annotate it with @KrandomSeed(%dL) to reproduce this run."
-                            .formatted(context.getDisplayName(), info.seed(), info.seed()));
+            message.append(unpinnedFactoryClass(context)
+                    .map(classInfo -> ("krandom: test '%s' failed with seed %d. Annotate it with @KrandomSeed(%dL)"
+                                    + " and its class with @KrandomSeed(%dL) to reproduce this run.")
+                            .formatted(testName, info.seed(), info.seed(), classInfo.seed()))
+                    .orElseGet(() ->
+                            "krandom: test '%s' failed with seed %d. Annotate it with @KrandomSeed(%dL) to reproduce this run."
+                                    .formatted(testName, info.seed(), info.seed())));
         }
         message.append(System.lineSeparator()).append(clockLine(info.clockSource(), recipe));
         StringJoiner classRecipes = new StringJoiner(",");
@@ -302,6 +388,24 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
                 .append(System.lineSeparator())
                 .append(serialized);
         return message.toString();
+    }
+
+    /**
+     * Names an invocation of a test template, such as a {@code @ParameterizedTest}, by the display
+     * name of its template and its invocation index, because JUnit formats the display name of a
+     * parameterized invocation from its arguments, which may hold generated data. Any other test
+     * keeps its display name. The index is the value of the last unique ID segment, which the Jupiter
+     * engine writes as {@code [test-template-invocation:#<index>]}.
+     */
+    private static String redactedTestName(ExtensionContext context) {
+        return context.getParent()
+                .filter(KrandomExtension::isTestTemplate)
+                .map(template -> {
+                    String uniqueId = context.getUniqueId();
+                    String index = uniqueId.substring(uniqueId.lastIndexOf(":#") + 2, uniqueId.length() - 1);
+                    return template.getDisplayName() + " [" + index + "]";
+                })
+                .orElseGet(context::getDisplayName);
     }
 
     private static String encode(String serializedRecipe) {
@@ -347,7 +451,7 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
         SeedInfo classInfo = scope.info();
         String prefix = "krandom: class-scoped configuration of '"
                 + scope.testClass().getSimpleName()
-                + "' (@BeforeAll/@AfterAll, PER_CLASS constructor and @MethodSource factory parameters)";
+                + "' " + CLASS_SCOPED_PARAMETERS;
         return classInfo.pinned()
                 ? prefix + " used pinned seed " + classInfo.seed() + "."
                 : prefix + " used seed " + classInfo.seed() + "; the replay commands restore it. To pin it in source,"
@@ -437,32 +541,38 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     }
 
     private SeedInfo computeSeedInfo(ExtensionContext context) {
-        boolean snapshotClock = snapshotClock(context);
+        boolean snapshotClock = booleanSetting(context, SNAPSHOT_CLOCK_PROPERTY, SNAPSHOT_CLOCK_ENVIRONMENT, false);
+        boolean redactInvocationNames =
+                booleanSetting(context, REDACT_INVOCATION_NAMES_PROPERTY, REDACT_INVOCATION_NAMES_ENVIRONMENT, true);
         SeedInfo info = computeConfiguredSeedInfo(context);
-        if (!snapshotClock || info.clockSource() == ClockSource.RECIPE) {
-            return info;
+        GeneratorConfig config = info.config();
+        ClockSource clockSource = info.clockSource();
+        if (snapshotClock && clockSource != ClockSource.RECIPE) {
+            config = config.snapshotClock();
+            clockSource = ClockSource.SNAPSHOT;
         }
-        return new SeedInfo(info.config().snapshotClock(), info.pinned(), ClockSource.SNAPSHOT);
+        return new SeedInfo(config, info.pinned(), clockSource, redactInvocationNames);
     }
 
-    private boolean snapshotClock(ExtensionContext context) {
-        Optional<ConfiguredValue> configured =
-                configuredValue(context, SNAPSHOT_CLOCK_PROPERTY, SNAPSHOT_CLOCK_ENVIRONMENT);
+    private boolean booleanSetting(ExtensionContext context, String property, String variable, boolean defaultValue) {
+        Optional<ConfiguredValue> configured = configuredValue(context, property, variable);
         if (configured.isEmpty()) {
-            return false;
+            return defaultValue;
         }
         return switch (configured.get().value()) {
             case "true" -> true;
             case "false" -> false;
             default ->
-                throw new ExtensionConfigurationException(SNAPSHOT_CLOCK_PROPERTY + " must be true or false, got '"
+                throw new ExtensionConfigurationException(property + " must be true or false, got '"
                         + configured.get().value() + "' from "
                         + configured.get().source());
         };
     }
 
     private SeedInfo computeConfiguredSeedInfo(ExtensionContext context) {
-        if (context.getTestMethod().isEmpty() && context.getTestClass().isPresent()) {
+        boolean classScoped =
+                context.getTestMethod().isEmpty() && context.getTestClass().isPresent();
+        if (classScoped) {
             Optional<SeedInfo> classReplay = classRecipeInfo(context);
             if (classReplay.isPresent()) {
                 return classReplay.get();
@@ -478,7 +588,11 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
                     + seedOverride.get().source());
         }
         if (recipeOverride.isPresent()) {
-            return recipeInfo(recipeOverride.get());
+            SeedInfo info = recipeInfo(recipeOverride.get());
+            if (classScoped) {
+                warnThatTheRecipeReplaysClassScopedData(context, recipeOverride.get());
+            }
+            return info;
         }
         if (seedOverride.isPresent()) {
             return numericSeedInfo(seedOverride.get());
@@ -505,6 +619,22 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
             throw new ExtensionConfigurationException("@KrandomSeed text seed must not be blank");
         }
         return new SeedInfo(GeneratorConfig.builder().seed(seed.text()).build(), true, ClockSource.LIVE);
+    }
+
+    /**
+     * Warns that a recipe override, which replays one failing test, also seeds a class-scoped
+     * configuration that no class recipe restores. The failure output prints a class recipe for
+     * every class-scoped configuration beside the test's recipe, so this replay leaves out a value
+     * that it printed, and what {@code @MethodSource} factories and {@code @BeforeAll} methods
+     * generate may differ from the failing run. A seed override does not warn, because a build may
+     * set one permanently.
+     */
+    private static void warnThatTheRecipeReplaysClassScopedData(ExtensionContext context, ConfiguredValue recipe) {
+        System.err.println("krandom: " + recipe.source() + " replays the class-scoped configuration of '"
+                + context.getRequiredTestClass().getSimpleName() + "' " + CLASS_SCOPED_PARAMETERS
+                + " as well, so @MethodSource arguments and other data created there come from that recipe and may"
+                + " differ from the failing run. To replay them, also set " + CLASS_REPLAY_RECIPE_ENVIRONMENT
+                + " (Maven: -D" + CLASS_REPLAY_RECIPE_PROPERTY + ") to the value that the failure output printed.");
     }
 
     /**
