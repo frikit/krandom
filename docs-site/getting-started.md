@@ -185,7 +185,9 @@ String title = fake.pick("MR", "MRS", "MS", "DR");
 
 Create one session and reuse it; a new session starts every stream again. `Krandom.seeded(seed,
 locale)` is the short form when dates may follow the system clock, and
-`NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED` on the configuration allows `nationalId()`. For any
+`NationalIdSafetyPolicy.REALISTIC_UNCLASSIFIED` on the configuration allows `nationalId()`.
+`postalCode()` and `city()` draw separately; `postalLocality()` gives a city with one of its own postal
+codes, in a locale with [postal places]({{ '/guides/locale-aware-data/' | relative_url }}#coherent-addresses). For any
 other generator, build it from `fake.streamConfig("name")` so it gets a stream of its own.
 
 ## Run checks locally

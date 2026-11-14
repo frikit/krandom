@@ -19,6 +19,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   The same draws are made either way. A recipe records `setting.address.german-street-layout=true` while it
   is on, and a recipe without it replays with it off. Other locales that write the street first, such as
   `nl_NL`, keep the house number first: their street data is shaped differently.
+- `Krandom.postalLocality()`, `Generators.ofPostalLocality()`, `ofPostalLocality(Locale)` and
+  `ofPostalLocality(GeneratorConfig)`, `Generators.location().postalLocality()` and `postalLocality(Locale)`,
+  the `PostalLocalityGenerator` and the `PostalLocality` record give a city, its region and region code, and
+  one of its postal codes, all from one place of `Vocabulary.POSTAL_PLACE`, so the postal code serves the
+  city. `Krandom.city()` and `postalCode()` draw separately, and their values need not agree.
+  `Krandom.seeded("pins", Locale.US).postalLocality()` gives Pasadena, Texas, `TX`, `77505`. The session
+  draws it from a stream of its own, so no other value changes. A locale without postal places, such
+  as `de_AT` or `ja_JP`, throws `UnsupportedOperationException` unless places are registered for its country.
 
 ### Changed
 

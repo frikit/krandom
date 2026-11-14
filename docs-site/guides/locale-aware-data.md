@@ -132,6 +132,20 @@ every locale. `Krandom.city()` and `Krandom.postalCode()` draw separately, and s
 `address.city`, `address.state`, and `address.postal_code` schema columns; use `Generators.ofAddressInfo`
 or the `address.address_info` provider for an address whose parts belong together.
 
+For a city and a postal code that belong together without the rest of an address, `Krandom.postalLocality()`
+and `Generators.ofPostalLocality(...)` (since 3.2.0) give a `PostalLocality`: a city, its region and region
+code, and one of its postal codes, all from one place.
+
+```java
+Krandom fake = Krandom.seeded("pins", Locale.US);
+PostalLocality place = fake.postalLocality();  // Pasadena, Texas, TX, 77505
+String line = place.city() + ", " + place.regionCode() + " " + place.postalCode();
+```
+
+It draws from a stream of its own, so `city()` and `postalCode()` keep their values. It needs postal places,
+so a locale without them, such as `de_AT` or `ja_JP`, throws `UnsupportedOperationException` unless you
+register places for its country, as below.
+
 Places you register take precedence over the bundled ones for the same locale key, and serve every
 language of their country:
 
