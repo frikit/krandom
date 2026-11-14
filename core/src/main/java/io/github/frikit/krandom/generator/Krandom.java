@@ -6,6 +6,7 @@
 package io.github.frikit.krandom.generator;
 
 import io.github.frikit.krandom.generator.location.CountryCodes;
+import io.github.frikit.krandom.generator.location.PostalLocality;
 import io.github.frikit.krandom.generator.user.Gender;
 import io.github.frikit.krandom.generator.user.TitleGenerator;
 import java.time.LocalDate;
@@ -308,6 +309,20 @@ public final class Krandom {
      */
     public String postalCode() {
         return kind("postalCode", Generators::ofPostalCode).generate();
+    }
+
+    /**
+     * Returns a city with its region and one of its postal codes, all from one entry of the locale's
+     * {@linkplain Vocabulary#POSTAL_PLACE postal places}, so the postal code serves the city. {@link #city()}
+     * and {@link #postalCode()} draw separately, so theirs need not agree; this draws from a stream of its
+     * own and leaves theirs as they are. The bundled places cover the United States, Great Britain, Germany
+     * and France; another locale needs places registered for its country.
+     *
+     * @return a city, its region and one of its postal codes
+     * @throws UnsupportedOperationException if the configured locale has no postal places
+     */
+    public PostalLocality postalLocality() {
+        return kind("postalLocality", Generators::ofPostalLocality).generate();
     }
 
     /**

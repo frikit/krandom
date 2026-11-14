@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `GeneratorConfig.Builder.germanStreetLayout(boolean)` and `GeneratorConfig.isGermanStreetLayout()`, with
+  `germanStreetLayout(Boolean)` in the Kotlin DSL's `config { }`, write the street addresses of the locales
+  whose language is German (`de`, `de_DE`, `de_AT`, `de_CH` and any other `de_*`) as German does: the street
+  name and its type as one word, then the house number. Seeded with 42, `de_DE` gives `"Schlossanger 7389"`
+  rather than `"7389 Schloss Anger"`. It is off by default, so seeded output stays the same, and it becomes
+  the default in 4.0. `StreetAddressGenerator.generate`, the street of `generateFullAddress()`, and
+  `AddressInfo.street()` and `address()` follow it, and so do `Krandom.streetAddress()`, the
+  `address.street_address` and `address.address_info` schema columns and the object engine's street fields.
+  The same draws are made either way. A recipe records `setting.address.german-street-layout=true` while it
+  is on, and a recipe without it replays with it off. Other locales that write the street first, such as
+  `nl_NL`, keep the house number first: their street data is shaped differently.
+- `Krandom.postalLocality()`, `Generators.ofPostalLocality()`, `ofPostalLocality(Locale)` and
+  `ofPostalLocality(GeneratorConfig)`, `Generators.location().postalLocality()` and `postalLocality(Locale)`,
+  the `PostalLocalityGenerator` and the `PostalLocality` record give a city, its region and region code, and
+  one of its postal codes, all from one place of `Vocabulary.POSTAL_PLACE`, so the postal code serves the
+  city. `Krandom.city()` and `postalCode()` draw separately, and their values need not agree.
+  `Krandom.seeded("pins", Locale.US).postalLocality()` gives Pasadena, Texas, `TX`, `77505`. The session
+  draws it from a stream of its own, so no other value changes. A locale without postal places, such
+  as `de_AT` or `ja_JP`, throws `UnsupportedOperationException` unless places are registered for its country.
+
 ### Changed
 
 - A seeded `Schema` takes each value of a common built-in `Field` reference from one generator kept for its
