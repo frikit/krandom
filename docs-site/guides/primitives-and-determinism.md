@@ -100,6 +100,13 @@ algorithm and child-seed derivation are unchanged. Portable recipes with the exp
 that new setting rather than silently changing replay. Customized configurations still return no
 portable recipe. Roll back by selecting LEGACY or removing the option and regenerating the recipe.
 
+An `ObjectFaker` root rule is such a customization: `ruleFor(path, generator)` on a root member installs a
+field override, so the faker generates without a recipe and, under LEGACY, every seeded member changes.
+From 3.2, `ObjectFaker.ruleForKeepingRecipe(path, generator)` installs the same rule but keeps the
+configuration's recipe and named streams, so only the members the rule supplies, and what semantic
+coherence derives from them, change. See
+[Root rules that keep the recipe]({{ '/guides/object-generation/' | relative_url }}#root-rules-that-keep-the-recipe-32).
+
 Independent streams can cost more for customized fixtures because each member receives its own
 resolver stream. In the 2.3.0 qualification's three-member structural record, customized throughput
 was about 32k objects/sec with INDEPENDENT versus 101k with LEGACY, with 3.4 times the allocations.

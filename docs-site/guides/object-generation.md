@@ -490,6 +490,37 @@ Nested `include(...)` paths keep the parent object alive and clear sibling field
 
 `ObjectFaker<T>` reuses the same root `GeneratorConfig`, semantic resolver, locale, seed, and override rules as `ObjectGenerator<T>`.
 
+### Root rules that keep the recipe (3.2+)
+
+A root `ruleFor(path, generator)`, a root `ruleForContext(...)`, a root `ignore(...)` and `include(...)` are
+installed in the configuration that generation runs with, as overrides and exclusions that no recipe can
+record. With one of them the faker generates without a portable recipe: its report gives no recipe format,
+its failure diagnostics no replay identity, and under the default `ObjectFieldStreamPolicy.LEGACY` the other
+members draw from one shared sequence instead of their named streams, so every seeded member changes. Nested
+and dependent rules run after generation, so they keep the recipe and the other values already.
+
+`ruleForKeepingRecipe(path, generator)`, with the same accessor and `PropertyPath` forms as `ruleFor`, is a
+root rule that keeps them too:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder().seed(42L).build();
+
+UserDto plain = new ObjectFaker<>(UserDto.class, config).generate();
+UserDto pinned = new ObjectFaker<>(UserDto.class, config)
+        .ruleForKeepingRecipe(UserDto::getNickname, () -> "ada")
+        .generate();
+// pinned differs from plain only in its nickname.
+```
+
+It is installed and applied as `ruleFor` is, wherever generation fills its member, so the strict check
+reports it as a root rule. But generation keeps the recipe of the faker's `GeneratorConfig` and its named
+streams, so a seeded object differs only in the members the rule supplies, and in what semantic coherence
+derives from them, such as an email from a name. Replaying the recipe with the same faker gives the same
+values, as it does for nested and dependent rules; the rule's own generator replays only if it is seeded or
+constant. The recipe is kept while every root rule comes from `ruleForKeepingRecipe`: a root `ruleFor`, a
+root `ruleForContext`, a root `ignore` or an `include` drops it as before, and so does a configuration with
+no portable recipe of its own. Existing rules keep their behaviour, so existing seeded values stay the same.
+
 ### Checking fixture rules with `ObjectFaker.strict()`
 
 `ObjectFaker.strict()` checks the configuration before every `generate()` and `populate(existing)`, and

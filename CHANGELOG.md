@@ -49,6 +49,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `Krandom.seeded("pins", Locale.US).postalLocality()` gives Pasadena, Texas, `TX`, `77505`. The session
   draws it from a stream of its own, so no other value changes. A locale without postal places, such
   as `de_AT` or `ja_JP`, throws `UnsupportedOperationException` unless places are registered for its country.
+- `ObjectFaker.ruleForKeepingRecipe(String, Generator)`, with `PropertySelector` and `PropertyPath` forms,
+  is a root rule that keeps the configuration's recipe and named streams. A root `ruleFor` installs a field
+  override that no recipe records, so the faker generates with no recipe and, under the default
+  `ObjectFieldStreamPolicy.LEGACY`, every seeded member changes. With the new form only the members it
+  supplies, and what semantic coherence derives from them, change, and the report and failure diagnostics
+  keep the recipe. A root `ruleFor`, `ruleForContext`, `ignore` or an `include` on the same faker still
+  drops the recipe. The existing rule methods are unchanged, and so are their seeded values.
 
 ### Changed
 

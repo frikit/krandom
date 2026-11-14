@@ -955,7 +955,7 @@ final class SemanticCoherenceAdjuster {
         return new ObjectGenerationFailurePolicy(
                         config.isIgnoreErrors(),
                         generatorConfig.getGenerationFailureListener(),
-                        () -> generatorConfig.getGenerationRecipe().map(GenerationRecipe::serializeForDiagnostics))
+                        () -> config.generationRecipe().map(GenerationRecipe::serializeForDiagnostics))
                 .handle(
                         new ObjectGenerationException(
                                 "Could not generate a unique value at '" + path + "' (declared type " + declaredType
