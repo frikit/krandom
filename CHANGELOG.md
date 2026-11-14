@@ -49,6 +49,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `Krandom.seeded("pins", Locale.US).postalLocality()` gives Pasadena, Texas, `TX`, `77505`. The session
   draws it from a stream of its own, so no other value changes. A locale without postal places, such
   as `de_AT` or `ja_JP`, throws `UnsupportedOperationException` unless places are registered for its country.
+- `krandom-junit` reads `krandom.junit.redact-invocation-names` (`KRANDOM_JUNIT_REDACT_INVOCATION_NAMES`).
+  Set to `true`, the failure line names an invocation of a test template by its template's display name and
+  invocation index, `krandom: test 'rejects(String) [2]' failed ...`, rather than by the display name that JUnit
+  formats from its arguments, `krandom: test '[2] "alice@example.com"' failed ...`, so generated arguments
+  stay out of the log. The default `false` prints what 3.1 printed, and other tests keep their display name.
 - `krandom-junit` warns on `System.err` when a replay cannot reproduce what a `@MethodSource` factory
   generated, and says what to set instead. A `krandom.junit.recipe` override seeds every class-scoped
   configuration too, so without the `krandom.junit.class-recipe` value that the failure output printed beside

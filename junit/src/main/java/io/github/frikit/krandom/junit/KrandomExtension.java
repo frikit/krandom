@@ -88,6 +88,12 @@ import org.junit.platform.commons.support.AnnotationSupport;
  *       test class by its canonical name and gives the recipe of that class's class-scoped
  *       configuration. A listed class ignores the other overrides and {@link KrandomSeed} for its
  *       class-scoped configuration; test methods and unlisted classes are unaffected.</li>
+ *   <li>{@code krandom.junit.redact-invocation-names=true}
+ *       ({@code KRANDOM_JUNIT_REDACT_INVOCATION_NAMES}) names an invocation of a test template, such
+ *       as a {@code @ParameterizedTest} or {@code @RepeatedTest}, in the failure line by its
+ *       template's display name and invocation index, as in {@code 'rejects(String) [2]'}, rather
+ *       than by its own display name, which JUnit formats from the arguments. The default
+ *       {@code false} keeps the display name; other values are rejected.</li>
  * </ul>
  *
  * <p>A replay that cannot reproduce the arguments of a {@code @MethodSource} factory says so on
@@ -144,6 +150,8 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     private static final String CLASS_REPLAY_RECIPE_ENVIRONMENT = "KRANDOM_JUNIT_CLASS_RECIPE";
     private static final String SNAPSHOT_CLOCK_PROPERTY = "krandom.junit.snapshot-clock";
     private static final String SNAPSHOT_CLOCK_ENVIRONMENT = "KRANDOM_JUNIT_SNAPSHOT_CLOCK";
+    private static final String REDACT_INVOCATION_NAMES_PROPERTY = "krandom.junit.redact-invocation-names";
+    private static final String REDACT_INVOCATION_NAMES_ENVIRONMENT = "KRANDOM_JUNIT_REDACT_INVOCATION_NAMES";
     private static final String CLASS_SCOPED_PARAMETERS =
             "(@BeforeAll/@AfterAll, PER_CLASS constructor and @MethodSource factory parameters)";
 
@@ -169,8 +177,16 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
         RECIPE
     }
 
-    /** Resolved configuration for one extension context and whether its source is explicit. */
-    private record SeedInfo(GeneratorConfig config, boolean pinned, ClockSource clockSource) {
+    /**
+     * Resolved configuration for one extension context, whether its source is explicit, and whether
+     * its failure line names an invocation of a test template without its display name.
+     */
+    private record SeedInfo(
+            GeneratorConfig config, boolean pinned, ClockSource clockSource, boolean redactInvocationNames) {
+
+        private SeedInfo(GeneratorConfig config, boolean pinned, ClockSource clockSource) {
+            this(config, pinned, clockSource, false);
+        }
 
         private long seed() {
             return config.getSeed().orElseThrow();
@@ -299,13 +315,13 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     private static String failureMessage(
             ExtensionContext context, SeedInfo info, GenerationRecipe recipe, String serialized) {
         StringBuilder message = new StringBuilder();
+        String testName = info.redactInvocationNames() ? redactedTestName(context) : context.getDisplayName();
         if (info.pinned()) {
-            message.append(
-                    "krandom: test '%s' failed with pinned seed %d.".formatted(context.getDisplayName(), info.seed()));
+            message.append("krandom: test '%s' failed with pinned seed %d.".formatted(testName, info.seed()));
         } else {
             message.append(
                     "krandom: test '%s' failed with seed %d. Annotate it with @KrandomSeed(%dL) to reproduce this run."
-                            .formatted(context.getDisplayName(), info.seed(), info.seed()));
+                            .formatted(testName, info.seed(), info.seed()));
         }
         message.append(System.lineSeparator()).append(clockLine(info.clockSource(), recipe));
         StringJoiner classRecipes = new StringJoiner(",");
@@ -348,6 +364,24 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
                 .append(System.lineSeparator())
                 .append(serialized);
         return message.toString();
+    }
+
+    /**
+     * Names an invocation of a test template, such as a {@code @ParameterizedTest}, by the display
+     * name of its template and its invocation index, because JUnit formats the display name of a
+     * parameterized invocation from its arguments, which may hold generated data. Any other test
+     * keeps its display name. The index is the value of the last unique ID segment, which the Jupiter
+     * engine writes as {@code [test-template-invocation:#<index>]}.
+     */
+    private static String redactedTestName(ExtensionContext context) {
+        return context.getParent()
+                .filter(KrandomExtension::isTestTemplate)
+                .map(template -> {
+                    String uniqueId = context.getUniqueId();
+                    String index = uniqueId.substring(uniqueId.lastIndexOf(":#") + 2, uniqueId.length() - 1);
+                    return template.getDisplayName() + " [" + index + "]";
+                })
+                .orElseGet(context::getDisplayName);
     }
 
     private static String encode(String serializedRecipe) {
@@ -483,17 +517,21 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
     }
 
     private SeedInfo computeSeedInfo(ExtensionContext context) {
-        boolean snapshotClock = snapshotClock(context);
+        boolean snapshotClock = booleanSetting(context, SNAPSHOT_CLOCK_PROPERTY, SNAPSHOT_CLOCK_ENVIRONMENT);
+        boolean redactInvocationNames =
+                booleanSetting(context, REDACT_INVOCATION_NAMES_PROPERTY, REDACT_INVOCATION_NAMES_ENVIRONMENT);
         SeedInfo info = computeConfiguredSeedInfo(context);
-        if (!snapshotClock || info.clockSource() == ClockSource.RECIPE) {
-            return info;
+        GeneratorConfig config = info.config();
+        ClockSource clockSource = info.clockSource();
+        if (snapshotClock && clockSource != ClockSource.RECIPE) {
+            config = config.snapshotClock();
+            clockSource = ClockSource.SNAPSHOT;
         }
-        return new SeedInfo(info.config().snapshotClock(), info.pinned(), ClockSource.SNAPSHOT);
+        return new SeedInfo(config, info.pinned(), clockSource, redactInvocationNames);
     }
 
-    private boolean snapshotClock(ExtensionContext context) {
-        Optional<ConfiguredValue> configured =
-                configuredValue(context, SNAPSHOT_CLOCK_PROPERTY, SNAPSHOT_CLOCK_ENVIRONMENT);
+    private boolean booleanSetting(ExtensionContext context, String property, String variable) {
+        Optional<ConfiguredValue> configured = configuredValue(context, property, variable);
         if (configured.isEmpty()) {
             return false;
         }
@@ -501,7 +539,7 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
             case "true" -> true;
             case "false" -> false;
             default ->
-                throw new ExtensionConfigurationException(SNAPSHOT_CLOCK_PROPERTY + " must be true or false, got '"
+                throw new ExtensionConfigurationException(property + " must be true or false, got '"
                         + configured.get().value() + "' from "
                         + configured.get().source());
         };

@@ -81,6 +81,23 @@ format=krandom-recipe
 ...
 ```
 
+### Naming invocations without their arguments (3.2+)
+
+The failure line quotes the test's JUnit display name. JUnit formats the display name of a
+`@ParameterizedTest` invocation from its arguments, by default as `[1] "alice@example.com"`, so a
+generated argument reaches the log through that line. Set `krandom.junit.redact-invocation-names=true`
+(`KRANDOM_JUNIT_REDACT_INVOCATION_NAMES=true`) to name every invocation of a test template, whether a
+`@ParameterizedTest`, a `@RepeatedTest` or another `@TestTemplate`, by its template's display name
+and its invocation index instead:
+
+```text
+krandom: test 'rejects(String) [2]' failed with seed 8155926046530546882. Annotate it with @KrandomSeed(8155926046530546882L) to reproduce this run.
+```
+
+Other tests keep their display name. The report entries and the replay commands contain no display
+name, so the setting does not change them, and it changes no generated value. The default `false`
+keeps the display name of every test; other values are rejected.
+
 ## Replay without editing the test source
 
 Copy the printed command when rerunning a CI failure. Both commands carry the complete, redacted
@@ -124,9 +141,9 @@ A seed override prints no warning, because a build may keep one set for every ru
 
 ### Where settings are read
 
-`krandom.junit.recipe`, `krandom.junit.seed`, `krandom.junit.class-recipe`, and
-`krandom.junit.snapshot-clock` are read as JUnit Platform configuration parameters, so any of these
-sources works:
+`krandom.junit.recipe`, `krandom.junit.seed`, `krandom.junit.class-recipe`,
+`krandom.junit.snapshot-clock`, and `krandom.junit.redact-invocation-names` are read as JUnit
+Platform configuration parameters, so any of these sources works:
 
 - a JVM system property of the **test** JVM (Maven `-D`, Surefire `systemPropertyVariables`, or
   Gradle `tasks.test { systemProperty("krandom.junit.seed", "42") }`),
@@ -134,7 +151,8 @@ sources works:
 - an entry in `src/test/resources/junit-platform.properties`.
 
 When none of them is set, the matching environment variable is used: `KRANDOM_JUNIT_RECIPE`,
-`KRANDOM_JUNIT_SEED`, `KRANDOM_JUNIT_CLASS_RECIPE`, or `KRANDOM_JUNIT_SNAPSHOT_CLOCK`. Configure
+`KRANDOM_JUNIT_SEED`, `KRANDOM_JUNIT_CLASS_RECIPE`, `KRANDOM_JUNIT_SNAPSHOT_CLOCK`, or
+`KRANDOM_JUNIT_REDACT_INVOCATION_NAMES`. Configure
 only one effective replay value: a recipe and a seed together, from any sources, are a configuration
 error; a class recipe combines with either. Replay values override `@KrandomSeed`, so a CI runner
 can reproduce a failure without changing the test source.
