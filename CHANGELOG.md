@@ -21,8 +21,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     values that `Math` lets differ in the last bit.
   - `objectReseedBuiltInRandomizers(boolean)` (recipe setting `object.reseed-built-in-randomizers`): object
     generation reseeds a built-in `@Randomizer` that is not `Seedable` from the object's seeded stream, as it
-    does a `Seedable` one, so `@Randomizer(FirstNameGenerator.class)` and the other built-ins that a seeded
-    `Schema` reseeds replay from the seed rather than draw from their own unseeded source.
+    does a `Seedable` one, so they replay from the seed rather than draw from their own unseeded source.
+    They are the 18 built-ins that a seeded `Schema` reseeds and that are not `Seedable`: `FullNameGenerator`,
+    `FirstNameGenerator`, `LastNameGenerator`, `UsernameGenerator`, `EmailGenerator`, `PhoneNumberGenerator`,
+    `StreetAddressGenerator`, `AddressInfoGenerator`, `CityGenerator`, `StateGenerator`,
+    `PostalCodeGenerator`, `CountryGenerator`, `CurrencyGenerator`, `MoneyGenerator`, `UUIDGenerator`,
+    `WordGenerator`, `SentenceGenerator` and `ParagraphGenerator`.
 
   The matching getters are `isAdvancingConvenienceStreams()`, `isStrictMathGaussian()` and
   `isObjectReseedBuiltInRandomizers()`.

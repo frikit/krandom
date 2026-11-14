@@ -114,18 +114,31 @@ class RandomizerReplayTest {
         assertTrue(new HashSet<>(original).size() > 1, "values should vary between objects: " + original);
     }
 
+    public static class IdChild {
+        @Randomizer(UUIDGenerator.class)
+        public UUID id;
+    }
+
+    public static class IdHolder {
+        public List<IdChild> children;
+    }
+
     @Test
-    @DisplayName("the opt-in reseeds a built-in randomizer as a new build with the object's randomizer seed is")
-    void builtInRandomizerTakesTheObjectsRandomizerSeed() {
-        GeneratorConfig config = reseedingBuiltIns(42L);
-        ObjectGenerator<BuiltIns> generator = new ObjectGenerator<>(BuiltIns.class, config);
-        List<UUID> ids = new ArrayList<>();
+    @DisplayName("with the opt-in, built-in randomizers of collection elements replay, and the elements differ")
+    void nestedBuiltInRandomizersReplay() {
+        List<List<UUID>> first = new ArrayList<>();
+        List<List<UUID>> second = new ArrayList<>();
+        ObjectGenerator<IdHolder> one = new ObjectGenerator<>(IdHolder.class, reseedingBuiltIns(7L));
+        ObjectGenerator<IdHolder> two = new ObjectGenerator<>(IdHolder.class, reseedingBuiltIns(7L));
         for (int i = 0; i < 3; i++) {
-            ids.add(generator.generate().id);
+            first.add(one.generate().children.stream().map(child -> child.id).toList());
+            second.add(two.generate().children.stream().map(child -> child.id).toList());
         }
-        // Each object takes its own randomizer seed, so the UUID generator gives the first value of a new
-        // build seeded with it: not the same value for every object.
-        assertEquals(3, new HashSet<>(ids).size(), ids::toString);
+        assertEquals(first, second);
+        assertTrue(first.stream().anyMatch(ids -> ids.size() > 1), first::toString);
+        for (List<UUID> ids : first) {
+            assertEquals(ids.size(), new HashSet<>(ids).size(), ids::toString);
+        }
     }
 
     @Test

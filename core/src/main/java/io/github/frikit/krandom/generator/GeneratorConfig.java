@@ -1553,9 +1553,14 @@ public final class GeneratorConfig {
          * unseeded source, so its values change from run to run. When on, such a generator, if the
          * configuration's seed can reset it to a new build, is reseeded the same way and replays from the seed
          * and its recipe; other fields keep their values. The built-ins it covers are those a seeded
-         * {@code Schema} reseeds: the name, username, email, phone number, address, city, state, postal code,
-         * country, currency, money, UUID, word, sentence and paragraph generators. Portable recipes record the
-         * setting when it is on. This is the default from 4.0.
+         * {@code Schema} reseeds: {@code FullNameGenerator}, {@code FirstNameGenerator},
+         * {@code LastNameGenerator}, {@code UsernameGenerator}, {@code EmailGenerator},
+         * {@code PhoneNumberGenerator}, {@code StreetAddressGenerator}, {@code AddressInfoGenerator},
+         * {@code CityGenerator}, {@code StateGenerator}, {@code PostalCodeGenerator}, {@code CountryGenerator},
+         * {@code CurrencyGenerator}, {@code MoneyGenerator}, {@code UUIDGenerator}, {@code WordGenerator},
+         * {@code SentenceGenerator} and {@code ParagraphGenerator}. Other built-ins that are not {@code Seedable},
+         * such as {@code MiddleNameGenerator} or {@code CompanyEmailGenerator}, keep their own source. Portable
+         * recipes record the setting when it is on. This is the default from 4.0.
          *
          * @param reseed {@code true} to reseed those built-in randomizers
          * @return this builder

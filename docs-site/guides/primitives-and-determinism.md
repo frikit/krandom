@@ -192,9 +192,12 @@ GeneratorConfig config = GeneratorConfig.builder()
   `Seedable`, such as `@Randomizer(FirstNameGenerator.class)` or `@Randomizer(UUIDGenerator.class)`,
   draws from its own unseeded source, so its values change from run to run. With the opt-in, the
   built-ins that a seeded `Schema` reseeds are reseeded the same way, so they replay from the seed and
-  its recipe. Those are the name, username, email, phone number, address, city, state, postal code,
-  country, currency, money, UUID, word, sentence and paragraph generators. Other fields keep their
-  values.
+  its recipe. Those are `FullNameGenerator`, `FirstNameGenerator`, `LastNameGenerator`,
+  `UsernameGenerator`, `EmailGenerator`, `PhoneNumberGenerator`, `StreetAddressGenerator`,
+  `AddressInfoGenerator`, `CityGenerator`, `StateGenerator`, `PostalCodeGenerator`, `CountryGenerator`,
+  `CurrencyGenerator`, `MoneyGenerator`, `UUIDGenerator`, `WordGenerator`, `SentenceGenerator` and
+  `ParagraphGenerator`. Other built-ins that are not `Seedable`, such as `MiddleNameGenerator` or
+  `CompanyEmailGenerator`, keep their own source. Other fields keep their values.
 
 The Kotlin DSL has the same three switches in `config { ... }`. A portable recipe records each opt-in
 only when it is on, as `setting.advancing-convenience-streams=true`, `setting.gaussian.strict-math=true`
