@@ -574,7 +574,8 @@ follow a parent behind a constructor argument or a record component: where gener
 such a member, past `objectMaxDepth`, at a `null` draw or as an excluded argument, a nested rule builds the
 parent as a root of its own, and a root rule that reaches its members goes unreported. From 3.2,
 `followConstructorArguments()` makes the check take every constructor to store its arguments as given, as a
-record's canonical constructor does, and report those routes too:
+record's canonical constructor does, in the fields of their names, which generation fills again where one
+holds its default, and report those routes too:
 
 ```java
 record Node(String label, Node child) {}

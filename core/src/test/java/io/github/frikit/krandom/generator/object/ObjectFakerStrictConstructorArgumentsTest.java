@@ -15,6 +15,7 @@ import io.github.frikit.krandom.generator.object.ObjectFakerStrictDiagnosticsTes
 import io.github.frikit.krandom.generator.object.ObjectFakerStrictDiagnosticsTest.ConstructedPurchaseAccount;
 import io.github.frikit.krandom.generator.object.ObjectFakerStrictDiagnosticsTest.NodeRecord;
 import io.github.frikit.krandom.generator.object.exception.FixtureRuleException;
+import jakarta.validation.constraints.Null;
 import java.util.List;
 import java.util.function.UnaryOperator;
 import org.junit.jupiter.api.DisplayName;
@@ -138,5 +139,69 @@ class ObjectFakerStrictConstructorArgumentsTest {
                 }));
         assertThrows(IllegalStateException.class, () -> rolledBack.useProfile("failing"));
         assertEquals(List.of(), problemsOf(rolledBack));
+    }
+
+    static class Entity {
+        String id;
+    }
+
+    static final class Chained extends Entity {
+        String note;
+        Chained child;
+    }
+
+    static final class NullArgumentRoot extends Entity {
+        Chained purchase;
+
+        NullArgumentRoot(@Null Chained purchase) {
+            this.purchase = purchase;
+        }
+    }
+
+    @Test
+    @DisplayName("an argument whose field generation fills afterwards is not a parent that a rule builds")
+    void argumentFilledAgainByItsFieldIsNotFollowed() {
+        ObjectFaker<NullArgumentRoot> faker = new ObjectFaker<>(
+                        NullArgumentRoot.class,
+                        GeneratorConfig.builder().objectMaxDepth(1).build())
+                .ruleFor("id", () -> "x")
+                .ruleFor("purchase.note", () -> "n");
+
+        // The constructor stores the null that @Null asks for, and generation fills the field again, within
+        // objectMaxDepth: the root rule reaches purchase.id, and no rule builds purchase.child.
+        NullArgumentRoot generated = faker.generate();
+        assertEquals("x", generated.purchase.id);
+        assertEquals(null, generated.purchase.child);
+        assertAmbiguousAt(faker.followConstructorArguments(), "id", "purchase.id");
+    }
+
+    @Test
+    @DisplayName("an argument whose field generation fills again, or an override supplies, keeps nothing it left")
+    void argumentReplacedByItsFieldKeepsNothing() {
+        // With objectOverrideDefaultInitialization generation fills the field again, past objectMaxDepth as before.
+        ObjectFaker<ConstructedEnvelope> overriding = new ObjectFaker<>(
+                        ConstructedEnvelope.class,
+                        GeneratorConfig.builder()
+                                .objectMaxDepth(1)
+                                .objectOverrideDefaultInitialization(true)
+                                .build())
+                .ruleFor("id", () -> "x")
+                .ruleFor("middle.purchase.note", () -> "n");
+        assertEquals("x", overriding.generate().middle.purchase.id);
+        assertAmbiguousAt(overriding.followConstructorArguments(), "id", "middle.purchase.id");
+
+        // A predicate override, which reaches the field and not the argument, supplies a value nothing is known of.
+        ObjectFaker<ConstructedEnvelope> supplied = new ObjectFaker<>(
+                        ConstructedEnvelope.class,
+                        GeneratorConfig.builder()
+                                .objectMaxDepth(1)
+                                .objectOverride(
+                                        field -> field.getName().equals("middle")
+                                                && field.getDeclaringClass() == ConstructedEnvelope.class,
+                                        () -> null)
+                                .build())
+                .ruleFor("id", () -> "x")
+                .ruleFor("middle.purchase.note", () -> "n");
+        assertEquals(List.of(), problemsOf(supplied.followConstructorArguments()));
     }
 }

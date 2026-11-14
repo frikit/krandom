@@ -588,7 +588,8 @@ public final class ObjectFaker<T> implements Generator<T> {
      * where generation passes {@code null} for such a member, past {@code objectMaxDepth}, at a {@code null} draw
      * or as an excluded argument, and a root rule, root ignore or include-mode exclusion that reaches the members
      * of that parent goes unreported. With it the check takes every such constructor to store its argument as
-     * given, as a record's canonical constructor does, and reports those routes as well. So it can find
+     * given, as a record's canonical constructor does, in the field of the argument's name, which generation
+     * then fills again where it holds the default, and reports those routes as well. So it can find
      * problems the check did not, and {@link #strict()} can newly fail. A constructor that replaces a
      * {@code null} argument, such as with a new object, then gets a report of a route that generation never
      * takes. Generation is unchanged.
