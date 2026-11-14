@@ -8,6 +8,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Three `GeneratorConfig.Builder` settings that change seeded output, each off by default in 3.x, so every
+  existing seed and recipe gives the values it gave before, and each the default from 4.0. The Kotlin DSL's
+  `config { ... }` has the same three, and a portable recipe records each one only when it is on, so a 3.1
+  recipe replays with them off, and a release before 3.2 rejects a recipe that records one.
+  - `advancingConvenienceStreams(boolean)` (recipe setting `advancing-convenience-streams`):
+    `EmailGenerator.generateCompanyEmail()`, the `FullNameGenerator` methods with a middle name or initial,
+    and `CurrencyGenerator.generatePriceTag` keep their child generator and give the next value on each
+    call, rather than build it again from the same child stream and repeat one seeded value.
+  - `strictMathGaussian(boolean)` (recipe setting `gaussian.strict-math`): `NormalDistributionGenerator`
+    draws with `StrictMath.log`, `sin` and `cos`, so a seed gives the same bits on every platform rather than
+    values that `Math` lets differ in the last bit.
+  - `objectReseedBuiltInRandomizers(boolean)` (recipe setting `object.reseed-built-in-randomizers`): object
+    generation reseeds a built-in `@Randomizer` that is not `Seedable` from the object's seeded stream, as it
+    does a `Seedable` one, so they replay from the seed rather than draw from their own unseeded source.
+    They are the 18 built-ins that a seeded `Schema` reseeds and that are not `Seedable`: `FullNameGenerator`,
+    `FirstNameGenerator`, `LastNameGenerator`, `UsernameGenerator`, `EmailGenerator`, `PhoneNumberGenerator`,
+    `StreetAddressGenerator`, `AddressInfoGenerator`, `CityGenerator`, `StateGenerator`,
+    `PostalCodeGenerator`, `CountryGenerator`, `CurrencyGenerator`, `MoneyGenerator`, `UUIDGenerator`,
+    `WordGenerator`, `SentenceGenerator` and `ParagraphGenerator`.
+
+  The matching getters are `isAdvancingConvenienceStreams()`, `isStrictMathGaussian()` and
+  `isObjectReseedBuiltInRandomizers()`.
 - `GeneratorConfig.Builder.germanStreetLayout(boolean)` and `GeneratorConfig.isGermanStreetLayout()`, with
   `germanStreetLayout(Boolean)` in the Kotlin DSL's `config { }`, write the street addresses of the locales
   whose language is German (`de`, `de_DE`, `de_AT`, `de_CH` and any other `de_*`) as German does: the street

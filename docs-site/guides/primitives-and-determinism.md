@@ -161,3 +161,46 @@ Generator<String> lastNames = Generators.ofLastName(config.forChildStream("lastN
 Under `LEGACY`, `forChildStream` returns the configuration unchanged, so it has no effect there.
 `Krandom` does this for you: each of its methods has a stream derived from the seed and the method's
 name, whatever the child-stream policy.
+
+## Seeding opt-ins that become the 4.0 defaults (3.2+)
+
+Three `GeneratorConfig` settings change seeded output, so 3.x keeps them off by default and every
+existing seed and recipe gives the values it gave before. Each is the default from 4.0; turn them on
+now to get the 4.0 values early:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+    .seed(42L)
+    .advancingConvenienceStreams(true)
+    .strictMathGaussian(true)
+    .objectReseedBuiltInRandomizers(true)
+    .build();
+```
+
+- **`advancingConvenienceStreams(true)`.** `EmailGenerator.generateCompanyEmail()`, the
+  `FullNameGenerator` methods with a middle name or initial, and `CurrencyGenerator.generatePriceTag`
+  build their child generator again from the same child stream on every call, so a seeded generator
+  repeats one value: seed 42 gives `aharris@advancedassociatesco.test` on every call of
+  `generateCompanyEmail()`. With the opt-in, the generator keeps that child and each call gives the
+  next value. The first call gives what it gave before, and a reseed starts the child again.
+- **`strictMathGaussian(true)`.** `NormalDistributionGenerator` draws with `Math.log`, `Math.sin` and
+  `Math.cos`, which Java lets differ in the last bit between platforms. With the opt-in it uses the
+  `StrictMath` forms, which give the same bits everywhere, so a seed gives the same Gaussian values on
+  every JVM and CPU. Those values can differ in their last bit from what `Math` gives on your platform.
+- **`objectReseedBuiltInRandomizers(true)`.** Object generation already reseeds a `Seedable`
+  `@Randomizer` for every object from that object's stream. A built-in generator that is not
+  `Seedable`, such as `@Randomizer(FirstNameGenerator.class)` or `@Randomizer(UUIDGenerator.class)`,
+  draws from its own unseeded source, so its values change from run to run. With the opt-in, the
+  built-ins that a seeded `Schema` reseeds are reseeded the same way, so they replay from the seed and
+  its recipe. Those are `FullNameGenerator`, `FirstNameGenerator`, `LastNameGenerator`,
+  `UsernameGenerator`, `EmailGenerator`, `PhoneNumberGenerator`, `StreetAddressGenerator`,
+  `AddressInfoGenerator`, `CityGenerator`, `StateGenerator`, `PostalCodeGenerator`, `CountryGenerator`,
+  `CurrencyGenerator`, `MoneyGenerator`, `UUIDGenerator`, `WordGenerator`, `SentenceGenerator` and
+  `ParagraphGenerator`. Other built-ins that are not `Seedable`, such as `MiddleNameGenerator` or
+  `CompanyEmailGenerator`, keep their own source. Other fields keep their values.
+
+The Kotlin DSL has the same three switches in `config { ... }`. A portable recipe records each opt-in
+only when it is on, as `setting.advancing-convenience-streams=true`, `setting.gaussian.strict-math=true`
+and `setting.object.reseed-built-in-randomizers=true`. A recipe without them, such as every recipe that
+3.1 wrote, replays with them off. A release before 3.2 rejects a recipe that records one, rather than
+replaying it with other values.

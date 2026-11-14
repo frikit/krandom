@@ -144,6 +144,13 @@ class ReseedAsBuiltTest {
                         .seed(1L)
                         .build());
             }
+            // Advancing convenience streams keep a child, which a reseed must drop.
+            configs.add(GeneratorConfig.builder()
+                    .locale(locale)
+                    .clock(CLOCK)
+                    .advancingConvenienceStreams(true)
+                    .seed(1L)
+                    .build());
         }
         // The German street layout is configuration only, which a reseed keeps.
         for (ChildStreamPolicy policy : ChildStreamPolicy.values()) {
@@ -190,6 +197,41 @@ class ReseedAsBuiltTest {
                             factory.getKey().getSimpleName() + " " + config.getLocale() + " "
                                     + config.getChildStreamPolicy() + " seed " + seed + ", reseeded twice");
                     compared++;
+                }
+            }
+        }
+        assertTrue(compared > 100, "compared " + compared);
+    }
+
+    @Test
+    @DisplayName("a generator built without a seed, as a @Randomizer is, gives after a reseed what a new build with"
+            + " that seed gives")
+    void unseededBuildReseedsAsBuilt() throws ReflectiveOperationException {
+        int compared = 0;
+        for (Map.Entry<Class<?>, Function<GeneratorConfig, Object>> factory : FACTORIES.entrySet()) {
+            List<Method> methods = noArgumentMethods(factory.getKey());
+            for (Locale locale : List.of(Locale.US, Locale.GERMANY, Locale.JAPAN)) {
+                for (boolean advancing : new boolean[] {false, true}) {
+                    // A fixed clock, as time-based values (UUIDv7, say) read it; a reseed leaves the clock alone.
+                    GeneratorConfig unseeded = GeneratorConfig.builder()
+                            .locale(locale)
+                            .clock(CLOCK)
+                            .advancingConvenienceStreams(advancing)
+                            .build();
+                    for (long seed : new long[] {0L, 7L, Long.MIN_VALUE}) {
+                        Object fresh = factory.getValue()
+                                .apply(unseeded.toBuilder().seed(seed).build());
+                        Object reused = factory.getValue().apply(unseeded);
+                        calls(reused, methods);
+                        java.util.Objects.requireNonNull(Reseeding.reseederOf(reused))
+                                .reseed(reused, seed);
+                        assertEquals(
+                                calls(fresh, methods),
+                                calls(reused, methods),
+                                factory.getKey().getSimpleName() + " " + locale + " advancing " + advancing + " seed "
+                                        + seed);
+                        compared++;
+                    }
                 }
             }
         }

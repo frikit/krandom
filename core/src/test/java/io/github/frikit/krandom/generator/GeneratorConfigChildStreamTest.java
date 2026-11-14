@@ -280,6 +280,9 @@ class GeneratorConfigChildStreamTest {
                 .objectPoolSize(11)
                 .objectOverrideDefaultInitialization(legacy)
                 .objectIgnoreErrors(!legacy)
+                .advancingConvenienceStreams(!legacy)
+                .strictMathGaussian(!legacy)
+                .objectReseedBuiltInRandomizers(!legacy)
                 .objectConstructionPolicy(ObjectConstructionPolicy.UNSAFE_CONSTRUCTOR_BYPASS)
                 .objectDateRange(LocalDate.of(2022, 1, 1), LocalDate.of(2022, 12, 31))
                 .objectSemanticMode(

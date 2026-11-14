@@ -38,6 +38,7 @@ import io.github.frikit.krandom.generator.network.UriGenerator;
 import io.github.frikit.krandom.generator.object.exception.ObjectGenerationException;
 import io.github.frikit.krandom.generator.report.GenerationDecision;
 import io.github.frikit.krandom.generator.report.GenerationStep;
+import io.github.frikit.krandom.internal.Reseeding;
 import java.lang.reflect.AnnotatedArrayType;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.AnnotatedParameterizedType;
@@ -1679,12 +1680,28 @@ final class FieldGeneratorResolver {
         String path = memberPath(fieldName);
         Generator<?> generator = uniqueFieldTracker.randomizer(
                 element, () -> constructRandomizer(element, generatorType, ownerType, path, depth));
-        if (generationSeed != null && generator instanceof Seedable seedable) {
-            // Seedable randomizers follow the object's seeded stream like built-in generators. The seed
-            // is derived by name, so no other member's draws shift.
-            seedable.reseed(GenerationRecipe.deriveChildSeed(generationSeed, "randomizer:" + path));
+        if (generationSeed != null) {
+            reseedRandomizer(generator, GenerationRecipe.deriveChildSeed(generationSeed, "randomizer:" + path));
         }
         return () -> generateWithRandomizerContext(generator, generatorType, ownerType, path, depth);
+    }
+
+    /**
+     * Seedable randomizers follow the object's seeded stream like built-in generators. The seed is derived by
+     * name, so no other member's draws shift. With the opt-in, so do the built-ins that are not Seedable but whose
+     * reseed leaves them as a new build with that seed would be; without it they keep their own source.
+     */
+    private void reseedRandomizer(Generator<?> generator, long seed) {
+        if (generator instanceof Seedable seedable) {
+            seedable.reseed(seed);
+            return;
+        }
+        if (generatorConfig.isObjectReseedBuiltInRandomizers()) {
+            Reseeding.Reseeder<Generator<?>> reseeder = Reseeding.reseederOf(generator);
+            if (reseeder != null) {
+                reseeder.reseed(generator, seed);
+            }
+        }
     }
 
     private static Generator<?> constructRandomizer(

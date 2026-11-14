@@ -296,6 +296,22 @@ val users = krandomList<User>(5) {
 The Kotlin option uses the same core policy as Java. Object-field streams stay LEGACY unless you select INDEPENDENT. For direct configuration
 consumers, `krandomConfig { seed(42L) }.snapshotClock()` captures an explicit replay clock.
 
+## Seeding opt-ins that become the 4.0 defaults (3.2+)
+
+```kotlin
+val config = krandomConfig {
+    seed(42L)
+    advancingConvenienceStreams(true)
+    strictMathGaussian(true)
+    objectReseedBuiltInRandomizers(true)
+}
+```
+
+Each switch sets the `GeneratorConfig` setting of the same name. They are off by default in 3.x, so
+seeded values stay as they were, and each is the default from 4.0. See
+[seeding opt-ins]({{ '/guides/primitives-and-determinism/' | relative_url }}#seeding-opt-ins-that-become-the-40-defaults-32)
+for what each one changes.
+
 ## German street layout (3.2+)
 
 `germanStreetLayout(true)` writes the street addresses of the German locales street first, such as

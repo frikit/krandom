@@ -127,6 +127,8 @@ public final class EmailGenerator implements Generator<String> {
     private final FirstNameGenerator firstNameGenerator;
     private final LastNameGenerator lastNameGenerator;
     private final Set<String> issuedEmails;
+    /** The company-email child that the advancing opt-in keeps, made when first used. */
+    private @org.jspecify.annotations.Nullable CompanyEmailGenerator companyEmails;
 
     static {
         io.github.frikit.krandom.internal.Reseeding.register(EmailGenerator.class, EmailGenerator::reseedTo);
@@ -134,7 +136,8 @@ public final class EmailGenerator implements Generator<String> {
 
     /**
      * Reseeds this generator, which then gives what one built from its configuration with this seed gives: its
-     * own and its name streams are reseeded, and the addresses it has issued as unique are forgotten.
+     * own and its name streams are reseeded, the company-email child it kept is dropped, and the addresses it has
+     * issued as unique are forgotten.
      */
     void reseedTo(long seed) {
         config = io.github.frikit.krandom.internal.ConfigAccess.withSeed(config, seed);
@@ -142,6 +145,7 @@ public final class EmailGenerator implements Generator<String> {
         firstNameGenerator.reseedTo(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "firstName"));
         lastNameGenerator.reseedTo(io.github.frikit.krandom.internal.Reseeding.childSeed(config, seed, "lastName"));
         issuedEmails.clear();
+        companyEmails = null;
     }
 
     /**
@@ -305,10 +309,22 @@ public final class EmailGenerator implements Generator<String> {
     /**
      * Generates a company email address.
      *
+     * <p>Each call builds a {@link CompanyEmailGenerator} from the same child stream, so a seeded generator
+     * repeats one address. With {@link GeneratorConfig.Builder#advancingConvenienceStreams(boolean)} on, which is
+     * the default from 4.0, it keeps that generator and each call gives the next address.
+     *
      * @return a company-style email
      */
     public String generateCompanyEmail() {
-        return new CompanyEmailGenerator(config.forChildStream("companyEmail")).generate();
+        if (!config.isAdvancingConvenienceStreams()) {
+            return new CompanyEmailGenerator(config.forChildStream("companyEmail")).generate();
+        }
+        CompanyEmailGenerator kept = companyEmails;
+        if (kept == null) {
+            kept = new CompanyEmailGenerator(config.forChildStream("companyEmail"));
+            companyEmails = kept;
+        }
+        return kept.generate();
     }
 
     /**

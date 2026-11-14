@@ -25,7 +25,11 @@ import java.lang.annotation.Target;
  * stateful generator such as a sequence keeps its state across generated objects. In a seeded
  * configuration, generators implementing {@link io.github.frikit.krandom.generator.Seedable} are
  * reseeded for every object from that object's seeded stream, so they replay from the seed and its
- * recipe. Other generators control their own randomness, which seeded replay cannot reproduce.
+ * recipe. Other generators control their own randomness, which seeded replay cannot reproduce. With
+ * {@link io.github.frikit.krandom.generator.GeneratorConfig.Builder#objectReseedBuiltInRandomizers(boolean)}
+ * on, which is the default from 4.0, the built-in generators that are not {@code Seedable} but that a seed
+ * can reset to a new build, such as {@code FirstNameGenerator} and {@code UUIDGenerator}, are reseeded the
+ * same way.
  */
 @Target({ElementType.FIELD, ElementType.RECORD_COMPONENT})
 @Retention(RetentionPolicy.RUNTIME)

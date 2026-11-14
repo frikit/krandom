@@ -141,6 +141,9 @@ public final class GeneratorConfig {
     private final EmailDomainPolicy emailDomainPolicy;
     private final NetworkSafetyPolicy networkSafetyPolicy;
     private final ChildStreamPolicy childStreamPolicy;
+    private final boolean advancingConvenienceStreams;
+    private final boolean strictMathGaussian;
+    private final boolean objectReseedBuiltInRandomizers;
     private final String providerDatasetVersion;
     private final List<KRandomModule> modules;
     private final KRandomExtensionRegistry extensionRegistry;
@@ -210,6 +213,9 @@ public final class GeneratorConfig {
         this.emailDomainPolicy = b.emailDomainPolicy;
         this.networkSafetyPolicy = b.networkSafetyPolicy;
         this.childStreamPolicy = b.childStreamPolicy;
+        this.advancingConvenienceStreams = b.advancingConvenienceStreams;
+        this.strictMathGaussian = b.strictMathGaussian;
+        this.objectReseedBuiltInRandomizers = b.objectReseedBuiltInRandomizers;
         this.providerDatasetVersion = b.providerDatasetVersion;
     }
 
@@ -280,6 +286,9 @@ public final class GeneratorConfig {
         this.emailDomainPolicy = parent.emailDomainPolicy;
         this.networkSafetyPolicy = parent.networkSafetyPolicy;
         this.childStreamPolicy = parent.childStreamPolicy;
+        this.advancingConvenienceStreams = parent.advancingConvenienceStreams;
+        this.strictMathGaussian = parent.strictMathGaussian;
+        this.objectReseedBuiltInRandomizers = parent.objectReseedBuiltInRandomizers;
         this.providerDatasetVersion = parent.providerDatasetVersion;
     }
 
@@ -331,6 +340,39 @@ public final class GeneratorConfig {
      */
     public ChildStreamPolicy getChildStreamPolicy() {
         return childStreamPolicy;
+    }
+
+    /**
+     * Whether convenience methods that draw from a named child stream keep that stream and advance it, rather
+     * than start it again on every call. Off by default in 3.x; the default from 4.0.
+     *
+     * @return {@code true} when the opt-in is on
+     * @see Builder#advancingConvenienceStreams(boolean)
+     */
+    public boolean isAdvancingConvenienceStreams() {
+        return advancingConvenienceStreams;
+    }
+
+    /**
+     * Whether Gaussian draws use {@link StrictMath}, so a seed gives the same bits on every platform. Off by
+     * default in 3.x; the default from 4.0.
+     *
+     * @return {@code true} when the opt-in is on
+     * @see Builder#strictMathGaussian(boolean)
+     */
+    public boolean isStrictMathGaussian() {
+        return strictMathGaussian;
+    }
+
+    /**
+     * Whether object generation reseeds a built-in {@code @Randomizer} that is not {@link Seedable} from the
+     * object's seeded stream. Off by default in 3.x; the default from 4.0.
+     *
+     * @return {@code true} when the opt-in is on
+     * @see Builder#objectReseedBuiltInRandomizers(boolean)
+     */
+    public boolean isObjectReseedBuiltInRandomizers() {
+        return objectReseedBuiltInRandomizers;
     }
 
     /**
@@ -954,6 +996,16 @@ public final class GeneratorConfig {
         if (objectFieldStreamPolicy != ObjectFieldStreamPolicy.LEGACY) {
             recipe.setting("object.field-stream-policy", objectFieldStreamPolicy.name());
         }
+        // Each 3.2 opt-in is recorded only when on, so a recipe with them off is the one 3.1 wrote.
+        if (advancingConvenienceStreams) {
+            recipe.setting(GenerationRecipe.ADVANCING_CONVENIENCE_STREAMS_SETTING, "true");
+        }
+        if (strictMathGaussian) {
+            recipe.setting(GenerationRecipe.STRICT_MATH_GAUSSIAN_SETTING, "true");
+        }
+        if (objectReseedBuiltInRandomizers) {
+            recipe.setting(GenerationRecipe.OBJECT_RESEED_BUILT_IN_RANDOMIZERS_SETTING, "true");
+        }
         if (germanStreetLayout) {
             recipe.setting("address.german-street-layout", "true");
         }
@@ -1103,6 +1155,9 @@ public final class GeneratorConfig {
         private EmailDomainPolicy emailDomainPolicy = EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS;
         private NetworkSafetyPolicy networkSafetyPolicy = NetworkSafetyPolicy.TEST_SAFE_RESERVED;
         private ChildStreamPolicy childStreamPolicy = ChildStreamPolicy.INDEPENDENT;
+        private boolean advancingConvenienceStreams;
+        private boolean strictMathGaussian;
+        private boolean objectReseedBuiltInRandomizers;
         private String providerDatasetVersion = GenerationRecipe.BUILTIN_PROVIDER_DATASET_VERSION;
         private final List<KRandomModule> modules = new ArrayList<>();
 
@@ -1164,6 +1219,9 @@ public final class GeneratorConfig {
             this.emailDomainPolicy = source.emailDomainPolicy;
             this.networkSafetyPolicy = source.networkSafetyPolicy;
             this.childStreamPolicy = source.childStreamPolicy;
+            this.advancingConvenienceStreams = source.advancingConvenienceStreams;
+            this.strictMathGaussian = source.strictMathGaussian;
+            this.objectReseedBuiltInRandomizers = source.objectReseedBuiltInRandomizers;
             this.providerDatasetVersion = source.providerDatasetVersion;
             this.modules.addAll(source.modules);
         }
@@ -1484,6 +1542,71 @@ public final class GeneratorConfig {
          */
         public Builder childStreamPolicy(ChildStreamPolicy policy) {
             this.childStreamPolicy = Objects.requireNonNull(policy, "childStreamPolicy");
+            return this;
+        }
+
+        /**
+         * Makes convenience methods that draw from a named child stream keep that stream and advance it.
+         *
+         * <p>Off by default in 3.x, which keeps the seeded output of earlier releases: each call of
+         * {@code EmailGenerator.generateCompanyEmail()}, of the {@code FullNameGenerator} methods with a middle
+         * name or initial, and of {@code CurrencyGenerator.generatePriceTag} builds its child generator again
+         * from the same child stream, so a seeded generator repeats one value. When on, the generator keeps
+         * that child and each call draws the next value; the first call gives what it gave before. Without a
+         * seed the values were not repeated, and only the reuse of the child changes. Portable recipes record
+         * the setting when it is on. This is the default from 4.0.
+         *
+         * @param advancing {@code true} to advance the child streams
+         * @return this builder
+         */
+        public Builder advancingConvenienceStreams(boolean advancing) {
+            this.advancingConvenienceStreams = advancing;
+            return this;
+        }
+
+        /**
+         * Makes Gaussian draws use {@link StrictMath} rather than {@link Math}.
+         *
+         * <p>Off by default in 3.x, which keeps the seeded output of earlier releases: the Box-Muller transform
+         * of {@code NormalDistributionGenerator} uses {@link Math#log(double)}, {@link Math#sin(double)} and
+         * {@link Math#cos(double)}, which Java lets differ in the last bit between platforms. When on, it uses
+         * the {@link StrictMath} forms, which give the same bits everywhere, so a seed gives the same values on
+         * every JVM and CPU; the values can differ in their last bit from those {@link Math} gives on this one.
+         * Portable recipes record the setting when it is on. This is the default from 4.0.
+         *
+         * @param strict {@code true} to draw with {@link StrictMath}
+         * @return this builder
+         */
+        public Builder strictMathGaussian(boolean strict) {
+            this.strictMathGaussian = strict;
+            return this;
+        }
+
+        /**
+         * Makes object generation reseed a built-in {@code @Randomizer} that is not {@link Seedable} from the
+         * object's seeded stream.
+         *
+         * <p>In a seeded configuration, object generation reseeds a {@link Seedable} {@code @Randomizer} for
+         * every object from that object's stream, whatever this setting. Off by default in 3.x, which keeps
+         * the output of earlier releases: a built-in generator that is not {@code Seedable}, such as
+         * {@code FirstNameGenerator}, {@code EmailGenerator} or {@code UUIDGenerator}, draws from its own
+         * unseeded source, so its values change from run to run. When on, such a generator, if the
+         * configuration's seed can reset it to a new build, is reseeded the same way and replays from the seed
+         * and its recipe; other fields keep their values. The built-ins it covers are those a seeded
+         * {@code Schema} reseeds: {@code FullNameGenerator}, {@code FirstNameGenerator},
+         * {@code LastNameGenerator}, {@code UsernameGenerator}, {@code EmailGenerator},
+         * {@code PhoneNumberGenerator}, {@code StreetAddressGenerator}, {@code AddressInfoGenerator},
+         * {@code CityGenerator}, {@code StateGenerator}, {@code PostalCodeGenerator}, {@code CountryGenerator},
+         * {@code CurrencyGenerator}, {@code MoneyGenerator}, {@code UUIDGenerator}, {@code WordGenerator},
+         * {@code SentenceGenerator} and {@code ParagraphGenerator}. Other built-ins that are not {@code Seedable},
+         * such as {@code MiddleNameGenerator} or {@code CompanyEmailGenerator}, keep their own source. Portable
+         * recipes record the setting when it is on. This is the default from 4.0.
+         *
+         * @param reseed {@code true} to reseed those built-in randomizers
+         * @return this builder
+         */
+        public Builder objectReseedBuiltInRandomizers(boolean reseed) {
+            this.objectReseedBuiltInRandomizers = reseed;
             return this;
         }
 
