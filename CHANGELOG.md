@@ -56,6 +56,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   supplies, and what semantic coherence derives from them, change, and the report and failure diagnostics
   keep the recipe. A root `ruleFor`, `ruleForContext`, `ignore` or an `include` on the same faker still
   drops the recipe. The existing rule methods are unchanged, and so are their seeded values.
+- `GeneratorConfig.Builder.generationReportParentsFirst(boolean)` and
+  `GeneratorConfig.isGenerationReportParentsFirst()`, with `generationReportParentsFirst(Boolean)` in the
+  Kotlin DSL's `config { }`, make the generation report list each nested object, collection and element
+  before its members, such as `Order.customer` before `Order.customer.name`, and deliver a generation's
+  entries when it ends or fails. It is off by default, so the report keeps its order, and the entries, the
+  values and the recipe are the same either way.
 
 ### Changed
 

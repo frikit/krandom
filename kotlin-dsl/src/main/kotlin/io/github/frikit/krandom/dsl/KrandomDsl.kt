@@ -426,6 +426,15 @@ public class ConfigScope internal constructor(
         builder.generationReportListener(listener)
     }
 
+    /**
+     * Makes the generation report list each object, collection and element before its members, and deliver a
+     * generation's entries once it ends. Off by default, which lists them after their members. The entries,
+     * the values and the recipe stay the same. See `GeneratorConfig.Builder.generationReportParentsFirst`.
+     */
+    public fun generationReportParentsFirst(parentsFirst: Boolean) {
+        builder.generationReportParentsFirst(parentsFirst)
+    }
+
     /** Sets a textual seed using the same derivation contract as `GeneratorConfig`. */
     public fun seed(seedText: String) {
         builder.seed(seedText)
