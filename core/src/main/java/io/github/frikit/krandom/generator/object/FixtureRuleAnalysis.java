@@ -51,6 +51,7 @@ final class FixtureRuleAnalysis {
     private final Map<String, RulePath> rulePaths;
     private final List<FixtureRule> registrations;
     private final Set<String> includedRoots;
+    private final boolean followConstructorArguments;
     private final List<String> evaluationOrder = new ArrayList<>();
     private final Map<String, FixtureRule> activeRules = new LinkedHashMap<>();
     private final Map<String, FixtureRule> activeIncludes = new LinkedHashMap<>();
@@ -68,6 +69,8 @@ final class FixtureRuleAnalysis {
      * @param contextRules   the paths of its context rules, in evaluation order
      * @param dependentRules the paths of its dependent rules, in evaluation order
      * @param includedRoots  the root properties that include mode generates, or none outside include mode
+     * @param followConstructorArguments whether a constructor is taken to store each argument as given, so that
+     *     the parents a nested rule builds behind a constructor argument or a record component are followed
      */
     FixtureRuleAnalysis(
             Class<?> rootType,
@@ -77,12 +80,14 @@ final class FixtureRuleAnalysis {
             List<String> plainRules,
             List<String> contextRules,
             List<String> dependentRules,
-            Set<String> includedRoots) {
+            Set<String> includedRoots,
+            boolean followConstructorArguments) {
         this.rootType = rootType;
         this.config = config;
         this.rulePaths = rulePaths;
         this.registrations = registrations;
         this.includedRoots = includedRoots;
+        this.followConstructorArguments = followConstructorArguments;
         for (FixtureRule registration : registrations) {
             switch (registration.kind()) {
                 case INCLUDE -> activeIncludes.putIfAbsent(registration.path(), registration);
@@ -683,16 +688,21 @@ final class FixtureRuleAnalysis {
                 recordRoutes(type, prefix);
             }
             for (Member member : members(type, !(populating && prefix.isEmpty()))) {
-                // A constructor argument, a record component's too, may be replaced by the constructor.
+                // A constructor argument, a record component's too, may be replaced by the constructor, unless
+                // followConstructorArguments takes every constructor to store its arguments as given.
                 boolean argument = member.parameter() || type.isRecord();
+                boolean replaceable = argument && !followConstructorArguments;
                 if (!isGenerated(member)) {
                     // An excluded field keeps its default unless an initializer that generation keeps sets it. An
-                    // excluded argument passes its default, which the constructor may replace, so it is unknown.
-                    if (!argument && startsAtDefault(type, Objects.requireNonNull(member.field(), "a field member"))) {
+                    // excluded argument passes its default, which the constructor may replace, so it is unknown,
+                    // or which it stores.
+                    if (argument
+                            ? followConstructorArguments
+                            : startsAtDefault(type, Objects.requireNonNull(member.field(), "a field member"))) {
                         leftNull.add(prefix + member.name() + ".");
                     }
                 } else if (!hasMemberGenerator(member)) {
-                    Set<String> before = argument ? Set.copyOf(leftNull) : Set.of();
+                    Set<String> before = replaceable ? Set.copyOf(leftNull) : Set.of();
                     descend(
                             member.genericType(),
                             member.element(),
@@ -701,7 +711,7 @@ final class FixtureRuleAnalysis {
                             prefix + member.name(),
                             depth,
                             inProgress);
-                    if (argument) {
+                    if (replaceable) {
                         // The constructor may replace an argument that generation leaves null, or what it left
                         // null below one, so nothing this argument records is known; what another class of a
                         // sealed hierarchy, or a field of its name that generation fills afterwards, records stays.

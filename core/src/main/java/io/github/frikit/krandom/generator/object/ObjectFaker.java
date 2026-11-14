@@ -102,6 +102,7 @@ public final class ObjectFaker<T> implements Generator<T> {
     private @Nullable ObjectGenerator<T> objectGenerator;
     private @Nullable FixtureRuleAnalysis analysis;
     private boolean strictValidation;
+    private boolean followConstructorArguments;
 
     /**
      * Creates a fixture authoring API with default object-generation settings.
@@ -478,6 +479,7 @@ public final class ObjectFaker<T> implements Generator<T> {
         appliedProfiles.clear();
         appliedProfiles.addAll(source.appliedProfiles);
         strictValidation = source.strictValidation;
+        followConstructorArguments = source.followConstructorArguments;
         uniqueFieldTracker = source.uniqueFieldTracker;
         objectGenerator = source.objectGenerator;
     }
@@ -546,7 +548,9 @@ public final class ObjectFaker<T> implements Generator<T> {
      *       rule past {@code objectMaxDepth} is not unused: it creates the objects on its path.</li>
      *   <li><b>Ambiguous</b>: a root rule, root ignore or include-mode exclusion that also applies at
      *       another path, because it applies by its member's declaring class and name, as the class
-     *       documentation describes. A dependent rule applies at its own path only.</li>
+     *       documentation describes. A dependent rule applies at its own path only. The check does not follow
+     *       a parent behind a constructor argument or a record component unless
+     *       {@link #followConstructorArguments()} is set.</li>
      * </ul>
      *
      * <p>A string path that matches no member, or more than one, already fails when it is registered.
@@ -574,6 +578,26 @@ public final class ObjectFaker<T> implements Generator<T> {
      */
     public ObjectFaker<T> strict() {
         strictValidation = true;
+        return this;
+    }
+
+    /**
+     * Makes {@link #assertConfigurationIsValid()} and {@link #strict()} also follow the objects that generation
+     * passes to a constructor: a constructor argument or a record component. Without it the check takes a
+     * constructor to be free to replace an argument, so it does not follow a parent that a nested rule builds
+     * where generation passes {@code null} for such a member, past {@code objectMaxDepth}, at a {@code null} draw
+     * or as an excluded argument, and a root rule, root ignore or include-mode exclusion that reaches the members
+     * of that parent goes unreported. With it the check takes every such constructor to store its argument as
+     * given, as a record's canonical constructor does, and reports those routes as well. So it can find
+     * problems the check did not, and {@link #strict()} can newly fail. A constructor that replaces a
+     * {@code null} argument, such as with a new object, then gets a report of a route that generation never
+     * takes. Generation is unchanged.
+     *
+     * @return this faker
+     */
+    public ObjectFaker<T> followConstructorArguments() {
+        followConstructorArguments = true;
+        analysis = null;
         return this;
     }
 
@@ -621,7 +645,8 @@ public final class ObjectFaker<T> implements Generator<T> {
                     List.copyOf(fieldRules.keySet()),
                     List.copyOf(contextualFieldRules.keySet()),
                     List.copyOf(dependentFieldRules.keySet()),
-                    includedRoots());
+                    includedRoots(),
+                    followConstructorArguments);
             analysis = current;
         }
         current.check(populating);

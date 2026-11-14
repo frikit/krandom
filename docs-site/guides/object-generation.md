@@ -569,6 +569,29 @@ out of fixtures that refine rules that way. To see which members keep an initial
 object of each class it follows with the class's no-argument constructor, as generation does. Without
 `ObjectFaker.strict()`, generation is unchanged.
 
+The check takes a constructor to be free to replace the arguments that generation passes it, so it does not
+follow a parent behind a constructor argument or a record component: where generation passes `null` for
+such a member, past `objectMaxDepth`, at a `null` draw or as an excluded argument, a nested rule builds the
+parent as a root of its own, and a root rule that reaches its members goes unreported. From 3.2,
+`followConstructorArguments()` makes the check take every constructor to store its arguments as given, as a
+record's canonical constructor does, and report those routes too:
+
+```java
+record Node(String label, Node child) {}
+
+new ObjectFaker<>(Node.class, GeneratorConfig.builder().objectNullProbability(1.0).build())
+        .ruleFor("label", () -> "x")
+        .ruleFor("child.child.label", () -> "y")
+        .followConstructorArguments()
+        .assertConfigurationIsValid();
+// FixtureRuleException: - AMBIGUOUS rule #1 'label': ObjectFaker installs it for Node.label wherever
+//   generation reaches that member, so it also applies at 'child.label', 'child.child.label'
+```
+
+It is an opt-in because the check can then find more problems, so `ObjectFaker.strict()` can newly fail, and
+because a constructor that replaces a `null` argument, such as with a new object, gets a report of a route
+that generation never takes. Generation is unchanged either way.
+
 ## When to use
 
 - Integration tests with larger object graphs.

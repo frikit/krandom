@@ -62,6 +62,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   before its members, such as `Order.customer` before `Order.customer.name`, and deliver a generation's
   entries when it ends or fails. It is off by default, so the report keeps its order, and the entries, the
   values and the recipe are the same either way.
+- `ObjectFaker.followConstructorArguments()` makes `assertConfigurationIsValid()` and `strict()` follow the
+  parents that a nested rule builds behind a constructor argument or a record component, where generation
+  passes `null` past `objectMaxDepth`, at a `null` draw or as an excluded argument. The check then takes every
+  constructor to store its arguments as given, and reports a root rule, root ignore or include-mode exclusion
+  that reaches the members of such a parent. Without it the check is unchanged; with it `strict()` can newly
+  fail. Generation is unchanged either way.
 
 ### Changed
 
