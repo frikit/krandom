@@ -331,6 +331,7 @@ class GeneratorConfigChildStreamTest {
         return portableState(policy)
                 .generationFailureListener(diagnostic -> {})
                 .generationReportListener(entry -> {})
+                .generationReportParentsFirst(true)
                 .objectSemanticRegistry(SemanticFieldRegistry.defaults().toBuilder()
                         .alias("email", "mailbox")
                         .build())

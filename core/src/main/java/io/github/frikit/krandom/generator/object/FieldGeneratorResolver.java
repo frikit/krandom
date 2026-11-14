@@ -249,11 +249,11 @@ final class FieldGeneratorResolver {
                     Objects.requireNonNull(this.builtins.get(ZoneOffset.class), "builtin ZoneOffset generator"));
         }
         this.uniqueFieldNames = config.getUniqueFieldNames();
-        GeneratorConfig recipeSource = this.generatorConfig;
+        ObjectGeneratorConfig recipeSource = config;
         this.failurePolicy = new ObjectGenerationFailurePolicy(
                 config.isIgnoreErrors(),
                 generatorConfig.getGenerationFailureListener(),
-                () -> recipeSource.getGenerationRecipe().map(GenerationRecipe::serializeForDiagnostics));
+                () -> recipeSource.generationRecipe().map(GenerationRecipe::serializeForDiagnostics));
         this.typeBindings = Map.copyOf(Objects.requireNonNull(typeBindings, "typeBindings must not be null"));
         this.objectPath = Objects.requireNonNull(objectPath, "objectPath must not be null");
         this.reporter = GenerationReporter.of(config, namedChildStreams);

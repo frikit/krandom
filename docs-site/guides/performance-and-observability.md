@@ -127,3 +127,24 @@ An entry never holds a generated value, so it can be logged beside a failing tes
 from any random stream, so a seeded configuration generates the same values with or without a listener, and
 without a listener nothing is reported or built. The listener runs synchronously; one that throws is logged
 and ignored. In the Kotlin DSL, set it with `config { generationReportListener { entry -> ... } }`.
+
+By default each entry is delivered as its value is decided, so a nested object, a collection and an element
+come after the entries of their members: `Order.customer.name` comes before `Order.customer`, and
+`Order.lines[].sku` before `Order.lines[]` and `Order.lines`. From 3.2,
+`GeneratorConfig.Builder.generationReportParentsFirst(true)`, or `generationReportParentsFirst(true)` in the
+Kotlin DSL's `config { }`, lists each of them before its members instead, so the report reads from the root
+down:
+
+```java
+GeneratorConfig config = GeneratorConfig.builder()
+        .seed(42L)
+        .generationReportListener(entries::add)
+        .generationReportParentsFirst(true)
+        .build();
+```
+
+The listener then receives a generation's entries when the generation ends, or fails, rather than one at a
+time. A generation that runs inside another, such as one that a field override starts, is reported inside
+the member that started it. The entries are the same either way, and so are the values and the recipe,
+which does not record the setting. The rule entries of an `ObjectFaker`, which run after generation, still
+come after the generation's entries.

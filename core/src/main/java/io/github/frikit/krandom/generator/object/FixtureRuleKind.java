@@ -12,7 +12,10 @@ package io.github.frikit.krandom.generator.object;
  */
 public enum FixtureRuleKind {
 
-    /** {@link ObjectFaker#ruleFor(String, io.github.frikit.krandom.generator.Generator)}. */
+    /**
+     * {@link ObjectFaker#ruleFor(String, io.github.frikit.krandom.generator.Generator)} or
+     * {@link ObjectFaker#ruleForKeepingRecipe(String, io.github.frikit.krandom.generator.Generator)}.
+     */
     RULE(true),
 
     /** {@link ObjectFaker#ruleForContext(String, io.github.frikit.krandom.generator.ContextualGenerator)}. */

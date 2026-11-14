@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,7 @@ final class GenerationReporter {
     private final SeedSource seedSource;
     private final Optional<String> recipeFormat;
     private final ObjectGeneratorConfig.@Nullable ReportedPath reportedPath;
+    private final boolean parentsFirst;
 
     private GenerationReporter(GenerationReportListener listener, ObjectGeneratorConfig config, boolean namedStreams) {
         this.listener = listener;
@@ -48,6 +50,7 @@ final class GenerationReporter {
         this.seedSource = seedSource(this.config, namedStreams);
         this.recipeFormat = config.hasPortableRecipe() ? Optional.of(RECIPE_FORMAT) : Optional.empty();
         this.reportedPath = config.reportedPath();
+        this.parentsFirst = this.config.isGenerationReportParentsFirst();
     }
 
     /**
@@ -270,6 +273,16 @@ final class GenerationReporter {
                 trace.constraints,
                 trace.safetyPolicies,
                 new ArrayList<>(trace.decisions));
+        Session session = trace.session;
+        if (session != null) {
+            // Before the entries made while it was being decided, which are its members'.
+            session.pending.add(trace.start, new Pending(listener, entry));
+        } else {
+            deliver(listener, entry);
+        }
+    }
+
+    private static void deliver(GenerationReportListener listener, GenerationReportEntry entry) {
         try {
             listener.onEntry(entry);
         } catch (RuntimeException e) {
@@ -277,6 +290,41 @@ final class GenerationReporter {
                     + listener.getClass().getName() + ", cause=" + e.getClass().getName());
         }
     }
+
+    /**
+     * Runs one top-level generation. With {@code generationReportParentsFirst} and a listener, it holds the
+     * entries the generation makes, and delivers them once it ends, or fails, each parent before its members.
+     * A generation that runs inside another, such as one a field override starts, adds its entries to the
+     * outer one's.
+     */
+    static <R> R inSession(ObjectGeneratorConfig config, Supplier<R> generation) {
+        GeneratorConfig generatorConfig = config.getGeneratorConfig();
+        if (!generatorConfig.isGenerationReportParentsFirst()
+                || generatorConfig.getGenerationReportListener().isEmpty()
+                || Session.CURRENT.get() != null) {
+            return generation.get();
+        }
+        Session session = new Session();
+        Session.CURRENT.set(session);
+        try {
+            return generation.get();
+        } finally {
+            Session.CURRENT.remove();
+            for (Pending pending : session.pending) {
+                deliver(pending.listener(), pending.entry());
+            }
+        }
+    }
+
+    /** The entries of one top-level generation, held until it ends, on the thread that runs it. */
+    private static final class Session {
+
+        private static final ThreadLocal<Session> CURRENT = new ThreadLocal<>();
+
+        private final List<Pending> pending = new ArrayList<>();
+    }
+
+    private record Pending(GenerationReportListener listener, GenerationReportEntry entry) {}
 
     /** What one resolution decided, filled in as it decides, and delivered once it is done. */
     final class Trace {
@@ -291,9 +339,16 @@ final class GenerationReporter {
         // In the order the decisions were taken, as the entry promises, each once.
         private final Set<GenerationDecision> decisions = new LinkedHashSet<>();
 
+        // With parents first, the generation that holds the entry, and where it goes: before the entries that
+        // come while it is being decided.
+        private final @Nullable Session session;
+        private final int start;
+
         private Trace(String path) {
             ObjectGeneratorConfig.ReportedPath reported = reportedPath;
             this.path = reported == null ? path : reported.rebase(path);
+            this.session = parentsFirst ? Session.CURRENT.get() : null;
+            this.start = session == null ? 0 : session.pending.size();
         }
 
         /** The path without the root type's name, as an {@code ObjectFaker} path reads. */

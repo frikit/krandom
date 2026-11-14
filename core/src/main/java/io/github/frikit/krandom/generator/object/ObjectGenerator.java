@@ -305,7 +305,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                     uniqueFieldTracker,
                     typeBindings,
                     objectPath);
-            return scoped.generateWithPool();
+            return GenerationReporter.inSession(config, scoped::generateWithPool);
         }
         return generateWithPool();
     }
@@ -334,7 +334,7 @@ public final class ObjectGenerator<T> implements Generator<T> {
                     uniqueFieldTracker,
                     typeBindings,
                     objectPath);
-            return scoped.populateWithPool(instance);
+            return GenerationReporter.inSession(config, () -> scoped.populateWithPool(instance));
         }
         return populateWithPool(instance);
     }
