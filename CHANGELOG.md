@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Removed
+
+- `Schema.generateBatch(int)`, `Schema.loop(int)` and `SchemaProjection.project(T)`, deprecated since 3.1.0.
+  Call `nextRecords(int)` for the first two and `projectRow(T)` for the third: they return the same records
+  and rows, from the same record sequence, typed `Map<String, @Nullable Object>`. Code that calls a removed
+  method no longer compiles, and code compiled against 3.x that calls one fails with `NoSuchMethodError`.
+  javac ignores the `@Nullable`, so `List<Map<String, Object>> batch = schema.nextRecords(10);` compiles;
+  NullAway in JSpecify mode and Kotlin, which sees `List<Map<String, Any?>>`, read the values as nullable.
+
 ### Documentation
 
 - `VERSIONING.md` now states two rules that make a change major-only. Raising the Kotlin language and API

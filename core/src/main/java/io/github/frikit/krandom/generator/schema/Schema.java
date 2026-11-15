@@ -54,8 +54,8 @@ import org.jspecify.annotations.Nullable;
  * column's provider returns {@code null}, as a parsed property of type {@code null} always does and one
  * with OpenAPI's {@code nullable} does half of the time. {@link #nextRecord()} and
  * {@link #nextRecords(int)} type a record as {@code Map<String, @Nullable Object>}, which says so.
- * {@link #generate()}, {@link #generateBatch(int)}, and {@link #loop(int)} return the same records as
- * {@code Map<String, Object>}, which claims values that are never {@code null}, and are deprecated. As a
+ * {@link #generate()} returns the same record as {@code Map<String, Object>}, which claims values that are
+ * never {@code null}, and is deprecated. As a
  * {@code Generator<Map<String, Object>>}, a schema keeps that type in the methods it inherits, such as
  * {@code stream()}; {@code schema::nextRecord} is a {@code Generator<Map<String, @Nullable Object>>}
  * of the same records. Every one of these methods draws the schema's next records from one sequence.
@@ -293,34 +293,6 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     /**
-     * Generates a batch of schema records.
-     *
-     * @param count record count
-     * @return generated record list
-     * @deprecated The records' type claims values that are never {@code null}, but a value is {@code null}
-     *     where its provider returns {@code null}. Use {@link #nextRecords(int)}, which returns the same
-     *     records typed {@code Map<String, @Nullable Object>}.
-     */
-    @Deprecated
-    public List<Map<String, Object>> generateBatch(int count) {
-        return legacyRecords(nextRecords(count));
-    }
-
-    /**
-     * Alias for {@link #generateBatch(int)}.
-     *
-     * @param iterations number of records
-     * @return generated record list
-     * @deprecated The records' type claims values that are never {@code null}, but a value is {@code null}
-     *     where its provider returns {@code null}. Use {@link #nextRecords(int)}, which returns the same
-     *     records typed {@code Map<String, @Nullable Object>}.
-     */
-    @Deprecated
-    public List<Map<String, Object>> loop(int iterations) {
-        return legacyRecords(nextRecords(iterations));
-    }
-
-    /**
      * Generates the next {@code count} records, each as {@link #nextRecord()} generates it.
      *
      * @param count record count
@@ -336,16 +308,11 @@ public final class Schema implements Generator<Map<String, Object>> {
         return records;
     }
 
-    // The deprecated methods keep their 3.0 type, which claims values that are never null. The records they
-    // return are the ones the methods replacing them return, null values included, as they always were.
+    // The deprecated generate() keeps its 3.0 type, which claims values that are never null. The record it
+    // returns is the one nextRecord() returns, null values included, as it always was.
     @SuppressWarnings("NullAway")
-    static Map<String, Object> legacyRecord(Map<String, @Nullable Object> record) {
+    private static Map<String, Object> legacyRecord(Map<String, @Nullable Object> record) {
         return record;
-    }
-
-    @SuppressWarnings("NullAway")
-    private static List<Map<String, Object>> legacyRecords(List<Map<String, @Nullable Object>> records) {
-        return records;
     }
 
     /**

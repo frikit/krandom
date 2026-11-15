@@ -21,8 +21,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * The records of a {@link Schema} and the rows of a {@link SchemaProjection}: the methods added in 3.1 return
- * the same maps as the deprecated ones, from the same record sequence, with each {@code null} kept.
+ * The records of a {@link Schema} and the rows of a {@link SchemaProjection}: every record method returns the
+ * same maps, from the same record sequence, with each {@code null} kept.
  */
 @DisplayName("Schema records")
 class SchemaRecordsTest {
@@ -68,46 +68,35 @@ class SchemaRecordsTest {
 
     @Test
     @SuppressWarnings("deprecation")
-    @DisplayName("generate, generateBatch and loop return the records that nextRecord and nextRecords do")
-    void deprecatedMethodsReturnTheSameRecords() {
+    @DisplayName("generate returns the records that nextRecord does")
+    void generateReturnsTheSameRecords() {
         Schema legacy = indexed(7L);
         Schema current = indexed(7L);
 
         assertEquals(current.nextRecord(), legacy.generate());
-        assertEquals(current.nextRecords(3), legacy.generateBatch(3));
-        assertEquals(current.nextRecords(2), legacy.loop(2));
+        assertEquals(current.nextRecords(3), legacy.generateList(3));
         assertTrue(legacy.generate().containsKey("missing"));
         assertNull(legacy.generate().get("missing"));
-        assertEquals(
-                "count must be >= 0, got: -1",
-                assertThrows(IllegalArgumentException.class, () -> legacy.generateBatch(-1))
-                        .getMessage());
-        assertEquals(
-                "count must be >= 0, got: -1",
-                assertThrows(IllegalArgumentException.class, () -> legacy.loop(-1))
-                        .getMessage());
     }
 
     @Test
     @SuppressWarnings("deprecation")
-    @DisplayName("the deprecated and the new methods draw from one record sequence")
+    @DisplayName("generate and the record methods draw from one record sequence")
     void oneRecordSequence() {
         Schema mixed = indexed(9L);
         List<Map<String, Object>> drawn = new ArrayList<>();
 
         drawn.add(mixed.generate());
         drawn.add(mixed.nextRecord());
-        drawn.addAll(mixed.generateBatch(1));
-        drawn.addAll(mixed.nextRecords(1));
-        drawn.addAll(mixed.loop(1));
+        drawn.addAll(mixed.nextRecords(2));
         drawn.add(mixed.generateList(1).get(0));
+        drawn.add(mixed.stream().findFirst().orElseThrow());
 
         assertEquals(indexed(9L).nextRecords(6), drawn);
     }
 
     @Test
-    @SuppressWarnings("deprecation")
-    @DisplayName("projectRow keeps the null an extractor returns, and project returns the same row")
+    @DisplayName("projectRow keeps the null an extractor returns")
     void projectionKeepsNull() {
         Map<String, Function<Person, ?>> columns = new LinkedHashMap<>();
         columns.put("name", Person::name);
@@ -120,7 +109,6 @@ class SchemaRecordsTest {
         assertEquals(List.of("name", "nickname"), List.copyOf(row.keySet()));
         assertEquals("Ada", row.get("name"));
         assertNull(row.get("nickname"));
-        assertEquals(row, projection.project(ada));
         assertThrows(UnsupportedOperationException.class, () -> row.put("name", "Grace"));
         assertThrows(NullPointerException.class, () -> projection.projectRow(null));
     }
