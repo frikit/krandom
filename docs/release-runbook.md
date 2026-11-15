@@ -83,7 +83,9 @@ The GPG public key must be uploaded to a public keyserver (for example
 [VERSIONING.md](../VERSIONING.md) defines the public API, and a minor or patch release keeps all of
 it. `./gradlew checkApiCompatibility --continue` compares every published jar with the release that
 `apiBaselineVersion` in `gradle.properties` names. `check`, the pre-commit gate, the CI job
-**Public API Compatibility**, the release rehearsal, and the release workflow run it.
+**Public API Compatibility**, the release rehearsal, and the release workflow run it. During a major
+line, each module's reviewed list of the major release's intended breaks is subtracted; see
+[Accepted breaks](#accepted-breaks).
 
 - **Java modules** (`core`, `jackson`, `junit`, `spring-boot-starter`): japicmp compares each jar with
   the released jar from Maven Central and fails on any binary- or source-incompatible change to public
@@ -114,6 +116,10 @@ krandom-kotlin-dsl breaks the 3.0.0 public API (1 incompatible change):
   io.github.frikit.krandom.dsl.ConfigScope: removed `public final fun seed (J)V`
 ```
 
+During a major line, the first line of a failure also names the module's accepted-breaks file, as in
+`krandom-core breaks the 3.2.0 public API (1 incompatible change not listed in core/api/accepted-breaks-4.0.txt):`,
+and the failure ends with how to list a break that the plan names.
+
 What to do:
 
 - **An addition** passes; list it under Added in the changelog. A method added to an interface or
@@ -125,14 +131,16 @@ What to do:
   signature. `DeprecationLevel.ERROR` and `HIDDEN` stop existing callers from compiling, so they wait
   for a major release like the removal itself; the check reports `HIDDEN`, but not `ERROR`.
 - **A removal or an incompatible change** fails; restore the baseline declaration. Only a major
-  release removes or changes public API, and the owner decides how the baseline moves when a major
-  release line opens.
+  release removes or changes public API: during a major line, a break that the major release's plan
+  names is listed as [Accepted breaks](#accepted-breaks) describes, and the baseline stays at the last
+  release of the previous major line until the major release ships.
 - **A compatible change that the Kotlin check rejects**, such as an annotation element with a default
   value or an abstract member added to a sealed type, which no user can implement: record it with
   `./gradlew updateKotlinApiBaseline` in the same pull request and explain it there, so that review
-  sees the baseline diff. japicmp also rejects an element added to a Java annotation even when it has
-  a default value, and the Java check has no such escape; give the new setting another form, such as
-  a new annotation.
+  sees the baseline diff. Never record a break this way: the baseline dump is the released API, and
+  a break belongs in the accepted-breaks file. japicmp also rejects an element added to a Java
+  annotation even when it has a default value, and the Java check has no such escape; give the new
+  setting another form, such as a new annotation.
 
 The check does not cover:
 
@@ -149,6 +157,55 @@ The check does not cover:
   the tests, such as `GenerationRecipeTest`.
 
 After each release the baseline moves to it; see [Post-release](#post-release).
+
+### Accepted breaks
+
+A major release is the only one that may break the public API, and only where its plan says so.
+While `developmentVersion` is a major `N.0.0-SNAPSHOT`, each module may have
+`<module>/api/accepted-breaks-N.0.txt`, such as `core/api/accepted-breaks-4.0.txt`, next to the Kotlin
+baseline dumps; `updateKotlinApiBaseline` replaces only the `.api` files there. The baseline stays at
+the last release of the previous major line, and the check subtracts the breaks that the file lists:
+
+- Each line names one break exactly as the check prints it, such as
+  `io.github.frikit.krandom.generator.schema.Schema#loop(int): METHOD_REMOVED (breaks binary and source)`
+  or ``io.github.frikit.krandom.dsl.ConfigScope: removed `public final fun seed (Ljava/lang/String;)V` ``.
+  For a Kotlin module, that is the dump line of a removed declaration, or the other forms the check
+  prints for a changed one. Leading and trailing spaces are ignored, so the indented lines of a
+  failure can be pasted as they are.
+- A blank line, or a line whose first character other than a space is `#`, is ignored. A comment
+  cannot follow an entry on its line, because Java entries contain `#`. Put the reason above each
+  entry: the plan item that names the break, and the replacement users move to.
+- The check fails on a break that the file does not list, printing each one in the form to paste;
+  on an entry that no break matches any more, printing each one to delete; and on an entry listed
+  twice. So the file always lists exactly the breaks that the module makes. The JPMS module-name and package-export lines are breaks
+  like the others.
+- It fails on any `accepted-breaks-*.txt` while the development line is not a major `N.0.0-SNAPSHOT`,
+  and on one for another major line, so no minor or patch release ships a break. The line is read
+  from `developmentVersion`, not the build version, so the release build of `N.0.0`, which runs with
+  `-PreleaseVersion=N.0.0`, still accepts the listed breaks. An empty or absent file accepts nothing,
+  as outside a major line.
+
+A pass names the accepted breaks:
+
+```text
+krandom-core: compatible with the 3.2.0 public API (0 additions; 1 accepted break in core/api/accepted-breaks-4.0.txt).
+```
+
+To add an entry:
+
+1. Make the break in the pull request that implements the plan item, and run
+   `./gradlew checkApiCompatibility --continue`.
+2. Paste each line that the failure lists for that change into the module's file, under a comment
+   that gives the reason, and list the change in the changelog under Removed or Changed.
+3. Run the check again: it passes when the file lists exactly the module's breaks. For a Java
+   module, `build/reports/api-compatibility/<module>/report.xml` lists every new, modified, and
+   removed element; review by hand what the check does not cover, as listed above.
+
+Review of the pull request approves each new entry as one that the major release's plan names, and
+the owner approves the merge. Reverting a break means deleting its entry too, or the check fails.
+
+When the major release ships, its close-out moves the baseline to `N.0.0` and deletes every
+accepted-breaks file; see [Post-release](#post-release).
 
 ## Release rehearsal and recovery
 
@@ -236,6 +293,11 @@ rebuild them instead: a new build signs and describes other files than the ones 
   `./scripts/verify_documentation_facts.sh` and
   `./gradlew checkApiCompatibility`; the published install guidance stays
   unchanged.
+- After a major release `N.0.0`, the same commit deletes every
+  `<module>/api/accepted-breaks-N.0.txt`: against the `N.0.0` baseline each entry would be stale, and
+  on the next development line the check rejects the files. When a commit opens a major line by
+  setting `developmentVersion` to `N.0.0-SNAPSHOT`, it may add an empty
+  `<module>/api/accepted-breaks-N.0.txt` with a header comment to each module.
 - Confirm the GitHub Pages deployment includes that follow-up documentation
   commit before announcing the release broadly.
 

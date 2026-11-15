@@ -70,7 +70,10 @@ and skips itself on an older test Java.
   Kotlin modules with the baseline dumps under `<module>/api/`. Additions pass; a removed or
   incompatibly changed declaration fails, one line per declaration. `check` and the pre-commit gate
   run it. To retire API, deprecate it; see
-  [Public API compatibility](docs/release-runbook.md#public-api-compatibility).
+  [Public API compatibility](docs/release-runbook.md#public-api-compatibility). While the development
+  line is a major `N.0.0-SNAPSHOT`, a break that the major release's plan names is listed, exactly as
+  the check prints it, in `<module>/api/accepted-breaks-N.0.txt` in the same pull request, and review
+  approves each entry; see [Accepted breaks](docs/release-runbook.md#accepted-breaks).
 - **Module boundaries**: `scripts/verify_module_boundaries.sh` requires a unique JPMS module name
   for every published jar and rejects packages split across published jars.
 - **Release SBOMs**: `./gradlew verifyReleaseSboms` generates and validates the CycloneDX JSON and XML
