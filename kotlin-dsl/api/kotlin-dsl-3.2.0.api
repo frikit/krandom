@@ -1,13 +1,18 @@
 public final class io/github/frikit/krandom/dsl/ConfigScope {
+	public final fun advancingConvenienceStreams (Z)V
 	public final fun collectionSize (II)V
 	public final fun constructionPolicy (Lio/github/frikit/krandom/generator/object/ObjectConstructionPolicy;)V
 	public final fun generationReportListener (Lio/github/frikit/krandom/generator/report/GenerationReportListener;)V
+	public final fun generationReportParentsFirst (Z)V
+	public final fun germanStreetLayout (Z)V
 	public final fun locale (Ljava/util/Locale;)V
 	public final fun objectFieldStreamPolicy (Lio/github/frikit/krandom/generator/object/ObjectFieldStreamPolicy;)V
 	public final fun objectMaxDepth (I)V
+	public final fun objectReseedBuiltInRandomizers (Z)V
 	public final fun objectUniqueFields ([Ljava/lang/String;)V
 	public final fun seed (J)V
 	public final fun seed (Ljava/lang/String;)V
+	public final fun strictMathGaussian (Z)V
 	public final fun stringLength (II)V
 }
 
