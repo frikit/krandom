@@ -6,3 +6,13 @@
 # The check fails on a break that is not listed and on a listed break that no longer occurs.
 # This file exists only while the development line is the 4.0 major line, and is deleted at the 4.0.0
 # close-out, when the API baseline moves to 4.0.0.
+
+# 4.0 plan A1 (owner decision 2, "Retype + widen"): remove the record methods deprecated since 3.1.0, whose
+# type claims values that are never null. Schema.nextRecords(int) replaces generateBatch(int) and loop(int),
+# and returns the same records typed Map<String, @Nullable Object>.
+io.github.frikit.krandom.generator.schema.Schema#generateBatch(int): METHOD_REMOVED (breaks binary and source)
+io.github.frikit.krandom.generator.schema.Schema#loop(int): METHOD_REMOVED (breaks binary and source)
+
+# 4.0 plan A1: SchemaProjection.projectRow(T) replaces project(T), deprecated since 3.1.0, and returns the same
+# row typed Map<String, @Nullable Object>.
+io.github.frikit.krandom.generator.schema.SchemaProjection#project(java.lang.Object): METHOD_REMOVED (breaks binary and source)

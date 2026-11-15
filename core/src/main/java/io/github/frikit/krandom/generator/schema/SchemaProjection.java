@@ -30,8 +30,7 @@ import org.jspecify.annotations.Nullable;
  * as one, as they differ only in unpaired surrogates, are rejected with an {@link IllegalArgumentException}.
  *
  * <p>A projected row maps each field to the value its extractor returns, which may be {@code null}, so
- * {@link #projectRow(Object)} types the row as {@code Map<String, @Nullable Object>}. The deprecated
- * {@link #project(Object)} returns the same row as {@code Map<String, Object>}.
+ * {@link #projectRow(Object)} types the row as {@code Map<String, @Nullable Object>}.
  *
  * @param <T> source object type
  */
@@ -70,20 +69,6 @@ public final class SchemaProjection<T> {
      */
     public static <T> SchemaProjection<T> of(Map<String, ? extends Function<? super T, ?>> fields) {
         return new SchemaProjection<>(fields);
-    }
-
-    /**
-     * Projects one source object into an immutable, insertion-ordered map.
-     *
-     * @param value source object
-     * @return projected fields
-     * @deprecated The row's type claims values that are never {@code null}, but a value is {@code null} where
-     *     its extractor returns {@code null}. Use {@link #projectRow(Object)}, which returns the same row
-     *     typed {@code Map<String, @Nullable Object>}.
-     */
-    @Deprecated
-    public Map<String, Object> project(T value) {
-        return Schema.legacyRecord(projectRow(value));
     }
 
     /**

@@ -7,16 +7,19 @@ package io.github.frikit.krandom.generator.selection;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import org.jspecify.annotations.Nullable;
 
 /**
- * Picks a single random element from a non-empty source list.
+ * Picks a single random element from a non-empty source list, which may hold {@code null}.
  *
- * @param <T> element type
+ * @param <T> element type, which may be nullable
  */
-public final class PickGenerator<T> implements Generator<T> {
+public final class PickGenerator<T extends @Nullable Object> implements Generator<T> {
 
     private final List<T> source;
     private final Random random;
@@ -24,7 +27,7 @@ public final class PickGenerator<T> implements Generator<T> {
     /**
      * Creates a pick generator backed by the default fast PRNG.
      *
-     * @param source source list; must not be null or empty
+     * @param source source list; must not be null or empty, and may hold {@code null}
      */
     public PickGenerator(List<T> source) {
         this(source, new Random());
@@ -33,7 +36,7 @@ public final class PickGenerator<T> implements Generator<T> {
     /**
      * Creates a pick generator whose draws come from the configuration's random source.
      *
-     * @param source source list; must not be null or empty
+     * @param source source list; must not be null or empty, and may hold {@code null}
      * @param config generator configuration; must not be {@code null}
      */
     public PickGenerator(List<T> source, GeneratorConfig config) {
@@ -45,7 +48,8 @@ public final class PickGenerator<T> implements Generator<T> {
         if (source.isEmpty()) {
             throw new IllegalArgumentException("source must not be empty");
         }
-        this.source = List.copyOf(source);
+        // A copy that keeps null elements, which List.copyOf rejects.
+        this.source = Collections.unmodifiableList(new ArrayList<>(source));
         this.random = Objects.requireNonNull(random, "random must not be null");
     }
 

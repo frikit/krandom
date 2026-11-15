@@ -6,6 +6,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- `Schema` is a `Generator<Map<String, @Nullable Object>>`, where it was a `Generator<Map<String, Object>>`,
+  whose type claimed values that are never `null` although a value is `null` where its provider returns
+  `null`. `generate()` is no longer deprecated and returns the record that `nextRecord()` returns, and the
+  `generateList`, `stream`, `map` and `filter` it inherits give the same type. `nextRecord()`,
+  `nextRecords(int)` and `projectRow(T)` stay as they were, and records and seeded output are unchanged.
+  The JVM signatures are the same, so compiled code keeps working. In Java, javac ignores the `@Nullable`,
+  so code that assigns `schema.generate()` to a `Map<String, Object>` or passes a `Schema` as a
+  `Generator<Map<String, Object>>` still compiles; NullAway in JSpecify mode rejects both and needs the new
+  type argument. In Kotlin, `schema.generate()` is a `Map<String, Any?>` and a `Schema` is a
+  `Generator<Map<String, Any?>>`, so code that reads a value as `Any`, such as
+  `val name: Any = schema.generate().getValue("name")`, or declares a `Generator<Map<String, Any>>` of a
+  schema, no longer compiles: handle the `null` or declare `Map<String, Any?>`.
+- `Krandom.pick(List<? extends T>)`, both `Generators.pick` methods and `PickGenerator<T>` bound `T` by
+  `@Nullable Object` rather than `Object`, so a list that holds `null` can be picked from, and the `null` is
+  returned. `PickGenerator` copied its source with `List.copyOf`, so a source that held `null` threw a
+  `NullPointerException`; it now keeps the `null`. Seeded picks are unchanged. The JVM signatures are the
+  same, and Java callers call what they did. In Kotlin, `krandom.pick(listOf("a", null))` now calls
+  `pick(List)` and returns `"a"` or `null`, where it called the varargs `pick` and returned the list itself,
+  so code that reads the result as a `List<String?>` no longer compiles; to pick the list as one value, write
+  `krandom.pick<List<String?>>(list)`. Kotlin now reads a star projection `PickGenerator<*>` as giving
+  `Any?`, so code that reads its value as `Any` no longer compiles.
+
+### Removed
+
+- `Schema.generateBatch(int)`, `Schema.loop(int)` and `SchemaProjection.project(T)`, deprecated since 3.1.0.
+  Call `nextRecords(int)` for the first two and `projectRow(T)` for the third: they return the same records
+  and rows, from the same record sequence, typed `Map<String, @Nullable Object>`. Code that calls a removed
+  method no longer compiles, and code compiled against 3.x that calls one fails with `NoSuchMethodError`.
+  javac ignores the `@Nullable`, so `List<Map<String, Object>> batch = schema.nextRecords(10);` compiles;
+  NullAway in JSpecify mode and Kotlin, which sees `List<Map<String, Any?>>`, read the values as nullable.
+
 ### Documentation
 
 - `VERSIONING.md` now states two rules that make a change major-only. Raising the Kotlin language and API
@@ -20,7 +53,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `<module>/api/accepted-breaks-N.0.txt`, one per line exactly as the check prints it. It still fails on any
   break that is not listed, and it also fails on a listed break that no longer occurs and on any such file
   while the development line is not a major `N.0.0-SNAPSHOT`, so no minor or patch release ships a break.
-  The files list no break yet. The release runbook describes how to add an entry, and the close-out of
+  `core/api/accepted-breaks-4.0.txt` lists the three removals under Removed, and the other files list no
+  break. The release runbook describes how to add an entry, and the close-out of
   each major release deletes the files when the baseline moves to it.
 
 ## [3.2.0] - 2026-11-14

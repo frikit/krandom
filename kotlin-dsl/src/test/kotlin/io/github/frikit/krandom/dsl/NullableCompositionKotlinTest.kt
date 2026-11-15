@@ -13,6 +13,8 @@ import io.github.frikit.krandom.generator.Krandom
 import io.github.frikit.krandom.generator.base.ConstantGenerator
 import io.github.frikit.krandom.generator.`object`.ObjectFaker
 import io.github.frikit.krandom.generator.`object`.PropertySelector
+import io.github.frikit.krandom.generator.schema.SchemaValueProvider
+import io.github.frikit.krandom.generator.selection.PickGenerator
 import io.github.frikit.krandom.generator.selection.RepeatGenerator
 import io.github.frikit.krandom.generator.selection.SequenceGenerator
 import io.github.frikit.krandom.generator.selection.UniqueGenerator
@@ -85,6 +87,24 @@ class NullableCompositionKotlinTest {
     }
 
     @Test
+    fun aSchemaIsAGeneratorOfNullableRecords() {
+        val profiles =
+            Generators.ofSchema(
+                seeded,
+                linkedMapOf("name" to SchemaValueProvider { "Ada" }, "nickname" to SchemaValueProvider { null }),
+            )
+        val records: Generator<Map<String, Any?>> = profiles
+        val generated: Map<String, Any?> = profiles.generate()
+        val repeated: RepeatGenerator<Map<String, Any?>> = Generators.repeat(profiles, 2)
+
+        assertEquals("Ada", generated["name"])
+        assertTrue("nickname" in generated)
+        assertNull(generated["nickname"])
+        assertNull(records.generate()["nickname"])
+        assertEquals(listOf(null, null), repeated.generate().map { it["nickname"] })
+    }
+
+    @Test
     fun theVarargsPickReturnsANullAmongItsValues() {
         val fromArray: String? = Krandom.seeded("nullable pick").pick<String?>(null, null)
 
@@ -92,14 +112,20 @@ class NullableCompositionKotlinTest {
     }
 
     @Test
-    fun pickOfAListBindsAsIn30() {
+    fun pickOfAListReturnsAnElement() {
         val krandom = Krandom.seeded("list pick")
-        // A list that holds null is one value of the varargs pick, which returns the list itself.
-        val withNull: List<String?> = krandom.pick(listOf("a", null))
-        // A list without null binds to pick(List), which returns one of its elements.
+        // A list that holds null binds to pick(List), which returns one of its elements.
+        val withNull: String? = krandom.pick(listOf("a", null))
+        // The varargs pick still takes the list as one value when its type argument is given.
+        val whole: List<String?> = krandom.pick<List<String?>>(listOf("a", null))
         val element: String = krandom.pick(listOf("a", "b"))
+        val picks: PickGenerator<String?> = Generators.pick(listOf("a", null))
+        val onlyNull: PickGenerator<String?> = Generators.pick(listOf(null), seeded)
 
-        assertEquals(listOf("a", null), withNull)
+        assertTrue(withNull == "a" || withNull == null, withNull.toString())
+        assertEquals(listOf("a", null), whole)
         assertTrue(element == "a" || element == "b", element)
+        assertTrue(picks.generate() in listOf("a", null))
+        assertNull(onlyNull.generate())
     }
 }

@@ -119,6 +119,9 @@ fixtures; see [Finance and Identity]({{ '/guides/finance-and-identity/' | relati
   source gives, so their type argument may be nullable: `Generators.repeat(Generators.ofNullableBoolean(), 3)`
   is a `RepeatGenerator<@Nullable Boolean>`, which NullAway and Kotlin, as `RepeatGenerator<Boolean?>`,
   accept.
+- From 4.0.0, `pick` and `Krandom.pick(List)` take a list that holds `null` and may return the `null`:
+  `Generators.pick(Arrays.asList("a", null))` is a `PickGenerator<@Nullable String>`. In Kotlin,
+  `krandom.pick(listOf("a", null))` then returns an element rather than the list itself.
 
 ## Domain namespaces
 

@@ -37,11 +37,14 @@ provider returns `null`: a property of type `null` always does, and one with Ope
 half of the time. So `nextRecord()` and `nextRecords(count)`, new in 3.1.0, type a record as
 `Map<String, @Nullable Object>` (JSpecify's `@Nullable`), which NullAway and Kotlin read. `generate()`,
 `generateBatch(count)`, and `loop(count)` return the same records as `Map<String, Object>`, which claims
-values that are never `null`; they are deprecated in 3.1.0, and on 3.0.x they are the ones to call. A
-`Schema` is still a `Generator<Map<String, Object>>`,
-so the methods it inherits, such as `stream()`, keep that type; where you need a `Generator` of correctly
-typed records, use `schema::nextRecord`. Every one of these methods draws the schema's next records
-from one sequence.
+values that are never `null`; they are deprecated in 3.1.0, and on 3.0.x they are the ones to call. From
+4.0.0, `generateBatch(count)` and `loop(count)` are removed: call `nextRecords(count)`. In 3.x, a
+`Schema` is a `Generator<Map<String, Object>>`, so the methods it inherits, such as `stream()`, keep that
+type; where you need a `Generator` of correctly typed records, use `schema::nextRecord`. From 4.0.0, a
+`Schema` is a `Generator<Map<String, @Nullable Object>>`, which Kotlin reads as
+`Generator<Map<String, Any?>>`: `generate()`, the `Generator` method, is no longer deprecated and returns
+the record that `nextRecord()` returns, and `stream()` and the other inherited methods give the same
+type. Every one of these methods draws the schema's next records from one sequence.
 
 With a portable seeded configuration, one that has a `GenerationRecipe`, every value draws from its own
 stream, named by its record index and column, so adding a column leaves the values of the others as they
@@ -293,7 +296,7 @@ schemas. `Schema` is still the right API when values must be generated from `Fie
 use `SchemaProjection` when the values already exist. `projection.projectRow(order)`, new in 3.1.0,
 returns one object's row as a `Map<String, @Nullable Object>`, whose value is `null` where its extractor
 returns `null`; the deprecated `project(order)` returns the same row as a `Map<String, Object>`, and on
-3.0.x it is the one to call.
+3.0.x it is the one to call. From 4.0.0, `project(order)` is removed: call `projectRow(order)`.
 
 `FieldLookup` is now an extensible token registry rather than a fixed table, and `Field` exposes the same registration flow:
 
