@@ -14,6 +14,7 @@ in Git and release tags instead of duplicated as completed plans and dated revie
 
 ## Migrate
 
+- [kRandom 3.x to 4.0](migration/3.x-to-4.0.md)
 - [k-random to kRandom](migration/k-random-to-krandom.md)
 - [DataFaker to kRandom](migration/from-datafaker.md)
 - [Easy Random to kRandom](migration/from-easyrandom.md)

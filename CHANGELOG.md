@@ -48,6 +48,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   4.0.0. This recipe records library-version 3.2.0: replay it with kRandom 3.2.0.` The JUnit extension's
   `krandom.junit.recipe` and `krandom.junit.class-recipe`, and the Spring Boot starter's `krandom.recipe`,
   report that message, and a generation report names the format as `krandom-recipe/v2`.
+  `GenerationRecipe.RECIPE_VERSION` is a compile-time constant, so javac copies it into the code that reads
+  it, and code compiled against 3.x still holds `"v1"`: passed to `GenerationRecipe.builder().recipeVersion`,
+  it fails at `build()` with that message, which then names the builder's `library-version`, the running
+  release unless the code sets one, and compared with `getRecipeVersion()`, it no longer matches. Recompile
+  such code against 4.0.0.
 
 - `Schema` is a `Generator<Map<String, @Nullable Object>>`, where it was a `Generator<Map<String, Object>>`,
   whose type claimed values that are never `null` although a value is `null` where its provider returns
@@ -82,6 +87,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Documentation
 
+- A migration guide from 3.x to 4.0.0, `docs/migration/3.x-to-4.0.md`, also published as the
+  "Migrating to 4.0" guide of the documentation site. It starts with an upgrade checklist and covers, with
+  code before and after: the removed `Schema` and `SchemaProjection` methods and the `NoSuchMethodError` of
+  code compiled against 3.x; the `Schema` type argument under NullAway and in Kotlin; `pick` of a list that
+  holds `null`, in Java and Kotlin; the four seeding settings, what each changes and how to keep the 3.2
+  values in Java, the Kotlin DSL and the Spring Boot starter; `krandom-recipe/v2` and the failure of a v1
+  recipe, in the core API, the JUnit extension and the starter; recompiling code that reads
+  `GenerationRecipe.RECIPE_VERSION`; and the platform requirements that stay as they were. The README, the
+  documentation map and the site's guide list link to it.
 - `VERSIONING.md` now states two rules that make a change major-only. Raising the Kotlin language and API
   version that `krandom-kotlin-dsl` and `krandom-kotest-extensions` are compiled for, 2.2 since 3.1.0, raises
   the Kotlin version a consumer needs. Widening the bound of a class's type parameter, such as from `Object`

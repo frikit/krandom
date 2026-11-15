@@ -244,7 +244,8 @@ Consumer examples live in [`examples/`](examples/). They are test-based examples
 From 3.0.0, kRandom follows Semantic Versioning: only a major release removes or breaks public API,
 and minor and patch releases keep seeded output the same unless a fix restores a documented contract.
 [VERSIONING.md](VERSIONING.md) defines the public API, the deprecation rule, the determinism contract,
-and the platform requirements; check the [changelog](CHANGELOG.md) before upgrading.
+and the platform requirements; check the [changelog](CHANGELOG.md) before upgrading. To upgrade from
+3.x to 4.0.0, follow the [migration guide](docs/migration/3.x-to-4.0.md).
 
 ## Getting help
 
@@ -257,6 +258,7 @@ and the platform requirements; check the [changelog](CHANGELOG.md) before upgrad
 - Docs URL: [https://frikit.github.io/krandom/](https://frikit.github.io/krandom/)
 - API reference (Javadoc): [javadoc.io/doc/io.github.frikit/krandom-core](https://javadoc.io/doc/io.github.frikit/krandom-core)
 - Maintained project docs: [`docs/`](docs/)
+- 3.x to 4.0 migration guide: [`docs/migration/3.x-to-4.0.md`](docs/migration/3.x-to-4.0.md)
 - k-random migration guide: [`docs/migration/k-random-to-krandom.md`](docs/migration/k-random-to-krandom.md)
 
 GitHub Pages deployment is wired through [`.github/workflows/github-pages.yml`](.github/workflows/github-pages.yml).
