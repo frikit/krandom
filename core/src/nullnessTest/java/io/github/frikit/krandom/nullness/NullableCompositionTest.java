@@ -21,6 +21,7 @@ import io.github.frikit.krandom.generator.object.ObjectFaker;
 import io.github.frikit.krandom.generator.object.PropertyPath;
 import io.github.frikit.krandom.generator.object.PropertySelector;
 import io.github.frikit.krandom.generator.provider.ProviderHub;
+import io.github.frikit.krandom.generator.selection.PickGenerator;
 import io.github.frikit.krandom.generator.selection.RepeatGenerator;
 import io.github.frikit.krandom.generator.selection.SequenceGenerator;
 import io.github.frikit.krandom.generator.selection.UniqueGenerator;
@@ -214,6 +215,21 @@ class NullableCompositionTest {
         Krandom krandom = Krandom.seeded("nullable pick");
 
         assertNull(krandom.<@Nullable String>pick(null, null));
+    }
+
+    @Test
+    @DisplayName("a pick of a list returns a null the list holds")
+    void listPickReturnsNull() {
+        List<@Nullable String> onlyNull = Arrays.asList((String) null);
+        @Nullable String picked = Krandom.seeded("nullable pick").pick(onlyNull);
+        PickGenerator<@Nullable String> picks = Generators.pick(onlyNull);
+        PickGenerator<@Nullable String> seededPicks = Generators.pick(onlyNull, seeded());
+        Generator<@Nullable String> constructed = new PickGenerator<@Nullable String>(onlyNull, seeded());
+
+        assertNull(picked);
+        assertNull(picks.generate());
+        assertNull(seededPicks.generate());
+        assertNull(constructed.generate());
     }
 
     private static ConstantGenerator<@Nullable String> none() {

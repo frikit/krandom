@@ -20,6 +20,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `Generator<Map<String, Any?>>`, so code that reads a value as `Any`, such as
   `val name: Any = schema.generate().getValue("name")`, or declares a `Generator<Map<String, Any>>` of a
   schema, no longer compiles: handle the `null` or declare `Map<String, Any?>`.
+- `Krandom.pick(List<? extends T>)`, both `Generators.pick` methods and `PickGenerator<T>` bound `T` by
+  `@Nullable Object` rather than `Object`, so a list that holds `null` can be picked from, and the `null` is
+  returned. `PickGenerator` copied its source with `List.copyOf`, so a source that held `null` threw a
+  `NullPointerException`; it now keeps the `null`. Seeded picks are unchanged. The JVM signatures are the
+  same, and Java callers call what they did. In Kotlin, `krandom.pick(listOf("a", null))` now calls
+  `pick(List)` and returns `"a"` or `null`, where it called the varargs `pick` and returned the list itself,
+  so code that reads the result as a `List<String?>` no longer compiles; to pick the list as one value, write
+  `krandom.pick<List<String?>>(list)`. Kotlin now reads a star projection `PickGenerator<*>` as giving
+  `Any?`, so code that reads its value as `Any` no longer compiles.
 
 ### Removed
 

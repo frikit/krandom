@@ -4302,9 +4302,10 @@ public final class Generators {
     }
 
     /**
-     * Returns a generator that picks one random element from the given source list.
+     * Returns a generator that picks one random element from the given source list, which may hold
+     * {@code null}.
      */
-    public static <T> PickGenerator<T> pick(List<T> source) {
+    public static <T extends @Nullable Object> PickGenerator<T> pick(List<T> source) {
         return new PickGenerator<>(source);
     }
 
@@ -4312,12 +4313,12 @@ public final class Generators {
      * Returns a generator that picks one element from the source list using explicit
      * configuration, so a seeded configuration reproduces the same picks.
      *
-     * @param source source list; must not be {@code null} or empty
+     * @param source source list; must not be {@code null} or empty, and may hold {@code null}
      * @param config generator configuration; must not be {@code null}
-     * @param <T>    element type
+     * @param <T>    element type, which may be nullable
      * @return pick generator
      */
-    public static <T> PickGenerator<T> pick(List<T> source, GeneratorConfig config) {
+    public static <T extends @Nullable Object> PickGenerator<T> pick(List<T> source, GeneratorConfig config) {
         return new PickGenerator<>(source, config);
     }
 

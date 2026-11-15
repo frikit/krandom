@@ -7,12 +7,14 @@ package io.github.frikit.krandom.generator.selection;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.Generator;
 import io.github.frikit.krandom.generator.GeneratorConfig;
 import io.github.frikit.krandom.generator.Generators;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -44,6 +46,20 @@ class SelectionGeneratorsTest {
         for (int i = 0; i < 20; i++) {
             assertEquals(a.generate(), b.generate());
         }
+    }
+
+    @Test
+    @DisplayName("PickGenerator returns a null its source holds and copies the source")
+    void pickGeneratorKeepsNullAndCopiesSource() {
+        List<String> source = new ArrayList<>(Arrays.asList(null, null));
+        PickGenerator<String> gen = new PickGenerator<>(source, seeded(123L));
+        source.set(0, "changed");
+        source.set(1, "changed");
+
+        for (int i = 0; i < 20; i++) {
+            assertNull(gen.generate());
+        }
+        assertNull(Generators.pick(Arrays.asList((String) null)).generate());
     }
 
     @Test
