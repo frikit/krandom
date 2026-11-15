@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- `Schema` is a `Generator<Map<String, @Nullable Object>>`, where it was a `Generator<Map<String, Object>>`,
+  whose type claimed values that are never `null` although a value is `null` where its provider returns
+  `null`. `generate()` is no longer deprecated and returns the record that `nextRecord()` returns, and the
+  `generateList`, `stream`, `map` and `filter` it inherits give the same type. `nextRecord()`,
+  `nextRecords(int)` and `projectRow(T)` stay as they were, and records and seeded output are unchanged.
+  The JVM signatures are the same, so compiled code keeps working. In Java, javac ignores the `@Nullable`,
+  so code that assigns `schema.generate()` to a `Map<String, Object>` or passes a `Schema` as a
+  `Generator<Map<String, Object>>` still compiles; NullAway in JSpecify mode rejects both and needs the new
+  type argument. In Kotlin, `schema.generate()` is a `Map<String, Any?>` and a `Schema` is a
+  `Generator<Map<String, Any?>>`, so code that reads a value as `Any`, such as
+  `val name: Any = schema.generate().getValue("name")`, or declares a `Generator<Map<String, Any>>` of a
+  schema, no longer compiles: handle the `null` or declare `Map<String, Any?>`.
+
 ### Removed
 
 - `Schema.generateBatch(int)`, `Schema.loop(int)` and `SchemaProjection.project(T)`, deprecated since 3.1.0.

@@ -75,6 +75,27 @@ class NullableSchemaRecordsTest {
     }
 
     @Test
+    @DisplayName("a schema is a Generator of nullable records, and generate returns nextRecord's record")
+    void schemaIsAGeneratorOfNullableRecords() {
+        Schema schema = profiles();
+        Generator<Map<String, @Nullable Object>> records = schema;
+        Map<String, @Nullable Object> generated = schema.generate();
+        List<Map<String, @Nullable Object>> listed = records.generateList(2);
+        Map<String, @Nullable Object> streamed = schema.stream().findFirst().orElseThrow();
+        RepeatGenerator<Map<String, @Nullable Object>> pairs = Generators.repeat(schema, 2);
+
+        assertEquals(profiles().nextRecord(), generated);
+        assertNull(generated.get("nickname"));
+        assertEquals(2, listed.size());
+        assertNull(listed.get(1).get("nickname"));
+        assertNull(streamed.get("nickname"));
+        for (Map<String, @Nullable Object> each : pairs.generate()) {
+            assertTrue(each.containsKey("nickname"));
+            assertNull(each.get("nickname"));
+        }
+    }
+
+    @Test
     @DisplayName("a parsed schema's null property is a null value of its record")
     void parsedNullPropertyIsNull() {
         Map<String, Object> properties = new LinkedHashMap<>();

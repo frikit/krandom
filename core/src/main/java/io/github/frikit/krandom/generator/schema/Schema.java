@@ -53,12 +53,11 @@ import org.jspecify.annotations.Nullable;
  * <p>A record maps each column, in the order of the fields, to its value, which is {@code null} where the
  * column's provider returns {@code null}, as a parsed property of type {@code null} always does and one
  * with OpenAPI's {@code nullable} does half of the time. {@link #nextRecord()} and
- * {@link #nextRecords(int)} type a record as {@code Map<String, @Nullable Object>}, which says so.
- * {@link #generate()} returns the same record as {@code Map<String, Object>}, which claims values that are
- * never {@code null}, and is deprecated. As a
- * {@code Generator<Map<String, Object>>}, a schema keeps that type in the methods it inherits, such as
- * {@code stream()}; {@code schema::nextRecord} is a {@code Generator<Map<String, @Nullable Object>>}
- * of the same records. Every one of these methods draws the schema's next records from one sequence.
+ * {@link #nextRecords(int)} type a record as {@code Map<String, @Nullable Object>}, which says so. A schema
+ * is a {@code Generator<Map<String, @Nullable Object>>}: {@link #generate()}, the {@link Generator} method,
+ * returns the record that {@link #nextRecord()} returns, and the methods it inherits, such as
+ * {@code generateList} and {@code stream()}, keep that type. Every one of these methods draws the schema's
+ * next records from one sequence.
  *
  * <p>When supplied a portable seeded {@link GeneratorConfig}, every value receives a named child
  * stream derived from its record index and field name. Adding an unrelated schema column therefore
@@ -82,7 +81,7 @@ import org.jspecify.annotations.Nullable;
  * an {@link IllegalArgumentException}. YAML writes DEL, the C1 controls, U+2028, U+2029, U+FFFE
  * and U+FFFF, which a YAML parser rejects raw or reads as a line break, as escapes, in names and values.
  */
-public final class Schema implements Generator<Map<String, Object>> {
+public final class Schema implements Generator<Map<String, @Nullable Object>> {
 
     private static final String JSON_SCHEMA_DRAFT_2020_12 = "https://json-schema.org/draft/2020-12/schema";
     static final String XML_DECLARATION = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
@@ -269,17 +268,13 @@ public final class Schema implements Generator<Map<String, Object>> {
     }
 
     /**
-     * Generates the next record.
+     * Generates the next record, as {@link #nextRecord()} does: this is the {@link Generator} method.
      *
      * @return the next record
-     * @deprecated The record's type claims values that are never {@code null}, but a value is {@code null}
-     *     where its provider returns {@code null}. Use {@link #nextRecord()}, which returns the same record
-     *     typed {@code Map<String, @Nullable Object>}.
      */
-    @Deprecated
     @Override
-    public Map<String, Object> generate() {
-        return legacyRecord(nextRecord());
+    public Map<String, @Nullable Object> generate() {
+        return nextRecord();
     }
 
     /**
@@ -306,13 +301,6 @@ public final class Schema implements Generator<Map<String, Object>> {
             records.add(nextRecord());
         }
         return records;
-    }
-
-    // The deprecated generate() keeps its 3.0 type, which claims values that are never null. The record it
-    // returns is the one nextRecord() returns, null values included, as it always was.
-    @SuppressWarnings("NullAway")
-    private static Map<String, Object> legacyRecord(Map<String, @Nullable Object> record) {
-        return record;
     }
 
     /**

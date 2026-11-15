@@ -67,20 +67,18 @@ class SchemaRecordsTest {
     }
 
     @Test
-    @SuppressWarnings("deprecation")
     @DisplayName("generate returns the records that nextRecord does")
     void generateReturnsTheSameRecords() {
-        Schema legacy = indexed(7L);
+        Schema generated = indexed(7L);
         Schema current = indexed(7L);
 
-        assertEquals(current.nextRecord(), legacy.generate());
-        assertEquals(current.nextRecords(3), legacy.generateList(3));
-        assertTrue(legacy.generate().containsKey("missing"));
-        assertNull(legacy.generate().get("missing"));
+        assertEquals(current.nextRecord(), generated.generate());
+        assertEquals(current.nextRecords(3), generated.generateList(3));
+        assertTrue(generated.generate().containsKey("missing"));
+        assertNull(generated.generate().get("missing"));
     }
 
     @Test
-    @SuppressWarnings("deprecation")
     @DisplayName("generate and the record methods draw from one record sequence")
     void oneRecordSequence() {
         Schema mixed = indexed(9L);

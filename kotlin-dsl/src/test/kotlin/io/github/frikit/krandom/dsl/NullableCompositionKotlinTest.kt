@@ -13,6 +13,7 @@ import io.github.frikit.krandom.generator.Krandom
 import io.github.frikit.krandom.generator.base.ConstantGenerator
 import io.github.frikit.krandom.generator.`object`.ObjectFaker
 import io.github.frikit.krandom.generator.`object`.PropertySelector
+import io.github.frikit.krandom.generator.schema.SchemaValueProvider
 import io.github.frikit.krandom.generator.selection.RepeatGenerator
 import io.github.frikit.krandom.generator.selection.SequenceGenerator
 import io.github.frikit.krandom.generator.selection.UniqueGenerator
@@ -82,6 +83,24 @@ class NullableCompositionKotlinTest {
                 .nickname,
         )
         assertNull(ObjectFaker(Profile::class.java, seeded).ruleForContext("nickname", nothing).generate().nickname)
+    }
+
+    @Test
+    fun aSchemaIsAGeneratorOfNullableRecords() {
+        val profiles =
+            Generators.ofSchema(
+                seeded,
+                linkedMapOf("name" to SchemaValueProvider { "Ada" }, "nickname" to SchemaValueProvider { null }),
+            )
+        val records: Generator<Map<String, Any?>> = profiles
+        val generated: Map<String, Any?> = profiles.generate()
+        val repeated: RepeatGenerator<Map<String, Any?>> = Generators.repeat(profiles, 2)
+
+        assertEquals("Ada", generated["name"])
+        assertTrue("nickname" in generated)
+        assertNull(generated["nickname"])
+        assertNull(records.generate()["nickname"])
+        assertEquals(listOf(null, null), repeated.generate().map { it["nickname"] })
     }
 
     @Test
