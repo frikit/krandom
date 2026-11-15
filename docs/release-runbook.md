@@ -138,7 +138,10 @@ What to do:
   value or an abstract member added to a sealed type, which no user can implement: record it with
   `./gradlew updateKotlinApiBaseline` in the same pull request and explain it there, so that review
   sees the baseline diff. Never record a break this way: the baseline dump is the released API, and
-  a break belongs in the accepted-breaks file. japicmp also rejects an element added to a Java
+  a break belongs in the accepted-breaks file. While a Kotlin module's accepted-breaks file lists an
+  entry, `updateKotlinApiBaseline` fails, because the current dump lacks the accepted breaks and
+  recording it would drop the released declarations from the baseline; edit only the lines of the
+  compatible change into the baseline dump by hand instead. japicmp also rejects an element added to a Java
   annotation even when it has a default value, and the Java check has no such escape; give the new
   setting another form, such as a new annotation.
 
@@ -299,8 +302,9 @@ rebuild them instead: a new build signs and describes other files than the ones 
   `./gradlew checkApiCompatibility`; the published install guidance stays
   unchanged.
 - After a major release `N.0.0`, the same commit deletes every
-  `<module>/api/accepted-breaks-N.0.txt`: against the `N.0.0` baseline each entry would be stale, and
-  on the next development line the check rejects the files. When a commit opens a major line by
+  `<module>/api/accepted-breaks-N.0.txt`, before it runs `updateKotlinApiBaseline`, which refuses to
+  run while a Kotlin module's file lists an entry: against the `N.0.0` baseline each entry would be
+  stale, and on the next development line the check rejects the files. When a commit opens a major line by
   setting `developmentVersion` to `N.0.0-SNAPSHOT`, it may add an empty
   `<module>/api/accepted-breaks-N.0.txt` with a header comment to each module.
 - Confirm the GitHub Pages deployment includes that follow-up documentation

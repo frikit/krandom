@@ -245,6 +245,13 @@ fun acceptedBreaksFiles(moduleName: String): List<File> =
         .orEmpty()
         .sortedBy(File::getName)
 
+// The entries of an accepted-breaks file: its trimmed lines that are neither blank nor comments.
+fun acceptedBreaksEntries(file: File): List<String> =
+    file
+        .readLines()
+        .map(String::trim)
+        .filter { line -> line.isNotEmpty() && !line.startsWith("#") }
+
 // Compares the breaks a check found with the module's accepted-breaks file. Returns the failure text,
 // if any, and the number of breaks that the file accepts.
 fun acceptedBreaksVerdict(
@@ -274,14 +281,11 @@ fun acceptedBreaksVerdict(
     }
     val listed = mutableListOf<String>()
     val duplicates = mutableListOf<String>()
-    expected?.takeIf(File::isFile)?.readLines()?.forEach { raw ->
-        val line = raw.trim()
-        if (line.isNotEmpty() && !line.startsWith("#")) {
-            if (line in listed) {
-                if (line !in duplicates) duplicates += line
-            } else {
-                listed += line
-            }
+    expected?.takeIf(File::isFile)?.let(::acceptedBreaksEntries)?.forEach { line ->
+        if (line in listed) {
+            if (line !in duplicates) duplicates += line
+        } else {
+            listed += line
         }
     }
     val path = expected?.relativeTo(rootDir)?.path
@@ -968,8 +972,21 @@ tasks.register("updateKotlinApiBaseline") {
             kotlinCurrentAbiDump(moduleName) to
                 kotlinBaselineAbiDump(moduleName)
         }
+    val kotlinAcceptedBreaksFiles = kotlinApiModules.flatMap(::acceptedBreaksFiles)
 
     doLast {
+        // The current dump lacks each accepted break, so recording it would drop the released declarations
+        // from the baseline and leave the accepted entries stale.
+        val listing = kotlinAcceptedBreaksFiles.filter { file -> acceptedBreaksEntries(file).isNotEmpty() }
+        if (listing.isNotEmpty()) {
+            throw GradleException(
+                "updateKotlinApiBaseline would record the accepted breaks in " +
+                    listing.joinToString(", ") { file -> file.relativeTo(rootDir).path } +
+                    " as the $apiBaselineVersion baseline. During a major line, edit only the lines of a compatible " +
+                    "change into the baseline dump by hand; at the major release's close-out, delete the " +
+                    "accepted-breaks files first (docs/release-runbook.md, Accepted breaks).",
+            )
+        }
         dumps.forEach { (currentDump, baselineDump) ->
             baselineDump.parentFile.mkdirs()
             baselineDump.parentFile
