@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Documentation
+
+- `VERSIONING.md` now states two rules that make a change major-only. Raising the Kotlin language and API
+  version that `krandom-kotlin-dsl` and `krandom-kotest-extensions` are compiled for, 2.2 since 3.1.0, raises
+  the Kotlin version a consumer needs. Widening the bound of a class's type parameter, such as from `Object`
+  to `@Nullable Object`, keeps every JVM signature, but Kotlin reads a star projection of the class through
+  the bound, so code that reads a value from one as `Any` no longer compiles. 3.1.0's widening of
+  `ConstantGenerator`, `ContextualGenerator`, `RepeatGenerator`, `UniqueGenerator` and `PropertySelector`
+  remains the one recorded exception.
+- The public API check, which compares each published jar with the `apiBaselineVersion` release, now
+  subtracts the intended breaks of a major release that each module lists in a reviewed
+  `<module>/api/accepted-breaks-N.0.txt`, one per line exactly as the check prints it. It still fails on any
+  break that is not listed, and it also fails on a listed break that no longer occurs and on any such file
+  while the development line is not a major `N.0.0-SNAPSHOT`, so no minor or patch release ships a break.
+  The files list no break yet. The release runbook describes how to add an entry, and the close-out of
+  each major release deletes the files when the baseline moves to it.
+
 ## [3.2.0] - 2026-11-14
 
 ### Added

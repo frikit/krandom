@@ -203,6 +203,8 @@ tasks.register("verifyReleaseSboms") {
 // - Kotlin modules: the Kotlin Gradle plugin dumps the ABI of the current code, leaving out `internal`
 //   declarations that are public in bytecode, and every declaration of the baseline dump committed as
 //   <module>/api/<module>-<apiBaselineVersion>.api must still be there with compatible modifiers.
+// During a major line each check subtracts the breaks that <module>/api/accepted-breaks-N.0.txt accepts
+// (see acceptedBreaksVerdict below).
 val apiBaselineVersion = providers.gradleProperty("apiBaselineVersion").get()
 val integrationApiPackages =
     mapOf(
@@ -219,6 +221,131 @@ val apiCompatibilityAdvice =
     "To fix it, keep each $apiBaselineVersion declaration as it was: retire one by deprecating it and naming its " +
         "replacement (only a major release removes it), and give a method added to an interface or abstract class " +
         "an implementation (docs/release-runbook.md, Public API compatibility)."
+
+// Accepted breaks (docs/release-runbook.md, Accepted breaks): while the development line is a major
+// N.0.0-SNAPSHOT, <module>/api/accepted-breaks-N.0.txt lists the intended breaks of that major release, one
+// per line exactly as the check reports it; blank lines and lines that start with '#' are ignored. The
+// check subtracts the listed breaks and fails on an unlisted one, on a listed one that no longer occurs,
+// and on any accepted-breaks file while the line is not a major N.0.0-SNAPSHOT, so a minor or patch
+// release breaks nothing. The line is developmentVersion, not the build version: a release build of the
+// major release (-PreleaseVersion=N.0.0) still checks its accepted breaks against the last release.
+val developmentVersion = providers.gradleProperty("developmentVersion").get()
+val acceptedBreaksLine = Regex("""(\d+)\.0\.0-SNAPSHOT""").matchEntire(developmentVersion)?.groupValues?.get(1)
+val acceptedBreaksFileName = acceptedBreaksLine?.let { major -> "accepted-breaks-$major.0.txt" }
+
+fun acceptedBreaksDirectory(moduleName: String): File =
+    project(":$moduleName")
+        .layout.projectDirectory
+        .dir("api")
+        .asFile
+
+fun acceptedBreaksFiles(moduleName: String): List<File> =
+    acceptedBreaksDirectory(moduleName)
+        .listFiles { file -> file.isFile && file.name.startsWith("accepted-breaks-") && file.name.endsWith(".txt") }
+        .orEmpty()
+        .sortedBy(File::getName)
+
+// The entries of an accepted-breaks file: its trimmed lines that are neither blank nor comments.
+fun acceptedBreaksEntries(file: File): List<String> =
+    file
+        .readLines()
+        .map(String::trim)
+        .filter { line -> line.isNotEmpty() && !line.startsWith("#") }
+
+// Compares the breaks a check found with the module's accepted-breaks file. Returns the failure text,
+// if any, and the number of breaks that the file accepts.
+fun acceptedBreaksVerdict(
+    moduleName: String,
+    found: List<String>,
+): Pair<String?, Int> {
+    fun plural(
+        count: Int,
+        noun: String,
+    ) = "$count $noun${if (count == 1) "" else "s"}"
+
+    // Entries are compared trimmed, so the indented lines of a failure can be pasted as they are.
+    val breaks = found.map(String::trim).distinct()
+    val sections = mutableListOf<String>()
+    val files = acceptedBreaksFiles(moduleName)
+    val expected = acceptedBreaksFileName?.let { name -> acceptedBreaksDirectory(moduleName).resolve(name) }
+    files.filter { file -> file != expected }.forEach { file ->
+        sections +=
+            if (expected == null) {
+                "${file.relativeTo(rootDir)} exists, but the development line $developmentVersion is not a major " +
+                    "N.0.0-SNAPSHOT: only a major release may break the $apiBaselineVersion public API. " +
+                    "Delete the file (docs/release-runbook.md, Accepted breaks)."
+            } else {
+                "${file.relativeTo(rootDir)} does not belong to the development line $developmentVersion, whose " +
+                    "accepted breaks are in ${expected.relativeTo(rootDir)}. Delete it."
+            }
+    }
+    val listed = mutableListOf<String>()
+    val duplicates = mutableListOf<String>()
+    expected?.takeIf(File::isFile)?.let(::acceptedBreaksEntries)?.forEach { line ->
+        if (line in listed) {
+            if (line !in duplicates) duplicates += line
+        } else {
+            listed += line
+        }
+    }
+    val path = expected?.relativeTo(rootDir)?.path
+    if (duplicates.isNotEmpty()) {
+        sections +=
+            buildString {
+                appendLine("$path lists ${plural(duplicates.size, "break")} more than once; keep one line each:")
+                duplicates.forEach { line -> appendLine("  $line") }
+            }.trimEnd()
+    }
+    val unlisted = breaks.filterNot(listed::contains)
+    if (unlisted.isNotEmpty()) {
+        sections +=
+            buildString {
+                appendLine(
+                    "krandom-$moduleName breaks the $apiBaselineVersion public API " +
+                        "(${plural(unlisted.size, "incompatible change")}" +
+                        "${if (path == null) "" else " not listed in $path"}):",
+                )
+                unlisted.forEach { line -> appendLine("  $line") }
+                append(apiCompatibilityAdvice)
+                if (path != null) {
+                    append(
+                        "\nIf the $acceptedBreaksLine.0 plan names this break, add each line above to $path, under a " +
+                            "comment that gives the reason (docs/release-runbook.md, Accepted breaks).",
+                    )
+                }
+            }
+    }
+    val stale = listed.filterNot(breaks::contains)
+    if (stale.isNotEmpty()) {
+        sections +=
+            buildString {
+                appendLine(
+                    "$path lists ${plural(stale.size, "break")} that krandom-$moduleName no longer makes; " +
+                        "delete each line below, with its comment:",
+                )
+                stale.forEach { line -> appendLine("  $line") }
+            }.trimEnd()
+    }
+    return sections.takeIf { it.isNotEmpty() }?.joinToString("\n") to breaks.count(listed::contains)
+}
+
+// The result line of a check that passes: "(N additions)", or with accepted breaks
+// "(N additions; M accepted breaks in <file>)".
+fun apiCompatibleLine(
+    moduleName: String,
+    additions: Int,
+    accepted: Int,
+): String =
+    "krandom-$moduleName: compatible with the $apiBaselineVersion public API " +
+        "($additions addition${if (additions == 1) "" else "s"}" +
+        (
+            if (accepted == 0) {
+                ""
+            } else {
+                "; $accepted accepted break${if (accepted == 1) "" else "s"} in " +
+                    acceptedBreaksDirectory(moduleName).resolve(acceptedBreaksFileName!!).relativeTo(rootDir)
+            }
+        ) + ")."
 
 fun apiTaskSuffix(moduleName: String): String =
     moduleName
@@ -457,7 +584,7 @@ val javaApiCompatibilityTasks =
             group = "verification"
             description = "Checks that krandom-$moduleName keeps the public API of $apiBaselineVersion (japicmp)."
             dependsOn(":$moduleName:jar")
-            inputs.files(baselineGraphs, candidateGraphs)
+            inputs.files(baselineGraphs, candidateGraphs, acceptedBreaksFiles(moduleName))
             // No declared outputs: the check always runs, so every run prints its result line.
             classpath = japicmpClasspath
             mainClass.set("japicmp.JApiCmp")
@@ -532,29 +659,18 @@ val javaApiCompatibilityTasks =
                 }
                 val (findings, additions) = japicmpFindings(xmlReport)
                 val problems = moduleProblems + findings
+                // japicmp exits non-zero for each incompatible change, accepted ones included.
                 if (problems.isEmpty() && exitValue != 0) {
                     throw GradleException(
                         "japicmp failed for krandom-$moduleName (exit $exitValue):\n" +
                             japicmpOutput.toString(Charsets.UTF_8),
                     )
                 }
-                if (problems.isNotEmpty()) {
-                    throw GradleException(
-                        buildString {
-                            appendLine(
-                                "krandom-$moduleName breaks the $apiBaselineVersion public API " +
-                                    "(${problems.size} incompatible change${if (problems.size == 1) "" else "s"}):",
-                            )
-                            problems.forEach { problem -> appendLine("  $problem") }
-                            appendLine(apiCompatibilityAdvice)
-                            append("Report: ${directory.resolve("report.html")}")
-                        },
-                    )
+                val (failure, accepted) = acceptedBreaksVerdict(moduleName, problems)
+                if (failure != null) {
+                    throw GradleException("$failure\nReport: ${directory.resolve("report.html")}")
                 }
-                logger.lifecycle(
-                    "krandom-$moduleName: compatible with the $apiBaselineVersion public API " +
-                        "($additions addition${if (additions == 1) "" else "s"}).",
-                )
+                logger.lifecycle(apiCompatibleLine(moduleName, additions, accepted))
             }
         }
     }
@@ -771,7 +887,7 @@ val kotlinApiCompatibilityTasks =
             description =
                 "Checks that krandom-$moduleName keeps the public API of $apiBaselineVersion (Kotlin ABI dump)."
             dependsOn(":$moduleName:updateKotlinAbi")
-            inputs.files(baselineDump, currentDump)
+            inputs.files(baselineDump, currentDump, acceptedBreaksFiles(moduleName))
             // No declared outputs: the check always runs, so every run prints its result line.
 
             doLast {
@@ -784,18 +900,11 @@ val kotlinApiCompatibilityTasks =
                 }
                 val baseline = kotlinAbiClasses(baselineDump)
                 val current = kotlinAbiClasses(currentDump)
-                val problems = kotlinAbiBreaks(baseline, current)
-                if (problems.isNotEmpty()) {
+                val problems = kotlinAbiBreaks(baseline, current).distinct()
+                val (failure, accepted) = acceptedBreaksVerdict(moduleName, problems)
+                if (failure != null) {
                     throw GradleException(
-                        buildString {
-                            appendLine(
-                                "krandom-$moduleName breaks the $apiBaselineVersion public API " +
-                                    "(${problems.size} incompatible change${if (problems.size == 1) "" else "s"}):",
-                            )
-                            problems.forEach { problem -> appendLine("  $problem") }
-                            appendLine(apiCompatibilityAdvice)
-                            append("Baseline: ${baselineDump.relativeTo(rootDir)}; current: $currentDump")
-                        },
+                        "$failure\nBaseline: ${baselineDump.relativeTo(rootDir)}; current: $currentDump",
                     )
                 }
                 val additions =
@@ -804,10 +913,7 @@ val kotlinApiCompatibilityTasks =
                         val oldSignatures = old.members.map { line -> kotlinAbiMember(line).second }.toSet()
                         type.members.count { line -> kotlinAbiMember(line).second !in oldSignatures }
                     }
-                logger.lifecycle(
-                    "krandom-$moduleName: compatible with the $apiBaselineVersion public API " +
-                        "($additions addition${if (additions == 1) "" else "s"}).",
-                )
+                logger.lifecycle(apiCompatibleLine(moduleName, additions, accepted))
             }
         }
     }
@@ -866,8 +972,21 @@ tasks.register("updateKotlinApiBaseline") {
             kotlinCurrentAbiDump(moduleName) to
                 kotlinBaselineAbiDump(moduleName)
         }
+    val kotlinAcceptedBreaksFiles = kotlinApiModules.flatMap(::acceptedBreaksFiles)
 
     doLast {
+        // The current dump lacks each accepted break, so recording it would drop the released declarations
+        // from the baseline and leave the accepted entries stale.
+        val listing = kotlinAcceptedBreaksFiles.filter { file -> acceptedBreaksEntries(file).isNotEmpty() }
+        if (listing.isNotEmpty()) {
+            throw GradleException(
+                "updateKotlinApiBaseline would record the accepted breaks in " +
+                    listing.joinToString(", ") { file -> file.relativeTo(rootDir).path } +
+                    " as the $apiBaselineVersion baseline. During a major line, edit only the lines of a compatible " +
+                    "change into the baseline dump by hand; at the major release's close-out, delete the " +
+                    "accepted-breaks files first (docs/release-runbook.md, Accepted breaks).",
+            )
+        }
         dumps.forEach { (currentDump, baselineDump) ->
             baselineDump.parentFile.mkdirs()
             baselineDump.parentFile

@@ -1,0 +1,8 @@
+# Intended breaks of the krandom-kotest-extensions public API in the 4.0 major release, against the
+# apiBaselineVersion release (docs/release-runbook.md, Accepted breaks).
+#
+# One break per line, exactly as checkApiCompatibility prints it, under a comment that gives the reason
+# and the 4.0 plan item that names it. Blank lines and lines that start with '#' are ignored.
+# The check fails on a break that is not listed and on a listed break that no longer occurs.
+# This file exists only while the development line is the 4.0 major line, and is deleted at the 4.0.0
+# close-out, when the API baseline moves to 4.0.0.
