@@ -80,12 +80,14 @@ public final class GenerationRecipe {
     private static final String CONSTRUCTION_POLICY_KEY = "construction-policy";
     private static final String PROVIDER_DATASET_VERSION_KEY = "provider-dataset-version";
     private static final String SETTING_PREFIX = "setting.";
-    /** Recorded only when on; a recipe without it replays with the setting off, as every 3.1 recipe does. */
+    /*
+     * The four settings that are on by default from 4.0.0. A configuration records each one, on or off; a recipe
+     * without one, which 3.x writes while the setting is off, replays it off.
+     */
     static final String ADVANCING_CONVENIENCE_STREAMS_SETTING = "advancing-convenience-streams";
-    /** Recorded only when on; a recipe without it replays with the setting off, as every 3.1 recipe does. */
     static final String STRICT_MATH_GAUSSIAN_SETTING = "gaussian.strict-math";
-    /** Recorded only when on; a recipe without it replays with the setting off, as every 3.1 recipe does. */
     static final String OBJECT_RESEED_BUILT_IN_RANDOMIZERS_SETTING = "object.reseed-built-in-randomizers";
+    static final String GERMAN_STREET_LAYOUT_SETTING = "address.german-street-layout";
     /** No field names, because a setting cannot be blank. A name holds only letters and digits, so none is this. */
     private static final String NO_FIELD_NAMES = "-";
 
@@ -311,7 +313,8 @@ public final class GenerationRecipe {
      * serialized form of a seeded configuration always records them. A recipe without
      * {@code child-stream-policy}, such as one written while {@link ChildStreamPolicy#LEGACY} was
      * the default and left unrecorded, is rejected rather than replayed under the current default.
-     * The 3.2 seeding opt-ins are recorded only when on, so a recipe without one replays it off.
+     * A recipe without one of the four settings that are on by default from 4.0.0, such as one that 3.x wrote
+     * while that setting was off, replays it off.
      *
      * @return replay configuration
      * @throws IllegalArgumentException if this library does not recognize a recorded setting, or a
@@ -441,10 +444,15 @@ public final class GenerationRecipe {
         applyInteger(builder, "object.pool-size", builder::objectPoolSize);
         applyBoolean(builder, "object.override-default-initialization", builder::objectOverrideDefaultInitialization);
         applyBoolean(builder, "object.ignore-errors", builder::objectIgnoreErrors);
+        // Off unless recorded, so a recipe never takes these four from the replaying release's defaults.
+        builder.advancingConvenienceStreams(false)
+                .strictMathGaussian(false)
+                .objectReseedBuiltInRandomizers(false)
+                .germanStreetLayout(false);
         applyBoolean(builder, ADVANCING_CONVENIENCE_STREAMS_SETTING, builder::advancingConvenienceStreams);
         applyBoolean(builder, STRICT_MATH_GAUSSIAN_SETTING, builder::strictMathGaussian);
         applyBoolean(builder, OBJECT_RESEED_BUILT_IN_RANDOMIZERS_SETTING, builder::objectReseedBuiltInRandomizers);
-        applyBoolean(builder, "address.german-street-layout", builder::germanStreetLayout);
+        applyBoolean(builder, GERMAN_STREET_LAYOUT_SETTING, builder::germanStreetLayout);
         builder.paymentCardSafetyPolicy(PaymentCardSafetyPolicy.valueOf(requiredSetting("payment.card-safety-policy")));
         builder.bankingSafetyPolicy(BankingSafetyPolicy.valueOf(requiredSetting("banking.safety-policy")));
         builder.businessTaxIdentifierSafetyPolicy(
@@ -536,7 +544,7 @@ public final class GenerationRecipe {
                     "object.pool-size",
                     "object.override-default-initialization",
                     "object.ignore-errors",
-                    "address.german-street-layout",
+                    GERMAN_STREET_LAYOUT_SETTING,
                     "object.semantic-mode",
                     "object.null-probability",
                     "object.optional-empty-probability",

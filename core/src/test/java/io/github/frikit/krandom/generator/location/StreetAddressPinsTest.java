@@ -27,13 +27,20 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Seeded street addresses, address records, the address schema columns and the session's place methods, and the
- * recipe of a default seeded configuration, as 3.1.0 gives them, recorded before the German street layout was
- * added. A configuration that does not opt in must keep giving them.
+ * recipe of a seeded configuration, as 3.1.0 gives them, recorded before the German street layout was added. A
+ * configuration with the layout off, as in 3.x, must keep giving them; the recipe now records the four seeding
+ * settings that are on by default from 4.0.0, off.
  */
 @DisplayName("seeded addresses and recipes without the German street layout keep their 3.1.0 values")
 class StreetAddressPinsTest {
 
     private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-07-10T12:00:00Z"), ZoneOffset.UTC);
+
+    /** The four seeding settings that are on by default from 4.0.0, off as in 3.x, which the pins record. */
+    static final UnaryOperator<GeneratorConfig.Builder> ALL_OFF = builder -> builder.advancingConvenienceStreams(false)
+            .strictMathGaussian(false)
+            .objectReseedBuiltInRandomizers(false)
+            .germanStreetLayout(false);
 
     static final List<String> LOCALES = List.of("de", "de-DE", "de-AT", "de-CH", "nl-NL", "en-US");
 
@@ -85,11 +92,11 @@ class StreetAddressPinsTest {
     @Test
     @DisplayName("street addresses, address records, schema columns and session places keep their values")
     void seededAddressValuesArePinned() {
-        assertEquals(PINNED_VALUES, values(UnaryOperator.identity(), LOCALES));
+        assertEquals(PINNED_VALUES, values(ALL_OFF, LOCALES));
     }
 
     @Test
-    @DisplayName("the recipe of a default seeded configuration keeps its text")
+    @DisplayName("the recipe of a seeded configuration with the four seeding settings off keeps its text")
     void defaultRecipeTextIsPinned() {
         assertEquals(
                 """
@@ -105,6 +112,8 @@ class StreetAddressPinsTest {
                 safety-policy=legacy-unclassified
                 construction-policy=safe-constructors
                 provider-dataset-version=builtin-v1
+                setting.address.german-street-layout=false
+                setting.advancing-convenience-streams=false
                 setting.banking.safety-policy=DISABLED
                 setting.business-tax-identifier.safety-policy=DISABLED
                 setting.charset=US-ASCII
@@ -113,6 +122,7 @@ class StreetAddressPinsTest {
                 setting.collection.min=1
                 setting.crypto-address.safety-policy=DISABLED
                 setting.email.domain-policy=TEST_SAFE_RESERVED_DOMAINS
+                setting.gaussian.strict-math=false
                 setting.identity-document.safety-policy=DISABLED
                 setting.national-id.safety-policy=DISABLED
                 setting.network.safety-policy=TEST_SAFE_RESERVED
@@ -123,6 +133,7 @@ class StreetAddressPinsTest {
                 setting.object.override-default-initialization=false
                 setting.object.pool-size=10
                 setting.object.requested-unique-fields=-
+                setting.object.reseed-built-in-randomizers=false
                 setting.object.semantic-mode=RELAXED
                 setting.object.unique-fields=email%2Cemailaddress%2Cusername%2Cuserhandle%2Cuuid%2Cguid%2Cid
                 setting.object.uniqueness-max-attempts=256
@@ -132,10 +143,10 @@ class StreetAddressPinsTest {
                 setting.string.max=20
                 setting.string.min=5
                 """,
-                GeneratorConfig.builder()
-                        .locale(Locale.GERMANY)
-                        .seed(42L)
-                        .clock(CLOCK)
+                ALL_OFF.apply(GeneratorConfig.builder()
+                                .locale(Locale.GERMANY)
+                                .seed(42L)
+                                .clock(CLOCK))
                         .build()
                         .getGenerationRecipe()
                         .orElseThrow()

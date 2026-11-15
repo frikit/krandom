@@ -31,17 +31,25 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * Seeded values of the default configuration that the 3.2 seeding opt-ins must leave as they are, recorded on
+ * Seeded values of the 3.x configuration that the 3.2 seeding opt-ins must leave as they are, recorded on
  * {@code main} before the opt-ins existed: convenience methods that restart their child stream, Gaussian draws
- * with {@link Math}, a {@code @Randomizer} left on its own source, and the recipe of a default configuration.
+ * with {@link Math}, a {@code @Randomizer} left on its own source, and the recipe of that configuration. From
+ * 4.0.0 the settings are on by default, so the configuration sets them off.
  */
-@DisplayName("with no opt-in, seeded values and recipes stay as 3.1 gave them")
+@DisplayName("with the seeding settings off, seeded values and recipes stay as 3.1 gave them")
 class SeedingDefaultsPinTest {
 
     private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-07-10T12:00:00Z"), ZoneOffset.UTC);
 
     private static GeneratorConfig seeded(long seed) {
-        return GeneratorConfig.builder().seed(seed).clock(CLOCK).build();
+        return GeneratorConfig.builder()
+                .seed(seed)
+                .clock(CLOCK)
+                .advancingConvenienceStreams(false)
+                .strictMathGaussian(false)
+                .objectReseedBuiltInRandomizers(false)
+                .germanStreetLayout(false)
+                .build();
     }
 
     @Test
@@ -158,19 +166,21 @@ class SeedingDefaultsPinTest {
     }
 
     @Test
-    @DisplayName("the recipe of a default seeded configuration records exactly the 3.1 settings")
+    @DisplayName("the recipe of that configuration records the 3.1 settings and the four seeding settings, off")
     void recipeSettings() {
         GenerationRecipe recipe = seeded(42L).getGenerationRecipe().orElseThrow();
         Map<String, String> settings = new TreeMap<>(recipe.getSettings());
         assertEquals(
-                "{banking.safety-policy=DISABLED, business-tax-identifier.safety-policy=DISABLED, charset=US-ASCII,"
+                "{address.german-street-layout=false, advancing-convenience-streams=false, banking.safety-policy=DISABLED, business-tax-identifier.safety-policy=DISABLED, charset=US-ASCII,"
                         + " child-stream-policy=INDEPENDENT, collection.max=10, collection.min=1,"
                         + " crypto-address.safety-policy=DISABLED, email.domain-policy=TEST_SAFE_RESERVED_DOMAINS,"
+                        + " gaussian.strict-math=false,"
                         + " identity-document.safety-policy=DISABLED, national-id.safety-policy=DISABLED,"
                         + " network.safety-policy=TEST_SAFE_RESERVED, object.ignore-errors=false, object.max-depth=5,"
                         + " object.null-probability=0.0, object.optional-empty-probability=0.0,"
                         + " object.override-default-initialization=false, object.pool-size=10,"
-                        + " object.requested-unique-fields=-, object.semantic-mode=RELAXED,"
+                        + " object.requested-unique-fields=-, object.reseed-built-in-randomizers=false,"
+                        + " object.semantic-mode=RELAXED,"
                         + " object.unique-fields=email,emailaddress,username,userhandle,uuid,guid,id,"
                         + " object.uniqueness-max-attempts=256, payment.card-safety-policy=TEST_SAFE_NON_ROUTABLE,"
                         + " phone-number.safety-policy=TEST_SAFE_WHERE_AVAILABLE,"
@@ -192,6 +202,8 @@ class SeedingDefaultsPinTest {
                         "safety-policy=legacy-unclassified\n",
                         "construction-policy=safe-constructors\n",
                         "provider-dataset-version=builtin-v1\n",
+                        "setting.address.german-street-layout=false\n",
+                        "setting.advancing-convenience-streams=false\n",
                         "setting.banking.safety-policy=DISABLED\n",
                         "setting.business-tax-identifier.safety-policy=DISABLED\n",
                         "setting.charset=US-ASCII\n",
@@ -200,6 +212,7 @@ class SeedingDefaultsPinTest {
                         "setting.collection.min=1\n",
                         "setting.crypto-address.safety-policy=DISABLED\n",
                         "setting.email.domain-policy=TEST_SAFE_RESERVED_DOMAINS\n",
+                        "setting.gaussian.strict-math=false\n",
                         "setting.identity-document.safety-policy=DISABLED\n",
                         "setting.national-id.safety-policy=DISABLED\n",
                         "setting.network.safety-policy=TEST_SAFE_RESERVED\n",
@@ -210,6 +223,7 @@ class SeedingDefaultsPinTest {
                         "setting.object.override-default-initialization=false\n",
                         "setting.object.pool-size=10\n",
                         "setting.object.requested-unique-fields=-\n",
+                        "setting.object.reseed-built-in-randomizers=false\n",
                         "setting.object.semantic-mode=RELAXED\n",
                         "setting.object.unique-fields=email%2Cemailaddress%2Cusername%2Cuserhandle%2Cuuid%2Cguid%2Cid\n",
                         "setting.object.uniqueness-max-attempts=256\n",

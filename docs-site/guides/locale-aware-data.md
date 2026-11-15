@@ -175,8 +175,8 @@ your cities. Register places for the locale as well to use your own.
 Street addresses put the house number first in every locale by default, so a German street reads
 `7389 Schloss Anger`. German writes the street first, with its type as part of the name:
 `Schlossanger 7389`. Since 3.2.0, `GeneratorConfig.Builder.germanStreetLayout(true)` opts in to that
-layout. It is off by default in 3.x, so seeded output does not change unless you ask for it, and it
-becomes the default in 4.0.
+layout. It is off by default in 3.x, so seeded output does not change unless you ask for it. From
+4.0.0 it is on by default, and `germanStreetLayout(false)` keeps the 3.x layout.
 
 ```java
 GeneratorConfig de = GeneratorConfig.builder()

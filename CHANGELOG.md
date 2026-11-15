@@ -8,6 +8,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Four `GeneratorConfig` settings that 3.2.0 added as opt-ins are on by default, so seeded output changes
+  where they apply. Set one to `false` to keep its 3.x values: with all four `false`, a seed gives what 3.2.0
+  gives. The Kotlin DSL's `config { ... }` functions of the same names do the same.
+  - `advancingConvenienceStreams`: `EmailGenerator.generateCompanyEmail()`, the `FullNameGenerator` methods
+    with a middle name or initial, and `CurrencyGenerator.generatePriceTag` give the next value on each call
+    rather than repeat one. Seeded with 42, `generateCompanyEmail()` gives
+    `aharris@advancedassociatesco.test`, `juliagarcia@advancedresourcesltd.test` and
+    `edavis@alpharesourcescorp.test` rather than the first address three times. The first call gives what it
+    gave before.
+  - `strictMathGaussian`: `NormalDistributionGenerator` draws with `StrictMath`, so a seeded value can differ
+    in its last bit from what `Math` gave on your platform, and is the same on every platform.
+  - `objectReseedBuiltInRandomizers`: object generation reseeds the 18 built-in `@Randomizer` generators that
+    are not `Seedable`, such as `UUIDGenerator` and `FirstNameGenerator`, from the object's seeded stream, so
+    their values replay from the seed rather than change from run to run. Other fields keep their values.
+  - `germanStreetLayout`: the locales whose language is German write a street address street first. Seeded
+    with 42, `de_DE` gives `Schlossanger 7389` rather than `7389 Schloss Anger`, and so do the full address,
+    `AddressInfo`, `Krandom.streetAddress()`, the address schema columns, the object engine's street fields
+    and the composites built on them, such as `PersonInfo`, `OrderInfo` and `InvoiceInfo`.
+
+  A portable recipe records each of the four, on or off, so its replay never depends on these defaults.
+
 - `Schema` is a `Generator<Map<String, @Nullable Object>>`, where it was a `Generator<Map<String, Object>>`,
   whose type claimed values that are never `null` although a value is `null` where its provider returns
   `null`. `generate()` is no longer deprecated and returns the record that `nextRecord()` returns, and the

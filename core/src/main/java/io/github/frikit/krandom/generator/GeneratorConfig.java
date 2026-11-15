@@ -347,9 +347,9 @@ public final class GeneratorConfig {
 
     /**
      * Whether convenience methods that draw from a named child stream keep that stream and advance it, rather
-     * than start it again on every call. Off by default in 3.x; the default from 4.0.
+     * than start it again on every call. On by default from 4.0.0; {@code false} keeps the 3.x behaviour.
      *
-     * @return {@code true} when the opt-in is on
+     * @return {@code true} when the setting is on
      * @see Builder#advancingConvenienceStreams(boolean)
      */
     public boolean isAdvancingConvenienceStreams() {
@@ -357,10 +357,10 @@ public final class GeneratorConfig {
     }
 
     /**
-     * Whether Gaussian draws use {@link StrictMath}, so a seed gives the same bits on every platform. Off by
-     * default in 3.x; the default from 4.0.
+     * Whether Gaussian draws use {@link StrictMath}, so a seed gives the same bits on every platform. On by
+     * default from 4.0.0; {@code false} keeps the 3.x behaviour.
      *
-     * @return {@code true} when the opt-in is on
+     * @return {@code true} when the setting is on
      * @see Builder#strictMathGaussian(boolean)
      */
     public boolean isStrictMathGaussian() {
@@ -369,9 +369,9 @@ public final class GeneratorConfig {
 
     /**
      * Whether object generation reseeds a built-in {@code @Randomizer} that is not {@link Seedable} from the
-     * object's seeded stream. Off by default in 3.x; the default from 4.0.
+     * object's seeded stream. On by default from 4.0.0; {@code false} keeps the 3.x behaviour.
      *
-     * @return {@code true} when the opt-in is on
+     * @return {@code true} when the setting is on
      * @see Builder#objectReseedBuiltInRandomizers(boolean)
      */
     public boolean isObjectReseedBuiltInRandomizers() {
@@ -911,7 +911,8 @@ public final class GeneratorConfig {
 
     /**
      * Returns {@code true} when the German locales write a street address as German does, street first: see
-     * {@link Builder#germanStreetLayout(boolean)}. Off by default in 3.x; the default from 4.0.
+     * {@link Builder#germanStreetLayout(boolean)}. On by default from 4.0.0; {@code false} keeps the 3.x
+     * behaviour.
      *
      * @return whether the German street layout is on
      */
@@ -1009,19 +1010,15 @@ public final class GeneratorConfig {
         if (objectFieldStreamPolicy != ObjectFieldStreamPolicy.LEGACY) {
             recipe.setting("object.field-stream-policy", objectFieldStreamPolicy.name());
         }
-        // Each 3.2 opt-in is recorded only when on, so a recipe with them off is the one 3.1 wrote.
-        if (advancingConvenienceStreams) {
-            recipe.setting(GenerationRecipe.ADVANCING_CONVENIENCE_STREAMS_SETTING, "true");
-        }
-        if (strictMathGaussian) {
-            recipe.setting(GenerationRecipe.STRICT_MATH_GAUSSIAN_SETTING, "true");
-        }
-        if (objectReseedBuiltInRandomizers) {
-            recipe.setting(GenerationRecipe.OBJECT_RESEED_BUILT_IN_RANDOMIZERS_SETTING, "true");
-        }
-        if (germanStreetLayout) {
-            recipe.setting("address.german-street-layout", "true");
-        }
+        // The four settings that 4.0.0 turns on are recorded on or off, so replay never depends on a default.
+        recipe.setting(
+                        GenerationRecipe.ADVANCING_CONVENIENCE_STREAMS_SETTING,
+                        Boolean.toString(advancingConvenienceStreams))
+                .setting(GenerationRecipe.STRICT_MATH_GAUSSIAN_SETTING, Boolean.toString(strictMathGaussian))
+                .setting(
+                        GenerationRecipe.OBJECT_RESEED_BUILT_IN_RANDOMIZERS_SETTING,
+                        Boolean.toString(objectReseedBuiltInRandomizers))
+                .setting(GenerationRecipe.GERMAN_STREET_LAYOUT_SETTING, Boolean.toString(germanStreetLayout));
         return Optional.of(recipe.build());
     }
 
@@ -1153,7 +1150,7 @@ public final class GeneratorConfig {
         private DataRegistryContext registryContext = DataRegistryContext.globalDefault();
         private Clock clock = Clock.systemDefaultZone();
         private boolean secureRandom;
-        private boolean germanStreetLayout;
+        private boolean germanStreetLayout = true;
         private String generationProfile = GenerationRecipe.CUSTOM_PROFILE;
         private String safetyPolicy = GenerationRecipe.LEGACY_UNCLASSIFIED_SAFETY_POLICY;
         private PaymentCardSafetyPolicy paymentCardSafetyPolicy = PaymentCardSafetyPolicy.TEST_SAFE_NON_ROUTABLE;
@@ -1169,9 +1166,9 @@ public final class GeneratorConfig {
         private EmailDomainPolicy emailDomainPolicy = EmailDomainPolicy.TEST_SAFE_RESERVED_DOMAINS;
         private NetworkSafetyPolicy networkSafetyPolicy = NetworkSafetyPolicy.TEST_SAFE_RESERVED;
         private ChildStreamPolicy childStreamPolicy = ChildStreamPolicy.INDEPENDENT;
-        private boolean advancingConvenienceStreams;
-        private boolean strictMathGaussian;
-        private boolean objectReseedBuiltInRandomizers;
+        private boolean advancingConvenienceStreams = true;
+        private boolean strictMathGaussian = true;
+        private boolean objectReseedBuiltInRandomizers = true;
         private String providerDatasetVersion = GenerationRecipe.BUILTIN_PROVIDER_DATASET_VERSION;
         private final List<KRandomModule> modules = new ArrayList<>();
 
@@ -1337,8 +1334,8 @@ public final class GeneratorConfig {
 
         /**
          * Writes the street addresses of the German locales as German does: the street, then the house number,
-         * such as {@code "Hauptstrasse 12"}, rather than {@code "12 Haupt Strasse"}. Off by default in 3.x, so
-         * seeded output stays the same; the default from 4.0.
+         * such as {@code "Hauptstrasse 12"}, rather than {@code "12 Haupt Strasse"}. On by default from 4.0.0;
+         * {@code false} keeps the 3.x behaviour, the house number first.
          *
          * <p>It applies to every locale whose language is German ({@code de}, {@code de_DE}, {@code de_AT},
          * {@code de_CH} and any other {@code de_*}), whose street data holds the first part of a name and street
@@ -1347,7 +1344,7 @@ public final class GeneratorConfig {
          * {@code StreetAddressGenerator.generate}, its full address, and the street and address of
          * {@code AddressInfoGenerator}, and so the session, schema and object-engine values built on them,
          * follow it. The same draws are made in the same order either way, so it changes only how the parts are
-         * laid out. A recipe records it while it is on, and a recipe without it replays with it off.
+         * laid out. A recipe records it, on or off.
          *
          * @param germanStreetLayout whether the German locales write the street first
          * @return this builder
@@ -1580,13 +1577,13 @@ public final class GeneratorConfig {
         /**
          * Makes convenience methods that draw from a named child stream keep that stream and advance it.
          *
-         * <p>Off by default in 3.x, which keeps the seeded output of earlier releases: each call of
-         * {@code EmailGenerator.generateCompanyEmail()}, of the {@code FullNameGenerator} methods with a middle
-         * name or initial, and of {@code CurrencyGenerator.generatePriceTag} builds its child generator again
-         * from the same child stream, so a seeded generator repeats one value. When on, the generator keeps
+         * <p>On by default from 4.0.0; {@code false} keeps the 3.x behaviour, the seeded output of earlier
+         * releases: each call of {@code EmailGenerator.generateCompanyEmail()}, of the {@code FullNameGenerator}
+         * methods with a middle name or initial, and of {@code CurrencyGenerator.generatePriceTag} builds its
+         * child generator again from the same child stream, so a seeded generator repeats one value. When on, the generator keeps
          * that child and each call draws the next value; the first call gives what it gave before. Without a
          * seed the values were not repeated, and only the reuse of the child changes. Portable recipes record
-         * the setting when it is on. This is the default from 4.0.
+         * the setting, on or off.
          *
          * @param advancing {@code true} to advance the child streams
          * @return this builder
@@ -1599,12 +1596,13 @@ public final class GeneratorConfig {
         /**
          * Makes Gaussian draws use {@link StrictMath} rather than {@link Math}.
          *
-         * <p>Off by default in 3.x, which keeps the seeded output of earlier releases: the Box-Muller transform
+         * <p>On by default from 4.0.0. {@code false} keeps the 3.x behaviour, the seeded output of earlier
+         * releases: the Box-Muller transform
          * of {@code NormalDistributionGenerator} uses {@link Math#log(double)}, {@link Math#sin(double)} and
          * {@link Math#cos(double)}, which Java lets differ in the last bit between platforms. When on, it uses
          * the {@link StrictMath} forms, which give the same bits everywhere, so a seed gives the same values on
          * every JVM and CPU; the values can differ in their last bit from those {@link Math} gives on this one.
-         * Portable recipes record the setting when it is on. This is the default from 4.0.
+         * Portable recipes record the setting, on or off.
          *
          * @param strict {@code true} to draw with {@link StrictMath}
          * @return this builder
@@ -1619,8 +1617,8 @@ public final class GeneratorConfig {
          * object's seeded stream.
          *
          * <p>In a seeded configuration, object generation reseeds a {@link Seedable} {@code @Randomizer} for
-         * every object from that object's stream, whatever this setting. Off by default in 3.x, which keeps
-         * the output of earlier releases: a built-in generator that is not {@code Seedable}, such as
+         * every object from that object's stream, whatever this setting. On by default from 4.0.0;
+         * {@code false} keeps the 3.x behaviour, the output of earlier releases: a built-in generator that is not {@code Seedable}, such as
          * {@code FirstNameGenerator}, {@code EmailGenerator} or {@code UUIDGenerator}, draws from its own
          * unseeded source, so its values change from run to run. When on, such a generator, if the
          * configuration's seed can reset it to a new build, is reseeded the same way and replays from the seed
@@ -1632,7 +1630,7 @@ public final class GeneratorConfig {
          * {@code CurrencyGenerator}, {@code MoneyGenerator}, {@code UUIDGenerator}, {@code WordGenerator},
          * {@code SentenceGenerator} and {@code ParagraphGenerator}. Other built-ins that are not {@code Seedable},
          * such as {@code MiddleNameGenerator} or {@code CompanyEmailGenerator}, keep their own source. Portable
-         * recipes record the setting when it is on. This is the default from 4.0.
+         * recipes record the setting, on or off.
          *
          * @param reseed {@code true} to reseed those built-in randomizers
          * @return this builder

@@ -157,6 +157,8 @@ pitest {
             "io.github.frikit.krandom.generator.ClockSnapshotTest",
             // The seeded values of the four 4.0 default flips, each set explicitly off and on.
             "io.github.frikit.krandom.generator.DefaultFlipPinsTest",
+            // From 4.0.0 the four are on by default.
+            "io.github.frikit.krandom.generator.DefaultFlipsTest",
             "io.github.frikit.krandom.generator.EnvironmentDeterminismTest",
             "io.github.frikit.krandom.generator.GenerationRecipe*",
             "io.github.frikit.krandom.generator.GeneratorConfigChildStreamTest",

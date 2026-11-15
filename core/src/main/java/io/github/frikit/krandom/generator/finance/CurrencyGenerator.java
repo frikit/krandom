@@ -412,9 +412,10 @@ public final class CurrencyGenerator implements Generator<String> {
      * Generates a locale-aware price tag string.
      * Faker-style alias: {@code pricetag()}.
      *
-     * <p>Each call builds a {@link MoneyGenerator} from the same child stream, so a seeded generator repeats one
-     * amount. With {@link GeneratorConfig.Builder#advancingConvenienceStreams(boolean)} on, which is the default
-     * from 4.0, it keeps that generator for both price-tag methods and each call gives the next amount.
+     * <p>With {@link GeneratorConfig.Builder#advancingConvenienceStreams(boolean)} on, as it is by default from
+     * 4.0.0, it keeps one {@link MoneyGenerator} for both price-tag methods and each call gives the next amount.
+     * With it off, as in 3.x, each call builds one from the same child stream, so a seeded generator repeats one
+     * amount.
      *
      * @return formatted amount with locale currency
      */

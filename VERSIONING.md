@@ -60,7 +60,8 @@ A seed fixes kRandom's own draws, not the Java runtime under them:
 - `NormalDistributionGenerator` draws with `Math.log`, `Math.sin`, and `Math.cos`, which Java lets differ in
   the last bit between platforms, so a Gaussian value can differ in its last bit on another JVM or CPU.
   From 3.2, `GeneratorConfig.Builder.strictMathGaussian(true)` draws with `StrictMath` instead, which gives the
-  same bits everywhere; it is the default from 4.0.
+  same bits everywhere. From 4.0.0 it is on by default, and `strictMathGaussian(false)` keeps the `Math`
+  draws.
 - A generator whose random source is a `SecureRandom`, from `GeneratorConfig.Builder.secureRandom()` or one
   that you supply, has no sequence to replay: `Seedable.reseed(long)` adds the seed to the
   `SecureRandom`'s state, as `SecureRandom.setSeed` does, rather than restarting it.

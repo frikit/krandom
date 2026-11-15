@@ -18,11 +18,11 @@ import java.util.random.RandomGenerator;
  *
  * <p>Default parameters: mean = 0.0, standard deviation = 1.0 (standard normal distribution).
  *
- * <p>The transform uses {@link Math#log(double)}, {@link Math#sin(double)} and
- * {@link Math#cos(double)}, which Java lets differ in the last bit between platforms, so a seeded
- * value can differ in its last bit on another JVM or CPU. With
- * {@link GeneratorConfig.Builder#strictMathGaussian(boolean)} on, which is the default from 4.0, it
- * uses the {@link StrictMath} forms instead, so a seed gives the same bits everywhere.
+ * <p>With {@link GeneratorConfig.Builder#strictMathGaussian(boolean)} on, as it is by default from 4.0.0,
+ * the transform uses {@link StrictMath#log(double)}, {@link StrictMath#sin(double)} and
+ * {@link StrictMath#cos(double)}, so a seed gives the same bits everywhere. With it off, as in 3.x, it uses
+ * the {@link Math} forms, which Java lets differ in the last bit between platforms, so a seeded value can
+ * differ in its last bit on another JVM or CPU.
  *
  * <pre>{@code
  *   // Standard normal distribution (mean=0, stdDev=1)

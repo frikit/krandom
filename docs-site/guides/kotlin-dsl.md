@@ -308,7 +308,7 @@ val config = krandomConfig {
 ```
 
 Each switch sets the `GeneratorConfig` setting of the same name. They are off by default in 3.x, so
-seeded values stay as they were, and each is the default from 4.0. See
+seeded values stay as they were. From 4.0.0 each is on by default, and `false` keeps its 3.x values. See
 [seeding opt-ins]({{ '/guides/primitives-and-determinism/' | relative_url }}#seeding-opt-ins-that-become-the-40-defaults-32)
 for what each one changes.
 
@@ -316,7 +316,7 @@ for what each one changes.
 
 `germanStreetLayout(true)` writes the street addresses of the German locales street first, such as
 `Schlossanger 7389`, as `GeneratorConfig.Builder.germanStreetLayout` does. It is off by default in 3.x and
-the default from 4.0; see [Locale-Aware Data]({{ '/guides/locale-aware-data/' | relative_url }}#german-street-layout).
+on by default from 4.0.0, where `germanStreetLayout(false)` keeps the 3.x layout; see [Locale-Aware Data]({{ '/guides/locale-aware-data/' | relative_url }}#german-street-layout).
 
 ```kotlin
 val config = krandomConfig {

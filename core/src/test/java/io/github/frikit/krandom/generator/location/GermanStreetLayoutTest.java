@@ -50,9 +50,10 @@ class GermanStreetLayoutTest {
     }
 
     @Test
-    @DisplayName("is off by default")
-    void isOffByDefault() {
-        assertFalse(GeneratorConfig.defaults().isGermanStreetLayout());
+    @DisplayName("is on by default from 4.0.0, and false turns it off")
+    void isOnByDefault() {
+        assertTrue(GeneratorConfig.defaults().isGermanStreetLayout());
+        assertFalse(GeneratorConfig.builder().germanStreetLayout(false).build().isGermanStreetLayout());
         assertTrue(GeneratorConfig.builder().germanStreetLayout(true).build().isGermanStreetLayout());
     }
 
@@ -135,7 +136,10 @@ class GermanStreetLayoutTest {
                 .filter(line -> line.startsWith("nl-NL ") || line.startsWith("en-US "))
                 .reduce("", (joined, line) -> joined + line + "\n");
 
-        assertEquals(pinned, StreetAddressPinsTest.values(builder -> builder.germanStreetLayout(true), others));
+        assertEquals(
+                pinned,
+                StreetAddressPinsTest.values(
+                        builder -> StreetAddressPinsTest.ALL_OFF.apply(builder).germanStreetLayout(true), others));
     }
 
     @Test
@@ -159,7 +163,7 @@ class GermanStreetLayoutTest {
     }
 
     @Test
-    @DisplayName("a recipe records it only when it is on, and replays it")
+    @DisplayName("a recipe records it on or off, and replays it")
     void recipeRecordsAndReplaysIt() {
         GeneratorConfig on = config("de-DE", true, ChildStreamPolicy.INDEPENDENT);
         GenerationRecipe recipe = on.getGenerationRecipe().orElseThrow();
@@ -178,8 +182,12 @@ class GermanStreetLayoutTest {
         GenerationRecipe off = config("de-DE", false, ChildStreamPolicy.INDEPENDENT)
                 .getGenerationRecipe()
                 .orElseThrow();
-        assertFalse(off.getSettings().containsKey("address.german-street-layout"));
+        assertEquals("false", off.getSettings().get("address.german-street-layout"));
         assertFalse(GenerationRecipe.parse(off.serialize()).toGeneratorConfig().isGermanStreetLayout());
+        // A recipe that 3.x wrote with the layout off has no such line, and replays it off.
+        String without = off.serialize().replace("setting.address.german-street-layout=false\n", "");
+        assertFalse(without.contains("german-street-layout"));
+        assertFalse(GenerationRecipe.parse(without).toGeneratorConfig().isGermanStreetLayout());
     }
 
     @Test

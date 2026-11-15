@@ -172,8 +172,8 @@ name, whatever the child-stream policy.
 ## Seeding opt-ins that become the 4.0 defaults (3.2+)
 
 Three `GeneratorConfig` settings change seeded output, so 3.x keeps them off by default and every
-existing seed and recipe gives the values it gave before. Each is the default from 4.0; turn them on
-now to get the 4.0 values early:
+existing seed and recipe gives the values it gave before. From 4.0.0 each is on by default, and setting
+it to `false` keeps its 3.x values. On 3.x, turn them on to get the 4.0 values early:
 
 ```java
 GeneratorConfig config = GeneratorConfig.builder()

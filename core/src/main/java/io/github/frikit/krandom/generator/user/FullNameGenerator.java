@@ -23,10 +23,10 @@ import java.util.Set;
  * <p>Built-in locale coverage follows the underlying name generators and the catalog in
  * {@link io.github.frikit.krandom.generator.locale.SupportedLocale}.
  *
- * <p>The methods with a middle name or initial build a middle-name generator from the same child stream on each
- * call, so a seeded generator repeats one middle name. With
- * {@link GeneratorConfig.Builder#advancingConvenienceStreams(boolean)} on, which is the default from 4.0, they keep
- * one, shared with {@link #generate(NameOptions)}, and each call gives the next middle name.
+ * <p>With {@link GeneratorConfig.Builder#advancingConvenienceStreams(boolean)} on, as it is by default from 4.0.0,
+ * the methods with a middle name or initial keep one middle-name generator, shared with
+ * {@link #generate(NameOptions)}, and each call gives the next middle name. With it off, as in 3.x, they build
+ * one from the same child stream on each call, so a seeded generator repeats one middle name.
  *
  * <pre>{@code
  * FullNameGenerator gen = new FullNameGenerator();
