@@ -71,7 +71,11 @@ class KrandomRecipeExclusivityTest {
                 "krandom.business-tax-identifier-safety-policy=" + BusinessTaxIdentifierSafetyPolicy.values()[0].name(),
                 "krandom.identity-document-safety-policy=" + IdentityDocumentSafetyPolicy.values()[0].name(),
                 "krandom.network-safety-policy=" + NetworkSafetyPolicy.values()[0].name(),
-                "krandom.object-construction-policy=" + ObjectConstructionPolicy.values()[0].name());
+                "krandom.object-construction-policy=" + ObjectConstructionPolicy.values()[0].name(),
+                "krandom.advancing-convenience-streams=false",
+                "krandom.strict-math-gaussian=true",
+                "krandom.object-reseed-built-in-randomizers=false",
+                "krandom.german-street-layout=true");
     }
 
     @ParameterizedTest(name = "{0}")

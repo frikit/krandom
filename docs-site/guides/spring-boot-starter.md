@@ -66,8 +66,25 @@ the recorded configuration. The error names each conflicting property; blank val
 From 4.0.0 `krandom.recipe` must be a `krandom-recipe/v2` recipe. A `krandom-recipe/v1` recipe, which a 3.x
 starter logs, fails at context startup with `Invalid krandom.recipe: Unsupported recipe version: v1. ...` and
 names the release that wrote it, such as `This recipe records library-version 3.2.0: replay it with kRandom
-3.2.0.` The starter has no property for the four seeding settings that 4.0.0 turns on by default; to keep
-their 3.x values, define your own `GeneratorConfig` bean that sets them to `false`.
+3.2.0.`
+
+### Seeding settings (from 4.0.0)
+
+From 4.0.0 four `GeneratorConfig` settings that change seeded output are on by default. The starter has a
+property for each; set one to `false` to keep its 3.x values, and leave it unset to keep the default:
+
+```properties
+krandom.advancing-convenience-streams=false
+krandom.strict-math-gaussian=false
+krandom.object-reseed-built-in-randomizers=false
+krandom.german-street-layout=false
+```
+
+They map onto `GeneratorConfig.Builder.advancingConvenienceStreams`, `strictMathGaussian`,
+`objectReseedBuiltInRandomizers` and `germanStreetLayout`. With all four `false`, a seed gives what 3.2.0
+gives. A recipe records all four, so each of them is rejected next to `krandom.recipe` like the other
+properties, and the effective recipe the starter logs records the value in effect, such as
+`setting.gaussian.strict-math=false`.
 
 Invalid combinations fail at context startup with an actionable message: a recipe combined with any
 property it defines, a `krandom.clock-zone` without `krandom.clock`, or malformed recipe/clock

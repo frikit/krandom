@@ -237,6 +237,30 @@ public class KrandomProperties {
     private io.github.frikit.krandom.generator.object.ObjectConstructionPolicy objectConstructionPolicy;
 
     /**
+     * Whether convenience methods that draw from a named child stream keep that stream and advance it. On by
+     * default from 4.0.0; {@code false} keeps the 3.x behaviour.
+     */
+    private Boolean advancingConvenienceStreams;
+
+    /**
+     * Whether Gaussian draws use {@link StrictMath}, so a seed gives the same bits on every platform. On by
+     * default from 4.0.0; {@code false} keeps the 3.x behaviour.
+     */
+    private Boolean strictMathGaussian;
+
+    /**
+     * Whether object generation reseeds the built-in {@code @Randomizer} generators that are not seedable from
+     * the object's seeded stream. On by default from 4.0.0; {@code false} keeps the 3.x behaviour.
+     */
+    private Boolean objectReseedBuiltInRandomizers;
+
+    /**
+     * Whether the German locales write a street address street first. On by default from 4.0.0; {@code false}
+     * keeps the 3.x behaviour.
+     */
+    private Boolean germanStreetLayout;
+
+    /**
      * Returns the serialized replay recipe.
      *
      * @return the recipe, or {@code null} when not configured
@@ -480,5 +504,77 @@ public class KrandomProperties {
     public void setObjectConstructionPolicy(
             io.github.frikit.krandom.generator.object.ObjectConstructionPolicy objectConstructionPolicy) {
         this.objectConstructionPolicy = objectConstructionPolicy;
+    }
+
+    /**
+     * Returns whether convenience methods advance their named child streams.
+     *
+     * @return the setting, or {@code null} to use the core default
+     */
+    public Boolean getAdvancingConvenienceStreams() {
+        return advancingConvenienceStreams;
+    }
+
+    /**
+     * Sets whether convenience methods advance their named child streams.
+     *
+     * @param advancingConvenienceStreams the setting, or {@code null} for the core default
+     */
+    public void setAdvancingConvenienceStreams(Boolean advancingConvenienceStreams) {
+        this.advancingConvenienceStreams = advancingConvenienceStreams;
+    }
+
+    /**
+     * Returns whether Gaussian draws use {@link StrictMath}.
+     *
+     * @return the setting, or {@code null} to use the core default
+     */
+    public Boolean getStrictMathGaussian() {
+        return strictMathGaussian;
+    }
+
+    /**
+     * Sets whether Gaussian draws use {@link StrictMath}.
+     *
+     * @param strictMathGaussian the setting, or {@code null} for the core default
+     */
+    public void setStrictMathGaussian(Boolean strictMathGaussian) {
+        this.strictMathGaussian = strictMathGaussian;
+    }
+
+    /**
+     * Returns whether object generation reseeds the built-in randomizers that are not seedable.
+     *
+     * @return the setting, or {@code null} to use the core default
+     */
+    public Boolean getObjectReseedBuiltInRandomizers() {
+        return objectReseedBuiltInRandomizers;
+    }
+
+    /**
+     * Sets whether object generation reseeds the built-in randomizers that are not seedable.
+     *
+     * @param objectReseedBuiltInRandomizers the setting, or {@code null} for the core default
+     */
+    public void setObjectReseedBuiltInRandomizers(Boolean objectReseedBuiltInRandomizers) {
+        this.objectReseedBuiltInRandomizers = objectReseedBuiltInRandomizers;
+    }
+
+    /**
+     * Returns whether the German locales write a street address street first.
+     *
+     * @return the setting, or {@code null} to use the core default
+     */
+    public Boolean getGermanStreetLayout() {
+        return germanStreetLayout;
+    }
+
+    /**
+     * Sets whether the German locales write a street address street first.
+     *
+     * @param germanStreetLayout the setting, or {@code null} for the core default
+     */
+    public void setGermanStreetLayout(Boolean germanStreetLayout) {
+        this.germanStreetLayout = germanStreetLayout;
     }
 }

@@ -42,7 +42,7 @@ import org.springframework.context.annotation.Bean;
  * </pre>
  *
  * <p>{@code krandom.recipe} is exclusive: the recipe already records the seed, locale, clock,
- * string and collection bounds, object settings, and safety and construction policies, so setting
+ * string and collection bounds, object settings, seeding settings, and safety and construction policies, so setting
  * any of those properties next to it fails startup instead of silently replaying a different
  * configuration. When the configuration is seed-owned, its effective recipe is logged at
  * {@code INFO} on startup, ready to be copied into {@code krandom.recipe}.
@@ -109,6 +109,10 @@ public class KrandomAutoConfiguration {
         candidates.put("krandom.identity-document-safety-policy", properties.getIdentityDocumentSafetyPolicy());
         candidates.put("krandom.network-safety-policy", properties.getNetworkSafetyPolicy());
         candidates.put("krandom.object-construction-policy", properties.getObjectConstructionPolicy());
+        candidates.put("krandom.advancing-convenience-streams", properties.getAdvancingConvenienceStreams());
+        candidates.put("krandom.strict-math-gaussian", properties.getStrictMathGaussian());
+        candidates.put("krandom.object-reseed-built-in-randomizers", properties.getObjectReseedBuiltInRandomizers());
+        candidates.put("krandom.german-street-layout", properties.getGermanStreetLayout());
         List<String> set = new ArrayList<>();
         candidates.forEach((name, value) -> {
             if (value != null) {
@@ -186,6 +190,19 @@ public class KrandomAutoConfiguration {
         }
         if (properties.getObjectConstructionPolicy() != null) {
             builder.objectConstructionPolicy(properties.getObjectConstructionPolicy());
+        }
+
+        if (properties.getAdvancingConvenienceStreams() != null) {
+            builder.advancingConvenienceStreams(properties.getAdvancingConvenienceStreams());
+        }
+        if (properties.getStrictMathGaussian() != null) {
+            builder.strictMathGaussian(properties.getStrictMathGaussian());
+        }
+        if (properties.getObjectReseedBuiltInRandomizers() != null) {
+            builder.objectReseedBuiltInRandomizers(properties.getObjectReseedBuiltInRandomizers());
+        }
+        if (properties.getGermanStreetLayout() != null) {
+            builder.germanStreetLayout(properties.getGermanStreetLayout());
         }
 
         if (properties.getObjectMaxDepth() != null) {
