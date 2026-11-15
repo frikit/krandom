@@ -18,7 +18,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     `edavis@alpharesourcescorp.test` rather than the first address three times. The first call gives what it
     gave before.
   - `strictMathGaussian`: `NormalDistributionGenerator` draws with `StrictMath`, so a seeded value can differ
-    in its last bit from what `Math` gave on your platform, and is the same on every platform.
+    in its last bit from what `Math` gave on your platform, and is the same on every platform. Its
+    constructors without a configuration, and `Generators.ofNormal()` and `ofNormal(mean, standardDeviation)`,
+    now take `GeneratorConfig.defaults()`, so they draw with `StrictMath` too.
   - `objectReseedBuiltInRandomizers`: object generation reseeds the 18 built-in `@Randomizer` generators that
     are not `Seedable`, such as `UUIDGenerator` and `FirstNameGenerator`, from the object's seeded stream, so
     their values replay from the seed rather than change from run to run. Other fields keep their values.

@@ -42,6 +42,26 @@ class DefaultFlipsTest {
     }
 
     @Test
+    @DisplayName("a normal distribution built without a configuration draws with StrictMath too")
+    void unconfiguredNormalDistributionsUseStrictMath() throws ReflectiveOperationException {
+        java.lang.reflect.Field strictMath = NormalDistributionGenerator.class.getDeclaredField("strictMath");
+        strictMath.setAccessible(true);
+        for (NormalDistributionGenerator generator : List.of(
+                new NormalDistributionGenerator(),
+                new NormalDistributionGenerator(100.0, 15.0),
+                Generators.ofNormal(),
+                Generators.ofNormal(100.0, 15.0),
+                new NormalDistributionGenerator(GeneratorConfig.defaults()),
+                Generators.ofNormal(100.0, 15.0, GeneratorConfig.defaults()))) {
+            assertTrue(strictMath.getBoolean(generator));
+            double value = generator.generate();
+            assertTrue(Double.isFinite(value), Double.toString(value));
+        }
+        assertFalse(strictMath.getBoolean(new NormalDistributionGenerator(
+                DefaultFlipPinsTest.ALL_OFF.apply(GeneratorConfig.builder()).build())));
+    }
+
+    @Test
     @DisplayName("each can still be turned off on its own")
     void eachCanBeTurnedOff() {
         GeneratorConfig off =
