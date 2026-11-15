@@ -228,7 +228,11 @@ class KrandomAutoConfigurationTest {
                         "krandom.business-tax-identifier-safety-policy",
                         "krandom.identity-document-safety-policy",
                         "krandom.network-safety-policy",
-                        "krandom.object-construction-policy"),
+                        "krandom.object-construction-policy",
+                        "krandom.advancing-convenience-streams",
+                        "krandom.strict-math-gaussian",
+                        "krandom.object-reseed-built-in-randomizers",
+                        "krandom.german-street-layout"),
                 metadata.keySet());
         assertTrue(metadata.values().stream()
                 .allMatch(property -> !property.path("description").asString().isBlank()));
@@ -306,6 +310,19 @@ class KrandomAutoConfigurationTest {
                 metadata.get("krandom.object-construction-policy")
                         .path("defaultValue")
                         .asString());
+        assertBooleanDefault(
+                defaults.isAdvancingConvenienceStreams(), metadata.get("krandom.advancing-convenience-streams"));
+        assertBooleanDefault(defaults.isStrictMathGaussian(), metadata.get("krandom.strict-math-gaussian"));
+        assertBooleanDefault(
+                defaults.isObjectReseedBuiltInRandomizers(),
+                metadata.get("krandom.object-reseed-built-in-randomizers"));
+        assertBooleanDefault(defaults.isGermanStreetLayout(), metadata.get("krandom.german-street-layout"));
+    }
+
+    private static void assertBooleanDefault(boolean expected, JsonNode property) {
+        assertEquals("java.lang.Boolean", property.path("type").asString(), property.toString());
+        assertTrue(property.path("defaultValue").isBoolean(), property.toString());
+        assertEquals(expected, property.path("defaultValue").asBoolean(), property.toString());
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────

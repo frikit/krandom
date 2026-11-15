@@ -50,7 +50,7 @@
     {
       "name": "krandom.recipe",
       "type": "java.lang.String",
-      "description": "Portable serialized generation recipe. It is exclusive: startup fails when any other krandom.* generation property that the recipe already defines (seed, locale, clock, bounds, object settings, or policies) is also set."
+      "description": "Portable serialized generation recipe. It is exclusive: startup fails when any other krandom.* generation property that the recipe already defines (seed, locale, clock, bounds, object settings, seeding settings, or policies) is also set."
     },
     {
       "name": "krandom.clock",
@@ -121,6 +121,30 @@
       "type": "io.github.frikit.krandom.generator.object.ObjectConstructionPolicy",
       "description": "Construction policy for generated objects. The default calls safe constructors.",
       "defaultValue": "SAFE_CONSTRUCTORS"
+    },
+    {
+      "name": "krandom.advancing-convenience-streams",
+      "type": "java.lang.Boolean",
+      "description": "Whether convenience methods that draw from a named child stream keep that stream and advance it, rather than start it again on every call. On by default from 4.0.0; false keeps the 3.x behaviour.",
+      "defaultValue": true
+    },
+    {
+      "name": "krandom.strict-math-gaussian",
+      "type": "java.lang.Boolean",
+      "description": "Whether Gaussian draws use StrictMath, so a seed gives the same bits on every platform. On by default from 4.0.0; false keeps the 3.x behaviour.",
+      "defaultValue": true
+    },
+    {
+      "name": "krandom.object-reseed-built-in-randomizers",
+      "type": "java.lang.Boolean",
+      "description": "Whether object generation reseeds the built-in @Randomizer generators that are not Seedable from the object's seeded stream. On by default from 4.0.0; false keeps the 3.x behaviour.",
+      "defaultValue": true
+    },
+    {
+      "name": "krandom.german-street-layout",
+      "type": "java.lang.Boolean",
+      "description": "Whether the German locales write a street address street first. On by default from 4.0.0; false keeps the 3.x behaviour.",
+      "defaultValue": true
     }
   ]
 }

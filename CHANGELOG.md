@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Spring Boot starter properties for the four seeding settings that are on by default from 4.0.0:
+  `krandom.advancing-convenience-streams`, `krandom.strict-math-gaussian`,
+  `krandom.object-reseed-built-in-randomizers` and `krandom.german-street-layout`, with the matching
+  getters and setters on `KrandomProperties`. Set one to `false` to keep its 3.x values; unset keeps the
+  default. Like the other generation properties, each one fails startup next to `krandom.recipe`, which
+  already records all four.
+
 ### Changed
 
 - Four `GeneratorConfig` settings that 3.2.0 added as opt-ins are on by default, so seeded output changes
