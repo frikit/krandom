@@ -7,6 +7,7 @@ package io.github.frikit.krandom.generator.location;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.frikit.krandom.generator.ChildStreamPolicy;
@@ -184,10 +185,15 @@ class GermanStreetLayoutTest {
                 .orElseThrow();
         assertEquals("false", off.getSettings().get("address.german-street-layout"));
         assertFalse(GenerationRecipe.parse(off.serialize()).toGeneratorConfig().isGermanStreetLayout());
-        // A recipe that 3.x wrote with the layout off has no such line, and replays it off.
+        // A krandom-recipe/v2 recipe without the line is rejected, rather than replayed with a default.
         String without = off.serialize().replace("setting.address.german-street-layout=false\n", "");
         assertFalse(without.contains("german-street-layout"));
-        assertFalse(GenerationRecipe.parse(without).toGeneratorConfig().isGermanStreetLayout());
+        assertEquals(
+                "Recipe requires setting: address.german-street-layout",
+                assertThrows(
+                                IllegalArgumentException.class,
+                                () -> GenerationRecipe.parse(without).toGeneratorConfig())
+                        .getMessage());
     }
 
     @Test

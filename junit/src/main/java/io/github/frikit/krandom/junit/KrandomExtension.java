@@ -695,7 +695,8 @@ public final class KrandomExtension implements BeforeEachCallback, ParameterReso
                     GenerationRecipe.parse(decodeRecipe(override.value())).toGeneratorConfig();
             return new SeedInfo(config, true, ClockSource.RECIPE);
         } catch (IllegalArgumentException exception) {
-            throw new ExtensionConfigurationException("Invalid " + override.source() + " replay recipe", exception);
+            throw new ExtensionConfigurationException(
+                    "Invalid " + override.source() + " replay recipe: " + exception.getMessage(), exception);
         }
     }
 

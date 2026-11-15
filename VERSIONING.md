@@ -19,8 +19,12 @@ The public API is:
   `krandom-jackson`, `krandom-junit`, and `krandom-spring-boot-starter`;
 - the public declarations of `krandom-kotlin-dsl` and `krandom-kotest-extensions`;
 - the `krandom.*` configuration properties of `krandom-spring-boot-starter`;
-- the `krandom-recipe/v1` recipe format, so a 3.x release replays a recipe that an earlier 3.x
-  release wrote, and the `fnv1a64-v1` string-seed derivation.
+- the recipe format, so a release replays a recipe that an earlier release of its major line wrote:
+  `krandom-recipe/v1` in 3.x, so a 3.x release replays a recipe that an earlier 3.x release wrote, and
+  `krandom-recipe/v2` from 4.0.0, so a 4.x release replays a recipe that an earlier 4.x release wrote.
+  From 4.0.0 a `krandom-recipe/v1` recipe is rejected rather than replayed with other values: the error
+  names the `library-version` the recipe records, the 3.x release to replay it with;
+- the `fnv1a64-v1` string-seed derivation.
 
 Packages that `krandom-core` does not export are internal and can change in any release.
 

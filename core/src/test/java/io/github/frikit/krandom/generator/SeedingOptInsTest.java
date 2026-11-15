@@ -134,7 +134,7 @@ class SeedingOptInsTest {
         }
 
         @Test
-        @DisplayName("a recipe without a setting replays it off, and a value other than true or false is rejected")
+        @DisplayName("a recipe without a setting, or with a value other than true or false, is rejected")
         void recipeValues() {
             List<String> keys = List.of(
                     "advancing-convenience-streams", "gaussian.strict-math", "object.reseed-built-in-randomizers");
@@ -147,10 +147,11 @@ class SeedingOptInsTest {
                 assertTrue(without.contains("\nsetting." + key + "=true\n"), key);
                 without = without.replace("setting." + key + "=true\n", "");
             }
-            GeneratorConfig off = GenerationRecipe.parse(without).toGeneratorConfig();
-            assertFalse(off.isAdvancingConvenienceStreams());
-            assertFalse(off.isStrictMathGaussian());
-            assertFalse(off.isObjectReseedBuiltInRandomizers());
+            GenerationRecipe missing = GenerationRecipe.parse(without);
+            assertEquals(
+                    "Recipe requires setting: " + keys.get(0),
+                    assertThrows(IllegalArgumentException.class, missing::toGeneratorConfig)
+                            .getMessage());
 
             for (String key : keys) {
                 GenerationRecipe bad = GenerationRecipe.parse(recorded.replace(key + "=true", key + "=yes"));

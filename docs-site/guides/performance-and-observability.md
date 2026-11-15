@@ -95,7 +95,8 @@ A `GenerationReportListener`, set with `GeneratorConfig.Builder.generationReport
   `Optional`. A parent that an `ObjectFaker` rule builds for a member that generation left `null` is reported
   at that member's path, after the entry that left it `null`;
 - the `SeedSource`: the configuration's own seed, a stream derived from it by name, a replay recipe, or none;
-- the recipe format, `krandom-recipe/v1`, when the configuration has a portable recipe, and the names of the
+- the recipe format, `krandom-recipe/v1` in 3.x and `krandom-recipe/v2` from 4.0.0, when the configuration
+  has a portable recipe, and the names of the
   recipe settings that shaped the value, such as `string.max` or `object.max-depth`;
 - the `GenerationStep` and generator that produced it, such as a semantic provider, a built-in type or an
   enum;

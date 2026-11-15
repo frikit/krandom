@@ -158,7 +158,7 @@ class ObjectEngineDefaultsPinTest {
     @Test
     @DisplayName("a root rule and a root ignore drop the recipe from the report, other rules keep it")
     void rootRulesDropTheRecipe() {
-        Optional<String> v1 = Optional.of("krandom-recipe/v1");
+        Optional<String> v1 = Optional.of("krandom-recipe/v2");
         Function<Member, String> dependent = member -> "X";
 
         assertEquals(List.of(v1), recipeFormats(config -> new ObjectFaker<>(Member.class, config)));

@@ -26,7 +26,7 @@ import java.util.Optional;
  *                       and a map key or value or an {@code Optional}'s value adds {@code .key} or
  *                       {@code .value}
  * @param seedSource     where the value's random stream comes from
- * @param recipeFormat   the recipe format and version, {@code krandom-recipe/v1}, when the configuration has
+ * @param recipeFormat   the recipe format and version, {@code krandom-recipe/v2}, when the configuration has
  *                       a portable replay recipe, or empty when it has none
  * @param settings       the names of the recipe settings that shaped the value, in the order they applied
  * @param step           what produced the value

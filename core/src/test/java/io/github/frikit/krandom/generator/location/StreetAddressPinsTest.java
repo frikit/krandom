@@ -101,7 +101,7 @@ class StreetAddressPinsTest {
         assertEquals(
                 """
                 format=krandom-recipe
-                recipe-version=v1
+                recipe-version=v2
                 library-version=development
                 algorithm=java.util.Random-v1
                 seed=42

@@ -28,6 +28,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     and the composites built on them, such as `PersonInfo`, `OrderInfo` and `InvoiceInfo`.
 
   A portable recipe records each of the four, on or off, so its replay never depends on these defaults.
+- A portable recipe is `krandom-recipe/v2` (`GenerationRecipe.RECIPE_VERSION` is `v2`). It records
+  `advancing-convenience-streams`, `gaussian.strict-math`, `object.reseed-built-in-randomizers` and
+  `address.german-street-layout` as `true` or `false`, and replay requires all four. A `krandom-recipe/v1`
+  recipe, which every 3.x release writes, fails to parse with an `IllegalArgumentException` that names the
+  `library-version` it records: `Unsupported recipe version: v1. kRandom 4.x replays only krandom-recipe/v2
+  recipes: a krandom-recipe/v1 recipe was written by kRandom 3.x or earlier, and its seeded values differ from
+  4.0.0. This recipe records library-version 3.2.0: replay it with kRandom 3.2.0.` The JUnit extension's
+  `krandom.junit.recipe` and `krandom.junit.class-recipe`, and the Spring Boot starter's `krandom.recipe`,
+  report that message, and a generation report names the format as `krandom-recipe/v2`.
 
 - `Schema` is a `Generator<Map<String, @Nullable Object>>`, where it was a `Generator<Map<String, Object>>`,
   whose type claimed values that are never `null` although a value is `null` where its provider returns

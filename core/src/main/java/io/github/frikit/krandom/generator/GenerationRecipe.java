@@ -43,6 +43,11 @@ import org.jspecify.annotations.Nullable;
  * #RECIPE_VERSION} uses {@value #ALGORITHM}; patch releases must preserve its child-stream and
  * {@link Random} behavior. A future algorithm change requires a new recipe version.
  *
+ * <p>From 4.0.0 a recipe is {@code krandom-recipe/v2}, and it records the four seeding settings that 4.0.0 turns
+ * on by default, on or off, so its replay does not depend on a release's defaults. 3.x wrote
+ * {@code krandom-recipe/v1}, which leaves those settings to the 3.x defaults; this release rejects such a recipe
+ * with a message that names the {@code library-version} it records, the release to replay it with.
+ *
  * <p>A recipe does not record the Java runtime's time-zone database or locale data, so values that
  * follow them, such as zone IDs, zone offsets and formatted money amounts, can differ on another JDK.
  */
@@ -51,8 +56,11 @@ public final class GenerationRecipe {
     /** Stable name for the line-oriented recipe format. */
     public static final String FORMAT = "krandom-recipe";
 
-    /** Current recipe format and replay-contract version. */
-    public static final String RECIPE_VERSION = "v1";
+    /** Current recipe format and replay-contract version, {@code v2} from 4.0.0. */
+    public static final String RECIPE_VERSION = "v2";
+
+    /** The version that 3.x wrote, which this release does not replay. */
+    private static final String V1 = "v1";
 
     /** Random algorithm and named-child derivation used by recipe version {@value #RECIPE_VERSION}. */
     public static final String ALGORITHM = "java.util.Random-v1";
@@ -81,8 +89,8 @@ public final class GenerationRecipe {
     private static final String PROVIDER_DATASET_VERSION_KEY = "provider-dataset-version";
     private static final String SETTING_PREFIX = "setting.";
     /*
-     * The four settings that are on by default from 4.0.0. A configuration records each one, on or off; a recipe
-     * without one, which 3.x writes while the setting is off, replays it off.
+     * The four settings that are on by default from 4.0.0. A configuration records each one, on or off, and
+     * replay requires each one, so it never takes them from the replaying release's defaults.
      */
     static final String ADVANCING_CONVENIENCE_STREAMS_SETTING = "advancing-convenience-streams";
     static final String STRICT_MATH_GAUSSIAN_SETTING = "gaussian.strict-math";
@@ -110,7 +118,7 @@ public final class GenerationRecipe {
 
     private GenerationRecipe(Builder builder) {
         this.libraryVersion = requireToken("libraryVersion", builder.libraryVersion);
-        this.recipeVersion = requireSupportedRecipeVersion(builder.recipeVersion);
+        this.recipeVersion = requireSupportedRecipeVersion(builder.recipeVersion, libraryVersion);
         this.algorithm = requireSupportedAlgorithm(builder.algorithm);
         this.seed = builder.seed;
         this.seedText = builder.seedText;
@@ -142,7 +150,8 @@ public final class GenerationRecipe {
      *
      * @param serialized serialized recipe text
      * @return parsed recipe
-     * @throws IllegalArgumentException if the form is malformed, incomplete, or unsupported
+     * @throws IllegalArgumentException if the form is malformed, incomplete, or unsupported, such as a
+     *                                  {@code krandom-recipe/v1} recipe that a 3.x release wrote
      */
     public static GenerationRecipe parse(String serialized) {
         Objects.requireNonNull(serialized, "serialized must not be null");
@@ -172,6 +181,9 @@ public final class GenerationRecipe {
 
         requireExact(entries, FORMAT_KEY, FORMAT);
         String recipeVersion = required(entries, RECIPE_VERSION_KEY);
+        if (V1.equals(recipeVersion)) {
+            throw new IllegalArgumentException(v1Message(entries.get(LIBRARY_VERSION_KEY)));
+        }
         String algorithm = required(entries, ALGORITHM_KEY);
         Builder builder = builder()
                 .recipeVersion(recipeVersion)
@@ -313,8 +325,9 @@ public final class GenerationRecipe {
      * serialized form of a seeded configuration always records them. A recipe without
      * {@code child-stream-policy}, such as one written while {@link ChildStreamPolicy#LEGACY} was
      * the default and left unrecorded, is rejected rather than replayed under the current default.
-     * A recipe without one of the four settings that are on by default from 4.0.0, such as one that 3.x wrote
-     * while that setting was off, replays it off.
+     * For the same reason the four seeding settings that are on by default from 4.0.0,
+     * {@code advancing-convenience-streams}, {@code gaussian.strict-math},
+     * {@code object.reseed-built-in-randomizers} and {@code address.german-street-layout}, are required.
      *
      * @return replay configuration
      * @throws IllegalArgumentException if this library does not recognize a recorded setting, or a
@@ -444,15 +457,10 @@ public final class GenerationRecipe {
         applyInteger(builder, "object.pool-size", builder::objectPoolSize);
         applyBoolean(builder, "object.override-default-initialization", builder::objectOverrideDefaultInitialization);
         applyBoolean(builder, "object.ignore-errors", builder::objectIgnoreErrors);
-        // Off unless recorded, so a recipe never takes these four from the replaying release's defaults.
-        builder.advancingConvenienceStreams(false)
-                .strictMathGaussian(false)
-                .objectReseedBuiltInRandomizers(false)
-                .germanStreetLayout(false);
-        applyBoolean(builder, ADVANCING_CONVENIENCE_STREAMS_SETTING, builder::advancingConvenienceStreams);
-        applyBoolean(builder, STRICT_MATH_GAUSSIAN_SETTING, builder::strictMathGaussian);
-        applyBoolean(builder, OBJECT_RESEED_BUILT_IN_RANDOMIZERS_SETTING, builder::objectReseedBuiltInRandomizers);
-        applyBoolean(builder, GERMAN_STREET_LAYOUT_SETTING, builder::germanStreetLayout);
+        builder.advancingConvenienceStreams(requiredBoolean(ADVANCING_CONVENIENCE_STREAMS_SETTING))
+                .strictMathGaussian(requiredBoolean(STRICT_MATH_GAUSSIAN_SETTING))
+                .objectReseedBuiltInRandomizers(requiredBoolean(OBJECT_RESEED_BUILT_IN_RANDOMIZERS_SETTING))
+                .germanStreetLayout(requiredBoolean(GERMAN_STREET_LAYOUT_SETTING));
         builder.paymentCardSafetyPolicy(PaymentCardSafetyPolicy.valueOf(requiredSetting("payment.card-safety-policy")));
         builder.bankingSafetyPolicy(BankingSafetyPolicy.valueOf(requiredSetting("banking.safety-policy")));
         builder.businessTaxIdentifierSafetyPolicy(
@@ -510,6 +518,14 @@ public final class GenerationRecipe {
             throw new IllegalArgumentException("Recipe requires setting: " + key);
         }
         return value;
+    }
+
+    private boolean requiredBoolean(String key) {
+        String value = requiredSetting(key);
+        if (!"true".equals(value) && !"false".equals(value)) {
+            throw new IllegalArgumentException("Recipe setting '" + key + "' must be true or false");
+        }
+        return Boolean.parseBoolean(value);
     }
 
     private @Nullable Integer integerSetting(String key) {
@@ -605,12 +621,26 @@ public final class GenerationRecipe {
         }
     }
 
-    private static String requireSupportedRecipeVersion(String value) {
+    private static String requireSupportedRecipeVersion(String value, String libraryVersion) {
         String version = requireToken("recipeVersion", value);
+        if (V1.equals(version)) {
+            throw new IllegalArgumentException(v1Message(libraryVersion));
+        }
         if (!RECIPE_VERSION.equals(version)) {
             throw new IllegalArgumentException("Unsupported recipe version: " + version);
         }
         return version;
+    }
+
+    /** Why a {@code krandom-recipe/v1} recipe does not replay, and which release to replay it with. */
+    private static String v1Message(@Nullable String libraryVersion) {
+        String release = libraryVersion == null || libraryVersion.isBlank()
+                ? "This recipe records no library-version: replay it with the 3.x release that wrote it."
+                : "This recipe records library-version " + libraryVersion + ": replay it with kRandom " + libraryVersion
+                        + ".";
+        return "Unsupported recipe version: v1. kRandom 4.x replays only krandom-recipe/v2 recipes: a"
+                + " krandom-recipe/v1 recipe was written by kRandom 3.x or earlier, and its seeded values differ from"
+                + " 4.0.0. " + release;
     }
 
     private static String requireSupportedAlgorithm(String value) {

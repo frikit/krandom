@@ -202,8 +202,9 @@ String street = new StreetAddressGenerator(de).generate();  // "Schlossanger 738
   the rest of a full address keeps its order (`…, München, Bayern 80313, Deutschland`).
 - **Draws.** The same draws are made in the same order with the option on or off, so it changes how the
   parts are laid out and nothing else.
-- **Recipes.** A recipe records `setting.address.german-street-layout=true` while it is on, so it replays
-  the same streets; a recipe without the setting replays with it off.
+- **Recipes.** In 3.x a recipe records `setting.address.german-street-layout=true` while it is on, so it
+  replays the same streets; a recipe without the setting replays with it off. From 4.0.0 a
+  `krandom-recipe/v2` recipe records it as `true` or `false`, and replay requires it.
 
 Other countries write the street first too, among them the Netherlands, Belgium, the Nordic countries,
 Poland, the Czech Republic, Italy and Spain. The option does not cover them, because their street data is

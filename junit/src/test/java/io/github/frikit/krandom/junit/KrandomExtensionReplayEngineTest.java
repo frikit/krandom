@@ -187,6 +187,61 @@ class KrandomExtensionReplayEngineTest {
         }
     }
 
+    /** A {@code krandom-recipe/v1} recipe, as 3.2.0 writes it, which 4.x does not replay. */
+    private static final String V1_RECIPE = String.join(
+            "\n",
+            "format=krandom-recipe",
+            "recipe-version=v1",
+            "library-version=3.2.0",
+            "algorithm=java.util.Random-v1",
+            "seed=5",
+            "locale=en-US",
+            "clock-instant=2026-07-10T12%3A00%3A00Z",
+            "clock-zone=Z",
+            "profile=custom",
+            "safety-policy=legacy-unclassified",
+            "construction-policy=safe-constructors",
+            "provider-dataset-version=builtin-v1",
+            "setting.child-stream-policy=INDEPENDENT",
+            "");
+
+    private static final String V1_REJECTION = "Unsupported recipe version: v1. kRandom 4.x replays only"
+            + " krandom-recipe/v2 recipes: a krandom-recipe/v1 recipe was written by kRandom 3.x or earlier, and its"
+            + " seeded values differ from 4.0.0. This recipe records library-version 3.2.0: replay it with kRandom"
+            + " 3.2.0.";
+
+    @Test
+    void v1RecipeIsAConfigurationErrorThatNamesTheReleaseToReplayItWith() {
+        String encoded = "base64:"
+                + Base64.getUrlEncoder().withoutPadding().encodeToString(V1_RECIPE.getBytes(StandardCharsets.UTF_8));
+
+        EngineExecutionResults results =
+                EngineTestSupport.run(PinnedExpectingOverrideFixture.class, Map.of("krandom.junit.recipe", encoded));
+
+        assertSingleConfigurationError(results, "Invalid krandom.junit.recipe replay recipe: " + V1_REJECTION);
+    }
+
+    @Test
+    void v1ClassRecipeIsAConfigurationErrorThatNamesTheReleaseToReplayItWith() {
+        String entry = ClassScopedFailingFixture.class.getCanonicalName() + "=base64:"
+                + Base64.getUrlEncoder().withoutPadding().encodeToString(V1_RECIPE.getBytes(StandardCharsets.UTF_8));
+
+        EngineExecutionResults results =
+                EngineTestSupport.run(ClassScopedFailingFixture.class, Map.of("krandom.junit.class-recipe", entry));
+
+        List<Event> failed = results.containerEvents().failed().list();
+        assertEquals(1, failed.size());
+        Throwable thrown = failed.get(0)
+                .getRequiredPayload(TestExecutionResult.class)
+                .getThrowable()
+                .orElseThrow();
+        while (!(thrown instanceof ExtensionConfigurationException) && thrown.getCause() != null) {
+            thrown = thrown.getCause();
+        }
+        assertInstanceOf(ExtensionConfigurationException.class, thrown);
+        assertEquals("Invalid krandom.junit.class-recipe replay recipe: " + V1_REJECTION, thrown.getMessage());
+    }
+
     @Test
     void reportedSeedReproducesTheValuesOfTheSession() {
         FailingSessionFixture.EMAILS.clear();

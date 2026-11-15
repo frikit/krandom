@@ -191,7 +191,7 @@ class SeedingDefaultsPinTest {
                 String.join(
                         "",
                         "format=krandom-recipe\n",
-                        "recipe-version=v1\n",
+                        "recipe-version=v2\n",
                         "library-version=<version>\n",
                         "algorithm=java.util.Random-v1\n",
                         "seed=42\n",

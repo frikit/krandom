@@ -56,7 +56,7 @@ class GenerationReportTest {
         assertEquals(GenerationStep.SEMANTIC, email.step());
         assertEquals("email", email.generator());
         assertEquals(SeedSource.DERIVED_STREAM, email.seedSource());
-        assertEquals(Optional.of("krandom-recipe/v1"), email.recipeFormat());
+        assertEquals(Optional.of("krandom-recipe/v2"), email.recipeFormat());
         assertEquals(List.of("object.semantic-mode", "email.domain-policy", "network.safety-policy"), email.settings());
         assertEquals("TEST_SAFE_RESERVED", email.safetyPolicies().get("network.safety-policy"));
         assertEquals("TEST_SAFE_RESERVED_DOMAINS", email.safetyPolicies().get("email.domain-policy"));
