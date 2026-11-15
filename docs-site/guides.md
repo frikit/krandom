@@ -26,6 +26,7 @@ permalink: /guides/
 - [Android Unit Tests]({{ '/guides/android-unit-tests/' | relative_url }})
 - [Testing Integrations]({{ '/guides/testing-integrations/' | relative_url }})
 - [Runnable Snippets]({{ '/guides/runnable-snippets/' | relative_url }})
+- [Migrating to 4.0]({{ '/guides/migrating-to-4.0/' | relative_url }})
 - [Migration from Faker and Chance]({{ '/guides/migration-from-faker-chance/' | relative_url }})
 - [Migration from DataFaker]({{ '/guides/migration-from-datafaker/' | relative_url }})
 - [Migration from easy-random]({{ '/guides/migration-from-easy-random/' | relative_url }})
