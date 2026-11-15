@@ -53,7 +53,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `<module>/api/accepted-breaks-N.0.txt`, one per line exactly as the check prints it. It still fails on any
   break that is not listed, and it also fails on a listed break that no longer occurs and on any such file
   while the development line is not a major `N.0.0-SNAPSHOT`, so no minor or patch release ships a break.
-  The files list no break yet. The release runbook describes how to add an entry, and the close-out of
+  `core/api/accepted-breaks-4.0.txt` lists the three removals under Removed, and the other files list no
+  break. The release runbook describes how to add an entry, and the close-out of
   each major release deletes the files when the baseline moves to it.
 
 ## [3.2.0] - 2026-11-14
