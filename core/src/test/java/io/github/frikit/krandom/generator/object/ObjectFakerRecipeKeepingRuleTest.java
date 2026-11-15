@@ -81,7 +81,7 @@ class ObjectFakerRecipeKeepingRuleTest {
                 .generate();
 
         assertEquals(
-                List.of(Optional.of("krandom-recipe/v1")),
+                List.of(Optional.of("krandom-recipe/v2")),
                 entries.stream()
                         .map(GenerationReportEntry::recipeFormat)
                         .distinct()

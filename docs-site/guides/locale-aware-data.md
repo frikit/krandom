@@ -175,8 +175,8 @@ your cities. Register places for the locale as well to use your own.
 Street addresses put the house number first in every locale by default, so a German street reads
 `7389 Schloss Anger`. German writes the street first, with its type as part of the name:
 `Schlossanger 7389`. Since 3.2.0, `GeneratorConfig.Builder.germanStreetLayout(true)` opts in to that
-layout. It is off by default in 3.x, so seeded output does not change unless you ask for it, and it
-becomes the default in 4.0.
+layout. It is off by default in 3.x, so seeded output does not change unless you ask for it. From
+4.0.0 it is on by default, and `germanStreetLayout(false)` keeps the 3.x layout.
 
 ```java
 GeneratorConfig de = GeneratorConfig.builder()
@@ -202,8 +202,9 @@ String street = new StreetAddressGenerator(de).generate();  // "Schlossanger 738
   the rest of a full address keeps its order (`…, München, Bayern 80313, Deutschland`).
 - **Draws.** The same draws are made in the same order with the option on or off, so it changes how the
   parts are laid out and nothing else.
-- **Recipes.** A recipe records `setting.address.german-street-layout=true` while it is on, so it replays
-  the same streets; a recipe without the setting replays with it off.
+- **Recipes.** In 3.x a recipe records `setting.address.german-street-layout=true` while it is on, so it
+  replays the same streets; a recipe without the setting replays with it off. From 4.0.0 a
+  `krandom-recipe/v2` recipe records it as `true` or `false`, and replay requires it.
 
 Other countries write the street first too, among them the Netherlands, Belgium, the Nordic countries,
 Poland, the Czech Republic, Italy and Spain. The option does not cover them, because their street data is

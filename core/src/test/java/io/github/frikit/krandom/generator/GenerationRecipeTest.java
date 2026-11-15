@@ -56,14 +56,18 @@ class GenerationRecipeTest {
             "identity-document.safety-policy",
             "email.domain-policy",
             "network.safety-policy",
-            "child-stream-policy");
+            "child-stream-policy",
+            "advancing-convenience-streams",
+            "gaussian.strict-math",
+            "object.reseed-built-in-randomizers",
+            "address.german-street-layout");
 
     @Test
     @DisplayName("serializes a stable human-readable recipe and parses it exactly")
     void stableSerializationRoundTrip() {
         GenerationRecipe recipe = GenerationRecipe.builder()
                 .libraryVersion("2.0.0-rc1")
-                .recipeVersion("v1")
+                .recipeVersion("v2")
                 .algorithm("java.util.Random-v1")
                 .seed(-42L)
                 .locale(Locale.CANADA_FRENCH)
@@ -80,7 +84,7 @@ class GenerationRecipeTest {
 
         assertEquals("""
             format=krandom-recipe
-            recipe-version=v1
+            recipe-version=v2
             library-version=2.0.0-rc1
             algorithm=java.util.Random-v1
             seed=-42
@@ -214,7 +218,8 @@ class GenerationRecipeTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("requiredSettings")
     @DisplayName(
-            "replay requires every safety and email policy setting, the child-stream policy, and both sets of unique fields")
+            "replay requires every safety and email policy setting, the child-stream policy, both sets of unique fields"
+                    + " and the four seeding settings")
     void replayRequiresSetting(String setting) {
         String complete = GeneratorConfig.builder()
                 .seed(42L)
@@ -247,6 +252,10 @@ class GenerationRecipeTest {
         assertEquals(defaults.getPaymentCardSafetyPolicy(), replay.getPaymentCardSafetyPolicy());
         assertEquals(defaults.getEmailDomainPolicy(), replay.getEmailDomainPolicy());
         assertEquals(defaults.getChildStreamPolicy(), replay.getChildStreamPolicy());
+        assertEquals(defaults.isAdvancingConvenienceStreams(), replay.isAdvancingConvenienceStreams());
+        assertEquals(defaults.isStrictMathGaussian(), replay.isStrictMathGaussian());
+        assertEquals(defaults.isObjectReseedBuiltInRandomizers(), replay.isObjectReseedBuiltInRandomizers());
+        assertEquals(defaults.isGermanStreetLayout(), replay.isGermanStreetLayout());
     }
 
     @Test
@@ -572,7 +581,7 @@ class GenerationRecipeTest {
         assertThrows(IllegalArgumentException.class, () -> GenerationRecipe.parse("missing-separator"));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> GenerationRecipe.parse(serialized.replace("recipe-version=v1\n", "recipe-version=v1\n\n")));
+                () -> GenerationRecipe.parse(serialized.replace("recipe-version=v2\n", "recipe-version=v2\n\n")));
         assertThrows(
                 IllegalArgumentException.class,
                 () -> GenerationRecipe.parse(serialized.replace("format=krandom-recipe", "1format=krandom-recipe")));

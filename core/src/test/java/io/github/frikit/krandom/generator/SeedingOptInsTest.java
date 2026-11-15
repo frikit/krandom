@@ -35,10 +35,11 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 /**
- * The 3.2 seeding opt-ins that become the defaults in 4.0: advancing convenience streams, {@link StrictMath}
- * Gaussian draws and reseeded built-in randomizers (the last is also covered in {@code RandomizerReplayTest}).
+ * The seeding settings that 3.2 added as opt-ins and that are on by default from 4.0.0: advancing convenience
+ * streams, {@link StrictMath} Gaussian draws and reseeded built-in randomizers (the last is also covered in
+ * {@code RandomizerReplayTest}).
  */
-@DisplayName("the seeding opt-ins of 3.2")
+@DisplayName("the seeding settings that 3.2 added")
 class SeedingOptInsTest {
 
     private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-07-10T12:00:00Z"), ZoneOffset.UTC);
@@ -57,62 +58,65 @@ class SeedingOptInsTest {
     class Settings {
 
         @Test
-        @DisplayName("each opt-in is off by default and on when set, and a copy keeps it")
-        void offByDefaultAndCopied() {
+        @DisplayName("each setting is on by default from 4.0.0 and off when set false, and a copy keeps it")
+        void onByDefaultAndCopied() {
             GeneratorConfig defaults = GeneratorConfig.defaults();
-            assertFalse(defaults.isAdvancingConvenienceStreams());
-            assertFalse(defaults.isStrictMathGaussian());
-            assertFalse(defaults.isObjectReseedBuiltInRandomizers());
+            assertTrue(defaults.isAdvancingConvenienceStreams());
+            assertTrue(defaults.isStrictMathGaussian());
+            assertTrue(defaults.isObjectReseedBuiltInRandomizers());
 
-            GeneratorConfig on = seeded(
+            GeneratorConfig off = seeded(
                     5L,
-                    builder -> builder.advancingConvenienceStreams(true)
-                            .strictMathGaussian(true)
-                            .objectReseedBuiltInRandomizers(true));
+                    builder -> builder.advancingConvenienceStreams(false)
+                            .strictMathGaussian(false)
+                            .objectReseedBuiltInRandomizers(false));
             for (GeneratorConfig copy : List.of(
-                    on,
-                    on.toBuilder().build(),
-                    on.forChildStream("child"),
-                    ConfigAccess.withSeed(on, 9L),
-                    replayed(on))) {
-                assertTrue(copy.isAdvancingConvenienceStreams());
-                assertTrue(copy.isStrictMathGaussian());
-                assertTrue(copy.isObjectReseedBuiltInRandomizers());
+                    off,
+                    off.toBuilder().build(),
+                    off.forChildStream("child"),
+                    ConfigAccess.withSeed(off, 9L),
+                    replayed(off))) {
+                assertFalse(copy.isAdvancingConvenienceStreams());
+                assertFalse(copy.isStrictMathGaussian());
+                assertFalse(copy.isObjectReseedBuiltInRandomizers());
             }
 
-            GeneratorConfig off = on.toBuilder()
-                    .advancingConvenienceStreams(false)
-                    .strictMathGaussian(false)
-                    .objectReseedBuiltInRandomizers(false)
+            GeneratorConfig on = off.toBuilder()
+                    .advancingConvenienceStreams(true)
+                    .strictMathGaussian(true)
+                    .objectReseedBuiltInRandomizers(true)
                     .build();
-            assertFalse(off.isAdvancingConvenienceStreams());
-            assertFalse(off.isStrictMathGaussian());
-            assertFalse(off.isObjectReseedBuiltInRandomizers());
+            assertTrue(on.isAdvancingConvenienceStreams());
+            assertTrue(on.isStrictMathGaussian());
+            assertTrue(on.isObjectReseedBuiltInRandomizers());
         }
 
         @Test
-        @DisplayName("a recipe records each opt-in only when it is on, and replays it")
-        void recipeRecordsEachOptInWhenOn() {
-            Map<String, String> none = seeded(5L, builder -> builder)
-                    .getGenerationRecipe()
-                    .orElseThrow()
-                    .getSettings();
-            assertFalse(none.containsKey("advancing-convenience-streams"));
-            assertFalse(none.containsKey("gaussian.strict-math"));
-            assertFalse(none.containsKey("object.reseed-built-in-randomizers"));
-
-            List<UnaryOperator<GeneratorConfig.Builder>> each = List.of(
-                    builder -> builder.advancingConvenienceStreams(true),
-                    builder -> builder.strictMathGaussian(true),
-                    builder -> builder.objectReseedBuiltInRandomizers(true));
+        @DisplayName("a recipe records each setting, on or off, and replays it")
+        void recipeRecordsEachSetting() {
             List<String> keys = List.of(
                     "advancing-convenience-streams", "gaussian.strict-math", "object.reseed-built-in-randomizers");
+            UnaryOperator<GeneratorConfig.Builder> allOff = builder -> builder.advancingConvenienceStreams(false)
+                    .strictMathGaussian(false)
+                    .objectReseedBuiltInRandomizers(false);
+            Map<String, String> none =
+                    seeded(5L, allOff).getGenerationRecipe().orElseThrow().getSettings();
+            for (String key : keys) {
+                assertEquals("false", none.get(key), key);
+            }
+
+            List<UnaryOperator<GeneratorConfig.Builder>> each = List.of(
+                    builder -> allOff.apply(builder).advancingConvenienceStreams(true),
+                    builder -> allOff.apply(builder).strictMathGaussian(true),
+                    builder -> allOff.apply(builder).objectReseedBuiltInRandomizers(true));
             for (int i = 0; i < each.size(); i++) {
                 GeneratorConfig config = seeded(5L, each.get(i));
                 GenerationRecipe recipe = config.getGenerationRecipe().orElseThrow();
-                assertEquals("true", recipe.getSettings().get(keys.get(i)), keys.get(i));
                 for (String other : keys) {
-                    assertEquals(other.equals(keys.get(i)), recipe.getSettings().containsKey(other), other);
+                    assertEquals(
+                            Boolean.toString(other.equals(keys.get(i))),
+                            recipe.getSettings().get(other),
+                            other);
                 }
                 assertTrue(recipe.serialize().contains("\nsetting." + keys.get(i) + "=true\n"), keys.get(i));
                 GeneratorConfig replay = replayed(config);
@@ -130,24 +134,27 @@ class SeedingOptInsTest {
         }
 
         @Test
-        @DisplayName("a recipe that names an opt-in as false replays it off, and any other value is rejected")
+        @DisplayName("a recipe without a setting, or with a value other than true or false, is rejected")
         void recipeValues() {
+            List<String> keys = List.of(
+                    "advancing-convenience-streams", "gaussian.strict-math", "object.reseed-built-in-randomizers");
             String recorded = seeded(5L, builder -> builder)
                     .getGenerationRecipe()
                     .orElseThrow()
                     .serialize();
-            GeneratorConfig off = GenerationRecipe.parse(recorded
-                            + "setting.advancing-convenience-streams=false\n"
-                            + "setting.gaussian.strict-math=false\n"
-                            + "setting.object.reseed-built-in-randomizers=false\n")
-                    .toGeneratorConfig();
-            assertFalse(off.isAdvancingConvenienceStreams());
-            assertFalse(off.isStrictMathGaussian());
-            assertFalse(off.isObjectReseedBuiltInRandomizers());
+            String without = recorded;
+            for (String key : keys) {
+                assertTrue(without.contains("\nsetting." + key + "=true\n"), key);
+                without = without.replace("setting." + key + "=true\n", "");
+            }
+            GenerationRecipe missing = GenerationRecipe.parse(without);
+            assertEquals(
+                    "Recipe requires setting: " + keys.get(0),
+                    assertThrows(IllegalArgumentException.class, missing::toGeneratorConfig)
+                            .getMessage());
 
-            for (String key : List.of(
-                    "advancing-convenience-streams", "gaussian.strict-math", "object.reseed-built-in-randomizers")) {
-                GenerationRecipe bad = GenerationRecipe.parse(recorded + "setting." + key + "=yes\n");
+            for (String key : keys) {
+                GenerationRecipe bad = GenerationRecipe.parse(recorded.replace(key + "=true", key + "=yes"));
                 IllegalArgumentException error = assertThrows(IllegalArgumentException.class, bad::toGeneratorConfig);
                 assertEquals("Recipe setting '" + key + "' must be true or false", error.getMessage());
             }

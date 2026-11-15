@@ -42,7 +42,7 @@ class IndependentStreamsDslTest :
                 .objectFieldStreamPolicy shouldBe
                 ObjectFieldStreamPolicy.INDEPENDENT
         }
-        it("Kotlin configurations set the 3.2 seeding opt-ins, which their recipes keep") {
+        it("Kotlin configurations set the seeding settings, on by default from 4.0.0, which their recipes keep") {
             val config =
                 krandomConfig {
                     seed(42L)
@@ -62,26 +62,42 @@ class IndependentStreamsDslTest :
                     advancingConvenienceStreams(false)
                     strictMathGaussian(false)
                     objectReseedBuiltInRandomizers(false)
-                }
+                }.snapshotClock()
+            val offReplay = off.generationRecipe.orElseThrow().toGeneratorConfig()
+            listOf(
+                offReplay.isAdvancingConvenienceStreams,
+                offReplay.isStrictMathGaussian,
+                offReplay.isObjectReseedBuiltInRandomizers,
+            ) shouldBe listOf(false, false, false)
+            val defaults = krandomConfig { seed(42L) }
+            listOf(
+                defaults.isAdvancingConvenienceStreams,
+                defaults.isStrictMathGaussian,
+                defaults.isObjectReseedBuiltInRandomizers,
+            ) shouldBe listOf(true, true, true)
             listOf(
                 off.isAdvancingConvenienceStreams,
                 off.isStrictMathGaussian,
                 off.isObjectReseedBuiltInRandomizers,
             ) shouldBe listOf(false, false, false)
         }
-        it("Kotlin configurations opt in to the German street layout, which recipes keep") {
+        it("Kotlin configurations set the German street layout, on by default from 4.0.0, which recipes keep") {
             val config =
                 krandomConfig {
                     seed(42L)
                     locale(java.util.Locale.GERMANY)
-                    germanStreetLayout(true)
+                    germanStreetLayout(false)
                 }
-            config.isGermanStreetLayout shouldBe true
+            config.isGermanStreetLayout shouldBe false
             config.generationRecipe
                 .orElseThrow()
                 .toGeneratorConfig()
-                .isGermanStreetLayout shouldBe true
-            krandomConfig { seed(42L) }.isGermanStreetLayout shouldBe false
+                .isGermanStreetLayout shouldBe false
+            krandomConfig { seed(42L) }.isGermanStreetLayout shouldBe true
+            krandomConfig {
+                seed(42L)
+                germanStreetLayout(true)
+            }.isGermanStreetLayout shouldBe true
         }
     })
 

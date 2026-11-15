@@ -27,9 +27,9 @@ import java.lang.annotation.Target;
  * reseeded for every object from that object's seeded stream, so they replay from the seed and its
  * recipe. Other generators control their own randomness, which seeded replay cannot reproduce. With
  * {@link io.github.frikit.krandom.generator.GeneratorConfig.Builder#objectReseedBuiltInRandomizers(boolean)}
- * on, which is the default from 4.0, the built-in generators that are not {@code Seedable} but that a seed
+ * on, as it is by default from 4.0.0, the built-in generators that are not {@code Seedable} but that a seed
  * can reset to a new build, such as {@code FirstNameGenerator} and {@code UUIDGenerator}, are reseeded the
- * same way.
+ * same way; set it to {@code false} to leave them on their own source, as 3.x does.
  */
 @Target({ElementType.FIELD, ElementType.RECORD_COMPONENT})
 @Retention(RetentionPolicy.RUNTIME)

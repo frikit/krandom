@@ -418,6 +418,25 @@ class KrandomAutoConfigurationTest {
     }
 
     @Test
+    @DisplayName("a krandom-recipe/v1 recipe fails with the release to replay it with")
+    void v1RecipeFails() {
+        String v1 = java.util.Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString("format=krandom-recipe\nrecipe-version=v1\nlibrary-version=3.2.0\n"
+                        .getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        runner.withPropertyValues("krandom.recipe=base64:" + v1).run(context -> {
+            assertNotNull(context.getStartupFailure());
+            String message = rootMessage(context.getStartupFailure());
+            assertTrue(
+                    message.contains("Invalid krandom.recipe: Unsupported recipe version: v1. kRandom 4.x replays only"
+                                    + " krandom-recipe/v2 recipes")
+                            && message.contains(
+                                    "This recipe records library-version 3.2.0: replay it with kRandom 3.2.0."),
+                    message);
+        });
+    }
+
+    @Test
     @DisplayName("clock and clock-zone bind to a fixed clock")
     void clockPropertyBindsFixedClock() {
         runner.withPropertyValues("krandom.clock=2026-01-01T00:00:00Z", "krandom.clock-zone=Europe/Berlin")

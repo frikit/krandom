@@ -144,18 +144,27 @@ class RandomizerReplayTest {
     @Test
     @DisplayName("the opt-in leaves the other fields, Seedable and stateful randomizers included, as they were")
     void builtInRandomizerOptInKeepsOtherFields() {
-        GeneratorConfig off = seeded(42L);
+        GeneratorConfig off = notReseedingBuiltIns(42L);
         assertEquals(builtIns(off, 6, false), builtIns(reseedingBuiltIns(42L), 6, false));
         // Off, the built-in randomizers draw from their own unseeded sources.
-        assertNotEquals(builtIns(off, 3, true), builtIns(seeded(42L), 3, true));
+        assertNotEquals(builtIns(off, 3, true), builtIns(notReseedingBuiltIns(42L), 3, true));
     }
 
     @Test
-    @DisplayName("without a seed the opt-in reseeds nothing")
+    @DisplayName("without a seed the setting reseeds nothing")
     void builtInRandomizerOptInNeedsASeed() {
         GeneratorConfig unseeded =
                 GeneratorConfig.builder().objectReseedBuiltInRandomizers(true).build();
         assertNotEquals(builtIns(unseeded, 3, true), builtIns(unseeded, 3, true));
+    }
+
+    /** The 3.x behaviour: the setting is on by default from 4.0.0. */
+    private static GeneratorConfig notReseedingBuiltIns(long seed) {
+        return GeneratorConfig.builder()
+                .seed(seed)
+                .clock(FIXED)
+                .objectReseedBuiltInRandomizers(false)
+                .build();
     }
 
     private static GeneratorConfig seeded(long seed) {

@@ -172,8 +172,8 @@ name, whatever the child-stream policy.
 ## Seeding opt-ins that become the 4.0 defaults (3.2+)
 
 Three `GeneratorConfig` settings change seeded output, so 3.x keeps them off by default and every
-existing seed and recipe gives the values it gave before. Each is the default from 4.0; turn them on
-now to get the 4.0 values early:
+existing seed and recipe gives the values it gave before. From 4.0.0 each is on by default, and setting
+it to `false` keeps its 3.x values. On 3.x, turn them on to get the 4.0 values early:
 
 ```java
 GeneratorConfig config = GeneratorConfig.builder()
@@ -206,8 +206,17 @@ GeneratorConfig config = GeneratorConfig.builder()
   `ParagraphGenerator`. Other built-ins that are not `Seedable`, such as `MiddleNameGenerator` or
   `CompanyEmailGenerator`, keep their own source. Other fields keep their values.
 
-The Kotlin DSL has the same three switches in `config { ... }`. A portable recipe records each opt-in
-only when it is on, as `setting.advancing-convenience-streams=true`, `setting.gaussian.strict-math=true`
+The Kotlin DSL has the same three switches in `config { ... }`. In 3.x a portable recipe records each
+opt-in only when it is on, as `setting.advancing-convenience-streams=true`, `setting.gaussian.strict-math=true`
 and `setting.object.reseed-built-in-randomizers=true`. A recipe without them, such as every recipe that
 3.1 wrote, replays with them off. A release before 3.2 rejects a recipe that records one, rather than
 replaying it with other values.
+
+From 4.0.0 a recipe is `krandom-recipe/v2`. It records these three and `address.german-street-layout`,
+`true` or `false`, and replay requires all four, so a recipe gives the same values whatever the defaults of
+the release that replays it. A 4.x release rejects a `krandom-recipe/v1` recipe, which every 3.x release
+writes, because its values differ from 4.0.0. The error names the release that wrote it:
+
+```text
+Unsupported recipe version: v1. kRandom 4.x replays only krandom-recipe/v2 recipes: a krandom-recipe/v1 recipe was written by kRandom 3.x or earlier, and its seeded values differ from 4.0.0. This recipe records library-version 3.2.0: replay it with kRandom 3.2.0.
+```

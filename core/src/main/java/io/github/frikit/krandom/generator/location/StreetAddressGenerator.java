@@ -23,8 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * from {@link StreetAddressDataRegistry} for the configured locale.
  *
  * <p>With {@link GeneratorConfig.Builder#germanStreetLayout(boolean)} on, the locales whose language is
- * German write the street first, as German does ({@code "Hauptstr. 12"}). It is off by default in 3.x and the
- * default from 4.0.
+ * German write the street first, as German does ({@code "Hauptstr. 12"}). It is on by default from 4.0.0;
+ * {@code false} keeps the 3.x layout, the house number first.
  */
 public final class StreetAddressGenerator implements Generator<String> {
 

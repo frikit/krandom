@@ -309,7 +309,7 @@ class GeneratorConfigChildStreamTest {
                 .emailDomainPolicy(EmailDomainPolicy.REALISTIC_UNCLASSIFIED)
                 .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
                 .childStreamPolicy(ChildStreamPolicy.INDEPENDENT)
-                .germanStreetLayout(true);
+                .germanStreetLayout(legacy);
     }
 
     /** The portable settings, and every kind of state that a recipe cannot record, with two entries apiece. */

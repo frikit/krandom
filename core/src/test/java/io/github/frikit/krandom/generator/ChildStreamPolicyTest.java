@@ -371,12 +371,17 @@ class ChildStreamPolicyTest {
         assertEquals("Recipe requires setting: child-stream-policy", error.getMessage());
     }
 
+    /** The four seeding settings that are on by default from 4.0.0 are off, as in 3.x, which the pins record. */
     private static GeneratorConfig.Builder baseConfig() {
         return GeneratorConfig.builder()
                 .networkSafetyPolicy(NetworkSafetyPolicy.REALISTIC_UNCLASSIFIED)
                 .seed(42L)
                 .clock(FIXED_CLOCK)
-                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED);
+                .bankingSafetyPolicy(BankingSafetyPolicy.REALISTIC_UNCLASSIFIED)
+                .advancingConvenienceStreams(false)
+                .strictMathGaussian(false)
+                .objectReseedBuiltInRandomizers(false)
+                .germanStreetLayout(false);
     }
 
     private static GeneratorConfig legacyConfig() {

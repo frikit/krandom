@@ -126,6 +126,11 @@ Gradle build, run the owning project's task (`./gradlew :orders:test --tests ...
 without a matching test do not fail the filter; in a multi-module Maven build, add
 `-pl <module>` or `-Dsurefire.failIfNoSpecifiedTests=false`.
 
+From 4.0.0 a replayed recipe must be `krandom-recipe/v2`. A `krandom-recipe/v1` recipe, printed by a
+3.x release, is a configuration error that names the release that wrote it, such as
+`Invalid krandom.junit.recipe replay recipe: Unsupported recipe version: v1. ... This recipe records
+library-version 3.2.0: replay it with kRandom 3.2.0.`; replay it with that release.
+
 For a seed-only replay, use a decimal signed 64-bit value:
 
 ```bash

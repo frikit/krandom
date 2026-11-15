@@ -309,9 +309,9 @@ public final class EmailGenerator implements Generator<String> {
     /**
      * Generates a company email address.
      *
-     * <p>Each call builds a {@link CompanyEmailGenerator} from the same child stream, so a seeded generator
-     * repeats one address. With {@link GeneratorConfig.Builder#advancingConvenienceStreams(boolean)} on, which is
-     * the default from 4.0, it keeps that generator and each call gives the next address.
+     * <p>With {@link GeneratorConfig.Builder#advancingConvenienceStreams(boolean)} on, as it is by default from
+     * 4.0.0, it keeps one {@link CompanyEmailGenerator} and each call gives the next address. With it off, as in
+     * 3.x, each call builds one from the same child stream, so a seeded generator repeats one address.
      *
      * @return a company-style email
      */
