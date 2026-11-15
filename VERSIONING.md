@@ -4,7 +4,8 @@ kRandom publishes its `io.github.frikit:krandom-*` artifacts with `MAJOR.MINOR.P
 numbers and, from 3.0.0, follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html):
 
 - A **major** release, such as 4.0.0, is the only kind that removes public API, changes it
-  incompatibly, or raises the minimum Java version or the Spring Boot major version a module needs.
+  incompatibly, or raises the minimum Java version, the Spring Boot major version, or the Kotlin
+  language and API version that a module needs.
 - A **minor** release, such as 3.1.0, adds features and keeps existing public API and behavior
   compatible.
 - A **patch** release, such as 3.0.1, only fixes bugs.
@@ -22,6 +23,15 @@ The public API is:
   release wrote, and the `fnv1a64-v1` string-seed derivation.
 
 Packages that `krandom-core` does not export are internal and can change in any release.
+
+An incompatible change includes one that keeps every JVM signature but stops Kotlin source from
+compiling. Widening the bound of a class's type parameter, such as from `Object` to `@Nullable Object`,
+is one: Kotlin reads a star projection of the class, such as `ContextualGenerator<*>`, through that
+bound, so a value read from it becomes `Any?`, and code that reads it as `Any` no longer compiles.
+Compiled code is unaffected, as it calls the same methods and gets the same values, but only a major
+release makes such a change. 3.1.0 widened the bounds of `ConstantGenerator`, `ContextualGenerator`,
+`RepeatGenerator`, `UniqueGenerator` and `PropertySelector` as a recorded exception to this rule, as
+the [changelog](CHANGELOG.md) states under 3.1.0, Changed.
 
 Public API is deprecated in a minor release before a major release removes it: the deprecation names
 its replacement, and the [changelog](CHANGELOG.md) lists it. Only the latest release is maintained,
@@ -68,6 +78,10 @@ From 3.1.0 every module runs on Java 17, and every later 3.x release keeps them 
 Java modules with `--release 17` and the Kotlin modules for JVM target 17, both against the Java 17 API, their
 Gradle module metadata declares Java 17 (`org.gradle.jvm.version`), and CI runs the Java modules' tests and
 the Android example's unit tests on Java 17. Building kRandom itself needs JDK 21 or later.
+
+Likewise, a minor or patch release keeps the Kotlin language and API version that
+`krandom-kotlin-dsl` and `krandom-kotest-extensions` are compiled for, 2.2 since 3.1.0: raising it
+raises the Kotlin version that a consumer needs, so only a major release does.
 
 ## Where to look
 

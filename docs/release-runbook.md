@@ -153,6 +153,11 @@ The check does not cover:
   values, `vararg` versus an array, and type arguments. The ABI dump records erased JVM signatures, so
   a change to one of these passes; review it by hand. For the Java modules, japicmp reports changed
   type arguments and a parameter that stops being varargs.
+- JSpecify nullness in the Java modules, such as a `@Nullable` added to a return type or a type
+  parameter bound widened from `Object` to `@Nullable Object`. Neither check sees a type-use
+  annotation, yet Kotlin and NullAway read them, and [VERSIONING.md](../VERSIONING.md) makes a widened
+  class type-parameter bound a major-only change. The tests in `core/src/nullnessTest/java` cover some
+  of them; review such changes by hand, with a Kotlin compile probe for what Kotlin callers see.
 - Behavior: seeded output, the `krandom-recipe/v1` format, and the `fnv1a64-v1` derivation stay with
   the tests, such as `GenerationRecipeTest`.
 
