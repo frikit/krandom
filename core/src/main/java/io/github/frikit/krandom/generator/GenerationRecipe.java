@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -46,7 +47,9 @@ import org.jspecify.annotations.Nullable;
  * <p>From 4.0.0 a recipe is {@code krandom-recipe/v2}, and it records the four seeding settings that 4.0.0 turns
  * on by default, on or off, so its replay does not depend on a release's defaults. 3.x wrote
  * {@code krandom-recipe/v1}, which leaves those settings to the 3.x defaults; this release rejects such a recipe
- * with a message that names the {@code library-version} it records, the release to replay it with.
+ * with a message that names the {@code library-version} it records, the release to replay it with. For a v1
+ * recipe built in code whose {@code library-version} is not 3.x or earlier, such as the builder's default (the
+ * running release), the message says instead to replay it with the 3.x release that wrote it.
  *
  * <p>A recipe does not record the Java runtime's time-zone database or locale data, so values that
  * follow them, such as zone IDs, zone offsets and formatted money amounts, can differ on another JDK.
@@ -61,6 +64,9 @@ public final class GenerationRecipe {
 
     /** The version that 3.x wrote, which this release does not replay. */
     private static final String V1 = "v1";
+
+    /** A library-version whose leading number, the major version, is 3 or lower, such as {@code 3.2.0}. */
+    private static final Pattern THREE_X_OR_EARLIER = Pattern.compile("0*[0-3](?:\\D.*)?");
 
     /** Random algorithm and named-child derivation used by recipe version {@value #RECIPE_VERSION}. */
     public static final String ALGORITHM = "java.util.Random-v1";
@@ -624,7 +630,16 @@ public final class GenerationRecipe {
     private static String requireSupportedRecipeVersion(String value, String libraryVersion) {
         String version = requireToken("recipeVersion", value);
         if (V1.equals(version)) {
-            throw new IllegalArgumentException(v1Message(libraryVersion));
+            /*
+             * The builder's library-version defaults to the running release, and code compiled against 3.x passes
+             * the inlined "v1", so only a 3.x or earlier library-version is named as the release to replay with.
+             */
+            throw new IllegalArgumentException(
+                    THREE_X_OR_EARLIER.matcher(libraryVersion).matches()
+                            ? v1Message(libraryVersion)
+                            : v1Rejection("This recipe records library-version " + libraryVersion + ", which is not"
+                                    + " a 3.x or earlier release, and a library-version of 4 or later cannot have"
+                                    + " written a v1 recipe: replay it with the 3.x release that wrote it."));
         }
         if (!RECIPE_VERSION.equals(version)) {
             throw new IllegalArgumentException("Unsupported recipe version: " + version);
@@ -634,10 +649,15 @@ public final class GenerationRecipe {
 
     /** Why a {@code krandom-recipe/v1} recipe does not replay, and which release to replay it with. */
     private static String v1Message(@Nullable String libraryVersion) {
-        String release = libraryVersion == null || libraryVersion.isBlank()
-                ? "This recipe records no library-version: replay it with the 3.x release that wrote it."
-                : "This recipe records library-version " + libraryVersion + ": replay it with kRandom " + libraryVersion
-                        + ".";
+        return v1Rejection(
+                libraryVersion == null || libraryVersion.isBlank()
+                        ? "This recipe records no library-version: replay it with the 3.x release that wrote it."
+                        : "This recipe records library-version " + libraryVersion + ": replay it with kRandom "
+                                + libraryVersion + ".");
+    }
+
+    /** The v1 rejection, ending with the sentence that says which release to replay the recipe with. */
+    private static String v1Rejection(String release) {
         return "Unsupported recipe version: v1. kRandom 4.x replays only krandom-recipe/v2 recipes: a"
                 + " krandom-recipe/v1 recipe was written by kRandom 3.x or earlier, and its seeded values differ from"
                 + " 4.0.0. " + release;
