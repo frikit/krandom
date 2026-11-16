@@ -6,7 +6,7 @@ val krandomVersion =
     providers
         .gradleProperty("krandomVersion")
         .orElse(providers.environmentVariable("KRANDOM_VERSION"))
-        .orElse("4.0.0-SNAPSHOT")
+        .orElse("4.1.0-SNAPSHOT")
 
 repositories {
     mavenLocal()
