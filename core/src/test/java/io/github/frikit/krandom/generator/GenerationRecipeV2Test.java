@@ -182,6 +182,51 @@ class GenerationRecipeV2Test {
                         .getMessage());
     }
 
+    private static String v1BuilderMessageWithoutARelease(String libraryVersion) {
+        return "Unsupported recipe version: v1. kRandom 4.x replays only krandom-recipe/v2 recipes: a"
+                + " krandom-recipe/v1 recipe was written by kRandom 3.x or earlier, and its seeded values differ"
+                + " from 4.0.0. This recipe records library-version " + libraryVersion + ", which is not a 3.x or"
+                + " earlier release, and a library-version of 4 or later cannot have written a v1 recipe: replay it"
+                + " with the 3.x release that wrote it.";
+    }
+
+    private static IllegalArgumentException buildV1(UnaryOperator<GenerationRecipe.Builder> libraryVersion) {
+        return assertThrows(
+                IllegalArgumentException.class,
+                () -> libraryVersion
+                        .apply(GenerationRecipe.builder().recipeVersion("v1").seed(1L))
+                        .build());
+    }
+
+    @Test
+    @DisplayName("a v1 recipe built in code without a library-version does not name the running release to replay it")
+    void builderV1WithoutLibraryVersionDoesNotNameTheRunningRelease() {
+        String running = GenerationRecipe.currentLibraryVersion();
+
+        IllegalArgumentException error = buildV1(UnaryOperator.identity());
+
+        assertEquals(v1BuilderMessageWithoutARelease(running), error.getMessage());
+        assertFalse(error.getMessage().contains("replay it with kRandom"), error.getMessage());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"3", "3.2.0", "3.2.0-SNAPSHOT", "0.9.0", "03.1.0"})
+    @DisplayName("a v1 recipe built in code with a 3.x or earlier library-version still names it")
+    void builderV1NamesA3xLibraryVersion(String version) {
+        IllegalArgumentException error = buildV1(builder -> builder.libraryVersion(version));
+
+        assertEquals(V1_MESSAGE_FROM_3_2_0.replace("3.2.0", version), error.getMessage());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"4", "4.0.0", "4.0.0-SNAPSHOT", "10.1.0", "30.0", "development", "v3.2.0", "-3.2.0"})
+    @DisplayName("a v1 recipe built in code with a 4.x or non-numeric library-version is not told to replay with it")
+    void builderV1WithoutA3xLibraryVersionGetsTheSafeWording(String version) {
+        IllegalArgumentException error = buildV1(builder -> builder.libraryVersion(version));
+
+        assertEquals(v1BuilderMessageWithoutARelease(version), error.getMessage());
+    }
+
     @Test
     @DisplayName("a v2 recipe without one of the four settings is rejected rather than replayed with a default")
     void v2RequiresTheFourSettings() {

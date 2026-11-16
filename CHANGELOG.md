@@ -50,8 +50,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   report that message, and a generation report names the format as `krandom-recipe/v2`.
   `GenerationRecipe.RECIPE_VERSION` is a compile-time constant, so javac copies it into the code that reads
   it, and code compiled against 3.x still holds `"v1"`: passed to `GenerationRecipe.builder().recipeVersion`,
-  it fails at `build()` with that message, which then names the builder's `library-version`, the running
-  release unless the code sets one, and compared with `getRecipeVersion()`, it no longer matches. Recompile
+  it fails at `build()` with that message, and compared with `getRecipeVersion()`, it no longer matches.
+  The builder's `library-version` is the running release unless the code sets one, so the builder's message
+  names it as the release to replay with only when it is 3.x or earlier. For any other value, such as the
+  default, `development` or `4.0.0`, it ends `This recipe records library-version 4.0.0, which is not a 3.x
+  or earlier release, and a library-version of 4 or later cannot have written a v1 recipe: replay it with the
+  3.x release that wrote it.` Recompile
   such code against 4.0.0.
 
 - `Schema` is a `Generator<Map<String, @Nullable Object>>`, where it was a `Generator<Map<String, Object>>`,

@@ -208,8 +208,10 @@ starter fails at startup with `Invalid krandom.recipe: Unsupported recipe versio
 
 `GenerationRecipe.RECIPE_VERSION` is a compile-time constant, `"v2"` from 4.0.0. Code compiled against 3.x
 holds `"v1"`, so passing it to `GenerationRecipe.builder().recipeVersion(...)` fails at `build()`, and
-comparing it with `getRecipeVersion()` no longer matches. The message then names the builder's
-`library-version`, the running release unless the code sets one, not a 3.x release. Recompile such code.
+comparing it with `getRecipeVersion()` no longer matches. The builder's `library-version` is the running
+release unless the code sets one, and from 4.0.0 the message names it as the release to replay with only
+when it is 3.x or earlier. For any other value, such as the default, it says that a library-version of 4 or
+later cannot have written a v1 recipe, so replay it with the 3.x release that wrote it. Recompile such code.
 
 ## What does not change
 
