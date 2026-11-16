@@ -13,8 +13,8 @@ Use `krandom-jackson` when you want Jackson to understand kRandom schema definit
 `krandom-jackson` is built for **Jackson 3** (`tools.jackson.core:jackson-databind`, packages
 `tools.jackson.*`) and brings `jackson-databind` 3 transitively. Jackson 3 has no annotations module
 of its own: it uses the 2.x `com.fasterxml.jackson.core:jackson-annotations` (package
-`com.fasterxml.jackson.annotation`), and `jackson-databind` brings the matching version, `2.22` for
-Jackson 3.2. Leave that version to Jackson. The artifact's `3.0-rc` versions are pre-releases that
+`com.fasterxml.jackson.annotation`), and `jackson-databind` brings the matching version, `2.23` for
+Jackson 3.3. Leave that version to Jackson. The artifact's `3.0-rc` versions are pre-releases that
 Jackson 3 does not use, although Maven Central lists `3.0-rc5` as its latest release.
 
 `KrandomJacksonModule` is a Jackson 3 module. It cannot be registered with a Jackson 2

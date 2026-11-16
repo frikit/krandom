@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Update Jackson to 3.3.0, the `jackson-databind` dependency of `krandom-jackson`, which brings
+  `jackson-annotations` 2.23, and Kotest to 6.2.7, the `kotest-property` dependency of
+  `krandom-kotest-extensions`. Update the build tooling, with no change for consumers: the Gradle wrapper
+  to 9.9.1, the CycloneDX Gradle plugin to 3.6.0, and in CI `graalvm/setup-graalvm` to 1.6.9.
+
 ## [4.0.0] - 2026-11-16
 
 ### Added
