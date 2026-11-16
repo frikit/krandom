@@ -60,7 +60,7 @@ kotlin {
 
 dependencies {
     // 3.1.0 or later: earlier versions compile krandom-kotlin-dsl for JVM target 21 and Kotlin 2.4.
-    testImplementation(platform("io.github.frikit:krandom-bom:3.2.0"))
+    testImplementation(platform("io.github.frikit:krandom-bom:4.0.0"))
     testImplementation("io.github.frikit:krandom-core")
     testImplementation("io.github.frikit:krandom-kotlin-dsl")
     testImplementation("junit:junit:4.13.2")
@@ -124,7 +124,7 @@ android {
 }
 
 dependencies {
-    testImplementation(platform("io.github.frikit:krandom-bom:3.2.0"))
+    testImplementation(platform("io.github.frikit:krandom-bom:4.0.0"))
     testImplementation("io.github.frikit:krandom-junit")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:6.1.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.1.3")

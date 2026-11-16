@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation("io.github.frikit:krandom-kotlin-dsl:3.2.0")
+    testImplementation("io.github.frikit:krandom-kotlin-dsl:4.0.0")
 }
 ```
 

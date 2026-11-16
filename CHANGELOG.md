@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-11-16
+
 ### Added
 
 - Spring Boot starter properties for the four seeding settings that are on by default from 4.0.0:
@@ -57,6 +59,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   or earlier release, and a library-version of 4 or later cannot have written a v1 recipe: replay it with the
   3.x release that wrote it.` Recompile
   such code against 4.0.0.
+  Ending v1 replay is a recorded exception to the rule that a minor release deprecates public API before a
+  major release removes it: no 3.x release deprecated v1 replay. The 3.x recipe promise covered replay
+  within 3.x only, and 3.2.0 added an opt-in for each of the four settings, so a test can move to the 4.0.0
+  values before upgrading.
 
 - `Schema` is a `Generator<Map<String, @Nullable Object>>`, where it was a `Generator<Map<String, Object>>`,
   whose type claimed values that are never `null` although a value is `null` where its provider returns
@@ -2374,7 +2380,8 @@ Condensed summary of all pre-1.0.0 development (≈Feb–Apr 2026), originally t
 ### Removed
 - Kotlin and Scala API modules (implementation surface kept focused); deprecated APIs and deprecated Java locale usage.
 
-[Unreleased]: https://github.com/frikit/krandom/compare/v3.2.0...HEAD
+[Unreleased]: https://github.com/frikit/krandom/compare/v4.0.0...HEAD
+[4.0.0]: https://github.com/frikit/krandom/compare/v3.2.0...v4.0.0
 [3.2.0]: https://github.com/frikit/krandom/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/frikit/krandom/compare/v3.0.3...v3.1.0
 [3.0.3]: https://github.com/frikit/krandom/compare/v3.0.2...v3.0.3

@@ -38,11 +38,13 @@ release makes such a change. 3.1.0 widened the bounds of `ConstantGenerator`, `C
 the [changelog](CHANGELOG.md) states under 3.1.0, Changed.
 
 Public API is deprecated in a minor release before a major release removes it: the deprecation names
-its replacement, and the [changelog](CHANGELOG.md) lists it. Only the latest release is maintained,
+its replacement, and the [changelog](CHANGELOG.md) lists it. 4.0.0 ended `krandom-recipe/v1` replay
+without a 3.x deprecation, as a recorded exception to this rule that the changelog states under 4.0.0,
+Changed. Only the latest release is maintained,
 and fixes are not backported to earlier ones. Releases before 3.0.0 made no compatibility promise, so
 read the changelog when upgrading from 2.x.
 
-The latest stable release is `3.2.0`.
+The latest stable release is `4.0.0`.
 The repository development line is `4.0.0-SNAPSHOT`.
 
 ## Determinism
