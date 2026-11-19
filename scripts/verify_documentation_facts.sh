@@ -200,4 +200,47 @@ reject_pattern "locale contribution guide still contains the obsolete flat resou
     '<locale>_(first_male|first_female|last|street_names|street_types_short|street_types_long|secondary_units)\.txt' \
     "${REPO_ROOT}/docs/locale-contribution-guide.md"
 
+# The contributor guides name files, classes and example commits so that a reader can open them. Each
+# name in backticks that looks like a repository path, a core path, a test class or a commit must still
+# exist, so a rename or deletion fails here instead of leaving the guides pointing at nothing.
+CONTRIBUTOR_GUIDES=(
+    "AGENTS.md"
+    "docs/development/architecture.md"
+    "docs/development/determinism-and-compatibility.md"
+    "docs/development/adding-a-generator.md"
+    "docs/development/testing.md"
+)
+CORE_MAIN="core/src/main/java/io/github/frikit/krandom"
+CORE_TEST="core/src/test/java/io/github/frikit/krandom"
+SOURCE_CLASSES="$(find "${REPO_ROOT}" -path '*/build' -prune -o -path '*/src/*' \
+    \( -name '*.java' -o -name '*.kt' \) -print | sed -E 's#.*/##; s#\.(java|kt)$##' | sort -u)"
+SHALLOW_CLONE="$(git -C "${REPO_ROOT}" rev-parse --is-shallow-repository 2>/dev/null || echo true)"
+guide_names_exist() {
+    local guide="$1" token
+    [[ -f "${REPO_ROOT}/${guide}" ]] || fail "${guide} is missing"
+    while IFS= read -r token; do
+        # Placeholders such as <module>, X or a wildcard name a pattern, not a file.
+        [[ "${token}" == *[\<\>\*\ ]* ]] && continue
+        if [[ "${token}" =~ ^(core|jackson|junit|spring-boot-starter|kotest-extensions|kotlin-dsl|bom|buildSrc|scripts|docs|docs-site|gradle|examples|examples-e2e|benchmarks|\.github)/ ]]; then
+            [[ -e "${REPO_ROOT}/${token%/}" ]] || fail "${guide} names ${token}, which does not exist"
+        elif [[ "${token}" =~ ^(generator|internal)(/[A-Za-z0-9_]+)*/?(\.java)?$ ]]; then
+            local path="${token%/}"
+            [[ -e "${REPO_ROOT}/${CORE_MAIN}/${path}" || -e "${REPO_ROOT}/${CORE_TEST}/${path}" \
+                || -e "${REPO_ROOT}/${CORE_MAIN}/${path}.java" || -e "${REPO_ROOT}/${CORE_TEST}/${path}.java" ]] \
+                || fail "${guide} names ${token}, which is not under ${CORE_MAIN} or ${CORE_TEST}"
+        elif [[ "${token}" =~ ^[A-Z][A-Za-z0-9]*Test$ && ! "${token}" =~ ^X[A-Z] ]]; then
+            grep -Fxq "${token}" <<< "${SOURCE_CLASSES}" || fail "${guide} names test class ${token}, which does not exist"
+        elif [[ "${token}" =~ ^[0-9a-f]{8}$ && "${SHALLOW_CLONE}" == "false" ]]; then
+            git -C "${REPO_ROOT}" cat-file -e "${token}^{commit}" 2>/dev/null \
+                || fail "${guide} names commit ${token}, which is not in the history"
+        fi
+    done < <(grep -oE '`[^`]+`' "${REPO_ROOT}/${guide}" | tr -d '`' | sort -u)
+}
+for guide in "${CONTRIBUTOR_GUIDES[@]}"; do
+    guide_names_exist "${guide}"
+done
+for module in "${modules[@]}"; do
+    grep -Fq "\`${module}/\`" "${REPO_ROOT}/AGENTS.md" || fail "AGENTS.md repository layout does not list ${module}/"
+done
+
 echo "Documentation facts verified: ${LATEST_GA_VERSION} release docs, ${DEVELOPMENT_VERSION} development, ${#modules[@]} modules, ${ACTUAL_TOTAL} locale variants."
