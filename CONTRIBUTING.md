@@ -2,6 +2,12 @@
 
 Thank you for your interest in contributing to krandom! This document describes the workflow and requirements for contributing.
 
+Before changing code, read the development guides: [architecture](docs/development/architecture.md),
+[determinism and compatibility](docs/development/determinism-and-compatibility.md),
+[adding a generator](docs/development/adding-a-generator.md) and
+[testing and the gate](docs/development/testing.md). Automated contributors start with
+[AGENTS.md](AGENTS.md).
+
 ## Prerequisites
 
 - **Java 21** (Temurin recommended) to build

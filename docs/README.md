@@ -24,6 +24,15 @@ in Git and release tags instead of duplicated as completed plans and dated revie
 ## Develop and plan
 
 - [Contributing](../CONTRIBUTING.md) — workflow, quality gates, and maintenance tools
+- [Architecture](development/architecture.md) — modules, entry points, seeding, locale data, and
+  extension points
+- [Determinism and compatibility](development/determinism-and-compatibility.md) — keeping seeded
+  output and public API stable, and changing them on purpose
+- [Adding a generator](development/adding-a-generator.md) — recipes for generators, locale-aware
+  vocabularies, and named providers
+- [Testing and the gate](development/testing.md) — test sets, patterns, the pre-commit gate, and
+  fixes for each failing step
+- [AGENTS.md](../AGENTS.md) — rules and reading order for automated contributors
 - [2.5.0 release plan](development/release-2.5.0-plan.md) — latest qualification and publication record
 - [Product roadmap](development/market-leadership-roadmap.md) — priorities and release gates
 - [Dependency reproducibility](development/dependency-reproducibility.md) — build-input policy and
