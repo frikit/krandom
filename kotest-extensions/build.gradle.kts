@@ -12,7 +12,7 @@ kotlin {
     // Bytecode for Java 17, against the Java 17 API, so that code compiled for JVM target 17, as Android modules
     // usually are, can inline this module's inline functions.
     // Kotlin 2.2 metadata and standard library API, so that the Kotlin 2.2 compiler, which the Android Gradle
-    // plugin 9.5.1 brings, can read this module; the published kotlin-stdlib dependency is 2.2.21 for the same
+    // plugin 9.5.2 brings, can read this module; the published kotlin-stdlib dependency is 2.2.21 for the same
     // reason, since the compiler reads the standard library on the classpath too.
     coreLibrariesVersion = "2.2.21"
     compilerOptions {

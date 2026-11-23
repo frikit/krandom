@@ -9,7 +9,7 @@ permalink: /guides/android-unit-tests/
 An Android module can use kRandom in its local unit tests, the tests under `src/test` that Gradle runs on
 a JVM on the build machine. The
 [`examples/kotlin-android`](https://github.com/frikit/krandom/tree/main/examples/kotlin-android) example,
-which CI runs, has two Android library modules built with the Android Gradle plugin 9.5.1 and its built-in
+which CI runs, has two Android library modules built with the Android Gradle plugin 9.5.2 and its built-in
 Kotlin, the Kotlin Gradle plugin 2.2.10 that it brings. They compile Java and Kotlin for JVM target 17 against
 `compileSdk` 36, and their unit tests use `krandom-core`, `krandom-kotlin-dsl` and `krandom-junit`.
 
@@ -72,7 +72,7 @@ dependencies {
 
 From 3.1.0, `krandom-kotlin-dsl` is compiled for Kotlin 2.2, with Kotlin language and API version 2.2, and
 depends on `kotlin-stdlib` 2.2.21, so a Kotlin 2.1.0 or later compiler can read it. That includes the Kotlin
-2.2.10 that the Android Gradle plugin 9.5.1 brings: the example builds with it and names no Kotlin version of
+2.2.10 that the Android Gradle plugin 9.5.2 brings: the example builds with it and names no Kotlin version of
 its own. Kotlin 2.0 cannot read it. A build on a newer Kotlin keeps its own newer `kotlin-stdlib`. Up to 3.0.x
 `krandom-kotlin-dsl` is compiled for Kotlin 2.4 and depends on `kotlin-stdlib` 2.4.21, and Kotlin 2.2 stops
 with "Module was compiled with an incompatible version of Kotlin. The binary version of its metadata is 2.4.0,
