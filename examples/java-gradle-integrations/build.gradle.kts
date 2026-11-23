@@ -20,7 +20,7 @@ dependencies {
     implementation("io.github.frikit:krandom-spring-boot-starter")
 
     testImplementation("io.github.frikit:krandom-junit")
-    testImplementation("org.springframework.boot:spring-boot-starter-test:4.1.2")
+    testImplementation("org.springframework.boot:spring-boot-starter-test:4.2.0")
     testImplementation("org.junit.jupiter:junit-jupiter-api:6.1.3")
     testImplementation("org.junit.jupiter:junit-jupiter-params:6.1.3")
     testImplementation("org.junit.platform:junit-platform-testkit:6.1.3")
