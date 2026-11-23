@@ -9,9 +9,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - Update Jackson to 3.3.0, the `jackson-databind` dependency of `krandom-jackson`, which brings
-  `jackson-annotations` 2.23, and Kotest to 6.2.7, the `kotest-property` dependency of
-  `krandom-kotest-extensions`. Update the build tooling, with no change for consumers: the Gradle wrapper
-  to 9.9.1, the CycloneDX Gradle plugin to 3.6.0, and in CI `graalvm/setup-graalvm` to 1.6.9.
+  `jackson-annotations` 2.23, Kotest to 6.2.7, the `kotest-property` dependency of
+  `krandom-kotest-extensions`, and Spring Boot to 4.2.0, the `spring-boot-autoconfigure` dependency of
+  `krandom-spring-boot-starter`. Update the build tooling, with no change for consumers: the Gradle wrapper
+  to 9.9.2, the CycloneDX Gradle plugin to 3.6.1, Error Prone to 2.53.0, NullAway to 0.14.4, and in CI
+  `actions/setup-java` to 6.3.0, `graalvm/setup-graalvm` to 1.6.10 and `coursier/setup-action` to 3.1.1.
 
 ## [4.0.0] - 2026-11-16
 
