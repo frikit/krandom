@@ -44,7 +44,7 @@ Changed. Only the latest release is maintained,
 and fixes are not backported to earlier ones. Releases before 3.0.0 made no compatibility promise, so
 read the changelog when upgrading from 2.x.
 
-The latest stable release is `4.0.0`.
+The latest stable release is `4.1.0`.
 The repository development line is `4.1.0-SNAPSHOT`.
 
 ## Determinism
